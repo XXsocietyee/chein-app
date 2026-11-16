@@ -27,7 +27,7 @@ import XCTest
         // The sixth digit submits automatically; tap only if that has not started yet.
         let submit = app.buttons["auth.channels.phoneSignIn"]
         if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn") }
-        let account = app.tabBars.buttons["Passport"]
+        let account = app.tabBars.buttons["Me"]
         XCTAssertTrue(account.waitForExistence(timeout: 10)); account.tap()
         // rewards.open is the Passport collection row, not a control inside Favorites.
         tap("rewards.open")

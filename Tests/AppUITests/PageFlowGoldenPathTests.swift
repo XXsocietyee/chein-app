@@ -34,17 +34,17 @@ final class PageFlowGoldenPathTests: XCTestCase {
         XCTAssertTrue(browse.waitForExistence(timeout: 10))
         if !browse.isHittable { app.swipeUp() }
         browse.tap()
-        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Explore", "Roam", "Clubs", "Passport"])
+        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Home", "Roam", "Publish", "Clubs", "Me"])
 
         let explore = ["homeFeed.configurationUnavailable", "homeFeed.openGlobalSearch", "homeFeed.kind", "homeFeed.empty"]
         let roam = ["roam.error", "roam.content", "roam.go", "roam.home.tabs"]
         let clubs = ["club.home.unavailable", "club.home.error", "club.home.signIn", "club.home.retry", "clubTab.topTabs"]
         let passport = ["welcome.player"] // a guest's Passport tab is the sign-in entry
 
-        openTab("Explore", root: explore)
+        openTab("Home", root: explore)
         openTab("Roam", root: roam)
         openTab("Clubs", root: clubs)
-        openTab("Passport", root: passport)
-        openTab("Explore", root: explore)
+        openTab("Me", root: passport)
+        openTab("Home", root: explore)
     }
 }

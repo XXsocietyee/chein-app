@@ -95,7 +95,7 @@ final class MotionTourTests: XCTestCase {
         let bar = app.tabBars.firstMatch
         XCTAssertTrue(bar.waitForExistence(timeout: 20), app.debugDescription)
         pause(1.2)
-        for title in ["Roam", "Clubs", "Passport", "Explore"] {
+        for title in ["Roam", "Clubs", "Me", "Home"] {
             let tab = bar.buttons[title]
             XCTAssertTrue(tab.exists, app.debugDescription)
             tab.tap()

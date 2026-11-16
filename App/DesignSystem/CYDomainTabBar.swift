@@ -29,11 +29,11 @@ enum CYDomainTabIcons {
     /// icon_f4 (club / group), icon_f5 (me). Matches `RootTab.systemImage` for the idle glyph.
     static func player(_ tab: RootTab) -> CYDomainTabIcon {
         switch tab {
-        case .home: return CYDomainTabIcon(idle: "sparkles", selected: "sparkles")
+        case .home: return CYDomainTabIcon(idle: "house", selected: "house.fill")
         case .roam: return CYDomainTabIcon(idle: "map", selected: "map.fill")
         case .publish: return CYDomainTabIcon(idle: "plus.square", selected: "plus.square.fill")
         case .club: return CYDomainTabIcon(idle: "person.3", selected: "person.3.fill")
-        case .mine: return CYDomainTabIcon(idle: "book.closed", selected: "book.closed.fill")
+        case .mine: return CYDomainTabIcon(idle: "person.crop.circle", selected: "person.crop.circle.fill")
         }
     }
 
@@ -326,7 +326,7 @@ private final class CYTabBarAccessibilityAnchor: UIView {
 
 #if canImport(UIKit)
 /// UIKit appearance for the parts SwiftUI cannot style: unselected items at 0.6 opacity
-/// (`Theme.MiniProgramChrome.tabUnselectedOpacity`), selected icon/label `#7A5CFF`.
+/// (`Theme.MiniProgramChrome.tabUnselectedOpacity`), selected icon/label in the primary ink (neutral, PL-01).
 /// Call once at launch (for example from the App initialiser).
 @MainActor
 enum CYTabBarAppearance {
@@ -340,7 +340,12 @@ enum CYTabBarAppearance {
                 ? UIColor(white: 1, alpha: unselectedAlpha)
                 : UIColor(white: 0, alpha: unselectedAlpha)
         }
-        let selectedViolet = UIColor(red: 122.0/255, green: 92.0/255, blue: 255.0/255, alpha: 1)
+        // PL-01 (design hand-off r1): neutral selection. Selected = primary ink at full opacity with a Semibold label.
+        let selectedInk = UIColor { traits in
+            traits.userInterfaceStyle == .dark ? UIColor(white: 0xF8 / 255.0, alpha: 1) : UIColor(white: 0, alpha: 1)
+        }
+        let selectedFont = UIFont.systemFont(ofSize: 10, weight: .semibold)
+        let normalFont = UIFont.systemFont(ofSize: 10, weight: .regular)
         let layouts: [UITabBarItemAppearance] = [
             appearance.stackedLayoutAppearance,
             appearance.inlineLayoutAppearance,
@@ -348,13 +353,12 @@ enum CYTabBarAppearance {
         ]
         for layout in layouts {
             layout.normal.iconColor = unselected
-            layout.normal.titleTextAttributes = [.foregroundColor: unselected]
-            // Violet appears only on the selected tab; everything else inherits the neutral tint.
-            layout.selected.iconColor = selectedViolet
-            layout.selected.titleTextAttributes = [.foregroundColor: selectedViolet]
+            layout.normal.titleTextAttributes = [.foregroundColor: unselected, .font: normalFont]
+            layout.selected.iconColor = selectedInk
+            layout.selected.titleTextAttributes = [.foregroundColor: selectedInk, .font: selectedFont]
         }
 
-        UITabBar.appearance().tintColor = selectedViolet
+        UITabBar.appearance().tintColor = selectedInk
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }

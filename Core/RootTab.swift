@@ -5,7 +5,7 @@ import Foundation
 ///
 /// The five cases and their `titleKey`/`systemImage` are the mini-program parity contract and both root tab bars'
 /// slot map (`首页 · 漫游 · 发布 · 俱乐部 · 我的`). `playerTabs` restores all five tabs with `player*`
-/// presentation: Explore · Roam · Publish · Clubs · Passport.
+/// presentation, labelled 首页 · 漫游 · 发布 · 俱乐部 · 我的 (design hand-off r1).
 public enum RootTab: Int, CaseIterable, Hashable, Sendable {
     case home, roam, publish, club, mine
 
@@ -34,21 +34,10 @@ public enum RootTab: Int, CaseIterable, Hashable, Sendable {
 
     public var isPlayerTab: Bool { Self.playerTabs.contains(self) }
 
-    /// Title key on the player bar (Explore / Roam / Clubs / Passport).
-    public var playerTitleKey: String {
-        switch self {
-        case .home: return "tabBar.explore"
-        case .mine: return "tabBar.passport"
-        case .roam, .publish, .club: return titleKey
-        }
-    }
+    /// Title key on the player bar. Design hand-off r1 (PL-01, PL-11): the five labels are the mini-program's
+    /// 首页 · 漫游 · 发布 · 俱乐部 · 我的, and each tab root's header title is the same word.
+    public var playerTitleKey: String { titleKey }
 
-    /// SF Symbol on the player bar (Passport is `book.closed`).
-    public var playerSystemImage: String {
-        switch self {
-        case .home: return "sparkles"
-        case .mine: return "book.closed"
-        case .roam, .publish, .club: return systemImage
-        }
-    }
+    /// SF Symbol on the player bar (outline; the selected item fills).
+    public var playerSystemImage: String { systemImage }
 }

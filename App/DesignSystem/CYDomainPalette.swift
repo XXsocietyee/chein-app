@@ -72,10 +72,14 @@ struct CYDomainPalette {
     var modalPanel: Color { token("--cy-comp-modal-panel", dark: CYRGB(hex: 0x4D4D4D), light: CYRGB(hex: 0xFFFFFF)) }
     /// Sheet drag grabber (`--cy-color-sheet-handle`): `#8E8E93` / `#DBDBDB`.
     var sheetHandle: Color { token("--cy-color-sheet-handle", dark: CYRGB(hex: 0x8E8E93), light: CYRGB(hex: 0xDBDBDB)) }
-    /// Field idle background (`--cy-comp-field-idle-bg`): `#1C1C1E` / `#FFFFFF`.
-    var inputIdleBg: Color { token("--cy-comp-field-idle-bg", dark: CYRGB(hex: 0x1C1C1E), light: CYRGB(hex: 0xFFFFFF)) }
-    /// Field filled background (`--cy-comp-field-filled-bg`): `#3B3B3D` / `#EFEFEF`.
-    var inputFilledBg: Color { token("--cy-comp-field-filled-bg", dark: CYRGB(hex: 0x3B3B3D), light: CYRGB(hex: 0xEFEFEF)) }
+    /// Field idle background. Dark: `--cy-comp-field-idle-bg` `#1C1C1E`.
+    /// Light (handbook fix adopted by the owner, design hand-off r1): `#EFEFEF` inside a card (`.card`, the default);
+    /// use `inputIdleBgOnPage` (`#E4E4E4`) for a field that sits directly on the grey page.
+    var inputIdleBg: Color { isDark ? token("--cy-comp-field-idle-bg", dark: CYRGB(hex: 0x1C1C1E), light: CYRGB(hex: 0xEFEFEF)) : CYRGB(hex: Self.handbookInputInCardHex).swiftUIColor }
+    /// Light field on the page background: `#E4E4E4` (handbook). Dark keeps the idle token.
+    var inputIdleBgOnPage: Color { isDark ? inputIdleBg : CYRGB(hex: Self.handbookInputOnPageHex).swiftUIColor }
+    /// Field filled background. Dark: `--cy-comp-field-filled-bg` `#3B3B3D`. Light: a filled field keeps its idle fill (handbook).
+    var inputFilledBg: Color { isDark ? token("--cy-comp-field-filled-bg", dark: CYRGB(hex: 0x3B3B3D), light: CYRGB(hex: 0xEFEFEF)) : inputIdleBg }
     /// Field disabled background (`--cy-comp-field-disabled-bg`): `#141416` / `#F5F5F5`.
     var inputDisabledBg: Color { token("--cy-comp-field-disabled-bg", dark: CYRGB(hex: 0x141416), light: CYRGB(hex: 0xF5F5F5)) }
     /// Cover fallback fill when artwork is missing (`#30383D` dark / `bgRaised` light).
@@ -95,8 +99,9 @@ struct CYDomainPalette {
 
     /// `--cy-color-border-subtle`: `rgba(255,255,255,.08)` / `#E8E8E8`.
     var borderSubtle: Color { token("--cy-color-border-subtle", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0xE8E8E8)) }
-    /// `--cy-color-border-strong`: `rgba(255,255,255,.16)` / `#DBDBDB`.
-    var borderStrong: Color { token("--cy-color-border-strong", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.16), light: CYRGB(hex: 0xDBDBDB)) }
+    /// `--cy-color-border-strong`: `rgba(255,255,255,.16)` dark. Light uses the handbook's 3:1 control-boundary fix `#8C8C8C`
+    /// (owner adopted it in the design hand-off r1; the shipped token sheet still says `#DBDBDB`).
+    var borderStrong: Color { isDark ? token("--cy-color-border-strong", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.16), light: CYRGB(hex: 0x8C8C8C)) : CYRGB(hex: Self.handbookBorderStrongHex).swiftUIColor }
     /// Dark cards rise with a 0.5pt top-edge highlight (`--cy-comp-card-highlight`); light cards use a shadow instead.
     var cardHighlight: Color { token("--cy-comp-card-highlight", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.08), light: CYRGB(hex: 0x000000, alpha: 0)) }
     /// Neutral light-domain card shadow (`rgba(0,0,0,.05)` per unified shadow spec, no slate-blue); clear in dark.
@@ -150,10 +155,30 @@ struct CYDomainPalette {
     var danger: Color { legible("--cy-color-status-danger", darkText: 0xFF6B70, dark: CYRGB(hex: 0xE5484D), light: CYRGB(hex: 0xD0323B)) }
     /// `#4C86FF` / `#2563EB`.
     var info: Color { legible("--cy-color-status-info", darkText: 0x7AA5FF, dark: CYRGB(hex: 0x4C86FF), light: CYRGB(hex: 0x2563EB)) }
-    var successSoft: Color { token("--cy-color-status-success-soft", dark: CYRGB(hex: 0x22C55E, alpha: 0.14), light: CYRGB(hex: 0x0B7A57, alpha: 0.10)) }
-    var warningSoft: Color { token("--cy-color-status-warning-soft", dark: CYRGB(hex: 0xD58300, alpha: 0.18), light: CYRGB(hex: 0x96610A, alpha: 0.12)) }
-    var dangerSoft: Color { token("--cy-color-status-danger-soft", dark: CYRGB(hex: 0xE5484D, alpha: 0.14), light: CYRGB(hex: 0xD0323B, alpha: 0.10)) }
-    var infoSoft: Color { token("--cy-color-status-info-soft", dark: CYRGB(hex: 0x4C86FF, alpha: 0.14), light: CYRGB(hex: 0x2563EB, alpha: 0.10)) }
+    // Light soft fills use the handbook's 18% alpha (owner adopted it in the design hand-off r1); dark keeps the token sheet.
+    var successSoft: Color { softFill("--cy-color-status-success-soft", dark: CYRGB(hex: 0x22C55E, alpha: 0.14), lightHex: 0x0B7A57) }
+    var warningSoft: Color { softFill("--cy-color-status-warning-soft", dark: CYRGB(hex: 0xD58300, alpha: 0.18), lightHex: 0x96610A) }
+    var dangerSoft: Color { softFill("--cy-color-status-danger-soft", dark: CYRGB(hex: 0xE5484D, alpha: 0.14), lightHex: 0xD0323B) }
+    var infoSoft: Color { softFill("--cy-color-status-info-soft", dark: CYRGB(hex: 0x4C86FF, alpha: 0.14), lightHex: 0x2563EB) }
+
+    private func softFill(_ name: String, dark: CYRGB, lightHex: UInt32) -> Color {
+        isDark ? token(name, dark: dark, light: CYRGB(hex: lightHex, alpha: Self.handbookStatusSoftAlpha)) : CYRGB(hex: lightHex, alpha: Self.handbookStatusSoftAlpha).swiftUIColor
+    }
+
+    // MARK: Handbook fixes (design hand-off r1, owner ruling 5: adopt them in the app)
+
+    /// Light `border/strong`: 3:1 against white and the grey page.
+    static let handbookBorderStrongHex: UInt32 = 0x8C8C8C
+    /// Light input fill inside a card.
+    static let handbookInputInCardHex: UInt32 = 0xEFEFEF
+    /// Light input fill directly on the page.
+    static let handbookInputOnPageHex: UInt32 = 0xE4E4E4
+    /// Light status soft-fill alpha.
+    static let handbookStatusSoftAlpha: Double = 0.18
+    /// Home feed count (4.54:1; the shipped `#F97316` fails on the feed surface).
+    static let handbookFeedCountHex: UInt32 = 0xC2410C
+    /// Home feed count colour (`--cy-color-home-feed-count`, handbook value).
+    var homeFeedCount: Color { CYRGB(hex: Self.handbookFeedCountHex).swiftUIColor }
 
     // MARK: Skeleton / overlay
 
@@ -221,14 +246,11 @@ struct CYDomainPalette {
 
     // MARK: Reserved `#7A5CFF` Roles (tabSelected, avatarRing, resultSpinner ONLY)
 
-    /// Selected tab icon/label tint (`--cy-ref-violet-500` `#7A5CFF`).
-    var tabSelectedTint: Color {
-        token(
-            "--cy-ref-violet-500",
-            dark: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex),
-            light: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex)
-        )
-    }
+    /// Selected tab icon/label tint. Neutral since the design hand-off r1 (owner ruling, PL-01): the selected tab is the
+    /// primary ink at full opacity (white on the player bar, black on the merchant bar); unselected items stay at 60%.
+    var tabSelectedTint: Color { textPrimary }
+    /// Selected tab capsule behind the icon and label: ink at 12% (PL-01; was a violet pill, then a blank white one).
+    var tabSelectedCapsule: Color { textPrimary.opacity(0.12) }
     /// Profile hero avatar ring (`--cy-comp-profile-avatar-ring` `#7A5CFF`).
     var avatarRing: Color {
         token(

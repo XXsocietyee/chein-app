@@ -321,17 +321,18 @@ final class DesignSystemTokenMappingTests: XCTestCase {
             let palette = CYDomainPalette(domain)
             let scheme = domain.colorScheme
 
-            // The ONLY 3 allowed #7A5CFF roles:
-            // (1) tabSelected, (2) avatarRing, (3) resultSpinner
-            assertColor(palette.tabSelectedTint, matchesHex: 0x7A5CFF, scheme: scheme, "\(domain) tabSelectedTint")
+            // The ONLY allowed #7A5CFF roles: avatarRing and resultSpinner.
+            // The selected tab is neutral since the design hand-off r1 (PL-01): primary ink at full opacity.
+            assertSameColor(palette.tabSelectedTint, palette.textPrimary, scheme: scheme, "\(domain) tabSelectedTint is the primary ink")
+            assertNotPurple(palette.tabSelectedTint, scheme: scheme, "\(domain) tabSelectedTint")
             assertColor(palette.avatarRing, matchesHex: 0x7A5CFF, scheme: scheme, "\(domain) avatarRing")
             assertColor(palette.resultSpinner, matchesHex: 0x7A5CFF, scheme: scheme, "\(domain) resultSpinner")
-            assertColor(CYColor.tabSelected, matchesHex: 0x7A5CFF, scheme: scheme, "CYColor.tabSelected")
+            assertNotPurple(CYColor.tabSelected, scheme: scheme, "CYColor.tabSelected")
             assertColor(CYColor.avatarRing, matchesHex: 0x7A5CFF, scheme: scheme, "CYColor.avatarRing")
             assertColor(CYColor.resultSpinner, matchesHex: 0x7A5CFF, scheme: scheme, "CYColor.resultSpinner")
 
             let tabSelected = CYRootTabBarStrip.stripTokens(isSelected: true, in: palette)
-            assertColor(tabSelected.foreground, matchesHex: 0x7A5CFF, scheme: scheme, "selected tab bar item")
+            assertSameColor(tabSelected.foreground, palette.textPrimary, scheme: scheme, "selected tab bar item is the primary ink")
             assertColor(CYAvatarView.ringColor(showAccentRing: true), matchesHex: 0x7A5CFF, scheme: scheme, "avatar accent ring")
 
             // Every non-reserved token & component state MUST NOT be purple:
