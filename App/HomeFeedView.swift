@@ -68,34 +68,38 @@ import UIKit
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     // Design hand-off r1 PL-22: what the player came for first — header and city context, 编辑精选,
                     // 附近活动 — then the promo swiper as one band, then 即将上线 and the tabbed feed.
-                    if hasHeroHeader {
-                        HomeHeroHeaderSectionView(
-                            nickname: viewerNickname,
-                            selectedCity: localSelectedCity ?? selectedCity,
-                            isNationwide: localIsNationwide,
-                            isMerchantViewer: viewerIsMerchant,
-                            avatarSource: viewerAvatar,
-                            onSelectCity: onSelectCity != nil ? { city, nationwide in
-                                localSelectedCity = city
-                                localIsNationwide = nationwide
-                                onSelectCity?(city, nationwide)
-                            } : nil,
-                            onOpenUnifiedSearch: onOpenUnifiedSearch
-                        ) { banner in
-                            if banner.id == "activity_list" { kind = .activities }
-                            onActionBanner?(banner)
+                    // polish-d-r1: header, consent, offline notice and 编辑精选 are one group at `sm` rhythm. The 更多玩法
+                    // menu already keeps a 44 pt target below its text, so the `xxl` section gap read as a hole.
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        if hasHeroHeader {
+                            HomeHeroHeaderSectionView(
+                                nickname: viewerNickname,
+                                selectedCity: localSelectedCity ?? selectedCity,
+                                isNationwide: localIsNationwide,
+                                isMerchantViewer: viewerIsMerchant,
+                                avatarSource: viewerAvatar,
+                                onSelectCity: onSelectCity != nil ? { city, nationwide in
+                                    localSelectedCity = city
+                                    localIsNationwide = nationwide
+                                    onSelectCity?(city, nationwide)
+                                } : nil,
+                                onOpenUnifiedSearch: onOpenUnifiedSearch
+                            ) { banner in
+                                if banner.id == "activity_list" { kind = .activities }
+                                onActionBanner?(banner)
+                            }
+                            .cySectionReveal(order: 1, gate: reveal)
+                            .pageTemplateReadingOrder(80)
                         }
-                        .cySectionReveal(order: 1, gate: reveal)
-                        .pageTemplateReadingOrder(80)
+                        if let consent = cityLocationConsent {
+                            HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
+                                .transition(.opacity.combined(with: .move(edge: .top)))
+                                .pageTemplateReadingOrder(70)
+                        }
+                        CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
+                        // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
+                        feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
                     }
-                    if let consent = cityLocationConsent {
-                        HomeCityLocationConsentCard(onAgree: consent.agree, onDecline: consent.decline)
-                            .transition(.opacity.combined(with: .move(edge: .top)))
-                            .pageTemplateReadingOrder(70)
-                    }
-                    CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
-                    // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
-                    feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
                     feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
                     if model.bannerFailed || !model.banners.isEmpty {
                         bannerSection
@@ -247,7 +251,17 @@ import UIKit
         if !hidesEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 switch section {
-                case .recommended: sectionHeader(Text("homeFeed.editorsPicks"))
+                case .recommended:
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        sectionHeader(Text("homeFeed.editorsPicks"))
+                        // polish-d-r1: the footnote is the rail's subtitle, above the carousel, so it never sits under the tab bar.
+                        if let items, !items.isEmpty {
+                            Text("homeFeed.editorsPicksFootnote")
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textTertiary)
+                                .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
+                        }
+                    }
                 case .nearby: sectionHeader(Text("homeFeed.nearbyActivities"))
                 case .upcoming: sectionHeader(Text("homeFeed.upcoming"))
                 }
@@ -289,12 +303,6 @@ import UIKit
                         .font(CYTypography.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
-                }
-                if section == .recommended, let items, !items.isEmpty {
-                    Text("homeFeed.editorsPicksFootnote")
-                        .font(CYTypography.meta)
-                        .foregroundStyle(CYColor.textTertiary)
-                        .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
                 }
             }
             // Skeleton, failure and content cross-fade in place; a rail never swaps instantly.
