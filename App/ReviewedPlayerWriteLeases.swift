@@ -499,10 +499,12 @@ extension ReviewedProductionFormMutationRoute {
 /// `ChinaReviewedRouteCapability` marks live but the shipped China composition had no admission for. Exact paths only; each
 /// still has to be a live, wired, non-money production route. Bodies are the flat shapes the read services send: none, a
 /// JSON object, a canonical multipart form, or a URL-encoded form. Nested values and money fields are not a read.
+/// `api/club/members` (polish-d-r1, TEST 2026-11-16): the members screen reads detail then members with the same session;
+/// without this entry the composition refused the second read (`notConfigured`) and 查看成员 always showed 俱乐部加载失败.
 enum ReviewedPlayerReadRoute {
     // player-read-paths-begin
     static let paths: Set<String> = [
-        "api/club/home", "api/club/my", "api/club/detail", "api/club/access/me", "api/coop/list", "api/user/info", "api/project/my",
+        "api/club/home", "api/club/my", "api/club/detail", "api/club/members", "api/club/access/me", "api/coop/list", "api/user/info", "api/project/my",
         "api/config/features", "api/medal/wall", "api/badge/wall-v2", "api/growth/leaderboard",
         "api/object-card/list", "api/registration/my-joined", "api/registration/info", "api/play/my-completed", "api/registration/quote"
     ]

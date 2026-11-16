@@ -675,6 +675,25 @@ import XCTest
         await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/pay/create"), #"{"amount":1}"#, token: player.session.token)) }
     }
 
+    /// polish-d-r1: club/members is a reviewed player read (JSON {"clubId"}), sent after club/detail by the members screen;
+    /// a money field still closes it.
+    func testShippedChinaAdmitsClubMembersRead() async throws {
+        let recorder = PlayerWriteRecorder()
+        let composition = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm),
+            makeTransport: { recorder })
+        let player = try playerContext(composition)
+        let transport = composition.transport()
+        transport.current = {
+            .init(epoch: player.session.epoch, accountID: player.session.accountID, role: player.role, token: player.session.token)
+        }
+        XCTAssertTrue(ReviewedPlayerReadRoute.paths.contains("api/club/members"))
+        XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/club/members"))
+        _ = try await transport.send(jsonRequest(player.baseURL.appendingPathComponent("api/club/members"), #"{"clubId":7003}"#, token: player.session.token))
+        XCTAssertEqual(recorder.paths.last, "api/club/members")
+        await assertClosed { try await transport.send(self.jsonRequest(player.baseURL.appendingPathComponent("api/club/members"), #"{"amount":1,"clubId":7003}"#, token: player.session.token)) }
+    }
+
     /// E2E-20261113 R2, R3, R5, R7, R8, R11: the shipped China composition lets a signed-in player send DMs through the real
     /// sender, enter club chat, read club posts, open channels, show their own entry code and list their projects.
     func testShippedChinaE2EPlayerBlockersAreOpenAndMoneyStaysClosed() async throws {
