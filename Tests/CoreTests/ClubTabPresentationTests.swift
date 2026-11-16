@@ -266,3 +266,20 @@ final class ClubTabPageModelTests: XCTestCase {
         XCTAssertFalse(model.virtualGoodsEnabled)
     }
 }
+
+/// polish-d-r1: the 你的俱乐部 quota line reads as words; above the limit is its own state, not `5 / 2`.
+final class ClubTabLeaderQuotaTests: XCTestCase {
+    private func status(_ owned: Int?, _ limit: Int?) -> ClubTabPageModel.LeaderStatus {
+        .init(isClubLeader: true, ownedCount: .init(literal: owned), maxOwned: .init(literal: limit), canCreate: false)
+    }
+    func testWithinFullAndOver() {
+        XCTAssertEqual(status(1, 2).quota, .within(owned: 1, remaining: 1))
+        XCTAssertEqual(status(2, 2).quota, .full(owned: 2))
+        XCTAssertEqual(status(5, 2).quota, .over(owned: 5, limit: 2))
+    }
+    func testUnknownNumbersStayUnknown() {
+        XCTAssertEqual(status(nil, 2).quota, .unknown)
+        XCTAssertEqual(status(3, nil).quota, .unknown)
+        XCTAssertEqual(ClubTabPageModel.LeaderStatus.hidden.quota, .unknown)
+    }
+}

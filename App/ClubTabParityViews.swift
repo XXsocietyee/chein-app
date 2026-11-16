@@ -21,8 +21,8 @@ struct ClubTabTagLine: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
             : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.xs))
         return layout {
-            if let key = level.key { CYStatusChip(LocalizedStringKey(key), tone: .info, systemImage: "star") }
-            else if let fallback = level.fallback { CYStatusChip(verbatim: fallback, tone: .info, systemImage: "star") }
+            if let key = level.key { CYStatusChip(LocalizedStringKey(key), tone: .neutral, systemImage: "star") }
+            else if let fallback = level.fallback { CYStatusChip(verbatim: fallback, tone: .neutral, systemImage: "star") }
             ForEach(tags.labels.prefix(3), id: \.self) { label in
                 CYStatusChip(verbatim: label)
             }
@@ -32,6 +32,33 @@ struct ClubTabTagLine: View {
                 CYStatusChip(label, systemImage: "text.bubble")
             }
         }
+    }
+}
+
+/// polish-d-r1: the creation quota in plain words; above the limit gets a warning tag instead of reading as `5 / 2`.
+struct ClubLeaderQuotaLine: View {
+    let leader: ClubTabPageModel.LeaderStatus
+    @Environment(\.locale) private var locale
+    var body: some View {
+        switch leader.quota {
+        case .over(let owned, let limit):
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                CYStatusTag(verbatim: clubR1("quota.overTag", locale), state: .warning)
+                line(String(format: clubR1("quota.over", locale), owned, limit))
+            }
+        case .full(let owned):
+            line(String(format: clubR1("quota.full", locale), owned))
+        case .within(let owned, let remaining):
+            line(String(format: clubR1("quota.within", locale), owned, remaining))
+        case .unknown:
+            Text("club.tab.leaderQuota \(leader.ownedCount.text) \(leader.maxOwned.text)")
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        }
+    }
+    private func line(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

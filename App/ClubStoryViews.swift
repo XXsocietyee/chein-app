@@ -222,9 +222,9 @@ struct ClubStoryChapterHeader: View {
     }
     @ViewBuilder private var methodChip: some View {
         if let code = play.validationMethod, let method = TemplateAuthoringMethod(rawValue: code) {
-            CYStatusChip(LocalizedStringKey(method.labelKey), tone: .info, systemImage: "checkmark.seal")
+            CYStatusChip(LocalizedStringKey(method.labelKey), tone: .neutral, systemImage: "checkmark.seal")
         } else if let label = play.validationMethodLabel {
-            CYStatusChip(verbatim: label, tone: .info, systemImage: "checkmark.seal")
+            CYStatusChip(verbatim: label, tone: .neutral, systemImage: "checkmark.seal")
         } else {
             CYStatusChip("club.story.play", tone: .neutral, systemImage: "gamecontroller")
         }

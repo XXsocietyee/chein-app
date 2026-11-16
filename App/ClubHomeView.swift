@@ -25,6 +25,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     @State private var inlineJoin: [Int: InlineJoin] = [:]
     @State private var inlineOwnerID = UUID()
     private enum InlineJoin: Equatable { case working, joined, pending, notice(String) }
+    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     /// Club cards zoom into the detail they open; `cyHeroSource` ids are the club id.
@@ -44,7 +45,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 .padding(.top, CYSpacing.sm)
             CYTabs(
                 items: ClubTabPresentation.TopTab.allCases.map { tab in
-                    CYTabItem(id: tab, title: Bundle.main.localizedString(forKey: tab.key, value: tab.key, table: nil))
+                    CYTabItem(id: tab, title: appLocalized(String.LocalizationValue(tab.key), locale: locale))
                 },
                 selection: $topTab,
                 variant: .segmented
@@ -112,8 +113,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 // Core page model facts: shown only when the server sent `leaderStatus`; counts it omitted stay an em dash.
                 if let page, !discoveryScope.isMerchantViewer, page.leader != .hidden {
                     Section {
-                        Text("club.tab.leaderQuota \(page.leader.ownedCount.text) \(page.leader.maxOwned.text)")
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        ClubLeaderQuotaLine(leader: page.leader)
                             .accessibilityIdentifier("clubTab.leaderQuota")
                     }
                 }
@@ -300,7 +300,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 } else {
                     CYClubRowCard(name: club.name, logoURL: QuestifyCardArtwork.safeURL(club.logo), memberCount: club.sourceMemberCount,
                                   seed: "\(club.id)", action: action, morph: morph, onOpen: { openedClubID = club.id },
-                                  identifier: identifier + ".\(club.id)")
+                                  identifier: identifier + ".\(club.id)",
+                                  tags: AnyView(ClubTabTagLine(club: club, section: section,
+                                                               topicCount: page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)))
                         .cyHeroSource(club.id, in: hero)
                 }
                 if inline == .working {
@@ -313,8 +315,10 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     routes: ["/api/club/join"],
                     session: offlineWriteSession.session
                 )
-                ClubTabTagLine(club: club, section: section,
-                               topicCount: section == .nearby ? nil : page?.rows.first { $0.id == club.id && $0.section == section }?.topicCount)
+                if section == .nearby {
+                    // Nearby photo cards have no card surface around their footer; their chips stay under it.
+                    ClubTabTagLine(club: club, section: section, topicCount: nil)
+                }
             }
             .modifier(ClubRowReveal(index: index))
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))

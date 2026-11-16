@@ -58,6 +58,13 @@ CLUB = {
     'roster.received': ('Received', '实收'),
     'roster.refunded': ('Refunded', '已退'),
     'roster.net': ('Net', '净额'),
+    # polish-d-r1: the members screen roster summary
+    'roster.members.roles': ('Owner %ld · Admins %ld · Members %ld', '创建者 %ld · 管理员 %ld · 成员 %ld'),
+    # polish-d-r1: club tab creation quota in plain words
+    'quota.within': ('You have created %ld clubs. You can create %ld more.', '你已创建 %ld 个俱乐部，还能再创建 %ld 个。'),
+    'quota.full': ('You have created %ld clubs, the most allowed.', '你已创建 %ld 个俱乐部，已达上限。'),
+    'quota.over': ('You have created %ld clubs; the limit is %ld. You cannot create another one for now.', '你已创建 %ld 个俱乐部，上限是 %ld 个，暂时不能再创建新的俱乐部。'),
+    'quota.overTag': ('Over the limit', '已超出上限'),
     # MC-30 badges
     'badge.a11y.earned': ('%@, earned', '%@，已获得'),
     'badge.a11y.locked': ('%@, locked. %@', '%@，未解锁。%@'),

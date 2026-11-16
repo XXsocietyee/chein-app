@@ -114,7 +114,7 @@ import SwiftUI
                 }
                 if let snapshot = model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects) {
                     Section {
-                        CYStatusChip(LocalizedStringKey(snapshot.stage.titleKey), tone: .info, systemImage: "flag")
+                        CYStatusChip(LocalizedStringKey(snapshot.stage.titleKey), tone: .neutral, systemImage: "flag")
                             .accessibilityIdentifier("club.leadProgress.stage")
                         if snapshot.hasPartialProjects {
                             CYStatusChip("club.leadProgress.partial", tone: .warning, systemImage: "exclamationmark.triangle")

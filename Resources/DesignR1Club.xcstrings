@@ -561,6 +561,70 @@
         }
       }
     },
+    "r1club.quota.full": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have created %ld clubs, the most allowed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已创建 %ld 个俱乐部，已达上限。"
+          }
+        }
+      }
+    },
+    "r1club.quota.over": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have created %ld clubs; the limit is %ld. You cannot create another one for now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已创建 %ld 个俱乐部，上限是 %ld 个，暂时不能再创建新的俱乐部。"
+          }
+        }
+      }
+    },
+    "r1club.quota.overTag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Over the limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已超出上限"
+          }
+        }
+      }
+    },
+    "r1club.quota.within": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have created %ld clubs. You can create %ld more."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已创建 %ld 个俱乐部，还能再创建 %ld 个。"
+          }
+        }
+      }
+    },
     "r1club.request.approve": {
       "localizations": {
         "en": {
@@ -621,6 +685,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "展开收款与报名人"
+          }
+        }
+      }
+    },
+    "r1club.roster.members.roles": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner %ld · Admins %ld · Members %ld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建者 %ld · 管理员 %ld · 成员 %ld"
           }
         }
       }

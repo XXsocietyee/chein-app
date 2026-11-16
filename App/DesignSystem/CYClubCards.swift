@@ -137,7 +137,7 @@ struct CYClubCardTrailing: View {
                     pill("club.action.apply", identifier: joinIdentifier ?? "club.card.apply")
                 case .pending: CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock")
                 case .joined: CYStatusChip("club.membership.joined", tone: .success, systemImage: "checkmark")
-                case .owner: CYStatusChip("club.role.creator", tone: .info, systemImage: "crown")
+                case .owner: CYStatusChip("club.role.creator", tone: .neutral, systemImage: "crown")
                 case .none: EmptyView()
                 }
             }
@@ -350,6 +350,8 @@ struct CYClubRowCard: View {
     var morph: CYMorphState = .idle
     let onOpen: () -> Void
     var identifier: String? = nil
+    /// Chips (level, tags, 主题 N) drawn inside the card under the member strip (polish-d-r1), not as a loose line below it.
+    var tags: AnyView? = nil
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
 
@@ -365,6 +367,7 @@ struct CYClubRowCard: View {
                     .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
                     .fixedSize(horizontal: false, vertical: true)
                     strip
+                    if let tags { tags.padding(.top, CYSpacing.xxs) }
                 }
                 // Logo | info | pill on one line when it fits; otherwise the pill moves under the info (always at AX sizes).
                 ViewThatFits(in: .horizontal) {

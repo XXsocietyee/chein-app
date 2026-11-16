@@ -137,6 +137,22 @@ public struct ClubTabPageModel: Equatable, Sendable {
         /// Explicit JSON `true` only. `1`, `"UNKNOWN"`, null, and a missing field stay hidden.
         public let canCreate: Bool
         public static let hidden = LeaderStatus(isClubLeader: nil, ownedCount: .unknown, maxOwned: .unknown, canCreate: false)
+
+        /// polish-d-r1: the creation quota in plain words. `5 / 2` read as a fraction; an owner above the limit
+        /// (clubs created before the limit, or a lowered limit) is its own state.
+        public enum Quota: Equatable, Sendable {
+            case within(owned: Int, remaining: Int)
+            case full(owned: Int)
+            case over(owned: Int, limit: Int)
+            /// Either number missing: the line keeps the em dash form.
+            case unknown
+        }
+        public var quota: Quota {
+            guard let owned = ownedCount.literal, let limit = maxOwned.literal, owned >= 0, limit >= 0 else { return .unknown }
+            if owned > limit { return .over(owned: owned, limit: limit) }
+            if owned == limit { return .full(owned: owned) }
+            return .within(owned: owned, remaining: limit - owned)
+        }
     }
 
     public let phase: Phase

@@ -95,7 +95,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // Viewer status only; the mini-program shows it through the join/quit controls.
                 if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
                     Section {
-                        if club.isOwner { CYStatusChip("club.role.creator", tone: .info, systemImage: "person.crop.circle.badge.checkmark") }
+                        if club.isOwner { CYStatusChip("club.role.creator", tone: .neutral, systemImage: "person.crop.circle.badge.checkmark") }
                         else if club.isJoined { CYStatusChip("club.membership.joined", tone: .success, systemImage: "checkmark.circle") }
                         else if club.joinPending { CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock") }
                         else if club.myJoinStatus == 2 {
@@ -107,7 +107,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                     .accessibilityIdentifier("club.membership.rejectedReason")
                             }
                         }
-                        if club.viewerIsAdmin { CYStatusChip("club.viewerAdministrator", tone: .info, systemImage: "person.badge.shield.checkmark") }
+                        if club.viewerIsAdmin { CYStatusChip("club.viewerAdministrator", tone: .neutral, systemImage: "person.badge.shield.checkmark") }
                     }
                 }
                 if let actionCoordinator {
