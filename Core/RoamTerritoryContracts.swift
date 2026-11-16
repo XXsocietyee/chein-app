@@ -51,6 +51,23 @@ public struct RoamTerritoryNearbyResponse: Decodable, Equatable, Sendable {
     public let seasonId: String?
     public let revenueMode: String
     public let items: [RoamTerritoryItem]
+
+    private enum CodingKeys: String, CodingKey { case boardId, regionId, seasonId, revenueMode, items, territories }
+
+    public init(boardId: String?, regionId: String?, seasonId: String?, revenueMode: String, items: [RoamTerritoryItem]) {
+        self.boardId = boardId; self.regionId = regionId; self.seasonId = seasonId; self.revenueMode = revenueMode; self.items = items
+    }
+
+    /// The live server sends the spaces as `territories`; older fixtures as `items`.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        boardId = try c.decodeIfPresent(String.self, forKey: .boardId)
+        regionId = try c.decodeIfPresent(String.self, forKey: .regionId)
+        seasonId = try c.decodeIfPresent(String.self, forKey: .seasonId)
+        revenueMode = try c.decode(String.self, forKey: .revenueMode)
+        items = try c.decodeIfPresent([RoamTerritoryItem].self, forKey: .items)
+            ?? c.decode([RoamTerritoryItem].self, forKey: .territories)
+    }
 }
 
 public struct RoamTerritoryClaimRequest: Encodable, Equatable, Sendable {

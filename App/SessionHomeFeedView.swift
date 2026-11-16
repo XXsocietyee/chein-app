@@ -135,7 +135,8 @@ import SwiftUI
                 onOpenTodayTicket: { showsTodayTickets=true },
                 onStartRoam: onStartRoam,
                 cityLocationConsent: cityConsent.asks ? (agree: { cityConsent.agree(session) }, decline: { cityConsent.decline() }) : nil,
-                onOpenUnifiedSearch: { _ in showsGlobalSearch = true }
+                onOpenUnifiedSearch: { _ in showsGlobalSearch = true },
+                cityRail: AnyView(CitySessionHomeRail(onOpenMap: { onStartRoam?() }))
             ) { router.pushHome($0) }
                 .cyHeroNamespace(hero)
                 // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root.

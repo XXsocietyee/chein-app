@@ -305,7 +305,16 @@ struct SessionRootView: View {
                         .environment(\.cyTabBarVisibility, homeTabBarVisibility)
     }
 
+    /// 漫游 tab root (owner Q9, P 210:8322): the City Monopoly map. Hold to start opens the live roam.
     @ViewBuilder private var roamTab: some View {
+                    SessionCityRoamRoot(liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) },
+                                        passportDestination: { AnyView(roamBrowser) }, onChooseArea: { showsAreaPicker = true })
+                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.roam).accessibilityIdentifier("rootTabBar.tab.player.1") }.tag(RootTab.roam)
+                        .environment(\.cyTabBarVisibility, roamTabBarVisibility)
+    }
+
+    /// The shipped roam page (走起, 漫游护照, tools). Owner Q9: the 漫游 root is the map; this page opens from it.
+    @ViewBuilder private var roamBrowser: some View {
                     RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ selectedTab = .mine },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, territoryDestination: { AnyView(SessionRoamTerritoryView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader).environment(\.inGameChannelHost, session.inGameChannelHost)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
                         switch target {
                         case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
@@ -327,8 +336,6 @@ struct SessionRootView: View {
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
                         .environment(\.inGameChannelHost, session.inGameChannelHost)
-                        .cyFloatingTabBarClearance().tabItem { rootTabLabel(.roam).accessibilityIdentifier("rootTabBar.tab.player.1") }.tag(RootTab.roam)
-                        .environment(\.cyTabBarVisibility, roamTabBarVisibility)
     }
 
     @ViewBuilder private var publishTab: some View {

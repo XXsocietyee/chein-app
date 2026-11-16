@@ -10,6 +10,10 @@ import FoundationNetworking
 /// Admitted by `CityGameProductionLease` like the merged territory routes.
 public enum CityMonopolyRoute: Equatable {
     case territoryMap(regionId: String?, bbox: String?, zoom: Int?)
+    /// The live layer read: `minLat`, `minLng`, `maxLat`, `maxLng` (each span ≤ 0.5°).
+    case territoryMapBounds(CityMapBounds)
+    /// The 积分 HUD summary: balance, pending rent, holdings and the holding limit.
+    case points
     case property(propertyId: String)
     case claimQuote(CityTerritoryQuoteRequest)
     case claimCommand(CityTerritoryCommandRequest)
@@ -34,12 +38,14 @@ public enum CityMonopolyRoute: Equatable {
         "/api/city-game/territory/challenge/quote", "/api/city-game/territory/challenge/command",
         "/api/city-game/territory/scout", "/api/city-game/territory/shield",
         "/api/city-game/territory/revenue", "/api/city-game/season/current", "/api/city-game/season/leaderboard",
-        "/api/member/attributes", "/api/member/attributes/ledger", "/api/member/titles/equip"
+        "/api/member/attributes", "/api/member/attributes/ledger", "/api/member/titles/equip",
+        "/api/city-game/territory/points"
     ]
 
     public var path: String {
         switch self {
-        case .territoryMap: return "api/city-game/territory/map"
+        case .territoryMap, .territoryMapBounds: return "api/city-game/territory/map"
+        case .points: return "api/city-game/territory/points"
         case .property(let propertyId): return "api/city-game/territory/property/" + propertyId
         case .claimQuote: return "api/city-game/territory/claim/quote"
         case .claimCommand: return "api/city-game/territory/claim/command"
@@ -57,6 +63,8 @@ public enum CityMonopolyRoute: Equatable {
         case .equipTitle: return "api/member/titles/equip"
         }
     }
+
+    static func coordinate(_ value: Double) -> String { String(format: "%.6f", value) }
 
     static func validBBox(_ value: String) -> Bool {
         let parts = value.split(separator: ",", omittingEmptySubsequences: false)
@@ -78,6 +86,10 @@ public enum CityMonopolyRoute: Equatable {
 
     private static func validQuote(_ payload: CityTerritoryQuoteRequest) -> Bool {
         guard CityReadRoute.validID(payload.propertyId) else { return false }
+        if let id = payload.territoryId { guard CityReadRoute.validID(id) else { return false } }
+        if let id = payload.boardId { guard CityReadRoute.validID(id) else { return false } }
+        if let id = payload.pointId { guard CityReadRoute.validID(id) else { return false } }
+        if let id = payload.poiId { guard id > 0 else { return false } }
         if let lat = payload.lat { guard lat.isFinite, (-90...90).contains(lat) else { return false } }
         if let lng = payload.lng { guard lng.isFinite, (-180...180).contains(lng) else { return false } }
         if let hAcc = payload.hAcc { guard hAcc.isFinite, hAcc >= 0 else { return false } }
@@ -121,6 +133,12 @@ public enum CityMonopolyRoute: Equatable {
                 guard (1...22).contains(zoom) else { throw APIError.invalidRequest }
                 query["zoom"] = String(zoom)
             }
+        case .territoryMapBounds(let bounds):
+            guard bounds.isValid else { throw APIError.invalidRequest }
+            query["minLat"] = Self.coordinate(bounds.minLat); query["minLng"] = Self.coordinate(bounds.minLng)
+            query["maxLat"] = Self.coordinate(bounds.maxLat); query["maxLng"] = Self.coordinate(bounds.maxLng)
+        case .points:
+            break
         case .property(let propertyId):
             guard CityReadRoute.validID(propertyId) else { throw APIError.invalidRequest }
         case .claimQuote(let payload), .upgradeQuote(let payload), .challengeQuote(let payload):
@@ -195,6 +213,10 @@ public enum CityMonopolyRoute: Equatable {
 /// What the City Monopoly screens and the profile attributes section read and write.
 @MainActor public protocol CityMonopolyReading: AnyObject {
     func territoryMap(bbox: String?, zoom: Int?) async throws -> CityTerritoryMapResponse
+    /// The live layer for a viewport. Default: unavailable (older fakes).
+    func territoryMap(bounds: CityMapBounds) async throws -> CityTerritoryMapResponse
+    /// The 积分 HUD. Default: unavailable (older fakes).
+    func pointsSummary() async throws -> CityPointsSummary
     func property(_ propertyId: String) async throws -> CityTerritoryPropertyCard
     func claimQuote(_ payload: CityTerritoryQuoteRequest) async throws -> CityTerritoryQuote
     func claim(_ payload: CityTerritoryCommandRequest) async throws -> CityTerritoryCommandResult
@@ -210,6 +232,15 @@ public enum CityMonopolyRoute: Equatable {
     func memberAttributes() async throws -> MemberAttributesResponse
     func attributeLedger(key: MemberAttributeKey?, cursor: String?) async throws -> MemberAttributeLedgerPage
     func equipTitle(_ payload: MemberTitleEquipRequest) async throws -> MemberTitleEquipReceipt
+}
+
+public extension CityMonopolyReading {
+    func territoryMap(bounds: CityMapBounds) async throws -> CityTerritoryMapResponse {
+        throw RoamTerritoryError.rejected(status: 404, code: "UNAVAILABLE", message: nil)
+    }
+    func pointsSummary() async throws -> CityPointsSummary {
+        throw RoamTerritoryError.rejected(status: 404, code: "UNAVAILABLE", message: nil)
+    }
 }
 
 /// Live client under the reviewed CITY lease. Errors reuse `RoamTerritoryError`.
@@ -237,6 +268,14 @@ public enum CityMonopolyRoute: Equatable {
 
     public func territoryMap(bbox: String? = nil, zoom: Int? = nil) async throws -> CityTerritoryMapResponse {
         try await exchange(.territoryMap(regionId: lease.regionID, bbox: bbox, zoom: zoom))
+    }
+
+    public func territoryMap(bounds: CityMapBounds) async throws -> CityTerritoryMapResponse {
+        try await exchange(.territoryMapBounds(bounds))
+    }
+
+    public func pointsSummary() async throws -> CityPointsSummary {
+        try await exchange(.points)
     }
 
     public func property(_ propertyId: String) async throws -> CityTerritoryPropertyCard {

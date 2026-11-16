@@ -1345,6 +1345,146 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "E8BC981F4EBF405313CD2945";
 		};
+		"F4AF729780B9A7BF67D4B9A2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityBoardScreens.swift";
+			"sourceTree" = "<group>";
+		};
+		"1B4D0A82ABD9A342F9FD3FF7" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F4AF729780B9A7BF67D4B9A2";
+		};
+		"A7FC845F531C28E608C4B1A5" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityChallengeFlow.swift";
+			"sourceTree" = "<group>";
+		};
+		"6E6CC954928D399C64E10B04" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A7FC845F531C28E608C4B1A5";
+		};
+		"0DAF11AF1A7A09B9160581F6" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityClaimFlow.swift";
+			"sourceTree" = "<group>";
+		};
+		"41FAA9E5D283AF933442A1F5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0DAF11AF1A7A09B9160581F6";
+		};
+		"B6140F5D753E34A71A71CF02" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityDeedCard.swift";
+			"sourceTree" = "<group>";
+		};
+		"1BC1654677BD049EAF8B31E1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B6140F5D753E34A71A71CF02";
+		};
+		"EC6A6BDBAC795BDCB79FD8B9" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityDiceKit.swift";
+			"sourceTree" = "<group>";
+		};
+		"C09DD870F82C7B2B8D0DBE7F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "EC6A6BDBAC795BDCB79FD8B9";
+		};
+		"E6233A03A7E67281AB973911" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityHoldButton.swift";
+			"sourceTree" = "<group>";
+		};
+		"67D69EF5FB568FB20D5155C9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E6233A03A7E67281AB973911";
+		};
+		"BD7E5F875CB993882FFFF9EB" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityHomeRail.swift";
+			"sourceTree" = "<group>";
+		};
+		"E8B031EAA0BD6DFA5DB65A6B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "BD7E5F875CB993882FFFF9EB";
+		};
+		"641EF50E8687F6A0B023143E" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityMapLayer.swift";
+			"sourceTree" = "<group>";
+		};
+		"6991CACC1FC3DD15E7DB9DD6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "641EF50E8687F6A0B023143E";
+		};
+		"C6E7A95C7025B482032443B9" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityMomentView.swift";
+			"sourceTree" = "<group>";
+		};
+		"5EC9213B10E852970C6A0CBF" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C6E7A95C7025B482032443B9";
+		};
+		"76E96E4F0A16E94C7790F6EC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityNotifications.swift";
+			"sourceTree" = "<group>";
+		};
+		"372DECC49A1E7A98B640FAD8" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "76E96E4F0A16E94C7790F6EC";
+		};
+		"BF72D91A839C55F886842762" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityPropertySheet.swift";
+			"sourceTree" = "<group>";
+		};
+		"DF610CEA0CE4DEF2AFEF2207" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "BF72D91A839C55F886842762";
+		};
+		"0A711952A5B8338A000E57DC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityRoamRootView.swift";
+			"sourceTree" = "<group>";
+		};
+		"4F5901FD5981B55FA35ABD80" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0A711952A5B8338A000E57DC";
+		};
+		"7D06C25597FD76DA662913C3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CitySessionWiring.swift";
+			"sourceTree" = "<group>";
+		};
+		"B9D9F180495424ACADA942D0" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7D06C25597FD76DA662913C3";
+		};
+		"8E88DD0CD34889ECAF4379FC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/CityKit/CityTokens.swift";
+			"sourceTree" = "<group>";
+		};
+		"6EF516560E1EE7F97BBA107C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "8E88DD0CD34889ECAF4379FC";
+		};
 		"AF3ACE846E88767BB0607B75" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3434,6 +3574,16 @@
 		"689AB97547688F230C9D0548" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "48EA87AD994B1F148ACCA1CA";
+		};
+		"4F968BC31937E5FCC37D77B2" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/CityKitFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"7E84094020750105B1963C76" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4F968BC31937E5FCC37D77B2";
 		};
 		"EDB0FC7F28FCA2B7E501BF4C" = {
 			"isa" = "PBXFileReference";
@@ -19383,6 +19533,16 @@
 		"38C7604A0E801D402520023E" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "B8E7671075DBEF56064B6717";
+		};
+		"E69C9BB2B2BEF6C69CB0457A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Core/CityBoardStore.swift";
+			"sourceTree" = "<group>";
+		};
+		"E668E86E2437698BD539572D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E69C9BB2B2BEF6C69CB0457A";
 		};
 		"2C315B92B0972B0F12F5E43D" = {
 			"isa" = "PBXFileReference";
@@ -37944,16 +38104,6 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1B6E69171B12422278518A74";
 		};
-		"F313F6F292BADE12C18B10D1" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "text.json.xcstrings";
-			"path" = "Resources/EditorKit.xcstrings";
-			"sourceTree" = "<group>";
-		};
-		"FF4E3B9D89041E879AA511AA" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "F313F6F292BADE12C18B10D1";
-		};
 		"F9C2842E62210E899200ABD3" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "text.json.xcstrings";
@@ -37973,6 +38123,16 @@
 		"86330A29C821D3808E1B01DA" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "F557862CE2D60D31D8390878";
+		};
+		"F313F6F292BADE12C18B10D1" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.json.xcstrings";
+			"path" = "Resources/EditorKit.xcstrings";
+			"sourceTree" = "<group>";
+		};
+		"FF4E3B9D89041E879AA511AA" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "F313F6F292BADE12C18B10D1";
 		};
 		"291DAF33B784798EC3F0066C" = {
 			"isa" = "PBXFileReference";
@@ -39768,6 +39928,20 @@
 				"1767043EC54B9683DF39B564",
 				"271D01B0952DE8702D074EE4",
 				"E8BC981F4EBF405313CD2945",
+				"F4AF729780B9A7BF67D4B9A2",
+				"A7FC845F531C28E608C4B1A5",
+				"0DAF11AF1A7A09B9160581F6",
+				"B6140F5D753E34A71A71CF02",
+				"EC6A6BDBAC795BDCB79FD8B9",
+				"E6233A03A7E67281AB973911",
+				"BD7E5F875CB993882FFFF9EB",
+				"641EF50E8687F6A0B023143E",
+				"C6E7A95C7025B482032443B9",
+				"76E96E4F0A16E94C7790F6EC",
+				"BF72D91A839C55F886842762",
+				"0A711952A5B8338A000E57DC",
+				"7D06C25597FD76DA662913C3",
+				"8E88DD0CD34889ECAF4379FC",
 				"AF3ACE846E88767BB0607B75",
 				"044A5E71DE3A796D8DE9207F",
 				"A2F08B302BCC90BD44F14C40",
@@ -39977,6 +40151,7 @@
 				"368362C4D52A66D3C6EAA898",
 				"77908F76E30A9F106924A2C1",
 				"48EA87AD994B1F148ACCA1CA",
+				"4F968BC31937E5FCC37D77B2",
 				"EDB0FC7F28FCA2B7E501BF4C",
 				"A346A4671EAE5DE715530591",
 				"0CA0C490B2EC100B9A737D02",
@@ -41571,6 +41746,7 @@
 				"A74BAA32A224B8E71F16B412",
 				"C40DA65155E360CD77BAE12B",
 				"B8E7671075DBEF56064B6717",
+				"E69C9BB2B2BEF6C69CB0457A",
 				"2C315B92B0972B0F12F5E43D",
 				"C105AA62BB96265D1344A4A4",
 				"285E5A2224F6379F57270FB4",
@@ -43427,9 +43603,9 @@
 				"822AC63E90F5DCE88015F132",
 				"730697EE06606DC55EEBA562",
 				"1B6E69171B12422278518A74",
-				"F313F6F292BADE12C18B10D1",
 				"F9C2842E62210E899200ABD3",
 				"F557862CE2D60D31D8390878",
+				"F313F6F292BADE12C18B10D1",
 				"291DAF33B784798EC3F0066C",
 				"8726456336CDBCBFF8343E15",
 				"D102E93EA295FF4C7B556CA5",
@@ -44100,8 +44276,8 @@
 				"99DA8E5AF8E88DF64628A244",
 				"C6C85F814FF3CDF983C6C183",
 				"41D55DB8947F6EE489B1C8B3",
-				"E77F68F8BCA24E12CE09C41C",
 				"722EB261ABF7189B91BFB5BE",
+				"E77F68F8BCA24E12CE09C41C",
 				"80BBE004F6DEC8EC0EACC8C4",
 				"E8A29D74C56901EB6CACBC0F",
 				"006193EFF85B72F22CD13FC8",
@@ -44903,6 +45079,20 @@
 				"FB0A15C0C78FF9FCBE4A72D1",
 				"EF975DCBC55D22F04BE75230",
 				"0404AA59375BAD3A687118EE",
+				"1B4D0A82ABD9A342F9FD3FF7",
+				"6E6CC954928D399C64E10B04",
+				"41FAA9E5D283AF933442A1F5",
+				"1BC1654677BD049EAF8B31E1",
+				"C09DD870F82C7B2B8D0DBE7F",
+				"67D69EF5FB568FB20D5155C9",
+				"E8B031EAA0BD6DFA5DB65A6B",
+				"6991CACC1FC3DD15E7DB9DD6",
+				"5EC9213B10E852970C6A0CBF",
+				"372DECC49A1E7A98B640FAD8",
+				"DF610CEA0CE4DEF2AFEF2207",
+				"4F5901FD5981B55FA35ABD80",
+				"B9D9F180495424ACADA942D0",
+				"6EF516560E1EE7F97BBA107C",
 				"44D5870C85AC4AF1A6305E96",
 				"8EEA9EFE80FE4ED853C33BA6",
 				"7CAC019770A2FEC7B1044E31",
@@ -45112,6 +45302,7 @@
 				"14441368CAC714E51B5331A1",
 				"F596030E7C378BD2837E2258",
 				"689AB97547688F230C9D0548",
+				"7E84094020750105B1963C76",
 				"FF81A391BDE760E702E5958A",
 				"9F74ECD8760FA1185B1E6ACE",
 				"02240838A37D3159E6F7594D",
@@ -46706,6 +46897,7 @@
 				"BECE6A288267686D7AE604D3",
 				"0D333158DB71EFCBF42F03A8",
 				"38C7604A0E801D402520023E",
+				"E668E86E2437698BD539572D",
 				"1BBF38B10777B9E7BAEFDD88",
 				"8EF530C7F975531B19300C68",
 				"DF698547BB20B059EBCE7D45",
@@ -48569,9 +48761,9 @@
 				"6D1BA974073311009DE1D823",
 				"826770AAA560DAA6E5D0B08D",
 				"BC0713E62CFBE68A79E49F2A",
-				"FF4E3B9D89041E879AA511AA",
 				"5D0BC8C9A7FB64F612B900CF",
 				"86330A29C821D3808E1B01DA",
+				"FF4E3B9D89041E879AA511AA",
 				"4499F7C3B1F52C2BC829CAB9",
 				"AED5108A3082AF894894B655",
 				"C9B1E3B71A7D409EB0751435",
@@ -48999,7 +49191,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift AppStoreScreenshotHarness.swift CarouselFixtures.swift ClubCardFixtures.swift Cur3UITestFixtures.swift Cur4Fixtures.swift Cur7Fixtures.swift Cur9Fixtures.swift CurFixtures2.swift CurFixtures3.swift CurFixtures5.swift CurFixtures6.swift CurFixtures8.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift DesignKitFixture.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MemberAreaPopupFixtures.swift MerchantAreaPopupCloseFixtures.swift MerchantAreaPopupFixtures.swift MerchantConsoleFixtures.swift MotionLabFixture.swift NewFeatureFixtures.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PlayAreaPopupCloseFixtures.swift PlayAreaPopupFixtures.swift PopupsSocialFixtures.swift PremergeChineseFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift UGCSafetyFixtures.swift WaveFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift AppStoreScreenshotHarness.swift CarouselFixtures.swift CityKitFixtures.swift ClubCardFixtures.swift Cur3UITestFixtures.swift Cur4Fixtures.swift Cur7Fixtures.swift Cur9Fixtures.swift CurFixtures2.swift CurFixtures3.swift CurFixtures5.swift CurFixtures6.swift CurFixtures8.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift DesignKitFixture.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E2PermissionPrimerFixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4CelebrationFixtures.swift E4LoadingFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift GParityFixtures.swift IAFixtures.swift IMRecipientPreviewFixtures.swift KitGalleryFixture.swift MemberAreaPopupFixtures.swift MerchantAreaPopupCloseFixtures.swift MerchantAreaPopupFixtures.swift MerchantConsoleFixtures.swift MotionLabFixture.swift NewFeatureFixtures.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PlayAreaPopupCloseFixtures.swift PlayAreaPopupFixtures.swift PopupsSocialFixtures.swift PremergeChineseFixtures.swift PublishDesignFixtures.swift QRScanFixtures.swift RoamFixtures.swift UGCSafetyFixtures.swift WaveFixtures.swift";
 			};
 			"baseConfigurationReference" = "2DE2C287CCE985622F66EC30";
 		};
@@ -54456,16 +54648,6 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "41D55DB8947F6EE489B1C8B3";
 		};
-		"E77F68F8BCA24E12CE09C41C" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "Tests/AppUnitTests/DesignR1FoundationTests.swift";
-			"sourceTree" = "<group>";
-		};
-		"05336F44BC5626DCCB76C350" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "E77F68F8BCA24E12CE09C41C";
-		};
 		"722EB261ABF7189B91BFB5BE" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -54475,6 +54657,16 @@
 		"C0C553FD0BBDE00CEF5F0D26" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "722EB261ABF7189B91BFB5BE";
+		};
+		"E77F68F8BCA24E12CE09C41C" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/DesignR1FoundationTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"05336F44BC5626DCCB76C350" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E77F68F8BCA24E12CE09C41C";
 		};
 		"80BBE004F6DEC8EC0EACC8C4" = {
 			"isa" = "PBXFileReference";
@@ -61274,8 +61466,8 @@
 				"A26F1E95D8FD7F6E6B77CAA5",
 				"B35E2581F8EB3335EE58CD46",
 				"506AEB53B29CFD64905978B8",
-				"05336F44BC5626DCCB76C350",
 				"C0C553FD0BBDE00CEF5F0D26",
+				"05336F44BC5626DCCB76C350",
 				"5315B4881EB2CAE0C0B59C27",
 				"7145DB39453C1801D6FCF9AB",
 				"43CC9F35AA564224F65CA118",

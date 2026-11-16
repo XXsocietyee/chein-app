@@ -420,6 +420,15 @@ public struct CityTerritoryProperty: Decodable, Equatable, Identifiable, Sendabl
     public let holder: CityTerritoryHolder?
     public let protectedUntil: CityMonopolyInstant?
     public let decayState: String?
+    /// Live `wire()` fields: the place, its anchor and its numbers (absent under fog).
+    public let title: String?
+    public let lat: Double?
+    public let lng: Double?
+    public let poiId: Int64?
+    public let boardId: String?
+    public let invested: Int64?
+    public let baseYield: Int64?
+    public let levelMultiplier: Double?
 
     public var id: String { propertyId ?? pointId ?? geohash7 ?? "\(districtId ?? "?")-\(tier?.code ?? "?")" }
     /// The player has not lit this tile: holder, level and protection stay hidden.
@@ -465,6 +474,12 @@ public struct CityTerritoryPropertyCard: Decodable, Equatable, Sendable {
     public let lastOwnerVisitAt: CityMonopolyInstant?
     public let decayState: String?
     public let deedPhotoUrl: String?
+    /// The live server's names for the deed photo and the week's visits.
+    public let deedPhoto: String?
+    public let visitsThisWeek: Int?
+    public let lat: Double?
+    public let lng: Double?
+    public let levelMultiplier: Double?
     /// Present only after the viewer scouted this property.
     public let dc: Int?
     public let weeklyVisits: Int?
@@ -477,6 +492,9 @@ public struct CityTerritoryPropertyCard: Decodable, Equatable, Sendable {
     public let multipliers: [String: Double]?
 
     public var decay: CityDecayState? { CityDecayState(wire: decayState) }
+    /// The claim photo, whichever name the server used.
+    public var photoURL: String? { [deedPhoto, deedPhotoUrl].compactMap { $0 }.first { !$0.isEmpty } }
+    public var visits: Int? { visitsThisWeek ?? weeklyVisits }
 }
 
 public struct CityChallengeTask: Decodable, Equatable, Sendable {
@@ -509,9 +527,17 @@ public struct CityTerritoryQuoteRequest: Encodable, Equatable, Sendable {
     public let lat: Double?
     public let lng: Double?
     public let hAcc: Double?
+    /// Live server keys (`ApiCityMonopolyController`): a claim names its space by `poiId` or
+    /// `boardId` + `pointId`; upgrade and challenge name the held territory by `territoryId`.
+    public let territoryId: String?
+    public let poiId: Int64?
+    public let boardId: String?
+    public let pointId: String?
 
-    public init(propertyId: String, lat: Double? = nil, lng: Double? = nil, hAcc: Double? = nil) {
+    public init(propertyId: String, lat: Double? = nil, lng: Double? = nil, hAcc: Double? = nil,
+                territoryId: String? = nil, poiId: Int64? = nil, boardId: String? = nil, pointId: String? = nil) {
         self.propertyId = propertyId; self.lat = lat; self.lng = lng; self.hAcc = hAcc
+        self.territoryId = territoryId; self.poiId = poiId; self.boardId = boardId; self.pointId = pointId
     }
 }
 
@@ -537,13 +563,19 @@ public struct CityTerritoryEvidence: Encodable, Equatable, Sendable {
     public let simulated: Bool
     public let attestAssertion: String?
     public let merchantQr: String?
+    /// The photo was taken by the in-app camera (§2.2), with the fix at the shutter.
+    public let inAppCamera: Bool?
+    public let captureLat: Double?
+    public let captureLng: Double?
 
     public init(photoAssetId: String? = nil, capturedAt: Int64, lat: Double, lng: Double, hAcc: Double,
                 samples: [CityTerritoryLocationSample], simulated: Bool = false,
-                attestAssertion: String? = nil, merchantQr: String? = nil) {
+                attestAssertion: String? = nil, merchantQr: String? = nil,
+                inAppCamera: Bool? = nil, captureLat: Double? = nil, captureLng: Double? = nil) {
         self.photoAssetId = photoAssetId; self.capturedAt = capturedAt; self.lat = lat; self.lng = lng
         self.hAcc = hAcc; self.samples = samples; self.simulated = simulated
         self.attestAssertion = attestAssertion; self.merchantQr = merchantQr
+        self.inAppCamera = inAppCamera; self.captureLat = captureLat; self.captureLng = captureLng
     }
 }
 
@@ -588,6 +620,10 @@ public struct CityChallengeFeeSplit: Decodable, Equatable, Sendable {
     public let defender: Int64?
     public let burned: Int64?
     public let refund: Int64?
+    /// The live server names the defender's share `defenderComp`.
+    public let defenderComp: Int64?
+
+    public var toDefender: Int64? { defender ?? defenderComp }
 }
 
 public enum CityTerritoryOutcomeKind: Equatable, Sendable {
@@ -622,10 +658,50 @@ public struct CityTerritoryCommandResult: Decodable, Equatable, Sendable {
     public let idempotentReplay: Bool?
 
     public var kind: CityTerritoryOutcomeKind { CityTerritoryOutcomeKind(wire: outcome) }
+    /// `TASK_FAILED`: the on-site task failed, the challenge ended and half the fee came back.
+    public var taskFailed: Bool { outcome.uppercased() == "TASK_FAILED" }
+    /// The modifier sum the server added to the roll.
+    public var modifierTotal: Int { (mods ?? []).reduce(0) { $0 + $1.value } }
+
+    private enum CodingKeys: String, CodingKey {
+        case outcome, reasons, property, balance, roll, nat, mods, dc, total, feeSplit, protectionHours, idempotentReplay
+    }
+
+    public init(outcome: String, reasons: [String]? = nil, property: CityTerritoryProperty? = nil, balance: Int64? = nil,
+                roll: Int? = nil, nat: Int? = nil, mods: [CityChallengeModifier]? = nil, dc: Int? = nil, total: Int? = nil,
+                feeSplit: CityChallengeFeeSplit? = nil, protectionHours: Int? = nil, idempotentReplay: Bool? = nil) {
+        self.outcome = outcome; self.reasons = reasons; self.property = property; self.balance = balance
+        self.roll = roll; self.nat = nat; self.mods = mods; self.dc = dc; self.total = total
+        self.feeSplit = feeSplit; self.protectionHours = protectionHours; self.idempotentReplay = idempotentReplay
+    }
+
+    /// `mods` arrives as a list or, from the live server, as `{"task":1,"insight":0,…}`.
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        outcome = try c.decode(String.self, forKey: .outcome)
+        reasons = try c.decodeIfPresent([String].self, forKey: .reasons)
+        property = try c.decodeIfPresent(CityTerritoryProperty.self, forKey: .property)
+        balance = try c.decodeIfPresent(Int64.self, forKey: .balance)
+        roll = try c.decodeIfPresent(Int.self, forKey: .roll)
+        nat = try? c.decodeIfPresent(Int.self, forKey: .nat)
+        if let list = try? c.decodeIfPresent([CityChallengeModifier].self, forKey: .mods) {
+            mods = list
+        } else if let map = try? c.decodeIfPresent([String: Int].self, forKey: .mods) {
+            mods = map.keys.sorted().map { CityChallengeModifier(source: $0, value: map[$0] ?? 0) }
+        } else {
+            mods = nil
+        }
+        dc = try c.decodeIfPresent(Int.self, forKey: .dc)
+        total = try c.decodeIfPresent(Int.self, forKey: .total)
+        feeSplit = try? c.decodeIfPresent(CityChallengeFeeSplit.self, forKey: .feeSplit)
+        protectionHours = try c.decodeIfPresent(Int.self, forKey: .protectionHours)
+        idempotentReplay = try c.decodeIfPresent(Bool.self, forKey: .idempotentReplay)
+    }
 }
 
 public struct CityScoutResult: Decodable, Equatable, Sendable {
     public let propertyId: String?
+    public let territoryId: String?
     public let dc: Int
     public let cost: Int64?
     public let balance: Int64?
@@ -646,6 +722,17 @@ public struct CityPropertyActionRequest: Encodable, Equatable, Sendable {
 
     public init(requestId: String = UUID().uuidString, propertyId: String, expectedVersion: Int64? = nil) {
         self.requestId = requestId; self.propertyId = propertyId; self.expectedVersion = expectedVersion
+    }
+
+    private enum CodingKeys: String, CodingKey { case requestId, propertyId, territoryId, expectedVersion }
+
+    /// The live scout / shield routes read `territoryId`; the wire property id is that territory id.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(requestId, forKey: .requestId)
+        try container.encode(propertyId, forKey: .propertyId)
+        try container.encode(propertyId, forKey: .territoryId)
+        try container.encodeIfPresent(expectedVersion, forKey: .expectedVersion)
     }
 }
 
@@ -691,9 +778,58 @@ public struct CitySeasonCurrent: Decodable, Equatable, Sendable {
     public let participants: Int?
     public let holdingCount: Int?
     public let holdingLimit: Int?
+    /// The live server sends the season day as `day`.
+    public let day: Int?
 
+    public var seasonDay: Int? { dayIndex ?? day }
     public var seasonPhase: CitySeasonPhase? {
-        CitySeasonPhase(wire: phase) ?? dayIndex.flatMap { CitySeasonPhase(seasonDay: $0) }
+        CitySeasonPhase(wire: phase) ?? seasonDay.flatMap { CitySeasonPhase(seasonDay: $0) }
+    }
+}
+
+/// `GET /api/city-game/territory/points`: the 积分 HUD (balance, pending rent, holdings). No wallet.
+public struct CityPointsSummary: Decodable, Equatable, Sendable {
+    public let currency: String?
+    public let balance: Int64?
+    public let pending: Int64?
+    public let seasonId: String?
+    public let earnedSeason: Int64?
+    public let spentSeason: Int64?
+    public let holdings: Int?
+    public let holdingLimit: Int?
+
+    public init(balance: Int64?, pending: Int64? = nil, holdings: Int? = nil, holdingLimit: Int? = nil,
+                seasonId: String? = nil, earnedSeason: Int64? = nil, spentSeason: Int64? = nil) {
+        currency = "POINTS"; self.balance = balance; self.pending = pending; self.seasonId = seasonId
+        self.earnedSeason = earnedSeason; self.spentSeason = spentSeason; self.holdings = holdings; self.holdingLimit = holdingLimit
+    }
+}
+
+/// A map viewport for the live territory layer (`minLat`…`maxLng`, each side ≤ 0.5°).
+public struct CityMapBounds: Equatable, Sendable {
+    public let minLat: Double
+    public let minLng: Double
+    public let maxLat: Double
+    public let maxLng: Double
+
+    /// Clamps the span to the server's 0.5° limit around the centre.
+    public init(minLat: Double, minLng: Double, maxLat: Double, maxLng: Double) {
+        let cLat = (minLat + maxLat) / 2, cLng = (minLng + maxLng) / 2
+        let hLat = min(0.249, max(0.0005, abs(maxLat - minLat) / 2)), hLng = min(0.249, max(0.0005, abs(maxLng - minLng) / 2))
+        self.minLat = max(-90, cLat - hLat); self.maxLat = min(90, cLat + hLat)
+        self.minLng = max(-180, cLng - hLng); self.maxLng = min(180, cLng + hLng)
+    }
+
+    public init(center: RoamCoordinate, radiusMeters: Double) {
+        let dLat = radiusMeters / 111_320
+        let dLng = radiusMeters / (111_320 * max(0.2, cos(center.latitude * .pi / 180)))
+        self.init(minLat: center.latitude - dLat, minLng: center.longitude - dLng,
+                  maxLat: center.latitude + dLat, maxLng: center.longitude + dLng)
+    }
+
+    public var isValid: Bool {
+        [minLat, minLng, maxLat, maxLng].allSatisfy(\.isFinite) && maxLat > minLat && maxLng > minLng
+            && maxLat - minLat <= 0.5 && maxLng - minLng <= 0.5
     }
 }
 

@@ -43,7 +43,8 @@ public struct CityGameProductionLease: Equatable, Sendable {
         "/api/city-game/territory/challenge/quote", "/api/city-game/territory/challenge/command",
         "/api/city-game/territory/scout", "/api/city-game/territory/shield",
         "/api/city-game/territory/revenue", "/api/city-game/season/current", "/api/city-game/season/leaderboard",
-        "/api/member/attributes", "/api/member/attributes/ledger", "/api/member/titles/equip"
+        "/api/member/attributes", "/api/member/attributes/ledger", "/api/member/titles/equip",
+        "/api/city-game/territory/points"
     ]
 
     public init?(host: String, regionID: String) {

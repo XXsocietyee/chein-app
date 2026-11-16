@@ -10,6 +10,8 @@ enum DesignFixtureRegistry {
         switch name {
         case "design-kit": return AnyView(DesignKitFixture())
         case "kit": return AnyView(KitGalleryFixture(domain: .player))
+        // City Monopoly kit and flows (App/DesignFixtures/CityKitFixtures.swift).
+        case let city where city.hasPrefix("city-"): return CityKitFixtures.make(city)
         case "kit-2": return AnyView(KitGalleryFixture(domain: .player, lower: true))
         case "kit-merchant-2": return AnyView(KitGalleryFixture(domain: .merchant, lower: true))
         case "kit-merchant": return AnyView(KitGalleryFixture(domain: .merchant))

@@ -27,6 +27,8 @@ import UIKit
     /// Mini-program `locationPrompt`: set only while the host is asking for the home-city location consent. Nil hides the card.
     var cityLocationConsent: (agree: () -> Void, decline: () -> Void)? = nil
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
+    /// 我的地盘 rail (City Monopoly, round-1 Q1): sits 24 pt under 编辑精选. Nil hides it.
+    var cityRail: AnyView? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -100,6 +102,7 @@ import UIKit
                         // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
                         feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
                     }
+                    if let cityRail { cityRail.pageTemplateReadingOrder(55) }
                     feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
                     if model.bannerFailed || !model.banners.isEmpty {
                         bannerSection
