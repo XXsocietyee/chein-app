@@ -347,6 +347,8 @@ import QuestifyCore
         sessionObservers
         // Design hand-off r1 PL-20: no tab bar during a session; the map and the session controls own the screen.
         .cyHideTabBar()
+        // PL-20: a medium impact on pause and on resume.
+        .cyHaptic(.impactMedium, trigger: owner.phase == .paused)
         .task(id: owner.phase) { await pulseWhileActive() }
         .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0))
         .cyCelebrations(celebrations)
@@ -737,6 +739,9 @@ struct RoamLiveStatTile: View {
         VStack(spacing: 2) {
             Text(verbatim: value).font(.title2.weight(.bold)).monospacedDigit()
                 .cyWrapText(alignment: .center)
+                // PL-20 / PL-48: live numbers roll instead of jumping.
+                .contentTransition(.numericText())
+                .animation(.snappy, value: value)
             Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)

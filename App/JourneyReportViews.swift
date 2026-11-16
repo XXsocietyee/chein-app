@@ -929,9 +929,9 @@ struct JourneySettleView: View {
         MPBottomBar {
             switch step {
             case .overview:
-                CYPillButton("mp.settle.toRank") { go(.rank) }.accessibilityIdentifier("journeySettle.toRank")
-                Button("action.done", action: onDone).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
-                    .frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("journeySettle.done")
+                // Design hand-off r1 PL-12: 完成 is the primary on the result screen; 看排行榜 is the secondary pill.
+                CYPillButton("action.done", size: .moment, action: onDone).accessibilityIdentifier("journeySettle.done")
+                CYPillButton("mp.settle.toRank", style: .secondary) { go(.rank) }.accessibilityIdentifier("journeySettle.toRank")
             case .rank:
                 CYPillButton("mp.settle.toRate") { go(.rate) }.accessibilityIdentifier("journeySettle.toRate")
             case .rate:
