@@ -148,6 +148,7 @@
         "CrashResilienceAndMetricKitDiagnosticsSectionViewTests",
         "CreatorCropExportAppTests",
         "DeepLinkSafetyDiagnosticsSectionViewTests",
+        "DesignR1ClubKitTests",
         "DesignSystemSharedComponentsTests",
         "EndToEndReleaseCandidateGateSectionViewTests",
         "EnvironmentBranchAndRewardLedgerViewTests",

@@ -144,7 +144,8 @@ import SwiftUI
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .accessibilityHidden(true)
                     } else {
-                        CYRowIcon(systemImage: "medal")
+                        // HANDOFF-R1 MC-30: a club badge without uploaded art gets the club crest family art.
+                        ClubBadgeArt(name: shownName(badge) ?? "", seed: badge.badgeCode, category: .club, size: 48)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         badgeName(badge)

@@ -1,6 +1,54 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "r1club.badge.a11y.earned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, earned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，已获得"
+          }
+        }
+      }
+    },
+    "r1club.badge.a11y.locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, locked. %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，未解锁。%@"
+          }
+        }
+      }
+    },
+    "r1club.badge.a11y.progress": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, %ld of %ld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@，进度 %ld / %ld"
+          }
+        }
+      }
+    },
     "r1club.club.leave": {
       "localizations": {
         "en": {

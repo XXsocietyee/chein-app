@@ -45,6 +45,10 @@ CLUB = {
     'club.report': ('Report club', '举报俱乐部'),
     'request.approve': ('Approve', '通过'),
     'request.reject': ('Decline', '拒绝'),
+    # MC-30 badges
+    'badge.a11y.earned': ('%@, earned', '%@，已获得'),
+    'badge.a11y.locked': ('%@, locked. %@', '%@，未解锁。%@'),
+    'badge.a11y.progress': ('%@, %ld of %ld', '%@，进度 %ld / %ld'),
 }
 
 MERCHANT = {
