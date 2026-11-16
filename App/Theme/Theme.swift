@@ -208,6 +208,9 @@ private struct CYThemeDomainModifier: ViewModifier {
             .environment(\.themeDomain, domain)
             .environment(\.colorScheme, domain.colorScheme)
             .environment(\.cyThemeDepth, depth + 1)
+            // verify-r2 N-01: controls take this domain's brand tint; inheriting the shell's (white on the player)
+            // made a light sheet's 关闭 button invisible.
+            .tint(CYDomainPalette(domain).brand)
             // Applies to the nearest presentation. Inside a role root it is overridden by the root's arbitrated value,
             // which is why the request below exists; in a sheet it is what sets the sheet's scheme.
             .preferredColorScheme(domain.colorScheme)
