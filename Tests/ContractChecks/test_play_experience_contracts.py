@@ -34,8 +34,11 @@ class PlayExperienceSourceChecks(unittest.TestCase):
         self.assertIn('"routeActionId"', text); self.assertIn('"expectedRouteVersion"', text)
         self.assertNotIn('"outcomeCode":', text); self.assertNotIn('"targetNodeId":', text)
         self.assertIn('coordinateSystem == "GCJ02"', text)
-    def test_qr_server_resolves_node(self):
-        self.assertIn('fields.removeValue(forKey: "nodeId")', self.core('PlayExperienceService.swift'))
+    def test_qr_checkin_names_reviewed_node(self):
+        # A5 (acceptance-r3 wave 6): the backend scopes every checkin by nodeId; never strip it.
+        service=self.core('PlayExperienceService.swift')
+        self.assertNotIn('fields.removeValue(forKey: "nodeId")', service)
+        self.assertIn('fields["nodeId"] = String(nodeID)', service)
     def test_route_conflict_uses_structured_code(self):
         text=self.core('PlayExperienceCoordinator.swift')
         self.assertIn('code == 409', text); self.assertNotIn('message.contains', text)

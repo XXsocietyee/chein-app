@@ -28,11 +28,12 @@ import FoundationNetworking
         for field in ["topicId", "nodeId", "answer", "routeActionId", "expectedRouteVersion"] { XCTAssertTrue(body.contains("name=\"\(field)\"")) }
         for field in ["activityId", "outcomeCode", "targetNodeId", "latitude", "longitude"] { XCTAssertFalse(body.contains("name=\"\(field)\"")) }
     }
-    func testQRDoesNotManufactureNodeIDField() async throws {
+    /// A5: the backend scopes every checkin by `nodeId`; the QR code alone is refused with "参数有误".
+    func testQRCarriesReviewedNodeID() async throws {
         let transport = PlayRecoveryRecordingTransport(); for path in ["answer", "checkin", "sensor-result"] { transport.responses["/fixture/api/play/" + path] = .reply(PlayExperienceSyntheticFixtures.envelope(#"{"nodeId":701}"#), 200) }
         _ = try await service(transport).complete(scope: .activity(41), nodeID: 701, evidence: .scan("synthetic-code"), advance: nil, token: "synthetic")
         let body = String(decoding: transport.requests[0].httpBody!, as: UTF8.self)
-        XCTAssertFalse(body.contains("nodeId")); XCTAssertTrue(body.contains("name=\"code\""))
+        XCTAssertTrue(body.contains("name=\"nodeId\"\r\n\r\n701\r\n")); XCTAssertTrue(body.contains("name=\"code\""))
     }
     func testWrongCoordinateSystemRejectedBeforeDispatch() async throws {
         let transport = PlayExperienceTestTransport { _ in XCTFail(); return (Data(), 200) }
@@ -356,11 +357,32 @@ private final class PlayExperienceTestTransport: HTTPTransport {
         XCTAssertTrue(body.contains("name=\"expectedRouteVersion\"\r\n\r\n4\r\n"))
         XCTAssertTrue(body.contains("name=\"routeSessionId\"\r\n\r\n993803\r\n"))
     }
+    /// A5 (acceptance-r3 wave 6): the exact door check-in body the backend contract
+    /// (`ApiPlayProgressController.checkin` → `executeBasicIntent`) requires: scope, `nodeId`, `code`
+    /// and the full run identity from the action context, shared-runtime fields included.
+    func testDoorCheckinBodyMatchesBackendContract() throws {
+        let advance = try PlayRouteAdvance(actionID: "door-scan", expectedVersion: 7, routeSessionID: 992021, runtimeInstance: "inst-9", authorityEpoch: 3)
+        let req = try api().completionRequest(scope: .activity(9940001), nodeID: 992021, evidence: .scan("QA992021"), advance: advance, token: "synthetic", boundary: "a5")
+        XCTAssertEqual(req.httpMethod, "POST"); XCTAssertEqual(req.url?.path, "/fixture/api/play/checkin")
+        XCTAssertEqual(req.value(forHTTPHeaderField: "Content-Type"), "multipart/form-data; boundary=a5")
+        let body = String(decoding: try XCTUnwrap(req.httpBody), as: UTF8.self)
+        let expected = ["activityId": "9940001", "nodeId": "992021", "code": "QA992021", "routeActionId": "door-scan",
+                        "expectedRouteVersion": "7", "routeSessionId": "992021", "runtimeInstance": "inst-9", "authorityEpoch": "3"]
+        var parsed: [String: String] = [:]
+        for part in body.components(separatedBy: "--a5\r\n").dropFirst() {
+            guard let nameStart = part.range(of: "name=\""), let nameEnd = part.range(of: "\"\r\n\r\n", range: nameStart.upperBound..<part.endIndex),
+                  let valueEnd = part.range(of: "\r\n", range: nameEnd.upperBound..<part.endIndex) else { continue }
+            parsed[String(part[nameStart.upperBound..<nameEnd.lowerBound])] = String(part[nameEnd.upperBound..<valueEnd.lowerBound])
+        }
+        XCTAssertEqual(parsed, expected, "no field missing and no field invented (topicId, answer, coordinates)")
+        XCTAssertTrue(body.hasSuffix("--a5--\r\n"))
+    }
     func testScanRouteAndDormantCapabilitiesAreUnchanged() throws {
         let req = try request(.scan("synthetic-qr"))
         XCTAssertEqual(req.url?.path, "/fixture/api/play/checkin")
         let body = String(decoding: try XCTUnwrap(req.httpBody), as: UTF8.self)
-        XCTAssertFalse(body.contains("accuracy")); XCTAssertFalse(body.contains("latitude")); XCTAssertFalse(body.contains("nodeId"))
+        XCTAssertFalse(body.contains("accuracy")); XCTAssertFalse(body.contains("latitude"))
+        XCTAssertTrue(body.contains("name=\"nodeId\"\r\n\r\n701\r\n"), "A5: checkin always names the reviewed node")
         XCTAssertTrue(try api().enabled.isEmpty)
     }
     func testStaleNewSubmitDoesNotCreatePendingOrDispatch() async throws {

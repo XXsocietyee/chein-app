@@ -21,7 +21,8 @@ class PlayMerchantContractChecks(unittest.TestCase):
         for field in ['"routeActionId"', '"expectedRouteVersion"', '"routeSessionId"']:
             self.assertIn(field, source)
         self.assertNotIn('registrationId', source)  # source merchant page sends session + code only
-        self.assertIn('fields.removeValue', read('Core/PlayExperienceService.swift'))
+        # A5 (acceptance-r3 wave 6): the classic checkin always names the reviewed node.
+        self.assertNotIn('fields.removeValue(forKey: "nodeId")', read('Core/PlayExperienceService.swift'))
         self.assertIn('request.httpMethod = "GET"', source)
         self.assertIn('forHTTPHeaderField: "Content-Type"', source)
         self.assertIn('status >= 500 || status == 408 { return .unknown }', source)
