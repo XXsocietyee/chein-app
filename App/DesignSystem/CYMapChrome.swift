@@ -125,17 +125,23 @@ struct CYGlassCapsule<Content: View>: View {
 struct CYGoLabel: View {
     private let title: LocalizedStringKey
     private let symbol: String?
+    /// Only the Latin "GO" mark keeps the heavy italic; a localised word (暂停, 开始) uses the kit title font.
+    private let isWordmark: Bool
     @Environment(\.colorSchemeContrast) private var contrast
     @ScaledMetric(relativeTo: .largeTitle) private var scaled: CGFloat = 96
     private var size: CGFloat { min(scaled, 112) }
-    /// `symbol` replaces the word with a glyph (the walking state shows a walking figure).
-    init(_ title: LocalizedStringKey = "GO", symbol: String? = nil) { self.title = title; self.symbol = symbol }
+    /// The GO wordmark. `symbol` replaces it with a glyph (the walking state shows a walking figure).
+    init(symbol: String? = nil) { self.title = "GO"; self.symbol = symbol; self.isWordmark = true }
+    /// A localised action word (string key), drawn in `CYTypography.sheetTitle`.
+    init(_ title: LocalizedStringKey, symbol: String? = nil) { self.title = title; self.symbol = symbol; self.isWordmark = false }
     var body: some View {
         Group {
             if let symbol {
                 Image(systemName: symbol).font(.system(.title).weight(.heavy))
-            } else {
+            } else if isWordmark {
                 Text(title).font(.system(.title, design: .default).weight(.heavy).italic())
+            } else {
+                Text(title).font(CYTypography.sheetTitle)
             }
         }
             .minimumScaleFactor(0.6).lineLimit(1)
@@ -151,13 +157,22 @@ struct CYGoLabel: View {
 /// The mini-program's white GO circle: the single primary action of a map screen.
 struct CYGoButton: View {
     private let title: LocalizedStringKey
+    private let isWordmark: Bool
     private let action: () -> Void
-    init(_ title: LocalizedStringKey = "GO", action: @escaping () -> Void) {
+    /// The GO wordmark button.
+    init(action: @escaping () -> Void) {
+        self.title = "GO"
+        self.isWordmark = true
+        self.action = action
+    }
+    /// A localised action word (string key), e.g. `roam.live.pause` 暂停.
+    init(_ title: LocalizedStringKey, action: @escaping () -> Void) {
         self.title = title
+        self.isWordmark = false
         self.action = action
     }
     var body: some View {
-        Button(action: action) { CYGoLabel(title) }
+        Button(action: action) { isWordmark ? CYGoLabel() : CYGoLabel(title) }
             .buttonStyle(CYGoPressStyle())
             .accessibilityElement(children: .ignore)
             .pageTemplateControl(label: Text(title), traits: .isButton)

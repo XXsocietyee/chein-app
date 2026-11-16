@@ -142,26 +142,26 @@ struct D6MapFixture: View {
         VStack {
             CYGlassCapsule {
                 HStack(spacing: CYSpacing.xl) {
-                    stat(t("Time", "用时"), "00:24:10")
-                    stat(t("Fog", "地盘"), "3.2%")
-                    stat(t("km", "公里"), "1.8")
+                    stat("roam.live.stat.time", "00:24:10")
+                    stat("roam.live.stat.turf", "3.2%")
+                    stat("roam.live.stat.distance", "1.8")
                 }.padding(.vertical, CYSpacing.md)
             }
             .padding(.horizontal, CYSpacing.lg)
             Spacer()
             HStack(spacing: CYSpacing.xxl) {
                 CYGlassButton(systemImage: "info", label: "Rules", action: {})
-                CYGoButton(LocalizedStringKey(t("Pause", "暂停")), action: {})
+                CYGoButton("roam.live.pause", action: {})
                 CYGlassButton(systemImage: "flag.checkered", label: "Finish", action: {})
             }
             .padding(.bottom, CYSpacing.xxl * 2)
         }
     }
 
-    private func stat(_ label: String, _ value: String) -> some View {
+    private func stat(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(spacing: 2) {
             Text(verbatim: value).font(.system(.title3).weight(.bold).monospacedDigit()).foregroundStyle(.white)
-            Text(verbatim: label).font(CYTypography.meta).foregroundStyle(Color.white.opacity(0.65))
+            Text(label).font(CYTypography.meta).foregroundStyle(Color.white.opacity(0.65))
         }
     }
 }

@@ -187133,13 +187133,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Distance (km)"
+            "value": "km"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "距离 (公里)"
+            "value": "公里"
           }
         }
       }
@@ -187156,7 +187156,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "用时"
+            "value": "时长"
           }
         }
       }
@@ -187167,13 +187167,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turf"
+            "value": "Fog"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地盘"
+            "value": "迷雾"
           }
         }
       }
