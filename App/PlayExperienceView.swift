@@ -246,6 +246,47 @@ import SwiftUI
         guard let held = model.heldRouteActionIdentity else { return nil }
         return RouteActionPageReadRequest(sessionID: held.routeSessionID, actionID: held.actionID)
     }
+    /// Every stop the read makes visible (`PlayStationListPresentation`): done ones as completed,
+    /// locked ones as locked, the rest openable. Nothing here filters to the current stop only.
+    @ViewBuilder private func stationsSection(_ snapshot: PlaySnapshot) -> some View {
+        Section {
+            let rows = PlayStationListPresentation.rows(snapshot, chapterID: chapterFilter)
+            ForEach(rows) { row in
+                if let node = snapshot.visibleNodes.first(where: { $0.id == row.id }) {
+                    Button { selectedNode = node.id } label: {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            CYRouteNodeRow(
+                                index: row.position,
+                                title: node.name ?? "#\(node.id)",
+                                distanceAndETA: [node.address, node.businessTime].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: " · "),
+                                requirement: PlayTaskStatusCardMapper.arrivalRequirement(for: node),
+                                completion: PlayTaskStatusCardMapper.routeCompletion(row.state),
+                                isFirst: row.position == 1,
+                                isLast: row.position == rows.count
+                            )
+                            PlayTaskStatusBadge(node: node, snapshot: snapshot)
+                            if let reason = snapshot.lockReason(node) {
+                                Text(verbatim: reason).font(CYTypography.caption).foregroundStyle(palette.warning)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, CYSpacing.xs)
+                    }.accessibilityIdentifier("playx.node.\(node.id)")
+                }
+            }
+        } header: {
+            HStack {
+                Text("playx.nodes")
+                if let chapterFilter, let chapter = snapshot.result.chapters.first(where: { $0.id == chapterFilter }) {
+                    Text(verbatim: "· " + chapterTitle(chapter.name)).cyWrapText()
+                    Spacer()
+                    Button("mpd.chapters.all") { withAnimation(CYMotion.standard) { self.chapterFilter = nil } }
+                        .font(CYTypography.meta).textCase(nil)
+                        .accessibilityIdentifier("play.chapterPick.clear")
+                }
+            }
+        }
+    }
     private var orientationList: some View {
         List {
             // Template 6 order: (1) Current goal + location/arrival + 6-state status + primary CTA FIRST,
@@ -322,6 +363,9 @@ import SwiftUI
                 if model.hasCurrentMediaSnapshot, let notice = model.routeNotice { PlayRouteNoticeRow(notice: notice) }
                 if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(palette.warning) }
             }
+            // F-05: the ordered stops follow the progress header (Template 6), so every visible stop is
+            // reachable in the half-height panel instead of sitting below records and downloads.
+            if let snapshot = model.snapshot { stationsSection(snapshot) }
             if let compatibility = model.compatibility, model.hasCurrentMediaSnapshot {
                 PlayCompatibilitySection(compatibility: compatibility)
             }
@@ -394,44 +438,6 @@ import SwiftUI
                                     else { Label("chapterStory.title", systemImage: "book") }
                                 }.accessibilityIdentifier("chapterStory.open.\(chapter.id)")
                             }
-                        }
-                    }
-                }
-                Section {
-                    let visibleList = (model.snapshot?.visibleNodes ?? []).filter { chapterFilter == nil || $0.chapterID == chapterFilter }
-                    let currentID = model.snapshot.flatMap { PlayTaskSummaryPresentation(snapshot: $0).currentNodeID }
-                    ForEach(Array(visibleList.enumerated()), id: \.element.id) { index, node in
-                        Button { selectedNode = node.id } label: {
-                            if let snapshot = model.snapshot {
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    CYRouteNodeRow(
-                                        index: index + 1,
-                                        title: node.name ?? "#\(node.id)",
-                                        distanceAndETA: [node.address, node.businessTime].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.joined(separator: " · "),
-                                        requirement: PlayTaskStatusCardMapper.arrivalRequirement(for: node),
-                                        completion: PlayTaskStatusCardMapper.routeCompletion(for: node, in: snapshot, currentNodeID: currentID),
-                                        isFirst: index == 0,
-                                        isLast: index == visibleList.count - 1
-                                    )
-                                    PlayTaskStatusBadge(node: node, snapshot: snapshot)
-                                    if let reason = snapshot.lockReason(node) {
-                                        Text(verbatim: reason).font(CYTypography.caption).foregroundStyle(palette.warning)
-                                    }
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, CYSpacing.xs)
-                            }
-                        }.accessibilityIdentifier("playx.node.\(node.id)")
-                    }
-                } header: {
-                    HStack {
-                        Text("playx.nodes")
-                        if let chapterFilter, let chapter = model.snapshot?.result.chapters.first(where: { $0.id == chapterFilter }) {
-                            Text(verbatim: "· " + chapterTitle(chapter.name)).cyWrapText()
-                            Spacer()
-                            Button("mpd.chapters.all") { withAnimation(CYMotion.standard) { self.chapterFilter = nil } }
-                                .font(CYTypography.meta).textCase(nil)
-                                .accessibilityIdentifier("play.chapterPick.clear")
                         }
                     }
                 }
@@ -721,7 +727,8 @@ import SwiftUI
     @State private var showHint = false
     @State private var hintContext: PlayInteractionContext?
     @State private var hintLevel: Int?
-    @State private var localIssue: PlayExperienceError?
+    /// F-05: why the last submit tap was refused. Shown beside the button and as a toast, never silently dropped.
+    @State private var refusal: PlayReviewRefusal?
     /// UG-05…UG-09 ladder for this stop. When the server enables it, the legacy hint and reveal entries step aside.
     @State private var help: PlayHelpLadderModel?
     /// The team's shared pool for this stop, shown inside the hint dialog when the server enables it.
@@ -731,6 +738,8 @@ import SwiftUI
     @State private var showUnsavedDiscard = false
     @State private var nodeToastMessage: String?
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
+    /// The server's done flag for this stop: node `done`, or a `COMPLETED` node or route state.
+    private var nodeDone: Bool { node.map { model.snapshot?.isDone($0) == true } ?? false }
     private var activeDispatchedTask: PlayRandomDispatchedTask? {
         if let reward = model.reward, reward["nodeId"].tolerantInteger == nodeID,
            let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
@@ -754,6 +763,9 @@ import SwiftUI
                 )
             }
             .cyToast(verbatimMessage: $nodeToastMessage)
+            .onChange(of: answer) { _, _ in refusal = nil }
+            // A new read (advanced step accepted, stop done, run resynced) replaces the reason from the last tap.
+            .onChange(of: model.reviewRefusal(nodeID: nodeID)) { _, _ in refusal = nil }
             .onChange(of: help?.skipped) { _, skipped in
                 // The server settled the skip (0 points, assisted). No success verdict; progress is re-read by the model.
                 if skipped == true { skippedHere = true; showHelpPanel = false }
@@ -766,6 +778,65 @@ import SwiftUI
                 }
             }
             .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
+    }
+
+    @ViewBuilder
+    private func nodeList(context: PlayInteractionContext?) -> some View {
+        List {
+            PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
+            // Also shown at the top: the answer row can sit under the keyboard.
+            if let refusal { Section { PlayReviewRefusalRow(refusal: refusal, identifier: "playx.review.refusal") } }
+            if let state = model.submitRecovery, state.nodeID == nodeID {
+                Section { PlaySubmitRecoveryRow(state: state, onCheck: model.unresolved ? { Task { await model.load() } } : nil) }
+            }
+            if let failure = model.arrivalFailure, failure.nodeID == nodeID, node.map({ model.snapshot?.isDone($0) != true }) ?? false {
+                PlayArrivalFailureSection(failure: failure,
+                    onRelocate: device.map { device -> () -> Void in
+                        // A new reading is a new input with a new action id; the settled one is never replayed.
+                        { _ = Task { await device.capture(.location, interaction: .init(context: context, current: { model.interactionContext })) } }
+                    },
+                    onRefresh: { Task { await model.load() } },
+                    onOpenNode: openNode)
+            }
+            // WP-02: the original-run guard appeal for this stop (kept across visits by owner and session).
+            PlayGuardAppealSection(scope: model.scope, nodeID: nodeID,
+                                   reference: model.arrivalFailure?.nodeID == nodeID ? model.arrivalFailure?.guardReference : nil)
+            if let reading = model.arrivalReading, model.reward?["nodeId"].tolerantInteger == nodeID {
+                PlayArrivalReadingSection(reading: reading)
+            }
+            if let dispatched = activeDispatchedTask {
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYStatusChip(
+                            verbatim: CoreLoopCopy(locale: locale).t("今日盲盒任务", "Today's Mystery Task"),
+                            tone: .info,
+                            systemImage: "shippingbox.fill"
+                        )
+                        Text(verbatim: dispatched.displayName)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(palette.textPrimary)
+                        if let rule = dispatched.ruleInstructions, !rule.isEmpty {
+                            Text(verbatim: rule)
+                                .font(CYTypography.bodyCompact)
+                                .foregroundStyle(palette.textSecondary)
+                        }
+                        if dispatched.nodeID != nodeID, let openNode {
+                            Button(CoreLoopCopy(locale: locale).t("前往盲盒任务", "Open Mystery Task")) {
+                                openNode(dispatched.nodeID)
+                            }
+                            .buttonStyle(.questifyPrimary)
+                            .accessibilityIdentifier("playx.random.openDispatched")
+                        }
+                    }
+                    .accessibilityIdentifier("playx.random.dispatchedTask")
+                }
+            }
+            if let node {
+                nodeSections(node: node, context: context)
+            } else {
+                Text("playx.node.unavailable")
+            }
+        }
     }
 
     private func nodeWithConfirms(context: PlayInteractionContext?) -> some View {
@@ -842,78 +913,20 @@ import SwiftUI
             .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
                 if let node {
                     await loadHelp(node: node)
-                    await journey?.probe(nodeDone: node.done == true)
+                    await journey?.probe(nodeDone: model.snapshot?.isDone(node) == true)
                     guard !Task.isCancelled, self.node?.id == node.id, model.hasCurrentMediaSnapshot else { journey?.roleContent.close(); return }
                     await journey?.roleContent.load(expectedRunID: model.snapshot?.route?.sessionID, minimumStateVersion: model.snapshot?.route?.version)
                 } else { journey?.roleContent.close() }
             }
-            .onChange(of: node?.done) { _, _ in
-                if let node { journey?.updateNodeDone(node.done == true) }
+            .onChange(of: nodeDone) { _, done in
+                if node != nil { journey?.updateNodeDone(done) }
             }
-    }
-
-    @ViewBuilder
-    private func nodeList(context: PlayInteractionContext?) -> some View {
-        List {
-            PlayTaskOutcomeSection(model: model, nodeID: nodeID, openNode: openNode)
-            if let state = model.submitRecovery, state.nodeID == nodeID {
-                Section { PlaySubmitRecoveryRow(state: state, onCheck: model.unresolved ? { Task { await model.load() } } : nil) }
-            }
-            if let failure = model.arrivalFailure, failure.nodeID == nodeID, node.map({ model.snapshot?.isDone($0) != true }) ?? false {
-                PlayArrivalFailureSection(failure: failure,
-                    onRelocate: device.map { device -> () -> Void in
-                        // A new reading is a new input with a new action id; the settled one is never replayed.
-                        { _ = Task { await device.capture(.location, interaction: .init(context: context, current: { model.interactionContext })) } }
-                    },
-                    onRefresh: { Task { await model.load() } },
-                    onOpenNode: openNode)
-            }
-            // WP-02: the original-run guard appeal for this stop (kept across visits by owner and session).
-            PlayGuardAppealSection(scope: model.scope, nodeID: nodeID,
-                                   reference: model.arrivalFailure?.nodeID == nodeID ? model.arrivalFailure?.guardReference : nil)
-            if let reading = model.arrivalReading, model.reward?["nodeId"].tolerantInteger == nodeID {
-                PlayArrivalReadingSection(reading: reading)
-            }
-            if let dispatched = activeDispatchedTask {
-                Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYStatusChip(
-                            verbatim: CoreLoopCopy(locale: locale).t("今日盲盒任务", "Today's Mystery Task"),
-                            tone: .info,
-                            systemImage: "shippingbox.fill"
-                        )
-                        Text(verbatim: dispatched.displayName)
-                            .font(CYTypography.cardTitle)
-                            .foregroundStyle(palette.textPrimary)
-                        if let rule = dispatched.ruleInstructions, !rule.isEmpty {
-                            Text(verbatim: rule)
-                                .font(CYTypography.bodyCompact)
-                                .foregroundStyle(palette.textSecondary)
-                        }
-                        if dispatched.nodeID != nodeID, let openNode {
-                            Button(CoreLoopCopy(locale: locale).t("前往盲盒任务", "Open Mystery Task")) {
-                                openNode(dispatched.nodeID)
-                            }
-                            .buttonStyle(.questifyPrimary)
-                            .accessibilityIdentifier("playx.random.openDispatched")
-                        }
-                    }
-                    .accessibilityIdentifier("playx.random.dispatchedTask")
-                }
-            }
-            if let node {
-                nodeSections(node: node, context: context)
-            } else {
-                Text("playx.node.unavailable")
-            }
-            if let localIssue { PlayExperienceIssueView(issue: localIssue) }
-        }
     }
 
     @ViewBuilder
     private func nodeSections(node: PlayNode, context: PlayInteractionContext?) -> some View {
-        if let journey { PlayJourneyCheckView(model: journey, nodeDone: node.done == true) }
-        else { PlayCheckRuntimeSection(nodeID: node.id, routeSessionID: model.snapshot?.route?.sessionID, nodeDone: node.done == true) }
+        if let journey { PlayJourneyCheckView(model: journey, nodeDone: nodeDone) }
+        else { PlayCheckRuntimeSection(nodeID: node.id, routeSessionID: model.snapshot?.route?.sessionID, nodeDone: nodeDone) }
         if let narrative, model.hasCurrentMediaSnapshot, model.snapshot?.isLocked(node) == false {
             NavigationLink("journey.record.questions") {
                 JourneyNarrativeView(model: narrative, onChanged: { await model.load() })
@@ -970,10 +983,13 @@ import SwiftUI
                         .foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("playx.answer.field")
                 }
+                // F-05: a done, locked or not-yet-ready stop says why and keeps its submit disabled.
+                let blocker = model.reviewRefusal(nodeID: nodeID)
+                if let shown = refusal ?? blocker, shown != .busy { PlayReviewRefusalRow(refusal: shown) }
                 CYPillButton("playx.review", systemImage: "checkmark.circle.fill") {
                     prepare(.answer(answer), context: context)
                 }
-                .disabled(!model.canWrite || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(!model.canWrite || (blocker != nil && blocker != .busy) || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("playx.answer.review")
             }
         }
@@ -1145,8 +1161,8 @@ import SwiftUI
                         locale: locale,
                         ctaTitle: appLocalized("playx.review", locale: locale),
                         onOpen: {
-                            if PlayNodeTask.resolve(mode: snapshot.result.mode, node: node) == .answer,
-                               !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            // An empty or refused answer surfaces its reason through prepare.
+                            if PlayNodeTask.resolve(mode: snapshot.result.mode, node: node) == .answer {
                                 prepare(.answer(answer), context: context)
                             }
                         },
@@ -1185,8 +1201,9 @@ import SwiftUI
 
     /// One read when an unfinished stop opens. A failed read keeps the legacy hint entries.
     private func loadHelp(node: PlayNode) async {
-        guard node.done != true, model.snapshot?.isLocked(node) == false, let client = model.helpClient(nodeID: node.id) else {
-            if help?.identity.nodeID != node.id || node.done == true { help = nil; showHelpPanel = false }
+        let done = model.snapshot?.isDone(node) == true
+        guard !done, model.snapshot?.isLocked(node) == false, let client = model.helpClient(nodeID: node.id) else {
+            if help?.identity.nodeID != node.id || done { help = nil; showHelpPanel = false }
             return
         }
         if teamPool?.nodeID != Int64(node.id) {
@@ -1209,8 +1226,13 @@ import SwiftUI
     }
     private func stateRow(_ key: String, done: Bool) -> some View { Label(LocalizedStringKey(key), systemImage: done ? "checkmark.circle.fill" : "circle") }
     private func prepare(_ evidence: PlayCompletionEvidence, context: PlayInteractionContext?) {
-        do { review = try model.review(nodeID: nodeID, evidence: evidence, context: context); showReview = true; localIssue = nil }
-        catch { localIssue = error as? PlayExperienceError ?? .invalidAction }
+        do { review = try model.review(nodeID: nodeID, evidence: evidence, context: context); showReview = true; refusal = nil }
+        catch {
+            // F-05: a refused review always shows its reason (inline and as a toast); nothing was sent.
+            let reason = model.reviewRefusal(nodeID: nodeID, evidence: evidence) ?? PlayReviewRefusal(error: error)
+            refusal = reason
+            nodeToastMessage = PlayReviewRefusalRow.text(reason, locale: locale)
+        }
     }
 }
 
@@ -1251,6 +1273,26 @@ struct PlayCompatibilitySection: View {
     }
 }
 
+/// F-05: the reason a stop's submit was refused or is unavailable, beside the submit button.
+struct PlayReviewRefusalRow: View {
+    let refusal: PlayReviewRefusal
+    var identifier = "playx.answer.refusal"
+    var body: some View {
+        Label {
+            Text(LocalizedStringKey(refusal.messageKey), tableName: PlayReviewRefusal.table)
+                .fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: refusal == .completed ? "checkmark.circle.fill" : "exclamationmark.circle")
+        }
+        .font(CYTypography.bodyCompact)
+        .foregroundStyle(refusal == .completed ? CYColor.successText : CYColor.warningText)
+        .accessibilityIdentifier(identifier)
+    }
+    static func text(_ refusal: PlayReviewRefusal, locale: Locale) -> String {
+        String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: refusal.messageKey),
+                                                  table: PlayReviewRefusal.table, locale: locale))
+    }
+}
 struct PlayExperienceIssueView: View {
     let issue: PlayExperienceError
     static func showsReference(_ issue: PlayExperienceError) -> Bool {
