@@ -260,6 +260,13 @@ import UIKit
                                 .font(CYTypography.meta)
                                 .foregroundStyle(CYColor.textTertiary)
                                 .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
+                            if model.loading, !failed {
+                                // Also above the carousel, so it never lands under the tab bar.
+                                Text("homeFeed.updating.recommended")
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textTertiary)
+                                    .accessibilityIdentifier("homeFeed.updating.recommended")
+                            }
                         }
                     }
                 case .nearby: sectionHeader(Text("homeFeed.nearbyActivities"))
@@ -292,7 +299,7 @@ import UIKit
                     CYSkeleton().padding(.vertical, CYSpacing.md).frame(maxWidth: .infinity, minHeight: 88)
                 }
                 // Mini-program `正在更新…` line while a loaded rail refreshes, and the editor-picks footnote.
-                if model.loading, let items, !items.isEmpty, !failed {
+                if model.loading, let items, !items.isEmpty, !failed, section != .recommended {
                     Group {
                         switch section {
                         case .recommended: Text("homeFeed.updating.recommended")
