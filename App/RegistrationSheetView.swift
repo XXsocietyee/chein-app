@@ -1085,30 +1085,34 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
     @Environment(\.cyPalette) private var palette
 
     func body(content: Content) -> some View {
-        let base = content
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("action.close", systemImage: "xmark", action: onClose)
-                        .labelStyle(.iconOnly)
-                        .buttonStyle(RegistrationRoundCloseStyle())
-                        .accessibilityIdentifier("registration.form.close")
-                }
-            }
-            .presentationDragIndicator(.visible)
+        let base = content.presentationDragIndicator(.visible)
         if #available(iOS 26, *) {
             base
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) { title }
                         .sharedBackgroundVisibility(.hidden)
+                    // The 32 pt grey circle is the control; the bar's own glass behind it would draw a second ring.
+                    ToolbarItem(placement: .topBarTrailing) { closeButton }
+                        .sharedBackgroundVisibility(.hidden)
                 }
                 .toolbar(removing: .title)
         } else if #available(iOS 18, *) {
             base
-                .toolbar { ToolbarItem(placement: .topBarLeading) { title } }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) { title }
+                    ToolbarItem(placement: .topBarTrailing) { closeButton }
+                }
                 .toolbar(removing: .title)
         } else {
-            base
+            base.toolbar { ToolbarItem(placement: .topBarTrailing) { closeButton } }
         }
+    }
+
+    private var closeButton: some View {
+        Button("action.close", systemImage: "xmark", action: onClose)
+            .labelStyle(.iconOnly)
+            .buttonStyle(RegistrationRoundCloseStyle())
+            .accessibilityIdentifier("registration.form.close")
     }
 
     private var title: some View {

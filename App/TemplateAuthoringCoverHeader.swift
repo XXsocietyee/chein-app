@@ -39,9 +39,9 @@ struct TemplateAuthoringCoverHeader: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(CYSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                // verify-r1 2.9: a fixed dark scrim (to 55% black) so the white title reaches 4.5:1 on a pale cover or
+                // verify-r1 2.9: a fixed dark scrim (45% to 70% black) so the white title reaches 4.5:1 on a pale cover or
                 // on the light placeholder; the theme overlay token was too light on the editor domain.
-                .background(LinearGradient(colors: [.black.opacity(0), .black.opacity(0.55)], startPoint: .top, endPoint: .bottom))
+                .background(LinearGradient(colors: [.black.opacity(0.45), .black.opacity(0.7)], startPoint: .top, endPoint: .bottom))
             }
             .clipShape(RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
             .textCase(nil)
