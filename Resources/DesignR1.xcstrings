@@ -35,6 +35,40 @@
         }
       }
     },
+    "levelUp.change %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Level %1$lld → %2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lv%1$lld → Lv%2$lld"
+          }
+        }
+      }
+    },
+    "levelUp.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Level up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "升级了"
+          }
+        }
+      }
+    },
     "member.card.points": {
       "extractionState": "manual",
       "localizations": {
@@ -82,6 +116,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "允许使用位置"
+          }
+        }
+      }
+    },
+    "released.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Its holder stayed away too long, so the spot can be claimed again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "持有人太久没来，这块地又可以圈了。"
+          }
+        }
+      }
+    },
+    "released.claimable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claimable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可圈"
+          }
+        }
+      }
+    },
+    "released.reclaim": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claim it again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新圈地"
+          }
+        }
+      }
+    },
+    "released.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your spot was released"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地盘已释放"
           }
         }
       }
@@ -154,6 +256,23 @@
         }
       }
     },
+    "statusTag.blocked": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't locate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法定位"
+          }
+        }
+      }
+    },
     "statusTag.ended": {
       "extractionState": "manual",
       "localizations": {
@@ -167,6 +286,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "已结束"
+          }
+        }
+      }
+    },
+    "statusTag.finishing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算中"
           }
         }
       }

@@ -583,7 +583,8 @@ struct JourneySeatsView: View {
         .refreshable { onRetry() }
         .safeAreaInset(edge: .bottom) {
             if content.canGoToStart {
-                MPBottomBar { CYPillButton("mp.seats.goStart", systemImage: "flag.fill", action: onStart).accessibilityIdentifier("journeySeats.start") }
+                // Design hand-off r1 PL-03 / PL-42: the lobby starts with a 0.8 s hold on the one primary.
+                MPBottomBar { CYHoldToStartButton("mp.seats.goStart", systemImage: "flag.fill", onStart: onStart).accessibilityIdentifier("journeySeats.start") }
             }
         }
         .sheet(isPresented: $inviteShown) { JourneyInviteSheet(content: content) }

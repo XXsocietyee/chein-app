@@ -217,6 +217,51 @@ enum CYSheetSize: Hashable {
     }
 }
 
+@MainActor enum CYSheetMetrics {
+    /// Screen height for the 62% fit cap.
+    static var screenHeight: CGFloat {
+        #if canImport(UIKit)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        return scene?.screen.bounds.height ?? 852
+        #else
+        return 852
+        #endif
+    }
+
+    /// Largest `fit` height on this screen.
+    static var fitCap: CGFloat { screenHeight * CYSheetSize.fitCap }
+}
+
+extension View {
+    /// `fit` detent for a short sheet that draws its own header (an option list that commits on tap): the sheet is as
+    /// tall as its content, capped at 62%, and follows content-height changes with the sheet spring. No grabber.
+    func cyFitSheetDetent() -> some View {
+        modifier(CYFitSheetDetentModifier())
+    }
+}
+
+private struct CYFitSheetDetentModifier: ViewModifier {
+    @State private var height: CGFloat = 240
+    @QuestifyReduceMotion private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .fixedSize(horizontal: false, vertical: true)
+            .background(
+                GeometryReader { proxy in
+                    Color.clear
+                        .onAppear { height = proxy.size.height }
+                        .onChange(of: proxy.size.height) { _, value in height = value }
+                }
+            )
+            .frame(maxHeight: .infinity, alignment: .top)
+            .presentationDetents([.height(min(height, CYSheetMetrics.fitCap))])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(CYRadius.sheet)
+            .animation(CYMotion.resolve(CYMotion.sheetDetent, reduceMotion: reduceMotion), value: height)
+    }
+}
+
 /// The detent table (full-player §3 and full-config §3.3). The first size is the opening detent.
 /// `mapInteractive` sheets leave the map usable up through `.medium` and have no scrim.
 enum CYSheetKind: CaseIterable, Hashable {
@@ -483,17 +528,7 @@ struct CYResizableSheet<Content: View>: View {
     private var resolvedSizes: [CYSheetSize] { sizes ?? kind.sizes }
     private var isResizable: Bool { resolvedSizes.count > 1 }
 
-    /// Screen height for the 62% fit cap.
-    private var screenHeight: CGFloat {
-        #if canImport(UIKit)
-        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        return scene?.screen.bounds.height ?? 852
-        #else
-        return 852
-        #endif
-    }
-
-    private var fitCap: CGFloat { screenHeight * CYSheetSize.fitCap }
+    private var fitCap: CGFloat { CYSheetMetrics.fitCap }
 
     /// Natural height (header + content + primary), capped at 62%; at least one row tall before the first measure.
     var fitHeight: CGFloat { Self.fitHeight(content: contentHeight, chrome: chromeHeight, cap: fitCap) }
@@ -627,6 +662,168 @@ extension View {
                 onDone: onDone,
                 content: content
             )
+        }
+    }
+}
+
+// MARK: - Hold to start (PL-03, PL-42)
+
+/// 52 pt white primary that starts after a 0.8 s hold. A ring fills around the pill while it is held and unwinds in
+/// 200 ms when released early. VoiceOver: a double tap starts (the hold is not an accessible gesture).
+/// Haptics: `.success` on start, `.impactLight` on an early release.
+struct CYHoldToStartButton: View {
+    let title: LocalizedStringKey
+    let tableName: String?
+    let systemImage: String?
+    let onStart: () -> Void
+
+    static let holdDuration: Double = 0.8
+
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.isEnabled) private var isEnabled
+    @State private var progress: CGFloat = 0
+    @State private var committed = false
+    @State private var startTick = 0
+    @State private var cancelTick = 0
+
+    init(_ title: LocalizedStringKey, tableName: String? = nil, systemImage: String? = nil, onStart: @escaping () -> Void) {
+        self.title = title
+        self.tableName = tableName
+        self.systemImage = systemImage
+        self.onStart = onStart
+    }
+
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            pill
+            Text("roam.go.hint.hold")
+                .font(.footnote)
+                .foregroundStyle(palette.textSecondary)
+                .accessibilityHidden(true)
+        }
+        .cyHaptic(.success, trigger: startTick)
+        .cyHaptic(.impactLight, trigger: cancelTick)
+    }
+
+    private var pill: some View {
+        let shape = Capsule(style: .continuous)
+        return HStack(spacing: CYSpacing.sm) {
+            if let systemImage { Image(systemName: systemImage) }
+            Text(title, tableName: tableName)
+        }
+        .font(CYPillButtonStyle.labelFont)
+        .foregroundStyle(isEnabled ? palette.actionPrimaryFg : palette.textPlaceholder)
+        .padding(.horizontal, CYSpacing.xxl)
+        .frame(maxWidth: .infinity, minHeight: 52)
+        .background(shape.fill(isEnabled ? palette.actionPrimaryBg : palette.bgSurfaceSubtle))
+        .overlay {
+            shape.inset(by: -4)
+                .trim(from: 0, to: progress)
+                .stroke(palette.textPrimary, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .accessibilityHidden(true)
+        }
+        .scaleEffect(progress > 0 && !committed ? 0.97 : 1)
+        .contentShape(shape)
+        .onLongPressGesture(minimumDuration: Self.holdDuration, perform: commit) { pressing in
+            guard isEnabled, !committed else { return }
+            if pressing {
+                withAnimation(.linear(duration: Self.holdDuration)) { progress = 1 }
+            } else {
+                withAnimation(.easeOut(duration: 0.2)) { progress = 0 }
+                cancelTick += 1
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title, tableName: tableName))
+        .accessibilityHint(Text("roam.go.hint.hold"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { commit() }
+    }
+
+    private func commit() {
+        guard isEnabled, !committed else { return }
+        committed = true
+        progress = 1
+        startTick += 1
+        onStart()
+        // Back to rest after the start so the control can be used again if the start is refused.
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(600))
+            committed = false
+            progress = 0
+        }
+    }
+}
+
+// MARK: - Level-up moment (PL-45, PL-13)
+
+/// One level change, from the last level this screen saw to the new one.
+struct CYLevelUpPayload: Identifiable, Equatable {
+    let from: Int
+    let to: Int
+    var id: Int { to }
+}
+
+/// Full-screen level-up (N68): the icon rises, the level rolls from the old value to the new one (600 ms), one primary.
+/// Tap anywhere skips to the end state. Reduce Motion: a cross-fade, no rise. Haptics are played by the caller.
+struct CYLevelUpMoment: View {
+    let payload: CYLevelUpPayload
+    let onDone: () -> Void
+
+    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var shown = false
+    @State private var level: Int
+
+    init(payload: CYLevelUpPayload, onDone: @escaping () -> Void) {
+        self.payload = payload
+        self.onDone = onDone
+        _level = State(initialValue: payload.from)
+    }
+
+    var body: some View {
+        VStack(spacing: CYSpacing.xl) {
+            Spacer(minLength: CYSpacing.xxxl)
+            Image(systemName: "arrow.up.forward.circle.fill")
+                .font(.largeTitle.weight(.semibold))
+                .imageScale(.large)
+                .foregroundStyle(palette.textPrimary)
+                .offset(y: shown || reduceMotion ? 0 : 40)
+                .opacity(shown ? 1 : 0)
+                .accessibilityHidden(true)
+            Text(verbatim: "Lv\(level)")
+                .font(.system(.largeTitle, design: .rounded).weight(.bold).monospacedDigit())
+                .foregroundStyle(palette.textPrimary)
+                .contentTransition(.numericText(value: Double(level)))
+            Text("levelUp.title", tableName: "DesignR1")
+                .font(.title2.weight(.bold))
+                .foregroundStyle(palette.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            Text("levelUp.change \(payload.from) \(payload.to)", tableName: "DesignR1")
+                .font(.subheadline)
+                .foregroundStyle(palette.textSecondary)
+            Spacer()
+            CYPillButton("sheet.done", size: .moment, tableName: "DesignR1", action: onDone)
+                .accessibilityIdentifier("levelUp.done")
+        }
+        .multilineTextAlignment(.center)
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.bottom, CYSpacing.lg)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(palette.bgPage.ignoresSafeArea())
+        .contentShape(Rectangle())
+        .onTapGesture { finish(animated: false) }
+        .onAppear { finish(animated: !reduceMotion) }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("levelUp.moment")
+    }
+
+    private func finish(animated: Bool) {
+        if animated {
+            withAnimation(CYMotion.entrance) { shown = true }
+            withAnimation(.easeOut(duration: CYMotion.Duration.slow).delay(0.2)) { level = payload.to }
+        } else {
+            withAnimation(CYMotion.reduced) { shown = true; level = payload.to }
         }
     }
 }

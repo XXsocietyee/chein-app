@@ -439,7 +439,9 @@ import QuestifyCore
                     .font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 0)
-                CYRoamStatusDot(phase: roamPhase)
+                // PL-14: a labelled status tag, never a dot alone.
+                CYRoamStatusTag(phase: roamPhase)
+                    .accessibilityIdentifier("roam.live.statusTag")
             }
             HStack(alignment: .top, spacing: 8) {
                 TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
