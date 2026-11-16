@@ -20,9 +20,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var managementRevision: UInt64 = 0
     @State private var detailGeneration: UInt64 = 0
     @State private var reportingClub = false
+    @State private var heroScrolledAway = false
+    @State private var loadedClubName: String?
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
+    /// verify-r1 1.3: no 俱乐部详情 over the hero; the club's name appears inline once the hero has scrolled away.
+    private var navigationTitleText: String {
+        guard let loadedClubName else { return appLocalized("club.detail", locale: locale) }
+        return heroScrolledAway ? loadedClubName : ""
+    }
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, onSignIn: onSignIn,
                        load: {
@@ -122,11 +129,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
                     Section {
                         NavigationLink { SessionClubChatView(clubID: id, session: session) } label: {
-                            CYListRow("club.chat.title", card: true) { CYRowIcon(systemImage: "person.3") }
+                            CYListRow("club.chat.title", trailing: .none, card: true) { CYRowIcon(systemImage: "person.3") }
                         }.buttonStyle(.plain)
                             .accessibilityIdentifier("club.chat.entry")
                         NavigationLink { BeGapImDesk(clubID: Int64(id), session: session) } label: {
-                            CYListRow("beGapIm.entry", card: true) { CYRowIcon(systemImage: "list.bullet.rectangle") }
+                            CYListRow("beGapIm.entry", trailing: .none, card: true) { CYRowIcon(systemImage: "list.bullet.rectangle") }
                         }.buttonStyle(.plain)
                             .accessibilityIdentifier("beGapIm.entry")
                         if facts.channels {
@@ -267,7 +274,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             NavigationLink {
                                 ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
                             } label: {
-                                CYListRow("club.viewMembers", card: true) { CYRowIcon(systemImage: "person.3") }
+                                CYListRow("club.viewMembers", trailing: .none, card: true) { CYRowIcon(systemImage: "person.3") }
                             }
                             .buttonStyle(.plain)
                                 .accessibilityIdentifier("club.openMembers")
@@ -317,6 +324,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .cyGroupedSurface()
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
+            .cyTracksHeroScroll($heroScrolledAway)
+            .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
             .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.club")
             .navigationDestination(isPresented: $reportingClub) {
                 if let governance = management?.governance {
@@ -351,7 +360,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     .id(reader.clubIdentity)
             }
             }
-        }.appNavigationTitle("club.detail")
+        }.navigationTitle(navigationTitleText).navigationBarTitleDisplayMode(.inline)
             .cyPushedChrome(domain: .player)
             .cyDomainPageBackground()
             .tint(CYDomainPalette(.player).brand)

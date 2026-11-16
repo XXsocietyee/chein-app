@@ -1178,6 +1178,8 @@ public struct CYPublishStatusBar: View {
     private let isSubmittingReview: Bool
     private let onSelectStep: (Int) -> Void
     private let onSubmitReview: () -> Void
+    /// verify-r1 N-02: a page that already has a submit action in its bottom bar hides this one.
+    private let showsSubmitButton: Bool
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -1188,9 +1190,11 @@ public struct CYPublishStatusBar: View {
         saveState: CYPublishSaveState,
         issues: [CYPublishValidationIssue] = [],
         isSubmittingReview: Bool = false,
+        showsSubmitButton: Bool = true,
         onSelectStep: @escaping (Int) -> Void,
         onSubmitReview: @escaping () -> Void
     ) {
+        self.showsSubmitButton = showsSubmitButton
         self.stepTitles = stepTitles
         self.currentStep = currentStep
         self.saveState = saveState
@@ -1295,11 +1299,13 @@ public struct CYPublishStatusBar: View {
                 .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.dangerSoft))
             }
 
-            Button(action: onSubmitReview) {
-                Text(verbatim: "提交审核")
+            if showsSubmitButton {
+                Button(action: onSubmitReview) {
+                    Text(verbatim: "提交审核")
+                }
+                .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .md, isLoading: isSubmittingReview, isPill: true))
+                .disabled(!canSubmitReview)
             }
-            .buttonStyle(CYPrimaryButtonStyle(isFullWidth: true, size: .md, isLoading: isSubmittingReview, isPill: true))
-            .disabled(!canSubmitReview)
         }
         .cyDomainCard()
     }

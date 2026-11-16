@@ -114,6 +114,14 @@ struct ActivityDetailView: View {
     /// One load lifecycle instead of `access` / `loading` / `failed` (docs/release/state-machines/views.md).
     @State private var phase: CYPhase<ActivityDetailAccess, Void> = .idle
     private var access: ActivityDetailAccess? { phase.value }
+    @State private var heroScrolledAway = false
+    /// verify-r1 1.3: no 活动详情 over the hero; the activity's name appears inline once the hero has scrolled away.
+    private var navigationTitleText: String {
+        if let access, case .allowed(let detail) = access {
+            return heroScrolledAway ? (ActivityPresentation.nonempty(detail.summary.name) ?? "") : ""
+        }
+        return appLocalized("activity.details", locale: locale)
+    }
     @State private var generation=0
     @State private var loads = SignedInContentDetailLoadOwner()
     @State private var showsShare = false
@@ -157,7 +165,7 @@ struct ActivityDetailView: View {
                 }
             }
         }
-        .appNavigationTitle("activity.details")
+        .navigationTitle(navigationTitleText)
         .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .toolbar {
@@ -493,6 +501,7 @@ struct ActivityDetailView: View {
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .accessibilityIdentifier("activity.detail.content")
+        .cyTracksHeroScroll($heroScrolledAway)
         .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.activity")
         // E2E-20261113b N3: the List did not inset for the pinned action, so the last section ("More info", which holds
         // the play row) ended under it. Reserve the pinned action's height below the content.

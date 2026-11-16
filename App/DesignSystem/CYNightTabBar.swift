@@ -145,13 +145,41 @@ private struct CYFloatingTabBarClearance: ViewModifier {
         let clearance = (visibility?.isHidden == true) ? 0 : baseClearance
         if #available(iOS 26, *) {
             content.safeAreaPadding(.bottom, clearance).environment(\.cyTabBarClearance, clearance)
+                .scrollEdgeEffectStyle(.soft, for: .bottom)
+                .overlay(alignment: .bottom) {
+                    if clearance > 0 { CYTabBarScrollEdgeFade(clearance: clearance) }
+                }
         } else { content }
+    }
+}
+
+/// verify-r1 1.4 / N-11 (HIG Layout: "use a scroll edge effect to visually elevate controls above content"): the floating
+/// glass bar sat over scrolling rows, so two layers of text were read at once. Under the bar the page colour is solid and
+/// it fades out over 32 pt above it, so a row's label is gone before it reaches the tab labels. Not interactive, not read
+/// by VoiceOver, and it sits under the system bar (which is drawn by UIKit above the tab content).
+private struct CYTabBarScrollEdgeFade: View {
+    let clearance: CGFloat
+    @Environment(\.cyPalette) private var palette
+    private let fade: CGFloat = 32
+
+    var body: some View {
+        VStack(spacing: 0) {
+            LinearGradient(colors: [palette.bgPage.opacity(0), palette.bgPage], startPoint: .top, endPoint: .bottom)
+                .frame(height: fade)
+            // The colour runs on under the home indicator; the frame itself stops at the safe-area edge.
+            palette.bgPage.ignoresSafeArea(edges: .bottom)
+                .frame(height: max(clearance - CYFloatingTabBarClearanceKey.barOverlap, 0))
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
 /// Height a self-sizing bottom panel (the map scaffold) reserves for the floating tab bar inside a tab. Zero outside tabs.
 struct CYFloatingTabBarClearanceKey: EnvironmentKey {
     static let height: CGFloat = 72
+    /// The part of the clearance above the bar's own top edge, left transparent so the fade ends at the bar.
+    static let barOverlap: CGFloat = 12
     static let defaultValue: CGFloat = 0
 }
 

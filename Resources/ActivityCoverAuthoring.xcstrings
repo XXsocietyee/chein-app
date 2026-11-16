@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Selected photos are cropped locally to 16:9. Upload, use in this draft and save the activity are separate actions."
+            "value": "The cover is cropped to 16:9"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "照片会先在本机裁成16:9。上传、填入草稿和保存活动是三个独立动作。"
+            "value": "封面会裁成 16:9"
           }
         }
       }
@@ -313,13 +313,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The photo is cropped on this phone to 16:9. Uploading it, putting it on this template and saving the template are three separate steps."
+            "value": "The cover is cropped to 16:9"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "照片会先在本机裁成16:9。上传、填入模板和保存模板是三个独立动作。"
+            "value": "封面会裁成 16:9"
           }
         }
       }

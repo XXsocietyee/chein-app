@@ -341,6 +341,8 @@ import SwiftUI
                             saveState: studioSaveState,
                             issues: studioIssues,
                             isSubmittingReview: model.busy,
+                            // verify-r1 N-02: one submit control, in the bottom bar.
+                            showsSubmitButton: false,
                             onSelectStep: { step in
                                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
                                     scrollProxy.scrollTo(scrollAnchor(for: step), anchor: .top)
@@ -604,7 +606,7 @@ import SwiftUI
                     Button { focusedField = nil; model.saveLocal() } label: {
                         Text("projectEdit.saveLocal")
                     }
-                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: isAX, compact: true))
+                        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true, compact: true))
                         .disabled(!model.canSaveLocal)
                         .accessibilityIdentifier("projectEdit.saveLocal")
                     if model.coordinator.canSubmitServerDraft {

@@ -63,6 +63,24 @@ extension View {
     }
 }
 
+extension View {
+    /// verify-r1 1.3 / N-10: hero pages carry no centred page-type title (活动详情, 俱乐部详情). Once the hero has
+    /// scrolled away, the navigation bar shows the object's own name inline. Apply to the page's List or ScrollView.
+    /// Before iOS 18 the title stays hidden (no scroll geometry); the back control is in the bar either way.
+    @ViewBuilder
+    func cyTracksHeroScroll(_ scrolledAway: Binding<Bool>, threshold: CGFloat = 220) -> some View {
+        if #available(iOS 18, *) {
+            onScrollGeometryChange(for: Bool.self) { geometry in
+                geometry.contentOffset.y + geometry.contentInsets.top > threshold
+            } action: { _, away in
+                if scrolledAway.wrappedValue != away { scrolledAway.wrappedValue = away }
+            }
+        } else {
+            self
+        }
+    }
+}
+
 /// Global back-navigation chrome variants per DESIGN.md §7.1.
 enum CYBackNavigationStyle {
     /// Bare chevron in a 44×44pt hit target for L2+ standard/solid pages.
@@ -182,22 +200,28 @@ private struct CYHeroPushedChromeModifier: ViewModifier {
     let onBack: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
+    // verify-r1 1.3 / N-10 (HIG Layout, safe areas): the back control lives in the navigation bar. It used to be a
+    // screen overlay under the bar, so it stayed put while the page scrolled and covered headings ("戊员身份"). In the bar
+    // it is transparent over the hero at the top edge and the bar settles into the page colour (scroll-edge effect) once
+    // the hero has scrolled away. The identifier and custom action are kept for tests and guarded exits.
     func body(content: Content) -> some View {
-        let themed = content.cyPushedChrome(domain: domain)
+        content.cyPushedChrome(domain: domain)
             .navigationBarBackButtonHidden(true)
-            .toolbarBackground(.hidden, for: .navigationBar)
-            .overlay(alignment: .topLeading) {
-                heroBack
-                    .padding(.leading, CYSpacing.xs)
-                    .padding(.top, CYSpacing.xs)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { heroBack }
             }
-        return themed
     }
 
     @ViewBuilder private var heroBack: some View {
-        let button = CYHeroBackButton {
+        let button = Button {
             if let onBack { onBack() } else { dismiss() }
+        } label: {
+            Image(systemName: "chevron.backward")
+                .font(.body.weight(.semibold))
+                .frame(minWidth: Theme.MiniProgramChrome.minHit, minHeight: Theme.MiniProgramChrome.minHit)
+                .contentShape(Rectangle())
         }
+        .accessibilityLabel(Text("action.back"))
         if let backAccessibilityIdentifier {
             button.accessibilityIdentifier(backAccessibilityIdentifier)
         } else {

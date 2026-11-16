@@ -159,15 +159,14 @@ enum ApprovedReleaseOriginalRecoveryText: String, CaseIterable {
     var body: some View {
         let opening = controller.capture()
         let original = controller.presentation
+        // verify-r1 N-02 / N-06: the row only appears when it can be opened. A disabled row with an explanation of
+        // read permissions told the person nothing they could act on.
         Section {
-            Button(ApprovedReleaseOriginalRecoveryText.open.value(locale: locale)) {
-                guard scenePhase == .active, let opening else { return }; controller.open(opening)
-            }.buttonStyle(.borderless).disabled(opening == nil || scenePhase != .active)
-                .accessibilityIdentifier("approvedRelease.recovery.open")
-            if opening == nil, original.map({ controller.isPresented($0) }) != true {
-                Text(ApprovedReleaseOriginalRecoveryText.unavailable.value(locale: locale))
-                    .font(.footnote).fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("approvedRelease.recovery.unavailable")
+            if opening != nil || original.map({ controller.isPresented($0) }) == true {
+                Button(ApprovedReleaseOriginalRecoveryText.open.value(locale: locale)) {
+                    guard scenePhase == .active, let opening else { return }; controller.open(opening)
+                }.buttonStyle(.borderless).disabled(opening == nil || scenePhase != .active)
+                    .accessibilityIdentifier("approvedRelease.recovery.open")
             }
         }
         .sheet(item: controller.binding(original)) { captured in

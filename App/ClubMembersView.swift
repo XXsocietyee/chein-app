@@ -60,6 +60,14 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                             .font(CYTypography.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
+                        // verify-r1 2.6 / N-14: the role counts are the subtitle; the roster card moved to 报名名册.
+                        if !directory.members.isEmpty {
+                            Text(verbatim: ClubRosterCardModel.roleSummary(directory, locale: locale))
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .monospacedDigit()
+                                .accessibilityIdentifier("club.members.roleSummary")
+                        }
                     }
                     .listRowInsets(Self.rowInsets)
                     .listRowBackground(Color.clear)
@@ -76,14 +84,6 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 } else {
-                    // MC-25 roster card (polish-d-r1): club, role breakdown and count above the member rows.
-                    Section {
-                        ClubRosterCard(model: .members(directory, locale: locale), coverSeed: "club-\(directory.club.id)")
-                            .accessibilityIdentifier("club.members.rosterCard")
-                            .listRowInsets(Self.rowInsets)
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                    }
                     Section {
                         ForEach(Array(directory.members.enumerated()), id: \.offset) { _, member in
                             memberLine(member, directory: directory)
@@ -264,7 +264,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.member.level.\(member.memberId)")
                 }
-                if let joined = member.displayedJoinTime {
+                // verify-r1 1.5 / MC-02: 11月16日, not the server's raw wall-clock text.
+                if let joined = member.displayedJoinTime.map({ ClubJoinDateDisplay.text($0, locale: locale) }) {
                     Text("club.memberJoined \(joined)")
                         .font(CYTypography.meta)
                         .foregroundStyle(CYColor.textTertiary)
@@ -277,4 +278,21 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
     }
     private static var rowInsets: EdgeInsets { EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal) }
+}
+
+
+/// verify-r1 1.5 / MC-02: member rows show the join date as 11月16日, not the server's `2026-11-16 05:46:11`.
+/// The server text has no time zone, so its wall-clock fields are read and printed as they are (no conversion).
+enum ClubJoinDateDisplay {
+    static func text(_ raw: String, locale: Locale) -> String {
+        let digits = raw.split(whereSeparator: { !$0.isNumber }).compactMap { Int($0) }
+        guard digits.count >= 3, (1...12).contains(digits[1]), (1...31).contains(digits[2]) else { return raw }
+        var calendar = Calendar(identifier: .gregorian)
+        guard let utc = TimeZone(identifier: "UTC") else { return raw }
+        calendar.timeZone = utc
+        guard let date = calendar.date(from: DateComponents(year: digits[0], month: digits[1], day: digits[2])) else { return raw }
+        var style = Date.FormatStyle.dateTime.month().day().locale(locale)
+        style.timeZone = utc
+        return date.formatted(style)
+    }
 }

@@ -93,7 +93,9 @@ import SwiftUI
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("member.card.points")
-                if let balance = snapshot?.balancePreviewText, snapshot?.balanceText != nil {
+                if let raw = snapshot?.balancePreviewText, snapshot?.balanceText != nil {
+                    // verify-r1 1.5 / N-16, owner Q8: real money reads ¥560.00, never a bare "560.00".
+                    let balance = MemberBalanceDisplay.text(raw, locale: locale)
                     tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
                         Text(verbatim: balance)
                             .font(.subheadline.weight(.semibold).monospacedDigit())
@@ -349,5 +351,16 @@ struct MemberBenefitRow: View {
         case .createGroup: Text("member.benefit.createGroup", tableName: "MemberProfile")
         case .earnings: Text("member.benefit.earnings", tableName: "MemberProfile")
         }
+    }
+}
+
+
+/// verify-r1 1.5 / Q8: the ¥ 账户余额 tile shows CNY with two decimals. Text the server sends that is not a number is
+/// shown as sent (it is never turned into 0).
+enum MemberBalanceDisplay {
+    static func text(_ raw: String, locale: Locale) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: "")
+        guard let value = Decimal(string: trimmed, locale: Locale(identifier: "en_US_POSIX")) else { return raw }
+        return value.formatted(.currency(code: "CNY").locale(locale).precision(.fractionLength(2)))
     }
 }
