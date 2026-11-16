@@ -24,17 +24,14 @@ import SwiftUI
         NavigationStack {
             Form {
                 Section {
-                    Text("contextPublish.ai.notice")
-                        .font(CYTypography.meta)
-                        .foregroundStyle(palette.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    PublishingAIPromptControls(controller:inspiration,flow:model.flow,applied:{ ideaFocused = true })
+                    // Design hand-off r1 CF-59: the prompt leads; suggestions and preference tags follow it.
                     TextField("contextPublish.ai.prompt", text: Binding(get: { model.flow.idea }, set: { model.flow.idea = $0; model.revision += 1 }), axis: .vertical)
                         .lineLimit(3...8)
                         .font(CYTypography.bodyCompact)
                         .disabled(model.flow.busy)
                         .accessibilityIdentifier("contextPublish.ai.prompt")
                         .focused($ideaFocused)
+                    PublishingAIPromptControls(controller:inspiration,flow:model.flow,applied:{ ideaFocused = true })
                     if let key = model.flow.messageKey {
                         Text(LocalizedStringKey(key))
                             .font(CYTypography.meta)
@@ -64,8 +61,12 @@ import SwiftUI
                     if !model.flow.canGenerate && !model.flow.busy && model.flow.quotaReadState != .loading && model.flow.quota?.exhausted != true {
                         Text("contextPublish.ai.unavailable")
                             .font(CYTypography.meta)
-                            .foregroundStyle(palette.textTertiary)
+                            .foregroundStyle(palette.textSecondary)
                     }
+                    Text("contextPublish.ai.notice")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 PublishingAIQuotaSection(flow: model.flow)
                 G6AIThemeDraftRecoverySection()

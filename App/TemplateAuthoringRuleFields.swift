@@ -1,5 +1,9 @@
 import SwiftUI
 
+/// Rule steps as list rows (design hand-off r1 CF-33, CF-60, CF-71): numbered rows that reorder by drag
+/// (long press), by the trailing "⋯" menu (上移 / 下移 / 删除) or by VoiceOver actions; the handle is
+/// trailing; one dashed add row with the `n/12` count at the limit. The numbered handles say the order,
+/// so no explainer line is needed.
 @MainActor struct TemplateAuthoringRuleFields: View {
     private struct InputIdentity: Hashable {
         let rowID: UUID
@@ -8,42 +12,30 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        Group {
             Text("templateAuthor.field.ruleInstructions")
                 .font(CYTypography.label)
                 .foregroundStyle(palette.textSecondary)
             if !model.ruleSteps.isEditable {
-                Text("templateRules.historical").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                    .accessibilityIdentifier("templateRules.historical")
-                Text(verbatim: model.ruleSteps.storedText ?? "").textSelection(.enabled)
-                    .font(CYTypography.bodyCompact)
-                    .foregroundStyle(palette.textPrimary)
-                    .accessibilityIdentifier("templateRules.original")
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Text("templateRules.historical").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .accessibilityIdentifier("templateRules.historical")
+                    Text(verbatim: model.ruleSteps.storedText ?? "").textSelection(.enabled)
+                        .font(CYTypography.bodyCompact)
+                        .foregroundStyle(palette.textPrimary)
+                        .accessibilityIdentifier("templateRules.original")
+                }
             } else {
+                let count = model.ruleSteps.rows.count
                 ForEach(Array(model.ruleSteps.rows.enumerated()), id: \.element.id) { index, row in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        HStack {
-                            Text(verbatim: String(format: "%02d", index + 1))
-                                .font(CYTypography.micro.weight(.semibold).monospacedDigit())
-                                .foregroundStyle(palette.actionPrimaryFg)
-                                .frame(width: 24, height: 24)
-                                .background(Circle().fill(palette.actionPrimaryBg))
-                                .accessibilityHidden(true)
-                            Text("templateRules.step")
-                                .font(CYTypography.label)
-                                .foregroundStyle(palette.textPrimary)
-                            Text(verbatim: String(index + 1))
-                                .font(CYTypography.label.monospacedDigit())
-                                .foregroundStyle(palette.textPrimary)
-                            Spacer()
-                            if model.ruleSteps.canRemove {
-                                Button("templateRules.remove", role: .destructive) { model.removeRuleStep(row.id) }
-                                    .buttonStyle(.borderless)
-                                    .font(CYTypography.meta)
-                                    .accessibilityIdentifier("templateRules.remove.\(index)")
-                                    .accessibilityLabel(Text("templateRules.removeNumber \(index + 1)"))
-                            }
-                        }
+                    HStack(alignment: .top, spacing: CYSpacing.sm) {
+                        Text(verbatim: String(format: "%02d", index + 1))
+                            .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                            .foregroundStyle(palette.actionPrimaryFg)
+                            .frame(width: 24, height: 24)
+                            .background(Circle().fill(palette.actionPrimaryBg))
+                            .padding(.top, CYSpacing.s2_5)
+                            .accessibilityHidden(true)
                         TextField("templateRules.prompt", text: model.ruleStep(row.id), axis: .vertical)
                             .id(InputIdentity(rowID: row.id, rejectionRevision: model.ruleInputRevisions[row.id]))
                             .lineLimit(1...6)
@@ -52,20 +44,37 @@ import SwiftUI
                             .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgPage))
                             .accessibilityIdentifier("templateRules.input.\(index)")
                             .accessibilityLabel(Text("templateRules.stepNumber \(index + 1)"))
+                        EditorRowActionsMenu(
+                            index: index, count: count,
+                            actions: model.ruleSteps.canRemove ? [.moveUp, .moveDown, .delete] : [.moveUp, .moveDown],
+                            deleteTitle: Text("templateRules.removeNumber \(index + 1)"),
+                            menuID: "templateRules.menu.\(index)",
+                            deleteID: "templateRules.remove.\(index)"
+                        ) { action in
+                            if action == .delete { model.removeRuleStep(row.id) } else { model.ruleStepAction(action, at: index) }
+                        }
+                        EditorDragHandle()
                     }
                     .padding(.vertical, CYSpacing.xs)
+                    .editorReorderAccessibility(index: index, count: count) { model.ruleStepAction($0, at: index) }
                 }
-                Button {
-                    model.addRuleStep()
-                } label: {
-                    Label("templateRules.add", systemImage: "plus.circle.fill")
+                .onMove { model.moveRuleSteps(fromOffsets: $0, toOffset: $1) }
+                .onDelete { offsets in
+                    for index in offsets.sorted(by: >) { model.ruleStepAction(.delete, at: index) }
                 }
-                    .disabled(!model.ruleSteps.canAdd).accessibilityIdentifier("templateRules.add")
+                .deleteDisabled(!model.ruleSteps.canRemove)
+                EditorAddRow(
+                    title: Text("templateRules.add"),
+                    count: count,
+                    limit: TemplateAuthoringRuleSteps.maximumRows,
+                    accessibilityID: "templateRules.add"
+                ) { model.addRuleStep() }
+                .disabled(!model.ruleSteps.canAdd)
             }
             if let key = model.ruleStepIssue {
                 Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(palette.danger)
                     .accessibilityIdentifier("templateRules.issue")
             }
-        }.padding(.vertical, 3)
+        }
     }
 }

@@ -7,13 +7,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI route draft"
+            "value": "AI quick create"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI 路线草稿"
+            "value": "AI 快速创建"
           }
         }
       }
@@ -143,13 +143,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generating draft…"
+            "value": "Generating draft"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在生成草稿…"
+            "value": "正在生成草稿"
           }
         }
       }

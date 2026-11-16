@@ -180,7 +180,10 @@ import XCTest
         recoveredInput.tap(); recoveredInput.typeText(XCUIKeyboardKey.delete.rawValue + "a")
         bytes(recoveredInput.value as? String, sixty)
         bytes(try inspect(app).draft.ruleInstructions, (rows + [sixty]).joined(separator: "\n"))
-        tap("templateRules.remove.11", in: app, towardTop: true)
+        // Design hand-off r1 CF-33: delete lives in the row "⋯" menu (destructive, last).
+        tap("templateRules.menu.11", in: app, towardTop: true)
+        let remove = app.buttons["templateRules.remove.11"]
+        XCTAssertTrue(remove.waitForExistence(timeout: 5), app.debugDescription); remove.tap()
         reveal(add, in: app); XCTAssertTrue(add.isEnabled)
         let first = try insert("Edited ", into: "templateRules.input.0", in: app, towardTop: true)
         let expected = ([first.trimmingCharacters(in: .whitespacesAndNewlines)] + Array(rows.dropFirst())).joined(separator: "\n")

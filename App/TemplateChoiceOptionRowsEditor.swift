@@ -73,6 +73,7 @@ import SwiftUI
 @MainActor struct TemplateChoiceOptionRowsFields: View {
     @ObservedObject var model: TemplateAuthoringModel
     @StateObject private var editor: TemplateChoiceOptionRowsEditor
+    @State private var expandedLetter: TemplateChoiceOptionMedia.Letter?
     init(model: TemplateAuthoringModel) {
         self.model = model; _editor = StateObject(wrappedValue: .init(model: model))
     }
@@ -89,26 +90,55 @@ import SwiftUI
             if let issue = model.optionMediaIssue {
                 Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateAuthor.optionMedia.limit")
             }
-            ForEach(editor.letters) { letter in
+            // Design hand-off r1 CF-46: one row per option with the correct-answer control in front; only the
+            // option being edited expands to show its attachments. Delete lives in the row "⋯".
+            ForEach(Array(editor.letters.enumerated()), id: \.element) { index, letter in
+                let answer = editor.answer()
+                let isCorrect = answer.wrappedValue == letter.rawValue
                 VStack(alignment: .leading, spacing: 6) {
-                    TemplateAuthoringField("question" + letter.rawValue, text: editor.text(letter),
-                        accessibilityID: "templateChoiceRows.text." + letter.rawValue)
-                    ForEach(TemplateChoiceOptionMedia.Kind.allCases) { kind in
-                        Text(LocalizedStringKey(kind.labelKey)).font(.subheadline.weight(.semibold))
-                        TextField(LocalizedStringKey(kind.labelKey), text: editor.attachment(letter, kind))
-                            .textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .disabled(!model.draft.choiceOptionMedia.isSupported)
-                            .accessibilityIdentifier("templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
-                    }
-                    TemplateBasicFieldClearButton(model: model, field: .optionMedia(letter), iconOnly: false)
-                    Button("templateChoiceRows.remove", role: .destructive, action: editor.action(.remove(letter)))
+                    HStack(alignment: .bottom, spacing: CYSpacing.xs) {
+                        Button { answer.wrappedValue = isCorrect ? "" : letter.rawValue } label: {
+                            Image(systemName: isCorrect ? "checkmark.circle.fill" : "circle")
+                                .font(.title3)
+                                .foregroundStyle(isCorrect ? CYColor.textPrimary : CYColor.borderStrong)
+                                .editorHitTarget()
+                        }
+                        .accessibilityLabel(Text("editorKit.answer.correctLetter \(letter.rawValue)", tableName: "EditorKit"))
+                        .accessibilityValue(EditorKitText.text(isCorrect ? "editorKit.answer.selected" : "editorKit.answer.notSelected"))
+                        .accessibilityAddTraits(isCorrect ? [.isSelected] : [])
+                        .accessibilityIdentifier("templateChoiceRows.correctAnswer." + letter.rawValue)
+                        .sensoryFeedback(.selection, trigger: isCorrect)
+                        TemplateAuthoringField("question" + letter.rawValue, text: editor.text(letter),
+                            accessibilityID: "templateChoiceRows.text." + letter.rawValue)
+                        Button { expandedLetter = expandedLetter == letter ? nil : letter } label: {
+                            Image(systemName: expandedLetter == letter ? "chevron.up" : "paperclip")
+                                .foregroundStyle(CYColor.textSecondary)
+                                .editorHitTarget()
+                        }
+                        .accessibilityLabel(Text("templateAuthor.optionMedia.title"))
+                        .accessibilityIdentifier("templateChoiceRows.attachments." + letter.rawValue)
+                        EditorRowActionsMenu(
+                            index: index, count: editor.letters.count, actions: [.delete],
+                            deleteTitle: Text("templateChoiceRows.removeLetter \(letter.rawValue)"),
+                            deleteID: "templateChoiceRows.remove." + letter.rawValue
+                        ) { _ in editor.action(.remove(letter))() }
                         .disabled(!editor.rows.canRemove)
-                        .accessibilityLabel(Text("templateChoiceRows.removeLetter \(letter.rawValue)"))
-                        .accessibilityIdentifier("templateChoiceRows.remove." + letter.rawValue)
+                    }
+                    if expandedLetter == letter {
+                        ForEach(TemplateChoiceOptionMedia.Kind.allCases) { kind in
+                            Text(LocalizedStringKey(kind.labelKey)).font(.subheadline.weight(.semibold))
+                            TextField(LocalizedStringKey(kind.labelKey), text: editor.attachment(letter, kind))
+                                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                                .disabled(!model.draft.choiceOptionMedia.isSupported)
+                                .accessibilityIdentifier("templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
+                        }
+                        TemplateBasicFieldClearButton(model: model, field: .optionMedia(letter), iconOnly: false)
+                    }
                 }
             }
             Button("templateChoiceRows.add", systemImage: "plus", action: editor.action(.add))
                 .disabled(!editor.rows.canAdd).accessibilityIdentifier("templateChoiceRows.add")
+            if let raw = model.draft.correctAnswer, !raw.isEmpty, !editor.letters.contains(where: { $0.rawValue == raw }) {
             Picker("templateAuthor.field.correctAnswer", selection: editor.answer()) {
                 Text("templateAuthor.choose").tag("")
                 ForEach(editor.letters) { letter in Text(verbatim: letter.rawValue).tag(letter.rawValue) }
@@ -116,6 +146,7 @@ import SwiftUI
                     Text(verbatim: raw).tag(raw)
                 }
             }.accessibilityIdentifier("templateChoiceRows.correctAnswer")
+            }
         }.buttonStyle(.borderless).disabled(!editor.canEdit)
             .onAppear { editor.reload() }
             .onDisappear { editor.retire() }

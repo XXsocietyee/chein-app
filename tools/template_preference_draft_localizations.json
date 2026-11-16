@@ -28,8 +28,8 @@
     "zh-Hans": "检查并预览当前 JSON"
   },
   "templateAuthor.preference.checking": {
-    "en": "Checking this configuration…",
-    "zh-Hans": "正在检查当前配置…"
+    "en": "Checking this configuration",
+    "zh-Hans": "正在检查当前配置"
   },
   "templateAuthor.preference.unchecked": {
     "en": "Current text has not been checked. Use Check and preview; changing text clears the previous preview.",

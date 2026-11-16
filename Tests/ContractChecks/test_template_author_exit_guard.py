@@ -8,7 +8,7 @@ CT=(ROOT/'Tests/CoreTests/TemplateAuthoringExitDecisionTests.swift').read_text()
 class ExitGuardSourceContracts(unittest.TestCase):
     def test_normal_root_host_has_one_additive_entry(self):
         self.assertEqual(HOST.count('.modifier(TemplateAuthoringExitGuard('),1)
-        self.assertIn('overlaysOpen: { preview || discard || media.review != nil }',HOST)
+        self.assertIn('overlaysOpen: { preview || discard || previewMissing || media.review != nil }',HOST)  # design hand-off r1 CF-45 preview gate
         self.assertIn('title: appLocalized("templateAuthor.discardQuestion", locale: locale)',HOST)
         self.assertIn('CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }',HOST)
     def test_exact_checkpoint_comparison_not_unicode_equatable(self):

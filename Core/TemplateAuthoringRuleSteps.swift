@@ -47,6 +47,14 @@ public struct TemplateAuthoringRuleSteps: Equatable {
         guard canRemove else { throw EditError.lastRow }
         rows.remove(at: index); synchronize()
     }
+    /// Drag-to-reorder and the row "⋯" 上移 / 下移 (design hand-off r1, CF-33 / CF-60).
+    public mutating func move(fromOffsets source: IndexSet, toOffset destination: Int) throws {
+        guard isEditable else { throw EditError.historicalText }
+        guard source.allSatisfy({ rows.indices.contains($0) }), (0...rows.count).contains(destination) else { throw EditError.invalidRow }
+        let before = rows.map(\.id)
+        EditorReorder.move(&rows, fromOffsets: source, toOffset: destination)
+        if rows.map(\.id) != before { synchronize() }
+    }
     private mutating func synchronize() {
         // Empty is an explicit clear, not nil (which would omit the existing field).
         // Embedded LF is accepted by the source textarea and is not rewritten here.

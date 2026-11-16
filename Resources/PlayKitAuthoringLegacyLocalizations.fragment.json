@@ -773,13 +773,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Compass points must be an integer from 0 to 1000"
+            "value": "Compass reward must be a whole number from 0 to 1000 points"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "罗盘奖励分须为 0 至 1000 的整数"
+            "value": "罗盘奖励须为 0 至 1000 积分的整数"
           }
         }
       }
@@ -807,13 +807,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voice challenge points must be an integer from 0 to 1000"
+            "value": "Voice-challenge reward must be a whole number from 0 to 1000 points"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发声挑战奖励分须为 0 至 1000 的整数"
+            "value": "发声挑战奖励须为 0 至 1000 积分的整数"
           }
         }
       }
@@ -926,13 +926,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Target direction, 0–359°"
+            "value": "Target direction (0–359)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "目标方位，0 至 359°"
+            "value": "目标方位（0 至 359）"
           }
         }
       }
@@ -943,13 +943,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Direction tolerance, 5–90°"
+            "value": "Direction tolerance (5–90)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "方位容差，5 至 90°"
+            "value": "方位容差（5 至 90）"
           }
         }
       }
@@ -960,13 +960,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continuous hold, 1–10 seconds"
+            "value": "Continuous hold (1–10)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "连续保持，1 至 10 秒"
+            "value": "连续保持（1 至 10）"
           }
         }
       }
@@ -1170,7 +1170,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可以自由聆听，播放不会提交完成状态，也不承诺奖励分。"
+            "value": "可以自由聆听，播放不会提交完成状态，也不承诺奖励积分。"
           }
         }
       }

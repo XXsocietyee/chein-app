@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Local selection is pending. Nothing has been uploaded."
+            "value": "Preparing your selection"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本地选择处理中，尚未上传任何内容。"
+            "value": "正在处理所选文件"
           }
         }
       }

@@ -98,17 +98,18 @@
       }
     },
     "templateOwnShelf.read.failed": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load your plays"
+            "value": "Play drafts didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法草稿加载失败"
+            "value": "玩法草稿没加载出来"
           }
         }
       }
@@ -210,17 +211,18 @@
       }
     },
     "templateOwnShelf.read.loadingMore": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading more…"
+            "value": "Loading more"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载更多…"
+            "value": "正在加载更多"
           }
         }
       }

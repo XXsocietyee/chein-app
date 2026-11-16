@@ -41,13 +41,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load the draft quota."
+            "value": "The draft allowance didn't load. The network isn't connected. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "草稿额度加载失败。"
+            "value": "草稿额度没加载出来。网络没连上，请重试。"
           }
         }
       }
@@ -31580,13 +31580,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generating a plan…"
+            "value": "Generating a plan"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在生成方案…"
+            "value": "正在生成方案"
           }
         }
       }
@@ -33297,13 +33297,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generating draft…"
+            "value": "Generating draft"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在生成草稿…"
+            "value": "正在生成草稿"
           }
         }
       }
@@ -33399,13 +33399,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI route draft"
+            "value": "AI quick create"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI 路线草稿"
+            "value": "AI 快速创建"
           }
         }
       }
@@ -46615,13 +46615,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Duration in seconds"
+            "value": "Duration"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "时长秒数"
+            "value": "时长"
           }
         }
       }
@@ -47040,13 +47040,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time limit in seconds (0 = none)"
+            "value": "Time limit (0 = none)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "时限秒数（0 为不限）"
+            "value": "时限（0 为不限）"
           }
         }
       }
@@ -47890,13 +47890,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time limit in seconds"
+            "value": "Time limit"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "时限秒数"
+            "value": "时限"
           }
         }
       }
@@ -48519,13 +48519,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reward points"
+            "value": "Reward"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "奖励分"
+            "value": "奖励"
           }
         }
       }
@@ -49582,13 +49582,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unable to load. Try again."
+            "value": "Content didn't load. The network isn't connected. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载失败，请重试。"
+            "value": "内容没加载出来。网络没连上，请重试。"
           }
         }
       }
@@ -49886,13 +49886,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading…"
+            "value": "Loading"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载中…"
+            "value": "正在加载"
           }
         }
       }
@@ -145179,13 +145179,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Compass points must be an integer from 0 to 1000"
+            "value": "Compass reward must be a whole number from 0 to 1000 points"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "罗盘奖励分须为 0 至 1000 的整数"
+            "value": "罗盘奖励须为 0 至 1000 积分的整数"
           }
         }
       }
@@ -145400,13 +145400,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Voice challenge points must be an integer from 0 to 1000"
+            "value": "Voice-challenge reward must be a whole number from 0 to 1000 points"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发声挑战奖励分须为 0 至 1000 的整数"
+            "value": "发声挑战奖励须为 0 至 1000 积分的整数"
           }
         }
       }
@@ -145627,7 +145627,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可以自由聆听，播放不会提交完成状态，也不承诺奖励分。"
+            "value": "可以自由聆听，播放不会提交完成状态，也不承诺奖励积分。"
           }
         }
       }
@@ -166426,13 +166426,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading editor…"
+            "value": "Loading editor"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载编辑器…"
+            "value": "正在加载编辑器"
           }
         }
       }
@@ -166844,13 +166844,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reload editor"
+            "value": "Retry"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新加载"
+            "value": "重试"
           }
         }
       }
@@ -173826,13 +173826,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load this list. Check your connection and sign-in, then retry."
+            "value": "The list didn't load. The network isn't connected. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "列表加载失败，请检查网络和登录状态后重试。"
+            "value": "列表没加载出来。网络没连上，请重试。"
           }
         }
       }
@@ -176360,13 +176360,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choosing a package…"
+            "value": "Choosing a package"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在选择玩法包…"
+            "value": "正在选择玩法包"
           }
         }
       }
@@ -176785,13 +176785,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking…"
+            "value": "Checking"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在检查…"
+            "value": "正在检查"
           }
         }
       }
@@ -211088,13 +211088,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Audio duration in seconds"
+            "value": "Audio duration"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "音频时长（秒）"
+            "value": "音频时长"
           }
         }
       }
@@ -211122,13 +211122,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Target direction, 0–359°"
+            "value": "Target direction (0–359)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "目标方位，0 至 359°"
+            "value": "目标方位（0 至 359）"
           }
         }
       }
@@ -211255,13 +211255,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Highlights (up to 30 characters)"
+            "value": "Highlights"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法看点（最多 30 字）"
+            "value": "玩法看点"
           }
         }
       }
@@ -211335,13 +211335,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Time limit: 10–86400 seconds"
+            "value": "Time limit (10–86400)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "限时秒数：10–86400"
+            "value": "限时（10 至 86400）"
           }
         }
       }
@@ -211464,13 +211464,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Continuous hold, 1–10 seconds"
+            "value": "Continuous hold (1–10)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "连续保持，1 至 10 秒"
+            "value": "连续保持（1 至 10）"
           }
         }
       }
@@ -211498,13 +211498,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Title (up to 32 characters)"
+            "value": "Title"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标题（最多 32 字）"
+            "value": "标题"
           }
         }
       }
@@ -211856,13 +211856,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Duration in seconds"
+            "value": "Duration"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "时长（秒）"
+            "value": "时长"
           }
         }
       }
@@ -211953,13 +211953,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Target: 3–120 seconds"
+            "value": "Target (3–120)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "目标秒数：3–120"
+            "value": "目标时长（3 至 120）"
           }
         }
       }
@@ -212002,13 +212002,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Direction tolerance, 5–90°"
+            "value": "Direction tolerance (5–90)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "方位容差，5 至 90°"
+            "value": "方位容差（5 至 90）"
           }
         }
       }
@@ -212066,13 +212066,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reward points"
+            "value": "Reward"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "奖励分"
+            "value": "奖励"
           }
         }
       }
@@ -213477,13 +213477,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Checking this configuration…"
+            "value": "Checking this configuration"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在检查当前配置…"
+            "value": "正在检查当前配置"
           }
         }
       }
@@ -214453,7 +214453,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确定删除此模板？此操作可能无法撤销。"
+            "value": "删除这个模板？此操作可能无法撤销。"
           }
         }
       }
@@ -214576,13 +214576,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Could not load the next page. Retry or refresh the list."
+            "value": "The next page didn't load. The network isn't connected. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "下一页加载失败，请重试或刷新列表。"
+            "value": "下一页没加载出来。网络没连上，请重试。"
           }
         }
       }
@@ -217142,7 +217142,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场景图加载失败，请点击“加载／重试场景图”重试。"
+            "value": "场景图没加载出来，请点击“加载／重试场景图”重试。"
           }
         }
       }
@@ -218034,13 +218034,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing your selection…"
+            "value": "Preparing your selection"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在处理所选文件…"
+            "value": "正在处理所选文件"
           }
         }
       }
@@ -218428,7 +218428,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "选项加载失败，当前值保持不变。"
+            "value": "选项没加载出来，当前值保持不变。"
           }
         }
       }
@@ -218456,13 +218456,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading choices…"
+            "value": "Loading choices"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载选项…"
+            "value": "正在加载选项"
           }
         }
       }
@@ -219192,13 +219192,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load your plays"
+            "value": "Play drafts didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法草稿加载失败"
+            "value": "玩法草稿没加载出来"
           }
         }
       }
@@ -219277,13 +219277,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading more…"
+            "value": "Loading more"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载更多…"
+            "value": "正在加载更多"
           }
         }
       }
@@ -222348,7 +222348,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片加载失败，请检查地址后重试。"
+            "value": "图片没加载出来，请检查地址后重试。"
           }
         }
       }
@@ -253080,13 +253080,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Generative AI filing: %@"
+            "value": "AI-generated content · Filing no. %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "生成式 AI 备案号：%@"
+            "value": "内容由 AI 生成 · 备案号 %@"
           }
         }
       }
@@ -259891,13 +259891,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading featured examples…"
+            "value": "Loading featured examples"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载精选示例…"
+            "value": "正在加载精选示例"
           }
         }
       }
@@ -260174,13 +260174,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading editor…"
+            "value": "Loading editor"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载编辑器…"
+            "value": "正在加载编辑器"
           }
         }
       }
@@ -271434,13 +271434,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load this. Try again."
+            "value": "Content didn't load. The network isn't connected. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "加载失败，请重试。"
+            "value": "内容没加载出来。网络没连上，请重试。"
           }
         }
       }
