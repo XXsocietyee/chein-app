@@ -138,6 +138,7 @@
         "CoreLoopCopyPluralTests",
         "DeepLinkSafetyDiagnosticsSectionViewTests",
         "DeepLinkToMiniProgramPathTranslatorSectionViewTests",
+        "DesignR1MerchantKitTests",
         "DesignSystemSharedComponentsTests",
         "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",

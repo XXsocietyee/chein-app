@@ -304,24 +304,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     }
                     if access.canReadDashboard {
                         MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
-                            VStack(spacing: CYSpacing.xs) {
-                                Text("merchant.revenue")
-                                    .font(CYTypography.meta)
-                                    .foregroundStyle(CYColor.textSecondary)
-                                // Unknown revenue is an em dash (MerchantMoney.display), never a fake zero.
-                                Text(MerchantMoney.display(value.revenue))
-                                    .font(CYTypography.data2XL)
-                                    .monospacedDigit()
-                                    .foregroundStyle(CYColor.textPrimary)
-                                    .cyWrapText(alignment: .center)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, CYSpacing.lg)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityLabel(Text("merchant.revenue"))
-                            .accessibilityValue(Text(verbatim: MerchantMoney.display(value.revenue)))
-                            .accessibilityHint(Text("merchant.revenue"))
-                            .accessibilityIdentifier("merchant.dashboard.revenue")
+                            // HANDOFF-R1 MR-20 (owner Q-C): the hero is today — 今日核销 · 今日收入 · 待处理.
+                            // The cumulative 累计收入 moved to 账本 (MerchantLedgerSettlementOverview).
+                            MerchantR1TodayCard(today: .make(revenue7d: value.revenue7d, pendingOrders: value.pendingOrders))
+                                .accessibilityIdentifier("merchant.dashboard.revenue")
                         }
                     }
                 }
@@ -555,6 +541,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
                     if route.shortcut == .finance {
                         MerchantLedgerSettlementOverview(reader: route.reader)
+                            .environment(\.merchantR1CumulativeRevenue, dashboard.value.map { $0.revenue })
                             .onDisappear(perform: onChildReturn)
                     } else {
                         MerchantBusinessPage(reader: route.reader, journal: route.journal, query: route.shortcut.query)

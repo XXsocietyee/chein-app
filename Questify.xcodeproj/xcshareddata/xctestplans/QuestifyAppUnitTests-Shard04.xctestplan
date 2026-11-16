@@ -149,6 +149,7 @@
         "CreatorCropExportAppTests",
         "DeepLinkSafetyDiagnosticsSectionViewTests",
         "DesignR1ClubKitTests",
+        "DesignR1MerchantKitTests",
         "DesignSystemSharedComponentsTests",
         "EndToEndReleaseCandidateGateSectionViewTests",
         "EnvironmentBranchAndRewardLedgerViewTests",

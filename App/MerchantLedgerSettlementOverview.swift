@@ -90,6 +90,9 @@ import UIKit
 @MainActor struct MerchantLedgerSettlementOverview: View {
     let reader: any MerchantBusinessReading
     @StateObject private var model: MerchantLedgerSettlementModel
+    @State private var ledgerView: MerchantR1LedgerView = .redemptions
+    @Environment(\.merchantR1CumulativeRevenue) private var cumulativeRevenue
+    @Environment(\.locale) private var locale
     init(reader: any MerchantBusinessReading) {
         self.reader = reader
         _model = StateObject(wrappedValue: MerchantLedgerSettlementModel(reader: reader))
@@ -100,10 +103,26 @@ import UIKit
             if reader.isOfflineExample {
                 Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }
+            // HANDOFF-R1 MR-21 / MR-20: one 账本 — the cumulative total from the workbench, the overview,
+            // then a 核销 · 结算 switcher instead of two stacked lists.
+            if let cumulative = cumulativeRevenue {
+                Section { MerchantR1CumulativeRow(raw: cumulative) }
+            }
             section(.overview)
-            section(.entries)
-            section(.batches)
+            Section {
+                Picker(selection: $ledgerView) {
+                    ForEach(MerchantR1LedgerView.allCases) { view in
+                        Text(verbatim: merchantR1("ledger.view.\(view.rawValue)", locale)).tag(view)
+                    }
+                } label: { Text(verbatim: merchantR1("ledger.view.label", locale)) }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("merchant.ledger.switcher")
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets())
+            if ledgerView == .redemptions { section(.entries) } else { section(.batches) }
         }
+        .animation(.easeOut(duration: 0.18), value: ledgerView)
         .refreshable { model.loadAll() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

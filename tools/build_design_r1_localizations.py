@@ -70,6 +70,16 @@ MERCHANT = {
     'outcome.check': ('Check result', '查看结果'),
     'outcome.retry': ('Try again', '重试'),
     'outcome.copyDiagnostics': ('Copy diagnostic info', '复制诊断信息'),
+    # MR-20 workbench today, MR-21 账本
+    'today.title': ('Today', '今日'),
+    'today.redemptions': ('Redeemed today', '今日核销'),
+    'today.income': ('Income today', '今日收入'),
+    'today.pending': ('To handle', '待处理'),
+    'today.unknownReason': ('"—" means the server has not reported today\'s figure yet.', '“—”表示服务端还没有给出今天的数字。'),
+    'ledger.cumulative': ('Total income', '累计收入'),
+    'ledger.view.label': ('Ledger view', '账本视图'),
+    'ledger.view.redemptions': ('Redemptions', '核销'),
+    'ledger.view.settlements': ('Settlements', '结算'),
     # Money stays TEST-only until the owner says "money on"
     'money.testOnly': ('Test build only', '仅测试环境'),
 }

@@ -268,3 +268,129 @@ struct MerchantR1TestOnlyBadge: View {
             .accessibilityIdentifier("merchant.r1.money.testOnly")
     }
 }
+
+// MARK: - Workbench today (MR-20, owner Q-C: today's three numbers; cumulative moves to 账本)
+
+/// 今日核销 · 今日收入 · 待处理. A number the server does not report for today is "—", never a guess.
+struct MerchantR1Today: Equatable {
+    let redemptions: String
+    let income: String
+    let pending: String
+
+    /// - todayRedemptions: a date-scoped count when the server sends one (it does not yet: nil → "—").
+    static func make(revenue7d: [MerchantRevenuePoint], pendingOrders: Int?, todayRedemptions: Int? = nil,
+                     now: Date = Date(), calendar: Calendar = Calendar(identifier: .gregorian)) -> MerchantR1Today {
+        MerchantR1Today(redemptions: todayRedemptions.map { "\(max(0, $0))" } ?? "—",
+                        income: todayIncome(revenue7d, now: now, calendar: calendar),
+                        pending: pendingOrders.map { "\(max(0, $0))" } ?? "—")
+    }
+
+    /// The `revenue7d` point dated today (`yyyy-MM-dd`, `yyyy/MM/dd` or `MM-dd`), formatted as money.
+    static func todayIncome(_ points: [MerchantRevenuePoint], now: Date, calendar: Calendar) -> String {
+        let parts = calendar.dateComponents([.year, .month, .day], from: now)
+        guard let year = parts.year, let month = parts.month, let day = parts.day else { return "—" }
+        let full = String(format: "%04d-%02d-%02d", year, month, day)
+        let short = String(format: "%02d-%02d", month, day)
+        for point in points {
+            let date = point.date.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "/", with: "-")
+            if date == full || date == short || date.hasPrefix(full + " ") || date.hasPrefix(full + "T") {
+                return MerchantMoney.display(point.amount)
+            }
+        }
+        return "—"
+    }
+}
+
+/// Merchant/Today Card: three tiles with the data hero type; each tile names its number.
+struct MerchantR1TodayCard: View {
+    let today: MerchantR1Today
+    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    var body: some View {
+        let keys = ["today.redemptions", "today.income", "today.pending"]
+        let values = [today.redemptions, today.income, today.pending]
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(verbatim: merchantR1("today.title", locale))
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(palette.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            Group {
+                if typeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) { ForEach(0..<3, id: \.self) { tile(keys[$0], values[$0]) } }
+                } else {
+                    HStack(alignment: .top, spacing: CYSpacing.md) { ForEach(0..<3, id: \.self) { tile(keys[$0], values[$0]) } }
+                }
+            }
+            if today.redemptions == "—" || today.income == "—" {
+                Text(verbatim: merchantR1("today.unknownReason", locale))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgSurface))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("merchant.r1.today")
+    }
+
+    private func tile(_ key: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Text(verbatim: value)
+                .font(CYTypography.dataXL)
+                .foregroundStyle(palette.textPrimary)
+                .contentTransition(.numericText())
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(verbatim: merchantR1(key, locale))
+                .font(CYTypography.label)
+                .foregroundStyle(palette.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+    }
+}
+
+// MARK: - 账本 (MR-21): one page, a view switcher, and the cumulative total that left the workbench hero
+
+private struct MerchantR1CumulativeRevenueKey: EnvironmentKey {
+    static let defaultValue: String?? = nil
+}
+
+extension EnvironmentValues {
+    /// `.some(raw)` when the workbench knows the cumulative revenue (raw may itself be nil = unknown).
+    var merchantR1CumulativeRevenue: String?? {
+        get { self[MerchantR1CumulativeRevenueKey.self] }
+        set { self[MerchantR1CumulativeRevenueKey.self] = newValue }
+    }
+}
+
+/// The ledger's view switcher: 核销 (entries) · 结算 (batches).
+enum MerchantR1LedgerView: String, CaseIterable, Identifiable {
+    case redemptions, settlements
+    var id: String { rawValue }
+}
+
+/// 累计收入 row at the top of 账本 (owner Q-C). Unknown is "—".
+struct MerchantR1CumulativeRow: View {
+    let raw: String?
+    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(verbatim: merchantR1("ledger.cumulative", locale))
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textSecondary)
+            Spacer(minLength: CYSpacing.sm)
+            Text(verbatim: MerchantMoney.display(raw))
+                .font(CYTypography.dataXL)
+                .foregroundStyle(palette.textPrimary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("merchant.ledger.cumulative")
+    }
+}
