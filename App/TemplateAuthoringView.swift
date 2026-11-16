@@ -279,7 +279,11 @@ extension EnvironmentValues {
     private func jumpToFirstError(_ proxy: ScrollViewProxy) {
         jump(to: outline.firstError ?? .info, proxy); errorJumps += 1
     }
+    /// verify-r2 N-01: the topic-editor domain wraps the whole page (ground, section bar, bottom bar), not only the Form.
     var body: some View {
+        pageBody.cyDomainScreen(.topicEditor)
+    }
+    @ViewBuilder private var pageBody: some View {
         let _ = cover.bind(read: {
             guard model.coordinator.session != nil, step == .edit else { return nil }
             return .init(session: coverSession() ?? environmentCover?.session(), target: .template(model.coordinator.identity.draftID),

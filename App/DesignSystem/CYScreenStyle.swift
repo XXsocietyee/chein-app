@@ -47,7 +47,9 @@ extension View {
     /// regardless of the device's system appearance.
     func cyDomainScreen(_ domain: ThemeDomain) -> some View {
         themeDomain(domain)
-            .cyDomainPageBackground()
+            // verify-r2 N-01: the ground is this domain's page colour. `cyDomainPageBackground()` here read the palette
+            // from outside `themeDomain`, i.e. the pushing stack's (black under the player shell).
+            .background(CYDomainPalette(domain).bgPage.ignoresSafeArea())
             .tint(CYDomainPalette(domain).brand)
     }
 

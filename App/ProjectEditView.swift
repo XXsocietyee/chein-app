@@ -320,7 +320,12 @@ import SwiftUI
         let value = ProjectEditModel(coordinator: coordinator, seed: seed, storyImagePicker: storyImagePicker, storyAudioPicker: storyAudioPicker)
         _model = StateObject(wrappedValue: value); _starter = StateObject(wrappedValue: .init(model: value)); _pending = StateObject(wrappedValue: .init(model: value)); _chapterRemoval = StateObject(wrappedValue: .init(model: value)); _issueNavigation = StateObject(wrappedValue: .init(model: value)); _modeReview = StateObject(wrappedValue: .init(model: value)); _ownedCover = StateObject(wrappedValue: .init(model: value)); _approvedRelease = StateObject(wrappedValue: .init(model: value)); _reviewRequest = StateObject(wrappedValue: .init(model: value)); self.sessionRevision = sessionRevision
     }
+    /// verify-r2 N-01: the topic-editor domain wraps the whole page, so the page ground, the bottom bar and every
+    /// modifier in the chain (not only the Form) are light when this is pushed from the dark player shell.
     var body: some View {
+        pageBody.cyDomainScreen(.topicEditor)
+    }
+    @ViewBuilder private var pageBody: some View {
         let opening = model.captureStarterLease()
         let issueRows = issueNavigation.rows(model.coordinator.issues)
         let modePresentation = modeReview.presentation
@@ -333,7 +338,7 @@ import SwiftUI
         ScrollViewReader { scrollProxy in
         Form {
             CYHeroHeader("projectEdit.title", subtitle: model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                .e1HeroRow() // verify-r1 N-01/N-10: zero insets clipped the first glyph ("戈市定向")
             if model.coordinator.snapshot != nil {
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
