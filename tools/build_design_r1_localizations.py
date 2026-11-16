@@ -29,6 +29,20 @@ CLUB = {
     'create.city.search': ('Search cities', '搜索城市'),
     'create.city.current': ('Current location', '当前定位'),
     'create.city.hot': ('Popular cities', '热门城市'),
+    # MC-20 member actions, MC-33 consequence sheet, page-end rows
+    'member.action.report': ('Report', '举报'),
+    'member.action.makeAdmin': ('Make admin', '设为管理员'),
+    'member.action.tempBan': ('Suspend for a while', '临时封禁'),
+    'member.action.remove': ('Remove', '移除'),
+    'member.menuNamed': ('Actions for %@', '%@ 的操作'),
+    'member.consequence.tempBan.title': ('Suspend member', '临时封禁成员'),
+    'member.consequence.tempBan.line1': ('They cannot post, comment or sign up until the suspension ends', '封禁期内不能发帖、评论或报名'),
+    'member.consequence.tempBan.line2': ('They are told the reason and the end date', '对方会收到原因和解封时间'),
+    'member.consequence.remove.title': ('Remove member', '移除成员'),
+    'member.consequence.remove.line1': ('They leave the club and lose member-only access', '对方将离开俱乐部，失去成员权限'),
+    'member.consequence.remove.line2': ('They can apply again later', '之后对方仍可重新申请加入'),
+    'club.leave': ('Leave club', '退出俱乐部'),
+    'club.report': ('Report club', '举报俱乐部'),
 }
 
 MERCHANT = {

@@ -12,6 +12,12 @@ struct ClubActionPanel: View {
     let coordinator: ClubActionCoordinator
     /// Guests get a way to the sign-in entry instead of a bare message.
     var onSignIn: (() -> Void)? = nil
+    /// HANDOFF-R1 MC-20: `.pageEnd` renders only the quiet red 退出俱乐部 / 举报俱乐部 rows at the end of 概览;
+    /// the header placement then leaves 退出 out. Both keep the same confirmation and request path.
+    var placement: ClubActionPlacement = .header
+    var onReportClub: (() -> Void)? = nil
+    /// Header placement only: 退出 is drawn by the page-end panel instead.
+    var leavesAtPageEnd = false
     let onReadbackStarted: () -> UInt64
     let onReadback: (ClubRecord, ClubReadIdentity, UInt64) -> Void
     @State private var ownerID = UUID()
@@ -40,6 +46,10 @@ struct ClubActionPanel: View {
     var body: some View {
         let _ = revision
         let state = coordinator.state(clubID: club.id)
+        Group {
+        if placement == .pageEnd {
+            pageEndSection
+        } else {
         Section {
             if coordinator.identity != identity || !identity.isSignedIn {
                 Text("club.signInRequired").foregroundStyle(.secondary)
@@ -95,6 +105,8 @@ struct ClubActionPanel: View {
                 if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.secondary).accessibilityIdentifier("club.action.error") }
             }
         } header: { Text("club.action.membership") }
+        }
+        }
         .sheet(isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } })) {
             if let value = confirmation {
                 CYConfirmSheet(
@@ -117,6 +129,20 @@ struct ClubActionPanel: View {
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardPhase)
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardHandedOff)
     }
+    private var canLeaveHere: Bool {
+        guard coordinator.identity == identity, identity.isSignedIn, coordinator.isConfigured, !rewardPlaying,
+              case .available(let action) = availability else { return false }
+        return action == .leave
+    }
+    @ViewBuilder private var pageEndSection: some View {
+        if canLeaveHere || (onReportClub != nil && identity.isSignedIn) {
+            Section {
+                ClubPageEndActions(canLeave: canLeaveHere && !isWorking, onLeave: { prepare(.leave) }, onReport: onReportClub)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
+        }
+    }
     @ViewBuilder private func membershipButton(_ action: ClubAction, state: ClubActionState) -> some View {
         let button = Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {
             Label(LocalizedStringKey(actionKey(action)), systemImage: action == .leave ? "rectangle.portrait.and.arrow.right" : "person.badge.plus")
@@ -126,7 +152,9 @@ struct ClubActionPanel: View {
         .accessibilityIdentifier("club.action.\(action.rawValue)")
         .listRowBackground(Color.clear)
         if action == .leave {
-            button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
+            if !leavesAtPageEnd {
+                button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
+            }
         } else {
             // Dots while preparing and sending. Success is the seal reward above, not a morph into the chip.
             CYClubJoinStage(
@@ -311,6 +339,8 @@ struct ClubActionPanel: View {
         joinMessage = ""; revision &+= 1
     }
 }
+
+enum ClubActionPlacement { case header, pageEnd }
 
 /// Consequence rows of the quit-club confirmation (mini-program `pages/club/detail` quit dialog).
 enum ClubLeaveConsequences {
