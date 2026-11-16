@@ -592,7 +592,9 @@ private final class PlayExperienceTestTransport: HTTPTransport {
         _ = try await service(transport).complete(scope: .topic(71), nodeID: 701, evidence: .scan("synthetic-qr"), advance: nil, token: "synthetic")
         let text = try body(transport.requests.first)
         XCTAssertEqual(transport.requests.first?.url?.path, "/fixture/api/play/checkin")
-        for field in ["accuracy", "latitude", "longitude", "measuredAt", "nodeId"] { XCTAssertFalse(text.contains(field), field) }
+        for field in ["accuracy", "latitude", "longitude", "measuredAt"] { XCTAssertFalse(text.contains(field), field) }
+        // A5: the reviewed nodeId is not location metadata; the backend scopes every checkin by it.
+        XCTAssertTrue(text.contains("name=\"nodeId\"\r\n\r\n701\r\n"), "nodeId")
     }
     func testProjectionBoundaryKeepsMeasurementOrStaysUnavailable() throws {
         let now = Date(timeIntervalSince1970: 1_800_000_000)
