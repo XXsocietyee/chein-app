@@ -100,10 +100,10 @@ public struct PlayExperienceService {
             fields["answer"] = answer
         case .scan(let code):
             guard !code.isEmpty else { throw APIError.invalidRequest }
-            // Source checkin resolves node from code. A1 (acceptance-r3): the current backend binds a new
-            // checkin intent to the reviewed node (`nodeId`) and refuses it without one, so an intent bound
-            // to the server action context carries it. Unbound (older) journals replay their original body.
-            if advance?.isContextBound != true { fields.removeValue(forKey: "nodeId") }
+            // A5 (acceptance-r3 wave 6): every checkin carries the reviewed `nodeId`. The backend scopes each
+            // basic intent by it (`PlayBasicIntentApplication.basicIntentScope`) before reading the code and
+            // refuses a checkin without it (INTENT_INPUT_INVALID "参数有误"); the code still names the store.
+            // A journal sent without `nodeId` was refused before any receipt, so nothing replays that shape.
             fields["code"] = code
         case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
             guard coordinateSystem == "GCJ02", longitude.isFinite, latitude.isFinite,
