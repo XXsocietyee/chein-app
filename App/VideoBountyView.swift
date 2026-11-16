@@ -337,7 +337,8 @@ private struct VideoBountyAttributionSheet: View {
                 case "OWNER_NOT_SET":
                     Text("mp.vb.attribution.ownerMissing")
                 case "UNKNOWN":
-                    Text(verbatim: "UNKNOWN")
+                    // polish-d-r1: an unknown status reads as the em dash, never the raw server word.
+                    Text(verbatim: "—")
                 default:
                     Text(verbatim: fact.status)
                 }

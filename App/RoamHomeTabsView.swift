@@ -496,7 +496,7 @@ struct RoamToolUnavailableView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(LocalizedStringKey(tile.titleKey)).font(.headline)
-                        if tile.isNew { Text(verbatim: "NEW").font(.caption2.bold()).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
+                        if tile.isNew { Text("roam.private.new").font(.caption2.bold()).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
                     }
                     caption(tile).font(.caption).foregroundStyle(.secondary)
                 }

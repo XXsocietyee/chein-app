@@ -265,7 +265,7 @@ struct RoamShareLinkDormantNotice: View {
                 Text(verbatim: "· " + snapshot.time)
             }.foregroundStyle(.secondary).accessibilityElement(children: .combine)
             HStack(spacing: 20) {
-                metric(snapshot.distance.map { String(format: "%.1f", $0) } ?? "—", Text(verbatim: "km"))
+                metric(snapshot.distance.map { String(format: "%.1f", $0) } ?? "—", Text("roamSub.w208.history.km"))
                 metric(snapshot.explorePct.map { "\(Int($0))%" } ?? "--%", Text("roamSub.w208.share.explore"))
                 metric(snapshot.shops.map(String.init) ?? "—", Text("roamSub.w208.share.lit"))
             }

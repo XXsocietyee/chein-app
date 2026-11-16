@@ -18,7 +18,7 @@ struct CYCelebrationCopy {
     var shareBadge: String { copy("Share badge", "分享徽章") }
     var keepBadge: String { copy("Keep in passport", "收进护照") }
     var walkTitle: String { copy("This walk", "这一趟") }
-    var kmUnit: String { "km" }
+    var kmUnit: String { copy("km", "公里") }
     var tilesUnit: String { copy("tiles", "格") }
     var stampsUnit: String { copy("stamps", "枚章") }
     var tilesLit: String { copy("tiles lit", "格已点亮") }
