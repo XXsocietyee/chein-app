@@ -14,6 +14,7 @@ struct HomeHeroHeaderSectionView: View {
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     @Environment(\.externalGameSession) private var externalGameSession
+    @Environment(\.homeMoreMenuContent) private var moreMenuContent
     /// The fixed banners, plus Mini games for a signed-in session where the external-games switch is open.
     private var actionBanners: [HomeIndexParityPresentation.ActionBanner] {
         guard let externalGameSession, ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession.baseURL)
@@ -138,6 +139,12 @@ struct HomeHeroHeaderSectionView: View {
                             Label(banner.title(locale: locale), systemImage: "arrow.up.right")
                         }
                         .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
+                    }
+                    // verify-r1 2.5 / N-12 (owner Q9): the header's former ⋯ items live here, so the 首页 bar keeps
+                    // only 消息 and search.
+                    if let moreMenuContent {
+                        Divider()
+                        moreMenuContent
                     }
                 } label: {
                     HStack(spacing: 6) {
@@ -1597,5 +1604,19 @@ struct UnifiedSearchContainerView<Destination: View>: View {
             }
         }
         .accessibilityIdentifier("unifiedSearch.container")
+    }
+}
+
+
+/// verify-r1 2.5: extra 首页 更多玩法 menu entries supplied by the session root (square, official events, templates,
+/// project editor), each with its old accessibility identifier.
+private struct HomeMoreMenuContentKey: EnvironmentKey {
+    static let defaultValue: AnyView? = nil
+}
+
+extension EnvironmentValues {
+    var homeMoreMenuContent: AnyView? {
+        get { self[HomeMoreMenuContentKey.self] }
+        set { self[HomeMoreMenuContentKey.self] = newValue }
     }
 }

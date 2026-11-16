@@ -183,13 +183,36 @@ struct MerchantR1Today: Equatable {
     let redemptions: String
     let income: String
     let pending: String
+    var weekIncome: String = "—"
+    var weekAverage: String = "—"
 
     /// - todayRedemptions: a date-scoped count when the server sends one (it does not yet: nil → "—").
     static func make(revenue7d: [MerchantRevenuePoint], pendingOrders: Int?, todayRedemptions: Int? = nil,
                      now: Date = Date(), calendar: Calendar = Calendar(identifier: .gregorian)) -> MerchantR1Today {
         MerchantR1Today(redemptions: todayRedemptions.map { "\(max(0, $0))" } ?? "—",
                         income: todayIncome(revenue7d, now: now, calendar: calendar),
-                        pending: pendingOrders.map { "\(max(0, $0))" } ?? "—")
+                        pending: pendingOrders.map { "\(max(0, $0))" } ?? "—",
+                        weekIncome: weekTotal(revenue7d).map { MerchantMoney.display(NSDecimalNumber(decimal: $0).stringValue) } ?? "—",
+                        weekAverage: weekTotal(revenue7d).map { total in
+                            var average = total / Decimal(max(1, revenue7d.count))
+                            var rounded = Decimal()
+                            NSDecimalRound(&rounded, &average, 2, .plain)
+                            return MerchantMoney.display(NSDecimalNumber(decimal: rounded).stringValue)
+                        } ?? "—")
+    }
+
+    /// verify-r1 2.8 / owner Q4: until the server has day-scoped counts, the card shows 7-day numbers.
+    /// nil when there are no points or any point's amount is not a number (never a partial sum).
+    static func weekTotal(_ points: [MerchantRevenuePoint]) -> Decimal? {
+        guard !points.isEmpty else { return nil }
+        var total = Decimal()
+        for point in points {
+            guard let raw = point.amount?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  raw.range(of: #"^[+-]?[0-9]+(?:\.[0-9]+)?$"#, options: .regularExpression) != nil,
+                  let amount = Decimal(string: raw, locale: Locale(identifier: "en_US_POSIX")) else { return nil }
+            total += amount
+        }
+        return total
     }
 
     /// The `revenue7d` point dated today (`yyyy-MM-dd`, `yyyy/MM/dd` or `MM-dd`), formatted as money.
@@ -215,25 +238,46 @@ struct MerchantR1TodayCard: View {
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
 
+    // verify-r1 2.8 / N-07 / owner Q4: never a hero of dashes. 待处理 is the large number (it is the thing to act on);
+    // the two numbers under it are the last 7 days, labelled as such, until the server has day-scoped counts.
     var body: some View {
-        let keys = ["today.redemptions", "today.income", "today.pending"]
-        let values = [today.redemptions, today.income, today.pending]
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(verbatim: merchantR1("today.title", locale))
-                .font(CYTypography.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(verbatim: merchantR1("today.pending", locale))
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    Text(verbatim: today.pending)
+                        .font(CYTypography.data2XL)
+                        .foregroundStyle(palette.textPrimary)
+                        .contentTransition(.numericText())
+                        .monospacedDigit()
+                    if today.pending != "—" {
+                        Text(verbatim: merchantR1("today.pendingCaption", locale))
+                            .font(CYTypography.label)
+                            .foregroundStyle(palette.textSecondary)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("merchant.r1.today.pending")
+            }
+            Rectangle().fill(palette.borderSubtle).frame(height: 0.5).accessibilityHidden(true)
             Group {
                 if typeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) { ForEach(0..<3, id: \.self) { tile(keys[$0], values[$0]) } }
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        tile("week.income", today.weekIncome); tile("week.average", today.weekAverage)
+                    }
                 } else {
-                    HStack(alignment: .top, spacing: CYSpacing.md) { ForEach(0..<3, id: \.self) { tile(keys[$0], values[$0]) } }
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        tile("week.income", today.weekIncome); tile("week.average", today.weekAverage)
+                    }
                 }
             }
-            if today.redemptions == "—" || today.income == "—" {
+            if today.weekIncome == "—" && today.pending == "—" {
                 Text(verbatim: merchantR1("today.unknownReason", locale))
                     .font(CYTypography.meta)
-                    .foregroundStyle(palette.textTertiary)
+                    .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

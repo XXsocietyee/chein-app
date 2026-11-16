@@ -90,11 +90,15 @@ struct CYPillButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.cyPillOnSheet) private var onSheet
     @QuestifyReduceMotion private var reduceMotion
-    @ScaledMetric(relativeTo: .body) private var height: CGFloat = 44
+    @ScaledMetric(relativeTo: .body) private var scale: CGFloat = 1
     @ScaledMetric(relativeTo: .body) private var momentHeight: CGFloat = 52
 
+    /// 44 pt (46 on merchant), scaled with Dynamic Type.
+    private var height: CGFloat { palette.buttonMinHeight * scale }
+
     func makeBody(configuration: Configuration) -> some View {
-        let shape = Capsule(style: .continuous)
+        let shape: AnyShape = palette.buttonCornerRadius.map { AnyShape(RoundedRectangle(cornerRadius: $0, style: .continuous)) }
+            ?? AnyShape(Capsule(style: .continuous))
         configuration.label
             .font(style == .tertiary ? Self.tertiaryFont : Self.labelFont)
             .multilineTextAlignment(.center)

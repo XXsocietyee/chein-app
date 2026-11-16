@@ -753,6 +753,22 @@
         }
       }
     },
+    "r1club.roster.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-up roster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报名名册"
+          }
+        }
+      }
+    },
     "r1club.switch.joinReview": {
       "localizations": {
         "en": {

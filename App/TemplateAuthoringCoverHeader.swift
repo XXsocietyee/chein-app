@@ -34,12 +34,14 @@ struct TemplateAuthoringCoverHeader: View {
                     }
                 }
                 .font(.title3.weight(.bold))
-                .foregroundStyle(palette.onCoverFg)
+                .foregroundStyle(Color.white)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(CYSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(colors: [.clear, palette.overlay], startPoint: .top, endPoint: .bottom))
+                // verify-r1 2.9: a fixed dark scrim (to 55% black) so the white title reaches 4.5:1 on a pale cover or
+                // on the light placeholder; the theme overlay token was too light on the editor domain.
+                .background(LinearGradient(colors: [.black.opacity(0), .black.opacity(0.55)], startPoint: .top, endPoint: .bottom))
             }
             .clipShape(RoundedRectangle(cornerRadius: EditorKitMetric.cardRadius, style: .continuous))
             .textCase(nil)

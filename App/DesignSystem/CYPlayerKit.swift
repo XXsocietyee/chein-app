@@ -679,6 +679,11 @@ struct CYHoldToStartButton: View {
     let tableName: String?
     let systemImage: String?
     let onStart: () -> Void
+    /// The line under the button. Defaults to the 按住开始 hint; a page whose button already says 按住开始 passes its own
+    /// reassurance line (verify-r1 2.4 / N-13).
+    let caption: LocalizedStringKey
+    /// The VoiceOver action name. Defaults to the title.
+    let accessibilityTitle: LocalizedStringKey?
 
     static let holdDuration: Double = 0.8
 
@@ -688,20 +693,31 @@ struct CYHoldToStartButton: View {
     @State private var committed = false
     @State private var startTick = 0
     @State private var cancelTick = 0
+    /// A tap (released before the hold completes) is not silent: the ring nudges and the caption says what to do.
+    @State private var showsTapNudge = false
+    @State private var nudgeTask: Task<Void, Never>?
+    @QuestifyReduceMotion private var reduceMotion
 
-    init(_ title: LocalizedStringKey, tableName: String? = nil, systemImage: String? = nil, onStart: @escaping () -> Void) {
+    init(_ title: LocalizedStringKey, tableName: String? = nil, systemImage: String? = nil,
+         caption: LocalizedStringKey = "roam.go.hint.hold", accessibilityTitle: LocalizedStringKey? = nil,
+         onStart: @escaping () -> Void) {
         self.title = title
         self.tableName = tableName
         self.systemImage = systemImage
+        self.caption = caption
+        self.accessibilityTitle = accessibilityTitle
         self.onStart = onStart
     }
 
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
             pill
-            Text("roam.go.hint.hold")
+            Text(showsTapNudge ? "mp.hold.tapNudge" : caption)
                 .font(.footnote)
                 .foregroundStyle(palette.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .contentTransition(.opacity)
                 .accessibilityHidden(true)
         }
         .cyHaptic(.success, trigger: startTick)
@@ -734,17 +750,35 @@ struct CYHoldToStartButton: View {
             } else {
                 withAnimation(.easeOut(duration: 0.2)) { progress = 0 }
                 cancelTick += 1
+                nudge()
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(title, tableName: tableName))
+        .accessibilityLabel(Text(accessibilityTitle ?? title, tableName: tableName))
         .accessibilityHint(Text("roam.go.hint.hold"))
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { commit() }
     }
 
+    /// 200 ms ring nudge, then the caption reads 按住 1 秒开始 for 2 s. Reduce Motion: caption only.
+    private func nudge() {
+        nudgeTask?.cancel()
+        nudgeTask = Task { @MainActor in
+            if !reduceMotion {
+                withAnimation(.easeOut(duration: 0.1)) { progress = 0.12 }
+                try? await Task.sleep(for: .milliseconds(100))
+                withAnimation(.easeIn(duration: 0.1)) { progress = 0 }
+            }
+            withAnimation(CYMotion.resolve(.easeInOut(duration: 0.2), reduceMotion: reduceMotion)) { showsTapNudge = true }
+            try? await Task.sleep(for: .seconds(2))
+            if Task.isCancelled { return }
+            withAnimation(CYMotion.resolve(.easeInOut(duration: 0.2), reduceMotion: reduceMotion)) { showsTapNudge = false }
+        }
+    }
+
     private func commit() {
         guard isEnabled, !committed else { return }
+        nudgeTask?.cancel(); showsTapNudge = false
         committed = true
         progress = 1
         startTick += 1

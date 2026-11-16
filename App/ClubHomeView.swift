@@ -3,6 +3,14 @@ import SwiftUI
 /// Place inside the root's existing NavigationStack. This view never uses entry role as access.
 @MainActor
 struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
+    /// The server said how many clubs this account owns and the limit, and there is no room left.
+    static func atCreationLimit(_ page: ClubTabPageModel?) -> Bool {
+        guard let page, page.leader != .hidden else { return false }
+        switch page.leader.quota {
+        case .full, .over: return true
+        case .within, .unknown: return false
+        }
+    }
     @ObservedObject var reader: Reader
     var onSignIn: (() -> Void)? = nil
     var actionCoordinator: ClubActionCoordinator? = nil
@@ -94,7 +102,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     .listRowSeparator(.hidden)
                 }
                 // Mini-program club tab: 「创建你自己的俱乐部」 stays pinned above the list; merchants never see it.
-                if !discoveryScope.isMerchantViewer, let operations = management?.operations {
+                // verify-r1 2.3 / N-15: at or above the creation limit, do not offer what cannot be done. The quota line
+                // below keeps the warning, and the owned clubs are the first rows of the list.
+                if !discoveryScope.isMerchantViewer, let operations = management?.operations, !Self.atCreationLimit(page) {
                     Section {
                         let prompt = Text("club.tab.createPrompt")
                             .font(CYTypography.bodyMedium)

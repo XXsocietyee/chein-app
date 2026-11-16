@@ -60,6 +60,8 @@ CLUB = {
     'roster.net': ('Net', '净额'),
     # polish-d-r1: the members screen roster summary
     'roster.members.roles': ('Owner %ld · Admins %ld · Members %ld', '创建者 %ld · 管理员 %ld · 成员 %ld'),
+    # verify-r1 2.6: the roster card heads 报名名册
+    'roster.title': ('Sign-up roster', '报名名册'),
     # polish-d-r1: club tab creation quota in plain words
     'quota.within': ('You have created %ld clubs. You can create %ld more.', '你已创建 %ld 个俱乐部，还能再创建 %ld 个。'),
     'quota.full': ('You have created %ld clubs, the most allowed.', '你已创建 %ld 个俱乐部，已达上限。'),
@@ -78,6 +80,8 @@ MERCHANT = {
     'onboarding.review.group1': ('Shop basics', '店铺基本信息'),
     'onboarding.review.group2': ('Where and when', '店在哪、几点开'),
     'onboarding.review.group3': ('Business documents', '上传经营资料'),
+    # Owner 2026-11-16: the identity step (verify-r1 Q2 changed)
+    'onboarding.review.group4': ('Operator identity', '经营者身份'),
     'onboarding.review.edit': ('Edit', '修改'),
     'onboarding.review.licenseMissing': ('Business licence not uploaded yet', '还没有上传营业执照'),
     'onboarding.consent': ('By submitting you confirm the information is true and agree to the merchant terms.', '提交即表示你确认以上信息真实，并同意商家入驻协议。'),
@@ -91,7 +95,11 @@ MERCHANT = {
     'today.redemptions': ('Redeemed today', '今日核销'),
     'today.income': ('Income today', '今日收入'),
     'today.pending': ('To handle', '待处理'),
-    'today.unknownReason': ('"—" means the server has not reported today\'s figure yet.', '“—”表示服务端还没有给出今天的数字。'),
+    # verify-r1 1.6 / 2.8 (owner Q4): plain words, and 7-day numbers until the server has day-scoped counts
+    'today.unknownReason': ('No data for today yet', '今天还没有数据'),
+    'today.pendingCaption': ('orders need you', '笔订单等你处理'),
+    'week.income': ('Income, last 7 days', '近 7 天收入'),
+    'week.average': ('Daily average, last 7 days', '近 7 天日均'),
     'ledger.cumulative': ('Total income', '累计收入'),
     'ledger.view.label': ('Ledger view', '账本视图'),
     'ledger.view.redemptions': ('Redemptions', '核销'),

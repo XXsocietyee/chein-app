@@ -98,6 +98,22 @@ import SwiftUI
             .cyPlayerSheetGlass()
         }
     }
+    /// verify-r1 2.5: the former header ⋯ items, shown in the 更多玩法 menu under the greeting.
+    private var homeMoreMenuContent: AnyView {
+        AnyView(Group {
+            Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
+                .accessibilityIdentifier("homeFeed.openSquare")
+            Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
+                .accessibilityIdentifier("homeFeed.openOfficialEvents")
+            // Templates stay reachable for guests: browse-only, so the capability is the discovery read (`isConfigured`).
+            if session.isConfigured {
+                Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
+                    .accessibilityIdentifier("homeFeed.openTemplates")
+            }
+            Button("projectEdit.title", systemImage:"square.and.pencil") { showsProjectEditor=true }
+                .accessibilityIdentifier("homeFeed.openProjectEditor")
+        })
+    }
     private var navigationRoot: some View {
         NavigationStack(path:$router.homePath) {
             // Unzoned content needs a separately verified event/backend timezone.
@@ -124,40 +140,16 @@ import SwiftUI
                 .cyHeroNamespace(hero)
                 // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root.
                 .modifier(SessionMessagingToolbarEntry(session: session))
+                // verify-r1 2.5 / N-12 (owner Q9): the 首页 bar is 消息 then search. Language is in 我的 → 设置; ＋ is the
+                // 发布 tab; the former ⋯ items are in the 更多玩法 menu under the greeting.
                 .toolbar {
-                    ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }
-                    // Two actions at most: search, then everything else in one menu.
-                    ToolbarItemGroup(placement:.topBarTrailing) {
-                        // W1-1: Publish left the tab bar. The "+" opens the former Publish tab content, only when a
-                        // publishing session exists (signed in with a token); absent capability hides the entry.
-                        if session.publishingSession != nil {
-                            Button("homeFeed.create",systemImage:"plus") { showsCreate=true }
-                                .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
-                                .accessibilityIdentifier("homeFeed.openCreate")
-                        }
+                    ToolbarItem(placement:.topBarTrailing) {
                         Button("searchMap.title",systemImage:"magnifyingglass") { showsGlobalSearch=true }
                             .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
                             .accessibilityIdentifier("homeFeed.openGlobalSearch")
-                        Menu {
-                            Button("square.title",systemImage:"square.grid.2x2") { showsSquare=true }
-                                .accessibilityIdentifier("homeFeed.openSquare")
-                            Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
-                                .accessibilityIdentifier("homeFeed.openOfficialEvents")
-                            // Templates lived on the Publish tab and must stay reachable for guests: it is browse-only, so the
-                            // capability is the discovery read (`isConfigured`), not a publishing session. Hidden when unconfigured.
-                            if session.isConfigured {
-                                Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
-                                    .accessibilityIdentifier("homeFeed.openTemplates")
-                            }
-                            Button("projectEdit.title", systemImage:"square.and.pencil") { showsProjectEditor=true }
-                                .accessibilityIdentifier("homeFeed.openProjectEditor")
-                        } label: {
-                            Label("homeFeed.more", systemImage:"ellipsis.circle")
-                                .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
-                        }
-                        .accessibilityIdentifier("homeFeed.moreMenu")
                     }
                 }
+                .environment(\.homeMoreMenuContent, homeMoreMenuContent)
                 .navigationDestination(for:AppRoute.self) { route in
                     Group {
                         switch route.homeFeedDestination {

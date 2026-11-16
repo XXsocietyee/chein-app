@@ -44,6 +44,31 @@ struct ClubRosterCardModel: Equatable {
 }
 
 extension ClubRosterCardModel {
+    /// verify-r1 2.6: MC-25's card on 报名名册, where it belongs. Count is the sign-up total (registered, arrived,
+    /// no-show); the roster read carries no capacity or money, so neither is drawn rather than shown as "—".
+    static func roster(_ roster: ClubRosterPresentation, locale: Locale) -> ClubRosterCardModel {
+        let order: [(ClubRosterBucket, ClubR1Status)] = [(.arrived, .live), (.registered, .pending), (.noShow, .ended)]
+        let attendees = order.flatMap { bucket, status in
+            roster.members(in: bucket).map { member in
+                ClubRosterAttendee(id: "\(bucket.rawValue)-\(member.id)",
+                                   name: member.nickname ?? appLocalized("club.roster.unnamed", locale: locale),
+                                   status: status,
+                                   statusText: appLocalized(String.LocalizationValue(bucket.localizationKey), locale: locale))
+            }
+        }
+        return ClubRosterCardModel(title: clubR1("roster.title", locale), dateText: nil,
+                                   registered: roster.rosterTotal, capacity: nil,
+                                   received: nil, refunded: nil, net: nil, attendees: attendees, showsMoney: false)
+    }
+
+    /// verify-r1 2.6: the 成员 subtitle, `创建者 1 · 管理员 1 · 成员 2`.
+    static func roleSummary(_ directory: ClubMemberDirectory, locale: Locale) -> String {
+        let owners = directory.members.filter(\.isOwner).count
+        let admins = directory.members.filter { !$0.isOwner && $0.isAdmin }.count
+        let others = directory.members.count - owners - admins
+        return String(format: clubR1("roster.members.roles", locale), owners, admins, others)
+    }
+
     /// polish-d-r1 (MC-25 on the members screen): club name, role breakdown and member count; no money, no capacity read.
     static func members(_ directory: ClubMemberDirectory, locale: Locale) -> ClubRosterCardModel {
         let owners = directory.members.filter(\.isOwner).count

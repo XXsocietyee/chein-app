@@ -105,6 +105,9 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             }
         }
         .appNavigationTitle("merchant.title")
+        // verify-r1 2.8 / N-07: no centred 商家工作台 above the shop name (two titles). The title stays for the back
+        // button of pages pushed from here.
+        .modifier(MerchantHomeHiddenNavigationTitle())
         .cyDomainPageBackground()
         .themeDomain(.merchant)
         .tint(CYDomainPalette(.merchant).brand)
@@ -272,8 +275,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 VStack(spacing: CYSpacing.md) {
                     let displayName = access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store", locale: locale)
                     HStack(alignment: .center, spacing: CYSpacing.sm) {
-                        Text(verbatim: W8Text.t("Hi，\(displayName)", "Hi, \(displayName)"))
-                            .font(CYTypography.pageTitle)
+                        // verify-r1 2.8 (Figma 182:7328): the shop name, 22 Bold, beside 营业中. No "Hi，" greeting.
+                        Text(verbatim: displayName)
+                            .font(CYTypography.sheetTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .cyWrapText()
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -913,6 +917,18 @@ private struct GridFlowLayout: Layout {
                 v.place(at: CGPoint(x: bounds.minX + CGFloat(i) * cell, y: y), anchor: .topLeading, proposal: .init(width: cell, height: height))
             }
             y += height
+        }
+    }
+}
+
+
+/// verify-r1 2.8: hides the inline navigation title on the workbench root (iOS 18+); earlier systems keep it.
+private struct MerchantHomeHiddenNavigationTitle: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 18, *) {
+            content.toolbar(removing: .title)
+        } else {
+            content
         }
     }
 }

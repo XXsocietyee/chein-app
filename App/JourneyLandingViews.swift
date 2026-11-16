@@ -567,9 +567,19 @@ struct JourneySeatsView: View {
                                 }
                                 Spacer()
                                 if row.canCancel {
-                                    Button("mp.seats.cancel", role: .destructive) { cancelTarget = row }
-                                        .font(CYTypography.label).foregroundStyle(CYColor.dangerText).frame(minHeight: CYSpacing.minTouchTarget)
-                                        .accessibilityIdentifier("journeySeats.cancel.\(row.no)")
+                                    // verify-r1 2.4 / MC-20 pattern: 撤回 lives in the row's ⋯ menu, not as a small red word.
+                                    Menu {
+                                        Button("mp.seats.cancel", role: .destructive) { cancelTarget = row }
+                                            .accessibilityIdentifier("journeySeats.cancel.\(row.no)")
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .font(.body.weight(.semibold))
+                                            .foregroundStyle(CYColor.textSecondary)
+                                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .accessibilityLabel(Text("mp.seats.rowMore"))
+                                    .accessibilityIdentifier("journeySeats.more.\(row.no)")
                                 }
                             }
                             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
@@ -584,7 +594,9 @@ struct JourneySeatsView: View {
         .safeAreaInset(edge: .bottom) {
             if content.canGoToStart {
                 // Design hand-off r1 PL-03 / PL-42: the lobby starts with a 0.8 s hold on the one primary.
-                MPBottomBar { CYHoldToStartButton("mp.seats.goStart", systemImage: "flag.fill", onStart: onStart).accessibilityIdentifier("journeySeats.start") }
+                // verify-r1 2.4 / N-13: the button says the gesture it needs; the caption reassures. VoiceOver keeps 去起点.
+                MPBottomBar { CYHoldToStartButton("mp.seats.holdToStart", systemImage: "flag.fill", caption: "mp.seats.holdCaption",
+                                                  accessibilityTitle: "mp.seats.goStart", onStart: onStart).accessibilityIdentifier("journeySeats.start") }
             }
         }
         .sheet(isPresented: $inviteShown) { JourneyInviteSheet(content: content) }
@@ -638,8 +650,13 @@ struct JourneySeatsView: View {
                         .overlay(Text(verbatim: String(circle.no)).font(CYTypography.cardTitle).monospacedDigit())
                 }
                 if circle.kind == .me {
-                    Text("mp.seats.host").font(CYTypography.micro).foregroundStyle(CYNight.ink0)
-                        .padding(.horizontal, CYSpacing.xs).background(CYNight.lantern, in: Capsule()).offset(y: CYSpacing.sm)
+                    // verify-r1 2.4: 房主 was brown text on a brown fill. Neutral tag with a crown: ink on a light chip.
+                    Label { Text("mp.seats.host") } icon: { Image(systemName: "crown.fill") }
+                        .labelStyle(.titleAndIcon)
+                        .font(CYTypography.micro.weight(.semibold))
+                        .foregroundStyle(CYColor.textInverse)
+                        .padding(.horizontal, CYSpacing.xs).padding(.vertical, 2)
+                        .background(CYColor.textPrimary, in: Capsule()).offset(y: CYSpacing.sm)
                 }
             }
             // polish-d-r1: every seat reserves the 房主 badge's overhang, so the badge never sits on the label and

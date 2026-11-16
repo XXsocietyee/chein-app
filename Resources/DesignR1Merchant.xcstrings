@@ -193,6 +193,22 @@
         }
       }
     },
+    "r1merchant.onboarding.review.group4": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Operator identity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经营者身份"
+          }
+        }
+      }
+    },
     "r1merchant.onboarding.review.licenseMissing": {
       "localizations": {
         "en": {
@@ -417,6 +433,22 @@
         }
       }
     },
+    "r1merchant.today.pendingCaption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "orders need you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "笔订单等你处理"
+          }
+        }
+      }
+    },
     "r1merchant.today.redemptions": {
       "localizations": {
         "en": {
@@ -454,13 +486,45 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "\"—\" means the server has not reported today's figure yet."
+            "value": "No data for today yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "“—”表示服务端还没有给出今天的数字。"
+            "value": "今天还没有数据"
+          }
+        }
+      }
+    },
+    "r1merchant.week.average": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily average, last 7 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 7 天日均"
+          }
+        }
+      }
+    },
+    "r1merchant.week.income": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Income, last 7 days"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "近 7 天收入"
           }
         }
       }

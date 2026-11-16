@@ -21,6 +21,13 @@ import SwiftUI
     let openCorrection: (ClubRosterCorrectionRoute) -> Void
     @Environment(\.locale) private var locale
     var body: some View {
+        // verify-r1 2.6 / MC-25: the roster card (count and who signed up, with status) heads 报名名册.
+        Section {
+            ClubRosterCard(model: .roster(roster, locale: locale), coverSeed: "roster-\(roster.scope.activityID ?? 0)")
+                .accessibilityIdentifier("club.roster.card")
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+        }
         Section {
             Text("clubOpsEvent.roster.title \(roster.rosterTotal)", tableName: "ClubOpsEvent").font(.headline)
                 .accessibilityIdentifier("club.roster.total")

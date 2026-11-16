@@ -288,7 +288,11 @@ extension EnvironmentValues {
         }, service: { (makeCoverService ?? environmentCover?.makeService)?() })
         ScrollViewReader { proxy in
         Form {
-            Section { CYHeroHeader("templateAuthor.title") }.e1HeroRow()
+            // verify-r1 2.9 / N-09: while editing, the page title is the inline nav title, so the section bar sits
+            // directly under the bar; the 34 pt heading stays on the intro and name steps only.
+            if !(model.coordinator.session != nil && step == .edit) {
+                Section { CYHeroHeader("templateAuthor.title") }.e1HeroRow()
+            }
             if model.coordinator.session == nil {
                 Section { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "templateAuthor.signIn", messageIdentifier: "templateAuthor.signIn").listRowBackground(Color.clear) }
             }
@@ -328,7 +332,10 @@ extension EnvironmentValues {
                 }
             }
         }
-        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen().cyPushedChrome(domain: .topicEditor)
+        .formStyle(.grouped).cyGroupedSurface()
+        .navigationTitle(model.coordinator.session != nil && step == .edit ? appLocalized("templateAuthor.editNavTitle", locale: locale) : "")
+        .navigationBarTitleDisplayMode(.inline)
+        .cyPushedChrome(domain: .topicEditor)
         .safeAreaInset(edge: .top, spacing: 0) {
             if model.coordinator.session != nil, step == .edit {
                 EditorSectionBar(outline: outline) { jump(to: $0, proxy) }

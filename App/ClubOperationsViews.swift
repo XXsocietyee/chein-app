@@ -311,7 +311,9 @@ struct ClubOperationsWorkspaceView: View {
                     systemImage: value.accountRole != "club" ? "person.badge.plus" : "person.3",
                     value.accountRole != "club" ? "club.ops.leaderRequired.title" : "club.ops.clubLimit.title"
                 )
-                Text(value.accountRole != "club" ? "club.ops.leaderRequired.apply" : "club.ops.clubLimit")
+                // verify-r1 2.3 / N-15: the limit state says the real count once, with no unrelated save warning.
+                if value.accountRole != "club" { Text("club.ops.leaderRequired.apply") }
+                else { Text("club.ops.clubLimit.count \(value.ownedClubIDs.count)") }
                 if value.accountRole != "club", let hostApplication {
                     if ClubCreatePageModel.interpret(signedIn: identity != nil, configured: access.isConfigured, loading: false, gate: ClubCreationGate(access: access), snapshot: value, readback: .received(value), onPlayerFirstEntry: false).showsHostApplication { ClubCreateHostApplicationLink(identity: identity, governance: hostApplication) }
                 }
@@ -401,7 +403,9 @@ struct ClubOperationsWorkspaceView: View {
                     .accessibilityIdentifier("club.ops.dissolve")
             } footer: { Text("club.ops.dissolve.footer") }
         }
-        if access.writeAvailability == .unverified { Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") } }
+        if access.writeAvailability == .unverified, !(target == .create && !value.canCreate) {
+            Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") }
+        }
     }
     @ViewBuilder private func reviewProfileButton(_ value: ClubOperationsSnapshot) -> some View {
         let button = Button {
@@ -959,15 +963,42 @@ private struct ClubOperationsProfileForm: View {
                     .accessibilityIdentifier("club.player.create.intro")
             }
         } else {
+            // verify-r1 2.2 / N-08 (Figma 204:24591): the step header sits on the page, not in a white card: a
+            // four-segment bar, a 13 pt eyebrow, a 28 pt title, and on step 2 the 已选 n / 3 count at the trailing end.
             Section {
-                Text(verbatim: ClubPlayerCopy.progress(createStep))
-                    .font(CYTypography.meta)
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale)))
-                    .accessibilityIdentifier("club.player.create.progress")
-                Text(verbatim: ClubPlayerCopy.createTitle(step: createStep, locale: formLocale))
-                    .font(CYTypography.sectionTitle)
-                    .accessibilityIdentifier("club.player.create.stepTitle")
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    HStack(spacing: CYSpacing.xs) {
+                        ForEach(1...4, id: \.self) { index in
+                            Capsule(style: .continuous)
+                                .fill(index <= createStep ? CYColor.textPrimary : CYColor.borderSubtle)
+                                .frame(height: 4)
+                        }
+                    }
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: createStep)
+                    .accessibilityHidden(true)
+                    Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale))
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("club.player.create.progress")
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                        Text(verbatim: ClubPlayerCopy.createTitle(step: createStep, locale: formLocale))
+                            .font(.title.weight(.bold))
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityIdentifier("club.player.create.stepTitle")
+                        if createStep == 2 {
+                            Text(verbatim: ClubPlayerCopy.directionCount(draft.activityPrefs.count, locale: formLocale))
+                                .font(CYTypography.meta.monospacedDigit())
+                                .foregroundStyle(CYColor.textSecondary)
+                                .contentTransition(.numericText())
+                                .accessibilityIdentifier("club.player.create.directionCount")
+                        }
+                    }
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
             }
         }
         if createStep == 1 { createTypeSection }
@@ -977,6 +1008,14 @@ private struct ClubOperationsProfileForm: View {
         Section {
             if createStep == 4 { createAdvanceButton.accessibilityIdentifier("club.ops.reviewProfile") }
             else { createAdvanceButton.accessibilityIdentifier("club.player.create.next") }
+            // verify-r1 2.2: back between steps (after step 1), as a secondary under the primary.
+            if createStep > 1 {
+                Button { setCreateStep(createStep - 1) } label: {
+                    Text(verbatim: ChannelCopy.text("上一步", "Back", locale: formLocale)).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                .accessibilityIdentifier("club.player.create.back")
+            }
         }
             .listRowBackground(Color.clear)
             .onChange(of: createNameFocused) { _, focused in
@@ -1053,10 +1092,6 @@ private struct ClubOperationsProfileForm: View {
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
-            Text(verbatim: ClubPlayerCopy.directionCount(draft.activityPrefs.count, locale: formLocale))
-                .font(CYTypography.meta).foregroundStyle(.secondary)
-                .accessibilityIdentifier("club.player.create.directionCount")
-                .listRowBackground(Color.clear)
             if let createDirectionNote {
                 ClubR1FieldError(text: createDirectionNote)
                     .accessibilityIdentifier("club.player.create.directionLimit")
@@ -1102,7 +1137,7 @@ private struct ClubOperationsProfileForm: View {
         .disabled(createChecking && createStep != 3)
     }
     private func setCreateStep(_ next: Int) {
-        if reduceMotion { createStep = next } else { withAnimation(.easeInOut(duration: 0.2)) { createStep = next } }
+        if reduceMotion { createStep = next } else { withAnimation(.smooth(duration: 0.35)) { createStep = next } }
     }
     private func advanceCreate() {
         switch createStep {

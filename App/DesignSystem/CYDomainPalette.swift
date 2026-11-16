@@ -25,6 +25,18 @@ struct CYDomainPalette {
     private var surfaceDomain: ThemeDomain { domain == .game ? .player : domain }
 
     var isDarkDomain: Bool { isDark }
+
+    /// verify-r1 N-05 / 2.1: button shape by domain. Player keeps the capsule; merchant and the editor use a 12 pt
+    /// rounded rectangle (Figma `182:7693`, `183:1731`, `237:43689`). `nil` means capsule.
+    var buttonCornerRadius: CGFloat? {
+        switch domain {
+        case .merchant, .topicEditor: return 12
+        case .player, .dark, .game: return nil
+        }
+    }
+
+    /// Merchant primary buttons are 46 pt high (merchant rule); everything else keeps 44.
+    var buttonMinHeight: CGFloat { domain == .merchant ? 46 : 44 }
     var resolvedSurfaceDomain: ThemeDomain { surfaceDomain }
 
     private func token(_ name: String, dark: CYRGB, light: CYRGB) -> Color {

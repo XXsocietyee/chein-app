@@ -222,8 +222,8 @@ struct RoamBrowserView: View {
                 }
                 .cyPushedChrome()
             }
-            .appNavigationTitle("roam.title")
-            .navigationBarTitleDisplayMode(.inline)
+            // verify-r1 2.5 / N-12: the same root header as the other tabs (large title on the left), not a centred one.
+            .cyRootHeader(.roam)
             .toolbar(mapMode ? .hidden : .automatic, for: .navigationBar)
             .modifier(RoamSearchableUnlessMap(enabled: !mapMode, text: $query))
             .task(id: requestKey) {
