@@ -57,6 +57,21 @@ CLUB = {
 
 MERCHANT = {
     'common.close': ('Close', '关闭'),
+    'common.more': ('More', '更多'),
+    # MR-01 onboarding review step
+    'onboarding.review.group1': ('Shop basics', '店铺基本信息'),
+    'onboarding.review.group2': ('Where and when', '店在哪、几点开'),
+    'onboarding.review.group3': ('Business documents', '上传经营资料'),
+    'onboarding.review.edit': ('Edit', '修改'),
+    'onboarding.review.licenseMissing': ('Business licence not uploaded yet', '还没有上传营业执照'),
+    'onboarding.consent': ('By submitting you confirm the information is true and agree to the merchant terms.', '提交即表示你确认以上信息真实，并同意商家入驻协议。'),
+    'onboarding.submit': ('Submit application', '提交入驻申请'),
+    # MR-04 unknown outcome
+    'outcome.check': ('Check result', '查看结果'),
+    'outcome.retry': ('Try again', '重试'),
+    'outcome.copyDiagnostics': ('Copy diagnostic info', '复制诊断信息'),
+    # Money stays TEST-only until the owner says "money on"
+    'money.testOnly': ('Test build only', '仅测试环境'),
 }
 
 
