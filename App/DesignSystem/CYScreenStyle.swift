@@ -49,7 +49,6 @@ extension View {
         themeDomain(domain)
             .cyDomainPageBackground()
             .tint(CYDomainPalette(domain).brand)
-            .modifier(CYDomainBarScheme(isDark: CYDomainPalette(domain).isDarkDomain))
     }
 
     /// Standard chrome for L2+ pushed screens: hides the root tab bar and optionally switches domain.
@@ -485,18 +484,4 @@ private struct CYScreenStylePreviewBody: View {
     CYScreenStylePreviewBody()
         .cyScreenStyle()
         .themeDomain(.merchant)
-}
-
-
-/// polish-d-r1: a light domain page (merchant) asks its navigation bar, and so the status bar, for the light scheme,
-/// so the clock and battery are dark on the light page instead of white. Dark domains keep the app's dark scheme.
-private struct CYDomainBarScheme: ViewModifier {
-    let isDark: Bool
-    func body(content: Content) -> some View {
-        if isDark {
-            content
-        } else {
-            content.toolbarColorScheme(.light, for: .navigationBar)
-        }
-    }
 }
