@@ -92,7 +92,7 @@ import QuestifyCore
             CurA11yDashText(shown: meta(row), font: CYTypography.meta, color: CYColor.textSecondary)
             CurA11yDashText(shown: dash(row.summary), font: CYTypography.body, color: CYColor.textPrimary)
             if let cfg = model.monetizationByGame[row.gameID] {
-                Text(verbatim: monetizationLabel(cfg))
+                Text(verbatim: monetizationLabel(cfg, moneyOn: Self.moneyOn(session)))
                     .font(CYTypography.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
@@ -133,14 +133,42 @@ import QuestifyCore
         .accessibilityIdentifier("externalGame.catalog.\(row.gameID)")
     }
 
-    private func monetizationLabel(_ cfg: ExternalGameMonetizationFact) -> String {
-        let priceText = cfg.pricingMode == "PAID"
-            ? String(format: "¥%.2f", Double(cfg.priceFen) / 100.0)
-            : (cfg.pricingMode == "TRAFFIC_ONLY" ? W8Text.t("流量激励", "Traffic") : W8Text.t("免费", "Free"))
-        let trafficText = cfg.trafficRewardMode == "POINTS"
-            ? W8Text.t(" · 游玩积分", " · Play points")
-            : (cfg.trafficRewardMode == "TEST_MONEY" ? W8Text.t(" · TEST现金激励", " · TEST cash") : "")
-        let statusText = cfg.reviewStatus == "PENDING" ? W8Text.t(" (待审)", " (Pending)") : ""
+    /// Design hand-off r1 CF-48 / CF-62: 积分 is the only currency. A cash price stays TEST-only and is
+    /// shown only behind the money switch; traffic rewards read as 积分. Review status is a word, never a code.
+    static func moneyOn(_ session: ExternalGameSessionBridge?) -> Bool {
+        guard let session else { return false }
+        return ReviewedAreaSwitch.moneyPayments(apiHost: session.baseURL.host)
+            && !ReleaseMoneyWriteSwitch.blocks(ExternalGameReviewPaths.orders)
+    }
+
+    static func reviewStatusText(_ raw: String?) -> String {
+        switch EditorReviewStatus(raw: raw) {
+        case .pending: return W8Text.t("审核中", "In review")
+        case .rejected: return W8Text.t("未通过", "Not approved")
+        case .approved: return W8Text.t("已通过", "Approved")
+        case .draft: return W8Text.t("草稿", "Draft")
+        case .unknown: return EditorUnknown.dash
+        }
+    }
+
+    private func monetizationLabel(_ cfg: ExternalGameMonetizationFact, moneyOn: Bool) -> String {
+        let priceText: String
+        switch cfg.pricingMode {
+        case "PAID":
+            priceText = moneyOn
+                ? W8Text.t("测试价 ", "Test price ") + String(format: "¥%.2f", Double(cfg.priceFen) / 100.0)
+                : W8Text.t("付费（测试）", "Paid (test)")
+        case "TRAFFIC_ONLY": priceText = W8Text.t("游玩奖励积分", "Play rewards in points")
+        default: priceText = W8Text.t("免费", "Free")
+        }
+        let trafficText: String
+        switch cfg.trafficRewardMode {
+        case "POINTS": trafficText = W8Text.t(" · 游玩积分", " · Play points")
+        case "TEST_MONEY": trafficText = moneyOn ? W8Text.t(" · 现金激励（测试）", " · Cash reward (test)") : ""
+        default: trafficText = ""
+        }
+        let status = EditorReviewStatus(raw: cfg.reviewStatus)
+        let statusText = status == .pending || status == .rejected ? " · " + Self.reviewStatusText(cfg.reviewStatus) : ""
         return "\(priceText)\(trafficText)\(statusText)"
     }
 
@@ -233,7 +261,7 @@ import QuestifyCore
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
-            CurA11yDashText(shown: "\(row.gameID) · v\(row.version) · \(row.status?.rawValue ?? "—")", font: CYTypography.meta, color: CYColor.textSecondary)
+            CurA11yDashText(shown: "v\(row.version) · " + ExternalGameCatalogSection.reviewStatusText(row.status?.rawValue), font: CYTypography.meta, color: CYColor.textSecondary)
             CurA11yDashText(shown: W8Text.t("驳回原因", "Reject reason") + " " + (row.rejectReason ?? "—"), font: CYTypography.body, color: CYColor.textPrimary)
                 .accessibilityIdentifier("externalGame.rejectReason.\(row.submissionID)")
             if row.canCancel {
@@ -386,6 +414,7 @@ import QuestifyCore
     @State private var nodeIDText = ""
     @State private var minScoreText = "0"
     @State private var isSaving = false
+    private var moneyOn: Bool { ExternalGameCatalogSection.moneyOn(session) }
 
     var body: some View {
         NavigationStack {
@@ -393,35 +422,54 @@ import QuestifyCore
                 if let summary = model.creatorSummary {
                     Section(W8Text.t("创作者收益概览", "Creator Summary")) {
                         LabeledContent(W8Text.t("付费订单数", "Paid Orders"), value: "\(summary.paidOrders)")
-                        LabeledContent(W8Text.t("TEST 净销售分成", "TEST Sales Net"), value: String(format: "¥%.2f", Double(summary.creatorSalesNetFen) / 100.0))
+                        LabeledContent(W8Text.t("净销售分成（测试）", "Sales net (test)"), value: moneyOn ? String(format: "¥%.2f", Double(summary.creatorSalesNetFen) / 100.0) : EditorUnknown.dash)
                         LabeledContent(W8Text.t("有效流量游玩", "Valid Traffic Plays"), value: "\(summary.trafficValidPlays)")
                         LabeledContent(W8Text.t("已结算流量积分", "Traffic Points"), value: "\(summary.trafficSettledPoints)")
                         if summary.payoutGateOpen {
-                            LabeledContent(W8Text.t("TEST 流量现金", "TEST Traffic Cash"), value: String(format: "¥%.2f", Double(summary.trafficSettledFen) / 100.0))
+                            LabeledContent(W8Text.t("流量现金（测试）", "Traffic cash (test)"), value: moneyOn ? String(format: "¥%.2f", Double(summary.trafficSettledFen) / 100.0) : EditorUnknown.dash)
                         }
                     }
                 }
                 Section(W8Text.t("定价与流量激励配置（发布后可设）", "Monetization Config")) {
-                    TextField(W8Text.t("外部游戏 gameId", "Game ID"), text: $gameID)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .accessibilityLabel(W8Text.t("外部游戏编号", "External game ID"))
+                    // CF-03: the game is picked by name; the ID is not shown.
+                    if model.catalog.isEmpty {
+                        TextField(W8Text.t("小游戏编号", "Game number"), text: $gameID)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .accessibilityLabel(W8Text.t("小游戏编号", "Game number"))
+                            .accessibilityIdentifier("externalGame.monetization.gameID")
+                    } else {
+                        Picker(W8Text.t("小游戏", "Game"), selection: $gameID) {
+                            ForEach(model.catalog, id: \.gameID) { row in Text(verbatim: row.name).tag(row.gameID) }
+                        }
                         .accessibilityIdentifier("externalGame.monetization.gameID")
+                    }
                     Picker(W8Text.t("定价模式", "Pricing Mode"), selection: $pricingMode) {
                         Text(W8Text.t("仅流量激励", "Traffic Only")).tag("TRAFFIC_ONLY")
-                        Text(W8Text.t("付费购买 (TEST)", "Paid (TEST)")).tag("PAID")
+                        Text(W8Text.t("付费购买（测试）", "Paid (test)")).tag("PAID")
                         Text(W8Text.t("免费无激励", "Free")).tag("FREE")
                     }
                     .accessibilityIdentifier("externalGame.monetization.pricingMode")
                     if pricingMode == "PAID" {
-                        TextField(W8Text.t("售价（元）", "Price (CNY)"), text: $priceYuanText)
+                        // A cash price is TEST-only and stays behind the money switch (积分 is the only currency).
+                        TextField(W8Text.t("测试售价（元）", "Test price (CNY)"), text: $priceYuanText)
                             .keyboardType(.decimalPad)
-                            .accessibilityLabel(W8Text.t("售价（元）", "Price in CNY"))
+                            .disabled(!moneyOn)
+                            .accessibilityLabel(W8Text.t("测试售价（元）", "Test price in CNY"))
                             .accessibilityIdentifier("externalGame.monetization.priceYuan")
+                        if !moneyOn {
+                            Text(verbatim: W8Text.t("支付没有开启，售价只能在测试环境设置。", "Payments are off. A price can only be set in the test environment."))
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("externalGame.monetization.priceLocked")
+                        }
                     }
                     Picker(W8Text.t("流量激励模式", "Traffic Mode"), selection: $trafficRewardMode) {
-                        Text(W8Text.t("积分 (POINTS)", "Points")).tag("POINTS")
-                        Text(W8Text.t("TEST 现金", "TEST Cash")).tag("TEST_MONEY")
+                        Text(W8Text.t("积分", "Points")).tag("POINTS")
+                        if moneyOn || trafficRewardMode == "TEST_MONEY" {
+                            Text(W8Text.t("现金（测试）", "Cash (test)")).tag("TEST_MONEY")
+                        }
                         Text(W8Text.t("关闭", "None")).tag("NONE")
                     }
                     .accessibilityIdentifier("externalGame.monetization.trafficMode")
@@ -430,8 +478,8 @@ import QuestifyCore
                         Text(W8Text.t("平台承担", "Platform")).tag(1)
                     }
                     .accessibilityIdentifier("externalGame.monetization.feeBearer")
-                    Button(isSaving ? W8Text.t("提交中...", "Submitting...") : W8Text.t("保存并提交审核", "Save & Submit Review")) {
-                        let yuan = Double(priceYuanText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
+                    Button(isSaving ? W8Text.t("正在提交", "Submitting") : W8Text.t("保存并提交审核", "Save & Submit Review")) {
+                        let yuan = moneyOn ? (Double(priceYuanText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0) : 0
                         let fen = max(0, Int((yuan * 100.0).rounded()))
                         Task {
                             isSaving = true
@@ -452,7 +500,7 @@ import QuestifyCore
                 }
 
                 Section(W8Text.t("绑定到主题节点", "Bind to Journey Node")) {
-                    TextField(W8Text.t("节点 ID (nodeId)", "Node ID"), text: $nodeIDText)
+                    TextField(W8Text.t("节点编号", "Node number"), text: $nodeIDText)
                         .keyboardType(.numberPad)
                         .accessibilityLabel(W8Text.t("目标主题节点编号", "Target journey node ID"))
                         .accessibilityIdentifier("externalGame.monetization.nodeID")
