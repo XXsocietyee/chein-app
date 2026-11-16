@@ -170,8 +170,9 @@ import SwiftUI
             .listSectionSpacing(CYSpacing.xl)
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
-            .appNavigationTitle(showsPassportOverview ? "tabBar.passport" : "account.title")
-            .navigationBarTitleDisplayMode(.large)
+            // Design hand-off r1 PL-11: the root title is the tab's label (我的), not 主页 / 护照; 消息 then 设置 at the right.
+            .cyRootHeader(.mine)
+            .modifier(SessionMessagingToolbarEntry(session: session))
             // Stamp grid cells zoom into the stamp detail (Passport tab only draws the cells).
             .cyPassportStampHost()
             .environment(\.nativeVerificationDestination, {

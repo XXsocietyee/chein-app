@@ -66,7 +66,8 @@ import SwiftUI
     @ObservedObject var session: AppSession
     func body(content: Content) -> some View {
         content.toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            // Design hand-off r1 PL-11: 消息 is the first trailing action, in the same place on all five tab roots.
+            ToolbarItem(placement: .topBarTrailing) {
                 if session.account != nil {
                     NavigationLink { SessionMessagingHome(session: session) } label: {
                         HStack(spacing: 2) {

@@ -122,6 +122,8 @@ import SwiftUI
                 onOpenUnifiedSearch: { _ in showsGlobalSearch = true }
             ) { router.pushHome($0) }
                 .cyHeroNamespace(hero)
+                // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root.
+                .modifier(SessionMessagingToolbarEntry(session: session))
                 .toolbar {
                     ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }
                     // Two actions at most: search, then everything else in one menu.

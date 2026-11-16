@@ -407,7 +407,8 @@ public enum HomeIndexParityPresentation {
         let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         let fallback = isEnglish(locale) ? "Traveler" : defaultTravelerNickname
         let resolved = trimmed.isEmpty ? fallback : trimmed
-        return "Hi, \(resolved)!"
+        // Design hand-off r1 PL-54: the greeting is the 首页 subtitle, not a title ("Hi, 玩家小城!" → "小城，今天去哪").
+        return isEnglish(locale) ? "Where to today, \(resolved)?" : "\(resolved)，今天去哪"
     }
 
     /// Returns all shelf headers in display order.
