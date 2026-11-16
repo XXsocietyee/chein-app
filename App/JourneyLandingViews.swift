@@ -615,6 +615,8 @@ struct JourneySeatsView: View {
                     }
                 }
                 .padding(.vertical, CYSpacing.xs)
+                // The "me" ring draws 3 pt outside its 56 pt circle; inset the row so the first seat is not clipped.
+                .padding(.horizontal, CYSpacing.xs)
             }
         }
     }
@@ -637,9 +639,12 @@ struct JourneySeatsView: View {
                 }
                 if circle.kind == .me {
                     Text("mp.seats.host").font(CYTypography.micro).foregroundStyle(CYNight.ink0)
-                        .padding(.horizontal, CYSpacing.xs).background(CYNight.lantern, in: Capsule()).offset(y: 6)
+                        .padding(.horizontal, CYSpacing.xs).background(CYNight.lantern, in: Capsule()).offset(y: CYSpacing.sm)
                 }
             }
+            // polish-d-r1: every seat reserves the 房主 badge's overhang, so the badge never sits on the label and
+            // all labels stay on one baseline.
+            .padding(.bottom, CYSpacing.md)
             Text(circle.kind.label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
         }
         .frame(minWidth: CYSpacing.minTouchTarget)
