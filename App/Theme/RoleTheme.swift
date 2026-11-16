@@ -67,6 +67,13 @@ private struct RoleThemeRootModifier: ViewModifier {
             .themeDomainRoot(role.domain)
             .environment(\.cyShellSchemeArbiter, arbiter)
             .preferredColorScheme(arbiter.requestedScheme ?? role.colorScheme)
+            #if canImport(UIKit)
+            // Bar buttons (the system back chevron) follow UINavigationBar.tintColor, which the role root set for its
+            // own domain. When a page of the other scheme is on top, tint them for that scheme, and back on pop.
+            .onChange(of: arbiter.requestedScheme) { _, scheme in
+                CYScreenChrome.retintNavigationBars(for: scheme ?? role.colorScheme, role: role)
+            }
+            #endif
     }
 }
 

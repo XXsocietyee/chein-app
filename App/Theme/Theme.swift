@@ -150,8 +150,10 @@ enum Theme {
 @Observable
 final class CYShellSchemeArbiter {
     private struct Request { let depth: Int; let scheme: ColorScheme; let order: Int }
-    private var requests: [UUID: Request] = [:]
-    private var counter = 0
+    // Only `requestedScheme` is observed. The bookkeeping is ignored by Observation: a request view reads and writes
+    // it from `updateUIView`, and an observed dictionary there made SwiftUI re-run the update forever.
+    @ObservationIgnored private var requests: [UUID: Request] = [:]
+    @ObservationIgnored private var counter = 0
     private(set) var requestedScheme: ColorScheme?
 
     func register(_ token: UUID, depth: Int, scheme: ColorScheme) {
@@ -260,19 +262,26 @@ final class CYShellSchemeRequestView: UIView {
         sync()
     }
 
-    func withdraw() { arbiter?.unregister(token) }
+    func withdraw() {
+        let token = token
+        DispatchQueue.main.async { [weak arbiter] in arbiter?.unregister(token) }
+    }
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
         sync()
     }
 
+    /// Deferred to the next main-queue turn: the root's scheme must not change in the middle of a SwiftUI update
+    /// pass, and several requests changing in one pass then settle together (FIFO keeps their order).
     private func sync() {
-        guard let arbiter else { return }
-        if window != nil, !isInsidePresentation {
-            arbiter.register(token, depth: depth, scheme: scheme)
-        } else {
-            arbiter.unregister(token)
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let arbiter = self.arbiter else { return }
+            if self.window != nil, !self.isInsidePresentation {
+                arbiter.register(self.token, depth: self.depth, scheme: self.scheme)
+            } else {
+                arbiter.unregister(self.token)
+            }
         }
     }
 
@@ -291,7 +300,7 @@ final class CYShellSchemeRequestView: UIView {
     deinit {
         let token = token
         let arbiter = arbiter
-        MainActor.assumeIsolated { arbiter?.unregister(token) }
+        DispatchQueue.main.async { arbiter?.unregister(token) }
     }
 }
 #endif

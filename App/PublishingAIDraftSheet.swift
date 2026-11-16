@@ -12,7 +12,9 @@ import SwiftUI
 }
 @MainActor struct PublishingAIDraftSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.cyPalette) private var palette
+    /// verify-r2 N-01: this page applies the topicEditor domain to itself, so its own palette is that domain's.
+    /// Reading `cyPalette` here gave the pushing NavigationStack's palette (the dark player shell).
+    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
     @StateObject private var model: PublishingAIDraftModel
     @StateObject private var inspiration = PublishingAIPromptController()
     @FocusState private var ideaFocused: Bool

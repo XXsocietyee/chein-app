@@ -61,7 +61,9 @@ extension EnvironmentValues {
 @MainActor struct CityNodeRedeemView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cityNodeReceiptFactory) private var receiptFactory
-    @Environment(\.cyPalette) private var palette
+    /// verify-r2 N-01: this page applies the merchant domain to itself, so its own palette is that domain's.
+    /// Reading `cyPalette` here gave the pushing NavigationStack's palette (the dark player shell).
+    private var palette: CYDomainPalette { CYDomainPalette(.merchant) }
     @Environment(\.locale) private var locale
     @StateObject private var model: CityNodeRedeemModel
     @State private var raw = ""

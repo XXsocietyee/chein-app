@@ -188,6 +188,9 @@ private struct CYPushedChromeModifier: ViewModifier {
         if let domain {
             base.themeDomain(domain)
                 .tint(CYDomainPalette(domain).brand)
+                // verify-r2 N-01: the navigation bar belongs to the NavigationStack, which inherits the shell's scheme.
+                // While this page is on top, the bar (and its back button) takes the page's scheme.
+                .toolbarColorScheme(domain.colorScheme, for: .navigationBar)
         } else {
             base
         }
@@ -264,6 +267,24 @@ enum CYScreenChrome {
 
         // Selected tab stays violet. `CYTabBarAppearance.install()` owns the unselected 45% label.
         UITabBar.appearance().tintColor = UIColor(palette.tabSelectedTint)
+    }
+
+    /// verify-r2 N-01: retint every navigation bar in the foreground windows for the window's current scheme.
+    @MainActor
+    static func retintNavigationBars(for scheme: ColorScheme, role: RoleTheme) {
+        let domain: ThemeDomain = scheme == role.colorScheme ? role.domain : (scheme == .light ? .merchant : .player)
+        let tint = UIColor(scheme == role.colorScheme ? CYDomainPalette(domain).brand : CYDomainPalette(domain).textPrimary)
+        let windows = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows)
+        DispatchQueue.main.async {
+            for window in windows { retint(window, tint: tint) }
+        }
+    }
+
+    private static func retint(_ view: UIView, tint: UIColor) {
+        let typeName = NSStringFromClass(type(of: view))
+        if typeName.contains("MKMapView") || typeName.contains("WKWebView") { return }
+        if let bar = view as? UINavigationBar { bar.tintColor = tint; return }
+        for subview in view.subviews { retint(subview, tint: tint) }
     }
 
     static func correct(_ view: UIView, domain: ThemeDomain) {

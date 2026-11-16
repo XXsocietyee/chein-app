@@ -185,7 +185,9 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     @ObservedObject var model: CouponManagementScreenModel
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.cyPalette) private var palette
+    /// verify-r2 N-01: this page applies the topicEditor domain to itself, so its own palette is that domain's.
+    /// Reading `cyPalette` here gave the pushing NavigationStack's palette (the dark player shell).
+    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var discard = false
     @State private var rangeEditor: CouponValidityRangeEditorModel?

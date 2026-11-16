@@ -230,7 +230,9 @@ extension EnvironmentValues {
 @MainActor struct TemplateAuthoringView: View {
     @Environment(\.templateCoverSource) private var environmentCover
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
+    /// verify-r2 N-01: this page applies the topicEditor domain to itself, so its own palette is that domain's.
+    /// Reading `cyPalette` here gave the pushing NavigationStack's palette (the dark player shell).
+    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private enum Step { case intro, name, edit }
     @StateObject private var model: TemplateAuthoringModel
@@ -607,7 +609,9 @@ struct TemplateAuthoringReviewView: View {
     let canSubmit: Bool
     let confirm: () -> Void
     let cancel: () -> Void
-    @Environment(\.cyPalette) private var palette
+    /// verify-r2 N-01: this page applies the topicEditor domain to itself, so its own palette is that domain's.
+    /// Reading `cyPalette` here gave the pushing NavigationStack's palette (the dark player shell).
+    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
     var body: some View {
         Form {
             Section { CYHeroHeader("templateAuthor.reviewTitle") }.e1HeroRow()
