@@ -350,7 +350,7 @@ import XCTest
             coordinator: .init(scope: try IMScope(identity: identity, conversationID: 9), writer: writer), reader: reader)
     }
     private func host(_ driver: Driver, _ reader: Reader) {
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         window.rootViewController = UIHostingController(rootView: Host(driver: driver, reader: reader))
         self.window = window; window.makeKeyAndVisible()
     }

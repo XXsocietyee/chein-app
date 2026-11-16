@@ -397,7 +397,8 @@ import XCTest
             let english = text.value(Locale(identifier: "en_US")), chinese = text.value(Locale(identifier: "zh_CN"))
             XCTAssertFalse(english.isEmpty); XCTAssertFalse(chinese.isEmpty); XCTAssertNotEqual(english, chinese)
         }
-        XCTAssertEqual(TemplateTimerOutcomeText.save.value(Locale(identifier: "en_US")), "Save to local draft")
-        XCTAssertEqual(TemplateTimerOutcomeText.save.value(Locale(identifier: "zh_CN")), "保存到本地草稿")
+        // Shipped plain-language copy (docs/parity/full-suite-triage.md: copy mismatch, OWNER decision).
+        XCTAssertEqual(TemplateTimerOutcomeText.save.value(Locale(identifier: "en_US")), "Save to draft")
+        XCTAssertEqual(TemplateTimerOutcomeText.save.value(Locale(identifier: "zh_CN")), "保存到草稿")
     }
 }

@@ -138,7 +138,7 @@ import UIKit
     }
     private func mount(_ state: PrivatePageHostState, destination: String) -> UIWindow {
         let host = UIHostingController(rootView: PrivatePageHostHarness(state: state, destination: destination))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
         return window
     }
@@ -166,7 +166,7 @@ import UIKit
     private func find(_ id: String, in window: UIWindow) -> NSObject? {
         var seen = Set<ObjectIdentifier>()
         func visit(_ root: NSObject) -> NSObject? {
-            guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+            guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
             if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
             if let view = root as? UIView { for child in view.subviews { if let result = visit(child) { return result } } }
             if let children = root.accessibilityElements { for child in children { if let child = child as? NSObject, let result = visit(child) { return result } } }

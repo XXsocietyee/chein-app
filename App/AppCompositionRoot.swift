@@ -103,6 +103,9 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// Explicit test-host override for the shared template-authoring storage. Unsigned simulator test hosts answer Keychain with
     /// -34018, so hosted workshop flows that persist recovery metadata cannot reach their own assertions on system storage.
     var syntheticTemplateAuthoringStorage: (any TemplateAuthoringStorage)? = nil
+    /// Same -34018 reason for the project editor's local draft/pending journal: on an unsigned test host the editor's
+    /// load reads that journal first and blocks with `projectEdit.loadFailed` before any reviewed route is exercised.
+    var syntheticProjectEditStorage: (any ProjectEditDataStorage)? = nil
 #endif
     init(defaults: UserDefaults = .standard,
          tokenStore: @escaping (RegionalSessionStorageScope?) -> any AppTokenStorage = { KeychainTokenStore(scope: $0) },

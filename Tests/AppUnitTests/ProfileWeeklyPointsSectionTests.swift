@@ -94,7 +94,7 @@ import SwiftUI
             SocialPublicProfileView(memberID: 81, reader: social, squareReader: social,
                 weeklyPointsAccess: .init(reader: weekly, owner: social.identity))
         }.environment(\.scenePhase, .active))
-        let window = UIWindow(frame: UIScreen.main.bounds)
+        let window = hostedSceneWindow(frame: UIScreen.main.bounds)
         window.rootViewController = host; window.makeKeyAndVisible()
         window.layoutIfNeeded()
         await fulfillment(of: [read], timeout: 2)

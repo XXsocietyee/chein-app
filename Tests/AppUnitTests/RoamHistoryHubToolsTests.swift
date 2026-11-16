@@ -108,7 +108,7 @@ import UIKit
         let host = UIHostingController(rootView: NavigationStack {
             RoamExperienceHubView(reader: r.reader, toolsReader: tools, privateToolsReader: privateTools)
         }.environment(\.locale, Locale(identifier: "en_US")))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         window.rootViewController = host; window.makeKeyAndVisible()
         host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
     }
@@ -131,7 +131,7 @@ import UIKit
         return find(id, root: window, seen: &seen)
     }
     private func find(_ id: String, root: NSObject, seen: inout Set<ObjectIdentifier>) -> NSObject? {
-        guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+        guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
         if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
         if let view = root as? UIView {
             for child in view.subviews { if let found = find(id, root: child, seen: &seen) { return found } }

@@ -155,7 +155,7 @@ import UIKit
         let h=try Harness(enabled:false);await h.login();let reader=try h.reader();h.wire.requests=[]
         let view=ProfileGuideHost(reader:reader,makeArticleReader:{h.session.makeProfileGuideArticleReader($0)})
         let host=UIHostingController(rootView:NavigationStack{view}.environment(\.scenePhase,.active))
-        let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
+        let window=hostedSceneWindow(frame: UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
         defer{window.isHidden=true;window.rootViewController=nil};host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<30{await Task.yield()}
         XCTAssertTrue(reader.hasAppeared);XCTAssertFalse(reader.isConfigured);XCTAssertTrue(h.wire.requests.isEmpty)
@@ -200,7 +200,7 @@ import UIKit
         let view=ProfileGuideArticleDestination(row:row,reader:list,makeReader:{let value=h.session.makeProfileGuideArticleReader($0);article=value;return value})
         h.wire.requests=[]
         let host=UIHostingController(rootView:AnyView(NavigationStack{view}.environment(\.scenePhase,.active)))
-        let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
+        let window=hostedSceneWindow(frame: UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
         defer{window.isHidden=true;window.rootViewController=nil};host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where !h.wire.paths.contains("infomation_detail"){try await Task.sleep(for:.milliseconds(20))}
         XCTAssertEqual(h.wire.paths,["infomation_detail"]);let captured=try XCTUnwrap(article)

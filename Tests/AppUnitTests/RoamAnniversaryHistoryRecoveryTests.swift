@@ -122,7 +122,7 @@ import UIKit
                 RoamHomePassportView(reader: r.history, toolsReader: tools, anniversaryRouteDestination: route)
             }
         }.environment(\.locale, Locale(identifier: "en_US")).environment(\.scenePhase, .active))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 1100))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible()
         host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
     }
@@ -143,7 +143,7 @@ import UIKit
             if find(id, in: window) != nil { return }
             scroll(window); try await Task.sleep(nanoseconds: 40_000_000)
         }
-        XCTFail("Original control not found: " + id); throw APIError.notConfigured
+        XCTFail("Original control not found: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func scroll(_ view: UIView) {
         if let scroll = view as? UIScrollView {
@@ -168,7 +168,7 @@ import UIKit
     private func search(_ window: UIWindow, id: String? = nil, text: String? = nil) -> NSObject? {
         var seen = Set<ObjectIdentifier>()
         func visit(_ root: NSObject) -> NSObject? {
-            guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+            guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
             if let id, (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
             if let text, root.accessibilityLabel?.contains(text) == true { return root }
             if let view = root as? UIView {

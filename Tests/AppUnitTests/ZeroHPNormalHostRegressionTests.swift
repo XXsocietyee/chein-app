@@ -52,7 +52,10 @@ import XCTest
         addTeardownBlock { defaults.removePersistentDomain(forName: name) }
         let deployment = try ReviewedAppDeployment(market: .china, baseURL: base.absoluteString, approvedBaseURLs: [.china: [base.absoluteString]],
             verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.zero." + UUID().uuidString.lowercased(), realm: "synthetic")
-        return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }),
+        // Unsigned simulator test host: Keychain answers -34018, so the editor journal uses the DEBUG memory override.
+        var storage = AppScopedStorageFactory(defaults: defaults, tokenStore: { _ in vault })
+        storage.syntheticProjectEditStorage = ProjectEditMemoryStorage()
+        return .init(deployment: .reviewed(deployment), storage: storage,
             makeTransport: { wire }, sessionDependencies: { context in .init(businessConfiguration: self.configuration(context, grant)) })
     }
     private func login(_ session: AppSession) async {

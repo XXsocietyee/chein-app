@@ -119,6 +119,9 @@ import SwiftUI
                     RoamHostedAccessibilityAnchor(identifier: "roam.experience.history.record")
                 }
             }
+            // A screen-level identifier is only exposed when the screen is an accessibility container (iOS 27 SwiftUI drops
+            // it otherwise); `.contain` keeps every child element as it was.
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("roam.experience.history")
     }
     private func load() {

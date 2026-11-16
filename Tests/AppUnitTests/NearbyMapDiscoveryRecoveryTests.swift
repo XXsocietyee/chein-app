@@ -54,7 +54,7 @@ import UIKit
     /// Exercise the real SwiftUI control, not the reader/model method it ultimately invokes.
     private func control(_ root: NSObject, id: String? = nil, label: String? = nil,
                          seen: inout Set<ObjectIdentifier>) -> NSObject? {
-        guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+        guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
         if let id, (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
         if let label, root.accessibilityLabel == label { return root }
         if let view = root as? UIView {

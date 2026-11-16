@@ -110,7 +110,7 @@ import SwiftUI
         let reader = h.session.makeProfileFavoriteDetailReader(selected), owner = ProfileFavoriteNavigationOwner(), probe = CoverProbe()
         let scope = h.session.profileFavoritesReader.scope;h.wire.requests = []
         let host = UIHostingController(rootView:AnyView(RouteFixture(owner:owner,scope:scope,reader:reader,account:h.session.socialAccountReader,probe:probe).environment(\.scenePhase,.active)))
-        let window = UIWindow(frame:UIScreen.main.bounds);window.rootViewController = host;window.makeKeyAndVisible()
+        let window = hostedSceneWindow(frame: UIScreen.main.bounds);window.rootViewController = host;window.makeKeyAndVisible()
         defer { window.isHidden = true;window.rootViewController = nil }
         host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where probe.rootAppearances == 0 { try await Task.sleep(for:.milliseconds(20)) }
@@ -127,7 +127,7 @@ import SwiftUI
         let reader = h.session.makeProfileFavoriteDetailReader(selected), owner = ProfileFavoriteNavigationOwner(), probe = CoverProbe()
         let scope = h.session.profileFavoritesReader.scope
         func view(_ phase:ScenePhase) -> AnyView { AnyView(RouteFixture(owner:owner,scope:scope,reader:reader,account:h.session.socialAccountReader,probe:probe).environment(\.scenePhase,phase)) }
-        let host = UIHostingController(rootView:view(.active)), window = UIWindow(frame:UIScreen.main.bounds)
+        let host = UIHostingController(rootView:view(.active)), window = hostedSceneWindow(frame: UIScreen.main.bounds)
         window.rootViewController = host;window.makeKeyAndVisible();defer { window.isHidden = true;window.rootViewController = nil }
         host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<100 where probe.rootAppearances == 0 { try await Task.sleep(for:.milliseconds(20)) }

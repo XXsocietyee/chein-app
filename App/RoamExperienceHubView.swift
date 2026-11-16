@@ -121,6 +121,9 @@ import SwiftUI
             .onChange(of: RoamPassportReadOwner(reader: reader)) { _, _ in passport.load(reader: reader) }
             .refreshable { passport.load(reader: reader) }
             .onDisappear { passport.invalidate() }
+            // A screen-level identifier is only exposed when the screen is an accessibility container (iOS 27 SwiftUI drops
+            // it otherwise); `.contain` keeps every child element as it was.
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("roam.experience.hub")
     }
 }

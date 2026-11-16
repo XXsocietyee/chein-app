@@ -24,7 +24,7 @@ import UIKit
     func testBrowserMenuHubForwardsTheSameOriginalTopicDestination() async throws {
         let r = try AnniversaryHostRig(), window = mount(r)
         defer { close(window) }
-        try await tap("roam.toolbar.more", in: window)
+        try await tap("roam.more", in: window) // the one overflow menu since b85ae2741 (d6 round 3); its label key is roam.toolbar.more
         try await tap("roam.experience.open", in: window)
         try await reveal("roam.experience.hub", in: window)
         XCTAssertTrue(r.wire.requests.isEmpty)
@@ -88,7 +88,7 @@ import UIKit
         let host = UIHostingController(rootView: RoamBrowserView(reader: r.map, experienceReader: r.history,
             toolsReader: r.tools, passportToolsReader: r.tools, anniversaryRouteDestination: destination)
             .environment(\.locale, Locale(identifier: "en_US")))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 1100))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible()
         host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
     }
@@ -117,7 +117,7 @@ import UIKit
             if find(id, in: window) != nil { return }
             scroll(window); try await Task.sleep(nanoseconds: 40_000_000)
         }
-        XCTFail("Original control not found: " + id); throw APIError.notConfigured
+        XCTFail("Original control not found: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func scroll(_ view: UIView) {
         if let scroll = view as? UIScrollView {
@@ -140,7 +140,7 @@ import UIKit
     private func find(_ id: String, in window: UIWindow) -> NSObject? {
         var seen = Set<ObjectIdentifier>()
         func visit(_ root: NSObject) -> NSObject? {
-            guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+            guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
             if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
             if let view = root as? UIView {
                 for child in view.subviews { if let found = visit(child) { return found } }

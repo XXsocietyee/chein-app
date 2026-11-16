@@ -51,6 +51,21 @@ enum HostedAccessibilityRuntime {
     }
 }
 
+/// A hidden view is not on screen: UICollectionView keeps prepared/reusable `ListCollectionViewCell`s as hidden
+/// subviews, and their SwiftUI accessibility nodes still carry the identifiers of rows that are gone. Hosted lookups
+/// skip hidden subtrees so a removed row cannot be "found" through a stale cell.
+@MainActor func hostedHiddenView(_ node: NSObject) -> Bool { (node as? UIView)?.isHidden == true }
+
+/// iOS 27 simulator: a scene-less `UIWindow(frame:)` is never key and SwiftUI builds neither its layout-driven content
+/// nor its accessibility tree there (only the refresh-control proxy appears). Hosted tests that mounted a free-standing
+/// window attach it to the single foreground scene instead; frame, root controller and teardown stay the test's own.
+@MainActor func hostedSceneWindow(frame: CGRect) -> UIWindow {
+    let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+    guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else { return UIWindow(frame: frame) }
+    let window = UIWindow(windowScene: scene); window.frame = frame
+    return window
+}
+
 @MainActor final class HostedNavigationSceneWindow {
     let window: UIWindow
     private weak var scene: UIWindowScene?
@@ -107,7 +122,7 @@ enum HostedAccessibilityRuntime {
 @MainActor func hostedDiagnostics() -> String {
     var seen = Set<ObjectIdentifier>(), ids = Set<String>(), classes = Set<String>(), nodes = 0, buttonLabels = [String]()
     func visit(_ node: NSObject, _ depth: Int) {
-        guard depth < 40, nodes < 4000, seen.insert(ObjectIdentifier(node)).inserted else { return }
+        guard depth < 40, nodes < 4000, seen.insert(ObjectIdentifier(node)).inserted, !hostedHiddenView(node) else { return }
         nodes += 1; classes.insert(String(describing: type(of: node)))
         if let button = node as? UIButton, buttonLabels.count < 12 { buttonLabels.append(button.accessibilityLabel ?? button.currentTitle ?? "?") }
         if let id = (node as? UIAccessibilityIdentification)?.accessibilityIdentifier, !id.isEmpty { ids.insert(id) }
@@ -123,7 +138,7 @@ enum HostedAccessibilityRuntime {
     let sceneText = scenes.map { "\($0.activationState.rawValue):windows=\($0.windows.count),visible=\($0.windows.filter { !$0.isHidden }.count)" }
     return "[hosted diagnostics app=\(UIApplication.shared.applicationState.rawValue) scenes=\(sceneText) nodes=\(nodes) "
         + "swiftUINodeClass=\(node != nil) axSwitch=\(HostedAccessibilityRuntime.accessibilitySwitchFound) buttons=\(buttonLabels) conformsToIdentification=\(String(describing: conforms)) "
-        + "voiceOver=\(UIAccessibility.isVoiceOverRunning) ids=\(ids.sorted().prefix(40)) classes=\(classes.sorted().prefix(25))]"
+        + "voiceOver=\(UIAccessibility.isVoiceOverRunning) ids=\(ids.sorted().prefix(120)) classes=\(classes.sorted().prefix(25))]"
 }
 
 /// The sheet a hosted SwiftUI tree really presented. SwiftUI presents from the hosting controller that owns the `.sheet`

@@ -2,6 +2,7 @@ import XCTest
 @testable import Questify
 
 @MainActor final class ProjectEditCompositionTests: XCTestCase {
+    private var projectStorage: ProjectEditMemoryStorage?
     private let base = URL(string: "https://example.com/native")!
     private final class Grant {
         var enabled = true, write = true, read = true, review = false, legacyOnly = false
@@ -71,7 +72,12 @@ import XCTest
         let suite = "project-composition-" + UUID().uuidString, defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let deployment = try ReviewedAppDeployment(market: .china, baseURL: base.absoluteString, approvedBaseURLs: [.china: [base.absoluteString]], verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.project."+UUID().uuidString.lowercased(), realm: "synthetic")
-        return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire }, sessionDependencies: { context in .init(businessConfiguration: self.configuration(context, grant)) })
+        // Unsigned simulator test host: Keychain answers -34018, so the editor journal uses the DEBUG memory override.
+        // One memory store per test keeps "restart" (a second root) reading the same journal, like the system store.
+        if projectStorage == nil { projectStorage = ProjectEditMemoryStorage() }
+        var storage = AppScopedStorageFactory(defaults: defaults, tokenStore: { _ in vault })
+        storage.syntheticProjectEditStorage = projectStorage
+        return .init(deployment: .reviewed(deployment), storage: storage, makeTransport: { wire }, sessionDependencies: { context in .init(businessConfiguration: self.configuration(context, grant)) })
     }
     private func login(_ session: AppSession) async { session.authChannels.cancel(); await session.authChannels.loginWithPhone(phone: "10000000000",code: "123456"); XCTAssertEqual(session.account?.id,7) }
     private func json(_ path: String, _ fields: [String: ProjectEditJSON]) throws -> URLRequest {

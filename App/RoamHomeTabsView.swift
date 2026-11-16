@@ -409,6 +409,9 @@ struct RoamToolUnavailableView: View {
             tileDestination(item.tile)
         }
         .background { RoamHostedAccessibilityGroup(items: passportAccessibilityItems) }
+        // A screen-level identifier is only exposed when the screen is an accessibility container (iOS 27 SwiftUI drops
+        // it otherwise); `.contain` keeps every child element as it was.
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("roam.home.passport")
         .cyDomainScreen(.player)
     }

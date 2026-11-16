@@ -10,7 +10,8 @@ import XCTest
         let deployment = try ReviewedAppDeployment(market: .china, baseURL: base.absoluteString,
             approvedBaseURLs: [.china: [base.absoluteString]], verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.shelf-reads", realm: "synthetic")
-        return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }),
+        // Unsigned simulator test host: Keychain answers -34018 (WorkshopSyntheticStorage, same DEBUG override).
+        return .init(deployment: .reviewed(deployment), storage: WorkshopSyntheticStorage.factory(defaults: defaults, tokenStore: { _ in vault }),
             makeTransport: { wire }, templateShelfReadApproval: { grants.select($0) })
     }
     private func login(_ session: AppSession) async {

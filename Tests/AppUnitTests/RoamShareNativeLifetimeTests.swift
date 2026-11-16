@@ -158,7 +158,7 @@ import UIKit
     private func find(_ id: String, in window: UIWindow) -> NSObject? {
         var seen = Set<ObjectIdentifier>()
         func visit(_ root: NSObject) -> NSObject? {
-            guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+            guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
             if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
             if let children = root.accessibilityElements { for case let child as NSObject in children { if let found = visit(child) { return found } } }
             if let view = root as? UIView { for child in view.subviews { if let found = visit(child) { return found } } }

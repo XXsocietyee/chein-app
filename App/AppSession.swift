@@ -3812,9 +3812,15 @@ final class AppSession: ObservableObject {
     private lazy var projectStoryImageJournal = ProjectStoryImageJournal(storage: ProjectEditSecureStorage(scope: storageScope))
     private lazy var projectNodeImageJournal = ProjectNodeImageJournal(storage: ProjectEditSecureStorage(scope: storageScope))
     private lazy var ownedTopicCoverJournal = OwnedTopicCoverJournal(storage: ProjectEditSecureStorage(scope: storageScope))
+#if DEBUG
+    private lazy var projectReviewJournal = ApprovedTopicReviewJournal(storage: composition.storage.syntheticProjectEditStorage ?? ProjectEditSecureStorage(scope: storageScope))
+    private lazy var projectReleaseJournal = ApprovedTopicReleasePublicationJournal(storage: composition.storage.syntheticProjectEditStorage ?? ProjectEditSecureStorage(scope: storageScope))
+    private lazy var projectDraftStore = ProjectEditLocalStore(storage: composition.storage.syntheticProjectEditStorage ?? ProjectEditSecureStorage(scope: storageScope))
+#else
     private lazy var projectReviewJournal = ApprovedTopicReviewJournal(storage: ProjectEditSecureStorage(scope: storageScope))
     private lazy var projectReleaseJournal = ApprovedTopicReleasePublicationJournal(storage: ProjectEditSecureStorage(scope: storageScope))
     private lazy var projectDraftStore = ProjectEditLocalStore(storage: ProjectEditSecureStorage(scope: storageScope))
+#endif
     private var currentProjectEditSession: ProjectEditSession? {
         guard !projectConfigurationChanging, let account, token != nil, let storageScope else { return nil }
         return try? ProjectEditSession(accountID: account.id, epoch: gate.currentStamp, storageNamespace: storageScope.service, viewerRevision: compositionViewerRevision, configurationRevision: projectConfigurationRevision)

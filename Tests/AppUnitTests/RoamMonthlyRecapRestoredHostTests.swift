@@ -15,7 +15,7 @@ import UIKit
         XCTFail(message)
     }
     private func exportFind(_ root: NSObject, id: String, seen: inout Set<ObjectIdentifier>) -> NSObject? {
-        guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+        guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
         if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
         if let view = root as? UIView {
             for child in view.subviews { if let found = exportFind(child, id: id, seen: &seen) { return found } }
@@ -85,7 +85,7 @@ import UIKit
     func testHostedRecapMonthCursorFailureRetryAndExactDetailReturnKeepOriginalQuery() async throws {
         let reader = MonthlyRecapHostReader(), state = ExportHostState()
         let host = UIHostingController(rootView: MonthlyRecapLifecycleHarness(reader: reader, state: state))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible()
         defer { window.isHidden = true; window.rootViewController = nil }
         try await exportTap("recap.fixture.open", in: window)
@@ -113,7 +113,7 @@ import UIKit
     func testHostedRecapBackgroundDiscardsLateReadAndOnlyForegroundReadsAgain() async throws {
         let reader = MonthlyRecapHostReader(), state = ExportHostState(); reader.hold = true
         let host = UIHostingController(rootView: MonthlyRecapLifecycleHarness(reader: reader, state: state))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible()
         defer { window.isHidden = true; window.rootViewController = nil }
         try await exportTap("recap.fixture.open", in: window)
@@ -130,7 +130,7 @@ import UIKit
     func testHostedRecapDetailBackgroundDoesNotReadAndRevocationCannotExposeOldDetail() async throws {
         let reader = MonthlyRecapHostReader(), state = ExportHostState()
         let host = UIHostingController(rootView: MonthlyRecapLifecycleHarness(reader: reader, state: state))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible()
         defer { window.isHidden = true; window.rootViewController = nil }
         try await exportTap("recap.fixture.open", in: window)
@@ -242,7 +242,7 @@ import UIKit
                 RoamHomePassportView(reader: rig.history, toolsReader: rig.tools, anniversaryRouteDestination: route)
             }
         }.environment(\.locale, Locale(identifier: "en_US")).environment(\.scenePhase, .active))
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
         window.rootViewController = host; window.makeKeyAndVisible()
         host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
     }
@@ -271,7 +271,7 @@ import UIKit
             if find(id, in: window) != nil { return }
             scroll(window); try await Task.sleep(nanoseconds: 40_000_000)
         }
-        XCTFail("Original control not found: " + id); throw APIError.notConfigured
+        XCTFail("Original control not found: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func scroll(_ view: UIView) {
         if let scroll = view as? UIScrollView {
@@ -294,7 +294,7 @@ import UIKit
     private func find(_ id: String, in window: UIWindow) -> NSObject? {
         var seen = Set<ObjectIdentifier>()
         func visit(_ root: NSObject) -> NSObject? {
-            guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+            guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
             if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
             if let view = root as? UIView {
                 for child in view.subviews { if let found = visit(child) { return found } }

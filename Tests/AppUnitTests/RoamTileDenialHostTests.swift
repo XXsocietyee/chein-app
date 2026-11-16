@@ -74,13 +74,14 @@ import UIKit
         XCTAssertNil(find("roam.experience.tiles.denied", in: window))
     }
 
+
     private func tiles(_ r: TileDenialHostRig) -> AnyView {
         // Exactly the original typed destination expression in RoamExperienceHubView.
         AnyView(NavigationStack { RoamTileMemoryView(reader: r.reader).id(r.reader.scope) }
             .environment(\.scenePhase, .active).environment(\.locale, Locale(identifier: "en_US")))
     }
     private func mount(_ host: UIHostingController<AnyView>) -> UIWindow {
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         window.rootViewController = host; window.makeKeyAndVisible()
         host.loadViewIfNeeded(); host.view.layoutIfNeeded(); return window
     }
@@ -97,7 +98,7 @@ import UIKit
         return find(root: window, id: id, seen: &seen)
     }
     private func find(root: NSObject, id: String, seen: inout Set<ObjectIdentifier>) -> NSObject? {
-        guard seen.insert(ObjectIdentifier(root)).inserted else { return nil }
+        guard seen.insert(ObjectIdentifier(root)).inserted, !hostedHiddenView(root) else { return nil }
         if (root as? UIAccessibilityIdentification)?.accessibilityIdentifier == id { return root }
         if let view = root as? UIView {
             for child in view.subviews { if let value = find(root: child, id: id, seen: &seen) { return value } }

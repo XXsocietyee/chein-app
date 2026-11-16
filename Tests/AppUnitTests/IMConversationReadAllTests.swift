@@ -170,7 +170,7 @@ import XCTest
         IMConversationReadAllReviewModel(batch: batch) { list.invalidate(reader: reader, identity: batch.identity) }
     }
     private func host(_ driver: Driver, _ reader: Reader) {
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let window = hostedSceneWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
         window.rootViewController = UIHostingController(rootView: Host(driver: driver, reader: reader))
         self.window = window; window.makeKeyAndVisible()
     }

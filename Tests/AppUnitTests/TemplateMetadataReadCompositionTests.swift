@@ -19,8 +19,10 @@ import XCTest
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let vault = Vault()
+        // Unsigned simulator test host: Keychain answers -34018 (WorkshopSyntheticStorage, same DEBUG override).
+        let storage = WorkshopSyntheticStorage.factory(defaults: defaults, tokenStore: { _ in vault })
         let root = AppCompositionRoot(deployment: configured ? .reviewed(try deployment(reads: reads, auth: true)) : .unconfigured,
-            storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire })
+            storage: storage, makeTransport: { wire })
         return (root.makeSession(), vault)
     }
     private func login(_ session: AppSession) async {

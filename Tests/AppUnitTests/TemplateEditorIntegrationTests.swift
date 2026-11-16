@@ -539,8 +539,9 @@ import XCTest
         XCTAssertEqual(TemplateBasicClearField.questionImage.rawValue, "questionImage")
         XCTAssertEqual(TemplateBasicClearField.questionAudio.rawValue, "questionAudio")
         XCTAssertEqual(TemplateBasicClearField.optionMedia(.d).rawValue, "optionMedia.D")
-        XCTAssertEqual(TemplateBasicClearField.questionImage.label(Locale(identifier: "en")), "Clear question image reference")
-        XCTAssertEqual(TemplateBasicClearField.questionAudio.label(Locale(identifier: "zh-Hans")), "清空题干音频引用")
-        XCTAssertEqual(TemplateBasicClearField.optionMedia(.b).label(Locale(identifier: "en")), "Clear option B media references")
+        // Shipped plain-language copy (docs/parity/full-suite-triage.md: copy mismatch, OWNER decision).
+        XCTAssertEqual(TemplateBasicClearField.questionImage.label(Locale(identifier: "en")), "Clear question image")
+        XCTAssertEqual(TemplateBasicClearField.questionAudio.label(Locale(identifier: "zh-Hans")), "清空题目音频")
+        XCTAssertEqual(TemplateBasicClearField.optionMedia(.b).label(Locale(identifier: "en")), "Clear option B image and audio")
     }
 }

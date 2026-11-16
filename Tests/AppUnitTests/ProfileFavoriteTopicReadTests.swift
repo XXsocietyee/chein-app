@@ -160,7 +160,7 @@ import UIKit
         let h=try Harness(details:false);await h.login();let selected=try await h.selection(),reader=h.session.makeProfileFavoriteTopicReader(selected)
         h.wire.requests=[]
         let host=UIHostingController(rootView:NavigationStack {ProfileFavoriteTopicDestination(selection:selected,session:h.session,makeReader:{reader})})
-        let window=UIWindow(frame:UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
+        let window=hostedSceneWindow(frame: UIScreen.main.bounds);window.rootViewController=host;window.makeKeyAndVisible()
         defer {window.isHidden=true;window.rootViewController=nil}
         host.loadViewIfNeeded();host.view.layoutIfNeeded()
         for _ in 0..<30 {await Task.yield()}
