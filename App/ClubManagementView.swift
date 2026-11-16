@@ -18,6 +18,7 @@ struct ClubManagementView: View {
     @StateObject private var reviewOwner = ClubManagementReviewOwner()
     @State private var detailHostVisible = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var state: ClubManagementState = .idle
     @State private var loading = false
     @State private var stale = false
@@ -97,6 +98,20 @@ struct ClubManagementView: View {
                             }
                             .buttonStyle(.cyPressable)
                             .accessibilityIdentifier("club.management.request.\(request.id)")
+                            // HANDOFF-R1 MC-21: approve / reject also work by swipe; both still open the review sheet.
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                if snapshot.allows(.approve, memberID: request.id) {
+                                    let attachment = reviewOwner.attachment, source = reviewContext
+                                    Button {
+                                        Task { await prepare(.approve, memberID: request.id, attachment: attachment, source: source) }
+                                    } label: { Label { Text(verbatim: clubR1("request.approve", locale)) } icon: { Image(systemName: "checkmark") } }
+                                    .tint(CYColor.successText)
+                                    Button {
+                                        Task { await prepare(.reject, memberID: request.id, attachment: attachment, source: source) }
+                                    } label: { Label { Text(verbatim: clubR1("request.reject", locale)) } icon: { Image(systemName: "xmark") } }
+                                    .tint(CYColor.textTertiary)
+                                }
+                            }
                             .listRowInsets(Self.gutterInsets)
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
@@ -196,8 +211,19 @@ struct ClubManagementView: View {
                     if let request = snapshot.requests.first(where: { $0.id == id }) {
                         requestDetail(request)
                         if snapshot.allows(.approve, memberID: id) {
-                            action(.approve, memberID: id)
-                            action(.reject, memberID: id)
+                            // HANDOFF-R1 MC-21: 拒绝 · 通过 side by side, 44 pt each, 12 pt apart (stacked at XXL).
+                            ViewThatFits(in: .horizontal) {
+                                HStack(spacing: CYSpacing.md) {
+                                    action(.reject, memberID: id)
+                                    action(.approve, memberID: id)
+                                }
+                                VStack(spacing: CYSpacing.md) {
+                                    action(.approve, memberID: id)
+                                    action(.reject, memberID: id)
+                                }
+                            }
+                            .listRowInsets(Self.gutterInsets)
+                            .listRowBackground(Color.clear)
                         }
                     }
                 case .member(let id):
@@ -410,10 +436,14 @@ struct ClubManagementView: View {
             .listRowInsets(Self.gutterInsets)
             .listRowBackground(Color.clear)
         } else {
-            Button(role: .destructive) {
+            // HANDOFF-R1 MC-21: 拒绝 is the quiet secondary beside 通过; 移除 keeps the red style.
+            let button = Button(role: .destructive) {
                 Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
             } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
-            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            Group {
+                if action == .remove { button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true)) }
+                else { button.buttonStyle(ClubR1PillButtonStyle(kind: .secondary)) }
+            }
             .disabled(loading || stale || !contextMatches || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
             .listRowInsets(Self.gutterInsets)
@@ -571,3 +601,4 @@ struct ClubManagementView: View {
         }
     }
 }
+

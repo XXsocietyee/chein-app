@@ -43,6 +43,8 @@ CLUB = {
     'member.consequence.remove.line2': ('They can apply again later', '之后对方仍可重新申请加入'),
     'club.leave': ('Leave club', '退出俱乐部'),
     'club.report': ('Report club', '举报俱乐部'),
+    'request.approve': ('Approve', '通过'),
+    'request.reject': ('Decline', '拒绝'),
 }
 
 MERCHANT = {
