@@ -308,19 +308,20 @@ struct RoamBrowserView: View {
                     Label("roam.experience.title", systemImage: "book.closed")
                 }.accessibilityIdentifier("roam.experience.open")
             }
-            if cityDestination != nil {
-                Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
-                    .accessibilityIdentifier("roam.more.city")
-            }
+            // Design hand-off r1 PL-16 (owner Q-A): one CITY home. N01 城市大富翁 (the territory board) is the CITY entry;
+            // the older 城市经营 page (A10) is retired as a home and stays reachable from N01's 更多 menu.
             if territoryDestination != nil {
                 Button { toolbarRoute = .territory } label: {
                     Label {
-                        Text(verbatim: ChannelCopy.text("漫游领地", "Territory", locale: locale))
+                        Text(verbatim: ChannelCopy.text("城市大富翁", "City Monopoly", locale: locale))
                     } icon: {
-                        Image(systemName: "flag.2.crossed")
+                        Image(systemName: "building.2")
                     }
                 }
-                .accessibilityIdentifier("roam.more.territory")
+                .accessibilityIdentifier("roam.more.city")
+            } else if cityDestination != nil {
+                Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
+                    .accessibilityIdentifier("roam.more.city")
             }
             if nearbyTeamsDestination != nil {
                 Button { toolbarRoute = .nearbyTeams } label: { Label("nearby.title", systemImage: "person.3") }

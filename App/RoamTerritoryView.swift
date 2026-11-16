@@ -22,6 +22,33 @@ import SwiftUI
             monopolyPointsBalance: { (try? await growth.overview())?.center.value?.points.map { Int64($0) } }
         )
         .id(session.cityPlayerReadIdentity)
+        .toolbar {
+            // Design hand-off r1 PL-16: N01 is the CITY home. 收藏据点 is a row here, and the retired A10 page's tools
+            // (snapshot, map updates, team participation, action budget) stay one tap away, never hidden.
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    NavigationLink {
+                        List { CityFavoriteNodesSection() }
+                            .navigationTitle(Text("playerGap.cityFavorites.title"))
+                            .cyPushedChrome()
+                    } label: {
+                        Label("playerGap.cityFavorites.title", systemImage: "star")
+                    }
+                    .accessibilityIdentifier("city.home.favorites")
+                    NavigationLink {
+                        SessionCityPlayerView().cyPushedChrome()
+                    } label: {
+                        Label("city.read.title", systemImage: "building.2")
+                    }
+                    .accessibilityIdentifier("city.home.tools")
+                } label: {
+                    Label("homeFeed.more", systemImage: "ellipsis.circle")
+                        .labelStyle(.iconOnly)
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityIdentifier("city.home.more")
+            }
+        }
     }
 }
 
