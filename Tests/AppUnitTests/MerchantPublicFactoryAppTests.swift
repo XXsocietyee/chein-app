@@ -250,6 +250,8 @@ import XCTest
                 return XCTFail("Expected authoritative rejected fixture application")
             }
             model.reapply(application)
+            // Owner 2026-11-16: the identity step is required and the application read does not return it.
+            model.draft.realName = "示例商户"; model.draft.idCardNumber = MerchantIdentityNumber("11010519491231002X")
             model.prepare()
             XCTAssertNotNil(model.confirmation)
             XCTAssertEqual(fixture.submissionCount, 0)
