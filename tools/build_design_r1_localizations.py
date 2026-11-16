@@ -80,6 +80,19 @@ MERCHANT = {
     'ledger.view.label': ('Ledger view', '账本视图'),
     'ledger.view.redemptions': ('Redemptions', '核销'),
     'ledger.view.settlements': ('Settlements', '结算'),
+    # MR-07 signing and MR-38 withdrawal hand-offs (owner Q-A: keep them, name them, show the next step)
+    'signing.title': ('Signing happens in WeChat', '签约在微信中完成'),
+    'signing.line': ('The payment provider\'s signing page only opens inside WeChat.', '收款服务商的签约页面只能在微信里打开。'),
+    'signing.step1': ('Copy the signing link below', '复制下方的签约链接'),
+    'signing.step2': ('Open WeChat, paste it into any chat and tap it', '打开微信，把链接发到任意聊天并点开'),
+    'signing.step3': ('Follow the page to finish signing', '按页面提示完成签约'),
+    'signing.after': ('When signing is done, pull down here to see the new status.', '签约完成后，回到这里下拉刷新即可看到新状态。'),
+    'signing.openWeChat': ('Open WeChat', '打开微信'),
+    'withdraw.title': ('Withdrawals are handled by platform support', '提现由平台客服办理'),
+    'withdraw.line': ('The app does not pay out by itself. Support checks the amount and pays it to your verified account.', 'App 不会直接打款。客服核对金额后，打到你已核验的收款账户。'),
+    'withdraw.step1': ('Tap the button below to contact support', '点下方按钮联系客服'),
+    'withdraw.step2': ('Send your shop name and the amount to withdraw', '发送店铺名称和要提现的金额'),
+    'withdraw.after': ('Support replies within 1 working day.', '客服 1 个工作日内回复。'),
     # Money stays TEST-only until the owner says "money on"
     'money.testOnly': ('Test build only', '仅测试环境'),
 }

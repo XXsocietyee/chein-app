@@ -394,3 +394,37 @@ struct MerchantR1CumulativeRow: View {
         .accessibilityIdentifier("merchant.ledger.cumulative")
     }
 }
+
+/// MR-07: 签约 opens in WeChat. Say so, number the steps, offer 打开微信 once the link is copied.
+struct MerchantR1SigningHandOff: View {
+    let copied: Bool
+    @Environment(\.locale) private var locale
+    @Environment(\.openURL) private var openURL
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            MerchantR1HandOffCard(title: merchantR1("signing.title", locale),
+                                  line: merchantR1("signing.line", locale),
+                                  steps: [merchantR1("signing.step1", locale), merchantR1("signing.step2", locale), merchantR1("signing.step3", locale)],
+                                  expectation: merchantR1("signing.after", locale))
+            if copied, let wechat = URL(string: "weixin://") {
+                Button { openURL(wechat) } label: { Text(verbatim: merchantR1("signing.openWeChat", locale)) }
+                    .buttonStyle(MerchantR1ButtonStyle(kind: .secondary))
+                    .accessibilityIdentifier("merchant.r1.signing.openWeChat")
+            }
+        }
+    }
+}
+
+/// MR-38 / MC-29: withdrawal is handled by platform support — named, with the steps and reply time.
+struct MerchantR1WithdrawalHandOff: View {
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        MerchantR1HandOffCard(title: merchantR1("withdraw.title", locale),
+                              line: merchantR1("withdraw.line", locale),
+                              steps: [merchantR1("withdraw.step1", locale), merchantR1("withdraw.step2", locale)],
+                              expectation: merchantR1("withdraw.after", locale))
+            .accessibilityIdentifier("merchant.r1.withdraw.handOff")
+    }
+}

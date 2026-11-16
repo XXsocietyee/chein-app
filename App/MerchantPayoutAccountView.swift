@@ -78,6 +78,12 @@ import UIKit
             }
         }
         if let link = account.signURL, let key = account.copyKey {
+            // HANDOFF-R1 MR-07 (owner Q-A): signing stays a WeChat hand-off — named, with the next steps.
+            Section {
+                MerchantR1SigningHandOff(copied: copied)
+                    .listRowInsets(EdgeInsets())
+            }
+            .listRowBackground(Color.clear)
             Section {
                 CYPillButton(LocalizedStringKey(key), style: .primary, tableName: "PayoutReceiver") {
                     LocalPasteboard.copy(link.absoluteString)
