@@ -742,8 +742,9 @@ import SwiftUI
     var body: some View {
         let context = model.interactionContext
         nodeWithConfirms(context: context)
-            .overlay {
-                if showHelpPanel, let help, helpEnabled {
+            // Design hand-off r1 PL-15: the hint ladder is a resizable sheet over the play screen.
+            .sheet(isPresented: Binding(get: { showHelpPanel && helpEnabled }, set: { if !$0 { showHelpPanel = false } })) {
+                if let help {
                     PlayHelpLadderPanel(model: help, teamPool: teamPool, approvedArtworkHosts: approvedArtworkHosts, close: { showHelpPanel = false })
                 }
             }

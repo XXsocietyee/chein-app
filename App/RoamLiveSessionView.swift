@@ -271,7 +271,8 @@ import QuestifyCore
             Label("roam.live.consentCard.title", systemImage: "location.fill").font(.subheadline.weight(.semibold))
             Text("roam.live.consentCard.body").font(.footnote).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            CYPillButton("roam.live.consentCard.accept", fullWidth: true) {
+            // PL-20 / PL-25 (HIG Privacy): one button that leads to the system location prompt.
+            CYPillButton("primer.location.allow", fullWidth: true, tableName: "DesignR1") {
                 purposeAccepted = true; storedPurposeAccepted = true
                 if !owner.busy, owner.record == nil { beginStart() }
             }
@@ -344,6 +345,8 @@ import QuestifyCore
     }
     var body: some View {
         sessionObservers
+        // Design hand-off r1 PL-20: no tab bar during a session; the map and the session controls own the screen.
+        .cyHideTabBar()
         .task(id: owner.phase) { await pulseWhileActive() }
         .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0))
         .cyCelebrations(celebrations)
@@ -475,9 +478,11 @@ import QuestifyCore
                         // Committed, waiting for the controller: the pill has already shrunk into the puck.
                         Color.clear.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                         CYGoPuck().matchedGeometryEffect(id: "go", in: goNamespace)
-                    } else {
+                    } else if purposeAccepted {
+                        // PL-20 / PL-25: hold-to-start appears only once location use is allowed. Before that the
+                        // consent card's single 允许使用位置 pill is the only primary on the screen.
                         Spacer(minLength: 0)
-                        CYGoHoldPill(enabled: purposeAccepted && !owner.busy) { commitGo() }
+                        CYGoHoldPill(enabled: !owner.busy) { commitGo() }
                             .matchedGeometryEffect(id: "go", in: goNamespace)
                         Spacer(minLength: 0)
                     }
