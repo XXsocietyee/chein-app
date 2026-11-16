@@ -34,8 +34,8 @@ extension EnvironmentValues {
         Form {
             Section {
                 Text("verification.boundary").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("verification.screen")
-                if let key = flow.issueKey { Text(LocalizedStringKey(key)).accessibilityIdentifier("verification.issue") }
-                if let detail = flow.issueDetail { Text(verbatim: detail).accessibilityIdentifier("verification.issue.place") }
+                if let key = flow.issueKey, outcome?.isFailure != true { Text(LocalizedStringKey(key)).accessibilityIdentifier("verification.issue") }
+                if let detail = flow.issueDetail, outcome?.isFailure != true { Text(verbatim: detail).accessibilityIdentifier("verification.issue.place") }
                 if flow.phase == .loading { ProgressView("verification.loading") }
                 if let access = flow.access, flow.current {
                     LabeledContent("verification.merchant") { Text(verbatim: access.name ?? String(access.merchantID)) }
@@ -51,6 +51,8 @@ extension EnvironmentValues {
                     }
                 } else if flow.phase == .submitting {
                     ProgressView("verification.submitting").accessibilityIdentifier("verification.submitting")
+                } else if case .failed(let key)? = outcome {
+                    failureSection(key)
                 } else if let result = flow.result {
                     resultSection(result)
                 }
@@ -112,14 +114,28 @@ extension EnvironmentValues {
         .onDisappear { raw = ""; camera = false; flow.deactivate() }
     }
     private func capture() { let captured = raw; raw = ""; Task { await flow.prepare(raw: captured) } }
+    private var outcome: NativeVerificationOutcome? {
+        NativeVerificationOutcome.make(phase: flow.phase, outcome: flow.result?.outcome, issueKey: flow.issueKey)
+    }
+    /// F-18: a confirmed redemption that the server refused, or that failed on the way, ends on a result card too.
+    @ViewBuilder private func failureSection(_ key: String) -> some View {
+        Section {
+            Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle")
+                .accessibilityIdentifier(NativeVerificationOutcome.failed(key).identifier)
+            if let detail = flow.issueDetail { Text(verbatim: detail).font(.footnote).accessibilityIdentifier("verification.issue.place") }
+        } header: { Text("verification.result").accessibilityIdentifier("verification.result") }
+    }
     @ViewBuilder private func resultSection(_ result: MerchantRedemptionResult) -> some View {
         Section {
-            if let message = result.message { Text(verbatim: message) }
+            if let message = result.message { Text(verbatim: message).accessibilityIdentifier("verification.result.message") }
             switch result.outcome {
             case .redeemed:
                 Label("verification.reportedRedeemed", systemImage: "checkmark.circle")
+                    .accessibilityIdentifier(NativeVerificationOutcome.redeemed.identifier)
                 Text("verification.receiptBoundary").font(.footnote)
-            case .failed: Label("verification.rejected", systemImage: "exclamationmark.circle")
+            case .failed:
+                Label("verification.rejected", systemImage: "exclamationmark.circle")
+                    .accessibilityIdentifier(NativeVerificationOutcome.rejected.identifier)
             case .needsChoice:
                 Text("verification.choose")
                 ForEach(result.choices) { choice in
@@ -133,6 +149,45 @@ extension EnvironmentValues {
         } header: { Text("verification.result").accessibilityIdentifier("verification.result") }
     }
 }
+/// F-18: the confirmed end state of a redemption, each with a stable accessibility id so a run can assert it.
+/// `nil` while nothing has been confirmed (capturing, reviewing, submitting, or awaiting a records readback).
+enum NativeVerificationOutcome: Equatable {
+    case redeemed, rejected, choose
+    /// The confirm failed before or without a server verdict (refused code, network, session); `key` is the issue copy.
+    case failed(String)
+
+    static func make(phase: NativeVerificationWorkflow.Phase, outcome: MerchantRedemptionResult.Outcome?, issueKey: String?) -> Self? {
+        switch phase {
+        case .result:
+            if let issueKey { return .failed(issueKey) }
+            switch outcome {
+            case .redeemed?: return .redeemed
+            case .failed?: return .rejected
+            case .needsChoice?: return .choose
+            case nil: return .failed("verification.failed")
+            }
+        case .choosing:
+            return outcome == .needsChoice ? .choose : nil
+        default:
+            return nil
+        }
+    }
+
+    var identifier: String {
+        switch self {
+        case .redeemed: return "verification.result.redeemed"
+        case .rejected: return "verification.result.rejected"
+        case .choose: return "verification.result.choose"
+        case .failed: return "verification.result.failed"
+        }
+    }
+
+    var isFailure: Bool {
+        if case .failed = self { return true }
+        return false
+    }
+}
+
 @MainActor private struct NativeVerificationReviewView: View {
     let review: NativeVerificationReview
     let canConfirm: Bool

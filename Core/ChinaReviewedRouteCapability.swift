@@ -43,6 +43,8 @@ public enum ChinaReviewedRouteCapability {
         // A forced-off money route opens only while its own Release switch is on (DEBUG/TEST off the production host).
         if forcedOff(key) != nil, !ReleaseMoneyWriteSwitch.opens(key) { return false }
         if wiredPatterns.contains(key) { return true }
+        // F-14: TEST-backend-only topic publish routes, admitted only in a DEBUG/TEST E2E run (constant false in Release).
+        if TestHostOnlyRouteAdmission.admits(key) { return true }
         if let kind = moneyAreaOwnerGrant[key], ReleaseMoneyWriteSwitch.isEnabled(kind) { return true }
         if playerJourneyOwnerGrant.contains(key) { return true }
         // Owner approval of the non-money player writes: the CITY board (gaps A). Member game

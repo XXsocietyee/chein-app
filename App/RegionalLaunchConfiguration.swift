@@ -12,6 +12,8 @@ enum RegionalLaunchConfiguration {
         #if DEBUG
         if let e2e = E2ETestHostOverride.selected() {
             ReviewedAreaSwitch.installReleaseMoneyDerivation(host: e2e.reviewed?.regional.apiConfiguration?.baseURL.host)
+            // F-14: requests are rewritten to TEST, which serves the topic edit-request and publish-status routes.
+            TestHostOnlyRouteAdmission.testHostActive = true
             return e2e
         }
         #endif

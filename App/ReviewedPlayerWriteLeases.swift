@@ -580,6 +580,7 @@ enum ReviewedPlayerReadRoute {
     private var roamPassportToolsByContext: [String: RoamPassportToolsReadAccess] = [:]
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
+    private var growthNormalReadByContext: [String: GrowthNormalReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
     private var merchantOperationsWriteByContext: [String: OperationEndpointApproval] = [:]
     private var nearbyTeamWriteByContext: [String: OperationEndpointApproval] = [:]
@@ -1195,6 +1196,19 @@ enum ReviewedPlayerReadRoute {
         teamReadByContext[key]?.revoke()
         guard let approval = try? TeamReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         teamReadByContext[key] = approval
+        return approval
+    }
+
+    /// F-12: the Growth Center's own three reads (api/growth/center, api/play/growth, api/play/my-completed) are
+    /// `.liveInProduction` non-money reads. They were never wired, so the reader always answered `growth.notConfigured`.
+    /// Issued with the reviewed production gate bundle like the other own-account reads; one hour, then re-issued.
+    func growthNormalRead(_ context: RuntimeDependencyContext) -> GrowthNormalReadApproval? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = growthNormalReadByContext[key], existing.matches(context) { return existing }
+        growthNormalReadByContext[key]?.revoke()
+        guard let approval = try? GrowthNormalReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        growthNormalReadByContext[key] = approval
         return approval
     }
 

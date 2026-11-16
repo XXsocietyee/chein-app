@@ -15,6 +15,14 @@ import UIKit
         List {
             // Owner 2026-11-14: the account state is a status read and always shows.
             content
+            if state.needsSeparateReload {
+                // F-17: a loaded account (or none) also offers 重新加载, not only the failure card.
+                Section {
+                    CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
+                        .accessibilityIdentifier("payoutAccount.reload")
+                }
+                .listRowBackground(Color.clear)
+            }
             ClubDirectLedgerSection(scope: .merchant(topicID: nil))
         }
         .scrollContentBackground(.hidden)
@@ -109,6 +117,17 @@ import UIKit
             } else {
                 state = .failed(error as? PayoutReceiverIssue ?? .network)
             }
+        }
+    }
+}
+
+extension PayoutPageState {
+    /// F-17: every settled state offers 重新加载 (`payoutAccount.reload`). A failure carries it inside its own card; a loaded
+    /// account or an empty one gets a separate row. Only the loading skeleton has none.
+    var needsSeparateReload: Bool {
+        switch self {
+        case .ready, .empty: return true
+        case .loading, .failed: return false
         }
     }
 }

@@ -111,9 +111,22 @@ extension WalletScreen where Value == WithdrawalBalance {
 }
 /// Additive destination only. Host must keep existing entry gates and reset .id(reader.scope)
 /// whenever deployment/account/epoch changes; no new root navigation entry is installed here.
-/// Withdraw / payout entries are shown only while the payout capability is on. It is off until the backend
-/// grants it, so players never meet a Withdraw button that leads nowhere. Unknown amounts still render as an em dash.
-enum WalletPayoutCapability { static let isOn = false }
+/// Withdraw / payout entries are shown only while the payout capability is on. Owner rule (F-13): money stays
+/// TEST-only until the owner says "money on", so the entry opens only in a DEBUG/TEST build off the production
+/// host, and Release compiles a constant false. Unknown amounts still render as an em dash.
+enum WalletPayoutCapability {
+    /// Pure decision: DEBUG/TEST build with a non-production API host opens; production host, no host, or a
+    /// Release build stays closed.
+    static func decision(testOrDebug: Bool, apiHost: String?) -> Bool {
+        ReviewedAreaSwitch.payout(apiHost: apiHost, testOrDebug: testOrDebug)
+    }
+    #if DEBUG || TEST
+    /// Follows the Core withdrawal switch, which the composition derives from its API host (`installReleaseMoneyDerivation`).
+    static var isOn: Bool { ReleaseMoneyWriteSwitch.withdrawalEnabled }
+    #else
+    static let isOn = false
+    #endif
+}
 
 @MainActor struct WalletCommerceHomeView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -396,7 +409,7 @@ enum WalletPayoutCapability { static let isOn = false }
                 } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin, unavailable: funds.unavailable) { Task { await load() } } }
             }
             Section {
-                if WalletPayoutCapability.isOn { NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) } }
+                if WalletPayoutCapability.isOn { NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }.accessibilityIdentifier("wallet.assets.withdraw") }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
                     .accessibilityIdentifier("wallet.assets.balanceLedger")
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
