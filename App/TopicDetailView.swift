@@ -275,10 +275,8 @@ struct TopicDetailView: View {
                         Text("topic.source.betaNote").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                 }
-                // Source cover `cv-btn`: 查看详情与报名 moves from the cover to the details part of the page.
-                CYPillButton("u9cde.topic.coverDetails", style: .secondary) {
-                    withAnimation { proxy.scrollTo(TopicXcxTab.details.anchor, anchor: .top) }
-                }.accessibilityIdentifier("topic.cover.details")
+                // Design hand-off r1 PL-23: one hero, then the title and stats. The cover's 查看详情与报名 scroll button is
+                // gone: the pinned 详情 / 故事 / 路线 tabs and the sticky bar (price left, primary right) carry those paths.
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
                 TopicXcxTabs(proxy: proxy, productType: value.productType)
             }

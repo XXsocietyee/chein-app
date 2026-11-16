@@ -199,7 +199,9 @@ struct RegistrationSheetView: View {
             },
             onClose: { showingTicketSheet = false }
         )
-        .cyDomainSheet(detents: [.half, .full])
+        // Design hand-off r1 §3: 选择票种 is a `fit` sheet (it commits on tap, so no 完成 / 选这张 button).
+        .cyFitSheetDetent()
+        .roleThemedPresentation()
     }
     private var participantSheetContent: some View {
         CYOptionSheet(

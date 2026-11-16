@@ -66,12 +66,8 @@ import UIKit
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    // Template 1 order: featured hero, then city context, then rails, then the tabbed feed.
-                    if model.bannerFailed || !model.banners.isEmpty {
-                        bannerSection
-                            .padding(.horizontal, -CYSpacing.pageHorizontal)
-                            .cySectionReveal(order: 0, gate: reveal)
-                    }
+                    // Design hand-off r1 PL-22: what the player came for first — header and city context, 编辑精选,
+                    // 附近活动 — then the promo swiper as one band, then 即将上线 and the tabbed feed.
                     if hasHeroHeader {
                         HomeHeroHeaderSectionView(
                             nickname: viewerNickname,
@@ -101,6 +97,12 @@ import UIKit
                     // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
                     feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
                     feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
+                    if model.bannerFailed || !model.banners.isEmpty {
+                        bannerSection
+                            .padding(.horizontal, -CYSpacing.pageHorizontal)
+                            .cySectionReveal(order: 8, gate: reveal)
+                            .pageTemplateReadingOrder(45)
+                    }
                     feedSection(.upcoming, order: 4).pageTemplateReadingOrder(40)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         // Source pages/index feed tabs are 主题 / 活动. The indicator uses textPrimary.
