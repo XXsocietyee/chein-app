@@ -191,9 +191,7 @@ struct MerchantR1OutcomeUnknownCard: View {
                 if let diagnostics {
                     Menu {
                         Button {
-                            #if canImport(UIKit)
-                            UIPasteboard.general.string = diagnostics
-                            #endif
+                            LocalPasteboard.copy(diagnostics)
                         } label: {
                             Label { Text(verbatim: merchantR1("outcome.copyDiagnostics", locale)) } icon: { Image(systemName: "doc.on.doc") }
                         }
