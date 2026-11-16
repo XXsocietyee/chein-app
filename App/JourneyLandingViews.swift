@@ -619,11 +619,19 @@ struct JourneySeatsView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: CYSpacing.lg) {
                     ForEach(content.circles) { circle in
-                        Button { if circle.tappable { openInvite(content) } } label: { seatCircle(circle) }
-                            .buttonStyle(.plain)
-                            .disabled(!circle.tappable)
-                            .accessibilityLabel(Text("mp.seats.seatLabel \(circle.no)") + Text(verbatim: " ") + Text(circle.kind.label))
-                            .accessibilityIdentifier("journeySeats.seat.\(circle.no)")
+                        // verify-r1 2.4: a seat you cannot tap is not a disabled button. A disabled plain button dims
+                        // its whole label, which is what made the 房主 badge and the 我 seat unreadable.
+                        Group {
+                            if circle.tappable {
+                                Button { openInvite(content) } label: { seatCircle(circle) }
+                                    .buttonStyle(.plain)
+                            } else {
+                                seatCircle(circle)
+                                    .accessibilityElement(children: .ignore)
+                            }
+                        }
+                        .accessibilityLabel(Text("mp.seats.seatLabel \(circle.no)") + Text(verbatim: " ") + Text(circle.kind.label))
+                        .accessibilityIdentifier("journeySeats.seat.\(circle.no)")
                     }
                 }
                 .padding(.vertical, CYSpacing.xs)
@@ -654,9 +662,9 @@ struct JourneySeatsView: View {
                     Label { Text("mp.seats.host") } icon: { Image(systemName: "crown.fill") }
                         .labelStyle(.titleAndIcon)
                         .font(CYTypography.micro.weight(.semibold))
-                        .foregroundStyle(CYColor.textInverse)
+                        .foregroundStyle(CYDomainPalette(.player).actionPrimaryFg)
                         .padding(.horizontal, CYSpacing.xs).padding(.vertical, 2)
-                        .background(CYColor.textPrimary, in: Capsule()).offset(y: CYSpacing.sm)
+                        .background(CYDomainPalette(.player).actionPrimaryBg, in: Capsule()).offset(y: CYSpacing.sm)
                 }
             }
             // polish-d-r1: every seat reserves the 房主 badge's overhang, so the badge never sits on the label and

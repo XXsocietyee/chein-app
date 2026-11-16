@@ -194,7 +194,8 @@ struct MerchantR1Today: Equatable {
                         pending: pendingOrders.map { "\(max(0, $0))" } ?? "—",
                         weekIncome: weekTotal(revenue7d).map { MerchantMoney.display(NSDecimalNumber(decimal: $0).stringValue) } ?? "—",
                         weekAverage: weekTotal(revenue7d).map { total in
-                            var average = total / Decimal(max(1, revenue7d.count))
+                            // 近 7 天日均 is over the 7-day window; a day the server leaves out had no revenue.
+                            var average = total / Decimal(7)
                             var rounded = Decimal()
                             NSDecimalRound(&rounded, &average, 2, .plain)
                             return MerchantMoney.display(NSDecimalNumber(decimal: rounded).stringValue)
@@ -290,8 +291,9 @@ struct MerchantR1TodayCard: View {
 
     private func tile(_ key: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            // Secondary to the 待处理 hero: one step down from the data type.
             Text(verbatim: value)
-                .font(CYTypography.dataXL)
+                .font(CYTypography.sectionTitle.monospacedDigit())
                 .foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText())
                 .lineLimit(1)

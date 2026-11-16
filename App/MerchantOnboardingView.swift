@@ -264,7 +264,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             case MerchantOnboardingSteps.identity: MerchantOnboardingIdentitySection(model: model)
             default: reviewSection
             }
-            if let error = model.errorKey {
+            // The identity step shows its field errors under the fields; the page-level line would repeat them.
+            if let error = model.errorKey, !(model.step == MerchantOnboardingSteps.identity && error.hasPrefix("merchant.onboarding.identity.")) {
                 Section { Text(LocalizedStringKey(error)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("merchant.onboarding.error") }
             }
             if model.isBusy || model.step > 1 {
@@ -500,15 +501,18 @@ struct MerchantOnboardingIdentitySection: View {
     @State private var touchedID = false
     @Environment(\.cyPalette) private var palette
 
+    // Each field reports its own problem (the draft's identityBlocker() stops at the first one).
     private var nameError: String? {
         guard touchedName || isIdentityError else { return nil }
-        let key = model.draft.identityBlocker()
-        return key?.contains("realName") == true ? key : nil
+        var probe = model.draft
+        probe.idCardNumber = MerchantIdentityNumber("11010519491231002X")
+        return probe.identityBlocker()
     }
     private var idError: String? {
         guard touchedID || isIdentityError else { return nil }
-        let key = model.draft.identityBlocker()
-        return key?.contains("idCard") == true ? key : nil
+        var probe = model.draft
+        probe.realName = "姓名"
+        return probe.identityBlocker()
     }
     /// The wizard's 继续 / 提交 tapped with a problem here: show both fields' errors at once.
     private var isIdentityError: Bool { model.errorKey?.hasPrefix("merchant.onboarding.identity.") == true && model.errorKey != "merchant.onboarding.identity.required" }
@@ -526,18 +530,11 @@ struct MerchantOnboardingIdentitySection: View {
                 fieldError(nameError, id: "realName")
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                // While masked, the raw field is not in the view tree at all, so neither VoiceOver nor UI tooling can
+                // read the number; tapping the masked row brings the field back and focuses it.
                 ZStack(alignment: .leading) {
-                    TextField("merchant.onboarding.identity.idCard", text: idBinding)
-                        .textContentType(nil)
-                        .keyboardType(.asciiCapable)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .font(.body.monospacedDigit())
-                        .focused($focus, equals: .idCard)
-                        .opacity(showsMasked ? 0 : 1)
-                        .accessibilityIdentifier("merchant.onboarding.identity.idCard")
                     if showsMasked {
-                        Button { focus = .idCard } label: {
+                        Button { editingID = true } label: {
                             HStack {
                                 Text(verbatim: model.draft.idCardNumber.masked)
                                     .font(.body.monospacedDigit())
@@ -553,6 +550,16 @@ struct MerchantOnboardingIdentitySection: View {
                         .accessibilityValue(Text("merchant.onboarding.identity.idCardEntered"))
                         .accessibilityHint(Text("merchant.onboarding.identity.idCardEditHint"))
                         .accessibilityIdentifier("merchant.onboarding.identity.idCardMasked")
+                    } else {
+                        TextField("merchant.onboarding.identity.idCard", text: idBinding)
+                            .textContentType(nil)
+                            .keyboardType(.asciiCapable)
+                            .textInputAutocapitalization(.characters)
+                            .autocorrectionDisabled()
+                            .font(.body.monospacedDigit())
+                            .focused($focus, equals: .idCard)
+                            .onAppear { if editingID { focus = .idCard } }
+                            .accessibilityIdentifier("merchant.onboarding.identity.idCard")
                     }
                 }
                 .privacySensitive()
@@ -568,11 +575,12 @@ struct MerchantOnboardingIdentitySection: View {
         }
         .onChange(of: focus) { old, _ in
             if old == .name { touchedName = true }
-            if old == .idCard { touchedID = true }
+            if old == .idCard { touchedID = true; editingID = false }
         }
     }
 
-    private var showsMasked: Bool { focus != .idCard && !model.draft.idCardNumber.normalized.isEmpty }
+    @State private var editingID = false
+    private var showsMasked: Bool { !editingID && focus != .idCard && !model.draft.idCardNumber.normalized.isEmpty }
 
     /// Digits and X only, at most 18; lower-case x becomes X.
     private var idBinding: Binding<String> {

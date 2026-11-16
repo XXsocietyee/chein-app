@@ -109,6 +109,8 @@ final class VerifyR2AppFixTests: XCTestCase {
         let today = MerchantR1Today.make(revenue7d: points, pendingOrders: 3)
         XCTAssertEqual(today.weekIncome, "¥70.00")
         XCTAssertEqual(today.weekAverage, "¥10.00")
+        let sparse = MerchantR1Today.make(revenue7d: [try point("2026-11-15", "70")], pendingOrders: 0)
+        XCTAssertEqual(sparse.weekAverage, "¥10.00", "averaged over the 7-day window, not over the days returned")
         XCTAssertEqual(today.pending, "3")
     }
 

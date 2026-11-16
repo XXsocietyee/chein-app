@@ -902,6 +902,7 @@ private struct ClubOperationsProfileForm: View {
     var submitCreate: () -> Void = {}
     var createNameTaken: String? = nil
     @Environment(\.locale) private var formLocale
+    @Environment(\.cyPalette) private var formPalette
     @QuestifyReduceMotion private var reduceMotion
     @State private var createStep = 0
     @State private var createChecking = false
@@ -970,7 +971,7 @@ private struct ClubOperationsProfileForm: View {
                     HStack(spacing: CYSpacing.xs) {
                         ForEach(1...4, id: \.self) { index in
                             Capsule(style: .continuous)
-                                .fill(index <= createStep ? CYColor.textPrimary : CYColor.borderSubtle)
+                                .fill(index <= createStep ? formPalette.textPrimary : formPalette.borderSubtle)
                                 .frame(height: 4)
                         }
                     }
@@ -978,12 +979,12 @@ private struct ClubOperationsProfileForm: View {
                     .accessibilityHidden(true)
                     Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale))
                         .font(.footnote.weight(.semibold))
-                        .foregroundStyle(CYColor.textSecondary)
+                        .foregroundStyle(formPalette.textSecondary)
                         .accessibilityIdentifier("club.player.create.progress")
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                         Text(verbatim: ClubPlayerCopy.createTitle(step: createStep, locale: formLocale))
                             .font(.title.weight(.bold))
-                            .foregroundStyle(CYColor.textPrimary)
+                            .foregroundStyle(formPalette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityAddTraits(.isHeader)
@@ -991,7 +992,7 @@ private struct ClubOperationsProfileForm: View {
                         if createStep == 2 {
                             Text(verbatim: ClubPlayerCopy.directionCount(draft.activityPrefs.count, locale: formLocale))
                                 .font(CYTypography.meta.monospacedDigit())
-                                .foregroundStyle(CYColor.textSecondary)
+                                .foregroundStyle(formPalette.textSecondary)
                                 .contentTransition(.numericText())
                                 .accessibilityIdentifier("club.player.create.directionCount")
                         }
