@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
 
 // MC-25 · Club/Roster Card: cover thumbnail, title, date, `5 / 50` with a thin capacity bar.
 // Expanded: one three-number row (实收 · 已退 · 净额) at body size, then attendees with status tags.
@@ -20,15 +23,36 @@ struct ClubRosterCardModel: Equatable {
     let refunded: String?
     let net: String?
     let attendees: [ClubRosterAttendee]
+    /// False where money is not part of the roster (the members screen): the 实收 · 已退 · 净额 row is left out,
+    /// rather than shown as three unknowns.
+    var showsMoney = true
 
+    /// `5 / 50`; with no capacity read, just the count (no bar).
     var countText: String {
-        "\(registered.map(String.init) ?? "—") / \(capacity.map(String.init) ?? "—")"
+        guard capacity != nil else { return registered.map(String.init) ?? "—" }
+        return "\(registered.map(String.init) ?? "—") / \(capacity.map(String.init) ?? "—")"
     }
+
+    /// The card expands only when it has money or attendees to show.
+    var isExpandable: Bool { showsMoney || !attendees.isEmpty }
 
     /// 0…1 fill of the capacity bar; nil when either side is unknown.
     var fill: Double? {
         guard let registered, let capacity, capacity > 0 else { return nil }
         return min(1, max(0, Double(registered) / Double(capacity)))
+    }
+}
+
+extension ClubRosterCardModel {
+    /// polish-d-r1 (MC-25 on the members screen): club name, role breakdown and member count; no money, no capacity read.
+    static func members(_ directory: ClubMemberDirectory, locale: Locale) -> ClubRosterCardModel {
+        let owners = directory.members.filter(\.isOwner).count
+        let admins = directory.members.filter { !$0.isOwner && $0.isAdmin }.count
+        let others = directory.members.count - owners - admins
+        return ClubRosterCardModel(title: directory.club.name,
+                                   dateText: String(format: clubR1("roster.members.roles", locale), owners, admins, others),
+                                   registered: directory.members.count, capacity: nil,
+                                   received: nil, refunded: nil, net: nil, attendees: [], showsMoney: false)
     }
 }
 
@@ -59,29 +83,35 @@ struct ClubRosterCard: View {
                             .font(CYTypography.meta)
                             .foregroundStyle(palette.textSecondary)
                         HStack(spacing: CYSpacing.sm) {
-                            capacityBar
+                            if model.fill != nil { capacityBar }
                             Text(verbatim: model.countText)
                                 .font(CYTypography.meta.monospacedDigit())
                                 .foregroundStyle(palette.textSecondary)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "chevron.down")
-                        .font(CYTypography.label.weight(.semibold))
-                        .foregroundStyle(palette.textTertiary)
-                        .rotationEffect(.degrees(expanded ? 180 : 0))
-                        .accessibilityHidden(true)
+                    if model.isExpandable {
+                        Image(systemName: "chevron.down")
+                            .font(CYTypography.label.weight(.semibold))
+                            .foregroundStyle(palette.textTertiary)
+                            .rotationEffect(.degrees(expanded ? 180 : 0))
+                            .accessibilityHidden(true)
+                    }
                 }
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            // Not `.disabled`: a summary-only card keeps full-strength text; it just does not toggle.
+            .allowsHitTesting(model.isExpandable)
             .accessibilityValue(Text(verbatim: model.countText))
-            .accessibilityHint(Text(verbatim: clubR1(expanded ? "roster.collapse" : "roster.expand", locale)))
+            .accessibilityHint(model.isExpandable ? Text(verbatim: clubR1(expanded ? "roster.collapse" : "roster.expand", locale)) : Text(verbatim: ""))
             if expanded {
-                HStack(spacing: CYSpacing.md) {
-                    money("roster.received", model.received)
-                    money("roster.refunded", model.refunded)
-                    money("roster.net", model.net)
+                if model.showsMoney {
+                    HStack(spacing: CYSpacing.md) {
+                        money("roster.received", model.received)
+                        money("roster.refunded", model.refunded)
+                        money("roster.net", model.net)
+                    }
                 }
                 ForEach(model.attendees) { attendee in
                     HStack {

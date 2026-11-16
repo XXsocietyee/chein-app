@@ -84,4 +84,27 @@ final class DesignR1ClubRosterCardTests: XCTestCase {
         XCTAssertNil(model(5, nil).fill)
         XCTAssertNil(model(5, 0).fill)
     }
+
+    /// polish-d-r1: with no capacity read the card shows only the count, and it expands only for money or attendees.
+    func testCountWithoutCapacityAndExpandability() {
+        XCTAssertEqual(model(5, nil).countText, "5")
+        XCTAssertTrue(model(5, 50).isExpandable)
+        let members = ClubRosterCardModel(title: "梧桐摄影漫步社", dateText: nil, registered: 4, capacity: nil,
+                                          received: nil, refunded: nil, net: nil, attendees: [], showsMoney: false)
+        XCTAssertFalse(members.isExpandable)
+        XCTAssertEqual(members.countText, "4")
+    }
+
+    func testMembersScreenRosterCountsRoles() throws {
+        let club = try JSONDecoder().decode(ClubRecord.self, from: Data(#"{"id":7003,"name":"梧桐摄影漫步社","isOwner":true,"isJoined":true,"memberCount":4}"#.utf8))
+        let rows = #"[{"memberId":9003,"role":2,"isOwner":true},{"memberId":9004,"role":1},{"memberId":9005,"role":0},{"memberId":9009,"role":0}]"#
+        let members = try JSONDecoder().decode([ClubMember].self, from: Data(rows.utf8))
+        let card = ClubRosterCardModel.members(ClubMemberDirectory(club: club, members: members), locale: Locale(identifier: "zh-Hans"))
+        XCTAssertEqual(card.title, "梧桐摄影漫步社")
+        XCTAssertEqual(card.registered, 4)
+        XCTAssertNil(card.capacity)
+        XCTAssertFalse(card.showsMoney)
+        // The hosted app may override the language; both catalogs carry the same counts.
+        XCTAssertTrue(["创建者 1 · 管理员 1 · 成员 2", "Owner 1 · Admins 1 · Members 2"].contains(card.dateText ?? ""), card.dateText ?? "nil")
+    }
 }

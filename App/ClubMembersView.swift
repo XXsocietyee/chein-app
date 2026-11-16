@@ -76,6 +76,14 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
                 } else {
+                    // MC-25 roster card (polish-d-r1): club, role breakdown and count above the member rows.
+                    Section {
+                        ClubRosterCard(model: .members(directory, locale: locale), coverSeed: "club-\(directory.club.id)")
+                            .accessibilityIdentifier("club.members.rosterCard")
+                            .listRowInsets(Self.rowInsets)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
+                    }
                     Section {
                         ForEach(Array(directory.members.enumerated()), id: \.offset) { _, member in
                             memberLine(member, directory: directory)
@@ -246,7 +254,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if member.isOwner { CYStatusChip("club.role.creator", tone: .info, systemImage: "star") }
+                if member.isOwner { CYStatusChip("club.role.creator", tone: .neutral, systemImage: "star") }
                 else if member.isAdmin { CYStatusChip("club.role.administrator", tone: .neutral, systemImage: "shield") }
                 if let level = member.displayedLevel {
                     Text("club.memberLevel \(level)")
