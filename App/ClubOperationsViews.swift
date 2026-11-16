@@ -1005,66 +1005,65 @@ private struct ClubOperationsProfileForm: View {
             }
     }
     @ViewBuilder private var createTypeSection: some View {
+        // HANDOFF-R1 MC-10: option cards with a check badge (Wizard/Option Card), not rows.
         Section {
             ForEach(Array(ClubOperationsCatalog.types.enumerated()), id: \.element) { index, value in
-                Button {
+                ClubR1OptionCard(title: Text(LocalizedStringKey("club.ops.value." + value)),
+                                 subtitle: clubR1("create.kind.\(index).sub", formLocale),
+                                 systemImage: ClubR1CreateSymbols.type(index),
+                                 isSelected: draft.clubType == value) {
                     draft.clubType = draft.clubType == value ? "" : value
                     createTypeError = nil
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey("club.ops.value." + value))
-                        Spacer()
-                        if draft.clubType == value {
-                            Image(systemName: "checkmark").foregroundStyle(CYColor.selection).accessibilityHidden(true)
-                        }
-                    }
                 }
-                .buttonStyle(.plain)
                 .accessibilityIdentifier(index == 0 ? "club.ops.clubType" : "club.player.create.type.\(index)")
-                .accessibilityAddTraits(draft.clubType == value ? .isSelected : [])
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
             }
             if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) {
                 Text(verbatim: draft.clubType)
             }
             if let createTypeError {
-                Text(verbatim: createTypeError).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                ClubR1FieldError(text: createTypeError)
                     .accessibilityIdentifier("club.player.create.typeError")
+                    .listRowBackground(Color.clear)
             }
         }
+        .sensoryFeedback(.selection, trigger: draft.clubType)
     }
     @ViewBuilder private var createDirectionSection: some View {
+        // HANDOFF-R1 MC-10: direction chips (multi, at most 3); a fourth tap only shows the limit note.
         Section {
-            ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
-                let selected = draft.activityPrefs.contains(value)
-                Button {
-                    if selected {
-                        draft.activityPrefs.removeAll { $0 == value }
-                        createDirectionNote = nil
-                    } else if draft.activityPrefs.count >= 3 {
-                        createDirectionNote = ClubPlayerCopy.directionLimit(formLocale)
-                    } else {
-                        draft.activityPrefs.append(value)
-                        createDirectionNote = nil
+            ClubR1WrapLayout(spacing: CYSpacing.s2_5) {
+                ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
+                    let selected = draft.activityPrefs.contains(value)
+                    ClubR1Chip(title: Text(LocalizedStringKey("club.ops.value." + value)), isSelected: selected) {
+                        if selected {
+                            draft.activityPrefs.removeAll { $0 == value }
+                            createDirectionNote = nil
+                        } else if draft.activityPrefs.count >= 3 {
+                            createDirectionNote = ClubPlayerCopy.directionLimit(formLocale)
+                        } else {
+                            draft.activityPrefs.append(value)
+                            createDirectionNote = nil
+                        }
                     }
-                } label: {
-                    HStack {
-                        Text(LocalizedStringKey("club.ops.value." + value))
-                        Spacer()
-                        if selected { Image(systemName: "checkmark").foregroundStyle(CYColor.selection).accessibilityHidden(true) }
-                    }
+                    .accessibilityIdentifier("club.player.create.direction.\(index)")
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("club.player.create.direction.\(index)")
-                .accessibilityAddTraits(selected ? .isSelected : [])
             }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
             Text(verbatim: ClubPlayerCopy.directionCount(draft.activityPrefs.count, locale: formLocale))
                 .font(CYTypography.meta).foregroundStyle(.secondary)
                 .accessibilityIdentifier("club.player.create.directionCount")
+                .listRowBackground(Color.clear)
             if let createDirectionNote {
-                Text(verbatim: createDirectionNote).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                ClubR1FieldError(text: createDirectionNote)
                     .accessibilityIdentifier("club.player.create.directionLimit")
+                    .listRowBackground(Color.clear)
             }
         }
+        .sensoryFeedback(.selection, trigger: draft.activityPrefs)
     }
     @ViewBuilder private var createProfileSection: some View {
         Section {
@@ -1078,13 +1077,15 @@ private struct ClubOperationsProfileForm: View {
     }
     @ViewBuilder private var createCitySection: some View {
         Section {
-            field("city", text: $draft.city)
-            field("keywords", text: $draft.keywords)
-            field("style", text: $draft.style)
+            // HANDOFF-R1 MC-10: 城市 is a row that opens the city picker sheet, not a typed field.
+            ClubCreateCityRow(city: $draft.city, currentCity: nil, hasError: createCityError != nil)
+                .accessibilityIdentifier("club.player.create.city")
             if let createCityError {
-                Text(verbatim: createCityError).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                ClubR1FieldError(text: createCityError)
                     .accessibilityIdentifier("club.player.create.cityError")
             }
+            field("keywords", text: $draft.keywords)
+            field("style", text: $draft.style)
         }
     }
     private var createAdvanceButton: some View {
@@ -1185,10 +1186,18 @@ private struct ClubOperationsProfileForm: View {
             }
         } else {
             Section("club.ops.signupSettings") {
-                Toggle("club.ops.prioritySignup", isOn: $draft.prioritySignupEnabled).accessibilityIdentifier("club.ops.prioritySignup")
+                // HANDOFF-R1 MC-13: one neutral switch tint (owner Q-B) and one explanation line per switch.
+                Toggle(isOn: $draft.prioritySignupEnabled) {
+                    ClubR1SwitchLabel(title: Text("club.ops.prioritySignup"), explanation: clubR1("switch.prioritySignup", formLocale))
+                }
+                .tint(CYColor.textSecondary)
+                .accessibilityIdentifier("club.ops.prioritySignup")
                 if joinPolicySupported {
-                    Toggle("club.ops.joinReview", isOn: Binding(get: { draft.joinPolicy == 1 }, set: { draft.joinPolicy = $0 ? 1 : 0 }))
-                        .accessibilityIdentifier("club.ops.joinPolicy")
+                    Toggle(isOn: Binding(get: { draft.joinPolicy == 1 }, set: { draft.joinPolicy = $0 ? 1 : 0 })) {
+                        ClubR1SwitchLabel(title: Text("club.ops.joinReview"), explanation: clubR1("switch.joinReview", formLocale))
+                    }
+                    .tint(CYColor.textSecondary)
+                    .accessibilityIdentifier("club.ops.joinPolicy")
                 }
                 LabeledContent {
                     field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)

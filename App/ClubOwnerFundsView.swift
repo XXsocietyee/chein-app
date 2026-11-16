@@ -249,11 +249,13 @@ struct ClubOwnerFundsSection: View {
                 Text(LocalizedStringKey(hint.localizationKey), tableName: "ClubOpsCustomer").font(CYTypography.meta)
                     .accessibilityIdentifier("clubOps.settlement.withdraw." + hint.rawValue)
             } else { Text("club.ownerFunds.manual").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            Button("club.ownerFunds.contact") {
+            // HANDOFF-R1 MC-29 (owner Q-C): withdrawal stays a support hand-off, named and explained.
+            ClubWithdrawalHandOffNote()
+            Button {
                 guard let offered else { return }
                 Task { await parent.openContact(offered, access: access, context: context, current: currentSource,
                     active: { current }, otherPresented: otherPresented) }
-            }
+            } label: { Text(verbatim: clubR1("funds.withdrawViaSupport", locale)) }
             .buttonStyle(.cyPrimary(fullWidth: true))
             .disabled(offered == nil || workflow.loading || workflow.availability != .positive || context.support == nil)
                 .accessibilityIdentifier("club.ownerFunds.contact")

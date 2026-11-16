@@ -139,6 +139,7 @@
         "DeepLinkSafetyDiagnosticsSectionViewTests",
         "DeepLinkToMiniProgramPathTranslatorSectionViewTests",
         "DesignR1FoundationTests",
+        "DesignR1MerchantKitTests",
         "DesignSystemSharedComponentsTests",
         "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",

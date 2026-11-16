@@ -35,7 +35,13 @@ class AcceptanceR2ClubLeaveConfirmation(unittest.TestCase):
         self.assertIn('.onChange(of: identity) { _, _ in reset() }', header)
 
     def test_single_confirmation_sheet_on_membership_button(self):
-        self.assertEqual(self.source.count('.sheet('), 1)
+        # One presenter per placement: the header placement's membership row, and (design r1 MC-20)
+        # the single page-end row. The two placements are exclusive branches of one panel instance.
+        self.assertEqual(self.source.count('.sheet('), 2)
+        page_end = self.source.split('private var pageEndSection', 1)[1].split('private func membershipButton', 1)[0]
+        self.assertIn('.sheet(isPresented: confirmationPresented) { confirmationSheet }', page_end)
+        self.assertIn('.onDisappear { reset() }', page_end)
+        self.assertNotIn('ProgressView', page_end)
         self.assertIn('membershipButton(action, state: state)\n'
                       '                                .sheet(isPresented: confirmationPresented) { confirmationSheet }',
                       self.source)

@@ -185,7 +185,8 @@ private struct ProfileOrderRow: View {
     @ViewBuilder private var modeTag: some View {
         switch order.sourceMode {
         case .cityOrienteering?:
-            Text("profile.orders.mode.city").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.infoText)
+            // HANDOFF-R1 MC-35 / §2 Status: blue is not used for status or tags.
+            Text("profile.orders.mode.city").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.textSecondary)
         case .freeExplore?:
             Text("profile.orders.mode.free").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.successText)
         case nil: EmptyView()

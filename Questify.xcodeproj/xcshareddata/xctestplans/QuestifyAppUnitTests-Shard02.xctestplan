@@ -156,6 +156,8 @@
         "CreatorCropExportAppTests",
         "DeepLinkToMiniProgramPathTranslatorSectionViewTests",
         "DesignR1FoundationTests",
+        "DesignR1ClubKitTests",
+        "DesignR1MerchantKitTests",
         "DesignSystemSharedComponentsTests",
         "DesignSystemTokenMappingTests",
         "DeviceOrientationAndSplitViewAdaptationSectionViewTests",

@@ -12,6 +12,12 @@ struct ClubActionPanel: View {
     let coordinator: ClubActionCoordinator
     /// Guests get a way to the sign-in entry instead of a bare message.
     var onSignIn: (() -> Void)? = nil
+    /// HANDOFF-R1 MC-20: `.pageEnd` renders only the quiet red 退出俱乐部 / 举报俱乐部 rows at the end of 概览;
+    /// the header placement then leaves 退出 out. Both keep the same confirmation and request path.
+    var placement: ClubActionPlacement = .header
+    var onReportClub: (() -> Void)? = nil
+    /// Header placement only: 退出 is drawn by the page-end panel instead.
+    var leavesAtPageEnd = false
     let onReadbackStarted: () -> UInt64
     let onReadback: (ClubRecord, ClubReadIdentity, UInt64) -> Void
     @State private var ownerID = UUID()
@@ -40,6 +46,10 @@ struct ClubActionPanel: View {
     var body: some View {
         let _ = revision
         let state = coordinator.state(clubID: club.id)
+        Group {
+        if placement == .pageEnd {
+            pageEndSection
+        } else {
         Section {
             if coordinator.identity != identity || !identity.isSignedIn {
                 Text("club.signInRequired").foregroundStyle(.secondary)
@@ -108,13 +118,16 @@ struct ClubActionPanel: View {
                 .onChange(of: club.id) { old, _ in reset(clubID: old) }
                 .onDisappear { reset() }
         }
+        }
+        }
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardPhase)
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardHandedOff)
     }
     private var confirmationPresented: Binding<Bool> {
         Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } })
     }
-    /// The one confirmation presenter, attached to the single membership button row.
+    /// The one confirmation presenter, attached to the single membership button row (header
+    /// placement) or the single page-end row (`.pageEnd`, MC-20).
     @ViewBuilder private var confirmationSheet: some View {
         if let value = confirmation {
             CYConfirmSheet(
@@ -131,6 +144,25 @@ struct ClubActionPanel: View {
             ) { submit(value) }
         }
     }
+    private var canLeaveHere: Bool {
+        guard coordinator.identity == identity, identity.isSignedIn, coordinator.isConfigured, !rewardPlaying,
+              case .available(let action) = availability else { return false }
+        return action == .leave
+    }
+    /// One row only, so the F-08 lifecycle and the sheet sit on that row rather than on the Section.
+    @ViewBuilder private var pageEndSection: some View {
+        if canLeaveHere || (onReportClub != nil && identity.isSignedIn) {
+            Section {
+                ClubPageEndActions(canLeave: canLeaveHere && !isWorking, onLeave: { prepare(.leave) }, onReport: onReportClub)
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                    .sheet(isPresented: confirmationPresented) { confirmationSheet }
+                    .onChange(of: identity) { _, _ in reset() }
+                    .onChange(of: club.id) { old, _ in reset(clubID: old) }
+                    .onDisappear { reset() }
+            }
+        }
+    }
     @ViewBuilder private func membershipButton(_ action: ClubAction, state: ClubActionState) -> some View {
         let button = Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {
             Label(LocalizedStringKey(actionKey(action)), systemImage: action == .leave ? "rectangle.portrait.and.arrow.right" : "person.badge.plus")
@@ -140,7 +172,9 @@ struct ClubActionPanel: View {
         .accessibilityIdentifier("club.action.\(action.rawValue)")
         .listRowBackground(Color.clear)
         if action == .leave {
-            button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
+            if !leavesAtPageEnd {
+                button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
+            }
         } else {
             // Dots while preparing and sending. Success is the seal reward above, not a morph into the chip.
             CYClubJoinStage(
@@ -325,6 +359,8 @@ struct ClubActionPanel: View {
         joinMessage = ""; revision &+= 1
     }
 }
+
+enum ClubActionPlacement { case header, pageEnd }
 
 /// Consequence rows of the quit-club confirmation (mini-program `pages/club/detail` quit dialog).
 enum ClubLeaveConsequences {

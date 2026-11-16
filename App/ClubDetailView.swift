@@ -19,6 +19,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var managementNeedsRefresh = false
     @State private var managementRevision: UInt64 = 0
     @State private var detailGeneration: UInt64 = 0
+    @State private var reportingClub = false
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -111,6 +112,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if let actionCoordinator {
                     ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
+                                    leavesAtPageEnd: tab == .overview,
                                     onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
                         guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
                         actionDetail = detail; actionIdentity = identity
@@ -300,12 +302,29 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Text("club.detail.leaderboard.locked").foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.locked")
                         }
                     }
+                    // HANDOFF-R1 MC-20: 退出俱乐部 and 举报俱乐部 close 概览 as quiet red rows; 退出 still confirms.
+                    if let actionCoordinator {
+                        ClubActionPanel(club: club, identity: reader.clubIdentity, coordinator: actionCoordinator, onSignIn: onSignIn,
+                                        placement: .pageEnd,
+                                        onReportClub: management?.governance == nil ? nil : { reportingClub = true },
+                                        onReadbackStarted: { detailGeneration &+= 1; return detailGeneration }) { detail, identity, generation in
+                            guard identity == reader.clubIdentity, detail.id == id, generation == detailGeneration else { return }
+                            actionDetail = detail; actionIdentity = identity
+                        }
+                    }
                 }
             }
             .cyGroupedSurface()
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.club")
+            .navigationDestination(isPresented: $reportingClub) {
+                if let governance = management?.governance {
+                    // 举报俱乐部: the governance case form, target type CLUB for this club.
+                    ClubGovernanceCommandForm(route: .init(operation: .report, scope: .init(clubID: id)),
+                                              identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator)
+                }
+            }
             .background {
                 if let session = reader as? AppSession, let context = session.currentRuntimeDependencyContext,
                    reader.clubIdentity == ClubReadIdentity(accountID: context.session.accountID, epoch: context.session.epoch) {

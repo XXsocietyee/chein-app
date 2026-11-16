@@ -194,21 +194,24 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     @ViewBuilder private func reportButton(_ member: ClubMember, directory: ClubMemberDirectory) -> some View {
         if let governance, governance.access.isConfigured, governance.access.identity == reader.clubIdentity,
            let target = ClubMemberReportTarget(member: member, directory: directory, context: reportContext) {
-            Button {
-                guard reportSourceActive, memberReport == nil, destination == nil, !choosing, choice == nil,
-                      reportDirectory == directory, currentReport(target) else { return }
-                memberReport = target
-            } label: {
-                Image(systemName: "flag")
-                    .font(CYTypography.body.weight(.semibold))
-                    .foregroundStyle(CYColor.textSecondary)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                    .cyPressTracking()
+            // HANDOFF-R1 MC-20: one "⋯" menu per member row (举报 · 设为管理员 · 临时封禁 · 移除, 移除 last in red).
+            // Organiser actions open the member's governance page, where each command is confirmed.
+            let canGovern = directory.club.canGovern && matchesGovernance(reader.clubIdentity) && member.memberId > 0
+            ClubMemberActionMenu(actions: ClubMemberAction.menu(canGovern: canGovern, targetIsOwner: member.isOwner, targetIsAdmin: member.isAdmin),
+                                 memberName: target.displayName,
+                                 reportIdentifier: "club.memberReport.open.\(member.memberId)") { action in
+                if action == .report {
+                    guard reportSourceActive, memberReport == nil, destination == nil, !choosing, choice == nil,
+                          reportDirectory == directory, currentReport(target) else { return }
+                    memberReport = target
+                } else {
+                    let governed = ProfileDestination(clubID: id, viewerRevision: governance.viewerRevision, memberID: member.memberId, identity: reader.clubIdentity)
+                    choice = governed
+                    select(governed, customer: true)
+                }
             }
-            .buttonStyle(.cyPressTracked)
-            .accessibilityLabel(reportLabel(target))
+            .accessibilityHint(reportLabel(target))
             .disabled(reportDirectory != directory || !reportSourceActive || memberReport != nil || destination != nil || choosing)
-            .accessibilityIdentifier("club.memberReport.open.\(member.memberId)")
         }
     }
     private func reportLabel(_ target: ClubMemberReportTarget) -> Text {

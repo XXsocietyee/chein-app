@@ -282,11 +282,26 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     CYPillButton("merchant.onboarding.next") { model.next() }
                         .accessibilityIdentifier("merchant.onboarding.next")
                 } else {
-                    CYPillButton("merchant.onboarding.reviewSubmit") {
-                        model.prepare(); showSubmitConfirmation = model.confirmation != nil
+                    // HANDOFF-R1 MR-01 / MR-11: the primary stays enabled and jumps to what is missing.
+                    VStack(spacing: CYSpacing.sm) {
+                        Text("r1merchant.onboarding.consent", tableName: "DesignR1Merchant")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                        CYPillButton("r1merchant.onboarding.submit", tableName: "DesignR1Merchant") {
+                            if model.draft.blocker() != nil {
+                                let step = firstIncompleteStep
+                                model.step = step
+                                model.errorKey = model.draft.blocker(step: step)
+                            } else if model.coordinator.identityGate != .registered {
+                                model.errorKey = "merchant.onboarding.identity.required"
+                            } else {
+                                model.prepare(); showSubmitConfirmation = model.confirmation != nil
+                            }
+                        }
+                        .accessibilityIdentifier("merchant.onboarding.submit")
                     }
-                    .disabled(model.coordinator.identityGate != .registered || model.draft.blocker() != nil)
-                    .accessibilityIdentifier("merchant.onboarding.submit")
                 }
             }
             .disabled(model.isBusy || model.coordinator.submission.isLocked)
@@ -354,15 +369,26 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     }
     private var reviewSection: some View {
         Group {
-            Section("merchant.onboarding.step.4") {
+            // HANDOFF-R1 MR-01: step 4 is a review — every answer as a row, 修改 per group, one consent
+            // sentence above the pinned 提交入驻申请.
+            Section {
                 reviewRow("merchant.onboarding.name", model.draft.name)
                 reviewRow("merchant.onboarding.preference", model.draft.preference)
                 reviewRow("merchant.onboarding.phone", model.draft.phone)
+            } header: { reviewHeader(group: 1) }
+            Section {
                 reviewRow("merchant.onboarding.address", model.draft.address)
                 reviewRow("merchant.onboarding.hours", displayHours(model.draft.businessTime))
                 reviewRow("merchant.onboarding.description", model.draft.description)
-                Label("merchant.onboarding.licenseUploaded", systemImage: "doc.badge.checkmark")
-            }
+            } header: { reviewHeader(group: 2) }
+            Section {
+                if model.draft.license != nil {
+                    Label("merchant.onboarding.licenseUploaded", systemImage: "doc.badge.checkmark")
+                } else {
+                    Label { Text(verbatim: merchantR1("onboarding.review.licenseMissing", locale)) } icon: { Image(systemName: "doc.badge.ellipsis") }
+                        .foregroundStyle(CYColor.dangerText)
+                }
+            } header: { reviewHeader(group: 3) }
             if model.draft.brandImages?.urls.isEmpty == false {
                 Section("merchant.onboardingBrand.title") { MerchantOnboardingBrandImageRows(images: model.draft.brandImages) }
             }
@@ -385,6 +411,18 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         let indexes = days.compactMap { labels.firstIndex(of: String($0)) }
         guard !days.isEmpty, indexes.count == days.count else { return value }
         return indexes.map { names[$0] }.joined(separator: ", ") + " " + String(parts[1])
+    }
+    private func reviewHeader(group: Int) -> some View {
+        MerchantR1SectionHeader(title: merchantR1("onboarding.review.group\(group)", locale),
+                                actionTitle: merchantR1("onboarding.review.edit", locale)) {
+            model.errorKey = nil
+            model.step = group
+        }
+        .accessibilityIdentifier("merchant.onboarding.review.edit.\(group)")
+    }
+    /// The first step with a missing answer; 4 when the draft is complete.
+    private var firstIncompleteStep: Int {
+        (1...3).first { model.draft.blocker(step: $0) != nil } ?? 4
     }
     private func reviewRow(_ key: String, _ value: String) -> some View {
         CYListRow(LocalizedStringKey(key), trailing: .value(value.isEmpty ? "—" : value), card: true)

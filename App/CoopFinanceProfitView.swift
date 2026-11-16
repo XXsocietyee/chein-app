@@ -88,6 +88,10 @@ extension EnvironmentValues {
         }
         if profit.isOwner, let walletReader { CoopFinanceFundsStagesSection(reader: walletReader) }
         Section {
+            // HANDOFF-R1 MR-38 / MR-07 (owner Q-A): the support hand-off is named, with the next steps.
+            MerchantR1WithdrawalHandOff()
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
             // Mini puts 提现 beside the hero total as the one solid action. It only opens support; it does not pay out.
             CYPillButton("cooperation.finance.withdraw", systemImage: "arrow.up.circle") {
                 if profit.canWithdraw, loadedSession == reader.session { showsSupport = true }

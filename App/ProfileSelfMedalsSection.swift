@@ -30,7 +30,10 @@ import SwiftUI
                                 Label {
                                     if medal.medalName.isEmpty { Text("profile.badges.medals") }
                                     else { Text(verbatim: medal.medalName) }
-                                } icon: { Image(systemName: "checkmark.seal") }
+                                } icon: {
+                                    // HANDOFF-R1 MC-30: each medal shows its own art, not one shared glyph.
+                                    ClubBadgeArt(name: medal.medalName, seed: "\(index)-\(medal.medalName)", category: .achievement, size: 28)
+                                }
                                 .accessibilityIdentifier("profile.selfMedals.row.\(index)")
                             }
                         }
