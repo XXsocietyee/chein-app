@@ -24,8 +24,10 @@ class ReferenceChatTaskContracts(unittest.TestCase):
             self.assertIn(token, text)
     def test_im_outcomes_not_mapped_to_delivery(self):
         text = read('App/MessageActionComposer.swift')
-        for token in ['case .sending:', 'case .outcomeUnknown,.rejected:', 'message.send.unknown', 'message.send.accepted', 'model.draft="";confirmsRetry=false', 'message.send.keyboard.done']:
+        for token in ['case .sending:', 'case .outcomeUnknown,.rejected:', 'message.send.unknown', 'message.send.accepted', 'model.draft="";confirmsRetry=false']:
             self.assertIn(token, text)
+        # F-10: the keyboard toolbar's floating 完成 pill covered Send; the composer has none.
+        self.assertNotIn('message.send.keyboard.done', text)
         self.assertNotIn('checkmark', text)
     def test_npc_requires_review_and_preserves_cancelled_draft(self):
         text = read('App/ShopNPCView.swift')

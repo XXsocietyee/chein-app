@@ -50,7 +50,12 @@ class EarningsOverviewPageReady(unittest.TestCase):
         for path in ("/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw", "/api/club/settlement/withdraw"):
             self.assertNotIn(path, fixture)
         views = read("App/WalletCommerceViews.swift")
-        self.assertIn("enum WalletPayoutCapability { static let isOn = false }", views)
+        # F-13 owner rule: withdrawal opens only in DEBUG/TEST (host-derived); Release compiles a constant false.
+        cap = views[views.index("enum WalletPayoutCapability {"):]
+        cap = cap[:cap.index("\n}\n")]
+        self.assertIn("#if DEBUG || TEST", cap)
+        self.assertIn("static var isOn: Bool { ReleaseMoneyWriteSwitch.withdrawalEnabled }", cap)
+        self.assertIn("#else\n    static let isOn = false\n    #endif", cap)
         self.assertIn("static let showsMerchantChoice = false", read("App/WelcomeView.swift"))
         switches = read("Core/ChinaReviewedRouteCapability.swift")
         for name in ("paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):

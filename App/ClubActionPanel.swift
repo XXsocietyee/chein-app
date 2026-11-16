@@ -85,7 +85,10 @@ struct ClubActionPanel: View {
                             }
                         }
                         // A settled join or apply keeps the chip. Do not offer that action again.
-                        if rewardAction != action { membershipButton(action, state: state) }
+                        if rewardAction != action {
+                            membershipButton(action, state: state)
+                                .sheet(isPresented: confirmationPresented) { confirmationSheet }
+                        }
                     } else {
                         Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
                             .accessibilityIdentifier("club.action.gated")
@@ -94,28 +97,39 @@ struct ClubActionPanel: View {
                 if isWorking { ProgressView("club.action.working").accessibilityIdentifier("club.action.loading") }
                 if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.secondary).accessibilityIdentifier("club.action.error") }
             }
-        } header: { Text("club.action.membership") }
-        .sheet(isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } })) {
-            if let value = confirmation {
-                CYConfirmSheet(
-                    title: value.action == .leave
-                        ? ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
-                        : String(localized: String.LocalizationValue(actionKey(value.action))),
-                    message: value.action == .leave
-                        ? String(localized: String.LocalizationValue(confirmationKey(.leave)))
-                        : confirmationMessage(value),
-                    confirmTitle: String(localized: String.LocalizationValue(actionKey(value.action))),
-                    isDestructive: value.action == .leave,
-                    confirmIdentifier: "club.action.confirm",
-                    consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale, needsApproval: club.needsApproval) : []
-                ) { submit(value) }
-            }
+        } header: {
+            // Modifiers on the Section itself are applied to each of its rows in a List. Every row
+            // carried its own sheet and its own onDisappear, so the 处理中 progress row leaving after
+            // prepare ran reset() and cancelled the confirmation before 退出俱乐部 could present
+            // `club.action.confirm` (F-08). The lifecycle lives on this one header; the sheet lives
+            // on the membership button row the user tapped (see `confirmationSheet`).
+            Text("club.action.membership")
+                .onChange(of: identity) { _, _ in reset() }
+                .onChange(of: club.id) { old, _ in reset(clubID: old) }
+                .onDisappear { reset() }
         }
-        .onChange(of: identity) { _, _ in reset() }
-        .onChange(of: club.id) { old, _ in reset(clubID: old) }
-        .onDisappear { reset() }
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardPhase)
         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: rewardHandedOff)
+    }
+    private var confirmationPresented: Binding<Bool> {
+        Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } })
+    }
+    /// The one confirmation presenter, attached to the single membership button row.
+    @ViewBuilder private var confirmationSheet: some View {
+        if let value = confirmation {
+            CYConfirmSheet(
+                title: value.action == .leave
+                    ? ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
+                    : String(localized: String.LocalizationValue(actionKey(value.action))),
+                message: value.action == .leave
+                    ? String(localized: String.LocalizationValue(confirmationKey(.leave)))
+                    : confirmationMessage(value),
+                confirmTitle: String(localized: String.LocalizationValue(actionKey(value.action))),
+                isDestructive: value.action == .leave,
+                confirmIdentifier: "club.action.confirm",
+                consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale, needsApproval: club.needsApproval) : []
+            ) { submit(value) }
+        }
     }
     @ViewBuilder private func membershipButton(_ action: ClubAction, state: ClubActionState) -> some View {
         let button = Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {

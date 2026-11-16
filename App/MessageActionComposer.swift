@@ -29,6 +29,14 @@ struct MessageComposerSubmission: Equatable {
         if state == .sending, let executing, appearance == executing.appearance,
            case .send = executing.operation { draft = "" }
     }
+    /// Typing never waits for the history read, keyboard focus or the reply lease: those gate
+    /// Send only. A field disabled while the first page loads drops what the user types (F-09).
+    /// Only an owner that cannot take a new text (sending, unknown outcome, closed, another
+    /// account, no writer) locks the field.
+    var acceptsTyping: Bool {
+        appearance != nil && coordinator.isConfigured && coordinator.isCurrentAccount
+            && state != .sending && state != .outcomeUnknown && state != .closed
+    }
     func retire() { appearance = nil; queued = nil; executing = nil; draft = "" }
     func invalidateQueued() { queued = nil }
     func prepare(_ operation: MessageComposerSubmission.Operation,
@@ -123,7 +131,7 @@ struct MessageComposerSubmission: Equatable {
                 }
                 HStack(alignment:.bottom,spacing:4) {
                     TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
-                        .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).padding(.trailing,0).focused($typing).disabled(!canCompose)
+                        .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).padding(.trailing,0).focused($typing).disabled(!model.acceptsTyping)
                         .accessibilityIdentifier("message.send.input")
                     let draftIsEmpty = model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty
                     Button {
@@ -153,12 +161,10 @@ struct MessageComposerSubmission: Equatable {
         }
         // Same surface as the page, so the composer doesn't read as a separate band.
         .padding(.horizontal,Theme.Space.pageX).padding(.vertical,Theme.Space.s2).background(.background).privacySensitive()
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("action.done") { typing = false }.accessibilityIdentifier("message.send.keyboard.done")
-            }
-        }
+        // No keyboard toolbar: on iOS 26+ its floating 完成 pill sits on top of the send arrow (F-10).
+        // The host pins this composer with `.safeAreaInset(edge: .bottom)`, so it rides above the
+        // keyboard; the transcript's `.scrollDismissesKeyboard(.interactively)` and Send itself
+        // dismiss the keyboard.
         .onAppear { model.observe() }
         .onChange(of:model.state) { _,state in
             // The currently visible history owns readback, even after dismiss/reopen.

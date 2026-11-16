@@ -13,7 +13,7 @@ Verifies:
    - Core/ChinaReviewedRouteCapability.swift: ReleaseMoneyWriteSwitch constants all false
    - App/ReviewedAreaSwitch.swift: production host closed, Release branches all false
    - App/AppSession.swift: passwordLoginCompiledIn & canUsePassword false in Release
-   - App/WalletCommerceViews.swift: WalletPayoutCapability.isOn = false
+   - App/WalletCommerceViews.swift: WalletPayoutCapability.isOn = false (Release projection)
 """
 from pathlib import Path
 import re
@@ -271,10 +271,16 @@ def check_switches_closed_for_production(root: Path, failures: list[str]) -> Non
         if expected_snippet not in session_code:
             failures.append(f"App/AppSession.swift Release projection missing password-login closure: {expected_snippet}")
 
-    # 4. App/WalletCommerceViews.swift: WalletPayoutCapability stays false
+    # 4. App/WalletCommerceViews.swift: WalletPayoutCapability stays false in the Release projection
+    #    (owner rule F-13: withdrawal opens only in DEBUG/TEST builds off the production host).
     wallet_text = (root / "App/WalletCommerceViews.swift").read_text(encoding="utf-8")
-    if "enum WalletPayoutCapability { static let isOn = false }" not in wallet_text:
-        failures.append("App/WalletCommerceViews.swift: WalletPayoutCapability.isOn must be false")
+    wallet_active, wallet_errors = release_projection_no_debug_no_test(wallet_text)
+    for err in wallet_errors:
+        failures.append(f"App/WalletCommerceViews.swift: {err}")
+    wallet_code = re.sub(r"\s+", " ", "\n".join(code for _, code, _ in wallet_active))
+    if "enum WalletPayoutCapability {" not in wallet_code or "static let isOn = false" not in wallet_code \
+            or "static var isOn" in wallet_code:
+        failures.append("App/WalletCommerceViews.swift: WalletPayoutCapability.isOn must be false in Release")
 
     # 5. Core/SettingsIdentityApplications.swift, ActivityPublishingWizard.swift, RoamStampCaptureCoordinator.swift
     for rel in (

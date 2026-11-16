@@ -23,6 +23,12 @@ import SwiftUI
     @StateObject private var model: ClubChatViewModel
     @ObservedObject var session: AppSession
     @State private var conversation: MessagingConversation?
+    /// `session.messagingReader` builds a new reader on every access. Passing it straight into the
+    /// history made every re-render of this page (the push itself runs `suspend()` → `onChange`, and
+    /// any AppSession publish) a new reader identity, so the history restarted its read and the
+    /// composer stayed locked on 请先成功加载此会话 while the user typed and tapped Send (F-09).
+    /// Keep one reader per issuance, exactly as the messaging home does.
+    @StateObject private var readerOwner = SessionMessagingHomeReaderOwner()
     @Environment(\.cyPalette) private var palette
     init(owner: ClubChatCoordinator, session: AppSession) { _model = StateObject(wrappedValue: ClubChatViewModel(owner)); self.session = session }
     var body: some View {
@@ -52,7 +58,7 @@ import SwiftUI
         .onChange(of: model.owner.isCurrent) { _, current in if !current { conversation = nil } }
         .navigationDestination(isPresented: Binding(get: { conversation != nil && model.owner.isCurrent }, set: { if !$0 { conversation = nil } })) {
             if let conversation, model.owner.isCurrent {
-                MessagingHistoryView(conversationID: conversation.id, conversation: conversation, reader: session.messagingReader,
+                MessagingHistoryView(conversationID: conversation.id, conversation: conversation, reader: readerOwner.reader(for: session),
                     sender: session.messageSender(for: conversation.id), mediaReader: session.socialMessageMediaReader, expanded: session.imExpandedNavigation).id(session.messagingViewIdentity)
             }
         }

@@ -17,6 +17,8 @@
     {
       "parallelizable": false,
       "skippedTests": [
+        "AcceptanceR2ClubChatComposerTests",
+        "AcceptanceR2GateTests",
         "AccessibilityHardeningWaveTests",
         "AccessibilityReadinessSectionViewTests",
         "AccountDeregistrationConsentPresentationTests",

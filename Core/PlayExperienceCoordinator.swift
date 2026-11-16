@@ -460,6 +460,19 @@ public struct PlayCompletionReview: Equatable {
         phase = .reviewing
         return PlayCompletionReview(nodeID: nodeID, evidence: evidence, advance: advance, session: session, generation: generation, routeSessionID: snapshot.route?.sessionID, gameplayMode: gameplayMode)
     }
+    /// F-05: the reason `review` refuses (or would refuse) this stop, for the screen to show. Nil when the
+    /// stop can be reviewed. Read-only: it never changes the phase and never sends anything. Without
+    /// evidence only stop-level facts are checked (done, locked, run state, advanced prerequisite).
+    public func reviewRefusal(nodeID: Int, evidence: PlayCompletionEvidence? = nil) -> PlayReviewRefusal? {
+        guard service.enabled.contains(.classicCompletion) else { return .disabled }
+        guard let snapshot, loadedSession != nil else { return unresolved ? .unresolved : .sessionUnavailable }
+        if let refusal = PlayReviewRefusal.station(nodeID: nodeID, in: snapshot, mode: gameplayMode,
+                                                  advancedReady: advancedReadyNodeIDs.contains(nodeID)) { return refusal }
+        if unresolved { return .unresolved }
+        guard canWrite else { return .busy }
+        if case .answer(let text)? = evidence { return PlayReviewRefusal.answer(text, nodeID: nodeID, in: snapshot) }
+        return nil
+    }
     public func cancelReview() { if phase == .reviewing { phase = .ready } }
     public func submit(_ review: PlayCompletionReview) async {
         guard service.enabled.contains(.classicCompletion), review.gameplayMode == gameplayMode, gameplayMode != nil, phase == .reviewing, review.session == currentSession(), review.session == loadedSession,

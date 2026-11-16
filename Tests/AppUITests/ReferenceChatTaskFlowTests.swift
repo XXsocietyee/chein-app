@@ -69,9 +69,11 @@ final class ReferenceChatTaskFlowTests: XCTestCase {
         let input = element("message.send.input", app); XCTAssertTrue(input.waitForExistence(timeout: 5)); input.tap(); input.typeText(String(repeating: "Message text ", count: 12))
         XCTAssertTrue(app.buttons["message.send.button"].isHittable)
         attachFixtureScreenshot(self, app: app, name: "IM long draft with keyboard visible")
-        app.buttons["message.send.keyboard.done"].tap()
-        XCTAssertTrue(app.buttons["message.send.button"].isHittable)
-        attachFixtureScreenshot(self, app: app, name: "IM long draft and pinned composer")
+        // F-10: no keyboard 完成 pill over the send arrow; Send works with the keyboard still up.
+        XCTAssertFalse(app.buttons["message.send.keyboard.done"].exists)
+        app.buttons["message.send.button"].tap()
+        XCTAssertTrue(element("message.send.receipt", app).waitForExistence(timeout: 5))
+        attachFixtureScreenshot(self, app: app, name: "IM sent from the keyboard and pinned composer")
     }
     func testMessageUnknownIsNotAnAcceptedReceiptAndCancelRetryDoesNotSend() {
         let app = launch(["--uitesting-module", "composer", "--reference-message-unknown"])

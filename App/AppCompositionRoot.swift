@@ -556,7 +556,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileFavoriteDetailAccess = profileFavoriteDetailAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteDetail($0) } : { _ in nil })
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
-        self.growthNormalReadApproval = growthNormalReadApproval
+        self.growthNormalReadApproval = { [gates] context in growthNormalReadApproval(context) ?? (productionGatesEnabled ? gates.growthNormalRead(context) : nil) }
         self.cityPlayerReadApproval = { [gates] context in cityPlayerReadApproval(context) ?? gates.cityGame(context)?.readApproval }
         self.teamReadApproval = { [gates] context in
             teamReadApproval(context) ?? (productionGatesEnabled ? gates.teamRead(context) : nil)
@@ -3588,6 +3588,9 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isPublicTemplateViewer else { throw APIError.notConfigured }
         } else if ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
+        } else if ReviewedMerchantWorkbenchReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) { // F-16
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
         } else if ReviewedPlayerReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {

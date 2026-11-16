@@ -176,6 +176,16 @@ enum PlayTaskStatusCardMapper {
         return .upcoming
     }
 
+    /// F-05: row state from `PlayStationListPresentation`; same mapping as `routeCompletion(for:in:currentNodeID:)`.
+    static func routeCompletion(_ state: PlayStationListRow.State) -> CYRouteNodeCompletion {
+        switch state {
+        case .completed: return .completed
+        case .locked: return .locked
+        case .current: return .current
+        case .available: return .upcoming
+        }
+    }
+
     static func arrivalRequirement(for node: PlayNode) -> CYRouteArrivalRequirement {
         if node.needScan == true { return .qr }
         if node.needGPS == true { return .gps }
