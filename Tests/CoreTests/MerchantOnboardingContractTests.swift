@@ -63,7 +63,7 @@ final class MerchantOnboardingContractTests: XCTestCase {
         XCTAssertEqual(MerchantIdentityNumber("1101051949123100").failure, .length)
         XCTAssertEqual(MerchantIdentityNumber("11010519491231002A").failure, .characters)
         XCTAssertEqual(MerchantIdentityNumber("X1010519491231002X").failure, .characters)
-        XCTAssertEqual(MerchantIdentityNumber("110105194902300021").failure, .birthDate, "30 February")
+        XCTAssertEqual(MerchantIdentityNumber("110105194902300021").failure, .dateField, "30 February")
         XCTAssertEqual(MerchantIdentityNumber("110105194912310021").failure, .checksum)
     }
     func testIdentityNumberIsMaskedInEveryTextForm() {

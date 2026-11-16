@@ -73,9 +73,9 @@ public struct MerchantIdentityNumber: Equatable, Sendable, CustomStringConvertib
         rawValue.filter { !$0.isWhitespace }.uppercased()
     }
 
-    public enum Failure: Equatable, Sendable { case empty, length, characters, birthDate, checksum }
+    public enum Failure: Equatable, Sendable { case empty, length, characters, dateField, checksum }
 
-    /// GB 11643-1999: 17 digits and a check character (0-9 or X), a real birth date, and the ISO 7064 MOD 11-2 check.
+    /// GB 11643-1999: 17 digits and a check character (0-9 or X), a real calendar date in positions 7–14 (validity only; nothing is derived from it), and the ISO 7064 MOD 11-2 check.
     public var failure: Failure? {
         let value = Array(normalized)
         guard !value.isEmpty else { return .empty }
@@ -88,7 +88,7 @@ public struct MerchantIdentityNumber: Equatable, Sendable, CustomStringConvertib
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: 0) ?? calendar.timeZone
         guard (1900...2100).contains(year), let date = calendar.date(from: DateComponents(year: year, month: month, day: day)),
-              calendar.component(.month, from: date) == month, calendar.component(.day, from: date) == day else { return .birthDate }
+              calendar.component(.month, from: date) == month, calendar.component(.day, from: date) == day else { return .dateField }
         let weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
         let sum = zip(digits, weights).reduce(0) { $0 + $1.0 * $1.1 }
         let checks: [Character] = ["1", "0", "X", "9", "8", "7", "6", "5", "4", "3", "2"]
@@ -162,7 +162,7 @@ public struct MerchantOnboardingDraft: Equatable {
         case .empty: return "merchant.onboarding.identity.required.idCard"
         case .length: return "merchant.onboarding.identity.invalid.idCardLength"
         case .characters: return "merchant.onboarding.identity.invalid.idCardCharacters"
-        case .birthDate, .checksum: return "merchant.onboarding.identity.invalid.idCard"
+        case .dateField, .checksum: return "merchant.onboarding.identity.invalid.idCard"
         }
     }
     public func jsonData() throws -> Data {
