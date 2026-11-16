@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 /// Explicit domain roots, independent of the device's current appearance.
 enum ThemeDomain: String, CaseIterable {
@@ -25,10 +28,17 @@ extension EnvironmentValues {
 
 extension View {
     /// Set once at a domain root so native controls and content share appearance.
+    ///
+    /// Inside a role root (`roleTheme(_:)`), an in-window page also asks the root for its scheme
+    /// (`CYShellSchemeArbiter`), so a light editor pushed from the dark player shell turns the whole window light
+    /// (status bar, Form / List backgrounds, bar buttons), not only the SwiftUI palette. Sheets keep their own scheme.
     func themeDomain(_ domain: ThemeDomain) -> some View {
-        environment(\.themeDomain, domain)
-            .environment(\.colorScheme, domain.colorScheme)
-            .preferredColorScheme(domain.colorScheme)
+        modifier(CYThemeDomainModifier(domain: domain, requestsShellScheme: true))
+    }
+
+    /// The role root's own domain: same environment, but no shell-scheme request (the root is the default).
+    func themeDomainRoot(_ domain: ThemeDomain) -> some View {
+        modifier(CYThemeDomainModifier(domain: domain, requestsShellScheme: false))
     }
 }
 
@@ -129,3 +139,159 @@ enum Theme {
         }
     }
 }
+
+// MARK: - Shell scheme arbitration (N-01)
+
+/// One source of truth for the window's colour scheme under a role root.
+/// In-window pages that call `themeDomain(_:)` register a request while their view is in the window.
+/// The shallowest request wins (a page beats a card nested inside it); among equals, the most recent one
+/// (the page just pushed beats the root page it covers). With no request, the role's own scheme applies.
+@MainActor
+@Observable
+final class CYShellSchemeArbiter {
+    private struct Request { let depth: Int; let scheme: ColorScheme; let order: Int }
+    private var requests: [UUID: Request] = [:]
+    private var counter = 0
+    private(set) var requestedScheme: ColorScheme?
+
+    func register(_ token: UUID, depth: Int, scheme: ColorScheme) {
+        if let existing = requests[token], existing.depth == depth, existing.scheme == scheme { return }
+        counter += 1
+        requests[token] = Request(depth: depth, scheme: scheme, order: counter)
+        resolve()
+    }
+
+    func unregister(_ token: UUID) {
+        guard requests.removeValue(forKey: token) != nil else { return }
+        resolve()
+    }
+
+    private func resolve() {
+        let winner = requests.values.min { lhs, rhs in
+            lhs.depth != rhs.depth ? lhs.depth < rhs.depth : lhs.order > rhs.order
+        }
+        if requestedScheme != winner?.scheme { requestedScheme = winner?.scheme }
+    }
+}
+
+private struct CYShellSchemeArbiterKey: EnvironmentKey {
+    static let defaultValue: CYShellSchemeArbiter? = nil
+}
+
+private struct CYThemeDepthKey: EnvironmentKey {
+    static let defaultValue = 0
+}
+
+extension EnvironmentValues {
+    var cyShellSchemeArbiter: CYShellSchemeArbiter? {
+        get { self[CYShellSchemeArbiterKey.self] }
+        set { self[CYShellSchemeArbiterKey.self] = newValue }
+    }
+
+    /// How many `themeDomain(_:)` calls enclose this view (the role root is 1).
+    var cyThemeDepth: Int {
+        get { self[CYThemeDepthKey.self] }
+        set { self[CYThemeDepthKey.self] = newValue }
+    }
+}
+
+private struct CYThemeDomainModifier: ViewModifier {
+    let domain: ThemeDomain
+    let requestsShellScheme: Bool
+    @Environment(\.cyThemeDepth) private var depth
+    @Environment(\.cyShellSchemeArbiter) private var arbiter
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.themeDomain, domain)
+            .environment(\.colorScheme, domain.colorScheme)
+            .environment(\.cyThemeDepth, depth + 1)
+            // Applies to the nearest presentation. Inside a role root it is overridden by the root's arbitrated value,
+            // which is why the request below exists; in a sheet it is what sets the sheet's scheme.
+            .preferredColorScheme(domain.colorScheme)
+            .background {
+                #if canImport(UIKit)
+                if requestsShellScheme, let arbiter {
+                    CYShellSchemeRequestHost(arbiter: arbiter, depth: depth + 1, scheme: domain.colorScheme)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+                #endif
+            }
+    }
+}
+
+#if canImport(UIKit)
+/// Registers while its view is in a window and not inside a presented controller (sheets own their scheme).
+private struct CYShellSchemeRequestHost: UIViewRepresentable {
+    let arbiter: CYShellSchemeArbiter
+    let depth: Int
+    let scheme: ColorScheme
+
+    func makeUIView(context: Context) -> CYShellSchemeRequestView {
+        let view = CYShellSchemeRequestView()
+        view.isUserInteractionEnabled = false
+        view.isAccessibilityElement = false
+        view.backgroundColor = .clear
+        view.configure(arbiter: arbiter, depth: depth, scheme: scheme)
+        return view
+    }
+
+    func updateUIView(_ uiView: CYShellSchemeRequestView, context: Context) {
+        uiView.configure(arbiter: arbiter, depth: depth, scheme: scheme)
+    }
+
+    static func dismantleUIView(_ uiView: CYShellSchemeRequestView, coordinator: ()) {
+        uiView.withdraw()
+    }
+}
+
+final class CYShellSchemeRequestView: UIView {
+    private let token = UUID()
+    private weak var arbiter: CYShellSchemeArbiter?
+    private var depth = 0
+    private var scheme: ColorScheme = .dark
+
+    func configure(arbiter: CYShellSchemeArbiter, depth: Int, scheme: ColorScheme) {
+        if self.arbiter !== arbiter { self.arbiter?.unregister(token) }
+        self.arbiter = arbiter
+        self.depth = depth
+        self.scheme = scheme
+        sync()
+    }
+
+    func withdraw() { arbiter?.unregister(token) }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        sync()
+    }
+
+    private func sync() {
+        guard let arbiter else { return }
+        if window != nil, !isInsidePresentation {
+            arbiter.register(token, depth: depth, scheme: scheme)
+        } else {
+            arbiter.unregister(token)
+        }
+    }
+
+    /// True when the topmost ancestor controller was presented (sheet, cover, popover).
+    var isInsidePresentation: Bool {
+        var responder: UIResponder? = self
+        var controller: UIViewController?
+        while let next = responder?.next {
+            if let vc = next as? UIViewController { controller = vc; break }
+            responder = next
+        }
+        while let parent = controller?.parent { controller = parent }
+        return controller?.presentingViewController != nil
+    }
+
+    deinit {
+        let token = token
+        let arbiter = arbiter
+        MainActor.assumeIsolated { arbiter?.unregister(token) }
+    }
+}
+#endif

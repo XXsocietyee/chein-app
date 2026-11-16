@@ -32,9 +32,12 @@ extension EnvironmentValues {
 extension View {
     /// Apply once at a role root (player shell or merchant console).
     /// Sets the role environment, the theme domain and the forced colour scheme.
+    ///
+    /// The root is the only place that sets the window's colour scheme: the role's own scheme, unless an in-window
+    /// page has asked for another one through `themeDomain(_:)` (see `CYShellSchemeArbiter`). Before this, the root
+    /// forced its scheme unconditionally and a light editor pushed from the dark player shell rendered in two themes.
     func roleTheme(_ role: RoleTheme) -> some View {
-        environment(\.roleTheme, role)
-            .themeDomain(role.domain)
+        modifier(RoleThemeRootModifier(role: role))
     }
 
     /// Apply to the content of a `.sheet`, `.fullScreenCover` or popover presented from a role root.
@@ -51,6 +54,19 @@ extension View {
             .themeDomain(.player)
             .presentationCornerRadius(CYRadius.sheet)
             .presentationBackground(CYDomainPalette(.player).sheetGlass)
+    }
+}
+
+private struct RoleThemeRootModifier: ViewModifier {
+    let role: RoleTheme
+    @State private var arbiter = CYShellSchemeArbiter()
+
+    func body(content: Content) -> some View {
+        content
+            .environment(\.roleTheme, role)
+            .themeDomainRoot(role.domain)
+            .environment(\.cyShellSchemeArbiter, arbiter)
+            .preferredColorScheme(arbiter.requestedScheme ?? role.colorScheme)
     }
 }
 
