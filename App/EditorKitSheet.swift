@@ -204,64 +204,79 @@ private struct EditorSheetHeaderHeightKey: PreferenceKey {
 
 // MARK: - Resizable sheet (section 3)
 
-/// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Local stand-in for the shared resizable sheet. Detents come from `EditorSheetFamily` (section 3.3);
-/// `fit` is the measured content height capped at 62% of the presenter.
+extension CYSheetSize {
+    /// The editor family table (Core `EditorSheetDetent`) in the shared sheet's terms.
+    init(_ detent: EditorSheetDetent) {
+        switch detent {
+        case .fit: self = .fit
+        case .height(let value): self = .height(CGFloat(value))
+        case .fraction(let value): self = .fraction(CGFloat(value))
+        case .medium: self = .medium
+        case .large: self = .large
+        }
+    }
+}
+
+/// Editor sheets run on the shared design r1 sheet engine: detents are `CYSheetSize` values from the family table
+/// (section 3.3), `fit` is `CYResizableSheet.fitHeight` capped at `CYSheetMetrics.fitCap` (62%), scrolling follows
+/// `CYResizableSheet.scrollEnabled`, detent changes use the `CYMotion.sheetDetent` spring (cross-fade under Reduce
+/// Motion), and only a settled drag plays `.selection`. Unlike a `CYResizableSheet` root, the root here is a
+/// NavigationStack, because sub-editors push inside the sheet (CF-12) and each `EditorSheetPage` pins its own header.
 struct EditorSheetHost<Content: View>: View {
     let family: EditorSheetFamily
     let isDirty: Bool
-    let presenterHeight: CGFloat
     @ViewBuilder let content: () -> Content
 
     @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
     @State private var measured: CGFloat = 0
-    @State private var selectedIndex = 0
+    @State private var selection: PresentationDetent
+    @State private var programmatic = false
+    @State private var settleTick = 0
 
+    init(family: EditorSheetFamily, isDirty: Bool, @ViewBuilder content: @escaping () -> Content) {
+        self.family = family
+        self.isDirty = isDirty
+        self.content = content
+        let first = family.detents.first.map(CYSheetSize.init) ?? .medium
+        _selection = State(initialValue: first.presentationDetent(fitHeight: CYResizableSheet<EmptyView>.unmeasuredFit))
+    }
+
+    private var sizes: [CYSheetSize] { family.detents.map(CYSheetSize.init) }
     private var fitHeight: CGFloat {
-        let natural = measured > 0 ? measured : 240
-        return CGFloat(EditorSheetDetentPlan.fitHeight(content: Double(natural), chrome: 0, screen: Double(presenterHeight)))
+        CYResizableSheet<EmptyView>.fitHeight(content: measured, chrome: 0, cap: CYSheetMetrics.fitCap)
     }
-
-    private func presentation(_ detent: EditorSheetDetent) -> PresentationDetent {
-        switch detent {
-        case .fit: return .height(fitHeight)
-        case .height(let value): return .height(CGFloat(value))
-        case .fraction(let value): return .fraction(CGFloat(value))
-        case .medium: return .medium
-        case .large: return .large
-        }
-    }
-
-    private var detents: [PresentationDetent] { family.detents.map(presentation) }
-
-    private var selection: Binding<PresentationDetent> {
-        Binding(
-            get: { detents[min(selectedIndex, detents.count - 1)] },
-            set: { value in if let index = detents.firstIndex(of: value) { selectedIndex = index } }
-        )
+    private var detents: [PresentationDetent] { sizes.map { $0.presentationDetent(fitHeight: fitHeight) } }
+    private var scrollEnabled: Bool {
+        CYResizableSheet<EmptyView>.scrollEnabled(sizes: sizes, atLargest: selection == (detents.last ?? .large),
+                                                  natural: measured, cap: CYSheetMetrics.fitCap)
     }
 
     var body: some View {
         NavigationStack { content() }
             .onPreferenceChange(EditorSheetFitHeightKey.self) { measured = $0 }
-            .environment(\.editorSheetScrollEnabled, selectedIndex == family.detents.count - 1)
+            .environment(\.editorSheetScrollEnabled, scrollEnabled)
             .environment(\.editorSheetIsResizable, family.isResizable)
-            .presentationDetents(Set(detents), selection: selection)
+            .presentationDetents(Set(detents), selection: $selection)
             .presentationContentInteraction(.resizes)
             .presentationDragIndicator(.hidden)
-            .presentationCornerRadius(EditorKitMetric.sheetCornerRadius)
+            .presentationCornerRadius(CYRadius.sheet)
             .presentationBackground(palette.bgPage)
             .presentationBackgroundInteraction(.disabled)
             .interactiveDismissDisabled(isDirty)
-            .animation(EditorKitMotion.detent(reduceMotion: reduceMotion), value: measured)
-            .sensoryFeedback(.selection, trigger: selectedIndex)
+            .animation(CYMotion.resolve(CYMotion.sheetDetent, reduceMotion: reduceMotion), value: fitHeight)
+            .animation(CYMotion.resolve(CYMotion.sheetDetent, reduceMotion: reduceMotion), value: selection)
+            .cyHaptic(.selection, trigger: settleTick)
+            .onChange(of: fitHeight) { old, new in
+                // Stay on the fit detent while the content grows or shrinks.
+                guard sizes.contains(.fit), selection == .height(old) else { return }
+                programmatic = true
+                selection = .height(new)
+            }
+            .onChange(of: selection) { _, _ in
+                if programmatic { programmatic = false } else { settleTick += 1 }
+            }
     }
-}
-
-private struct EditorPresenterHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
 private struct EditorSheetPresenter<Item: Identifiable, SheetContent: View>: ViewModifier {
@@ -270,17 +285,11 @@ private struct EditorSheetPresenter<Item: Identifiable, SheetContent: View>: Vie
     let isDirty: Bool
     let onDismiss: (() -> Void)?
     let sheetContent: (Item) -> SheetContent
-    @State private var presenterHeight: CGFloat = 0
 
     func body(content: Content) -> some View {
         content
-            .background(GeometryReader { proxy in
-                Color.clear.preference(key: EditorPresenterHeightKey.self,
-                                       value: proxy.size.height + proxy.safeAreaInsets.top + proxy.safeAreaInsets.bottom)
-            })
-            .onPreferenceChange(EditorPresenterHeightKey.self) { presenterHeight = $0 }
             .sheet(item: $item, onDismiss: onDismiss) { value in
-                EditorSheetHost(family: family, isDirty: isDirty, presenterHeight: presenterHeight) { sheetContent(value) }
+                EditorSheetHost(family: family, isDirty: isDirty) { sheetContent(value) }
             }
     }
 }

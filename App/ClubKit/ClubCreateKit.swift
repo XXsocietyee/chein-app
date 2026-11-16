@@ -182,7 +182,6 @@ struct ClubCreateCityRow: View {
             ClubCreateCityPicker(current: currentCity, selection: city.isEmpty ? nil : city) { picked in
                 city = picked
             }
-            .clubR1Sheet(.fitLarge(460))
         }
     }
 }
@@ -199,8 +198,9 @@ struct ClubCreateCityPicker: View {
 
     var body: some View {
         let lists = ClubCreateCityCatalog.filtered(current: current, query: query)
+        // Shared resizable sheet (fit → large); it owns the header, the scroll view and the detents.
+        CYResizableSheet(kind: .pickerLong, title: Text(verbatim: clubR1("create.city.sheetTitle", locale))) {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            ClubR1SheetHeader(title: clubR1("create.city.sheetTitle", locale)) { dismiss() }
             HStack(spacing: CYSpacing.sm) {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(palette.textTertiary)
@@ -213,7 +213,6 @@ struct ClubCreateCityPicker: View {
             .padding(.horizontal, CYSpacing.s2_5)
             .frame(minHeight: 36)
             .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgSurfaceSubtle))
-            ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     if let here = lists.current {
                         ClubR1Group(header: clubR1("create.city.current", locale)) { row(here) }
@@ -227,11 +226,8 @@ struct ClubCreateCityPicker: View {
                         }
                     }
                 }
-            }
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.top, CYSpacing.lg)
-        .background(palette.bgPage.ignoresSafeArea())
+        }
     }
 
     private func row(_ name: String) -> some View {

@@ -442,7 +442,7 @@ struct ClubManagementView: View {
             } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
             Group {
                 if action == .remove { button.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true)) }
-                else { button.buttonStyle(ClubR1PillButtonStyle(kind: .secondary)) }
+                else { button.buttonStyle(CYPillButtonStyle(style: .secondary)) }
             }
             .disabled(loading || stale || !contextMatches || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")

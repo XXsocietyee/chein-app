@@ -16,150 +16,26 @@ func clubR1Value(_ value: String?) -> String {
     return shown.isEmpty ? "—" : shown
 }
 
-// MARK: - Primary / secondary pills
+// MARK: - Status
 
-// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// White pill, 44 high (52 on full-screen moments), 16 semibold label, full width. One per screen.
-struct ClubR1PillButtonStyle: ButtonStyle {
-    enum Kind { case primary, secondary, destructive }
-    var kind: Kind = .primary
-    var tall = false
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(CYTypography.button)
-            .foregroundStyle(foreground)
-            .frame(maxWidth: .infinity, minHeight: tall ? 52 : 44)
-            .padding(.horizontal, CYSpacing.lg)
-            .background(Capsule(style: .continuous).fill(background))
-            .opacity(configuration.isPressed ? 0.85 : 1)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .contentShape(Capsule(style: .continuous))
-    }
-
-    private var foreground: Color {
-        guard isEnabled else { return palette.textDisabled }
-        switch kind {
-        case .primary: return palette.actionPrimaryFg
-        case .secondary: return palette.textPrimary
-        case .destructive: return palette.actionDangerFg
-        }
-    }
-
-    private var background: Color {
-        guard isEnabled else { return palette.bgSurfaceSubtle }
-        switch kind {
-        case .primary: return palette.actionPrimaryBg
-        case .secondary: return palette.bgElevated
-        case .destructive: return palette.actionDangerBg
-        }
-    }
-}
-
-// MARK: - Status tag
-
-// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Soft fill, 12 pt icon, text. Never a dot alone. 进行中 green · 待处理 amber · 已结束 grey · 未通过 red. No blue.
+/// Club status words (§2 "Status Tag"): 进行中 green · 待处理 amber · 已结束 grey · 未通过 red. No blue.
+/// Drawn with the shared `CYStatusTag` (design r1 foundation); this enum only maps club states onto it.
+/// Buttons use the shared `CYPillButtonStyle` / `CYDestructiveButtonStyle`, sheets the shared
+/// `CYResizableSheet` and `CYSheetHeader`.
 enum ClubR1Status: String, CaseIterable, Sendable {
     case live, pending, ended, rejected
 
-    var tone: CYStatusTone {
+    var tagState: CYStatusTagState {
         switch self {
-        case .live: return .success
+        case .live: return .live
         case .pending: return .warning
         case .ended: return .neutral
-        case .rejected: return .danger
+        case .rejected: return .failed
         }
     }
 
-    var symbol: String {
-        switch self {
-        case .live: return "dot.radiowaves.left.and.right"
-        case .pending: return "clock"
-        case .ended: return "checkmark.circle"
-        case .rejected: return "xmark.octagon"
-        }
-    }
-}
-
-struct ClubR1StatusTag: View {
-    let status: ClubR1Status
-    let text: String
-    var body: some View {
-        CYStatusChip(verbatim: text, tone: status.tone, systemImage: status.symbol)
-    }
-}
-
-// MARK: - Sheet chrome
-
-// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Sheet header: title left 20 Bold, round ✕ right (32 visual, 44 target). The grabber is the system one.
-struct ClubR1SheetHeader: View {
-    let title: String
-    let onClose: () -> Void
-    @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
-
-    var body: some View {
-        HStack(spacing: CYSpacing.sm) {
-            Text(verbatim: title)
-                .font(CYTypography.sheetTitle)
-                .foregroundStyle(palette.textPrimary)
-                .accessibilityAddTraits(.isHeader)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(CYTypography.label.weight(.bold))
-                    .foregroundStyle(palette.textSecondary)
-                    .frame(width: 32, height: 32)
-                    .background(Circle().fill(palette.bgSurfaceSubtle))
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(verbatim: clubR1("common.close", locale)))
-        }
-    }
-}
-
-/// Section 3 detents. `fit` opens at the content height capped at 62 %.
-enum ClubR1SheetSize {
-    case fit(CGFloat)
-    case mediumLarge
-    case fitLarge(CGFloat)
-    case largeOnly
-
-    var detents: Set<PresentationDetent> {
-        switch self {
-        case .fit(let height): return [.height(min(height, 520))]
-        case .mediumLarge: return [.medium, .large]
-        case .fitLarge(let height): return [.height(min(height, 520)), .large]
-        case .largeOnly: return [.large]
-        }
-    }
-}
-
-// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Resizable scrollable sheet: smallest detent first, grows by drag, scrolls at the largest detent.
-struct ClubR1SheetStyle: ViewModifier {
-    let size: ClubR1SheetSize
-    var interactiveDismissDisabled = false
-    func body(content: Content) -> some View {
-        content
-            .presentationDetents(size.detents)
-            .presentationDragIndicator(.visible)
-            .presentationContentInteraction(.resizes)
-            .presentationCornerRadius(CYRadius.sheet)
-            .interactiveDismissDisabled(interactiveDismissDisabled)
-    }
-}
-
-extension View {
-    func clubR1Sheet(_ size: ClubR1SheetSize, interactiveDismissDisabled: Bool = false) -> some View {
-        modifier(ClubR1SheetStyle(size: size, interactiveDismissDisabled: interactiveDismissDisabled))
-    }
+    var tone: CYStatusTone { tagState.tone }
+    var symbol: String { tagState.systemImage }
 }
 
 /// `spring(response: 0.38, dampingFraction: 0.86)` between detents and for state morphs; nil under Reduce Motion.

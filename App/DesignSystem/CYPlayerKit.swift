@@ -55,15 +55,17 @@ enum CYUnknownValue {
 
 // MARK: - Status tag (Player/Status Tag, PL-14)
 
-/// The five player status states. Each has its own icon so the state never depends on colour alone.
+/// The player status states, plus `failed` for the club and merchant kits (未通过 / failed, red).
+/// Each has its own icon so the state never depends on colour alone. Blue is never used.
 enum CYStatusTagState: CaseIterable, Hashable {
-    case neutral, live, paused, warning, done
+    case neutral, live, paused, warning, done, failed
 
     var tone: CYStatusTone {
         switch self {
         case .neutral, .paused: return .neutral
         case .live, .done: return .success
         case .warning: return .warning
+        case .failed: return .danger
         }
     }
 
@@ -74,6 +76,7 @@ enum CYStatusTagState: CaseIterable, Hashable {
         case .paused: return "pause.circle"
         case .warning: return "exclamationmark.triangle"
         case .done: return "checkmark.circle"
+        case .failed: return "xmark.octagon"
         }
     }
 }

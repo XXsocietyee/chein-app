@@ -92,58 +92,14 @@ extension View {
     }
 }
 
-/// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Local stand-in for the shared pill button: one primary pill per screen or sheet (black on light,
-/// white on dark through `actionPrimaryBg`), 44 high; `secondary` is the grey brand-soft pill, 36 visual in a 44 target.
-struct EditorKitPillButtonStyle: ButtonStyle {
-    enum Kind: Sendable { case primary, secondary, destructiveText }
-    var kind: Kind = .primary
-    var fullWidth: Bool = false
-
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.isEnabled) private var isEnabled
-    @QuestifyReduceMotion private var reduceMotion
-
-    func makeBody(configuration: Configuration) -> some View {
-        let visualHeight = kind == .primary ? EditorKitMetric.doneHeight : EditorKitMetric.secondaryVisual
-        configuration.label
-            .font(.body.weight(.semibold))
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-            .foregroundStyle(foreground)
-            .padding(.horizontal, kind == .destructiveText ? 0 : EditorKitMetric.donePaddingX)
-            .padding(.vertical, CYSpacing.xs)
-            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: visualHeight)
-            .background(Capsule(style: .continuous).fill(fill))
-            .frame(minHeight: EditorKitMetric.hit)
-            .contentShape(Rectangle())
-            .scaleEffect(configuration.isPressed && isEnabled && !reduceMotion ? EditorMotionSpec.pressScale : 1)
-            .animation(EditorKitMotion.press(reduceMotion: reduceMotion), value: configuration.isPressed)
-    }
-
-    private var foreground: Color {
-        guard isEnabled else { return palette.textDisabled }
-        switch kind {
-        case .primary: return palette.actionPrimaryFg
-        case .secondary: return palette.textPrimary
-        case .destructiveText: return palette.danger
-        }
-    }
-
-    private var fill: Color {
-        switch kind {
-        case .primary: return isEnabled ? palette.actionPrimaryBg : palette.bgSurfaceSubtle
-        case .secondary: return palette.brandSoft
-        case .destructiveText: return .clear
-        }
-    }
-}
-
-extension ButtonStyle where Self == EditorKitPillButtonStyle {
-    static var editorPrimary: EditorKitPillButtonStyle { EditorKitPillButtonStyle(kind: .primary) }
-    static var editorSecondary: EditorKitPillButtonStyle { EditorKitPillButtonStyle(kind: .secondary) }
-    static func editorPrimary(fullWidth: Bool) -> EditorKitPillButtonStyle { EditorKitPillButtonStyle(kind: .primary, fullWidth: fullWidth) }
-    static func editorSecondary(fullWidth: Bool) -> EditorKitPillButtonStyle { EditorKitPillButtonStyle(kind: .secondary, fullWidth: fullWidth) }
+/// Editor buttons are the shared design r1 pill (`CYPillButtonStyle`): one primary per screen or sheet (black on
+/// light, white on dark through `actionPrimaryBg`), 44 high; `editorSecondary` is the shared secondary pill in its
+/// compact 44 pt form.
+extension ButtonStyle where Self == CYPillButtonStyle {
+    static var editorPrimary: CYPillButtonStyle { CYPillButtonStyle(style: .primary, fullWidth: false) }
+    static var editorSecondary: CYPillButtonStyle { CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true) }
+    static func editorPrimary(fullWidth: Bool) -> CYPillButtonStyle { CYPillButtonStyle(style: .primary, fullWidth: fullWidth) }
+    static func editorSecondary(fullWidth: Bool) -> CYPillButtonStyle { CYPillButtonStyle(style: .secondary, fullWidth: fullWidth, compact: !fullWidth) }
 }
 
 /// Section 2 "Selected state": neutral 1.5 pt border plus a filled check. No tint, no fill.

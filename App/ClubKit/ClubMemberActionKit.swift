@@ -86,8 +86,8 @@ struct ClubConsequenceSheet: View {
     @State private var presented = 0
 
     var body: some View {
+        CYResizableSheet(kind: .pickerLong, title: Text(verbatim: title)) {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            ClubR1SheetHeader(title: title) { dismiss() }
             if let objectName, !objectName.isEmpty {
                 Text(verbatim: objectName)
                     .font(CYTypography.body)
@@ -110,30 +110,25 @@ struct ClubConsequenceSheet: View {
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
-            Spacer(minLength: 0)
             VStack(spacing: CYSpacing.s2_5) {
                 if let alternativeTitle, let onAlternative {
                     Button {
                         dismiss()
                         onAlternative()
                     } label: { Text(verbatim: alternativeTitle) }
-                    .buttonStyle(ClubR1PillButtonStyle(kind: .secondary))
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                 }
                 Button {
                     dismiss()
                     onConfirm()
                 } label: { Text(verbatim: confirmTitle) }
-                .buttonStyle(ClubR1PillButtonStyle(kind: .destructive))
+                .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true, isPill: true))
                 .accessibilityIdentifier("club.consequence.confirm")
             }
         }
-        .padding(.horizontal, CYSpacing.lg)
-        .padding(.top, CYSpacing.lg)
-        .padding(.bottom, CYSpacing.sm)
-        .background(palette.bgPage.ignoresSafeArea())
+        }
         .sensoryFeedback(.warning, trigger: presented)
         .onAppear { presented += 1 }
-        .clubR1Sheet(.fitLarge(CGFloat(300 + consequences.count * 44)))
     }
 }
 

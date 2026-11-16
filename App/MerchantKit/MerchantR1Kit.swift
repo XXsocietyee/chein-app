@@ -1,9 +1,8 @@
 import SwiftUI
 
 // Design hand-off r1 · merchant & creator kit (docs/design/handoff-r1/review/full-merchant-creator.md §2).
-// Light merchant theme: one button shape (black, radius 12, 46 high, pinned), chips 36 on 44,
-// one status tag with an icon, unknown values as "—". Feature-local; nothing here edits
-// App/DesignSystem or App/Theme. Copy lives in Resources/DesignR1Merchant.xcstrings.
+// Light merchant theme: shared pill buttons and status tags from the design r1 foundation,
+// unknown values as "—". Feature-local; nothing here edits App/DesignSystem or App/Theme. Copy lives in Resources/DesignR1Merchant.xcstrings.
 
 /// One string from the r1 merchant catalog. Keys are written without the `r1merchant.` prefix.
 func merchantR1(_ key: String, _ locale: Locale) -> String {
@@ -17,116 +16,26 @@ func merchantR1Value(_ value: String?) -> String {
     return shown.isEmpty ? "—" : shown
 }
 
-// MARK: - Buttons
-
-// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Merchant/Button: radius 12, 46 high, full width. Primary black, secondary light grey fill, destructive red
-/// (only for actions that cannot be undone). Press = scale .97, 80 ms, no haptic.
-struct MerchantR1ButtonStyle: ButtonStyle {
-    enum Kind { case primary, secondary, destructive }
-    var kind: Kind = .primary
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
-        configuration.label
-            .font(CYTypography.button)
-            .foregroundStyle(foreground)
-            .frame(maxWidth: .infinity, minHeight: 46)
-            .padding(.horizontal, CYSpacing.lg)
-            .background(shape.fill(background))
-            .contentShape(shape)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
-    }
-
-    private var foreground: Color {
-        guard isEnabled else { return palette.textDisabled }
-        switch kind {
-        case .primary: return palette.actionPrimaryFg
-        case .secondary: return palette.textPrimary
-        case .destructive: return palette.actionDangerFg
-        }
-    }
-
-    private var background: Color {
-        guard isEnabled else { return palette.bgSurfaceSubtle }
-        switch kind {
-        case .primary: return palette.actionPrimaryBg
-        case .secondary: return palette.actionSecondaryBg
-        case .destructive: return palette.actionDangerBg
-        }
-    }
-}
-
 // MARK: - Status
 
-// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
 /// Merchant/Status Tag: needs me = amber, waiting on someone else = grey with a clock, live / done = green,
-/// failed = red, info = grey. One tag with an icon; blue is not used.
+/// failed = red, info = grey. Drawn with the shared `CYStatusTag` (design r1 foundation); this enum only maps
+/// merchant states onto it. Buttons use the shared `CYPillButtonStyle`. Blue is not used.
 enum MerchantR1Status: String, CaseIterable, Sendable {
     case needsMe, waiting, live, done, failed, info
 
-    var tone: CYStatusTone {
+    var tagState: CYStatusTagState {
         switch self {
         case .needsMe: return .warning
         case .waiting, .info: return .neutral
-        case .live, .done: return .success
-        case .failed: return .danger
+        case .live: return .live
+        case .done: return .done
+        case .failed: return .failed
         }
     }
 
-    var symbol: String {
-        switch self {
-        case .needsMe: return "exclamationmark.circle"
-        case .waiting: return "clock"
-        case .live: return "dot.radiowaves.left.and.right"
-        case .done: return "checkmark.circle"
-        case .failed: return "xmark.octagon"
-        case .info: return "info.circle"
-        }
-    }
-}
-
-struct MerchantR1StatusTag: View {
-    let status: MerchantR1Status
-    let text: String
-    var body: some View {
-        CYStatusChip(verbatim: text, tone: status.tone, systemImage: status.symbol)
-    }
-}
-
-// MARK: - Chips
-
-// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player
-/// Merchant/Chip: 36 visual on a 44 target; unselected = light grey capsule with ink text; selected = black
-/// capsule with white text. Never bare text.
-struct MerchantR1Chip: View {
-    let title: String
-    var count: Int?
-    let isSelected: Bool
-    let action: () -> Void
-    @Environment(\.cyPalette) private var palette
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: CYSpacing.xs) {
-                Text(verbatim: title)
-                if let count { Text(verbatim: "\(count)").monospacedDigit() }
-            }
-            .font(CYTypography.body.weight(.medium))
-            .foregroundStyle(isSelected ? palette.actionPrimaryFg : palette.textPrimary)
-            .padding(.horizontal, CYSpacing.lg)
-            .frame(minHeight: 36)
-            .background(Capsule(style: .continuous).fill(isSelected ? palette.actionPrimaryBg : palette.actionSecondaryBg))
-            .frame(minHeight: 44)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.selection, trigger: isSelected)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
+    var tone: CYStatusTone { tagState.tone }
+    var symbol: String { tagState.systemImage }
 }
 
 // MARK: - Headers
@@ -205,9 +114,9 @@ struct MerchantR1OutcomeUnknownCard: View {
             }
             HStack(spacing: CYSpacing.md) {
                 Button(action: onCheck) { Text(verbatim: merchantR1("outcome.check", locale)) }
-                    .buttonStyle(MerchantR1ButtonStyle(kind: .secondary))
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                 Button(action: onRetry) { Text(verbatim: merchantR1("outcome.retry", locale)) }
-                    .buttonStyle(MerchantR1ButtonStyle(kind: .secondary))
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
             }
         }
         .padding(CYSpacing.lg)
@@ -407,7 +316,7 @@ struct MerchantR1SigningHandOff: View {
                                   expectation: merchantR1("signing.after", locale))
             if copied, let wechat = URL(string: "weixin://") {
                 Button { openURL(wechat) } label: { Text(verbatim: merchantR1("signing.openWeChat", locale)) }
-                    .buttonStyle(MerchantR1ButtonStyle(kind: .secondary))
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("merchant.r1.signing.openWeChat")
             }
         }

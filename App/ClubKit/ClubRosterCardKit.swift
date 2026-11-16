@@ -89,7 +89,7 @@ struct ClubRosterCard: View {
                             .font(CYTypography.body)
                             .foregroundStyle(palette.textPrimary)
                         Spacer(minLength: CYSpacing.sm)
-                        ClubR1StatusTag(status: attendee.status, text: attendee.statusText)
+                        CYStatusTag(verbatim: attendee.statusText, state: attendee.status.tagState)
                     }
                     .frame(minHeight: 44)
                 }

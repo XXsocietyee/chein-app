@@ -1,8 +1,8 @@
 """Design hand-off r1 (member/club + merchant/creator) kit contract.
 
 Every literal key passed to clubR1(...) / merchantR1(...) exists in its catalog, the catalogs are
-in sync with tools/build_design_r1_localizations.py, and each local stand-in for a shared
-design-system piece carries the HANDOFF-R1 replacement marker.
+in sync with tools/build_design_r1_localizations.py, and no local stand-in for a shared
+design-system piece remains (they were replaced at integration).
 """
 import json
 import re
@@ -16,7 +16,6 @@ CALL = {
     'clubR1': ('r1club', ROOT / 'Resources/DesignR1Club.xcstrings'),
     'merchantR1': ('r1merchant', ROOT / 'Resources/DesignR1Merchant.xcstrings'),
 }
-MARKER = '// HANDOFF-R1: replace with DS component from ui/d-r1-foundation-player'
 
 
 def swift_sources():
@@ -45,11 +44,19 @@ class DesignR1KitContract(unittest.TestCase):
                         missing.append(f'{source.relative_to(ROOT)}: {stem}*')
         self.assertEqual(missing, [])
 
-    def test_stand_ins_are_marked(self):
+    def test_stand_ins_are_replaced(self):
+        # Integration (ui/h-integ-d-r1): every HANDOFF-R1 stand-in now uses the shared design r1 component
+        # (CYPillButtonStyle, CYStatusTag, CYSheetHeader / CYResizableSheet) and the stand-in types are gone.
+        sources = [*swift_sources(), ROOT / 'App/EditorKitSheet.swift', ROOT / 'App/EditorKitFoundation.swift']
+        gone = ('ClubR1PillButtonStyle', 'ClubR1StatusTag', 'ClubR1SheetHeader', 'ClubR1SheetStyle', 'ClubR1SheetSize',
+                'clubR1Sheet(', 'MerchantR1ButtonStyle', 'MerchantR1StatusTag', 'MerchantR1Chip', 'EditorKitPillButtonStyle')
+        for source in sources:
+            text = source.read_text()
+            self.assertNotIn('HANDOFF-R1: replace with DS component', text, source.name)
+            for name in gone:
+                self.assertNotIn(name, text, f'{source.name}: {name}')
         kit = (ROOT / 'App/ClubKit/ClubR1Kit.swift').read_text()
-        for name in ('ClubR1PillButtonStyle', 'ClubR1Status', 'ClubR1SheetHeader', 'ClubR1SheetStyle'):
-            index = kit.index(f'struct {name}:') if f'struct {name}:' in kit else kit.index(f'enum {name}:')
-            self.assertIn(MARKER, kit[max(0, index - 400):index], name)
+        self.assertIn('var tagState: CYStatusTagState', kit)
 
     def test_kits_do_not_edit_shared_design_system(self):
         for folder in ('App/ClubKit', 'App/MerchantKit'):
