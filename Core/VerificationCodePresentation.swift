@@ -33,7 +33,32 @@ public struct VerificationCodeReceipt: Decodable {
               expiresAtMilliseconds > 0, (1...300_000).contains(ttlMilliseconds) else { throw VerificationCodeFailure.invalid }
     }
     public var expiry: Date { Date(timeIntervalSince1970: Double(expiresAtMilliseconds) / 1000) }
+    /// Largest server/device clock offset accepted (acceptance F-03: the TEST server ran ~7 s ahead).
+    /// Beyond it the server's absolute expiry cannot be placed on this device's clock and the code is treated as expired.
+    public static let maximumClockOffset: TimeInterval = 120
+    public var ttl: TimeInterval { Double(ttlMilliseconds) / 1000 }
+    /// Issue instant on the SERVER's clock: the signed absolute expiry minus the TTL.
+    public var serverIssuedAt: Date { expiry.addingTimeInterval(-ttl) }
+    /// Device-clock expiry of a code requested at `requestedAt` and received at `receivedAt`.
+    /// The server minted it somewhere in [requestedAt, receivedAt] on this device's clock, so the observed
+    /// clock offset is `serverIssuedAt − deviceIssue`. Within ±`maximumClockOffset` the code lives for its TTL
+    /// from `requestedAt` (the earliest possible issue instant, so the lifetime is never extended past the
+    /// server's). Comparing the server's absolute expiry to the device clock instead made a 7 s fast server
+    /// look expired at once. A code minted long before the request (or a wildly wrong clock) is expired.
+    public func localExpiry(requestedAt: Date, receivedAt: Date) throws -> Date {
+        guard receivedAt >= requestedAt else { throw VerificationCodeFailure.expired }
+        let largestOffset = serverIssuedAt.timeIntervalSince(requestedAt)
+        let smallestOffset = serverIssuedAt.timeIntervalSince(receivedAt)
+        guard smallestOffset <= Self.maximumClockOffset, largestOffset >= -Self.maximumClockOffset else {
+            throw VerificationCodeFailure.expired
+        }
+        return requestedAt.addingTimeInterval(ttl)
+    }
     func validatedCode(target: VerificationCodeTarget, accountID: Int, requestedAt: Date, now: Date) throws -> String {
+        try validated(target: target, accountID: accountID, requestedAt: requestedAt, now: now).code
+    }
+    /// The exact server code plus its device-clock expiry (see `localExpiry`).
+    func validated(target: VerificationCodeTarget, accountID: Int, requestedAt: Date, now: Date) throws -> (code: String, expiry: Date) {
         let parts = code.split(separator: ".", omittingEmptySubsequences: false)
         guard target.id > 0, accountID > 0, parts.count == 6, parts[0] == "v1", Int(parts[1]) == target.id,
               Int64(parts[3]) == expiresAtMilliseconds, Int64(parts[4]) != nil,
@@ -44,10 +69,12 @@ public struct VerificationCodeReceipt: Decodable {
         case .cityVoucher:
             guard poiID == target.id, parts[2] == Substring("citynode_\(accountID)") else { throw VerificationCodeFailure.invalid }
         }
-        // Absolute server milliseconds are mandatory. Never extend a code with a local TTL fallback.
-        guard now >= requestedAt, expiry > now,
-              expiry.timeIntervalSince(requestedAt) <= Double(ttlMilliseconds) / 1000 + 5 else { throw VerificationCodeFailure.expired }
-        return code
+        // Absolute server milliseconds are mandatory (bound to the signed payload above) and anchor the issue
+        // instant. The lifetime is the server TTL measured on this device's clock, never longer.
+        guard now >= requestedAt else { throw VerificationCodeFailure.expired }
+        let expiry = try localExpiry(requestedAt: requestedAt, receivedAt: now)
+        guard expiry > now else { throw VerificationCodeFailure.expired }
+        return (code, expiry)
     }
 }
 
@@ -205,9 +232,9 @@ public struct VerificationCodeApproval {
             let requestedAt = now()
             let receipt = try await service.issue(target, context: owner)
             guard isCurrent(stamp) else { return }
-            let validatedPayload = try receipt.validatedCode(target: target, accountID: owner.session.accountID, requestedAt: requestedAt, now: now())
-            code = validatedPayload; expiry = receipt.expiry; issuedAt = requestedAt
-            remainingSeconds = max(0, Int(receipt.expiry.timeIntervalSince(now()).rounded(.up))); phase = .ready
+            let validated = try receipt.validated(target: target, accountID: owner.session.accountID, requestedAt: requestedAt, now: now())
+            code = validated.code; expiry = validated.expiry; issuedAt = requestedAt
+            remainingSeconds = max(0, Int(validated.expiry.timeIntervalSince(now()).rounded(.up))); phase = .ready
         } catch { fail(error, stamp: stamp) }
     }
     /// There is no ticket-code status endpoint. Read the authoritative registration record.

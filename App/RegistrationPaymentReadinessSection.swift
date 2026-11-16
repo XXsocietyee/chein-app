@@ -19,6 +19,8 @@ extension EnvironmentValues {
     @Environment(\.registrationPaymentReadiness) private var read
     /// The selected ticket's listed price; only a paid ticket checks readiness.
     let price: Decimal?
+    /// Acceptance R2 F-02: the sheet's footer names a `ready: false` answer next to 立即报名 (nil: check failed).
+    var onResult: ((RegistrationPaymentReadiness?) -> Void)? = nil
     @State private var checking = false
     @State private var result: RegistrationPaymentReadiness?
     @State private var failed = false
@@ -58,5 +60,6 @@ extension EnvironmentValues {
         checking = true; failed = false
         defer { checking = false }
         if let value = await read() { result = value } else { result = nil; failed = true }
+        onResult?(result)
     }
 }

@@ -31,6 +31,8 @@ struct RegistrationSheetView: View {
     @State private var showingParticipantSheet = false
     @State private var showingPaymentPending = false
     @State private var toastMessage: String?
+    /// Last `payment-readiness` answer for the selected paid ticket (acceptance R2 F-02).
+    @State private var paymentReadiness: RegistrationPaymentReadiness?
     @State private var orderDestination: RegistrationWaitlistOrderVisit?
     @State private var resultOrderDestination: RegistrationResultOrderPresentation?
     @State private var recoveredOrderDestination: RegistrationRecoveredOrderPresentation?
@@ -133,7 +135,7 @@ struct RegistrationSheetView: View {
                         if flow.selectedTicket != nil { G6PromotionCatalogSection(activityID: flow.activity.summary.id) }
                         quoteSection
                         CouponUsabilitySection(phase: couponPhase, onRetry: { Task { await reloadCoupons() } })
-                        RegistrationPaymentReadinessSection(price: flow.selectedTicket?.price)
+                        RegistrationPaymentReadinessSection(price: flow.selectedTicket?.price, onResult: { paymentReadiness = $0 })
                         refundTiersSection
                         waitlistSection
                         confirmationSection
@@ -423,6 +425,8 @@ struct RegistrationSheetView: View {
     }
     /// One-line, human reason why the primary button cannot proceed yet (nil when it can).
     private func blockReason(_ copy: CoreLoopCopy) -> String? {
+        // Acceptance R2 F-01/F-02: "checking" only while a quote is in flight; a refusal shows the server sentence.
+        if let notice = flow.checkoutFooterNotice(paymentReadiness: paymentReadiness) { return footerNoticeText(notice, copy) }
         guard let block = flow.confirmationBlock else { return nil }
         switch block {
         case .missingConsent: return copy.t("请先勾选上方的确认项", "Tick the confirmation above to continue")
@@ -433,6 +437,16 @@ struct RegistrationSheetView: View {
         case .paymentRequired: return copy.t("这笔报名需要付款，当前只开放免费报名", "This sign-up needs payment. Only a free sign-up is open")
         case .intentAlreadySubmitted: return copy.t("已提交报名", "Already submitted")
         default: return copy.t("暂时无法继续", "Not available right now")
+        }
+    }
+    private func footerNoticeText(_ notice: RegistrationCheckoutFooterNotice, _ copy: CoreLoopCopy) -> String {
+        switch notice {
+        case .checkingPrice: return copy.t("正在核对价格…", "Checking the price…")
+        case .priceRefused(let message?): return copy.tr(message)
+        case .priceRefused(.none): return copy.t("暂时无法获取价格，请重试", "Couldn't get the price. Try again")
+        case .priceNeeded: return copy.t("请重新获取价格后继续", "Get the price again to continue")
+        case .consentBeforePrice: return copy.t("请先同意报名告知，再获取价格", "Agree to the sign-up notice, then get the price")
+        case .paymentUnavailable(let message): return message.map { copy.tr($0) } ?? copy.t("支付服务暂不可用", "Payment service unavailable")
         }
     }
     @State private var blockedTaps = 0
@@ -483,6 +497,13 @@ struct RegistrationSheetView: View {
                             .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("registration.form.blockReason")
+                    }
+                    if flow.checkoutFooterNotice(paymentReadiness: paymentReadiness)?.offersQuoteRetry == true {
+                        CYPillButton(verbatim: copy.t("重新获取价格", "Get the price again"), style: .secondary, compact: true) {
+                            Task { await flow.requestQuote() }
+                        }
+                        .disabled(!flow.canEdit || flow.isQuoting)
+                        .accessibilityIdentifier("registration.form.retryQuote")
                     }
                 }
             }
@@ -825,15 +846,9 @@ private struct RegistrationAmountRow: View {
 private struct RegistrationIssueText: View {
     @Environment(\.locale) private var locale
     let issue: RegistrationCoordinatorIssue
-    private var message: String? {
-        switch issue {
-        case .business(let failure): return failure.message
-        case .http(let failure): return failure.response?.message
-        default: return nil
-        }
-    }
+    private var message: String? { issue.serverMessage }
     var body: some View {
-        if let message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        if let message {
             Text(verbatim: CoreLoopCopy(locale: locale).tr(message)).font(.callout).foregroundStyle(.secondary)
         }
     }
