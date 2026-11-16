@@ -33,26 +33,23 @@ import SwiftUI
     @State private var confirmSkip = false
     @Environment(\.offlineWriteSession) private var offlineWriteSession
 
+    /// Design hand-off r1 PL-15: the hint is a `fit` → `.medium` sheet titled 要点提示吗 (no longer a centred dialog).
+    /// The free count is a tag; when the server did not send it, the tag reads "—" with the reason under it.
     var body: some View {
-        ZStack {
-            CYColor.bgOverlay.ignoresSafeArea().onTapGesture(perform: close)
-                .accessibilityLabel(Text("playHelp.close")).accessibilityAddTraits(.isButton)
-            ScrollView {
+        CYResizableSheet(kind: .hint, title: Text("hint.sheet.title", tableName: "DesignR1"), onClose: close) {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text("playHelp.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                        Spacer()
-                        Button(action: close) {
-                            Image(systemName: "xmark").font(.body.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
-                                .frame(width: 44, height: 44)
+                    if let left = model.freeLeft {
+                        if left > 0 {
+                            CYStatusChip(verbatim: appLocalized("playHelp.freeLeft \(left)", locale: locale), tone: .neutral, systemImage: "gift")
+                                .accessibilityIdentifier("playHelp.freeLeft")
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text("playHelp.close"))
-                        .accessibilityIdentifier("playHelp.close")
-                    }
-                    if let left = model.freeLeft, left > 0 {
-                        Text("playHelp.freeLeft \(left)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            .accessibilityIdentifier("playHelp.freeLeft")
+                    } else {
+                        HStack(spacing: CYSpacing.sm) {
+                            CYStatusChip(verbatim: CYUnknownValue.dash, tone: .neutral, systemImage: "gift")
+                            Text("hint.freeLeft.unknown", tableName: "DesignR1").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("playHelp.freeLeft")
                     }
                     if !model.rows.isEmpty {
                         VStack(spacing: 0) {
@@ -72,16 +69,8 @@ import SwiftUI
                     if let notice = model.notice { noticeText(notice) }
                     receiptGroup
                 }
-                .padding(CYSpacing.xl)
-            }
-            .scrollBounceBehavior(.basedOnSize)
-            .frame(maxWidth: 380, maxHeight: 560)
-            .fixedSize(horizontal: false, vertical: true)
-            .background(RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous).fill(CYColor.bgElevated))
-            .padding(CYSpacing.lg)
-            .accessibilityElement(children: .contain)
-            .accessibilityAddTraits(.isModal)
-            .accessibilityIdentifier("playHelp.panel")
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier("playHelp.panel")
         }
         .onAppear { model.markSavedRequests() }
         .overlay {

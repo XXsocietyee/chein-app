@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Sliding selection pill for the root tab bar ("胶囊先伸展，再落位"): it stretches toward the destination for 120 ms,
-/// springs into the new slot, then relaxes. Violet appears only here. It sits over the native `TabView` bar as a
+/// springs into the new slot, then relaxes. Neutral selection (ink at 12%), per the design hand-off r1 PL-01. It sits over the native `TabView` bar as a
 /// non-interactive, accessibility-hidden indicator, so the native tab buttons keep their taps, identifiers and VoiceOver.
 /// Reduce Motion: the pill crossfades between slots. Spec: design-wave3 §4.5.
 struct CYNightTabBar: View {
@@ -11,6 +11,7 @@ struct CYNightTabBar: View {
 
     @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.cyTabBarHidden) private var isTabBarHidden
+    @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var rm
     @Namespace private var pillNS
     @State private var landed: RootTab?
@@ -92,11 +93,11 @@ struct CYNightTabBar: View {
         }
     }
 
+    /// PL-01 (design hand-off r1): neutral selection. The capsule is ink at 12% behind a full-opacity Semibold icon and
+    /// label, so the selected tab never renders as a blank white pill (white glyph on a white fill) and no violet glow.
     private func pill(width: CGFloat) -> some View {
         Capsule(style: .continuous)
-            .fill(CYColor.tabSelected.opacity(0.22))
-            .overlay(Capsule(style: .continuous).strokeBorder(CYColor.tabSelected.opacity(0.55), lineWidth: 1))
-            .shadow(color: CYColor.tabSelected.opacity(0.35), radius: 10)
+            .fill(palette.tabSelectedCapsule)
             .frame(width: max(width, 40), height: pillHeight)
     }
 }

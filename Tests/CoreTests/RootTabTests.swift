@@ -16,8 +16,8 @@ final class RootTabTests: XCTestCase {
     func testPlayerBarRestoresFiveTabsWithPublish() {
         XCTAssertEqual(RootTab.playerTabs, [.home, .roam, .publish, .club, .mine])
         XCTAssertTrue(RootTab.publish.isPlayerTab)
-        XCTAssertEqual(RootTab.playerTabs.map(\.playerTitleKey), ["tabBar.explore", "tabBar.roam", "tabBar.publish", "tabBar.club", "tabBar.passport"])
-        XCTAssertEqual(RootTab.mine.playerSystemImage, "book.closed")
+        XCTAssertEqual(RootTab.playerTabs.map(\.playerTitleKey), ["tabBar.home", "tabBar.roam", "tabBar.publish", "tabBar.club", "tabBar.mine"])
+        XCTAssertEqual(RootTab.mine.playerSystemImage, "person.crop.circle")
         XCTAssertEqual(RootTab.publish.playerSystemImage, "plus.square")
         XCTAssertEqual(Set(RootTab.playerTabs.map(\.playerSystemImage)).count, 5)
     }

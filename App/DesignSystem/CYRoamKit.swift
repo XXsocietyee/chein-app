@@ -87,6 +87,23 @@ struct CYRoamStatusDot: View {
     }
 }
 
+/// Design hand-off r1 PL-14: the roam state as a labelled tag (icon + word), replacing the colour-only dot.
+struct CYRoamStatusTag: View {
+    let phase: RoamPhase
+
+    var body: some View {
+        switch phase {
+        case .idle: CYStatusTag(.ready)
+        case .starting: CYStatusTag(.locating)
+        case .walking: CYStatusTag(.recording)
+        case .paused: CYStatusTag(.paused)
+        case .finishing: CYStatusTag("statusTag.finishing", state: .neutral, tableName: "DesignR1")
+        case .finished: CYStatusTag(.ended)
+        case .blocked: CYStatusTag("statusTag.blocked", state: .warning, tableName: "DesignR1")
+        }
+    }
+}
+
 // MARK: - Go button rings
 
 /// Slow breathing ring around the GO circle while walking (one looping decoration; Reduce Motion = a still ring).

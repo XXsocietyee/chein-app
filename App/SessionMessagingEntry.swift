@@ -60,13 +60,14 @@ import SwiftUI
     }
 }
 
-/// Mini-program pages/talent/list nav 站内消息 bell at the top-left (P-13) with the `unread-total` dot.
+/// 站内消息 bell with the `unread-total` badge. Design hand-off r1 PL-11: the first trailing action on every tab root (was top-left, P-13).
 /// Only for a signed-in account; the badge stays hidden unless its read is granted.
 @MainActor struct SessionMessagingToolbarEntry: ViewModifier {
     @ObservedObject var session: AppSession
     func body(content: Content) -> some View {
         content.toolbar {
-            ToolbarItem(placement: .topBarLeading) {
+            // Design hand-off r1 PL-11: 消息 is the first trailing action, in the same place on all five tab roots.
+            ToolbarItem(placement: .topBarTrailing) {
                 if session.account != nil {
                     NavigationLink { SessionMessagingHome(session: session) } label: {
                         HStack(spacing: 2) {

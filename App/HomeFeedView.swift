@@ -66,12 +66,8 @@ import UIKit
             } else {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                    // Template 1 order: featured hero, then city context, then rails, then the tabbed feed.
-                    if model.bannerFailed || !model.banners.isEmpty {
-                        bannerSection
-                            .padding(.horizontal, -CYSpacing.pageHorizontal)
-                            .cySectionReveal(order: 0, gate: reveal)
-                    }
+                    // Design hand-off r1 PL-22: what the player came for first — header and city context, 编辑精选,
+                    // 附近活动 — then the promo swiper as one band, then 即将上线 and the tabbed feed.
                     if hasHeroHeader {
                         HomeHeroHeaderSectionView(
                             nickname: viewerNickname,
@@ -101,6 +97,12 @@ import UIKit
                     // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
                     feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
                     feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
+                    if model.bannerFailed || !model.banners.isEmpty {
+                        bannerSection
+                            .padding(.horizontal, -CYSpacing.pageHorizontal)
+                            .cySectionReveal(order: 8, gate: reveal)
+                            .pageTemplateReadingOrder(45)
+                    }
                     feedSection(.upcoming, order: 4).pageTemplateReadingOrder(40)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         // Source pages/index feed tabs are 主题 / 活动. The indicator uses textPrimary.
@@ -176,18 +178,8 @@ import UIKit
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.top, CYSpacing.lg)
                     .padding(.bottom, CYSpacing.jumbo)
-                    .background {
-                        if hasHeroHeader {
-                            GeometryReader { proxy in
-                                Color.clear.preference(key: HomeScrollMinYKey.self, value: proxy.frame(in: .global).minY)
-                            }
-                            .allowsHitTesting(false)
-                            .accessibilityHidden(true)
-                        }
-                    }
                 }
                 .background { CYExploreGround() }
-                .modifier(HomeHeroStatusBarClearance(active: hasHeroHeader))
                 .modifier(HomeFeedNavigationSearch(text: $keyword, enabled: !hasHeroHeader, usesDrawer: onOpenUnifiedSearch != nil))
                 .onSubmit(of: .search) { submitFeedSearch() }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
@@ -197,12 +189,10 @@ import UIKit
                 .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: streamSkeleton)
             }
         }
+        // Design hand-off r1 PL-11: one root header. The large title is the tab label (首页); the greeting is its
+        // subtitle line, and the feed scrolls under the bar (the large title collapses on scroll).
         .appNavigationTitle("homeFeed.title")
-        .navigationBarTitleDisplayMode(hasHeroHeader ? .inline : .large)
-        // The greeting block is the title (mini-program home): no second large nav title above it.
-        // Hiding the bar lets the scroll view run under the status bar; HomeHeroStatusBarClearance
-        // puts the greeting fully below that band.
-        .toolbar(hasHeroHeader ? .hidden : .automatic, for: .navigationBar)
+        .navigationBarTitleDisplayMode(.large)
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
         .cyDomainScreen(.player)
@@ -420,44 +410,6 @@ private struct HomeFeedNavigationSearch: ViewModifier {
         } else {
             content
         }
-    }
-}
-
-private struct HomeScrollMinYKey: PreferenceKey {
-    static var defaultValue: CGFloat = -1
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        let next = nextValue()
-        if next >= 0 { value = next }
-    }
-}
-
-private enum HomeWindowSafeTop {
-    @MainActor static var current: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-            .first(where: \.isKeyWindow)?.safeAreaInsets.top ?? 0
-    }
-}
-
-/// Extra top inset so the greeting clears the status bar when the navigation bar is hidden.
-/// Measured once from the content's laid-out top, so a view that is already clear is not padded twice.
-private struct HomeHeroStatusBarClearance: ViewModifier {
-    var active: Bool
-    @State private var extra: CGFloat = 0
-    @State private var locked = false
-    func body(content: Content) -> some View {
-        content
-            .onPreferenceChange(HomeScrollMinYKey.self) { minY in
-                guard active, !locked, minY >= 0 else { return }
-                let safeTop = HomeWindowSafeTop.current
-                guard safeTop > 0 else { return }
-                extra = min(80, max(0, safeTop - minY))
-                locked = true
-            }
-            .safeAreaInset(edge: .top, spacing: 0) {
-                Color.clear.frame(height: active ? extra : 0).accessibilityHidden(true)
-            }
     }
 }
 

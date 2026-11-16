@@ -79,10 +79,8 @@ struct HomeHeroHeaderSectionView: View {
                 // Mini-program `v3-hero-greet-row`: name on its own line, then `玩家 · 城市`, avatar trailing.
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
-                            .font(CYTypography.display)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
+                        // PL-11 / PL-54: the 首页 large title is the header; the greeting is its one-line subtitle.
+                        CYRootSubtitle(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {

@@ -16,6 +16,8 @@ import SwiftUI
     @State private var samplingTask: Task<Void, Never>?
     @State private var showsRevenue = false
     @State private var showsSeasonBoard = false
+    /// Design hand-off r1 PL-13 (N51): the property whose 地盘已释放 sheet is showing.
+    @State private var releasedPropertyID: String?
 
     init(service: any CityMonopolyReading, items: [RoamTerritoryItem], focusedItemID: Binding<String?>,
          reloadSignal: Int = 0, captureFix: (@MainActor () async throws -> RoamDeviceFix)? = nil,
@@ -76,6 +78,44 @@ import SwiftUI
         }
         .onDisappear { samplingTask?.cancel() }
         .cityMonopolyHaptics(model.haptic, reduceMotion: reduceMotion)
+        .onChange(of: model.card?.decay) { _, decay in
+            // The opened deed has been released: say so in a fit sheet with the place and one way back in.
+            if decay == .released, let id = model.card?.propertyId { releasedPropertyID = id }
+        }
+        .cyResizableSheet(
+            isPresented: Binding(get: { releasedPropertyID != nil }, set: { if !$0 { releasedPropertyID = nil } }),
+            kind: .released,
+            title: Text("released.title", tableName: "DesignR1"),
+            primary: CYSheetPrimary("released.reclaim", tableName: "DesignR1", isEnabled: !model.busy) {
+                guard let propertyId = releasedPropertyID else { return }
+                releasedPropertyID = nil
+                Task { await quote(.claim, propertyId: propertyId) }
+            }
+        ) {
+            releasedSheetBody
+        }
+    }
+
+    /// N51 as a sheet: the place card with its 可圈 tag, one line on why, and 完成 as the text action.
+    @ViewBuilder private var releasedSheetBody: some View {
+        let item = items.first { $0.propertyId == releasedPropertyID }
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(verbatim: CYUnknownValue.string(model.card?.title ?? item?.title))
+                    .font(.headline)
+                    .foregroundStyle(CYColor.textPrimary)
+                CYStatusTag("released.claimable", state: .neutral, tableName: "DesignR1")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+            Text("released.body", tableName: "DesignR1")
+                .font(.subheadline)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYPillButton("sheet.done", style: .tertiary, tableName: "DesignR1") { releasedPropertyID = nil }
+                .accessibilityIdentifier("city.released.done")
+        }
+        .accessibilityIdentifier("city.released.sheet")
     }
 
     // MARK: HUD (§3.6: points balance with pending, holdings / limit, season countdown)

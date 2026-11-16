@@ -21,6 +21,8 @@ import SwiftUI
     @State private var failureOffline = false
     @State private var level: Int?
     @State private var streakDays: Int?
+    /// 积分 from the growth center; nil until read, shown as "—".
+    @State private var points: Int?
     @Environment(\.cyPalette) private var palette
     @Environment(\.themeDomain) private var themeDomain
     @QuestifyReduceMotion private var reduceMotion
@@ -79,16 +81,28 @@ import SwiftUI
                 .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
-            // Balance preview (read-only, em dash when unknown). The mini-program shows it under 我的资产.
+            // 我的资产 (design hand-off r1 PL-30, owner Q-B): 积分 first and large; 积分 is the only currency. The ¥ 账户余额
+            // tile appears only when this account holds real money (the server sent a balance). Unknown 积分 reads "—".
             rowLayout {
-                tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
-                    Text(verbatim: snapshot?.balancePreviewText ?? "—")
-                        .font(.subheadline.weight(.semibold).monospacedDigit())
-                        .accessibilityLabel(PageTemplateVoiceOver.spoken(snapshot?.balancePreviewText ?? "—", locale: locale))
-                        .accessibilityIdentifier("member.card.balanceValue")
+                tile(symbol: "circle.hexagongrid.fill") { Text("member.card.points", tableName: "DesignR1") } value: {
+                    Text(verbatim: pointsText)
+                        .font(.title2.weight(.bold).monospacedDigit())
+                        .contentTransition(.numericText())
+                        .accessibilityLabel(PageTemplateVoiceOver.spoken(pointsText, locale: locale))
+                        .accessibilityIdentifier("member.card.pointsValue")
                 }
                 .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("member.card.balance")
+                .accessibilityIdentifier("member.card.points")
+                if let balance = snapshot?.balancePreviewText, snapshot?.balanceText != nil {
+                    tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
+                        Text(verbatim: balance)
+                            .font(.subheadline.weight(.semibold).monospacedDigit())
+                            .accessibilityLabel(PageTemplateVoiceOver.spoken(balance, locale: locale))
+                            .accessibilityIdentifier("member.card.balanceValue")
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("member.card.balance")
+                }
             }
             identityState
             }
@@ -113,6 +127,7 @@ import SwiftUI
         if case .failed = phase { return account.level }
         return nil
     }
+    private var pointsText: String { CYUnknownValue.count(points) }
     private var levelText: String {
         guard let knownLevel else { return MemberHomePageModel.unknownDisplay }
         return "Lv.\(knownLevel)"
@@ -237,6 +252,7 @@ import SwiftUI
                readOwner.accepts(run, scope: reader.scope) {
                 level = overview.center.value?.level ?? overview.progress.value?.level
                 streakDays = overview.progress.value?.streakDays
+                points = overview.center.value?.points
             }
         } catch is CancellationError {
             readOwner.invalidate(run)

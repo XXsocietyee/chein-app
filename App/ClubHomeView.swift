@@ -32,7 +32,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
     /// Source talent/list top tabs 帖文 / 俱乐部; it opens on 俱乐部 and loads the feed only when chosen.
     @State private var topTab = ClubTabPresentation.TopTab.club
-    private var screenTitle: LocalizedStringKey { community == nil ? "club.title" : "club.tab.title" }
+    /// Design hand-off r1 PL-11: the title matches the tab (俱乐部), on both the 帖文 and 俱乐部 top tabs.
+    private var screenTitle: LocalizedStringKey { "club.title" }
     var body: some View {
         VStack(spacing: 0) {
         if community != nil {

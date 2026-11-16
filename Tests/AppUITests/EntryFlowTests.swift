@@ -32,19 +32,17 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(browse.waitForExistence(timeout:10))
         if !browse.isHittable { app.swipeUp() }
         browse.tap()
-        // Four-tab player bar (W1-1): Explore · Roam · Clubs · Passport. Publish is an Explore "+" (hidden for a guest, who has no publishing session); templates stay reachable from the More menu.
-        let explore=app.tabBars.buttons["Explore"]
+        // Five-tab player bar with labels (design hand-off r1 PL-01): Home · Roam · Publish · Clubs · Me.
+        let explore=app.tabBars.buttons["Home"]
         XCTAssertTrue(explore.waitForExistence(timeout:10))
-        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Explore","Roam","Clubs","Passport"])
-        XCTAssertFalse(app.tabBars.buttons["Publish"].exists)
+        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Home","Roam","Publish","Clubs","Me"])
         XCTAssertFalse(app.tabBars.buttons["Activities"].exists)
         XCTAssertFalse(app.buttons["homeFeed.openCreate"].exists)
-        // Unconfigured test build: Home renders its unavailable state without the toolbar, and the Templates entry is gated on
-        // `session.isConfigured`, so neither the More menu nor Templates is offered to a guest here.
+        // Unconfigured test build: Home renders its unavailable state under the 首页 root header. The Templates entry is
+        // gated on `session.isConfigured`, so it is not offered to a guest here.
         XCTAssertTrue(app.staticTexts["homeFeed.configurationUnavailable"].firstMatch.waitForExistence(timeout:5))
-        XCTAssertFalse(app.buttons["homeFeed.moreMenu"].exists)
         XCTAssertFalse(app.buttons["homeFeed.openTemplates"].exists)
-        let account=app.tabBars.buttons["Passport"]
+        let account=app.tabBars.buttons["Me"]
         XCTAssertTrue(account.exists);account.tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
         XCTAssertFalse(app.buttons["welcome.merchant"].exists)

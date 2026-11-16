@@ -49,7 +49,7 @@ import XCTest
         let submit = app.buttons["auth.channels.phoneSignIn"]
         if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn") }
         let merchantTab = app.tabBars.buttons["rootTabBar.tab.merchant.0"]
-        let passportTab = app.tabBars.buttons[chinese ? "护照" : "Passport"]
+        let passportTab = app.tabBars.buttons[chinese ? "我的" : "Me"]
         let signedInShell = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             merchantTab.exists || passportTab.exists
         }, object: nil)

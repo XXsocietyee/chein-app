@@ -230,7 +230,7 @@ import XCTest
     }
     private func orders(_ app: XCUIApplication, owner: Int) {
         assertOrderRowMayMeetButNotCrossNavigationBoundary()
-        tab("Passport", app); tap("profile.open.orders", app)
+        tab("Me", app); tap("profile.open.orders", app)
         XCTAssertTrue(app.staticTexts["Owner \(owner) list snapshot"].waitForExistence(timeout: 5))
         tap("profile.order.41", app)
         XCTAssertTrue(app.staticTexts["Activity or route, Owner \(owner) fresh detail"].waitForExistence(timeout: 5))
@@ -254,7 +254,7 @@ import XCTest
     /// Authored offline; compilation and simulator execution remain NOT_RUN.
     func testActualSettingsFavoritesNoGrantBackDoneAndRepeatedReopen() throws {
         let app = launch(); signIn(app)
-        tab("Passport", app)
+        tab("Me", app)
         let favoritesTabs = app.segmentedControls["accountCollection.favorites.tabs"]
         let unavailable = app.staticTexts["Favorites can't be shown right now."]
         func expectDismissed(_ element: XCUIElement) {
@@ -287,7 +287,7 @@ import XCTest
             }
             tap("Done", app)
             expectDismissed(app.buttons["settingsNative.openFavorites"])
-            XCTAssertTrue(app.navigationBars["Passport"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.navigationBars["Me"].waitForExistence(timeout: 5))
             expectDismissed(favoritesTabs)
         }
         // Evidence is read after sheet dismissal, when the normal root is accessible.
@@ -307,7 +307,7 @@ import XCTest
     /// Mini-program pages/shezhi: 个人资料, 成为俱乐部主理人, 成为商家, 城瘾玩法, 我的收藏 … 退出账号.
     func testSettingsOffersPlayerApplicationsInMiniProgramOrderAndSignsOut() throws {
         let app = launch(); signIn(app)
-        tab("Passport", app); tap("Settings", app)
+        tab("Me", app); tap("Settings", app)
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         let host = app.buttons["settings.becomeClubHost"], merchant = app.buttons["settings.becomeMerchant"]
         let guide = app.buttons["settings.playGuide"], favorites = app.buttons["settingsNative.openFavorites"]
@@ -326,7 +326,7 @@ import XCTest
 
     func testNormalRootOwnedConfigurationReadOnlyAndStoryReturn() throws {
         let app = launch(); signIn(app, owner: 7)
-        tab("Passport", app); app.buttons["Settings"].tap(); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
+        tab("Me", app); app.buttons["Settings"].tap(); tap("account.templateAuthoring", app); tap("templateAuthor.openMine", app)
         tap("templateAuthor.shelf.loadMore", app); tap("templateOwnerConfig.open.111", app)
         let answer = app.textFields["templateAuthor.field.questionAnswer"]
         XCTAssertTrue(revealFixtureElement(answer, in: app, requiresHittable: false)); XCTAssertEqual(answer.value as? String, "Synthetic owner answer")
@@ -357,7 +357,7 @@ import XCTest
         XCTAssertEqual(Set(entries.map(\.namespace)).count, 1)
     }
     func testNormalRootIMHistoryNeverMarksReadOrSends() throws {
-        let app = launch(); signIn(app); tab("Passport", app); tap("Messages", app)
+        let app = launch(); signIn(app); tab("Me", app); tap("Messages", app)
         XCTAssertTrue(app.buttons["messaging.conversation.901"].waitForExistence(timeout: 5))
         tap("messaging.conversation.901", app)
         let latest = app.buttons["messaging.message.52"]
@@ -390,7 +390,7 @@ import XCTest
 
     func testNormalRootTeamReadOnlyJourney() throws {
         let app = launch(); signIn(app)
-        tab("Passport", app); tap("My teams", app)
+        tab("Me", app); tap("My teams", app)
         XCTAssertTrue(app.buttons["team.row.61"].waitForExistence(timeout: 5))
         tap("team.row.61", app)
         XCTAssertTrue(app.navigationBars["Team details"].waitForExistence(timeout: 5))

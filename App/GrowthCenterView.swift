@@ -27,6 +27,8 @@ extension EnvironmentValues {
     @State private var celebrations = CYCelebrationCenter()
     @State private var expandedBadge: Int?
     @State private var lastKnownLevel: [GrowthCenterLoadKey: Int] = [:]
+    /// Design hand-off r1 PL-45: a level increase is a full-screen moment, not a small dialog.
+    @State private var levelUp: CYLevelUpPayload?
     private var reads: GrowthNormalReadTask { model.overviewReads }
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope) }
@@ -71,6 +73,10 @@ extension EnvironmentValues {
             }
         }
         .cyCelebrations(celebrations)
+        .fullScreenCover(item: $levelUp) { payload in
+            CYLevelUpMoment(payload: payload) { levelUp = nil }
+                .roleThemedPresentation()
+        }
         .modifier(GrowthCenterReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
         .onAppear { badgeVisible = true; badgeExploreConsumed = false; badgePresentationID = UUID(); latestReaderID = ObjectIdentifier(reader) }
         .onDisappear { badgeVisible = false; badgePresentationID = UUID() }
@@ -245,6 +251,7 @@ extension EnvironmentValues {
             if let previousLevel = lastKnownLevel[captured], level > previousLevel {
                 UIKitHapticsDriver.ensureInstalled()
                 HapticsService.shared.play(.levelUp)
+                levelUp = CYLevelUpPayload(from: previousLevel, to: level)
             }
             lastKnownLevel[captured] = level
         }

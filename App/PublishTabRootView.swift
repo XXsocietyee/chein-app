@@ -12,6 +12,8 @@ import SwiftUI
     var body: some View {
         SessionPublishingModesView(appliesPushedChrome: false)
             .id(session.publishingSession?.epoch)
+            // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root.
+            .modifier(SessionMessagingToolbarEntry(session: session))
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     if session.isConfigured {

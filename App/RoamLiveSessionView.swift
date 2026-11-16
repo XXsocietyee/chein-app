@@ -271,7 +271,8 @@ import QuestifyCore
             Label("roam.live.consentCard.title", systemImage: "location.fill").font(.subheadline.weight(.semibold))
             Text("roam.live.consentCard.body").font(.footnote).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            CYPillButton("roam.live.consentCard.accept", fullWidth: true) {
+            // PL-20 / PL-25 (HIG Privacy): one button that leads to the system location prompt.
+            CYPillButton("primer.location.allow", fullWidth: true, tableName: "DesignR1") {
                 purposeAccepted = true; storedPurposeAccepted = true
                 if !owner.busy, owner.record == nil { beginStart() }
             }
@@ -344,6 +345,10 @@ import QuestifyCore
     }
     var body: some View {
         sessionObservers
+        // Design hand-off r1 PL-20: no tab bar during a session; the map and the session controls own the screen.
+        .cyHideTabBar()
+        // PL-20: a medium impact on pause and on resume.
+        .cyHaptic(.impactMedium, trigger: owner.phase == .paused)
         .task(id: owner.phase) { await pulseWhileActive() }
         .modifier(G6RoamNPCPromptModifier(walking: roamPhase == .walking, finished: roamPhase == .finished, uniqueTiles: owner.record?.allTiles.count, sessionID: owner.record?.sessionID ?? 0))
         .cyCelebrations(celebrations)
@@ -436,7 +441,9 @@ import QuestifyCore
                     .font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 0)
-                CYRoamStatusDot(phase: roamPhase)
+                // PL-14: a labelled status tag, never a dot alone.
+                CYRoamStatusTag(phase: roamPhase)
+                    .accessibilityIdentifier("roam.live.statusTag")
             }
             HStack(alignment: .top, spacing: 8) {
                 TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
@@ -475,9 +482,11 @@ import QuestifyCore
                         // Committed, waiting for the controller: the pill has already shrunk into the puck.
                         Color.clear.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                         CYGoPuck().matchedGeometryEffect(id: "go", in: goNamespace)
-                    } else {
+                    } else if purposeAccepted {
+                        // PL-20 / PL-25: hold-to-start appears only once location use is allowed. Before that the
+                        // consent card's single 允许使用位置 pill is the only primary on the screen.
                         Spacer(minLength: 0)
-                        CYGoHoldPill(enabled: purposeAccepted && !owner.busy) { commitGo() }
+                        CYGoHoldPill(enabled: !owner.busy) { commitGo() }
                             .matchedGeometryEffect(id: "go", in: goNamespace)
                         Spacer(minLength: 0)
                     }
@@ -730,6 +739,9 @@ struct RoamLiveStatTile: View {
         VStack(spacing: 2) {
             Text(verbatim: value).font(.title2.weight(.bold)).monospacedDigit()
                 .cyWrapText(alignment: .center)
+                // PL-20 / PL-48: live numbers roll instead of jumping.
+                .contentTransition(.numericText())
+                .animation(.snappy, value: value)
             Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
