@@ -52,6 +52,12 @@ CLUB = {
     # MC-13 switch explanations
     'switch.prioritySignup': ('Members can sign up for activities before everyone else', '成员可以比其他人更早报名活动'),
     'switch.joinReview': ('New members join only after an organiser approves them', '新成员需要组织者通过后才能加入'),
+    # MC-25 roster card
+    'roster.expand': ('Shows money and attendees', '展开收款与报名人'),
+    'roster.collapse': ('Hides money and attendees', '收起收款与报名人'),
+    'roster.received': ('Received', '实收'),
+    'roster.refunded': ('Refunded', '已退'),
+    'roster.net': ('Net', '净额'),
     # MC-30 badges
     'badge.a11y.earned': ('%@, earned', '%@，已获得'),
     'badge.a11y.locked': ('%@, locked. %@', '%@，未解锁。%@'),

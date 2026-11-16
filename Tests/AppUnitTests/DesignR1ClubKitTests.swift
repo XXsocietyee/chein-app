@@ -65,3 +65,23 @@ final class DesignR1ClubKitTests: XCTestCase {
         XCTAssertEqual(clubR1Value("上海"), "上海")
     }
 }
+
+/// MC-25 roster card numbers.
+final class DesignR1ClubRosterCardTests: XCTestCase {
+    private func model(_ registered: Int?, _ capacity: Int?) -> ClubRosterCardModel {
+        ClubRosterCardModel(title: "老城三章", dateText: nil, registered: registered, capacity: capacity,
+                            received: nil, refunded: nil, net: nil, attendees: [])
+    }
+
+    func testCapacityTextAndFill() {
+        XCTAssertEqual(model(5, 50).countText, "5 / 50")
+        XCTAssertEqual(model(5, 50).fill ?? -1, 0.1, accuracy: 0.0001)
+        XCTAssertEqual(model(60, 50).fill, 1)
+    }
+
+    func testUnknownCapacityIsADashAndNoBar() {
+        XCTAssertEqual(model(nil, 50).countText, "— / 50")
+        XCTAssertNil(model(5, nil).fill)
+        XCTAssertNil(model(5, 0).fill)
+    }
+}
