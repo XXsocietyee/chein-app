@@ -39,38 +39,42 @@ enum ActivityPublishingStatusHelper {
     }
     private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
+    /// Design hand-off r1 CF-58 / CF-19 / CF-22: a three-segment step bar under the nav (a visited segment is
+    /// tappable), one save chip, and no second primary or large in-content title. Errors stay inline under
+    /// their fields; the one primary is the bottom bar's 下一步 / 发布.
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYPublishStatusBar(
-                stepTitles: [
-                    copy.t("基本信息", "Basics"),
-                    copy.t("活动内容", "Content"),
-                    copy.t("票务合作", "Tickets")
-                ],
-                currentStep: current,
-                saveState: saveState,
-                issues: issues,
-                isSubmittingReview: isSubmittingReview,
-                onSelectStep: { index in onSelectStep?(index) },
-                onSubmitReview: { onSubmitReview?() }
-            )
             HStack(spacing: CYSpacing.sm) {
-                ForEach(ActivityPublishingWizard.progress(current)) { item in
-                    VStack(spacing: CYSpacing.xs) {
-                        Capsule()
-                            .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
-                            .frame(height: 4)
-                        Text(Self.titleKey(item.key))
-                            .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
-                            .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
-                            .cyWrapText(alignment: .center)
+                ForEach(Array(ActivityPublishingWizard.progress(current).enumerated()), id: \.element.id) { index, item in
+                    Button { if index < current { onSelectStep?(index) } } label: {
+                        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center, spacing: 6) {
+                            Capsule()
+                                .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
+                                .frame(height: 4)
+                            Text(Self.titleKey(item.key))
+                                .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
+                                .foregroundStyle(item.state == "todo" ? palette.textSecondary : palette.textPrimary)
+                                .cyWrapText(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: EditorKitMetric.hit, alignment: .top)
+                        .contentShape(Rectangle())
                     }
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.plain)
+                    .disabled(index >= current)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("publishModes.activity.wizard.progress." + item.key)
                     .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
                 }
+            }
+            HStack(spacing: CYSpacing.sm) {
+                EditorSaveChip(state: chipState, detail: chipDetail)
+                if let onRetry = retryAction {
+                    Button(action: onRetry) { EditorKitText.text("editorKit.retry") }
+                        .buttonStyle(.editorSecondary)
+                        .accessibilityIdentifier("publishModes.activity.wizard.saveRetry")
+                }
+                Spacer(minLength: 0)
             }
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
@@ -79,14 +83,27 @@ enum ActivityPublishingStatusHelper {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
-            Text(verbatim: CoreLoopCopy(locale: locale).wizardHeading(for: current))
-                .font(CYTypography.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("publishModes.activity.wizard.heading")
         }
         .padding(.vertical, CYSpacing.xs)
         .accessibilityIdentifier("publishModes.activity.wizard.step." + String(current))
+    }
+    private var chipState: EditorSaveState {
+        switch saveState {
+        case .savedDraft: return .saved
+        case .unsavedChanges: return .unsaved
+        case .saveFailed: return .failed
+        }
+    }
+    private var retryAction: (() -> Void)? {
+        if case .saveFailed(_, let onRetry) = saveState { return onRetry }
+        return nil
+    }
+    private var chipDetail: Text? {
+        switch saveState {
+        case .savedDraft(let updatedAt): return Text(verbatim: updatedAt)
+        case .unsavedChanges: return nil
+        case .saveFailed(let reason, _): return Text(verbatim: reason)
+        }
     }
     @ViewBuilder private func wizardSteps(_ current: Int) -> some View {
         ForEach(ActivityPublishingWizard.progress(current)) { item in

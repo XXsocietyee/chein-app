@@ -416,8 +416,12 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                                 clearButton(.ticketName(ticket.id))
                             }
                             fieldError("ticketName\(index)")
-                            TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
-                                .foregroundStyle(palette.textPrimary)
+                            // CF-48: prices carry 积分, the only currency.
+                            HStack(spacing: CYSpacing.s1_5) {
+                                TextField("publishParity.ticket.price", text: $ticket.price).keyboardType(.decimalPad)
+                                    .foregroundStyle(palette.textPrimary)
+                                EditorKitText.text(EditorUnit.points.key).foregroundStyle(palette.textSecondary)
+                            }
                             fieldError("ticketPrice\(index)")
                             HStack {
                                 TextField("publishParity.ticket.stock", text: $ticket.stock).keyboardType(.numberPad)
@@ -431,20 +435,59 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                             TextField("publishModes.end", text: $ticket.end)
                                 .foregroundStyle(palette.textPrimary)
                             fieldError("ticketEnd\(index)")
-                            Button("publishModes.remove", role: .destructive) { draft.tickets.removeAll { $0.id == ticket.id } }
-                        } header: { Text("publishModes.ticketNumber \(index + 1)").foregroundStyle(palette.textPrimary) }
+                        } header: {
+                            // CF-33 / CF-58: one "⋯" per ticket (上移, 下移, 删除 last) instead of a red text link.
+                            HStack {
+                                Text("publishModes.ticketNumber \(index + 1)").foregroundStyle(palette.textPrimary)
+                                Spacer(minLength: CYSpacing.sm)
+                                EditorRowActionsMenu(index: index, count: draft.tickets.count, deleteTitle: Text("publishModes.remove"),
+                                                     menuID: "publishModes.ticket.menu.\(index)") { action in
+                                    switch action {
+                                    case .delete:
+                                        draft.tickets.removeAll { $0.id == ticket.id }
+                                    case .moveUp, .moveDown:
+                                        if let destination = EditorReorder.destination(for: action, index: index, count: draft.tickets.count) {
+                                            draft.tickets.move(fromOffsets: IndexSet(integer: index), toOffset: destination)
+                                        }
+                                    case .duplicate:
+                                        break
+                                    }
+                                }
+                                .textCase(nil)
+                            }
+                        }
                         .listRowBackground(palette.bgElevated)
                         .disabled(!editable)
                 }
                 // Mini-program publish/activity: 添加票单 directly follows the ticket list, before publisher identity.
                 Section {
-                    Button { draft.tickets.append(.init()) } label: { Label("publishModes.addTicket", systemImage: "plus.circle") }
+                    EditorAddRow(title: Text("publishModes.addTicket"), accessibilityID: "editorKit.activity.addTicket") { draft.tickets.append(.init()) }
                         .disabled(!editable)
                     if wizardBlock == "ticket" { fieldError("ticket") }
                 }
                 .listRowBackground(palette.bgElevated)
                 if requiresIdentity {
-                    PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
+                    // Design hand-off r1 CF-58: real-name is its own pushed page, shown only when needed.
+                    Section {
+                        NavigationLink {
+                            Form {
+                                PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
+                            }
+                            .formStyle(.grouped).cyGroupedSurface()
+                            .navigationTitle(Text("title", tableName: "PublisherIdentityRegistration"))
+                            .navigationBarTitleDisplayMode(.inline)
+                        } label: {
+                            EditorRow(
+                                label: Text("title", tableName: "PublisherIdentityRegistration"),
+                                value: identityRegistration.confirmedRegistered ? Text("status.registered", tableName: "PublisherIdentityRegistration") : nil,
+                                systemImage: "person.text.rectangle",
+                                showsDot: !identityRegistration.confirmedRegistered,
+                                accessory: .none
+                            )
+                        }
+                        .accessibilityIdentifier("publishModes.activity.identityPage")
+                    }
+                    .listRowBackground(palette.bgElevated)
                 }
                 Section {
                     ActivityPublishingReviewSummaryCard(
