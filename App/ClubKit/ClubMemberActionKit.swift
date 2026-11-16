@@ -192,3 +192,28 @@ struct ClubPageEndActions: View {
         .accessibilityIdentifier(identifier)
     }
 }
+
+/// MC-29 / MR-07 / MR-38: withdrawal is a named customer-service hand-off with the next step and reply time.
+struct ClubWithdrawalHandOffNote: View {
+    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        HStack(alignment: .top, spacing: CYSpacing.sm) {
+            Image(systemName: "person.crop.circle.badge.questionmark")
+                .foregroundStyle(palette.textSecondary)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(verbatim: clubR1("funds.handOff.title", locale))
+                    .font(CYTypography.body.weight(.semibold))
+                    .foregroundStyle(palette.textPrimary)
+                Text(verbatim: clubR1("funds.handOff.line", locale))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("club.withdraw.handOff")
+    }
+}

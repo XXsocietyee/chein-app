@@ -45,6 +45,10 @@ CLUB = {
     'club.report': ('Report club', '举报俱乐部'),
     'request.approve': ('Approve', '通过'),
     'request.reject': ('Decline', '拒绝'),
+    # MC-29 withdrawal hand-off (owner Q-C: keep it, name it, explain it)
+    'funds.withdrawViaSupport': ('Request withdrawal via support', '通过客服申请提现'),
+    'funds.handOff.title': ('Withdrawals are handled by platform support', '提现由平台客服办理'),
+    'funds.handOff.line': ('Open support and send the club name and amount. Support replies within 1 working day and pays out to your verified account.', '打开客服后发送俱乐部名称和金额，客服 1 个工作日内回复，款项打到你已核验的收款账户。'),
     # MC-30 badges
     'badge.a11y.earned': ('%@, earned', '%@，已获得'),
     'badge.a11y.locked': ('%@, locked. %@', '%@，未解锁。%@'),

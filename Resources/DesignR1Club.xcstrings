@@ -337,6 +337,54 @@
         }
       }
     },
+    "r1club.funds.handOff.line": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open support and send the club name and amount. Support replies within 1 working day and pays out to your verified account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开客服后发送俱乐部名称和金额，客服 1 个工作日内回复，款项打到你已核验的收款账户。"
+          }
+        }
+      }
+    },
+    "r1club.funds.handOff.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawals are handled by platform support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现由平台客服办理"
+          }
+        }
+      }
+    },
+    "r1club.funds.withdrawViaSupport": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request withdrawal via support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过客服申请提现"
+          }
+        }
+      }
+    },
     "r1club.member.action.makeAdmin": {
       "localizations": {
         "en": {
