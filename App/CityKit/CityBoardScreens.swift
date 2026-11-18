@@ -105,7 +105,7 @@ struct CityBoardView: View {
 
     private func stat(_ value: String, _ label: String) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value).font(CYTypography.dataXL.monospacedDigit()).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
+            Text(verbatim: value).font(Font.title2.weight(.bold).monospacedDigit()).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
             Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -119,7 +119,7 @@ struct CityBoardView: View {
             }
             .disabled(!store.places.contains { $0.ownership == .open })
             Text(verbatim: copy("走到真实地点，拍一张照片，通过定位校验，就能圈下它。", "Walk to a real place, take a photo, pass the location check, and it is yours."))
-                .font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                .font(Font.body).foregroundStyle(palette.textSecondary)
         }
     }
 
@@ -136,7 +136,7 @@ struct CityBoardView: View {
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+            Text(verbatim: title).font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
             content()
         }
     }
@@ -259,7 +259,7 @@ struct CityRentLedgerView: View {
                 let events = store.revenue?.events ?? []
                 if events.isEmpty {
                     Text(verbatim: copy("今天还没有人来你的地盘打卡。", "Nobody has checked in at your places today."))
-                        .font(CYTypography.body).foregroundStyle(palette.textSecondary).listRowBackground(palette.bgElevated)
+                        .font(Font.body).foregroundStyle(palette.textSecondary).listRowBackground(palette.bgElevated)
                 }
                 ForEach(events) { event in
                     let place = store.place(id: event.propertyId)
@@ -297,7 +297,7 @@ struct CityRentLedgerView: View {
 
     private func total(_ value: Int64?, _ label: String) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map { "\($0)" } ?? "—").font(CYTypography.dataXL.monospacedDigit()).foregroundStyle(palette.textPrimary)
+            Text(verbatim: value.map { "\($0)" } ?? "—").font(Font.title2.weight(.bold).monospacedDigit()).foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText(value: Double(value ?? 0)))
             Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
         }

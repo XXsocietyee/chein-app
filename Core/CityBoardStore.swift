@@ -64,8 +64,8 @@ public struct CityPlace: Identifiable, Equatable {
         tier.map { CityMonopolyRules.rent(tier: $0, level: level, weathered: isWeathered) }
     }
 
-    /// The claim price for an open place (the quote is still the authority).
-    public var claimPrice: Int64? { ownership == .open ? (tier ?? .t1).claimCost : nil }
+    /// The claim price for an open place by its tier; nil until the server names the tier (the quote does).
+    public var claimPrice: Int64? { ownership == .open ? tier?.claimCost : nil }
 
     /// Max-level ladder of the live server: 插旗 Lv0 → 前哨 Lv1 → 据点 Lv2 → 地标旗 Lv3.
     public var canUpgrade: Bool { ownership == .mine && level < CityMonopolyLevel.maxLevel }

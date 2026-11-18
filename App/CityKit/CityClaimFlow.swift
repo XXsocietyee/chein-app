@@ -62,6 +62,7 @@ struct CityCheckRow: View {
     let detail: String
     let state: State
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Group {
@@ -84,7 +85,13 @@ struct CityCheckRow: View {
         .accessibilityValue(Text(verbatim: stateLabel))
     }
     private var stateLabel: String {
-        switch state { case .passed: return "✓"; case .working: return "…"; case .waiting: return "—"; case .failed: return "✗" }
+        let copy = CityCopy(locale: locale)
+        switch state {
+        case .passed: return copy("已通过", "Passed")
+        case .working: return copy("检查中", "Checking")
+        case .waiting: return copy("等待中", "Waiting")
+        case .failed: return copy("未通过", "Not passed")
+        }
     }
 }
 

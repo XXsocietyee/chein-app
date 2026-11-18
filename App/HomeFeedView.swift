@@ -101,8 +101,8 @@ import UIKit
                         CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
                         // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
                         feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
+                        if let cityRail { cityRail.pageTemplateReadingOrder(55) }
                     }
-                    if let cityRail { cityRail.pageTemplateReadingOrder(55) }
                     feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
                     if model.bannerFailed || !model.banners.isEmpty {
                         bannerSection

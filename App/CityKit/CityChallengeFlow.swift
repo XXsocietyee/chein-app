@@ -339,8 +339,8 @@ struct CityDiceMoment: View {
             if let dc {
                 CityOddsBar(needFace: CityOddsBar.needFace(dc: dc, mod: 0))
             }
-            Text(verbatim: copy("准备掷骰", "Ready to roll")).font(CYTypography.display).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
-            Text(verbatim: copy("把骰子甩出去，或点「掷骰」。", "Flick the die, or tap Roll.")).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+            Text(verbatim: copy("准备掷骰", "Ready to roll")).font(Font.title.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+            Text(verbatim: copy("把骰子甩出去，或点「掷骰」。", "Flick the die, or tap Roll.")).font(Font.body).foregroundStyle(palette.textSecondary)
             CityInfoChip(text: copy("对手 ", "Holder ") + copy.level(place.level))
             Spacer()
             CYPillButton(verbatim: copy("掷骰", "Roll"), action: roll).accessibilityIdentifier("city.dice.roll")

@@ -36,14 +36,15 @@ struct CityMomentView<Stage: View>: View {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     stage(beat)
                         .frame(maxWidth: .infinity)
-                        .frame(height: typeSize.isAccessibilitySize ? 240 : max(240, proxy.size.height * 0.52))
+                        // Regular: 52 % of the screen; accessibility sizes: the stage hugs its object (SR2-35 Compact).
+                        .frame(minHeight: typeSize.isAccessibilitySize ? 240 : max(240, proxy.size.height * 0.52))
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text(verbatim: headline)
-                            .font(CYTypography.display).foregroundStyle(palette.textPrimary)
+                            .font(Font.title.weight(.bold)).foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                         Text(verbatim: line)
-                            .font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                            .font(Font.body).foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .opacity(beat >= .text ? 1 : 0)
@@ -137,7 +138,7 @@ struct CitySeal: View {
             .padding(.horizontal, 14).padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(LinearGradient(colors: [CityTokens.coin, Color(red: 0.86, green: 0.55, blue: 0.10)], startPoint: .top, endPoint: .bottom))
+                    .fill(LinearGradient(colors: [CityTokens.coin, CityTokens.gold], startPoint: .top, endPoint: .bottom))
             )
             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Color.white.opacity(0.5), lineWidth: 2))
             .rotationEffect(.degrees(landed || reduceMotion ? -8 : -24))

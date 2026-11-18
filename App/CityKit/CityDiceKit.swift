@@ -22,7 +22,7 @@ struct CityOddsBar: View {
         let copy = CityCopy(locale: locale)
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: copy("需要掷出 ≥ \(max(2, min(20, needFace)))", "Roll ≥ \(max(2, min(20, needFace)))"))
-                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                .font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
             HStack(spacing: 3) {
                 ForEach(1...20, id: \.self) { face in
                     let wins = face >= 21 - winFaces
@@ -56,7 +56,7 @@ struct CityD20Art: View {
 
     var body: some View {
         ZStack {
-            hexagon.fill(LinearGradient(colors: lost ? [Color(white: 0.55), Color(white: 0.32)] : [CityTokens.coin, Color(red: 0.86, green: 0.55, blue: 0.10)],
+            hexagon.fill(LinearGradient(colors: lost ? [CYCityPalette.lostTop, CYCityPalette.lostBottom] : [CityTokens.coin, CityTokens.gold],
                                         startPoint: .top, endPoint: .bottom))
             facets.stroke(Color.black.opacity(0.22), lineWidth: max(1, size / 90))
             hexagon.stroke(Color.white.opacity(0.35), lineWidth: max(1, size / 70))

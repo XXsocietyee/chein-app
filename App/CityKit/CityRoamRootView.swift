@@ -78,7 +78,7 @@ struct CityRoamRootView: View {
                 map
                 header
             }
-            .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: drawer == .peek ? 160 : 0) }
+            .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: drawer == .peek ? 196 : 0) }
             .overlay(alignment: .bottom) {
                 CityNearbyDrawer(detent: $drawer, places: store.places, origin: center, phase: store.phase,
                     holdEnabled: dependencies.liveDestination != nil,
@@ -147,7 +147,7 @@ struct CityRoamRootView: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: copy("漫游", "Roam")).font(CYTypography.pageTitle).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: copy("漫游", "Roam")).font(Font.largeTitle.weight(.bold)).foregroundStyle(palette.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Button { path.append(CityRoamPush.board) } label: {
                         HStack(spacing: 4) {
@@ -279,7 +279,7 @@ struct CityNearbyDrawer: View {
                                    holdingTitle: copy("松手取消", "Release to cancel"), enabled: holdEnabled, onCommit: onHold)
                     HStack {
                         Text(verbatim: copy("附近 · \(visible.count)", "Nearby · \(visible.count)"))
-                            .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+                            .font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
                         Spacer()
                         if detent != .large {
                             Button { set(.large) } label: {
@@ -372,7 +372,7 @@ struct CityNearbyDrawer: View {
 
     private func heightFor(_ detent: CityDrawerDetent, in total: CGFloat) -> CGFloat {
         switch detent {
-        case .peek: return 176
+        case .peek: return 212
         case .medium: return total * 0.5
         case .large: return total * 0.86
         }
@@ -390,7 +390,7 @@ struct CityEmptyLine: View {
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: symbol).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-            Text(verbatim: text).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: text).font(Font.subheadline).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)

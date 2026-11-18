@@ -91,6 +91,8 @@ struct CityDeedCard: View {
     private var unlit: Bool { place.ownership == .fogged }
     private var bandColor: Color { CityTokens.district(unlit ? 0 : place.districtIndex) }
     private var outlined: Bool { place.ownership == .open || unlit }
+    /// Near-black ink on a district band (5.6–10.5:1); on the neutral band (no district or unlit) the secondary ink.
+    private var bandText: Color { !unlit && place.districtIndex > 0 ? CityTokens.bandInk : palette.textSecondary }
 
     var body: some View {
         Group {
@@ -112,7 +114,7 @@ struct CityDeedCard: View {
             band
             CityDeedPhoto(url: place.photoURL).frame(height: 168).clipped()
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: copy.title(place)).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: copy.title(place)).font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 CityLevelPips(level: place.level, unknown: unlit || place.ownership == .open)
                 rentLine
@@ -134,12 +136,12 @@ struct CityDeedCard: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(verbatim: copy.title(place)).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary).lineLimit(1)
+                        Text(verbatim: copy.title(place)).font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary).lineLimit(1)
                         Spacer(minLength: CYSpacing.sm)
                         holderOrPips
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: copy.title(place)).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                        Text(verbatim: copy.title(place)).font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         holderOrPips
                     }
@@ -154,7 +156,30 @@ struct CityDeedCard: View {
         .overlay(outline(corner: 16))
     }
 
-    private var row: some View {
+    @ViewBuilder private var row: some View {
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                rowLead
+                trailingView
+            }
+            .padding(CYSpacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(outline(corner: 16))
+        } else {
+            HStack(spacing: CYSpacing.md) {
+                rowLead
+                Spacer(minLength: CYSpacing.sm)
+                trailingView
+            }
+            .padding(CYSpacing.md)
+            .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(outline(corner: 16))
+        }
+    }
+
+    private var rowLead: some View {
         HStack(spacing: CYSpacing.md) {
             CityDeedPhoto(url: place.photoURL, corner: 10).frame(width: 52, height: 52)
                 .overlay(alignment: .top) { Rectangle().fill(bandColor).frame(height: 4).clipShape(UnevenRoundedRectangle(topLeadingRadius: 10, topTrailingRadius: 10)) }
@@ -164,22 +189,16 @@ struct CityDeedCard: View {
                 HStack(spacing: 6) {
                     Circle().fill(bandColor).frame(width: 7, height: 7).accessibilityHidden(true)
                     Text(verbatim: [copy.district(place), unlit ? nil : copy.level(place.level)].compactMap { $0 }.joined(separator: " "))
-                        .font(CYTypography.caption).foregroundStyle(palette.textSecondary).lineLimit(1)
+                        .font(CYTypography.caption).foregroundStyle(palette.textSecondary).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 }
             }
-            Spacer(minLength: CYSpacing.sm)
-            trailingView
         }
-        .padding(CYSpacing.md)
-        .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(outline(corner: 16))
     }
 
     private var mini: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verbatim: copy.district(place) ?? copy("城市", "City"))
-                .font(CYTypography.micro.weight(.semibold)).foregroundStyle(CityTokens.bandInk).lineLimit(1)
+                .font(Font.caption2.weight(.medium).weight(.semibold)).foregroundStyle(bandText).lineLimit(1)
                 .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
                 .background(bandColor)
             CityDeedPhoto(url: place.photoURL).frame(height: 58).clipped()
@@ -208,7 +227,7 @@ struct CityDeedCard: View {
             if let tier = copy.tier(place.tier), !unlit { Text(verbatim: tier) }
         }
         .font(CYTypography.caption.weight(.semibold))
-        .foregroundStyle(unlit ? palette.textSecondary : CityTokens.bandInk)
+        .foregroundStyle(bandText)
         .padding(.horizontal, CYSpacing.md)
         .frame(maxWidth: .infinity, minHeight: bandHeight)
         .background(bandColor)
@@ -218,7 +237,7 @@ struct CityDeedCard: View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
             CityCoin().alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
             Text(verbatim: unlit ? "—" : (place.rentPerVisit.map { "+\($0)" } ?? "—"))
-                .font(CYTypography.dataXL.monospacedDigit()).foregroundStyle(palette.textPrimary)
+                .font(Font.title2.weight(.bold).monospacedDigit()).foregroundStyle(palette.textPrimary)
             Text(verbatim: copy("每次到访", "per visit")).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
         }
     }
@@ -253,7 +272,7 @@ struct CityDeedCard: View {
     }
 
     private func avatar(_ letter: String, mine: Bool) -> some View {
-        Text(verbatim: letter).font(CYTypography.micro.weight(.bold))
+        Text(verbatim: letter).font(Font.caption2.weight(.medium).weight(.bold))
             .foregroundStyle(mine ? CityTokens.bandInk : palette.textPrimary)
             .frame(width: 22, height: 22)
             .background(mine ? CityTokens.mine : palette.bgRaised, in: Circle())

@@ -84,9 +84,21 @@ struct CityMapLayer: View {
                      CLLocationCoordinate2D(latitude: anchor.latitude - span, longitude: anchor.longitude + span),
                      CLLocationCoordinate2D(latitude: anchor.latitude + span, longitude: anchor.longitude + span),
                      CLLocationCoordinate2D(latitude: anchor.latitude + span, longitude: anchor.longitude - span)]
-        let holes = places.filter { $0.ownership != .fogged }.map { place -> MKPolygon in
-            var cell = place.cell(halfMeters: 90)
-            return MKPolygon(coordinates: &cell, count: cell.count)
+        // Lit ground snaps to a ~150 m grid and each grid cell is cut once: overlapping interior polygons
+        // would cancel each other out (even-odd) and draw fog back inside the light.
+        let step = 0.00137
+        var seen = Set<String>()
+        var holes: [MKPolygon] = []
+        for place in places where place.ownership != .fogged {
+            let row = Int((place.coordinate.latitude / step).rounded(.down)), column = Int((place.coordinate.longitude / step).rounded(.down))
+            for dr in -1...1 { for dc in -1...1 {
+                let key = "\(row + dr):\(column + dc)"
+                guard seen.insert(key).inserted else { continue }
+                let lat = Double(row + dr) * step, lng = Double(column + dc) * step
+                var cell = [CLLocationCoordinate2D(latitude: lat, longitude: lng), CLLocationCoordinate2D(latitude: lat, longitude: lng + step),
+                            CLLocationCoordinate2D(latitude: lat + step, longitude: lng + step), CLLocationCoordinate2D(latitude: lat + step, longitude: lng)]
+                holes.append(MKPolygon(coordinates: &cell, count: cell.count))
+            } }
         }
         return MKPolygon(coordinates: &outer, count: outer.count, interiorPolygons: holes)
     }

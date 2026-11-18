@@ -10,24 +10,15 @@ import QuestifyCore
 enum CityTokens {
     /// District band colours `district/1…6` (the dark-mode values of the Figma `District` collection).
     /// Band labels sit on them in near-black ink (`ink-inv`), 5.6–8.6:1.
-    static func district(_ index: Int) -> Color {
-        switch index {
-        case 1: return Color(red: 0.310, green: 0.525, blue: 0.918)   // 武康路 blue (the only blue on the map, Q1)
-        case 2: return Color(red: 0.180, green: 0.741, blue: 0.627)   // teal
-        case 3: return Color(red: 0.941, green: 0.584, blue: 0.290)   // orange
-        case 4: return Color(red: 0.902, green: 0.400, blue: 0.420)   // coral
-        case 5: return Color(red: 0.820, green: 0.741, blue: 0.290)   // mustard
-        case 6: return Color(red: 0.443, green: 0.722, blue: 0.341)   // green
-        default: return Color(red: 0.235, green: 0.235, blue: 0.247) // surface-3: no district / unlit (SR2-38)
-        }
-    }
+    static func district(_ index: Int) -> Color { CYCityPalette.district(index) }
 
     /// Ink on a district band (`ink-inv`).
-    static let bandInk = Color(red: 0.039, green: 0.039, blue: 0.039)
+    static let bandInk = CYCityPalette.bandInk
     /// "You": the primary-button white (Q1).
-    static let mine = Color(red: 0.961, green: 0.961, blue: 0.969)
+    static let mine = CYCityPalette.mine
     /// The coin: the 积分 mark, the one warm accent in the kit.
-    static let coin = Color(red: 0.965, green: 0.773, blue: 0.267)
+    static let coin = CYCityPalette.coin
+    static let gold = CYCityPalette.gold
     /// Fog over unlit ground: `bg` at 80 % with a 1 pt `sep` edge (SR2-31).
     static let fog = Color.black.opacity(0.8)
     static let fogEdge = Color.white.opacity(0.16)
@@ -191,7 +182,7 @@ struct CityGlassCircle: View {
                 .overlay(Circle().strokeBorder(palette.borderStrong, lineWidth: 0.5))
                 .overlay(alignment: .topTrailing) {
                     if let badge, badge > 0 {
-                        Text(verbatim: String(badge)).font(CYTypography.micro.weight(.bold)).foregroundStyle(.white)
+                        Text(verbatim: String(badge)).font(Font.caption2.weight(.medium).weight(.bold)).foregroundStyle(.white)
                             .padding(.horizontal, 5).frame(minWidth: 18, minHeight: 18)
                             .background(palette.actionDangerBg, in: Capsule()).offset(x: 4, y: -4)
                     }

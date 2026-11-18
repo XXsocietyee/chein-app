@@ -119,7 +119,11 @@ import QuestifyCore
 
 enum CityKitFixtures {
     @MainActor static func make(_ name: String) -> AnyView {
-        AnyView(CityKitFixtureHost(name: name).themeDomain(.player))
+        // `-ax3` renders the same fixture at accessibility size AX3 (SR2-35 proofs).
+        if name.hasSuffix("-ax3") {
+            return AnyView(CityKitFixtureHost(name: String(name.dropLast(4))).themeDomain(.player).environment(\.dynamicTypeSize, .accessibility3))
+        }
+        return AnyView(CityKitFixtureHost(name: name).themeDomain(.player))
     }
 
     /// The store is made once per host (the registry is called on every root render).
@@ -181,6 +185,8 @@ enum CityKitFixtures {
         case "city-claim", "city-claim-ok", "city-claim-rejected", "city-claim-short":
             CityRoamRootView(store: store, dependencies: deps, initialRoute: .claim(id("老麦咖啡馆")))
         case "city-challenge": CityRoamRootView(store: store, dependencies: deps, initialRoute: .challenge("t-flower"))
+        case "city-shield": CityRoamRootView(store: store, dependencies: deps, initialRoute: .shield("t-wukang"))
+        case "city-upgrade": CityRoamRootView(store: store, dependencies: deps, initialRoute: .upgrade("t-anfu12"))
         case "city-dice-ready", "city-dice-won", "city-dice-lost":
             CityDiceFixture(store: store, place: store.place(id: "t-flower")!, autoRoll: name != "city-dice-ready", fixes: [(try? fix())].compactMap { $0 })
         case "city-moment-claimed":

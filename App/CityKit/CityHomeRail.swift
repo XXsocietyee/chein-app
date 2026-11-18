@@ -21,7 +21,7 @@ struct CityHomeRail: View {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Button(action: onOpenMap) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                        Text(verbatim: title).font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
                         Spacer(minLength: CYSpacing.sm)
                         HStack(spacing: 2) {
                             Text(verbatim: copy("全部", "All"))
@@ -74,8 +74,10 @@ struct CityHomeRail: View {
     @State private var identity: String?
 
     var body: some View {
-        Group {
-            if let store { CityHomeRail(store: store, onOpenMap: onOpenMap) }
+        // A zero-height anchor keeps the task alive while the rail itself is hidden (an empty Group never appears).
+        ZStack(alignment: .top) {
+            Color.clear.frame(height: 0)
+            if let store { CityHomeRail(store: store, onOpenMap: onOpenMap).padding(.top, CYSpacing.lg) }
         }
         .task(id: session.cityPlayerReadIdentity) {
             if identity != session.cityPlayerReadIdentity || store == nil {

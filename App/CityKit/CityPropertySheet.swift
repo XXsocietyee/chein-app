@@ -109,7 +109,7 @@ struct CityFactTable: View {
                         value(row)
                     }
                 }
-                .font(CYTypography.body)
+                .font(Font.body)
                 .padding(.horizontal, CYSpacing.md).frame(minHeight: 44)
                 .accessibilityElement(children: .combine)
                 if index < rows.count - 1 { Divider().overlay(palette.borderSubtle).padding(.leading, CYSpacing.md) }
@@ -120,7 +120,7 @@ struct CityFactTable: View {
     private func value(_ row: Row) -> some View {
         HStack(spacing: 4) {
             if row.coin { CityCoin() }
-            Text(verbatim: row.value).font(CYTypography.bodyMedium.monospacedDigit()).foregroundStyle(palette.textPrimary)
+            Text(verbatim: row.value).font(Font.body.weight(.medium).monospacedDigit()).foregroundStyle(palette.textPrimary)
         }
     }
 }
@@ -133,7 +133,7 @@ struct CityBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: symbol).foregroundStyle(tint).accessibilityHidden(true)
-            Text(verbatim: text).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: text).font(Font.subheadline).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.md)
@@ -241,7 +241,7 @@ struct CityPropertySheet: View {
             }
         case .fogged:
             Text(verbatim: copy("走近这片迷雾，才能看到这里是谁的、什么等级。", "Walk into this fog to see who holds it and at what level."))
-                .font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                .font(Font.body).foregroundStyle(palette.textSecondary)
         }
     }
 
@@ -249,8 +249,8 @@ struct CityPropertySheet: View {
         switch display.ownership {
         case .open:
             CityFactTable(rows: [
-                .init(label: copy("占领价", "Claim price"), value: String(display.claimPrice ?? 0), coin: true),
-                .init(label: copy("别人每次到访，你收", "Each visit pays you"), value: copy("\(CityMonopolyRules.rent(tier: display.tier ?? .t1, level: 0)) 积分起", "from \(CityMonopolyRules.rent(tier: display.tier ?? .t1, level: 0)) pts"))
+                .init(label: copy("占领价", "Claim price"), value: display.claimPrice.map(String.init) ?? copy("报价后可见", "Shown in the quote"), coin: display.claimPrice != nil),
+                .init(label: copy("别人每次到访，你收", "Each visit pays you"), value: display.tier.map { copy("\(CityMonopolyRules.rent(tier: $0, level: 0)) 积分起", "from \(CityMonopolyRules.rent(tier: $0, level: 0)) pts") } ?? copy("按地点等级", "By place tier"))
             ])
         case .other:
             if display.isProtected(now: Date()) {
@@ -283,7 +283,7 @@ struct CityPropertySheet: View {
         VStack(spacing: CYSpacing.sm) {
             switch display.ownership {
             case .open:
-                CYPillButton(verbatim: copy("拍照圈地 · \(display.claimPrice ?? 0) 积分", "Photo claim · \(display.claimPrice ?? 0) pts")) { onRoute(.claim(place.id)) }
+                CYPillButton(verbatim: display.claimPrice.map { copy("拍照圈地 · \($0) 积分", "Photo claim · \($0) pts") } ?? copy("拍照圈地", "Photo claim")) { onRoute(.claim(place.id)) }
                     .accessibilityIdentifier("city.property.claim")
                 if let holdings = store.holdings {
                     Text(verbatim: copy("持有 \(holdings.count) / \(holdings.limit)", "Holding \(holdings.count) / \(holdings.limit)"))
