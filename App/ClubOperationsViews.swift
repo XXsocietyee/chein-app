@@ -975,6 +975,8 @@ private struct ClubOperationsProfileForm: View {
                 Text(verbatim: ClubPlayerCopy.createIntroTitle(formLocale))
                     .font(CYTypography.pageTitle)
                     .accessibilityIdentifier("club.player.create.intro")
+                    // A Section's own onAppear does not fire inside a List; the row's does.
+                    .onAppear { publishCreateBar() }
             }
         } else {
             // verify-r1 2.2 / N-08 (Figma 204:24591): the step header sits on the page, not in a white card: a
@@ -1013,6 +1015,7 @@ private struct ClubOperationsProfileForm: View {
                 }
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
+                .onAppear { publishCreateBar() }
             }
         }
         if createStep == 1 { createTypeSection }
