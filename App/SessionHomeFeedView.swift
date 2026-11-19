@@ -13,7 +13,10 @@ import SwiftUI
     @State private var continuationReadAvailability:HomeContinuationReadAvailability = .unauthenticated
     @State private var todayTicket:HomeTodayCandidate?=nil
     @State private var showsTodayTickets=false
-    @State private var showsGlobalSearch=false
+    /// Continuity r1: search is a state of 首页, not a sheet. See `searchLayer`.
+    @State private var search = HomeInPageSearch()
+    @State private var searchSource = HomeSearchSourceBox()
+    @QuestifyReduceMotion private var reduceMotion
     @State private var showsTemplates=false
     @State private var showsCreate=false
     @State private var showsSquare=false
@@ -39,18 +42,6 @@ import SwiftUI
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }
         .onChange(of:session.officialEventReader.scope) { _,_ in showsOfficialEvents=false }
         .onChange(of:session.sessionRevision) { _,_ in resetForSessionRevisionChange() }
-        .sheet(isPresented:$showsGlobalSearch) {
-            NavigationStack {
-                SessionGlobalSearchView(onSignIn:{ showsGlobalSearch=false;onSignIn?() })
-                    .toolbar {
-                        ToolbarItem(placement:.cancellationAction) {
-                            Button("action.close") { showsGlobalSearch=false }
-                                .accessibilityIdentifier("globalSearch.close")
-                        }
-                    }
-            }.id(session.searchMapReader.scope)
-            .cyPlayerSheetGlass()
-        }
         .sheet(isPresented:$showsProjectEditor) {
             NavigationStack {
                 ProjectEditLaunchView().toolbar {
@@ -135,17 +126,18 @@ import SwiftUI
                 onOpenTodayTicket: { showsTodayTickets=true },
                 onStartRoam: onStartRoam,
                 cityLocationConsent: cityConsent.asks ? (agree: { cityConsent.agree(session) }, decline: { cityConsent.decline() }) : nil,
-                onOpenUnifiedSearch: { _ in showsGlobalSearch = true },
+                onOpenUnifiedSearch: { _ in openSearch() },
                 cityRail: AnyView(CitySessionHomeRail(onOpenMap: { onStartRoam?() }))
             ) { router.pushHome($0) }
                 .cyHeroNamespace(hero)
+                .environment(\.homeSearchSource, HomeSearchSourceContext(box: searchSource, isHidden: search.mounted && search.placed && search.source != nil, returnFocus: search.returnFocus))
                 // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root.
                 .modifier(SessionMessagingToolbarEntry(session: session))
                 // verify-r1 2.5 / N-12 (owner Q9): the 首页 bar is 消息 then search. Language is in 我的 → 设置; ＋ is the
                 // 发布 tab; the former ⋯ items are in the 更多玩法 menu under the greeting.
                 .toolbar {
                     ToolbarItem(placement:.topBarTrailing) {
-                        Button("searchMap.title",systemImage:"magnifyingglass") { showsGlobalSearch=true }
+                        Button("searchMap.title",systemImage:"magnifyingglass") { openSearch() }
                             .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
                             .accessibilityIdentifier("homeFeed.openGlobalSearch")
                     }
@@ -168,6 +160,8 @@ import SwiftUI
                         .cyPushedChrome()
                 }
         }
+        // Search covers the whole 首页 stack, bar and large title included, so the title fades with the page.
+        .overlay { searchLayer }
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .sheet(isPresented:$showsClubApplication) { clubApplicationSheet.cyPlayerSheetGlass() }
@@ -235,7 +229,7 @@ import SwiftUI
         continuationCoordinator.reset()
         continuationCards=[]
         continuationReadAvailability = .unauthenticated
-        showsGlobalSearch=false
+        search = HomeInPageSearch(returnFocus: search.returnFocus)
         showsTemplates=false
         showsSquare=false
         showsOfficialEvents=false
@@ -251,6 +245,70 @@ import SwiftUI
         showsProjectEditor=false
         showsClubApplication=false
         showsMerchantApplication=false
+    }
+    // MARK: In-page search (continuity r1)
+
+    /// One element, not two: the 首页 field the user tapped rises into the search top row (the 首页 copy hides the
+    /// instant the search copy covers it), the page and large title fade under an opaque ground in the first 30 %,
+    /// 取消 slides in from the trailing edge, and history, suggestions and 筛选 fade in after 50 %. 取消 runs the
+    /// same progress back to 0. Results push inside this layer's own stack, as they did inside the old sheet.
+    @ViewBuilder private var searchLayer: some View {
+        if search.mounted {
+            let travels = search.source != nil
+            ZStack {
+                CYColor.bgPage.ignoresSafeArea()
+                    .modifier(GlobalSearchProgressFade(progress: search.progress, start: 0, end: travels ? 0.3 : 1))
+                NavigationStack {
+                    SessionGlobalSearchView(onSignIn: { search = HomeInPageSearch(returnFocus: search.returnFocus); onSignIn?() })
+                        .toolbar(.hidden, for: .navigationBar)
+                        .modifier(HomeSearchClearStackBackground())
+                }
+                .id(session.searchMapReader.scope)
+            }
+            // No travel (Reduce Motion, iOS 17, field scrolled away): the whole state cross-fades in place.
+            .modifier(GlobalSearchProgressFade(progress: travels ? 1 : search.progress, start: 0, end: 1))
+            .environment(\.globalSearchInPageHost, GlobalSearchInPageHost(
+                source: search.source, progress: search.progress,
+                onCancel: closeSearch, onFieldPlaced: searchFieldPlaced))
+            // Input is never blocked: while closing, touches fall through to the feed.
+            .allowsHitTesting(search.progress == 1)
+            .accessibilityAddTraits(.isModal)
+        }
+    }
+    private var searchMotion: Animation { reduceMotion ? CYMotion.reduced : CYMotion.standard }
+    private func openSearch() {
+        search.generation += 1
+        if search.mounted {
+            // Re-opened mid-close: retarget the same progress, no remount.
+            withAnimation(searchMotion) { search.progress = 1 }
+            return
+        }
+        let frame = searchSource.frame
+        var travels = !reduceMotion && frame.width > 1
+        if #unavailable(iOS 18.0) { travels = false }
+        search.source = travels ? frame : nil
+        search.placed = false
+        search.progress = 0
+        search.mounted = true
+    }
+    /// The search field has its resting frame: hide the 首页 copy under it and start the move.
+    private func searchFieldPlaced(_ rest: CGRect) {
+        guard search.mounted, !search.placed else { return }
+        // A field scrolled out of view has no box worth travelling from.
+        if let source = search.source, source.maxY < rest.minY { search.source = nil }
+        search.placed = true
+        withAnimation(searchMotion) { search.progress = 1 }
+    }
+    private func closeSearch() {
+        guard search.mounted else { return }
+        search.generation += 1
+        let generation = search.generation
+        withAnimation(searchMotion, completionCriteria: .logicallyComplete) {
+            search.progress = 0
+        } completion: {
+            guard search.generation == generation else { return }
+            search = HomeInPageSearch(returnFocus: search.returnFocus + 1)
+        }
     }
     private func handleActionBanner(_ banner: HomeIndexParityPresentation.ActionBanner) {
         switch banner.id {
@@ -307,5 +365,28 @@ import SwiftUI
         )
         continuationCards = cards
         continuationReadAvailability = continuationCoordinator.readAvailability
+    }
+}
+
+/// 首页's search state. `progress` is the one animated value; everything else is bookkeeping.
+private struct HomeInPageSearch {
+    var mounted = false
+    /// The search field has measured itself and stands over the 首页 field.
+    var placed = false
+    var progress: CGFloat = 0
+    var source: CGRect?
+    var generation = 0
+    var returnFocus = 0
+}
+
+/// iOS 18: the layer's stack draws no ground of its own, so the feed shows until the search ground fades in.
+/// iOS 17 never travels (see `openSearch`), so the stack's own ground fades with the layer.
+private struct HomeSearchClearStackBackground: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.containerBackground(.clear, for: .navigation)
+        } else {
+            content
+        }
     }
 }
