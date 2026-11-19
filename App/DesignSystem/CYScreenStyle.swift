@@ -83,6 +83,123 @@ extension View {
     }
 }
 
+// MARK: - Title and back rules (consist-1, docs/design/type-and-chrome.md)
+//
+// Title: tab roots -> `cyRootHeader(_:)` (system large title). Pushed pages -> `cyPageTitle(_:)` (system inline title,
+// 17 pt semibold, drawn by the navigation bar). Sheets -> `CYSheetHeader` (player / editor / merchant styles).
+// Back: the system back button in the navigation bar, with its swipe-from-edge gesture. Two sanctioned exceptions:
+// `cyGuardedBack(when:onBack:)` for unsaved-edit exit guards, and `cyHeroChrome(heroScrolledAway:)` + `CYHeroBackButton`
+// in the hero overlay for full-bleed hero images. `tools/check_typography_lint.py` fails any new custom back chevron
+// or `navigationBarBackButtonHidden(true)` outside this file.
+
+extension View {
+    /// Pushed page title: the system inline title (17 pt semibold, Dynamic Type, drawn by the navigation bar).
+    /// Do not draw a second page-type title in the content; an object's own name (a club, an activity) may stay
+    /// in the content as `.cyText(.pageTitle)`.
+    func cyPageTitle(_ key: String.LocalizationValue) -> some View {
+        appNavigationTitle(key).navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// Pushed page title from server text (an object's name).
+    func cyPageTitle(verbatim title: String) -> some View {
+        navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// The one way to intercept back for an unsaved-edit guard. While `isGuarded` is false the page keeps the system
+    /// back button and its swipe gesture; while it is true the bar shows the same-looking `CYBareBackButton`, which
+    /// calls `onBack` (show the discard confirmation there), and the edge swipe is blocked so edits are not lost.
+    func cyGuardedBack(when isGuarded: Bool, onBack: @escaping () -> Void) -> some View {
+        navigationBarBackButtonHidden(isGuarded)
+            .toolbar {
+                if isGuarded {
+                    ToolbarItem(placement: .topBarLeading) { CYBareBackButton(action: onBack) }
+                }
+            }
+    }
+
+    /// Full-bleed hero page chrome. While the hero is on screen the navigation bar is hidden and the page shows
+    /// `CYHeroBackButton` inside the hero's own top-leading overlay, so the glass circle scrolls away with the image.
+    /// Once `heroScrolledAway` (from `cyTracksHeroScroll`) turns true the bar returns with the system back button and
+    /// the object's inline title. The edge swipe keeps working in both states (`cyKeepsSwipeBack()`).
+    func cyHeroChrome(heroScrolledAway: Bool, domain: ThemeDomain? = nil) -> some View {
+        cyPushedChrome(domain: domain)
+            .toolbar(heroScrolledAway ? .visible : .hidden, for: .navigationBar)
+            .cyKeepsSwipeBack()
+    }
+
+    /// Keeps the swipe-from-edge back gesture working on a pushed page whose navigation bar is hidden.
+    /// Not for exit-guarded pages; those block the swipe on purpose.
+    func cyKeepsSwipeBack() -> some View {
+        #if canImport(UIKit)
+        return background {
+            CYSwipeBackHost()
+                .frame(width: 0, height: 0)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+        #else
+        return self
+        #endif
+    }
+}
+
+#if canImport(UIKit)
+private struct CYSwipeBackHost: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> CYSwipeBackController {
+        CYSwipeBackController()
+    }
+
+    func updateUIViewController(_ controller: CYSwipeBackController, context: Context) {
+        controller.attach()
+    }
+}
+
+private final class CYSwipeBackController: UIViewController {
+    override func didMove(toParent parent: UIViewController?) {
+        super.didMove(toParent: parent)
+        attach()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        attach()
+    }
+
+    func attach() {
+        guard let navigation = navigationController, let pop = navigation.interactivePopGestureRecognizer else { return }
+        CYSwipeBackGate.install(on: navigation, gesture: pop)
+    }
+}
+
+/// One gate per navigation controller, kept alive by the controller itself. It only refuses the swipe on the root
+/// page (where a pop would leave the stack in a broken state); every pushed page may swipe back.
+@MainActor
+private final class CYSwipeBackGate: NSObject, UIGestureRecognizerDelegate {
+    private static var key: UInt8 = 0
+    private weak var navigation: UINavigationController?
+
+    private init(navigation: UINavigationController) {
+        self.navigation = navigation
+    }
+
+    static func install(on navigation: UINavigationController, gesture: UIGestureRecognizer) {
+        let gate: CYSwipeBackGate
+        if let existing = objc_getAssociatedObject(navigation, &key) as? CYSwipeBackGate {
+            gate = existing
+        } else {
+            gate = CYSwipeBackGate(navigation: navigation)
+            objc_setAssociatedObject(navigation, &key, gate, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+        }
+        if gesture.delegate !== gate { gesture.delegate = gate }
+        gesture.isEnabled = true
+    }
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        (navigation?.viewControllers.count ?? 0) > 1
+    }
+}
+#endif
+
 /// Global back-navigation chrome variants per DESIGN.md §7.1.
 enum CYBackNavigationStyle {
     /// Bare chevron in a 44×44pt hit target for L2+ standard/solid pages.
@@ -97,6 +214,11 @@ struct CYBareBackButton: View {
     @Environment(\.cyPalette) private var palette
     var label: LocalizedStringKey = "action.back"
     var action: (() -> Void)? = nil
+
+    init(label: LocalizedStringKey = "action.back", action: (() -> Void)? = nil) {
+        self.label = label
+        self.action = action
+    }
 
     var body: some View {
         Button {
@@ -119,6 +241,11 @@ struct CYHeroBackButton: View {
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     var label: LocalizedStringKey = "action.back"
     var action: (() -> Void)? = nil
+
+    init(label: LocalizedStringKey = "action.back", action: (() -> Void)? = nil) {
+        self.label = label
+        self.action = action
+    }
 
     var body: some View {
         Button {
