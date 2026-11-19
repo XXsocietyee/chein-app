@@ -85,6 +85,14 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     .listRowSeparator(.hidden)
                 } else {
                     Section {
+                        // Figma 223:3698: 邀请成员 is the first row. Clubs have no invite link yet, so it shares a
+                        // text invitation (club name + how to find it in the app) through the system share sheet.
+                        if directory.club.canSeeMembers {
+                            ClubMemberInviteRow(clubName: directory.club.name)
+                                .listRowInsets(Self.rowInsets)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
+                        }
                         ForEach(Array(directory.members.enumerated()), id: \.offset) { _, member in
                             memberLine(member, directory: directory)
                                 .listRowInsets(Self.rowInsets)
@@ -294,5 +302,34 @@ enum ClubJoinDateDisplay {
         var style = Date.FormatStyle.dateTime.month().day().locale(locale)
         style.timeZone = utc
         return date.formatted(style)
+    }
+}
+
+/// 邀请成员 (Figma 223:3698): a row with a plus disc that opens the system share sheet with a text invitation.
+struct ClubMemberInviteRow: View {
+    let clubName: String
+    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
+            HStack(spacing: CYSpacing.md) {
+                Image(systemName: "person.badge.plus")
+                    .font(.body.weight(.semibold))
+                    .foregroundStyle(palette.textPrimary)
+                    .frame(width: 40, height: 40)
+                    .background(Circle().fill(palette.bgElevated))
+                    .accessibilityHidden(true)
+                OpsR3Text.text("r3club.invite.title")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                Spacer(minLength: 0)
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.cyPressable)
+        .accessibilityHint(OpsR3Text.text("r3club.invite.hint"))
+        .accessibilityIdentifier("club.members.invite")
     }
 }

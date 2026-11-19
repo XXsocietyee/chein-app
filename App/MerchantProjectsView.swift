@@ -9,6 +9,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
     var contentService: (any MerchantContentServing)? = nil
     var showsRecentEvents = true
     var workspaceReadFactory: MerchantProjectWorkspaceReadFactory? = nil
+    /// True on the merchant 模板 tab root: shows Merchant/Root Header and hides the bar title.
+    var showsRootHeader = false
     @StateObject private var model = MerchantLoadModel<MerchantProjectWorkspaceSnapshot>()
     @StateObject private var presentation = MerchantProjectWorkspacePresentation()
     @State private var tab: MerchantProjectBrowserTab = .topic
@@ -41,6 +43,11 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                 let browser = MerchantProjectBrowser(page: page, tab: shownTab)
                 let permit = presentation.permit(snapshot: snapshot)
                 List {
+                    // Figma 233:12260 · Merchant/Root Header: 模板 as the large leading title.
+                    if showsRootHeader {
+                        MerchantRootHeader(OpsR3Text.text("r3merchant.root.templates"))
+                            .merchantRootHeaderRow()
+                    }
                     Section {
                         if page.hasUnloadedRows { Text("merchant.projects.partial").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
                         if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
@@ -135,6 +142,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
         .appNavigationTitle("merchant.projects")
+        .modifier(MerchantProjectsRootTitle(hidesBarTitle: showsRootHeader))
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
         .onChange(of: context) { _, _ in presentation.invalidate(); tab = .topic }
         .onChange(of: model.value?.id) { _, _ in
@@ -458,3 +466,11 @@ struct MerchantProjectWorkspaceSnapshot {
     }
 }
 
+
+/// The 模板 tab root hides its bar title (the root header carries it); a pushed 项目 page keeps it.
+private struct MerchantProjectsRootTitle: ViewModifier {
+    let hidesBarTitle: Bool
+    func body(content: Content) -> some View {
+        if hidesBarTitle { content.merchantRootHidesBarTitle() } else { content }
+    }
+}

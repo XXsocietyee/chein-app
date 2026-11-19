@@ -274,15 +274,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             Section {
                 VStack(spacing: CYSpacing.md) {
                     let displayName = access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store", locale: locale)
-                    HStack(alignment: .center, spacing: CYSpacing.sm) {
-                        // verify-r1 2.8 (Figma 182:7328): the shop name, 22 Bold, beside 营业中. No "Hi，" greeting.
-                        Text(verbatim: displayName)
-                            .font(CYTypography.sheetTitle)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .cyWrapText()
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityAddTraits(.isHeader)
-                            .accessibilityIdentifier("merchant.store.name")
+                    // Figma 182:7328 · Merchant/Root Header: the shop name as the 28 Bold title, 营业中 under it.
+                    MerchantRootHeader(Text(verbatim: displayName), id: "merchant.store.name") {
                         if let businessStatus {
                             let chip = CYStatusChip(
                                 LocalizedStringKey(businessStatus.titleKey),
@@ -305,7 +298,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                     .accessibilityIdentifier("merchant.store.businessStatus")
                             }
                         }
-                    }
+                    } trailing: { EmptyView() }
                     if access.canReadDashboard {
                         MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
                             // HANDOFF-R1 MR-20 (owner Q-C): the hero is today — 今日核销 · 今日收入 · 待处理.

@@ -86,6 +86,10 @@ import SwiftUI
     @State private var locked = false
     @State private var showDiscard = false
     @State private var cancelConfirmReview: ClubGovernanceReview?
+    /// verify-r1 3.8 / MC-33: the heavy club commands (封禁, 转让, 撤销身份, 解散) confirm in `ClubConsequenceSheet`,
+    /// which replaces the plain confirm, so the organiser is asked once, with the consequences in front of them.
+    @State private var consequenceReview: ClubGovernanceReview?
+    @State private var consequenceAccepted: ClubGovernanceReview.ID?
     @State private var applyStep = 0
     @State private var applyBlocked = false
     private var generation: UInt64 { presentation.generation }
@@ -94,7 +98,7 @@ import SwiftUI
               scope: route.scope, visible: audienceVisible, active: scenePhase == .active)
     }
     private func retirePresentation() {
-        presentation.retire(); review = nil; cancelConfirmReview = nil
+        presentation.retire(); review = nil; cancelConfirmReview = nil; consequenceReview = nil
     }
     init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil, caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks? = nil, attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks? = nil, roleManagementReturn: ClubRoleManagementReturn.Callbacks? = nil, topicSettingsReturn: ClubTopicSettingsReturn.Callbacks? = nil, banRemovalReturn: ClubBanRemovalReturn.Callbacks? = nil, seriesUpdateReturn: ClubSeriesUpdateReturn.Callbacks? = nil, seriesCreationReturn: ClubSeriesCreationReturn.Callbacks? = nil, occurrenceCancellationReturn: ClubOccurrenceCancellationReturn.Callbacks? = nil) {
         self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator; self.validateTarget = validateTarget
@@ -345,6 +349,15 @@ import SwiftUI
             )
             .cyDomainSheet(detents: [.half, .full])
         }
+        .sheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
+            if let kind = ClubGovernanceConsequence(route.operation) {
+                kind.sheet(locale: locale) {
+                    guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
+                    consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
+                }
+
+            }
+        }
         .toolbar { ToolbarItem(placement: .cancellationAction) {
             Button {
                 if route.operation == .hostApply, applyStep > 0, !busy, !locked {
@@ -557,6 +570,10 @@ import SwiftUI
         } catch { if presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation && expected == identity { failure = error as? ClubGovernanceFailure ?? .malformed } }
     }
     private func confirm(_ review: ClubGovernanceReview) async {
+        // MC-33: a heavy command stops here once to show its consequences; the sheet's confirm comes back in.
+        if ClubGovernanceConsequence(route.operation) != nil, consequenceAccepted != review.id {
+            consequenceReview = review; return
+        }
         guard !Task.isCancelled, self.review?.id == review.id, review.command.operation == route.operation,
               review.command.scope == route.scope, !locked, coordinator.canDispatch(review.command),
               let activity = presentation.begin(.confirm, in: presentationContext) else { return }

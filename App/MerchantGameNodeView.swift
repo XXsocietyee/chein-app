@@ -381,22 +381,47 @@ enum MerchantGameNodeCopy {
         }.font(.subheadline)
     }
     private func runCard(_ station: MerchantGameNodeStation) -> some View {
+        // verify-r1 3.6 / Figma 233:9703 (MR-30): one primary, 核验 N 位玩家 (scan); the two other ways in as a pair of
+        // secondaries (出示打卡码 · 输入核验编号); 暂停接待 is a quiet row at the end, not a third button.
         card("merchantGameNode.run.title", "merchantGameNode.run.sub", id: "gameNode.runCard") {
-            if station.playable {
-                Button { Task { await c.showCheckin() } } label: { MerchantGameNodeCopy.text("merchantGameNode.run.checkin").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
+            if station.canVerify {
+                Button { openSubmissionImport() } label: {
+                    Group {
+                        if station.pendingVerificationCount > 0 {
+                            Text("r3merchant.station.verifyCount \(station.pendingVerificationCount)", tableName: OpsR3Text.table)
+                        } else {
+                            MerchantGameNodeCopy.text("merchantGameNode.run.scanVerify")
+                        }
+                    }
+                    .monospacedDigit()
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
+            }
+            if station.playable || station.canVerify {
+                HStack(spacing: CYSpacing.sm) {
+                    if station.playable {
+                        Button { Task { await c.showCheckin() } } label: { MerchantGameNodeCopy.text("merchantGameNode.run.checkin").frame(maxWidth: .infinity) }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, compact: true))
+                            .disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.checkin")
+                    }
+                    if station.canVerify {
+                        Button { c.openVerify() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.manualVerify").frame(maxWidth: .infinity) }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, compact: true))
+                            .disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.manual")
+                    }
+                }
             }
             if station.canPause {
-                Button { c.openPause() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.pause").frame(maxWidth: .infinity) }
-                    .buttonStyle(.bordered).disabled(writeBlocked).accessibilityIdentifier("gameNode.pause")
-            }
-            if station.canVerify {
-                HStack {
-                    Button { c.openVerify() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.manualVerify").frame(maxWidth: .infinity) }
-                        .buttonStyle(.bordered).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.manual")
-                    Button { openSubmissionImport() } label: { MerchantGameNodeCopy.text("merchantGameNode.run.scanVerify").frame(maxWidth: .infinity) }
-                        .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
+                Button(role: .destructive) { c.openPause() } label: {
+                    Label { MerchantGameNodeCopy.text("merchantGameNode.run.pause") } icon: { Image(systemName: "pause.circle") }
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .foregroundStyle(CYColor.dangerText)
+                .disabled(writeBlocked).accessibilityIdentifier("gameNode.pause")
             }
         }
     }

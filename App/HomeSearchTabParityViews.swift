@@ -1287,7 +1287,8 @@ struct SessionMerchantRootContainerView: View {
                         MerchantProjectsView(
                             reader: session,
                             contentService: session.merchantContentService,
-                            workspaceReadFactory: session.merchantProjectWorkspaceReadFactory
+                            workspaceReadFactory: session.merchantProjectWorkspaceReadFactory,
+                            showsRootHeader: true
                         )
                     } else {
                         SessionMerchantProjectBrowseView(session: session)

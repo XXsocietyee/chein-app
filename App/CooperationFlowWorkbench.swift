@@ -208,11 +208,17 @@ struct CoopFlowSafetyNotice: View {
                         Section { CoopFlowSafetyNotice() }
                     }.navigationTitle("coopflow.details")
                 } label: {
-                    QuestifyImageEntityCard(
-                        imageSource: row["cover"].text ?? row["topicCover"].text ?? row["clubLogo"].text ?? row["merchantLogo"].text,
-                        title: row["name"].text ?? row["topicName"].text ?? row["clubName"].text ?? row["merchantName"].text ?? row["partner"]["name"].text ?? "",
-                        subtitle: row["address"].text, fallbackTitle: "coopflow.unnamed", minimumHeight: 210) {
-                            if let state = row["state"].text { Text(state) }
+                    if resource == .invitations {
+                        // Figma 186:5944 (SR2-18): invite cards hug their content — cover, a two-line title, one meta
+                        // line (partner · status), no empty bands for missing rows.
+                        CoopInviteCardLabel(row: row, direction: direction)
+                    } else {
+                        QuestifyImageEntityCard(
+                            imageSource: row["cover"].text ?? row["topicCover"].text ?? row["clubLogo"].text ?? row["merchantLogo"].text,
+                            title: row["name"].text ?? row["topicName"].text ?? row["clubName"].text ?? row["merchantName"].text ?? row["partner"]["name"].text ?? "",
+                            subtitle: row["address"].text, fallbackTitle: "coopflow.unnamed", minimumHeight: 210) {
+                                if let state = row["state"].text { Text(state) }
+                        }
                     }
                 }.accessibilityIdentifier("coopflow.row.\(index)")
             }
@@ -328,5 +334,51 @@ struct CoopFlowFields: View {
                     row = result; scope = captured
                 } catch { guard !Task.isCancelled, reader.session == captured else { return }; failed = true }
             }
+    }
+}
+
+/// Figma 186:5944 · one cooperation invite as a hugging row: 56 pt cover, the topic on up to two lines, then one meta line
+/// (partner · status). Lines with no value are left out instead of keeping their space.
+struct CoopInviteCardLabel: View {
+    let row: CoopFlowJSON
+    let direction: CooperationDirection?
+    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .body) private var thumb: CGFloat = 56
+
+    private var title: String {
+        row["topicName"].text ?? row["name"].text ?? row["clubName"].text ?? row["merchantName"].text
+            ?? appLocalized("coopflow.unnamed", locale: locale)
+    }
+    private var partner: String? { row["partner"]["name"].text ?? row["clubName"].text ?? row["merchantName"].text }
+    private var statusKey: String? {
+        guard let status = row["status"].integer, (0...5).contains(status) else { return nil }
+        return "cooperation.invite.status.\(status)"
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            CYCachedAsyncImage(row["topicCover"].text ?? row["cover"].text ?? row["clubLogo"].text ?? row["merchantLogo"].text, role: .cover)
+                .frame(width: thumb, height: thumb)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(verbatim: title)
+                    .font(.headline)
+                    .foregroundStyle(palette.textPrimary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 4) {
+                    if let partner, partner != title { Text(verbatim: partner).lineLimit(1) }
+                    if partner != nil, partner != title, statusKey != nil { Text(verbatim: "·").accessibilityHidden(true) }
+                    if let statusKey { Text(LocalizedStringKey(statusKey)) }
+                }
+                .font(.footnote)
+                .foregroundStyle(palette.textSecondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .combine)
     }
 }

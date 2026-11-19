@@ -524,14 +524,39 @@ struct ProjectEditReviewView: View {
     let localSaveConfirmed: Bool
     let cancel: () -> Void
     let confirm: () -> Void
+    /// verify-r1 3.4 / Figma 249:16472, 249:18596: the publish preview is one sheet with one confirmation. It leads
+    /// with what will be published (cover, name, counts) and the checks collapsed to one row; every prepared field
+    /// stays one tap away under 查看将提交的全部内容.
+    @State private var showsAll = false
     var body: some View {
         NavigationStack {
             Form {
+                ProjectPublishPreviewSummary(draft: confirmation.draft)
                 Section {
                     if confirmation.intent != .ordinary { ProjectCloudDraftIntentSummary(intent: confirmation.intent) }
                     Text(LocalizedStringKey(canSimulate ? "projectEdit.fixtureNotice" : (canSubmit ? "projectEdit.confirmLiveHint" : "projectEdit.unconfigured")))
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 if !localSaveConfirmed { Section { Text("projectPrepared.localSaveUnconfirmed").accessibilityIdentifier("projectPrepared.localSaveUnconfirmed") } }
+                Section {
+                    Button {
+                        withAnimation(.easeInOut(duration: CYMotion.Duration.quick)) { showsAll.toggle() }
+                    } label: {
+                        HStack {
+                            OpsR3Text.text(showsAll ? "publish.preview.hideAll" : "publish.preview.showAll")
+                            Spacer(minLength: CYSpacing.sm)
+                            Image(systemName: "chevron.down")
+                                .font(.footnote.weight(.semibold))
+                                .rotationEffect(.degrees(showsAll ? 180 : 0))
+                                .accessibilityHidden(true)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityValue(OpsR3Text.text(showsAll ? "publish.preview.expanded" : "publish.preview.collapsed"))
+                    .accessibilityIdentifier("projectEdit.review.showAll")
+                }
+                if showsAll {
                 ProjectEditPreparedNodesView(value: .init(payload: confirmation.payload))
                 ProjectStoryImagePreparedReferences(payload: confirmation.payload)
                 ProjectStoryAudioPreparedReferences(payload: confirmation.payload)
@@ -596,6 +621,7 @@ struct ProjectEditReviewView: View {
                         LabeledContent { Text(LocalizedStringKey(confirmation.payload["publishToCreative"] == .number(1) ? "projectEdit.yes" : "projectEdit.no")) } label: { Text("projectEdit.publishToCreative") }
                     }
                 }
+                }
             }.appNavigationTitle("projectEdit.reviewTitle").navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
@@ -605,7 +631,16 @@ struct ProjectEditReviewView: View {
                 .questifyBottomAction {
                     if canSubmit {
                         if confirmation.intent == .ordinary || canSimulate {
-                            Button(action: confirm) { Text(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive")).frame(maxWidth: .infinity) }
+                            // In place: the label becomes a spinner + 发布中 while the request runs (xrefs-1 B.0 in place).
+                            Button(action: confirm) {
+                                HStack(spacing: CYSpacing.sm) {
+                                    if busy { ProgressView().accessibilityHidden(true) }
+                                    if busy { OpsR3Text.text("publish.preview.sending") }
+                                    else { Text(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive")) }
+                                }
+                                .frame(maxWidth: .infinity)
+                                .animation(.easeInOut(duration: CYMotion.Duration.quick), value: busy)
+                            }
                                 .disabled(busy).accessibilityIdentifier("projectEdit.confirmSimulation")
                         } else {
                             Button(action: confirm) {
@@ -620,5 +655,43 @@ struct ProjectEditReviewView: View {
     }
     private func row(_ title: LocalizedStringKey, _ value: String) -> some View {
         LabeledContent { Text(verbatim: value).multilineTextAlignment(.trailing).textSelection(.enabled) } label: { Text(title) }
+    }
+}
+
+/// Publish preview header (Figma 249:16472): cover, name, and what goes out — chapters, stops, ticket types.
+struct ProjectPublishPreviewSummary: View {
+    let draft: ProjectEditDraft
+    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
+    @ScaledMetric(relativeTo: .body) private var cover: CGFloat = 64
+
+    var body: some View {
+        Section {
+            HStack(spacing: CYSpacing.md) {
+                CYCachedAsyncImage(draft.imgUrl.isEmpty ? nil : draft.imgUrl, role: .cover)
+                    .frame(width: cover, height: cover)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    Group {
+                        if draft.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { OpsR3Text.text("editor.topic.untitled") }
+                        else { Text(verbatim: draft.name) }
+                    }
+                    .font(.headline).foregroundStyle(palette.textPrimary).lineLimit(2)
+                    Text("publish.preview.counts \(draft.chapters.count) \(draft.chapters.reduce(0) { $0 + $1.nodes.count }) \(draft.tickets.count)", tableName: OpsR3Text.table)
+                        .font(.footnote.monospacedDigit()).foregroundStyle(palette.textSecondary)
+                    Text(LocalizedStringKey(draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
+                        .font(.footnote).foregroundStyle(palette.textTertiary)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.vertical, CYSpacing.xs)
+            .accessibilityElement(children: .combine)
+            Label {
+                OpsR3Text.text("publish.preview.checksPassed")
+            } icon: {
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(palette.success)
+            }
+            .accessibilityIdentifier("projectEdit.review.checks")
+        }
     }
 }

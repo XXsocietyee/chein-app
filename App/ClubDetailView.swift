@@ -17,6 +17,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var actionDetail: ClubRecord? = nil
     @State private var actionIdentity: ClubReadIdentity? = nil
     @State private var managementNeedsRefresh = false
+    /// Figma 223:3698: 成员 opens as a sheet over the club page (medium / large), not a pushed page.
+    @State private var showsMembers = false
     @State private var managementRevision: UInt64 = 0
     @State private var detailGeneration: UInt64 = 0
     @State private var reportingClub = false
@@ -195,19 +197,42 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
                     }
                     // 主理人 / 俱乐部类型 / 所在城市 now sit in the header (Club/Header host line, `204:24899`).
-                    Section {
-                        ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
-                        ClubOptionalRow(title: "club.keywords", value: club.keywords)
-                        ClubOptionalRow(title: "club.style", value: club.style)
+                    // verify-r1 2.7: an all-empty facts group drew as a stray hairline at the top of the next card.
+                    if !club.activityPrefs.isEmpty || club.keywords?.isEmpty == false || club.style?.isEmpty == false {
+                        Section {
+                            ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
+                            ClubOptionalRow(title: "club.keywords", value: club.keywords)
+                            ClubOptionalRow(title: "club.style", value: club.style)
+                        }
                     }
                     Section {
                         if club.canSeeMembers {
-                            NavigationLink {
-                                ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
-                            } label: {
-                                CYListRow("club.viewMembers", trailing: .none, card: true) { CYRowIcon(systemImage: "person.3") }
+                            Button { showsMembers = true } label: {
+                                HStack {
+                                    Label("club.viewMembers", systemImage: "person.3")
+                                    Spacer(minLength: 0)
+                                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                                        .foregroundStyle(.tertiary).accessibilityHidden(true)
+                                }
+                                .contentShape(Rectangle())
                             }
-                            .buttonStyle(.plain)
+                                .buttonStyle(.plain)
+                                .sheet(isPresented: $showsMembers) {
+                                    NavigationStack {
+                                        ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
+                                            .toolbar {
+                                                ToolbarItem(placement: .cancellationAction) {
+                                                    Button { showsMembers = false } label: { Image(systemName: "xmark") }
+                                                        .accessibilityLabel(Text("club.ops.close"))
+                                                        .accessibilityIdentifier("club.members.close")
+                                                }
+                                            }
+                                    }
+                                    .presentationDetents([.medium, .large])
+                                    .presentationDragIndicator(.visible)
+                                }
+                                // verify-r1 2.7: one card per row (no card-in-card), one chevron, no hairline.
+                                .listRowSeparator(.hidden)
                                 .accessibilityIdentifier("club.openMembers")
                         } else if publicRoster?.authorization?.identity == reader.clubIdentity,
                                   ClubPublicRosterEligibility.mayRequest(club, identity: reader.clubIdentity) {

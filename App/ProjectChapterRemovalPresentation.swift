@@ -25,6 +25,9 @@ import SwiftUI
     var saveUnconfirmed: Bool { model.coordinator.hasUnconfirmedChapterRemoval }
     @Published private(set) var readbackResult: ProjectEditCoordinator.ChapterRemovalReadbackResult?
     @Published private(set) var failedConfirmation: Confirmation?
+    /// verify-r1 3.4 · one delete rule: told about each removal that reached the local draft, with the draft before
+    /// it, so the editor can offer 撤销.
+    var onRemoved: ((_ previous: ProjectEditDraft, _ removed: [ProjectEditChapter]) -> Void)?
 
     init(model: ProjectEditModel) { self.model = model }
 
@@ -60,13 +63,18 @@ import SwiftUI
         guard let chapters = try? ProjectChapterRemoval.selecting(ids, in: model.draft),
               let readback = model.coordinator.captureChapterRemovalReadback(for: model.draft, removing: ids) else { return }
         readbackResult = nil
-        confirmation = .init(capture: captured, chapters: chapters, readback: readback)
+        let value = Confirmation(capture: captured, chapters: chapters, readback: readback)
+        confirmation = value
+        // One delete rule: a chapter with no nodes and no story goes at once (with 撤销); only a delete that takes
+        // content with it asks first, once.
+        if chapters.allSatisfy({ $0.nodes.isEmpty && ($0.blocks ?? []).isEmpty }) { confirm(value) }
     }
     func confirm(_ value: Confirmation) {
         guard !saving, !saveUnconfirmed, isCurrent(value),
               let next = try? ProjectChapterRemoval.removing(value.chapters.map(\.id), from: model.draft) else { return }
         saving = true
         defer { saving = false }
+        let previous = model.draft
         guard model.persistLocalChange(next, lease: value.capture.lease) else {
             model.coordinator.suspendLocalWritesAfterChapterRemoval(value.readback)
             failedConfirmation = value
@@ -75,6 +83,7 @@ import SwiftUI
         failedConfirmation = nil
         confirmation = nil
         generation += 1
+        onRemoved?(previous, value.chapters)
     }
     func close(_ value: Confirmation) {
         guard !saving, confirmation?.id == value.id else { return }
@@ -140,12 +149,15 @@ import SwiftUI
                 }
                 .appNavigationTitle("projectChapterRemoval.title")
                 .navigationBarTitleDisplayMode(.inline)
+                .themeDomain(.topicEditor)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button(LocalizedStringKey(controller.saveUnconfirmed ? "projectChapterRemoval.closeUnconfirmed" : "action.cancel")) {
                         controller.close(value)
                     }.accessibilityIdentifier("projectChapterRemoval.cancel")
                 } }
             }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
     }
 }

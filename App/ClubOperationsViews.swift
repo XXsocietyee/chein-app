@@ -77,6 +77,7 @@ struct ClubOperationsWorkspaceView: View {
     @StateObject private var profileMedia = ClubProfileMediaFlow()
     @StateObject private var profileDraft = ClubProfileLocalDraftFlow()
     @StateObject private var draftVisit = ClubProfileDraftVisit()
+    @StateObject private var createStepBar = ClubCreateStepBar()
     @Environment(\.scenePhase) private var scenePhase
     @State private var snapshot: ClubOperationsSnapshot?
     @State private var draft = ClubOperationsDraft()
@@ -184,6 +185,12 @@ struct ClubOperationsWorkspaceView: View {
         }
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if target == .create, createStepBar.step != nil, snapshot?.canCreate == true {
+                ClubCreateStepBarView(bar: createStepBar)
+                    .disabled(loading || state.locksForm || profileDraftBlocked)
+            }
+        }
         .navigationTitle(title)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: loading)
         .toolbar {
@@ -344,7 +351,8 @@ struct ClubOperationsWorkspaceView: View {
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,
                 choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice,
                 checkClubName: { await access.checkClubName($0) }, submitCreate: { Task { await prepare(.create(draft)) } },
-                createNameTaken: createNameTakenMessage)
+                createNameTaken: createNameTakenMessage,
+                createBar: target == .create && !ClubPlayerSurface.flatCreateForm ? createStepBar : nil)
                 .disabled(loading || state.locksForm || profileDraftBlocked)
             if target != .create || ClubPlayerSurface.flatCreateForm {
                 Section {
@@ -904,6 +912,8 @@ private struct ClubOperationsProfileForm: View {
     var checkClubName: (String) async -> ClubNameCheck.Result = { _ in .unchecked }
     var submitCreate: () -> Void = {}
     var createNameTaken: String? = nil
+    /// verify-r1 2.2: the stepped create flow publishes its 上一步 / 下一步 here; the page pins them in one bar.
+    var createBar: ClubCreateStepBar? = nil
     @Environment(\.locale) private var formLocale
     @Environment(\.cyPalette) private var formPalette
     @QuestifyReduceMotion private var reduceMotion
@@ -1010,18 +1020,25 @@ private struct ClubOperationsProfileForm: View {
         if createStep == 3 { createProfileSection }
         if createStep == 4 { createCitySection }
         Section {
-            if createStep == 4 { createAdvanceButton.accessibilityIdentifier("club.ops.reviewProfile") }
-            else { createAdvanceButton.accessibilityIdentifier("club.player.create.next") }
-            // verify-r1 2.2: back between steps (after step 1), as a secondary under the primary.
-            if createStep > 1 {
-                Button { setCreateStep(createStep - 1) } label: {
-                    Text(verbatim: ChannelCopy.text("上一步", "Back", locale: formLocale)).frame(maxWidth: .infinity)
+            // verify-r1 2.2 / N-08: 下一步 is pinned at the bottom of the page (the page's `ClubCreateStepBar`), so it
+            // no longer jumps from 93% to 67% of the screen between steps. Without a bar host it stays inline.
+            if createBar == nil {
+                if createStep == 4 { createAdvanceButton.accessibilityIdentifier("club.ops.reviewProfile") }
+                else { createAdvanceButton.accessibilityIdentifier("club.player.create.next") }
+                if createStep > 1 {
+                    Button { setCreateStep(createStep - 1) } label: {
+                        Text(verbatim: ChannelCopy.text("上一步", "Back", locale: formLocale)).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                    .accessibilityIdentifier("club.player.create.back")
                 }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
-                .accessibilityIdentifier("club.player.create.back")
             }
         }
             .listRowBackground(Color.clear)
+            .onAppear { publishCreateBar() }
+            .onDisappear { createBar?.step = nil }
+            .onChange(of: createStep) { _, _ in publishCreateBar() }
+            .onChange(of: createChecking) { _, _ in publishCreateBar() }
             .onChange(of: createNameFocused) { _, focused in
                 guard !focused, createStep == 3 else { return }
                 Task { await runNameCheck(advance: false) }
@@ -1139,6 +1156,18 @@ private struct ClubOperationsProfileForm: View {
         }
         .buttonStyle(CYPillButtonStyle())
         .disabled(createChecking && createStep != 3)
+    }
+    private func publishCreateBar() {
+        guard let createBar else { return }
+        createBar.step = createStep
+        createBar.checking = createChecking && createStep == 3
+        createBar.primaryTitle = createChecking && createStep == 3 ? ClubPlayerCopy.checkingName(formLocale)
+            : createStep == 0 ? ClubPlayerCopy.createStart(formLocale)
+            : createStep == 4 ? appLocalized("club.ops.create", locale: formLocale)
+            : ClubPlayerCopy.next(formLocale)
+        createBar.backTitle = ChannelCopy.text("上一步", "Back", locale: formLocale)
+        createBar.advance = { advanceCreate() }
+        createBar.back = { setCreateStep(max(1, createStep - 1)) }
     }
     private func setCreateStep(_ next: Int) {
         if reduceMotion { createStep = next } else { withAnimation(.smooth(duration: 0.35)) { createStep = next } }
@@ -1429,5 +1458,46 @@ private struct ClubOperationsProfileForm: View {
             requestedTab: overrideTab ?? requestedTab,
             enteredManageDestination: &enteredManageDestination
         )
+    }
+}
+
+/// verify-r1 2.2 / N-08 (Figma 204:24591): the create wizard's 上一步 / 下一步, pinned in one bar at the bottom of the page.
+/// The step state stays in the profile form; it publishes the titles and actions here.
+@MainActor final class ClubCreateStepBar: ObservableObject {
+    @Published var step: Int?
+    @Published var checking = false
+    @Published var primaryTitle = ""
+    @Published var backTitle = ""
+    var advance: () -> Void = {}
+    var back: () -> Void = {}
+}
+
+struct ClubCreateStepBarView: View {
+    @ObservedObject var bar: ClubCreateStepBar
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var primary: some View {
+        Button { bar.advance() } label: { Text(verbatim: bar.primaryTitle).frame(maxWidth: .infinity) }
+            .buttonStyle(CYPillButtonStyle())
+            .disabled(bar.checking)
+            .layoutPriority(1)
+    }
+
+    var body: some View {
+        let step = bar.step ?? 0
+        CYFooterBar {
+            (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))) {
+                if step > 1 {
+                    Button { bar.back() } label: { Text(verbatim: bar.backTitle).frame(maxWidth: .infinity) }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .accessibilityIdentifier("club.player.create.back")
+                }
+                if step == 4 {
+                    primary.accessibilityIdentifier("club.ops.reviewProfile")
+                } else {
+                    primary.accessibilityIdentifier("club.player.create.next")
+                }
+            }
+        }
     }
 }

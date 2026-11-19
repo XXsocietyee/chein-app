@@ -8,6 +8,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.deepLinkDirtyTracker) private var dirtyTracker
     @ObservedObject var session: Session
     @StateObject private var model: MerchantOnboardingModel
@@ -268,15 +269,9 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             if let error = model.errorKey, !(model.step == MerchantOnboardingSteps.identity && error.hasPrefix("merchant.onboarding.identity.")) {
                 Section { Text(LocalizedStringKey(error)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("merchant.onboarding.error") }
             }
-            if model.isBusy || model.step > 1 {
+            if model.isBusy {
                 Section {
-                    if model.isBusy {
-                        CYSkeleton().accessibilityLabel(Text("merchant.onboarding.working"))
-                    }
-                    if model.step > 1 {
-                        CYPillButton("merchant.onboarding.previous", style: .secondary) { model.step -= 1; model.errorKey = nil }
-                            .disabled(model.isBusy || model.coordinator.submission.isLocked)
-                    }
+                    CYSkeleton().accessibilityLabel(Text("merchant.onboarding.working"))
                 }
             }
         }
@@ -296,10 +291,13 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                                 .multilineTextAlignment(.center)
                                 .accessibilityIdentifier("merchant.onboarding.identity.consentHint")
                         }
-                        CYPillButton("merchant.onboarding.next") { model.next() }
-                            .disabled(needsConsent)
-                            .accessibilityHint(needsConsent ? Text("merchant.onboarding.identity.required.consent") : Text(verbatim: ""))
-                            .accessibilityIdentifier("merchant.onboarding.next")
+                        // Code r3: 上一步 is the secondary beside 下一步 in the one bottom bar (not alone in a white card).
+                        onboardingButtonRow {
+                            CYPillButton("merchant.onboarding.next") { model.next() }
+                                .disabled(needsConsent)
+                                .accessibilityHint(needsConsent ? Text("merchant.onboarding.identity.required.consent") : Text(verbatim: ""))
+                                .accessibilityIdentifier("merchant.onboarding.next")
+                        }
                     }
                 } else {
                     // HANDOFF-R1 MR-01 / MR-11: the primary stays enabled and jumps to what is missing.
@@ -309,6 +307,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                             .foregroundStyle(CYColor.textSecondary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
+                        onboardingButtonRow {
                         CYPillButton("r1merchant.onboarding.submit", tableName: "DesignR1Merchant") {
                             if model.draft.blocker() != nil || model.draft.identityBlocker() != nil || model.draft.consentBlocker() != nil {
                                 let step = firstIncompleteStep
@@ -321,10 +320,23 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                             }
                         }
                         .accessibilityIdentifier("merchant.onboarding.submit")
+                        }
                     }
                 }
             }
             .disabled(model.isBusy || model.coordinator.submission.isLocked)
+        }
+    }
+    /// 上一步 (secondary, from step 2) and the step's primary side by side; stacked at accessibility sizes.
+    @ViewBuilder private func onboardingButtonRow<Primary: View>(@ViewBuilder primary: () -> Primary) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
+        layout {
+            if model.step > 1 {
+                CYPillButton("merchant.onboarding.previous", style: .secondary) { model.step -= 1; model.errorKey = nil }
+                    .disabled(model.isBusy || model.coordinator.submission.isLocked)
+                    .accessibilityIdentifier("merchant.onboarding.previous")
+            }
+            primary().layoutPriority(1)
         }
     }
     private var basicSection: some View {

@@ -46,9 +46,16 @@ import SwiftUI
     }
     var body: some View {
         List {
-            CYHeroHeader(LocalizedStringKey(selected.titleKey))
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
+            // Figma 182:8065 · Merchant/Root Header: 营销 as the large leading title; refresh is a trailing glass circle.
+            MerchantRootHeader(OpsR3Text.text("r3merchant.root.marketing")) {
+                Button { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } } label: {
+                    CYHeaderCircleLabel(systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.plain)
+                .disabled(model.busy)
+                .accessibilityLabel(Text("merchantMarketing.refresh"))
+            }
+            .merchantRootHeaderRow()
             Section {
                 Picker("merchantMarketing.section", selection: $selected) {
                     ForEach(MerchantMarketingCoordinator.Surface.allCases) { item in Text(LocalizedStringKey(item.titleKey)).tag(item) }
@@ -82,13 +89,7 @@ import SwiftUI
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } } label: {
-                    Label("merchantMarketing.refresh", systemImage: "arrow.clockwise")
-                }.disabled(model.busy)
-            }
-        }
+        .merchantRootHidesBarTitle()
         .refreshable { await loadSurface() }
         .task(id: loadKey) { await loadSurface() }
         .onChange(of: loadKey) { _, _ in refreshTask?.cancel(); refreshTask = nil; loadedRecommendationOrigin = nil }

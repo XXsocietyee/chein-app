@@ -293,7 +293,6 @@ import SwiftUI
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var discardConfirmation = false
-    @State private var expandedChapterIDs: Set<String> = []
     @State private var copiedCoordinator: ProjectEditCoordinator?
     @State private var showingCopy = false
     @State private var modeCopyFailed = false
@@ -306,6 +305,9 @@ import SwiftUI
     @State private var lastToastCloudSaved = false
     @State private var lastToastAcknowledged = false
     @FocusState private var focusedField: String?
+    @State private var canvas: ProjectEditCanvas = .list
+    @StateObject private var undoCenter = ProjectEditUndoCenter()
+    @Environment(\.undoManager) private var undoManager
 
     private enum EditorParityModal: String, Identifiable {
         case draftConflict, clearLocalDraft, prePublishTip
@@ -337,38 +339,49 @@ import SwiftUI
         let copiedTarget = copiedCoordinator
         ScrollViewReader { scrollProxy in
         Form {
-            CYHeroHeader("projectEdit.title", subtitle: model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore")
-                .e1HeroRow() // verify-r1 N-01/N-10: zero insets clipped the first glyph ("戈市定向")
+            // verify-r1 3.4 / Figma 237:31646: no in-content title. The nav says 编辑主题; under it the save chip and
+            // 列表 / 地图, then the 主题详情 card, 设置, and the chapter cards.
             if model.coordinator.snapshot != nil {
                 Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        CYPublishStatusBar(
-                            stepTitles: studioStepTitles,
-                            currentStep: studioStep,
-                            saveState: studioSaveState,
-                            issues: studioIssues,
-                            isSubmittingReview: model.busy,
-                            // verify-r1 N-02: one submit control, in the bottom bar.
-                            showsSubmitButton: false,
-                            onSelectStep: { step in
-                                withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
-                                    scrollProxy.scrollTo(scrollAnchor(for: step), anchor: .top)
-                                }
-                            },
-                            onSubmitReview: {
-                                focusedField = nil
-                                if model.coordinator.canSubmitServerDraft {
-                                    model.review(intent: .submitServerDraft)
-                                } else {
-                                    model.review()
-                                }
-                            }
-                        )
-                        creatorStudioOverviewCards
+                    ProjectEditOverviewBar(saveState: overviewSaveState, saveDetail: overviewSaveDetail, canvas: $canvas)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                    ProjectEditTopicCard(name: model.draft.name, cover: model.draft.imgUrl,
+                                         missing: ProjectEditTopicCard.missingCount(model.draft)) {
+                        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
+                            scrollProxy.scrollTo("project-issue-anchor-name", anchor: .top)
+                        }
                     }
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
+                .listSectionSpacing(.compact)
+                Section {
+                    LabeledContent {
+                        Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
+                    } label: { Label("projectEdit.mode", systemImage: "flag") }
+                    Button {
+                        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
+                            scrollProxy.scrollTo("project-issue-anchor-tickets", anchor: .top)
+                        }
+                    } label: {
+                        LabeledContent {
+                            ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
+                        } label: { Label("projectEdit.tickets", systemImage: "ticket") }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("projectEdit.settings.tickets")
+                } header: { OpsR3Text.text("editor.settings") }
+                if canvas == .list {
+                    chapterStructure(opening: opening).id("project-issue-anchor-chapters")
+                } else {
+                    Section {
+                        ProjectEditNodeMap(chapters: model.draft.chapters) { chapterID, nodeID in
+                            ProjectEditNodeView(model: model, chapterID: chapterID, nodeID: nodeID)
+                        }
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                    }
+                    .id("project-issue-anchor-chapters")
+                }
             }
             if model.coordinator.isReadOnly {
                 Section {
@@ -461,7 +474,7 @@ import SwiftUI
                         }
                         .editorReorderAccessibility(index: index, count: model.draft.tickets.count) { ticketAction($0, at: index) }
                     }
-                    .onDelete { if model.fullEdit { model.draft.tickets.remove(atOffsets: $0) } }
+                    .onDelete { offsets in if model.fullEdit { removeTickets(at: offsets) } }
                     .onMove { if model.fullEdit { model.draft.tickets.move(fromOffsets: $0, toOffset: $1) } }
                     Button("projectEdit.addTicket", systemImage: "plus") { model.draft.tickets.append(.init()) }
                         .disabled(!model.fullEdit).accessibilityIdentifier("projectEdit.addTicket")
@@ -472,7 +485,7 @@ import SwiftUI
                         ProjectEditTicketSummaryLabel(summary: EditorTicketSummary(prices: model.draft.tickets.map { Int($0.price) }))
                     }
                 }
-                chapterStructure(opening: opening).id("project-issue-anchor-chapters")
+                .id("project-issue-anchor-tickets")
                 ProjectEditPendingSection(model: model, controller: pending)
                 ProjectDraftStoryPreviewEntry(model: model)
                 CollectSetAuthorEntry(model: model)
@@ -579,7 +592,15 @@ import SwiftUI
         }
         }
         .disabled(model.busy)
-        .cyHeroScreen()
+        // Continuity (owner, xrefs-1): a new chapter or ticket appears in its place while the others make room, a
+        // deleted one collapses, and undo puts it back the same way — CYMotion.standard; a cross-fade under Reduce Motion.
+        // Drag-to-reorder is the list's own drag (follows the finger, settles with the release).
+        .cyAnimation(CYMotion.standard, value: model.draft.chapters.map(\.id))
+        .cyAnimation(CYMotion.standard, value: model.draft.tickets.map(\.id))
+        .cyAnimation(CYMotion.standard, value: canvas)
+        .editorToast($undoCenter.toast)
+        .navigationTitle(OpsR3Text.string("editor.title", locale: locale))
+        .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .topicEditor)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -600,7 +621,6 @@ import SwiftUI
                                 .accessibilityLabel(MerchantCloseCopy.text("草稿与规则弹窗", "Draft and rule actions", locale))
                         }
                     }
-                    EditButton().disabled(!model.fullEdit)
                 }
             }
         }
@@ -624,6 +644,8 @@ import SwiftUI
                             .disabled(!model.canReview)
                             .accessibilityIdentifier("projectEdit.submitServerDraft")
                     } else {
+                        // Figma 237:31646: the bar is 保存草稿 + 下一步 (`projectEdit.review` now reads 下一步); it opens the
+                        // publish preview, which holds the one confirmation.
                         Button("projectEdit.review") { focusedField = nil; model.review() }
                             .buttonStyle(.questifyPrimary).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
                     }
@@ -639,6 +661,7 @@ import SwiftUI
             }
         } }
         .task(id: sessionRevision) { await model.load() }
+        .onAppear { undoCenter.attach(undoManager); chapterRemoval.onRemoved = { previous, removed in recordChapterRemoval(previous: previous, removed: removed) } }
         .modifier(TemplateLocationTodosHost(topicID: model.coordinator.snapshot?.topicID, scope: model.draft.owner.rawValue))
         .modifier(ProjectEditAutosaveObservation(model: model))
         .modifier(ProjectEditExitGuard(model: model, overlaysOpen: {
@@ -818,96 +841,23 @@ import SwiftUI
                     .listRowBackground(Color.clear)
             }
             ForEach(model.draft.chapters) { chapter in
-                let isExpanded = expandedChapterIDs.contains(chapter.id)
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    HStack(spacing: CYSpacing.sm) {
-                        NavigationLink {
-                            ProjectEditChapterView(model: model, chapterID: chapter.id)
-                        } label: {
-                            chapterLabel(chapter)
-                        }
-                        .accessibilityIdentifier("projectEdit.chapter." + chapter.id)
-
-                        Button {
-                            withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
-                                if isExpanded { expandedChapterIDs.remove(chapter.id) }
-                                else { expandedChapterIDs.insert(chapter.id) }
-                            }
-                        } label: {
-                            Label(
-                                isChinese ? (isExpanded ? "收起节点" : "展开节点") : (isExpanded ? "Collapse nodes" : "Expand nodes"),
-                                systemImage: isExpanded ? "chevron.up.circle.fill" : "chevron.down.circle"
-                            )
-                            .labelStyle(.iconOnly)
-                            .font(CYTypography.bodyCompact)
-                            .foregroundStyle(palette.textSecondary)
-                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("projectEdit.chapter.toggle." + chapter.id)
-
-                        // Design hand-off r1 CF-20 / CF-33 / CF-60: one "⋯" per chapter (上移, 下移, 删除 last)
-                        // and a trailing handle; long-press drag reorders through `.onMove`.
-                        if model.fullEdit {
-                            EditorRowActionsMenu(
-                                index: chapterIndex(chapter.id), count: model.draft.chapters.count,
-                                actions: removalCapture == nil ? [.moveUp, .moveDown] : [.moveUp, .moveDown, .delete],
-                                menuID: "projectEdit.chapter.menu." + chapter.id
-                            ) { chapterAction($0, chapterID: chapter.id, captured: removalCapture) }
-                            EditorDragHandle()
-                        }
+                // Figma 237:31646 Topic/Chapter Card: the whole card opens the chapter; ⋯ (上移 · 下移 · 删除) and the
+                // trailing handle sit beside it. Long-press anywhere on the card to drag it (`.onMove`).
+                HStack(spacing: CYSpacing.xs) {
+                    NavigationLink {
+                        ProjectEditChapterView(model: model, chapterID: chapter.id)
+                    } label: {
+                        chapterLabel(chapter)
                     }
+                    .accessibilityIdentifier("projectEdit.chapter." + chapter.id)
 
-                    if isExpanded {
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            if chapter.nodes.isEmpty {
-                                HStack(spacing: CYSpacing.xs) {
-                                    Image(systemName: "mappin.slash")
-                                        .font(CYTypography.meta)
-                                        .foregroundStyle(palette.textTertiary)
-                                        .accessibilityHidden(true)
-                                    Text("projectEdit.nodes.empty")
-                                        .font(CYTypography.meta)
-                                        .foregroundStyle(palette.textSecondary)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                                .padding(.vertical, CYSpacing.xs)
-                                .padding(.horizontal, CYSpacing.sm)
-                            } else {
-                                ForEach(Array(chapter.nodes.enumerated()), id: \.element.id) { nodeIndex, node in
-                                    NavigationLink {
-                                        ProjectEditNodeView(model: model, chapterID: chapter.id, nodeID: node.id)
-                                    } label: {
-                                        HStack(spacing: CYSpacing.sm) {
-                                            Text(verbatim: "\(nodeIndex + 1)")
-                                                .font(CYTypography.micro.weight(.semibold).monospacedDigit())
-                                                .foregroundStyle(palette.actionPrimaryFg)
-                                                .frame(width: 22, height: 22)
-                                                .background(Circle().fill(palette.actionPrimaryBg))
-                                                .accessibilityHidden(true)
-                                            VStack(alignment: .leading, spacing: 2) {
-                                                ProjectEditName(value: node.name, fallback: "projectEdit.untitledNode")
-                                                    .font(CYTypography.label)
-                                                    .foregroundStyle(palette.textPrimary)
-                                                    .fixedSize(horizontal: false, vertical: true)
-                                                if !node.address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                                    Text(verbatim: node.address)
-                                                        .font(CYTypography.meta)
-                                                        .foregroundStyle(palette.textSecondary)
-                                                        .fixedSize(horizontal: false, vertical: true)
-                                                }
-                                            }
-                                            Spacer(minLength: 0)
-                                        }
-                                        .padding(.vertical, CYSpacing.xs)
-                                        .padding(.horizontal, CYSpacing.sm)
-                                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgPage))
-                                    }
-                                    .accessibilityIdentifier("projectEdit.chapter.\(chapter.id).node.\(node.id)")
-                                }
-                            }
-                        }
-                        .padding(.leading, CYSpacing.sm)
+                    if model.fullEdit {
+                        EditorRowActionsMenu(
+                            index: chapterIndex(chapter.id), count: model.draft.chapters.count,
+                            actions: removalCapture == nil ? [.moveUp, .moveDown] : [.moveUp, .moveDown, .delete],
+                            menuID: "projectEdit.chapter.menu." + chapter.id
+                        ) { chapterAction($0, chapterID: chapter.id, captured: removalCapture) }
+                        EditorDragHandle()
                     }
                 }
                 .padding(.vertical, CYSpacing.xs)
@@ -945,7 +895,7 @@ import SwiftUI
         guard model.fullEdit, model.draft.tickets.indices.contains(index) else { return }
         switch action {
         case .delete:
-            model.draft.tickets.remove(at: index)
+            removeTickets(at: IndexSet(integer: index))
         case .moveUp, .moveDown:
             guard let destination = EditorReorder.destination(for: action, index: index, count: model.draft.tickets.count) else { return }
             withAnimation(EditorKitMotion.move(reduceMotion: reduceMotion)) {
@@ -959,16 +909,16 @@ import SwiftUI
         let ordinal = (model.draft.chapters.firstIndex(where: { $0.id == chapter.id }) ?? 0) + 1
         let nodeCount = chapter.nodes.count
         let nodeCountLabel: Text = Text("projectEdit.nodeCount") + Text(verbatim: ": \(nodeCount)")
-        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
+        let blocked = model.coordinator.issues.contains { $0.id.contains(chapter.id) }
+        return VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                Text(verbatim: String(format: "%02d", ordinal))
-                    .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                Text("editor.chapter.ordinal \(ordinal)", tableName: OpsR3Text.table)
+                    .font(CYTypography.meta.weight(.semibold).monospacedDigit())
                     .foregroundStyle(palette.textTertiary)
-                    .accessibilityHidden(true)
-                ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
-                    .font(CYTypography.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if blocked {
+                    Circle().fill(palette.danger).frame(width: 6, height: 6)
+                        .accessibilityLabel(OpsR3Text.text("editor.chapter.blocked"))
+                }
                 Spacer(minLength: CYSpacing.xs)
                 Text("projectEdit.nodeCountValue \(nodeCount)").foregroundStyle(.secondary)
                     .font(CYTypography.micro.weight(.semibold))
@@ -977,14 +927,23 @@ import SwiftUI
                     .background(Capsule().fill(palette.bgPage))
                     .accessibilityLabel(nodeCountLabel)
             }
-            if let blocks = chapter.blocks, !blocks.isEmpty {
-                CYStatusChip(
-                    verbatim: isChinese ? "故事流 · \(blocks.count) 块" : "Story flow · \(blocks.count)",
-                    tone: .info,
-                    systemImage: "sparkles"
-                )
+            ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
+                .font(.headline)
+                .foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Group {
+                if let blocks = chapter.blocks, !blocks.isEmpty {
+                    Text("editor.chapter.metaStory \(nodeCount) \(blocks.count)", tableName: OpsR3Text.table)
+                } else if nodeCount == 0 {
+                    OpsR3Text.text("editor.chapter.empty")
+                } else {
+                    Text("editor.chapter.meta \(nodeCount)", tableName: OpsR3Text.table)
+                }
             }
+            .font(CYTypography.meta)
+            .foregroundStyle(nodeCount == 0 && (chapter.blocks ?? []).isEmpty ? palette.textTertiary : palette.textSecondary)
         }
+        .padding(.vertical, CYSpacing.xs)
     }
     private var basicFields: some View {
         Group {
@@ -1021,18 +980,32 @@ import SwiftUI
         }
     }
 
-    private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
-
-    private var studioStepTitles: [String] {
-        isChinese ? ["详情", "章节", "节点", "发布"] : ["Basics", "Chapters", "Nodes", "Publish"]
-    }
-
-    private var studioStep: Int {
-        if !model.coordinator.issues.isEmpty {
-            return model.draft.chapters.isEmpty ? 1 : 2
+    /// The one delete rule: tickets go at once, with 撤销 (toast and `UndoManager`).
+    private func removeTickets(at offsets: IndexSet) {
+        guard model.fullEdit, offsets.allSatisfy({ model.draft.tickets.indices.contains($0) }) else { return }
+        let previous = model.draft.tickets
+        let names = offsets.map { model.draft.tickets[$0].name }
+        withAnimation(EditorKitMotion.move(reduceMotion: reduceMotion)) { model.draft.tickets.remove(atOffsets: offsets) }
+        let name = names.count == 1 ? (names[0].isEmpty ? OpsR3Text.string("editor.deleted.untitledTicket", locale: locale) : names[0]) : String(names.count)
+        undoCenter.recordDelete(message: String(format: OpsR3Text.string("editor.deleted.item", locale: locale), name),
+                                actionName: OpsR3Text.string("editor.undo.deleteTicket", locale: locale)) {
+            guard model.fullEdit else { return false }
+            withAnimation(EditorKitMotion.move(reduceMotion: reduceMotion)) { model.draft.tickets = previous }
+            return true
         }
-        return model.draft.chapters.isEmpty ? 0 : 3
     }
+    /// Chapters are removed by `ProjectChapterRemovalController` (a local draft write); undo writes the previous draft back.
+    private func recordChapterRemoval(previous: ProjectEditDraft, removed: [ProjectEditChapter]) {
+        let name = removed.count == 1
+            ? (removed[0].name.isEmpty ? appLocalized("projectEdit.untitledChapter", locale: locale) : removed[0].name)
+            : String(removed.count)
+        undoCenter.recordDelete(message: String(format: OpsR3Text.string("editor.deleted.item", locale: locale), name),
+                                actionName: OpsR3Text.string("editor.undo.deleteChapter", locale: locale)) {
+            guard let lease = model.captureStarterLease() else { return false }
+            return model.persistLocalChange(previous, lease: lease)
+        }
+    }
+    private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
 
     private var studioSaveState: CYPublishSaveState {
         if model.coordinator.state == .blocked {
@@ -1040,68 +1013,30 @@ import SwiftUI
                 ?? (isChinese ? "加载失败" : "Load failed")
             return .saveFailed(reason: reason) { Task { await model.load(force: true) } }
         }
-        if model.draftMutationRevision > 0 && !model.coordinator.savedCloudDraft && model.canSaveLocal {
+        // The autosave (400 ms after an edit) ends in `projectEdit.localSaved`; until then the chip says 未存.
+        if model.draftMutationRevision > 0 && !model.coordinator.savedCloudDraft && model.canSaveLocal &&
+            model.coordinator.messageKey != "projectEdit.localSaved" {
             return .unsavedChanges
         }
         return .savedDraft(updatedAt: isChinese ? "本地草稿" : "Local draft")
     }
 
-    private var studioIssues: [CYPublishValidationIssue] {
-        model.coordinator.issues.prefix(6).map { issue in
-            CYPublishValidationIssue(
-                id: issue.id,
-                stepIndex: studioIssueStep(issue.id),
-                message: appLocalized(String.LocalizationValue(issue.key), locale: locale)
-            )
+    private var overviewSaveState: EditorSaveState {
+        switch studioSaveState {
+        case .savedDraft: return chapterRemoval.saveUnconfirmed ? .unsaved : .saved
+        case .unsavedChanges: return .unsaved
+        case .saveFailed: return .failed
         }
     }
 
-    private func studioIssueStep(_ issueID: String) -> Int {
-        if issueID.contains("chapter") { return 1 }
-        if issueID.contains("node") || issueID.contains("story") { return 2 }
-        if issueID.contains("completion") || issueID.contains("reward") || issueID.contains("ticket") { return 3 }
-        return 0
-    }
-
-    private func scrollAnchor(for step: Int) -> String {
-        switch step {
-        case 1, 2: return "project-issue-anchor-chapters"
-        case 3: return "project-issue-anchor-completionRules"
-        default: return "project-issue-anchor-name"
+    private var overviewSaveDetail: Text? {
+        switch studioSaveState {
+        case .savedDraft: return OpsR3Text.text("editor.save.local")
+        case .unsavedChanges: return nil
+        case .saveFailed(let reason, _): return Text(verbatim: reason)
         }
     }
 
-    private var creatorStudioOverviewCards: some View {
-        let totalNodes = model.draft.chapters.reduce(0) { $0 + $1.nodes.count }
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
-            : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
-        return layout {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("projectEdit.mode")
-                    .font(CYTypography.meta)
-                    .foregroundStyle(palette.textTertiary)
-                Text(LocalizedStringKey(model.draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
-                    .font(CYTypography.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard()
-
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: isChinese ? "章节 · 节点 · 票务" : "Chapters · Nodes · Tickets")
-                    .font(CYTypography.meta)
-                    .foregroundStyle(palette.textTertiary)
-                Text(verbatim: "\(model.draft.chapters.count) · \(totalNodes) · \(model.draft.tickets.count)")
-                    .font(CYTypography.cardTitle.monospacedDigit())
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard()
-        }
-    }
 }
 
 struct ProjectEditReferenceField: View {

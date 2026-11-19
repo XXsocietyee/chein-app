@@ -165064,13 +165064,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete the selected chapters and all of their nodes and story blocks? This action has no undo."
+            "value": "Delete the selected chapters? Their stops and story blocks go with them. You can undo for a few seconds after."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认删除所选章节，以及其中的全部节点和故事块？此操作无法撤销。"
+            "value": "删除所选章节？其中的节点和故事块会一起删除，删除后几秒内可以撤销。"
           }
         }
       }
@@ -166924,13 +166924,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review and submit"
+            "value": "Next"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "检查并提交"
+            "value": "下一步"
           }
         }
       }

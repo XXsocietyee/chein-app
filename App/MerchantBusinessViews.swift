@@ -434,6 +434,8 @@ import SwiftUI
     @State private var sourceEnd = ""
     @State private var tagID = 0
     @State private var editor: MerchantBusinessEditorContext?
+    /// Figma 183:1731: the decision tapped in the pinned refund bar, for the editor it opened.
+    @State private var refundPreset: (editorID: UUID, decision: MerchantAftercareDecision)?
     @State private var selection: Set<Int> = []
     @State private var pendingMutation: MerchantBusinessMutation?
     @State private var pendingMutationEditorID: UUID?
@@ -563,7 +565,7 @@ import SwiftUI
                     }
                 } else if let progress = snapshot.document.aftercareProgress {
                     // Source detail puts the decision actions (or the read-only line) right under the hero.
-                    if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }) {
+                    if let refund = snapshot.document.rows.first(where: { $0.kind == .refund }), refundDecisionRow == nil {
                         Section { rowActions(refund, access: snapshot.access) }
                     }
                     MerchantAftercareProgressView(progress: progress)
@@ -654,6 +656,16 @@ import SwiftUI
         let presentedEditorID = editor?.id ?? pendingMutationEditorID
         pageContent
         .scrollContentBackground(.hidden)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            // verify-r1 3.6 / Figma 183:1731: the refund decision is a pinned pair, 不同意 · 同意退款 ¥X. Each opens the
+            // existing response editor on that decision; the money still moves only through its review + confirm.
+            if let refund = refundDecisionRow {
+                MerchantRefundDecisionBar(amount: MerchantAftercareParity.ListRow(refund)?.amountDisplay,
+                    reject: { openRefundEditor(refund, decision: .reject) },
+                    agree: { openRefundEditor(refund, decision: .agree) })
+                    .disabled(state.isBusy || state.isLocked || editor != nil)
+            }
+        }
         .cyDomainScreen(.merchant)
         .appNavigationTitle(key: query.titleKey)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
@@ -681,7 +693,7 @@ import SwiftUI
             let roleReturnAuthorization = reader.authorizationGeneration
             let roleReturnSnapshot = state.snapshot
             MerchantBusinessEditor(context: context, snapshot: state.snapshot, noteDrafts: noteDrafts, reviewInitialContent: draftReturn.initialContent(for: context.id),
-                aftercareInitialDraft: aftercareReturn.initialDraft(for: context.id), aftercareEvidenceOwner: {
+                aftercareInitialDraft: aftercareReturn.initialDraft(for: context.id) ?? refundPresetDraft(for: context.id), aftercareEvidenceOwner: {
                 MerchantAftercareEvidenceOwner(editorID: context.id, document: model,
                     editorIsCurrent: { editor?.id == context.id && pendingMutation == nil })
             }, onUnchangedRole: { ticket in
@@ -1008,6 +1020,28 @@ import SwiftUI
                 .accessibilityIdentifier("merchant.business.row.\(row.kind.rawValue).\(row.id)")
         }
     }
+    /// Opens the existing response editor already set to the decision the operator tapped in the pinned bar. The preset
+    /// is an initial draft (decision only, no text, no evidence), the same shape a resumed draft uses.
+    private func openRefundEditor(_ refund: MerchantBusinessRecord, decision: MerchantAftercareDecision) {
+        let context = MerchantBusinessEditorContext(kind: .aftercare(refund))
+        refundPreset = (context.id, decision)
+        editor = context
+    }
+    private func refundPresetDraft(for id: UUID) -> MerchantAftercareEvidenceDraft? {
+        guard let refundPreset, refundPreset.editorID == id else { return nil }
+        return .init(decision: refundPreset.decision, content: "", evidence: "")
+    }
+    /// The refund on a refund detail page that this operator may answer now, with both 同意 and 不同意 allowed.
+    private var refundDecisionRow: MerchantBusinessRecord? {
+        guard case .refund = query, state.isCurrent, let snapshot = state.snapshot, snapshot.document.aftercareProgress != nil,
+              snapshot.access.allows("merchant:aftercare:respond"),
+              let refund = snapshot.document.rows.first(where: { $0.kind == .refund }),
+              refund.fields["canRespond"]?.bool == true,
+              let allowed = try? refund.fields.mbStrings("allowedDecisions"),
+              allowed.contains(MerchantAftercareDecision.agree.rawValue),
+              allowed.contains(MerchantAftercareDecision.reject.rawValue) else { return nil }
+        return refund
+    }
     @ViewBuilder private func rowActions(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {
         if row.kind == .review {
             if let snapshot = state.snapshot, sourcePageMatches(snapshot), snapshot.document.rows.contains(row) {
@@ -1276,5 +1310,34 @@ extension Binding where Value == MerchantCustomerAppliedQuery? {
             .navigationDestination(item: $route.forMerchantCustomerQuery(captured)) { selection in
                 destination(selection).id(selection.id)
             }
+    }
+}
+
+/// Figma 183:1731 · the pinned refund pair: 不同意 (secondary) and 同意退款 ¥X (primary), side by side.
+struct MerchantRefundDecisionBar: View {
+    let amount: String?
+    let reject: () -> Void
+    let agree: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        CYFooterBar {
+            (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))) {
+                Button(action: reject) { OpsR3Text.text("r3merchant.refund.reject").frame(maxWidth: .infinity) }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
+                    .accessibilityIdentifier("r3merchant.refund.reject")
+                Button(action: agree) {
+                    Group {
+                        if let amount { Text("r3merchant.refund.agreeAmount \(amount)", tableName: OpsR3Text.table) }
+                        else { OpsR3Text.text("r3merchant.refund.agree") }
+                    }
+                    .monospacedDigit()
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(CYPillButtonStyle())
+                .accessibilityIdentifier("r3merchant.refund.agree")
+                .layoutPriority(1)
+            }
+        }
     }
 }
