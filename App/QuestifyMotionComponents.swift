@@ -131,6 +131,7 @@ private struct QuestifyPrimaryLabel: View {
     @Environment(\.themeDomain) private var domain
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.controlSize) private var controlSize
+    @Environment(\.questifyPrimaryFillsWidth) private var fillsWidth
 
     var body: some View {
         configuration.label
@@ -138,9 +139,19 @@ private struct QuestifyPrimaryLabel: View {
             .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
             .padding(.vertical, controlSize == .large ? Theme.Space.s3_5 : Theme.Space.s2)
             .padding(.horizontal, controlSize == .large ? Theme.Space.s5 : Theme.Space.s3_5)
+            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: fillsWidth ? CYSpacing.minTouchTarget : nil)
             .background(Theme.Color.actionPrimaryBackground(in: domain), in: Capsule())
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.4)
             .contentShape(Capsule())
+    }
+}
+
+private struct QuestifyPrimaryFillsWidthKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    /// Code r3: in a bar of equal pills (保存草稿 · 下一步) the primary takes its share of the width and the 44 pt height.
+    var questifyPrimaryFillsWidth: Bool {
+        get { self[QuestifyPrimaryFillsWidthKey.self] }
+        set { self[QuestifyPrimaryFillsWidthKey.self] = newValue }
     }
 }
 

@@ -345,7 +345,11 @@ import SwiftUI
                 Section {
                     ProjectEditOverviewBar(saveState: overviewSaveState, saveDetail: overviewSaveDetail, canvas: $canvas)
                         .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                         .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                }
+                .listSectionSpacing(.compact)
+                Section {
                     ProjectEditTopicCard(name: model.draft.name, cover: model.draft.imgUrl,
                                          missing: ProjectEditTopicCard.missingCount(model.draft)) {
                         withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
@@ -648,6 +652,7 @@ import SwiftUI
                         // publish preview, which holds the one confirmation.
                         Button("projectEdit.review") { focusedField = nil; model.review() }
                             .buttonStyle(.questifyPrimary).disabled(!model.canReview).accessibilityIdentifier("projectEdit.review")
+                            .environment(\.questifyPrimaryFillsWidth, true)
                     }
                 }
                 if model.coordinator.canSaveCloudDraft {
@@ -837,8 +842,11 @@ import SwiftUI
                 ProjectChapterRemovalStatus(controller: chapterRemoval)
             }
             if model.draft.chapters.isEmpty {
-                CYEmptyState(systemImage: "map", "projectEdit.nodes.empty", messageIdentifier: "projectEdit.chapters.empty")
-                    .listRowBackground(Color.clear)
+                // Figma 237:32682: no chapters yet is one quiet line above 创建章节, not an illustration.
+                OpsR3Text.text("editor.chapters.empty")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("projectEdit.chapters.empty")
             }
             ForEach(model.draft.chapters) { chapter in
                 // Figma 237:31646 Topic/Chapter Card: the whole card opens the chapter; ⋯ (上移 · 下移 · 删除) and the

@@ -129,6 +129,22 @@
         }
       }
     },
+    "editor.chapters.empty": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有章节。先建第一章，再往里放站点。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No chapters yet. Add the first one, then put stops in it."
+          }
+        }
+      }
+    },
     "editor.chapters.header %lld": {
       "localizations": {
         "zh-Hans": {
