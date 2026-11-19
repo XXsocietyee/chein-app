@@ -53,7 +53,7 @@ Hand-rolled tab/segment controls with their own indicator (candidates to move on
 - Brief continuity rules: one element (single indicator), transforms/drawing not reflowing frames, end-only content fades in after ~45%, start-only out in first ~30%, 400–450 ms indicator, moves within a screen on ease-in-out, Reduce Motion 150 ms cross-fade, at rest identical.
 
 ## Checks
-- `python3 -B tools/check_scaffold.py`: PASS. `python3 -B tools/check_design_lint.py`: PASS. `python3 -B tools/contract_ratchet.py --check`: see commit message / below.
+- `python3 -B tools/check_scaffold.py`: PASS. `python3 -B tools/check_design_lint.py`: PASS. `python3 -B tools/contract_ratchet.py --check`: 185 failing vs baseline 184; the one new failure is `test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging` (it greps a Workshop source for `value.businessType == "TOPIC"`). This branch only changes `CYTabs.swift`, so that failure is drift already on `origin/ui/main`, not caused here. `tools/check_swift_syntax.py`: could not run (pinned tree-sitter wheel hash mismatch).
 
 ## LOCAL VERIFICATION CHECKLIST (integrator)
 1. Build. Expect possible fixes only in `CYTabs.swift` (generic `crossingLabel` builder, `AnimatablePair` shape, `CYTabContentModifier` body with explicit `return`).
