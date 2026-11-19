@@ -17,6 +17,9 @@ struct TopicDetailView: View {
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
+    /// Continuity r1 (6): which bar button opened the sheet now up; nil for every other opener. Cleared on dismiss.
+    @State private var barSheetOrigin: TopicBarSheet?
+    @Namespace private var barHero
     /// Load lifecycle (docs/release/state-machines/views.md). `loadedKey` guards a phase that belongs to a stale key.
     @State private var phase: CYPhase<TopicDetail, TopicScreenIssue> = .idle
     @State private var loadedKey: Key?
@@ -86,19 +89,21 @@ struct TopicDetailView: View {
                 .cyDomainSheet(detents: [.half, .full])
         }
         .onChange(of: key) { _, _ in showingSelfPlay = false; showingSessionSelection = false; showingTickets = false }
-        .sheet(isPresented: $showingTickets) {
+        .sheet(isPresented: $showingTickets, onDismiss: { barSheetOrigin = nil }) {
             if let ticketWalletDestination {
                 ticketWalletDestination(id)
+                    .modifier(TopicBarHeroDestination(sheet: .tickets, origin: barSheetOrigin, namespace: barHero))
                     .cyDomainSheet(detents: [.half, .full])
             }
         }
-        .sheet(isPresented: $showingSelfPlay) {
+        .sheet(isPresented: $showingSelfPlay, onDismiss: { barSheetOrigin = nil }) {
             Group {
                 if let detail {
                     if let selfPlayDestination { selfPlayDestination(detail) }
                     else { TopicSelfPlayUnavailableSheet(topic: detail) }
                 }
             }
+            .modifier(TopicBarHeroDestination(sheet: .selfPlay, origin: barSheetOrigin, namespace: barHero))
             .cyPlayerSheetGlass()
             .cyDomainSheet(detents: [.half, .full])
         }
@@ -472,20 +477,24 @@ struct TopicDetailView: View {
         .cyTracksHeroScroll($heroScrolledAway, threshold: 280)
         .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }
+        .modifier(TopicBarRecede(active: barSheetOrigin != nil && (showingSessionSelection || showingSelfPlay || showingTickets || showsPricing)))
         .safeAreaInset(edge: .bottom) {
-            TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
-                              openSelfPlay: { showingSelfPlay = true },
-                              openPricing: pricingDestination == nil ? nil : { showsPricing = true },
-                              openTickets: ticketWalletDestination == nil ? nil : { showingTickets = true })
+            TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { barSheetOrigin = .sessions; showingSessionSelection = true } },
+                              openSelfPlay: { barSheetOrigin = .selfPlay; showingSelfPlay = true },
+                              openPricing: pricingDestination == nil ? nil : { barSheetOrigin = .pricing; showsPricing = true },
+                              openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
+                              heroNamespace: barHero)
         }
-        .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
+        .sheet(isPresented: $showingSessionSelection, onDismiss: { barSheetOrigin = nil; loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
+                .modifier(TopicBarHeroDestination(sheet: .sessions, origin: barSheetOrigin, namespace: barHero))
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .sheet(isPresented: $showsPricing) {
+        .sheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
             if let pricingDestination {
                 NavigationStack { pricingDestination(value.id) }
+                    .modifier(TopicBarHeroDestination(sheet: .pricing, origin: barSheetOrigin, namespace: barHero))
                     .cyPlayerSheetGlass()
                     .cyDomainSheet(detents: [.half, .full])
             }
