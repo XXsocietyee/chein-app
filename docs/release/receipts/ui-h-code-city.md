@@ -1,7 +1,8 @@
 # Receipt · ui/h-code-city · City Monopoly client and the map-first 漫游 tab
 
-Worker A (Opus 5.5), Orca task `task_659366471010`. Branch from `origin/ui/main` f14040431 (unchanged at the time of
-the last fetch, so no rebase). Pushed to `origin/ui/h-code-city`; `ui/main` was not touched.
+Worker A (Opus 5.5), Orca task `task_659366471010`. Branched from `origin/ui/main` f14040431, then rebased onto
+`origin/ui/main` 9c9237eed (worker B's ui/h-code-app merge; the rebase was clean). Pushed to `origin/ui/h-code-city`;
+`ui/main` was not touched.
 
 Sources: Figma `0YyoybGnU1KG0657wdGCPX` page `00 Hand-off · 交付清单` (the frame list also lives in
 `revise/skill-r2/js/_handoff.json`), `review/skill-r2.md` §3–§4 and "What works", `revise/skill-r2/LOG.md` and shots,
@@ -124,6 +125,7 @@ allowed in DesignSystem), `App/DesignFixtures/DesignFixtureRegistry.swift` (one 
 | a11y lint | PASS |
 | Core `swift test --disable-sandbox` | 16982 tests (+8 new `CityBoardStoreTests`, all pass); **27 unique failures = baseline 27** (none in City Monopoly or roam code) |
 | AppUnit, 4 shards (`test_sim`, shard xctestruns from the plans) | 6 / 15 / 30 / 24 failing. All 75 failing identifiers re-run together on this branch at low load: 70 fail. The same 75 on a clean f14040431 build (same worktree checked out detached, build-for-testing, same `OnlyTestIdentifiers`): **the same 70 fail, 0 branch-only**. No new AppUnit failures. |
+| After the rebase onto 9c9237eed | scaffold / design lint / strings / a11y / appsession ratchet PASS; contract ratchet unchanged (the same one pre-existing name); Core 16982 tests, 27 unique failures = baseline; build-for-testing green; AppUnit 4 shards 7 / 15 / 31 / 24 failing (77 names): 69 are in the set that fails on clean f14040431, 1 more (`MerchantWorkbenchRemindersTests…NotAdmission`) also fails there, and the other 7 (`OwnAccountRefreshOrderingTests` ×4, `ProfileGuideReadTests`, `RoamPrivateReadDenialHostTests`, `SessionExpiryPresentationAppTests`) pass when re-run alone (timing flakes; `RoamPrivateReadDenialHostTests` is the known hosted-roam baseline). No new failures. |
 | Builds | Questify Debug simulator build green; build-for-testing green |
 
 Known rough edge: at the 附近 drawer's peek detent the `附近 · n` heading sits partly in the system tab bar's scroll-edge fade.
