@@ -203,7 +203,14 @@ struct CoopFlowSafetyNotice: View {
             ForEach(Array(values.enumerated()), id: \.offset) { index, row in
                 NavigationLink {
                     List {
-                        CoopFlowFields(value: row, keys: ["name", "topicName", "clubName", "merchantName", "type", "id", "memberId", "topicId", "applyId", "scope", "state", "status", "auditStatus", "toType", "fromId", "toId", "message", "handleReason", "termsFrozen", "retailValue", "unitCost", "quota", "validEnd", "address", "distance", "category"])
+                        if resource == .invitations {
+                            // Figma 186:6119 (SR2-18): the invite reads as the topic, who sent it, where it stands and
+                            // the message; record ids, raw status codes and member numbers are not shown.
+                            Section { CoopInviteCardLabel(row: row, direction: direction) }
+                            CoopFlowFields(value: row, keys: ["message", "handleReason", "retailValue", "unitCost", "quota", "validEnd", "address"])
+                        } else {
+                            CoopFlowFields(value: row, keys: ["name", "topicName", "clubName", "merchantName", "type", "id", "memberId", "topicId", "applyId", "scope", "state", "status", "auditStatus", "toType", "fromId", "toId", "message", "handleReason", "termsFrozen", "retailValue", "unitCost", "quota", "validEnd", "address", "distance", "category"])
+                        }
                         sourceActions(row, direction: direction)
                         Section { CoopFlowSafetyNotice() }
                     }.navigationTitle("coopflow.details")

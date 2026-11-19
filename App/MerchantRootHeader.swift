@@ -68,7 +68,7 @@ extension View {
     func merchantRootHeaderRow() -> some View {
         listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.xs, bottom: CYSpacing.sm, trailing: CYSpacing.xs))
     }
 
     /// Hides the inline bar title on a merchant root that shows `MerchantRootHeader` (iOS 18+; earlier keeps it).

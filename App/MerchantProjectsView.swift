@@ -134,14 +134,16 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
             } else if let error = model.errorKey {
                 MerchantFailureView(errorKey: error, identifier: "merchant.projects", retry: { Task { await reload() } })
             } else {
-                CYSkeleton(variant: .card)
-                    .padding(CYSpacing.pageHorizontal)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    if showsRootHeader { MerchantRootHeader(OpsR3Text.text("r3merchant.root.templates")) }
+                    CYSkeleton(variant: .card)
+                }
+                .padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.projects")
         .modifier(MerchantProjectsRootTitle(hidesBarTitle: showsRootHeader))
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
         .onChange(of: context) { _, _ in presentation.invalidate(); tab = .topic }
@@ -471,6 +473,8 @@ struct MerchantProjectWorkspaceSnapshot {
 private struct MerchantProjectsRootTitle: ViewModifier {
     let hidesBarTitle: Bool
     func body(content: Content) -> some View {
-        if hidesBarTitle { content.merchantRootHidesBarTitle() } else { content }
+        // The root header carries 模板; the bar keeps no title (the 我主办的项目 large title read as a second name).
+        if hidesBarTitle { content.navigationTitle("").navigationBarTitleDisplayMode(.inline) }
+        else { content.appNavigationTitle("merchant.projects") }
     }
 }
