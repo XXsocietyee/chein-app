@@ -88,15 +88,21 @@ struct MessageComposerSubmission: Equatable {
     let onAcknowledged:(MessagingMessage)->Void
     /// The view's existing poll entry, shown as the leading `+` when the history offers it.
     let createPoll:(() -> Void)?
+    /// Continuity (r1 item 9): the history's flight that carries the sent text into its bubble. nil keeps the composer as before.
+    let flight:IMSendFlight?
     @Environment(\.themeDomain) private var domain
+    @QuestifyReduceMotion private var reduceMotion
+    /// Never launched: stands in for `flight` when the host passes none, so the slot below always has one to observe.
+    @StateObject private var idleFlight = IMSendFlight()
     @Environment(\.locale) private var locale
     @State private var confirmsRetry=false
     @FocusState private var typing:Bool
     init(coordinator:MessageActionCoordinator,identity:MessagingReadIdentity?,conversationReady:Bool,
          canReply: @escaping () -> Bool = { true },
          createPoll: (() -> Void)? = nil,
+         flight: IMSendFlight? = nil,
          onAcknowledged:@escaping (MessagingMessage)->Void) {
-        self.createPoll=createPoll
+        self.createPoll=createPoll;self.flight=flight
         _model=StateObject(wrappedValue:MessageComposerModel(coordinator))
         self.identity=identity;self.conversationReady=conversationReady;self.canReply=canReply;self.onAcknowledged=onAcknowledged
     }
@@ -107,7 +113,9 @@ struct MessageComposerSubmission: Equatable {
     var body:some View {
         VStack(alignment:.leading,spacing:8) {
             switch model.state {
-            case .sending: ProgressView("message.send.sending")
+            // Sending and the receipt stay in place: the spinner is the send button itself and the receipt sits in the
+            // empty field, so the composer never grows a status row (continuity r1: no toast).
+            case .sending: EmptyView()
             case .outcomeUnknown,.rejected:
                 Text(LocalizedStringKey(model.state == .outcomeUnknown ? "message.send.unknown" : "message.send.rejected"))
                     .font(.footnote).accessibilityIdentifier("message.send.issue")
@@ -116,7 +124,7 @@ struct MessageComposerSubmission: Equatable {
                 Button("message.send.retry") { confirmsRetry=true }.disabled(!ready)
                     .accessibilityIdentifier("message.send.retry")
             case .closed: Text("message.send.closed").font(.footnote)
-            case .acknowledged: Text("message.send.accepted").font(.footnote).accessibilityIdentifier("message.send.receipt")
+            case .acknowledged: EmptyView()
             case .idle: EmptyView()
             }
             // `+` on the left, then a rounded field with the send control inside it.
@@ -130,25 +138,53 @@ struct MessageComposerSubmission: Equatable {
                     .accessibilityIdentifier("poll.createEntry")
                 }
                 HStack(alignment:.bottom,spacing:4) {
-                    TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
-                        .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).padding(.trailing,0).focused($typing).disabled(!model.acceptsTyping)
-                        .accessibilityIdentifier("message.send.input")
+                    ZStack(alignment:.topLeading) {
+                        TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
+                            .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).padding(.trailing,0).focused($typing).disabled(!model.acceptsTyping)
+                            .accessibilityIdentifier("message.send.input")
+                        MessageComposerFieldSlot(flight: flight ?? idleFlight, fieldIsEmpty: model.draft.isEmpty,
+                            showsReceipt: model.state.isAcknowledged && !typing, fill: Theme.Color.bgRaised(in:domain))
+                    }
+                    .cyAnimation(.easeInOut(duration:CYMotion.Duration.quick),value:model.state == .sending)
                     let draftIsEmpty = model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty
                     Button {
                         typing=false
                         guard let token = model.prepare(.send(model.draft), identity: identity, canReply: ready) else { return }
-                        Task { await model.perform(token, canReply: { ready }) }
+                        flight?.launch(model.draft)
+                        let flight = flight
+                        Task {
+                            let accepted = await model.perform(token, canReply: { ready })
+                            if !accepted { flight?.cancel() }
+                        }
                     } label: {
                         let live = !(draftIsEmpty || !canCompose)
-                        Label("message.send.button",systemImage:"arrow.up").labelStyle(.iconOnly)
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(live ? CYChat.onSent : Color.secondary)
-                            .frame(width:32,height:32)
-                            // Quiet grey while there is nothing to send; the accent fills in with text.
-                            .background(live ? CYChat.sent : Color.secondary.opacity(0.25),in:Circle())
-                            .frame(minWidth:44,minHeight:44).contentShape(Rectangle())
-                            .animation(.snappy(duration:0.2),value:live)
+                        let sending = model.state == .sending
+                        // The button itself morphs: the arrow scales down and blurs out as a spinner scales in on the
+                        // same accent circle, then reverses when the send settles.
+                        let filled = live || sending
+                        ZStack {
+                            Label("message.send.button",systemImage:"arrow.up").labelStyle(.iconOnly)
+                                .font(.subheadline.weight(.bold))
+                                .opacity(sending ? 0 : 1)
+                                .scaleEffect(sending && !reduceMotion ? 0.25 : 1)
+                                .blur(radius: sending && !reduceMotion ? 4 : 0)
+                            ProgressView().controlSize(.small).tint(CYChat.onSent)
+                                .opacity(sending ? 1 : 0)
+                                .scaleEffect(sending || reduceMotion ? 1 : 0.25)
+                                .blur(radius: sending || reduceMotion ? 0 : 4)
+                                .accessibilityHidden(true)
+                        }
+                        .foregroundStyle(filled ? CYChat.onSent : Color.secondary)
+                        .frame(width:32,height:32)
+                        // Quiet grey while there is nothing to send; the accent fills in with text and holds while sending.
+                        .background(filled ? CYChat.sent : Color.secondary.opacity(0.25),in:Circle())
+                        .frame(minWidth:44,minHeight:44).contentShape(Rectangle())
+                        .animation(.snappy(duration:0.2),value:live)
+                        .cyAnimation(CYMotion.standard,value:sending)
                     }
+                    // The arrow is transparent while sending, so the button names itself rather than reading its label.
+                    .accessibilityLabel(Text("message.send.button"))
+                    .accessibilityValue(model.state == .sending ? Text("message.send.sending") : Text(verbatim:""))
                     .sensoryFeedback(.impact(weight:.light),trigger:model.draft.isEmpty)
                     .buttonStyle(.borderless)
                     .disabled(!canCompose || draftIsEmpty)
@@ -172,7 +208,17 @@ struct MessageComposerSubmission: Equatable {
         }
         .onChange(of:identity) { _,_ in let visible = model.appearance != nil; model.retire(); model.draft="";confirmsRetry=false; if visible { model.observe() } }
         .onChange(of:canReply()) { _, allowed in if !allowed { model.invalidateQueued(); confirmsRetry=false } }
+        .onChange(of:model.state) { _,state in
+            // A send that does not land here (rejected, unknown, closed, or acknowledged while this history is not
+            // ready) drops its ghost; the issue row keeps showing the pending text as before.
+            switch state {
+            case .sending: break
+            case .acknowledged: if !ready { flight?.cancel() }
+            default: flight?.cancel()
+            }
+        }
         .onDisappear { model.retire(); confirmsRetry=false; typing=false }
+        .onDisappear { flight?.cancel() }
         .sheet(isPresented: $confirmsRetry) {
             CYConfirmSheet(
                 title: appLocalized("message.send.retryTitle", locale: locale),
@@ -185,5 +231,39 @@ struct MessageComposerSubmission: Equatable {
             }
             .cyDomainSheet(detents: [.peek, .half])
         }
+    }
+}
+
+private extension MessageSendState {
+    var isAcknowledged: Bool { if case .acknowledged = self { return true } else { return false } }
+}
+
+/// The empty field's overlay: the sent text while it travels to its bubble, then the server receipt in place of a
+/// status row. Observes the flight so the ghost leaves in the same transaction that inserts the bubble.
+private struct MessageComposerFieldSlot: View {
+    @ObservedObject var flight: IMSendFlight
+    let fieldIsEmpty: Bool
+    let showsReceipt: Bool
+    let fill: Color
+    var body: some View {
+        if let ghost = flight.ghost, fieldIsEmpty {
+            IMSendGhost(text: ghost, key: flight.ghostKey, namespace: flight.namespace)
+        } else if showsReceipt, fieldIsEmpty {
+            // Server receipt, not a read receipt. Same words and identifier as the former status row.
+            Text("message.send.accepted").font(.footnote).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 11).padding(.leading, 16).padding(.trailing, 4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(fill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .allowsHitTesting(false)
+                .accessibilityIdentifier("message.send.receipt")
+                .transition(arrival)
+        }
+    }
+    /// End-only content: fades in from the middle of the bubble's move; leaves at once when typing starts.
+    private var arrival: AnyTransition {
+        .asymmetric(
+            insertion: AnyTransition.opacity.animation(.easeOut(duration: CYMotion.Duration.quick).delay(CYMotion.Duration.standard * 0.5)),
+            removal: AnyTransition.opacity.animation(.easeOut(duration: CYMotion.Duration.instant)))
     }
 }
