@@ -737,6 +737,15 @@ import SwiftUI
     @State private var skippedHere = false
     @State private var showUnsavedDiscard = false
     @State private var nodeToastMessage: String?
+    /// This screen's own submission settled as done (the button shows 已完成 in place).
+    @State private var justSubmitted = false
+    /// The server's reason when this screen's answer was not accepted, shown above the button.
+    @State private var rejectionText: String?
+    private var answerPhase: CYResultPhase {
+        if outcomeState == .submitting { return .loading }
+        if justSubmitted && (outcomeState == .completed || nodeDone) { return .done }
+        return .idle
+    }
     private var node: PlayNode? { model.snapshot?.visibleNodes.first { $0.id == nodeID } }
     /// The server's done flag for this stop: node `done`, or a `COMPLETED` node or route state.
     private var nodeDone: Bool { node.map { model.snapshot?.isDone($0) == true } ?? false }
@@ -893,11 +902,14 @@ import SwiftUI
                             HapticsService.shared.play(.checkInSuccess)
                         }
                     }
-                    verdict = .init(kind: .win)
+                    // In place (xrefs-1 C2 / owner continuity pass): the submit button morphs to Done and the task card
+                    // above updates where it is; no full-screen verdict for an ordinary stop.
+                    justSubmitted = true
                 } else if new == .pending || new == .failed, case .rejected(_, let message)? = model.issue {
                     UIKitHapticsDriver.ensureInstalled()
                     HapticsService.shared.play(.wrongAnswer)
-                    verdict = .init(kind: .fail, text: message)
+                    // The answer was not accepted: the button returns to its label and the reason stays beside it.
+                    rejectionText = message
                 }
             }
             .onChange(of: model.reward) { _, reward in
@@ -986,12 +998,22 @@ import SwiftUI
                 }
                 // F-05: a done, locked or not-yet-ready stop says why and keeps its submit disabled.
                 let blocker = model.reviewRefusal(nodeID: nodeID)
-                if let shown = refusal ?? blocker, shown != .busy { PlayReviewRefusalRow(refusal: shown) }
-                CYPillButton("playx.review", systemImage: "checkmark.circle.fill") {
+                if answerPhase == .idle, let shown = refusal ?? blocker, shown != .busy { PlayReviewRefusalRow(refusal: shown) }
+                if answerPhase == .idle, let rejectionText {
+                    Label { Text(verbatim: rejectionText).fixedSize(horizontal: false, vertical: true) } icon: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(palette.danger).accessibilityHidden(true)
+                    }
+                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary)
+                    .accessibilityIdentifier("playx.answer.rejected")
+                }
+                // In place: 提交 → 正在提交 → 已完成 in the same capsule (`CYResultButton`).
+                CYResultButton("playx.review", loading: "playx.phase.submitting", done: "playx.completed",
+                               systemImage: "checkmark.circle.fill", phase: answerPhase) {
+                    rejectionText = nil
                     prepare(.answer(answer), context: context)
                 }
-                .disabled(!model.canWrite || (blocker != nil && blocker != .busy) || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .accessibilityIdentifier("playx.answer.review")
+                .identifier("playx.answer.review")
+                .disabled(answerPhase == .idle && (!model.canWrite || (blocker != nil && blocker != .busy) || answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
             }
         }
     }

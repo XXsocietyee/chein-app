@@ -499,6 +499,7 @@
         "QuestLiveActivityMappingTests",
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
+        "R3PlayerMotionTests",
         "ReferenceChatTaskAppTests",
         "ReferenceMapCardAppTests",
         "ReformWorkPackagesW02ToW20SectionViewTests",

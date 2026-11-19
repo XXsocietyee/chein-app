@@ -80,6 +80,27 @@ struct CityPresenceChecklist: View {
     }
 }
 
+/// The one-line reason a presence-gated primary is disabled, placed directly above it (xrefs-1 B.1, N45
+/// "再走近 235 m 就能开始挑战"). nil when every check passed.
+enum CityBlockingReason {
+    static func text(fixes: [RoamDeviceFix], anchor: RoamCoordinate, running: Bool, verb: (zh: String, en: String), copy: CityCopy) -> String? {
+        let checks = CityPresencePreflight.evaluate(fixes: fixes, anchor: anchor, requirePhoto: false, hasPhoto: false)
+        guard let latest = fixes.last else { return copy("正在定位…", "Locating…") }
+        if let distance = checks.first(where: { $0.kind == .distance }), !distance.passed {
+            let gap = max(1, Int((CityPresencePreflight.distanceM(latest.coordinate, anchor) - CityPresencePreflight.claimRadiusM).rounded(.up)))
+            return copy("再走近 \(gap) m 就能\(verb.zh)", "Move \(gap) m closer to \(verb.en)")
+        }
+        if let accuracy = checks.first(where: { $0.kind == .accuracy }), !accuracy.passed {
+            return copy("定位还不够准，到开阔处等几秒", "Location is not precise yet; wait a few seconds in the open")
+        }
+        if checks.first(where: { $0.kind == .dwell })?.passed != true {
+            return running ? copy("在现场停留满 60 秒就能\(verb.zh)", "Stay 60 seconds on site to \(verb.en)")
+                           : copy("停留没记满，关掉重来一次", "The stay was not recorded; close and try again")
+        }
+        return nil
+    }
+}
+
 extension CityPresenceCheck.Kind: CaseIterable {
     public static var allCases: [CityPresenceCheck.Kind] { [.distance, .accuracy, .dwell, .photo] }
 }
@@ -106,9 +127,8 @@ struct CityChallengeSheet: View {
                                tags: [[copy.tier(place.tier), copy.level(place.level)].compactMap { $0 }.joined(separator: " · ")],
                                districtIndex: place.districtIndex, district: copy.district(place), onClose: close)
                 if let dc = quote?.dc {
+                    // Flat: the odds bar sits directly on the sheet (xrefs-1 B.1, N34); one card is kept for the checks.
                     CityOddsBar(needFace: CityOddsBar.needFace(dc: dc, mod: 0))
-                        .padding(CYSpacing.md)
-                        .background(palette.bgRaised.opacity(0.5), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 } else {
                     CityBanner(text: copy("难度要侦察后才知道。掷出 20 必赢，掷出 1 必输。", "Difficulty shows after scouting. A natural 20 always wins, a 1 always loses."), symbol: "dice")
                 }
@@ -117,12 +137,24 @@ struct CityChallengeSheet: View {
                     .init(label: copy("挑战费", "Challenge fee"), value: String(fee), coin: true),
                     .init(label: copy("今天还可挑战", "Challenges left today"), value: copy("最多 \(CityMonopolyRules.challengesPerDay) 次", "up to \(CityMonopolyRules.challengesPerDay)"))
                 ])
-                CYPillButton(verbatim: copy("开始挑战 · \(fee) 积分", "Start · \(fee) pts")) {
-                    sampler.stop()
-                    onMoment(.ready(place, fixes: sampler.fixes, dc: quote?.dc))
+                VStack(spacing: CYSpacing.sm) {
+                    if let reason = startBlockingReason {
+                        Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                            .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                            .transition(.opacity)
+                            .accessibilityIdentifier("city.challenge.reason")
+                    }
+                    CYPillButton(verbatim: copy("开始挑战 · \(fee) 积分", "Start · \(fee) pts")) {
+                        sampler.stop()
+                        onMoment(.ready(place, fixes: sampler.fixes, dc: quote?.dc))
+                    }
+                    .disabled(!canStart)
+                    .accessibilityHint(Text(verbatim: startBlockingReason ?? ""))
+                    .accessibilityIdentifier("city.challenge.start")
                 }
-                .disabled(quote == nil || !sampler.passed(anchor: place.coordinate))
-                .accessibilityIdentifier("city.challenge.start")
+                // When the last check passes the button fills in place (surface-3 → cta) and the reason fades.
+                .cyAnimation(CYMotion.standard, value: canStart)
+                .cyHaptic(.selection, trigger: canStart) { _, new in new }
                 Text(verbatim: copy("没掷够，挑战费的 30% 给守方，其余销毁。", "If you miss, 30% of the fee goes to the holder and the rest is burned."))
                     .font(CYTypography.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
@@ -142,6 +174,13 @@ struct CityChallengeSheet: View {
         .accessibilityIdentifier("city.challenge.sheet")
     }
 
+    private var canStart: Bool { quote != nil && sampler.passed(anchor: place.coordinate) }
+    private var startBlockingReason: String? {
+        if quote == nil { return store.issueCode == nil ? copy("正在报价…", "Getting a quote…") : nil }
+        return CityBlockingReason.text(fixes: sampler.fixes, anchor: place.coordinate, running: sampler.running,
+                                       verb: ("开始挑战", "start the challenge"), copy: copy)
+    }
+
     private func close() { sampler.stop(); store.cancelQuote(); onClose() }
 }
 
@@ -150,6 +189,7 @@ struct CityShieldSheet: View {
     @ObservedObject var store: CityBoardStore
     let onClose: () -> Void
     @State private var until: Date?
+    @State private var phase: CYResultPhase = .idle
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
 
@@ -167,10 +207,23 @@ struct CityShieldSheet: View {
                 Text(verbatim: copy("同一块地 7 天只能开一次，最多叠到 48 小时。", "Once per place every 7 days, up to 48 hours."))
                     .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
             }
-            CYPillButton(verbatim: until == nil ? copy("开护盾 · \(CityMonopolyRules.shieldCost) 积分", "Shield · \(CityMonopolyRules.shieldCost) pts") : copy("好", "Done")) {
-                if until != nil { onClose() } else { Task { until = await store.shield(place) } }
+            // In place (xrefs-1 C2, N47): 开护盾 → 正在开启 → 已开护盾, then the sheet closes after 600 ms with the
+            // protection tag on the row behind it already updated.
+            CYResultButton(verbatim: copy("开护盾 · \(CityMonopolyRules.shieldCost) 积分", "Shield · \(CityMonopolyRules.shieldCost) pts"),
+                           loading: copy("正在开启", "Turning on"), done: copy("已开护盾", "Shield on"), phase: phase) {
+                Task {
+                    phase = .loading
+                    if let result = await store.shield(place) {
+                        withAnimation(CYMotion.standard) { until = result }
+                        phase = .done
+                        try? await Task.sleep(for: .seconds(CYMotion.Delay.sheetDismiss))
+                        onClose()
+                    } else {
+                        withAnimation(CYMotion.release) { phase = .idle }
+                    }
+                }
             }
-            .disabled(store.busy)
+            .identifier("city.shield.confirm")
             if let issue = store.issueCode {
                 CityBanner(text: CityReasonCopy.text(issue, chinese: copy.chinese), symbol: "exclamationmark.circle", tone: .error)
             }
@@ -187,6 +240,7 @@ struct CityUpgradeSheet: View {
     let onMoment: (CityMomentRoute) -> Void
     let onClose: () -> Void
     @StateObject private var sampler = CityPresenceSampler()
+    @State private var phase: CYResultPhase = .idle
     @Environment(\.locale) private var locale
 
     var body: some View {
@@ -204,15 +258,29 @@ struct CityUpgradeSheet: View {
                 Text(verbatim: copy("升级要本人到场：在原地停留 1 分钟。", "Upgrading needs you on site: stay one minute."))
                     .font(CYTypography.meta).foregroundStyle(.secondary)
                 CityPresenceChecklist(checks: sampler.checks(anchor: place.coordinate), running: sampler.running)
-                CYPillButton(verbatim: store.busy ? copy("校验中", "Checking") : copy("升级 · \(cost) 积分", "Upgrade · \(cost) pts")) {
-                    Task {
-                        let from = place.level
-                        if let result = await store.confirm(fixes: sampler.fixes), result.kind == .applied {
-                            onMoment(.upgraded(store.place(id: place.id) ?? place, fromLevel: from))
+                VStack(spacing: CYSpacing.sm) {
+                    if phase == .idle, let reason = quote == nil ? nil : CityBlockingReason.text(fixes: sampler.fixes, anchor: place.coordinate, running: sampler.running,
+                                                                                               verb: ("升级", "upgrade"), copy: copy) {
+                        Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                    }
+                    CYResultButton(verbatim: copy("升级 · \(cost) 积分", "Upgrade · \(cost) pts"), loading: copy("正在升级", "Upgrading"),
+                                   done: copy("已升到 ", "Now ") + copy.level(place.level + 1), phase: phase) {
+                        Task {
+                            let from = place.level
+                            phase = .loading
+                            if let result = await store.confirm(fixes: sampler.fixes), result.kind == .applied {
+                                phase = .done
+                                try? await Task.sleep(for: .seconds(CYMotion.Delay.sheetDismiss))
+                                onMoment(.upgraded(store.place(id: place.id) ?? place, fromLevel: from))
+                            } else {
+                                withAnimation(CYMotion.release) { phase = .idle }
+                            }
                         }
                     }
+                    .identifier("city.upgrade.confirm")
+                    .disabled(phase == .idle && (quote == nil || store.busy || !sampler.passed(anchor: place.coordinate)))
                 }
-                .disabled(quote == nil || store.busy || !sampler.passed(anchor: place.coordinate))
                 if let reasons = store.lastResult?.reasons, store.lastResult?.kind == .rejected, !reasons.isEmpty {
                     CityBanner(text: reasons.map { CityReasonCopy.text($0, chinese: copy.chinese) }.joined(separator: "\n"), symbol: "xmark.octagon", tone: .error)
                 } else if let issue = store.issueCode {
@@ -259,16 +327,27 @@ struct CityMomentHost: View {
     }
 }
 
-/// 圈下了 N22: photo → deed → seal → text (SR2-49 rows 圈下了 1–4).
+/// 圈下了 N22: photo → deed → seal → text (SR2-49 rows 圈下了 1–4; xrefs-1 C1, section 照片 → 地契 K0–K3).
+/// K0: the photo sits in the claim sheet's 64 pt thumbnail. K1: it flies into the deed's photo slot on `CYMotion.hero`
+/// (the lead, 0 → 450 ms) while the moment's ground fades in (200 ms). K2: the deed band and body rise around it from
+/// +250 ms. K3: seal +600 (contact ≈ 780 ms: heavy impact, success 150 ms later), headline +950, chips 0 / 50 / 90 ms,
+/// actions +1 250. Tap jumps to K3. Reduce Motion: a 200 ms cross-fade with the photo already in its slot.
 struct CityClaimedMoment: View {
     let place: CityPlace
     let photo: UIImage?
     let protectionHours: Int
     let price: Int64
+    /// The claim thumbnail's frame in the window (nil: no flight, the deed shows the photo in place).
+    var source: CGRect? = nil
     let onMine: () -> Void
     let onDone: () -> Void
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var flight
+    @State private var flown = false
+    @State private var landed = false
+
+    private var flies: Bool { photo != nil && source != nil && !reduceMotion }
 
     var body: some View {
         let copy = CityCopy(locale: locale)
@@ -278,23 +357,54 @@ struct CityClaimedMoment: View {
                        "\(copy.title(place)) is yours. Every visitor leaves you \(place.rentPerVisit ?? 0) points."),
             chips: [copy("−\(price) 积分", "−\(price) pts"), copy("保护到 ", "Protected to ") + copy.clock(Date().addingTimeInterval(TimeInterval(protectionHours * 3600)))],
             primary: copy("去看看我的地盘", "See my places"), secondary: copy("好", "Done"),
-            onPrimary: onMine, onSecondary: onDone
+            onPrimary: onMine, onSecondary: onDone,
+            stageDelay: photo != nil ? CYMotion.Delay.heroBand : CYMotion.Delay.momentDeed,
+            fadesInGround: source != nil
         ) { beat in
             ZStack(alignment: .topTrailing) {
                 CityDeedCard(place: place, size: .full, heldDays: 1)
-                    .overlay(alignment: .top) {
-                        if let photo, beat < .stage {
-                            Image(uiImage: photo).resizable().scaledToFill().frame(width: 58, height: 58).clipShape(RoundedRectangle(cornerRadius: 10))
-                                .padding(.top, 60).transition(.opacity)
-                        }
-                    }
-                    .offset(y: beat >= .stage || reduceMotion ? 0 : -44)
+                    .environment(\.cityDeedPhotoSlot, CityDeedPhotoSlot(namespace: flight, local: photo, hidesPhoto: flies && !landed))
+                    .offset(y: beat >= .stage || reduceMotion ? 0 : 24)
                     .opacity(beat >= .stage ? 1 : 0)
                 CitySeal(text: copy("已圈下", "Claimed"), landed: beat >= .seal).offset(x: 6, y: -10)
             }
             .padding(.horizontal, CYSpacing.lg)
         }
-        .cityFeedbackOnAppear(.success)
+        .overlay { if flies && !landed { flyingPhoto } }
+        .onAppear {
+            if flies { withAnimation(CYMotion.hero) { flown = true } }
+            Task { @MainActor in
+                // The seal lands with its heavy impact at ≈ 780 ms; success follows 150 ms later, and the deed (settled
+                // under the photo by then) takes the photo over from the flying copy.
+                try? await Task.sleep(for: .seconds(CYMotion.Delay.successWave + 0.15))
+                landed = true
+            }
+        }
+        .sensoryFeedback(.success, trigger: landed) { _, new in new }
+    }
+
+    /// The one moving lead: the claim photo, from the thumbnail's frame to the deed's photo slot.
+    private var flyingPhoto: some View {
+        GeometryReader { proxy in
+            let origin = proxy.frame(in: .global).origin
+            ZStack(alignment: .topLeading) {
+                if let source {
+                    Color.clear
+                        .frame(width: source.width, height: source.height)
+                        .position(x: source.midX - origin.x, y: source.midY - origin.y)
+                        .matchedGeometryEffect(id: CityDeedPhotoSlot.sourceID, in: flight, isSource: true)
+                }
+                if let photo {
+                    Image(uiImage: photo).resizable().scaledToFill()
+                        .matchedGeometryEffect(id: flown ? CityDeedPhotoSlot.slotID : CityDeedPhotoSlot.sourceID, in: flight,
+                                               properties: .frame, isSource: false)
+                        .clipShape(RoundedRectangle(cornerRadius: flown ? 0 : 12, style: .continuous))
+                }
+            }
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -314,6 +424,8 @@ struct CityDiceMoment: View {
     @State private var shownFace: Int?
     @State private var shownTotal: Int?
     @State private var tumbleTick = 0
+    /// The die is one object across ready → rolling → result (xrefs-1 flow 8): one matched geometry id.
+    @Namespace private var dieSpace
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -333,18 +445,25 @@ struct CityDiceMoment: View {
         .onAppear { if autoRoll { roll() } }
     }
 
+    /// N36: the die alone in the top half (xrefs-1 B.1); the odds bar, headline and actions sit together above the
+    /// thumb zone.
     private var ready: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            HStack { Spacer(); CityThrowableDie(enabled: true, onThrow: roll); Spacer() }.padding(.top, CYSpacing.xxxl)
-            if let dc {
-                CityOddsBar(needFace: CityOddsBar.needFace(dc: dc, mod: 0))
+            CityThrowableDie(enabled: true, onThrow: roll)
+                .matchedGeometryEffect(id: "city.die", in: dieSpace)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                if let dc {
+                    CityOddsBar(needFace: CityOddsBar.needFace(dc: dc, mod: 0))
+                }
+                Text(verbatim: copy("准备掷骰", "Ready to roll")).font(Font.title.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+                Text(verbatim: copy("把骰子甩出去，或点「掷骰」。", "Flick the die, or tap Roll.")).font(Font.body).foregroundStyle(palette.textSecondary)
+                CityInfoChip(text: copy("对手 ", "Holder ") + copy.level(place.level))
             }
-            Text(verbatim: copy("准备掷骰", "Ready to roll")).font(Font.title.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
-            Text(verbatim: copy("把骰子甩出去，或点「掷骰」。", "Flick the die, or tap Roll.")).font(Font.body).foregroundStyle(palette.textSecondary)
-            CityInfoChip(text: copy("对手 ", "Holder ") + copy.level(place.level))
-            Spacer()
-            CYPillButton(verbatim: copy("掷骰", "Roll"), action: roll).accessibilityIdentifier("city.dice.roll")
-            CYPillButton(verbatim: copy("再想想", "Not now"), style: .tertiary) { store.cancelQuote(); onDone() }
+            VStack(spacing: CYSpacing.sm) {
+                CYPillButton(verbatim: copy("掷骰", "Roll"), size: .moment, action: roll).accessibilityIdentifier("city.dice.roll")
+                CYPillButton(verbatim: copy("再想想", "Not now"), style: .tertiary) { store.cancelQuote(); onDone() }
+            }
         }
         .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.lg)
         .background(palette.bgPage.ignoresSafeArea())
@@ -353,7 +472,7 @@ struct CityDiceMoment: View {
     private var rolling: some View {
         VStack(spacing: CYSpacing.lg) {
             Spacer()
-            CityTumblingDie()
+            CityTumblingDie().matchedGeometryEffect(id: "city.die", in: dieSpace)
             if let dc { CityInfoChip(text: copy("需要 ≥ \(CityOddsBar.needFace(dc: dc, mod: 0))", "Need ≥ \(CityOddsBar.needFace(dc: dc, mod: 0))")) }
             Spacer()
         }
@@ -378,6 +497,9 @@ struct CityDiceMoment: View {
                 line: won
                     ? copy("掷出 \(face)，加成 +\(mod)，合计 \(total)。\(copy.title(place))归你了。", "Rolled \(face), +\(mod), total \(total). \(copy.title(place)) is yours.")
                     : copy("掷出 \(face)，加成 +\(mod)，合计 \(total)，没到 \(result.dc ?? dc ?? 0)。", "Rolled \(face), +\(mod), total \(total): short of \(result.dc ?? dc ?? 0)."),
+                // The maths as the kicker, the total in 48 pt tabular (xrefs-1 B.1, Figma Moment Kicker).
+                kicker: "\(face) + \(mod)",
+                numericHeadline: true,
                 chips: won
                     ? [copy.level(place.level) + " → " + copy.level(max(0, place.level - 1)), copy("保护 24 小时", "24 h protection")]
                     : [copy("挑战费 30% 给守方", "30% of the fee to the holder"), copy("对这块地冷却 24 小时", "24 h cooldown here")],
@@ -394,6 +516,7 @@ struct CityDiceMoment: View {
                             .offset(y: beat >= .seal || reduceMotion ? 0 : 40)
                     }
                     CityD20Art(face: beat >= .stage ? face : nil, lost: !won, size: won ? 96 : 148)
+                        .matchedGeometryEffect(id: "city.die", in: dieSpace)
                         .offset(y: !won && beat >= .seal && !reduceMotion ? 24 : 0)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: won ? .bottomTrailing : .center)
                 }

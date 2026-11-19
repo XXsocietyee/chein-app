@@ -429,6 +429,10 @@ public struct CityTerritoryProperty: Decodable, Equatable, Identifiable, Sendabl
     public let invested: Int64?
     public let baseYield: Int64?
     public let levelMultiplier: Double?
+    /// HOOK (fix/city-gaps-r3): the district's display name and the deed serial (`地契 · No. N`). The live server does
+    /// not send them yet; when it does, the deed band shows the name instead of "街区 N" and the serial appears (Q10).
+    public let districtName: String?
+    public let deedSerial: Int?
 
     public var id: String { propertyId ?? pointId ?? geohash7 ?? "\(districtId ?? "?")-\(tier?.code ?? "?")" }
     /// The player has not lit this tile: holder, level and protection stay hidden.

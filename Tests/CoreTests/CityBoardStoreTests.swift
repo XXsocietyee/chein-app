@@ -123,6 +123,24 @@ import XCTest
         XCTAssertEqual(places.filter { $0.ownership == .fogged }.count, 1)
     }
 
+    /// Hook for fix/city-gaps-r3: a district name and deed serial on the layer reach the place; without them the
+    /// place keeps nil (the deed band falls back to "街区 N" and shows no serial).
+    func testDistrictNameAndDeedSerialHookPassesThroughTheMerge() throws {
+        let layer = try decode(CityTerritoryMapResponse.self, ["items": [
+            ["propertyId": "t-9", "title": "老麦咖啡馆", "tier": 1, "lvl": 0, "districtId": "d7", "districtName": "武康路街区",
+             "deedSerial": 12, "holder": ["maskedName": "我", "isMe": true], "lat": 31.21, "lng": 121.44],
+            ["propertyId": "t-8", "title": "转角花店", "tier": 1, "lvl": 0, "districtId": "d7", "districtName": "  ",
+             "holder": ["maskedName": "我", "isMe": true], "lat": 31.22, "lng": 121.45]
+        ]]).properties
+        let places = CityBoardStore.merge(spaces: [], layer: layer, memberID: 9009, center: nil)
+        let named = try XCTUnwrap(places.first { $0.territoryId == "t-9" })
+        XCTAssertEqual(named.districtName, "武康路街区")
+        XCTAssertEqual(named.deedSerial, 12)
+        let blank = try XCTUnwrap(places.first { $0.territoryId == "t-8" })
+        XCTAssertNil(blank.districtName, "a blank name is no name")
+        XCTAssertNil(blank.deedSerial)
+    }
+
     func testStoreLoadsQuotesAndReportsRejectionsAndLosses() async throws {
         let stub = Stub()
         let lease = try XCTUnwrap(CityGameProductionLease(host: "city.example.test", regionID: "r1"))

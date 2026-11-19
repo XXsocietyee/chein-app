@@ -271,6 +271,33 @@ enum CYScreenChrome {
         UITabBar.appearance().tintColor = UIColor(palette.tabSelectedTint)
     }
 
+    /// Status bar for the window's arbitrated scheme (coordinator review: a light page pushed from the dark player shell
+    /// kept a white status bar). The navigation controller, not the page, owns the status bar while its bar is visible,
+    /// and its bar inherited the shell's dark style; so the bar style and the window style both follow the scheme, and
+    /// every controller re-reads its status bar style.
+    @MainActor
+    static func syncStatusBar(for scheme: ColorScheme) {
+        let style: UIUserInterfaceStyle = scheme == .light ? .light : .dark
+        let windows = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows)
+        DispatchQueue.main.async {
+            for window in windows where !window.isHidden {
+                if window.overrideUserInterfaceStyle != style { window.overrideUserInterfaceStyle = style }
+                if let root = window.rootViewController { syncStatusBar(root, style: style) }
+            }
+        }
+    }
+
+    @MainActor
+    private static func syncStatusBar(_ controller: UIViewController, style: UIUserInterfaceStyle) {
+        // Presented controllers (sheets) own their scheme; only the in-window stack follows the page.
+        if let navigation = controller as? UINavigationController {
+            let barStyle: UIBarStyle = style == .light ? .default : .black
+            if navigation.navigationBar.barStyle != barStyle { navigation.navigationBar.barStyle = barStyle }
+        }
+        for child in controller.children { syncStatusBar(child, style: style) }
+        controller.setNeedsStatusBarAppearanceUpdate()
+    }
+
     /// verify-r2 N-01: retint every navigation bar in the foreground windows for the window's current scheme.
     @MainActor
     static func retintNavigationBars(for scheme: ColorScheme, role: RoleTheme) {

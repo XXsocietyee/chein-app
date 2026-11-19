@@ -68,7 +68,19 @@ extension View {
 
 // MARK: - Tokens
 
-/// Four durations (0.12 / 0.20 / 0.35 / 0.60 s). Springs are response/damping pairs (see the spec table).
+/// THE motion token set (xrefs-1 B.0, Figma Library › Motion `402:647` "Motion tokens · one set"). Eight springs, the
+/// durations, delays and staggers, all in one place. `CityTokens` only aliases these; no screen defines its own spring.
+///
+/// | token | response / damping | use |
+/// | `press` | 0.12 / 0.90 | touch-down, scale 1 → 0.97 |
+/// | `release` | 0.25 / 0.70 | touch-up, chip and pin select (pin 1 → 1.15) |
+/// | `standard` | 0.30 / 0.85 | change in place: insert, delete, button fill, wizard step, capsule width |
+/// | `entrance` | 0.35 / 0.80 | one entrance per container: empty state, seat arrival, toast enter |
+/// | `sheet` | 0.38 / 0.86 | sheets and toasts |
+/// | `moment` | 0.42 / 0.80 | result beats inside a moment: deed band, headline, chips |
+/// | `seal` | 0.40 / 0.55 | the one playful spring: seal, medal, die landing |
+/// | `hero` | 0.45 / 0.86 | continuity: claim photo → deed, Mini → sheet, die across stages |
+/// | `reduced` | easeInOut 0.20 s | the Reduce Motion fallback of every row (haptics stay) |
 enum CYMotion {
     enum Duration {
         static let instant: Double = 0.12    // press-down, chip tick, toggle
@@ -77,15 +89,75 @@ enum CYMotion {
         static let slow: Double = 0.60       // celebration land, flip, count-up
         /// Alias kept for existing callers; it is `standard` on the four-step grid.
         static let emphasized: Double = standard
+        /// `.contentTransition(.numericText(value:))` roll of 积分, totals and stats (only on a real change).
+        static let numericRoll: Double = 0.30
+        /// Exits and hides are always shorter than the entrance (reveal 250 → hide 200).
+        static let hide: Double = 0.20
+        /// The hold ring: `linear(duration: 0.8)`; letting go early snaps back on `release`.
+        static let hold: Double = 0.80
+        /// `CYWave` single pass on 圈下了 / 拿下 (rare tier only).
+        static let successWave: Double = 0.45
+        /// Rent arriving: 0 → total in three steps.
+        static let countUp: Double = 0.80
+    }
+    /// Delays measured from the cause (seconds).
+    enum Delay {
+        /// The deed band starts 250 ms after the photo starts moving (not after it lands).
+        static let heroBand: Double = 0.25
+        /// The success wave starts at the seal's contact.
+        static let successWave: Double = 0.78
+        /// An in-place Done holds 600 ms, then its sheet dismisses.
+        static let sheetDismiss: Double = 0.60
+        /// Moment beats.
+        static let momentDeed: Double = 0.35
+        static let momentSeal: Double = 0.60
+        static let momentText: Double = 0.95
+        static let momentActions: Double = 1.25
+        /// A toast's trailing action (查看) enters 300 ms after its state change.
+        static let toastAction: Double = 0.30
+        /// The dice total rolls 400 ms after the die lands.
+        static let totalRoll: Double = 0.40
+    }
+    /// Non-uniform staggers (seconds). Never `index × constant` for a short group.
+    enum Stagger {
+        /// Moment chips: 0 / 50 / 90 ms.
+        static let chips: [Double] = [0, 0.05, 0.09]
+        /// Per digit, from the cause side; the whole number lands inside 300 ms.
+        static let digit: Double = 0.045
+        /// AI rewrite fields from the top: 0 / 40 / 70 / 90 ms.
+        static let rewrite: [Double] = [0, 0.04, 0.07, 0.09]
+        /// The delay of item `index` in a capped list (the last value repeats).
+        static func delay(_ index: Int, in list: [Double] = chips) -> Double {
+            guard let last = list.last else { return 0 }
+            return index < list.count ? list[max(0, index)] : last
+        }
+    }
+    enum Scale {
+        /// Press dip. Never below 0.95.
+        static let press: CGFloat = 0.97
+        /// A selected map pin.
+        static let pinSelected: CGFloat = 1.15
     }
     /// Touch-down. 120 ms.
     static let press = Animation.spring(response: 0.12, dampingFraction: 0.9)
-    /// Touch-up. Slight overshoot, lands in about 0.25 s.
+    /// Touch-up. Slight overshoot, lands in about 0.25 s. Also chip and pin select.
     static let release = Animation.spring(response: 0.25, dampingFraction: 0.7)
-    /// Default content motion (insert, delete, reorder).
+    /// Default content motion: change in place (insert, delete, reorder, button fill, wizard step, capsule width).
     static let standard = Animation.spring(response: 0.3, dampingFraction: 0.85)
-    /// Entrances (empty state, staggered cards).
+    /// Entrances (one per container: empty state, seat arrival, toast enter).
     static let entrance = Animation.spring(response: 0.35, dampingFraction: 0.8)
+    /// Sheets and toasts (was `CityTokens.sheetSpring`).
+    static let sheet = Animation.spring(response: 0.38, dampingFraction: 0.86)
+    /// Result beats inside a moment: deed band, headline, chips (was `CityTokens.deedSpring`).
+    static let moment = Animation.spring(response: 0.42, dampingFraction: 0.80)
+    /// The one playful spring: seal, medal, die landing (was `CityTokens.sealSpring`).
+    static let seal = Animation.spring(response: 0.40, dampingFraction: 0.55)
+    /// Continuity: claim photo → deed, Mini → sheet, die across stages (was `CityTokens.heroSpring`).
+    static let hero = Animation.spring(response: 0.45, dampingFraction: 0.86)
+    /// A number rolling to a new value (`numericText`), 300 ms.
+    static let numericRoll = Animation.snappy(duration: Duration.numericRoll)
+    /// Exits and hides (200 ms, shorter than the entrance).
+    static let hide = Animation.easeOut(duration: Duration.hide)
     /// Reduce Motion replacement: a short cross-fade.
     static let reduced = Animation.easeInOut(duration: Duration.quick)
 
@@ -94,9 +166,25 @@ enum CYMotion {
 }
 
 extension View {
+    /// A number that rolls in fixed-width digits when `value` really changes (xrefs-1 Adopt 3): `.monospacedDigit()`,
+    /// `.contentTransition(.numericText(value:))` and `CYMotion.numericRoll`. Reduce Motion: the digits cross-fade.
+    /// Never use it on a live counter (HUD timer, distance): those are plain tabular digits.
+    func cyNumericRoll(_ value: Double) -> some View { modifier(CYNumericRoll(value: value)) }
+
     /// `.animation(_, value:)` that degrades to a cross-fade under Reduce Motion.
     func cyAnimation<V: Equatable>(_ animation: Animation = CYMotion.standard, value: V) -> some View {
         modifier(CYAnimationModifier(animation: animation, value: value))
+    }
+}
+
+private struct CYNumericRoll: ViewModifier {
+    let value: Double
+    @QuestifyReduceMotion private var reduceMotion
+    func body(content: Content) -> some View {
+        content
+            .monospacedDigit()
+            .contentTransition(reduceMotion ? .opacity : .numericText(value: value))
+            .animation(CYMotion.resolve(CYMotion.numericRoll, reduceMotion: reduceMotion), value: value)
     }
 }
 

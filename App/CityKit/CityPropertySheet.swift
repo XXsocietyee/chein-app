@@ -17,10 +17,21 @@ struct CitySheetHost: View {
     var fixtureClaim: CityClaimFixture? = nil
     let onRoute: (CitySheetRoute) -> Void
     let onMoment: (CityMomentRoute) -> Void
+    /// 去看看我的地盘 from a moment opened over the sheet (圈下了).
+    var onMine: (() -> Void)? = nil
     let onDismiss: () -> Void
 
     @State private var detent: PresentationDetent = .height(CityTokens.propertyDetent)
+    @State private var fittedHeight: CGFloat = 280
     @Environment(\.cyPalette) private var palette
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    /// Over the live map at the 420 pt detent the sheet is the system material, so the map (the product) shows through;
+    /// expanded it is opaque (xrefs-1 B.1 / Adopt 11). Reduce Transparency: always opaque. Nothing inside adds a material.
+    private var sheetGround: AnyShapeStyle {
+        if case .property = route, detent != .large, !reduceTransparency { return AnyShapeStyle(.regularMaterial) }
+        return AnyShapeStyle(palette.bgElevated)
+    }
 
     var body: some View {
         Group {
@@ -33,14 +44,17 @@ struct CitySheetHost: View {
                         .presentationBackgroundInteraction(.enabled(upThrough: .height(CityTokens.propertyDetent)))
                 case .claim:
                     CityClaimSheet(place: place, store: store, captureFix: captureFix, uploader: photoUploader, fixture: fixtureClaim,
-                                   onMoment: onMoment, onClose: onDismiss)
+                                   onMoment: onMoment, onMine: onMine, onClose: onDismiss)
                         .presentationDetents([.large])
                 case .challenge:
                     CityChallengeSheet(place: place, store: store, captureFix: captureFix, onMoment: onMoment, onClose: onDismiss)
                         .presentationDetents([.large])
                 case .shield:
+                    // One detent that hugs the content (xrefs-1 B.1, N47).
                     CityShieldSheet(place: place, store: store, onClose: onDismiss)
-                        .presentationDetents([.medium])
+                        .fixedSize(horizontal: false, vertical: true)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { fittedHeight = $0 }
+                        .presentationDetents([.height(max(fittedHeight + 24, 220))])
                 case .upgrade:
                     CityUpgradeSheet(place: place, store: store, captureFix: captureFix, onMoment: onMoment, onClose: onDismiss)
                         .presentationDetents([.medium, .large])
@@ -52,7 +66,7 @@ struct CitySheetHost: View {
         }
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(28)
-        .presentationBackground(palette.bgElevated)
+        .presentationBackground(sheetGround)
         .themeDomain(.player)
     }
 }
@@ -92,7 +106,13 @@ struct CitySheetTitle: View {
 
 /// A grouped table of label / value rows (≤ 2 rows on the property sheets).
 struct CityFactTable: View {
-    struct Row: Identifiable { let id = UUID(); let label: String; let value: String; var coin = false }
+    struct Row: Identifiable {
+        let id = UUID(); let label: String; let value: String; var coin = false
+        /// A balance shown as one rolling number with a −N chip (xrefs-1 B.1) instead of "1286 → 1166".
+        var number: Int64? = nil
+        var delta: Int64? = nil
+        var holdsDelta = true
+    }
     let rows: [Row]
     @Environment(\.cyPalette) private var palette
     var body: some View {
@@ -117,10 +137,15 @@ struct CityFactTable: View {
         }
         .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
-    private func value(_ row: Row) -> some View {
-        HStack(spacing: 4) {
-            if row.coin { CityCoin() }
-            Text(verbatim: row.value).font(Font.body.weight(.medium).monospacedDigit()).foregroundStyle(palette.textPrimary)
+    @ViewBuilder private func value(_ row: Row) -> some View {
+        if let number = row.number {
+            CYDeltaNumber(value: number, delta: row.delta, holdsDelta: row.holdsDelta, font: Font.body.weight(.semibold),
+                          leading: row.coin ? AnyView(CityCoin()) : nil)
+        } else {
+            HStack(spacing: 4) {
+                if row.coin { CityCoin() }
+                Text(verbatim: row.value).font(Font.body.weight(.medium).monospacedDigit()).foregroundStyle(palette.textPrimary)
+            }
         }
     }
 }
@@ -173,7 +198,7 @@ struct CityPropertySheet: View {
                          ownership: place.ownership, holderName: card.holder?.maskedName ?? place.holderName,
                          protectedUntil: card.protectedUntil?.date ?? place.protectedUntil, decay: card.decay ?? place.decay,
                          photoURL: card.photoURL ?? place.photoURL, radiusM: place.radiusM, distanceM: place.distanceM,
-                         invested: card.invested ?? place.invested)
+                         invested: card.invested ?? place.invested, districtName: place.districtName, deedSerial: place.deedSerial)
     }
     private var distance: Double? { display.distance(from: fix?.coordinate ?? store.center) }
 
@@ -320,6 +345,149 @@ struct CityPropertySheet: View {
                     item.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
                 }
             }
+        }
+    }
+}
+
+
+/// Pin → property (owner continuity pass item 4): the property opens in a drawer over the SAME live map instead of a
+/// system sheet, so the tapped pin can carry into it. The deed's photo tile grows out of the pin into the deed's photo
+/// slot on `CYMotion.hero` while the drawer rises on `CYMotion.sheet`; the text that exists only at the end fades in
+/// after half the move. Closing (✕, a drag down, or tapping another pin) runs it backwards to the pin. The grabber
+/// tracks the finger 1:1 and any new touch retargets. Reduce Motion: a 180 ms cross-fade, no movement.
+struct CityPropertyDrawer: View {
+    let place: CityPlace
+    @ObservedObject var store: CityBoardStore
+    /// The tapped pin's centre in the window (nil: no flight).
+    let origin: CGPoint?
+    let captureFix: (@MainActor () async throws -> RoamDeviceFix)?
+    let onRoute: (CitySheetRoute) -> Void
+    let onClose: () -> Void
+
+    @State private var expanded = false
+    @State private var shown = false
+    @State private var flown = false
+    @State private var contentShown = false
+    @State private var closing = false
+    @GestureState private var drag: CGFloat = 0
+    @Namespace private var flight
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    private var flies: Bool { origin != nil && !reduceMotion }
+
+    var body: some View {
+        GeometryReader { proxy in
+            let compact = min(CityTokens.propertyDetent, proxy.size.height * 0.62)
+            let full = proxy.size.height * 0.94
+            let resting = expanded ? full : compact
+            let height = max(compact * 0.5, resting - drag)
+            ZStack(alignment: .bottom) {
+                VStack(spacing: 0) {
+                    grabber(compact: compact, full: full)
+                    CityPropertySheet(place: place, store: store, expanded: expanded, captureFix: captureFix,
+                                      onRoute: onRoute, onClose: close)
+                        .environment(\.cityDeedPhotoSlot, flies ? CityDeedPhotoSlot(namespace: flight, local: nil, hidesPhoto: !landed) : nil)
+                        .opacity(contentShown ? 1 : 0)
+                }
+                .frame(width: proxy.size.width, height: height, alignment: .top)
+                .background {
+                    UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous)
+                        .fill(reduceTransparency || expanded ? AnyShapeStyle(palette.bgElevated) : AnyShapeStyle(.regularMaterial))
+                        .shadow(color: .black.opacity(0.4), radius: 16, y: -2)
+                        .ignoresSafeArea(edges: .bottom)
+                }
+                .offset(y: shown || reduceMotion ? 0 : height + 40)
+                .opacity(reduceMotion && !shown ? 0 : 1)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+            .overlay { if flies && !landed { flyingTile } }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape) { close() }
+        .onAppear(perform: open)
+        .onChange(of: place.id) { _, _ in landed = false; flown = false; open() }
+    }
+
+    @State private var landed = false
+
+    /// The lead: the pin's tile, from the pin to the deed's photo slot.
+    private var flyingTile: some View {
+        GeometryReader { proxy in
+            let frame = proxy.frame(in: .global)
+            ZStack(alignment: .topLeading) {
+                if let origin {
+                    Color.clear.frame(width: 34, height: 34)
+                        .position(x: origin.x - frame.minX, y: origin.y - frame.minY)
+                        .matchedGeometryEffect(id: CityDeedPhotoSlot.sourceID, in: flight, isSource: true)
+                }
+                CityDeedPhoto(url: place.photoURL, place: place, cover: .compact)
+                    .matchedGeometryEffect(id: flown ? CityDeedPhotoSlot.slotID : CityDeedPhotoSlot.sourceID, in: flight,
+                                           properties: .frame, isSource: false)
+                    .clipShape(RoundedRectangle(cornerRadius: flown ? 0 : 17, style: .continuous))
+            }
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func grabber(compact: CGFloat, full: CGFloat) -> some View {
+        Capsule().fill(palette.textTertiary.opacity(0.6)).frame(width: 36, height: 5)
+            .frame(maxWidth: .infinity, minHeight: 24)
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 2)
+                .updating($drag) { value, state, _ in state = value.translation.height }
+                .onEnded { value in
+                    let projected = value.translation.height + value.velocity.height * 0.12
+                    let spring = reduceMotion ? CYMotion.reduced : CYMotion.sheet
+                    if projected > 120 && !expanded { close() }
+                    else if projected > 80 { withAnimation(spring) { expanded = false } }
+                    else if projected < -80 { withAnimation(spring) { expanded = true } }
+                })
+            .onTapGesture { withAnimation(reduceMotion ? CYMotion.reduced : CYMotion.sheet) { expanded.toggle() } }
+            .accessibilityElement()
+            .accessibilityLabel(Text(verbatim: CityCopy(locale: locale)("地契", "Deed")))
+            .accessibilityValue(Text(verbatim: expanded ? CityCopy(locale: locale)("已展开", "Expanded") : CityCopy(locale: locale)("已收起", "Collapsed")))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { withAnimation(CYMotion.reduced) { expanded.toggle() } }
+    }
+
+    private func open() {
+        closing = false
+        if reduceMotion {
+            withAnimation(.easeInOut(duration: 0.18)) { shown = true; contentShown = true }
+            landed = true
+        } else {
+            withAnimation(CYMotion.sheet) { shown = true }
+            if flies { withAnimation(CYMotion.hero) { flown = true } } else { landed = true }
+            // Content that exists only at the end fades in after about half the move.
+            withAnimation(.easeOut(duration: CYMotion.Duration.quick).delay(0.22)) { contentShown = true }
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(0.5))
+                if !closing { landed = true }
+            }
+        }
+        AccessibilityNotification.LayoutChanged(nil).post()
+    }
+
+    private func close() {
+        guard !closing else { return }
+        closing = true
+        if reduceMotion {
+            withAnimation(.easeInOut(duration: 0.18)) { shown = false; contentShown = false }
+        } else {
+            landed = false
+            withAnimation(CYMotion.hide) { contentShown = false }
+            if flies { withAnimation(CYMotion.hero) { flown = false } }
+            withAnimation(CYMotion.sheet) { shown = false }
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(reduceMotion ? 0.18 : 0.36))
+            onClose()
         }
     }
 }

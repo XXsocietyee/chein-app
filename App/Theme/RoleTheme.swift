@@ -72,7 +72,9 @@ private struct RoleThemeRootModifier: ViewModifier {
             // own domain. When a page of the other scheme is on top, tint them for that scheme, and back on pop.
             .onChange(of: arbiter.requestedScheme) { _, scheme in
                 CYScreenChrome.retintNavigationBars(for: scheme ?? role.colorScheme, role: role)
+                CYScreenChrome.syncStatusBar(for: scheme ?? role.colorScheme)
             }
+            .onAppear { CYScreenChrome.syncStatusBar(for: arbiter.requestedScheme ?? role.colorScheme) }
             #endif
     }
 }

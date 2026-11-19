@@ -16,15 +16,24 @@ enum CityMomentBeat: Int, Comparable, CaseIterable {
 struct CityMomentView<Stage: View>: View {
     let headline: String
     let line: String
+    /// The maths above a number headline (14 + 3), xrefs-1 B.1 / Figma `Moment` Kicker.
+    var kicker: String? = nil
+    /// The headline is a number: 48 pt tabular (`cyHeroNumberFont`), rolling in when it lands.
+    var numericHeadline = false
     var chips: [String] = []
     let primary: String
     var secondary: String? = nil
     var onPrimary: () -> Void
     var onSecondary: (() -> Void)? = nil
+    /// When the stage beat lands (s). 0.35 by default; 圈下了 starts the deed band 250 ms after the photo starts moving.
+    var stageDelay: Double = CYMotion.Delay.momentDeed
+    /// Presented over a sheet with a clear background: the ground fades in (200 ms) instead of arriving with a slide.
+    var fadesInGround = false
     /// The stage reads the current beat to stage its own parts (deed rows, seal, die face).
     @ViewBuilder let stage: (CityMomentBeat) -> Stage
 
     @State private var beat: CityMomentBeat = .start
+    @State private var groundShown = false
     @State private var task: Task<Void, Never>?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.cyPalette) private var palette
@@ -39,8 +48,14 @@ struct CityMomentView<Stage: View>: View {
                         // Regular: 52 % of the screen; accessibility sizes: the stage hugs its object (SR2-35 Compact).
                         .frame(minHeight: typeSize.isAccessibilitySize ? 240 : max(240, proxy.size.height * 0.52))
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text(verbatim: headline)
-                            .font(Font.title.weight(.bold)).foregroundStyle(palette.textPrimary)
+                        if let kicker {
+                            Text(verbatim: kicker)
+                                .font(Font.subheadline.weight(.semibold).monospacedDigit())
+                                .foregroundStyle(palette.textSecondary)
+                                .accessibilityHidden(true)
+                        }
+                        headlineText
+                            .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                         Text(verbatim: line)
@@ -69,12 +84,26 @@ struct CityMomentView<Stage: View>: View {
                 .frame(minHeight: proxy.size.height, alignment: .top)
             }
         }
-        .background(palette.bgPage.ignoresSafeArea())
+        .background(palette.bgPage.opacity(!fadesInGround || groundShown ? 1 : 0).ignoresSafeArea())
         .contentShape(Rectangle())
         .onTapGesture { skip() }
-        .onAppear(perform: play)
+        .onAppear {
+            withAnimation(.easeOut(duration: CYMotion.Duration.quick)) { groundShown = true }
+            play()
+        }
         .onDisappear { task?.cancel() }
         .accessibilityAction(named: Text(verbatim: primary), onPrimary)
+    }
+
+    @ViewBuilder private var headlineText: some View {
+        if numericHeadline {
+            // The number wins the page (t-hero 48, tabular); it rolls in as the text beat lands.
+            Text(verbatim: beat >= .text || reduceMotion ? headline : "0")
+                .cyHeroNumberFont()
+                .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(headline) ?? 0))
+        } else {
+            Text(verbatim: headline).font(Font.title.weight(.bold))
+        }
     }
 
     private func play() {
@@ -85,11 +114,17 @@ struct CityMomentView<Stage: View>: View {
             return
         }
         task = Task { @MainActor in
-            let schedule: [(CityMomentBeat, UInt64, Animation)] = [
-                // Deed at 350 ms, seal at 600 ms, text at 950 ms, actions at 1 250 ms (each delay is after the last beat).
-                (.stage, 350, CityTokens.deedSpring), (.seal, 250, CityTokens.sealSpring),
-                (.text, 350, CityTokens.deedSpring), (.actions, 300, CityTokens.deedSpring)
+            // Absolute times from the cause (CYMotion.Delay): stage (deed) 350 ms or `stageDelay`, seal 600 ms,
+            // text 950 ms, actions 1 250 ms.
+            let times: [(CityMomentBeat, Double, Animation)] = [
+                (.stage, stageDelay, CYMotion.moment), (.seal, CYMotion.Delay.momentSeal, CYMotion.seal),
+                (.text, CYMotion.Delay.momentText, CYMotion.moment), (.actions, CYMotion.Delay.momentActions, CYMotion.moment)
             ]
+            var elapsed = 0.0
+            let schedule: [(CityMomentBeat, UInt64, Animation)] = times.map { beat, at, animation in
+                let wait = max(0, at - elapsed); elapsed = max(elapsed, at)
+                return (beat, UInt64(wait * 1000), animation)
+            }
             for (next, delay, animation) in schedule {
                 if delay > 0 { try? await Task.sleep(nanoseconds: delay * 1_000_000) }
                 guard !Task.isCancelled else { return }
@@ -105,7 +140,7 @@ struct CityMomentView<Stage: View>: View {
     }
 }
 
-/// Chips that wrap and stagger in by 60 ms.
+/// Chips that wrap and stagger in at 0 / 50 / 90 ms (CYMotion.Stagger.chips).
 struct CityFlowChips: View {
     let chips: [String]
     let visible: Bool
@@ -121,7 +156,7 @@ struct CityFlowChips: View {
             CityInfoChip(text: chip)
                 .opacity(visible ? 1 : 0)
                 .offset(y: visible || reduceMotion ? 0 : 8)
-                .animation(reduceMotion ? CityTokens.reducedFade : CityTokens.deedSpring.delay(Double(index) * CityTokens.staggerSeconds), value: visible)
+                .animation(reduceMotion ? CityTokens.reducedFade : CityTokens.deedSpring.delay(CYMotion.Stagger.delay(index)), value: visible)
         }
     }
 }

@@ -1,5 +1,6 @@
 #if DEBUG
 import SwiftUI
+import UIKit
 #if canImport(QuestifyCore)
 import QuestifyCore
 #endif
@@ -191,6 +192,10 @@ enum CityKitFixtures {
             CityDiceFixture(store: store, place: store.place(id: "t-flower")!, autoRoll: name != "city-dice-ready", fixes: [(try? fix())].compactMap { $0 })
         case "city-moment-claimed":
             CityClaimedMoment(place: claimedPlace, photo: nil, protectionHours: 24, price: 120, onMine: {}, onDone: {})
+        case "city-moment-claimed-photo":
+            // K0 → K3: a drawn stand-in photo (no people, not AI) flies from the claim thumbnail's spot (16, 430, 64 × 64).
+            CityClaimedMoment(place: claimedPlace, photo: CityFixturePhoto.storefront(), protectionHours: 24, price: 120,
+                              source: CGRect(x: 16, y: 430, width: 64, height: 64), onMine: {}, onDone: {})
         case "city-place-lost":
             CityPlaceLostMoment(place: store.place(id: "t-wukang")!, compensation: 40, onDone: {})
         case "city-defended":
@@ -250,3 +255,23 @@ enum CityKitFixtures {
     }
 }
 #endif
+
+
+/// DEBUG: a drawn storefront stand-in for the claim photo (gradient sky, a facade and an awning). Labelled FIXTURE in
+/// every shot; never shipped.
+enum CityFixturePhoto {
+    static func storefront() -> UIImage {
+        UIGraphicsImageRenderer(size: CGSize(width: 640, height: 480)).image { context in
+            let cg = context.cgContext
+            let colors = [UIColor(red: 0.95, green: 0.72, blue: 0.48, alpha: 1).cgColor, UIColor(red: 0.30, green: 0.36, blue: 0.55, alpha: 1).cgColor]
+            if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 1]) {
+                cg.drawLinearGradient(gradient, start: .zero, end: CGPoint(x: 0, y: 480), options: [])
+            }
+            UIColor(red: 0.62, green: 0.48, blue: 0.38, alpha: 1).setFill(); cg.fill(CGRect(x: 90, y: 150, width: 460, height: 330))
+            UIColor(red: 0.16, green: 0.32, blue: 0.26, alpha: 1).setFill(); cg.fill(CGRect(x: 70, y: 230, width: 500, height: 44))
+            UIColor(red: 0.98, green: 0.88, blue: 0.62, alpha: 1).setFill()
+            for x in stride(from: 130, to: 520, by: 130) { cg.fill(CGRect(x: CGFloat(x), y: 300, width: 80, height: 110)) }
+            UIColor(red: 0.20, green: 0.16, blue: 0.14, alpha: 1).setFill(); cg.fill(CGRect(x: 280, y: 330, width: 80, height: 150))
+        }
+    }
+}

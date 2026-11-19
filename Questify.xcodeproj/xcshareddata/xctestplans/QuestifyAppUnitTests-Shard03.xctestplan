@@ -482,6 +482,7 @@
         "PublishingAIQuotaSectionTests",
         "PushNotificationAndLiveActivitySectionViewTests",
         "QuestLiveActivityMappingTests",
+        "R3PlayerMotionTests",
         "ReceivedStampsAndPassportToolsSectionViewTests",
         "ReferenceChatTaskAppTests",
         "ReformWorkPackagesW02ToW20SectionViewTests",

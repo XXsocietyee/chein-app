@@ -42,6 +42,10 @@ struct TopicDetailView: View {
     @State private var resultSheetMessage: String?
     @State private var topicToastMessage: String?
     @State private var heroScrolledAway = false
+    @State private var tab: TopicXcxTab = .details
+    @State private var tabsPinned = false
+    /// The top of the list in the window: tabs that scroll above it pin.
+    @State private var pinLine: CGFloat = 0
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -245,10 +249,20 @@ struct TopicDetailView: View {
                 } else {
                     // verify-r1 3.1 / PL-23 (`169:6954`): the photo is the hero and carries no text, so a cover that
                     // fails to load can never sit under the title. The title and its facts follow below.
-                    NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: CYSpacing.md, trailing: 0))
-                        .listRowBackground(Color.clear)
+                    Group {
+                        if RetainedPublicImageReader().enabled {
+                            NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                        } else {
+                            // Coordinator review: photos cannot load here (no image storage), so the hero is the designed
+                            // cover, never a 图片暂不可用 line.
+                            CYDesignedCover(title: value.name)
+                                .aspectRatio(16 / 9, contentMode: .fit)
+                                .accessibilityIdentifier("topic.detail.designedCover")
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: CYSpacing.md, trailing: 0))
+                    .listRowBackground(Color.clear)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
                             .font(CYTypography.meta.weight(.semibold))
@@ -280,13 +294,22 @@ struct TopicDetailView: View {
                 // gone: the pinned 详情 / 故事 / 路线 tabs and the sticky bar (price left, primary right) carry those paths.
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value), stops: value.locationCount)
                     .listRowBackground(Color.clear)
-                TopicXcxTabs(proxy: proxy, productType: value.productType).listRowBackground(Color.clear)
+                // One container for 详情 / 故事 / 路线: inline here, and pinned under the bar once it scrolls away.
+                TopicXcxTabs(proxy: proxy, productType: value.productType, selection: $tab)
+                    .listRowBackground(Color.clear)
+                    .opacity(tabsPinned ? 0 : 1)
+                    .onGeometryChange(for: Bool.self) { $0.frame(in: .global).minY < pinLine } action: { pinned in
+                        if tabsPinned != pinned { tabsPinned = pinned }
+                    }
             }
             // verify-r1 3.1 (`169:6954`): the hero block reads as one page header, not as list rows with dividers.
             .listRowSeparator(.hidden)
             // 详情 tab (mini-program `det3`): title, one-line subtitle, venue card, then the audio guide.
             Section {
-                TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
+                // Coordinator review: an unknown or zero stop count is not a fact worth a row.
+                if let stops = value.locationCount, stops > 0 {
+                    TopicTotalStops(count: stops, identifier: "topic.totalStops")
+                }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 if let venue = TopicXcxFacts.venue(value.addressName) {
                     Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name).font(CYTypography.bodyMedium); if let address = venue.address { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(CYColor.brand) }
@@ -467,8 +490,20 @@ struct TopicDetailView: View {
         }
         .listStyle(.insetGrouped)
         .listSectionSpacing(.compact)
+        // One divider style on the page: a hairline in border-subtle, inset to the text (coordinator review).
+        .listRowSeparatorTint(palette.borderSubtle)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if tabsPinned {
+                TopicXcxTabs(proxy: proxy, productType: value.productType, selection: $tab)
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .background(palette.bgPage)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: CYMotion.Duration.quick), value: tabsPinned)
+        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { pinLine = $0 }
         .cyTracksHeroScroll($heroScrolledAway, threshold: 280)
         .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }

@@ -498,6 +498,7 @@
         "PushNotificationAndLiveActivitySectionViewTests",
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
+        "R3PlayerMotionTests",
         "ReceivedStampsAndPassportToolsSectionViewTests",
         "ReferenceMapCardAppTests",
         "ReformWorkPackagesW02ToW20SectionViewTests",

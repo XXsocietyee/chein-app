@@ -43,12 +43,18 @@ public struct CityPlace: Identifiable, Equatable {
     public let radiusM: Int
     public let distanceM: Double?
     public let invested: Int64?
+    /// HOOK (fix/city-gaps-r3): server district name and deed serial; nil today, so the band falls back to "街区 N"
+    /// and no serial is shown (Q10).
+    public let districtName: String?
+    public let deedSerial: Int?
 
     public init(id: String, title: String?, coordinate: RoamCoordinate, territoryId: String? = nil, poiId: Int64? = nil,
                 boardId: String? = nil, pointId: String? = nil, districtId: String? = nil, districtIndex: Int = 0,
                 tier: CityMonopolyTier? = nil, level: Int = 0, ownership: Ownership, holderName: String? = nil,
                 protectedUntil: Date? = nil, decay: CityDecayState? = nil, photoURL: String? = nil, radiusM: Int = 80,
-                distanceM: Double? = nil, invested: Int64? = nil) {
+                distanceM: Double? = nil, invested: Int64? = nil, districtName: String? = nil, deedSerial: Int? = nil) {
+        self.districtName = districtName.flatMap { $0.trimmingCharacters(in: .whitespaces).isEmpty ? nil : $0 }
+        self.deedSerial = deedSerial
         self.id = id; self.title = title; self.coordinate = coordinate; self.territoryId = territoryId; self.poiId = poiId
         self.boardId = boardId; self.pointId = pointId; self.districtId = districtId; self.districtIndex = districtIndex
         self.tier = tier; self.level = level; self.ownership = ownership; self.holderName = holderName
@@ -363,7 +369,7 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
                 decay: held?.decay ?? CityDecayState(wire: item.decayState),
                 photoURL: item.claimPhotoUrl, radiusM: item.radiusM,
                 distanceM: center.map { CityPresencePreflight.distanceM($0, coordinate) } ?? item.distanceM,
-                invested: held?.invested))
+                invested: held?.invested, districtName: held?.districtName, deedSerial: held?.deedSerial))
         }
         for property in layer {
             if let id = property.propertyId, used.contains(id) { continue }
@@ -379,7 +385,8 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
                 districtId: property.districtId, districtIndex: property.districtId.flatMap { slots[$0] } ?? 0,
                 tier: property.tier, level: property.lvl ?? 0, ownership: ownership, holderName: property.holder?.maskedName,
                 protectedUntil: property.protectedUntil?.date, decay: property.decay,
-                distanceM: center.map { CityPresencePreflight.distanceM($0, coordinate) }, invested: property.invested))
+                distanceM: center.map { CityPresencePreflight.distanceM($0, coordinate) }, invested: property.invested,
+                districtName: property.districtName, deedSerial: property.deedSerial))
         }
         return out.sorted { ($0.distanceM ?? .infinity, $0.id) < ($1.distanceM ?? .infinity, $1.id) }
     }

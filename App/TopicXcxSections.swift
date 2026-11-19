@@ -28,9 +28,14 @@ enum TopicXcxTab: Int, CaseIterable, Identifiable {
 struct TopicXcxTabs: View {
     let proxy: ScrollViewProxy
     var productType: Int = 0
+    /// Shared by the inline and the pinned copy, so both show the same tab.
+    @Binding var selection: TopicXcxTab
     @Environment(\.locale) private var locale
     @QuestifyReduceMotion private var reduceMotion
-    @State private var selection: TopicXcxTab = .details
+
+    init(proxy: ScrollViewProxy, productType: Int = 0, selection: Binding<TopicXcxTab>) {
+        self.proxy = proxy; self.productType = productType; _selection = selection
+    }
 
     var body: some View {
         let items = TopicXcxTab.allCases.map { tab in

@@ -23,14 +23,13 @@ enum CityTokens {
     static let fog = Color.black.opacity(0.8)
     static let fogEdge = Color.white.opacity(0.16)
 
-    // Motion (skill-r2 SR2-49). Every row has a Reduce Motion fade of 200 ms.
-    static let pressSpring = Animation.spring(response: 0.30, dampingFraction: 0.80)
-    static let sheetSpring = Animation.spring(response: 0.38, dampingFraction: 0.86)
-    static let deedSpring = Animation.spring(response: 0.42, dampingFraction: 0.80)
-    static let sealSpring = Animation.spring(response: 0.40, dampingFraction: 0.55)
-    static let heroSpring = Animation.spring(response: 0.45, dampingFraction: 0.86)
-    static let reducedFade = Animation.easeInOut(duration: 0.2)
-    static let staggerSeconds = 0.06
+    // Motion: aliases of the one token set in `CYMotion` (xrefs-1 B.0). Every row has a Reduce Motion fade of 200 ms.
+    static let pressSpring = CYMotion.release
+    static let sheetSpring = CYMotion.sheet
+    static let deedSpring = CYMotion.moment
+    static let sealSpring = CYMotion.seal
+    static let heroSpring = CYMotion.hero
+    static let reducedFade = CYMotion.reduced
     /// The property sheet's compact detent (Q3).
     static let propertyDetent: CGFloat = 420
 }
@@ -45,8 +44,10 @@ struct CityCopy {
     func level(_ level: Int) -> String { "\(CityMonopolyLevel.name(level, chinese: chinese)) Lv\(level)" }
     func tier(_ tier: CityMonopolyTier?) -> String? { tier.map { $0.name(chinese: chinese) } }
 
-    /// "街区 1": the server sends no district names yet (missing read, see the receipt).
+    /// The server's district name when it sends one (hook `CityPlace.districtName`, fix/city-gaps-r3); until then
+    /// "街区 1" by colour slot (missing read, see the receipt).
     func district(_ place: CityPlace) -> String? {
+        if let name = place.districtName, place.ownership != .fogged { return name }
         guard place.districtIndex > 0 else { return nil }
         return chinese ? "街区 \(place.districtIndex)" : "District \(place.districtIndex)"
     }

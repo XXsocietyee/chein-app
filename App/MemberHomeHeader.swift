@@ -48,30 +48,24 @@ import SwiftUI
                     .background(palette.bgRaised, in: Capsule(style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
-                    (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
-                        Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
-                            .accessibilityIdentifier("member.card.city")
-                        if let streakDays {
-                            HStack(spacing: 2) {
-                                Image(systemName: "flame.fill")
-                                    .foregroundStyle(CYColor.warningText)
-                                    .accessibilityHidden(true)
-                                    .symbolEffect(.pulse, options: .nonRepeating, value: reduceMotion ? 0 : streakDays)
-                                Text("member.card.streak", tableName: "MemberProfile")
-                                Text(verbatim: "\(streakDays)").monospacedDigit()
-                                Text("member.card.days", tableName: "MemberProfile")
-                            }.accessibilityElement(children: .combine).accessibilityIdentifier("member.card.streak")
-                        }
-                    }.font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
+                        .accessibilityIdentifier("member.card.city")
+                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
             }
-            rowLayout {
-                stat(snapshot?.friendCountText, id: "friends") { Text("member.card.friends", tableName: "MemberProfile") }
-                stat(snapshot?.followCountText, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
-                stat(snapshot?.fansCountText, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
+            // xrefs-1 Adopt 6 (`Player/Streak Row`): the streak gets its own row under the name, not a caption.
+            if let streakDays {
+                CYStreakRow(streakDays: streakDays)
+                    .accessibilityIdentifier("member.card.streak")
             }
+            // xrefs-1 Adopt 4: the three counters are a plain row with hairline dividers, no tiles.
+            CYPlainStatRow(stats: [
+                stat(snapshot?.friendCountText, id: "friends", label: "member.card.friends"),
+                stat(snapshot?.followCountText, id: "following", label: "member.card.following"),
+                stat(snapshot?.fansCountText, id: "fans", label: "member.card.fans")
+            ])
             // Mini-program member header: one full-width 票夹 pill under the counters.
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
@@ -137,7 +131,8 @@ import SwiftUI
     /// Player profile avatar ring. The reserved ring tint is allowed only here, on the selected tab, and on the result spinner.
     @ViewBuilder private var levelRing: some View {
         if themeDomain == .player {
-            Circle().strokeBorder(palette.avatarRing, lineWidth: 3).accessibilityHidden(true)
+            // xrefs-1 B.2: the ring is ink, not the reserved accent ring (it marked nothing on this page).
+            Circle().strokeBorder(palette.textPrimary.opacity(0.85), lineWidth: 2).accessibilityHidden(true)
         }
     }
 
@@ -210,17 +205,11 @@ import SwiftUI
         .accessibilityHidden(true)
     }
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
-    private func stat(_ value: String?, id: String, label: () -> Text) -> some View {
-        VStack(spacing: 2) {
-            Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody.weight(.bold)).monospacedDigit().foregroundStyle(palette.textPrimary)
-                .accessibilityLabel(PageTemplateVoiceOver.spoken(value ?? MemberHomePageModel.unknownDisplay, locale: locale))
-            label().font(CYTypography.meta).foregroundStyle(palette.textSecondary).cyWrapText(alignment: .center)
-        }
-        .frame(maxWidth: .infinity, minHeight: 64)
-        .padding(.horizontal, CYSpacing.xs)
-        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("member.card.\(id)")
+    private func stat(_ value: String?, id: String, label: String.LocalizationValue) -> CYPlainStat {
+        let shown = value ?? MemberHomePageModel.unknownDisplay
+        return CYPlainStat(id: id, value: shown,
+                           label: String(localized: LocalizedStringResource(label, table: "MemberProfile", locale: locale)),
+                           rollValue: Double(shown), accessibilityIdentifier: "member.card.\(id)")
     }
     private func tile<Title: View, Value: View>(symbol: String, @ViewBuilder title: () -> Title, @ViewBuilder value: () -> Value) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {

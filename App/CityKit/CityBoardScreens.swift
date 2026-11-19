@@ -87,29 +87,22 @@ struct CityBoardView: View {
         .accessibilityLabel(Text(verbatim: copy("领地缩略图，\(mine.count) 个地点", "Territory preview, \(mine.count) places")))
     }
 
+    /// Stats without a box (xrefs-1 B.1 / Adopt 4): three numbers, two hairlines; 积分 rolls when it changes.
     private var statStrip: some View {
-        HStack(spacing: 0) {
-            stat(store.points?.balance.map(String.init) ?? "—", copy("积分", "Points") + (store.points?.pending.map { $0 > 0 ? copy(" · +\($0) 待入账", " · +\($0) pending") : "" } ?? ""))
-            stat(store.holdings.map { "\($0.count) / \($0.limit)" } ?? "—", copy("持有", "Holding"))
-            stat(seasonLeft ?? "—", copy("赛季剩余", "Season left"))
-        }
-        .padding(.vertical, CYSpacing.md)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        CYPlainStatRow(stats: [
+            CYPlainStat(id: "points", value: store.points?.balance.map(String.init) ?? "—",
+                        label: copy("积分", "Points") + (store.points?.pending.map { $0 > 0 ? copy(" · +\($0) 待入账", " · +\($0) pending") : "" } ?? ""),
+                        rollValue: store.points?.balance.map(Double.init)),
+            CYPlainStat(id: "holding", value: store.holdings.map { "\($0.count) / \($0.limit)" } ?? "—", label: copy("持有", "Holding")),
+            CYPlainStat(id: "season", value: seasonLeft ?? "—", label: copy("赛季剩余", "Season left"))
+        ])
+        .padding(.vertical, CYSpacing.sm)
     }
 
     private var seasonLeft: String? {
         guard let ends = store.season?.freezesAt ?? store.season?.endsAt else { return nil }
         let days = max(0, Int(ceil(ends.date.timeIntervalSinceNow / 86_400)))
         return copy("\(days) 天", "\(days) d")
-    }
-
-    private func stat(_ value: String, _ label: String) -> some View {
-        VStack(spacing: 2) {
-            Text(verbatim: value).font(Font.title2.weight(.bold).monospacedDigit()).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
-            Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .combine)
     }
 
     private var empty: some View {

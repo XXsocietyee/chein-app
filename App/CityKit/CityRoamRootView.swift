@@ -64,6 +64,8 @@ struct CityRoamRootView: View {
     @State private var path = NavigationPath()
     @State private var fix: RoamDeviceFix?
     @State private var showsPassport = false
+    /// The tapped pin's centre in the window, for the pin → deed flight.
+    @State private var pinOrigin: (id: String, point: CGPoint)?
 
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
@@ -78,7 +80,7 @@ struct CityRoamRootView: View {
                 map
                 header
             }
-            .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: drawer == .peek ? 196 : 0) }
+            .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: drawer == .peek && !isPropertyOpen ? 196 : 0) }
             .overlay(alignment: .bottom) {
                 CityNearbyDrawer(detent: $drawer, places: store.places, origin: center, phase: store.phase,
                     holdEnabled: dependencies.liveDestination != nil,
@@ -86,7 +88,21 @@ struct CityRoamRootView: View {
                     onSelect: { open($0) },
                     onRetry: { Task { await reload() } },
                     onChooseArea: dependencies.onChooseArea)
+                // The 附近 drawer slides away while a property is open over the map.
+                .offset(y: isPropertyOpen ? 320 : 0)
+                .opacity(isPropertyOpen ? 0 : 1)
+                .animation(reduceMotion ? CityTokens.reducedFade : CYMotion.sheet, value: isPropertyOpen)
             }
+            .overlay {
+                if case .property(let id) = route, let place = store.place(id: id) {
+                    CityPropertyDrawer(place: place, store: store, origin: pinOrigin?.id == id ? pinOrigin?.point : nil,
+                                       captureFix: dependencies.captureFix,
+                                       onRoute: { self.route = $0 }, onClose: { self.route = nil })
+                        .id(id)
+                        .transition(.identity)
+                }
+            }
+            .cyHideTabBar(isPropertyOpen)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: CityRoamPush.self) { push in
                 switch push {
@@ -96,11 +112,12 @@ struct CityRoamRootView: View {
                 case .ledger: CityRentLedgerView(store: store).cyPushedChrome()
                 }
             }
-            .sheet(item: $route) { route in
+            .sheet(item: sheetRoute) { route in
                 CitySheetHost(route: route, store: store, captureFix: dependencies.captureFix, photoUploader: dependencies.photoUploader,
                               fixtureClaim: dependencies.fixtureClaim,
                               onRoute: { self.route = $0 },
                               onMoment: { next in self.route = nil; self.moment = next },
+                              onMine: { self.route = nil; path.append(CityRoamPush.mine) },
                               onDismiss: { self.route = nil })
             }
             .fullScreenCover(item: $moment) { next in
@@ -127,9 +144,16 @@ struct CityRoamRootView: View {
         }
     }
 
+    private var isPropertyOpen: Bool { if case .property = route { return true }; return false }
+    /// Every route but `.property` is a system sheet; the property opens in `CityPropertyDrawer` over the map.
+    private var sheetRoute: Binding<CitySheetRoute?> {
+        Binding(get: { isPropertyOpen ? nil : route }, set: { route = $0 })
+    }
+
     private var map: some View {
         CityMapLayer(places: store.places, mode: mode, position: $position, selection: $selection,
-                     center: center.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+                     center: center.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) },
+                     onPinPoint: { id, point in pinOrigin = (id, point) })
             .ignoresSafeArea()
             .overlay(alignment: .trailing) {
                 VStack(spacing: CYSpacing.md) {
@@ -261,6 +285,8 @@ struct CityNearbyDrawer: View {
     var onChooseArea: (() -> Void)?
 
     @GestureState private var dragOffset: CGFloat = 0
+    /// Height of the hold button + 附近 heading block, so the resting detent always shows the top of the first row.
+    @State private var headBlock: CGFloat = 120
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -275,6 +301,7 @@ struct CityNearbyDrawer: View {
             VStack(spacing: 0) {
                 grabber
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
                     CityHoldButton(title: copy("按住 0.8 秒开始漫游", "Hold 0.8 s to start roaming"),
                                    holdingTitle: copy("松手取消", "Release to cancel"), enabled: holdEnabled, onCommit: onHold)
                     HStack {
@@ -289,6 +316,8 @@ struct CityNearbyDrawer: View {
                             .buttonStyle(.plain)
                         }
                     }
+                    }
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { headBlock = $0 }
                     content
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -296,8 +325,9 @@ struct CityNearbyDrawer: View {
             }
             .frame(width: proxy.size.width, height: max(96, height - dragOffset), alignment: .top)
             .background {
+                // Material over the live map at the partial detents, opaque when expanded (xrefs-1 Adopt 11).
                 UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous)
-                    .fill(reduceTransparency ? AnyShapeStyle(palette.bgElevated) : AnyShapeStyle(palette.bgElevated.opacity(0.96)))
+                    .fill(reduceTransparency || detent == .large ? AnyShapeStyle(palette.bgElevated) : AnyShapeStyle(.regularMaterial))
                     .shadow(color: .black.opacity(0.4), radius: 16, y: -2)
                     .ignoresSafeArea(edges: .bottom)
             }
@@ -372,8 +402,9 @@ struct CityNearbyDrawer: View {
 
     private func heightFor(_ detent: CityDrawerDetent, in total: CGFloat) -> CGFloat {
         switch detent {
-        case .peek: return 212
-        case .medium: return total * 0.5
+        // Grabber 24 + the head block + 12 + the top 44 pt of the first row, so a place always peeks above the tab bar.
+        case .peek: return 24 + headBlock + CYSpacing.md + 44
+        case .medium: return max(total * 0.5, 24 + headBlock + CYSpacing.md + 72 * 2 + CYSpacing.sm)
         case .large: return total * 0.86
         }
     }

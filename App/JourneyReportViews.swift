@@ -492,13 +492,15 @@ struct JourneyReportView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                // 战报 (204:15044, xrefs-1 Adopt 4): three numbers with hairline dividers, no tile.
                 HStack(spacing: 0) {
                     stat(Text(verbatim: MPText.orDash(report.nodesText)), "mp.report.stat.nodes", muted: false)
+                    statDivider
                     stat(Text(verbatim: MPText.orDash(report.elapsedText)), "mp.report.stat.time", muted: report.elapsedText == nil)
+                    statDivider
                     stat(report.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.notScored"), "mp.report.stat.score", muted: report.score == nil)
                 }
-                .padding(.vertical, CYSpacing.lg)
-                .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .padding(.vertical, CYSpacing.sm)
                 MPCard {
                     Button { rankShown = true } label: {
                         MPRow(title: Text("mp.report.rankRow"), sub: report.rankBasisCount.map { Text("mp.report.rankBasis \($0)") },
@@ -557,6 +559,10 @@ struct JourneyReportView: View {
                 MPBottomBar { CYPillButton("mp.report.refresh", style: .secondary, action: onRetry).accessibilityIdentifier("journeyReport.refresh") }
             }
         }
+    }
+
+    private var statDivider: some View {
+        Rectangle().fill(CYColor.borderSubtle).frame(width: 1, height: 28).accessibilityHidden(true)
     }
 
     private func stat(_ value: Text, _ label: LocalizedStringKey, muted: Bool) -> some View {
@@ -795,21 +801,13 @@ struct JourneySettleView: View {
     private func overview(_ report: JourneyReport) -> some View {
         VStack(spacing: CYSpacing.md) {
             Spacer()
+            // 结算 (204:15096, skill-r2 SR2-07): the `Moment/Art` seal at 96 pt lands over the stop count (6 / 6),
+            // in place of the trophy and the row of ticks. It lands on `CYMotion.seal` with one heavy impact.
             ZStack {
-                Circle().fill(CYNight.glow(radius: 90)).frame(width: 300, height: 300)
-                Image(systemName: "trophy.fill").font(CYTypography.display).imageScale(.large)
-                    .scaleEffect(2.2)
-                    .foregroundStyle(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern, CYNight.ember], startPoint: .top, endPoint: .bottom))
-                    .symbolEffect(.bounce, value: overviewOn)
-                Image(systemName: "sparkles").font(CYTypography.sectionTitle).foregroundStyle(CYNight.lanternHot).offset(x: 80, y: -60)
-                    .opacity(overviewOn ? 1 : 0)
-                    .animation(CYMotion.resolve(.spring(response: 0.5, dampingFraction: 0.6).delay(0.9), reduceMotion: reduceMotion), value: overviewOn)
-                Image(systemName: "sparkles").font(CYTypography.cardTitle).foregroundStyle(CYNight.lanternHot).offset(x: -84, y: -24)
-                    .opacity(overviewOn ? 1 : 0)
-                    .animation(CYMotion.resolve(.spring(response: 0.5, dampingFraction: 0.6).delay(1.1), reduceMotion: reduceMotion), value: overviewOn)
+                Circle().fill(CYNight.glow(radius: 90)).frame(width: 260, height: 260)
+                CYMomentSeal(text: Text("playx.completed"), landed: overviewOn)
             }
-            .frame(height: 220)
-            .scaleEffect(overviewOn ? 1 : 0.8)
+            .frame(height: 200)
             .accessibilityHidden(true)
             if let result = report.result { Text(result.label).font(CYTypography.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).settleRise(overviewOn, 0) }
             (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).font(CYTypography.display).multilineTextAlignment(.center).settleRise(overviewOn, 1)

@@ -63,17 +63,21 @@ struct CityCheckRow: View {
     let state: State
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
+    @QuestifyReduceMotion private var reduceMotion
+    private var swap: AnyTransition { reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.6)) }
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            Group {
+            // The glyph changes in place (spinner → tick), xrefs-1 B.1: one slot, a short blur-replace.
+            ZStack {
                 switch state {
-                case .passed: Image(systemName: "checkmark.circle.fill").foregroundStyle(palette.success)
-                case .working: ProgressView().controlSize(.small)
-                case .waiting: Image(systemName: "clock").foregroundStyle(palette.textTertiary)
-                case .failed: Image(systemName: "xmark.circle.fill").foregroundStyle(palette.danger)
+                case .passed: Image(systemName: "checkmark.circle.fill").foregroundStyle(palette.success).transition(swap)
+                case .working: ProgressView().controlSize(.small).transition(swap)
+                case .waiting: Image(systemName: "clock").foregroundStyle(palette.textTertiary).transition(swap)
+                case .failed: Image(systemName: "xmark.circle.fill").foregroundStyle(palette.danger).transition(swap)
                 }
             }
-            .font(.title3).frame(width: 28).accessibilityHidden(true)
+            .font(.title3).frame(width: 28, height: 28).accessibilityHidden(true)
+            .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: state)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
                 Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
@@ -95,6 +99,16 @@ struct CityCheckRow: View {
     }
 }
 
+/// The 圈下了 moment the claim sheet opens over itself (so the photo can travel from its thumbnail).
+struct CityClaimedRoute: Identifiable {
+    let id = UUID()
+    let place: CityPlace
+    let photo: UIImage?
+    let hours: Int
+    let price: Int64
+    let source: CGRect?
+}
+
 struct CityClaimSheet: View {
     let place: CityPlace
     @ObservedObject var store: CityBoardStore
@@ -102,8 +116,14 @@ struct CityClaimSheet: View {
     let uploader: CityClaimPhotoUploading?
     var fixture: CityClaimFixture? = nil
     let onMoment: (CityMomentRoute) -> Void
+    /// 去看看我的地盘 from the 圈下了 moment (the root closes the sheet and pushes 我的地盘).
+    var onMine: (() -> Void)? = nil
     let onClose: () -> Void
 
+    @State private var phase: CYResultPhase = .idle
+    /// The 64 pt claim thumbnail's frame in the window: where the photo → deed flight starts (K0).
+    @State private var thumbFrame: CGRect = .zero
+    @State private var claimed: CityClaimedRoute?
     @State private var fixes: [RoamDeviceFix] = []
     @State private var sampling: Task<Void, Never>?
     @State private var showsCamera = false
@@ -143,14 +163,10 @@ struct CityClaimSheet: View {
                 }
                 .padding(CYSpacing.md)
                 .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                if let photo {
-                    Image(uiImage: photo).resizable().scaledToFill().frame(height: 120).clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                        .accessibilityLabel(Text(verbatim: copy("现场照片", "On-site photo")))
-                }
+                if let photo { thumbnail(photo) }
                 CityFactTable(rows: [
                     .init(label: copy("占领价", "Claim price"), value: String(price), coin: true),
-                    .init(label: copy("积分余额", "Points balance"), value: balance.map { $0 >= price ? "\($0) → \($0 - price)" : copy("\($0)（还差 \(price - $0)）", "\($0) (\(price - $0) short)") } ?? "—"),
+                    balanceRow,
                     .init(label: copy("占领后保护到", "Protected until"), value: copy.clock(Date().addingTimeInterval(TimeInterval((quote?.protectionHours ?? CityMonopolyRules.protectionAfterClaimHours) * 3600))))
                 ])
                 primary
@@ -163,6 +179,14 @@ struct CityClaimSheet: View {
             .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.lg)
         }
         .sensoryFeedback(.selection, trigger: tick)
+        // 圈下了 opens over this sheet with no slide and a clear ground: the moment fades its own ground in (200 ms)
+        // while the photo flies from the thumbnail into the deed (xrefs-1 C1, K0 → K3).
+        .fullScreenCover(item: $claimed) { route in
+            CityClaimedMoment(place: route.place, photo: route.photo, protectionHours: route.hours, price: route.price,
+                              source: route.source, onMine: { (onMine ?? onClose)() }, onDone: onClose)
+                .presentationBackground(.clear)
+                .themeDomain(.player)
+        }
         .fullScreenCover(isPresented: $showsCamera) {
             CityCameraCapture(onCapture: { image in showsCamera = false; Task { await accept(image) } }, onCancel: { showsCamera = false })
                 .ignoresSafeArea()
@@ -217,11 +241,58 @@ struct CityClaimSheet: View {
                 .disabled(!CityCameraCapture.isAvailable || uploading || uploader?.isAvailable != true || quote == nil)
                 .accessibilityIdentifier("city.claim.camera")
         } else {
-            CYPillButton(verbatim: store.busy ? copy("校验中", "Checking") : copy("确认圈地 · \(price) 积分", "Claim · \(price) pts")) {
-                Task { await submit() }
+            VStack(spacing: CYSpacing.sm) {
+                if let reason = blockingReason, phase == .idle {
+                    // The reason sits directly above the disabled button (xrefs-1 B.1).
+                    Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                        .transition(.opacity)
+                }
+                CYResultButton(verbatim: copy("确认圈地 · \(price) 积分", "Claim · \(price) pts"), loading: copy("正在确认", "Confirming"),
+                               done: copy("已圈下", "Claimed"), phase: phase) {
+                    Task { await submit() }
+                }
+                .identifier("city.claim.confirm")
+                .disabled(phase == .idle && blockingReason != nil)
             }
-            .disabled(store.busy || quote == nil || short || !checks.contains { $0.kind == .dwell && $0.passed })
-            .accessibilityIdentifier("city.claim.confirm")
+            .animation(CYMotion.standard, value: blockingReason)
+        }
+    }
+
+    /// Why the confirm is disabled, in one line (nil when it can go).
+    private var blockingReason: String? {
+        if quote == nil { return copy("正在报价…", "Getting a quote…") }
+        if short { return copy("积分还差 \(price - (balance ?? 0))", "\(price - (balance ?? 0)) points short") }
+        if !checks.contains(where: { $0.kind == .dwell && $0.passed }) { return copy("在现场停留满 60 秒就能确认", "Stay 60 seconds on site to confirm") }
+        if store.busy && phase == .idle { return copy("校验中", "Checking") }
+        return nil
+    }
+
+    /// 积分余额 as one number with a −N chip; after the claim lands it rolls to the new balance and the chip fades.
+    private var balanceRow: CityFactTable.Row {
+        let label = copy("积分余额", "Points balance")
+        guard let balance else { return .init(label: label, value: "—") }
+        if balance < price { return .init(label: label, value: copy("\(balance)（还差 \(price - balance)）", "\(balance) (\(price - balance) short)"), coin: true) }
+        let applied = phase == .done
+        return .init(label: label, value: "", coin: true, number: applied ? balance - price : balance, delta: -price, holdsDelta: !applied)
+    }
+
+    /// K0: the photo the player just took, 64 × 64, the source of the flight into the deed.
+    private func thumbnail(_ photo: UIImage) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Image(uiImage: photo).resizable().scaledToFill()
+                .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(palette.textPrimary.opacity(0.9), lineWidth: 1.5))
+                .opacity(claimed == nil ? 1 : 0)
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { thumbFrame = $0 }
+                .accessibilityLabel(Text(verbatim: copy("现场照片", "On-site photo")))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: copy("现场照片", "On-site photo")).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: copy("圈下后它就是这张地契的封面", "Once claimed, it becomes this deed's cover"))
+                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
         }
     }
 
@@ -252,20 +323,33 @@ struct CityClaimSheet: View {
     }
 
     private func submit() async {
+        guard phase == .idle else { return }
+        phase = .loading
         let result = await store.confirm(fixes: fixes, photoAssetId: photoRef)
-        guard let result else { return }
-        switch result.kind {
-        case .applied, .pendingReview:
-            // The store reloaded the layer after the command, so the claimed place carries its server state.
-            let claimed = store.place(id: result.property?.propertyId)
-                ?? store.mine.first { $0.poiId != nil ? $0.poiId == place.poiId : ($0.pointId != nil && $0.pointId == place.pointId) }
-                ?? CityPlace(id: place.id, title: place.title, coordinate: place.coordinate, poiId: place.poiId, boardId: place.boardId,
-                             pointId: place.pointId, districtId: place.districtId, districtIndex: place.districtIndex, tier: place.tier,
-                             level: 0, ownership: .mine, protectedUntil: Date().addingTimeInterval(TimeInterval((quote?.protectionHours ?? 24) * 3600)),
-                             photoURL: photoRef)
-            onMoment(.claimed(claimed, photo: photo, protectionHours: quote?.protectionHours ?? result.protectionHours ?? 24, price: price))
-        default:
-            break
+        guard let result, result.kind == .applied || result.kind == .pendingReview else {
+            // Failure: back to the label on the release spring; the sheet shows the server's reason above.
+            withAnimation(CYMotion.release) { phase = .idle }
+            return
+        }
+        // The store reloaded the layer after the command, so the claimed place carries its server state.
+        let claimedPlace = store.place(id: result.property?.propertyId)
+            ?? store.mine.first { $0.poiId != nil ? $0.poiId == place.poiId : ($0.pointId != nil && $0.pointId == place.pointId) }
+            ?? CityPlace(id: place.id, title: place.title, coordinate: place.coordinate, poiId: place.poiId, boardId: place.boardId,
+                         pointId: place.pointId, districtId: place.districtId, districtIndex: place.districtIndex, tier: place.tier,
+                         level: 0, ownership: .mine, protectedUntil: Date().addingTimeInterval(TimeInterval((quote?.protectionHours ?? 24) * 3600)),
+                         photoURL: photoRef)
+        let hours = quote?.protectionHours ?? result.protectionHours ?? 24
+        // Done in place first (check + 已圈下, the balance rolls), then the moment grows out of the photo.
+        phase = .done
+        try? await Task.sleep(for: .milliseconds(450))
+        guard photo != nil else {
+            onMoment(.claimed(claimedPlace, photo: photo, protectionHours: hours, price: price))
+            return
+        }
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            claimed = CityClaimedRoute(place: claimedPlace, photo: photo, hours: hours, price: price, source: thumbFrame == .zero ? nil : thumbFrame)
         }
     }
 
