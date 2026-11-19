@@ -528,6 +528,7 @@ struct ProjectEditReviewView: View {
     /// with what will be published (cover, name, counts) and the checks collapsed to one row; every prepared field
     /// stays one tap away under 查看将提交的全部内容.
     @State private var showsAll = false
+    @Environment(\.locale) private var locale
     var body: some View {
         NavigationStack {
             Form {
@@ -631,17 +632,13 @@ struct ProjectEditReviewView: View {
                 .questifyBottomAction {
                     if canSubmit {
                         if confirmation.intent == .ordinary || canSimulate {
-                            // In place: the label becomes a spinner + 发布中 while the request runs (xrefs-1 B.0 in place).
-                            Button(action: confirm) {
-                                HStack(spacing: CYSpacing.sm) {
-                                    if busy { ProgressView().accessibilityHidden(true) }
-                                    if busy { OpsR3Text.text("publish.preview.sending") }
-                                    else { Text(LocalizedStringKey(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive")) }
-                                }
-                                .frame(maxWidth: .infinity)
-                                .animation(.easeInOut(duration: CYMotion.Duration.quick), value: busy)
-                            }
-                                .disabled(busy).accessibilityIdentifier("projectEdit.confirmSimulation")
+                            // In place (xrefs-1 B.0, C1's CYResultButton): the capsule becomes spinner + 正在提交 while the
+                            // request runs; the result sheet that follows is the done state.
+                            CYResultButton(verbatim: appLocalized(canSimulate ? "projectEdit.confirmSimulation" : "projectEdit.confirmLive", locale: locale),
+                                           loading: OpsR3Text.string("publish.preview.sending", locale: locale),
+                                           done: OpsR3Text.string("publish.preview.sent", locale: locale),
+                                           phase: busy ? .loading : .idle, action: confirm)
+                                .identifier("projectEdit.confirmSimulation")
                         } else {
                             Button(action: confirm) {
                                 Text(LocalizedStringKey(ProjectCloudDraftReceiptPresentation.intentKey(confirmation.intent)), tableName: "ProjectCloudDraftReceipt")

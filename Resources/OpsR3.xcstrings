@@ -497,6 +497,22 @@
         }
       }
     },
+    "publish.preview.sent": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提交"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted"
+          }
+        }
+      }
+    },
     "publish.preview.showAll": {
       "localizations": {
         "zh-Hans": {
