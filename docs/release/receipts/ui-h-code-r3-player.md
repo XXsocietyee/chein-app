@@ -27,7 +27,7 @@ Status words: **done** (a screenshot is named), **partial** (what is left is nam
 | Item (xrefs-1 / brief) | Status | Evidence |
 |---|---|---|
 | No-photo deed cover (district colour 24 %, place name, camera glyph; glyph-on-grey only for unlit) | **done** | `CityNoPhotoCover` in `CityDeedCard.swift`; `204-26968-N22-claimed-no-photo-cover-FIXTURE.png`, `204-23400-N08-property-drawer-FIXTURE.png`, row thumbs in `204-21814-N01-board-plain-stats-FIXTURE.png` |
-| Photo → deed continuity K0–K3 (`CYMotion.hero`) | **done** | The claim sheet shows the photo as a 64 pt thumbnail (K0). On success the button goes Done in place, then 圈下了 opens over the sheet with no slide and a clear ground; the photo flies from the thumbnail's window frame into the deed's photo slot (matched geometry, `hero`), the band and body rise from +250 ms, seal +600 (heavy at contact, success +150 ms), text +950, chips 0/50/90, actions +1250; tap skips; Reduce Motion = 200 ms cross-fade with the photo already in the slot. `204-26968-N22-claimed-photo-K3-FIXTURE.png` (K3), `204-26968-N22-photo-to-deed-K1-K3-strip-FIXTURE.jpg` (frames ≈ 0.3 s apart; the first two are mid-flight). |
+| Photo → deed continuity K0–K3 (`CYMotion.hero`) | **done** | The claim sheet shows the photo as a 64 pt thumbnail (K0). On success the button goes Done in place, then 圈下了 opens over the sheet with no slide and a clear ground; the photo flies from the thumbnail's window frame into the deed's photo slot (matched geometry, `hero`), the band and body rise from +250 ms, seal +600 (heavy at contact, success +150 ms), text +950, chips 0/50/90, actions +1250; tap skips; Reduce Motion = 200 ms cross-fade with the photo already in the slot. `204-26968-N22-claimed-photo-K3-FIXTURE.png` (K3), `204-26968-N22-photo-to-deed-K1-K3-strip-FIXTURE.jpg` (frames ≈ 0.3 s apart: launch, the photo mid-flight before the band, K2 deed around it, K3 text, actions). |
 | In-place results on claim, challenge, shield, upgrade | **done** | Claim: `CYResultButton` 确认圈地 → 正在确认 → 已圈下, balance rolls. Shield: 开护盾 → 正在开启 → 已开护盾, sheet closes after 600 ms with the row behind already updated. Upgrade: 升级 → 正在升级 → 已升到 Lv… then the level-up moment (the only full-screen result besides a first claim, per the owner's continuity pass). Challenge: the start button fills in place when the last check passes (`standard`, selection haptic); its result is the roll inside the dice moment. `204-27271-N25-claim-short-balance-FIXTURE.png`, `205-8475-N47-shield-hug-FIXTURE.png` |
 | Overlapping pins: cluster or offset | **done** | `CityPinGroup.make` groups pins closer than one 44 pt pin at the current zoom into a count bubble (tap zooms in); below a 0.006° span the same group fans out on a ring so each pin can be tapped. Tested in `R3PlayerMotionTests`. No shot of a bubble: the fixture's places do not overlap at the fixture zoom. |
 | First 附近 row peeking | **done** | The resting detent is measured (grabber + hold button + heading + 44 pt of the first row); the medium detent is at least two rows. `210-8322-roam-root-nearby-peek-FIXTURE.png` |
@@ -48,7 +48,7 @@ Status words: **done** (a screenshot is named), **partial** (what is left is nam
 
 | Frame | Status | Evidence / what is left |
 |---|---|---|
-| `210:8603` 我的 root | **partial** | `210-8603-me-streak-plain-stats-FIXTURE.png`: counters as a plain row with hairlines (no tiles), the avatar ring in ink instead of the reserved purple, `CYStreakRow` under the name when growth sends a streak (the fixture has none, so the row is absent there). The 积分 tile and its ledger link were left alone (owned by the cloud continuity agents). Left: the attributes card from the frame (`23 探索 …`) has no read in this view. |
+| `210:8603` 我的 root | **partial** | `210-8603-me-root-TEST.png` (TEST, signed in): the 7-day `CYStreakRow` under the name (0 days today: all unlit, today's 四 bold), counters as a plain row with hairlines (no tiles), the avatar ring in ink instead of the reserved purple. `210-8603-me-streak-plain-stats-FIXTURE.png` is the same card in the fixture host. The 积分 tile and its ledger link were left alone (owned by the cloud continuity agents). Left: the attributes card from the frame (`23 探索 …`) has no read in this view. |
 | `204:15044` 战报 | **partial** | Stats are a plain row with hairlines (no tile); rows already end in chevrons; 本局不计分 appears once (as the score value). No TEST run reaches a finished report for the signed-out simulator; not shot. |
 | `204:15096` 结算 | **done** | The trophy + sparkles are replaced by `CYMomentSeal` (96 pt, 已完成) landing on `seal` with a heavy impact, over the stop count. `204-15096-settle-seal-FIXTURE.png` |
 | play answer / check-in submit (continuity pass 2) | **done (code)** | `PlayExperienceNodeView`: the answer button is a `CYResultButton` (提交 → 正在提交 → 已完成); a completed stop no longer opens the full-screen verdict (the task card updates where it is, check-in keeps its haptic); a wrong answer shows the server's reason above the button with the error haptic. Not shot (needs a live play run). |
@@ -63,12 +63,29 @@ Status words: **done** (a screenshot is named), **partial** (what is left is nam
 
 | Item | Status | Evidence |
 |---|---|---|
-| Topic detail: designed cover instead of 图片暂不可用 | **done (code)** | When photos cannot load (`RetainedPublicImageReader().enabled == false`, the TEST case) the hero is `CYDesignedCover` (gradient, watermark initial, dashed route mark). See the cover in `r3-kit-inplace-FIXTURE.png`; TEST shot pending (see below). |
-| Topic detail: hide 路线总站点 0 | **done (code)** | The row shows only for a count > 0. |
-| Topic detail: one pinned container for 详情 / 故事 / 路线 | **done (code)** | One `TopicXcxTabs` value with a shared selection: inline under the stats, and pinned under the bar (page ground behind it) once it scrolls above the list top. |
-| Topic detail: consistent dividers | **done (code)** | One `listRowSeparatorTint(border-subtle)` for the page; the hero block keeps no separators. |
-| Status bar on pushed LIGHT pages (app-wide, theme code) | **done (code)** | `CYScreenChrome.syncStatusBar(for:)` runs whenever the shell's arbitrated scheme changes (and at the role root's appear): it sets the window style and each navigation controller's bar style (the navigation controller, not the page, owns the status bar while its bar is shown, and its bar kept the dark shell style) and asks every controller to re-read its status bar style. Sheets keep their own scheme. Not yet seen on a simulator (needs a signed-in light page). |
+| Topic detail: designed cover instead of 图片暂不可用 | **done** | When photos cannot load (`RetainedPublicImageReader().enabled == false`, the TEST case) the hero is `CYDesignedCover` (gradient, watermark initial, dashed route mark, route disc). `169-6954-topic-detail-designed-cover-TEST.png` (topic 993006 on TEST) |
+| Topic detail: hide 路线总站点 0 | **done** | The row shows only for a count > 0; same shot (no 路线总站点 row under the tabs). 参与商家 0 in the facts section was left as it is (not in the review). |
+| Topic detail: one pinned container for 详情 / 故事 / 路线 | **done** | One `TopicXcxTabs` value with a shared selection: inline under the stats, and pinned under the navigation bar (page ground behind it) once it scrolls above the list top. An overlay, not a safe-area inset, so the list never shifts. `169-6954-topic-detail-tabs-pinned-TEST.png` |
+| Topic detail: consistent dividers | **done** | One `listRowSeparatorTint(border-subtle)` for the page, rows inset to the text; the hero block keeps none. `169-6954-topic-detail-tabs-pinned-TEST.png` |
+| Status bar on pushed LIGHT pages (app-wide, theme code) | **done** | `CYScreenChrome.syncStatusBar(for:)` runs whenever the shell's arbitrated scheme changes (and when the role root appears): it sets the window style and each navigation controller's bar style (the navigation controller, not the page, owns the status bar while its bar is shown, and its bar kept the dark shell style) and asks every controller to re-read its status bar style. Sheets keep their own scheme. `statusbar-light-page-pushed-from-player-TEST.png`: the light 模板 page pushed from the dark 发布 tab has a dark status bar; back on the dark tab it is white again (`210-8603-me-root-TEST.png`). |
 
 ## Gates
 
-(filled in below as they run)
+| Gate | Result |
+|---|---|
+| Build (Questify, Debug, Lane2, `OTHER_SWIFT_FLAGS=$(inherited) -disable-sandbox`, DerivedData `ui-h-code-r3-player`, under `lockf /private/tmp/design-build.lock`) | BUILD SUCCEEDED (final tree); build-for-testing of the four shard schemes TEST BUILD SUCCEEDED |
+| `tools/check_scaffold.py` | PASS |
+| `tools/contract_ratchet.py --check` | 185 failing vs baseline 184; the one "new" id is `test_workshop_paid_professional…bounded_paging`, red on `ui/main` already (named in the app and city receipts). The four ids this branch first broke (topic call shapes, a localization argument name, a raw colour in a fixture) were fixed. |
+| design lint / strings / a11y / design-r1 localizations | PASS (0 violations) / missing 0 / PASS / CHECKED |
+| Core `swift test --disable-sandbox` | 16983 tests (+1 new, passes), **27 unique failing = baseline 27**; none in City or motion code |
+| AppUnit, 4 shards (`test_sim`, shard xctestruns) | 6 / 15 / 31 / 25 failing = **77 names**, the same count as the city branch after its rebase (7 / 15 / 31 / 24 = 77). `R3PlayerMotionTests` (new) passes. Every failing class is a hosted lifetime / owner / roam-host test that this branch does not touch, with one I cannot clear: `RegistrationUncertainEvidenceCacheTests` (6 tests) fails again when run alone (XCTUnwrap of the evidence scope after `confirmAndReadBack`); it drives `RegistrationUIFlow` + `RegistrationCoordinator`, which this branch does not change, and I did not run it on a clean base build. Flagged for the integrator. |
+
+Disk: free space dropped to 3.9 GB once during another worker's build; this worker's SPM scratch (3.1 GB) was deleted
+right after the Core run, and the branch DerivedData `ui-h-code-r3-player` is deleted at the end.
+
+## For C2
+
+Use `CYResultButton` for any primary whose result belongs on the page (publish, save, accept), `cyResultToast` for a
+result that finishes after the page moved on, `CYMotion.*` for every spring (no new local springs), `.cyNumericRoll`
+for a number that changes, `CYDesignedCover` where a hero has no photo. Fixture: `--design-fixture r3-inplace`
+(`r3-inplace-light` for the editor domain).
