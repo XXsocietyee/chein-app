@@ -346,6 +346,7 @@ struct CityClaimedMoment: View {
     @Namespace private var flight
     @State private var flown = false
     @State private var landed = false
+    @State private var sourceReady = false
 
     private var flies: Bool { photo != nil && source != nil && !reduceMotion }
 
@@ -372,7 +373,16 @@ struct CityClaimedMoment: View {
         }
         .overlay { if flies && !landed { flyingPhoto } }
         .onAppear {
-            if flies { withAnimation(CYMotion.hero) { flown = true } }
+            if flies {
+                // Two turns: first the source frame is laid out (the copy is hidden until then), then the flight starts,
+                // so the photo never begins full-screen.
+                Task { @MainActor in
+                    await Task.yield()
+                    sourceReady = true
+                    try? await Task.sleep(for: .milliseconds(16))
+                    withAnimation(CYMotion.hero) { flown = true }
+                }
+            }
             Task { @MainActor in
                 // The seal lands with its heavy impact at ≈ 780 ms; success follows 150 ms later, and the deed (settled
                 // under the photo by then) takes the photo over from the flying copy.
@@ -389,10 +399,11 @@ struct CityClaimedMoment: View {
             let origin = proxy.frame(in: .global).origin
             ZStack(alignment: .topLeading) {
                 if let source {
+                    // The source is recorded at its own 64 pt frame, before `.position` (which fills the container).
                     Color.clear
                         .frame(width: source.width, height: source.height)
-                        .position(x: source.midX - origin.x, y: source.midY - origin.y)
                         .matchedGeometryEffect(id: CityDeedPhotoSlot.sourceID, in: flight, isSource: true)
+                        .position(x: source.midX - origin.x, y: source.midY - origin.y)
                 }
                 if let photo {
                     // Fill inside the matched frame and clip there, so the photo never spills past its slot mid-flight.
@@ -401,6 +412,7 @@ struct CityClaimedMoment: View {
                         .clipShape(RoundedRectangle(cornerRadius: flown ? 0 : 12, style: .continuous))
                         .matchedGeometryEffect(id: flown ? CityDeedPhotoSlot.slotID : CityDeedPhotoSlot.sourceID, in: flight,
                                                properties: .frame, isSource: false)
+                        .opacity(sourceReady ? 1 : 0)
                 }
             }
         }

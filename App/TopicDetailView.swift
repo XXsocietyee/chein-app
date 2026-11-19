@@ -258,7 +258,6 @@ struct TopicDetailView: View {
                             // cover, never a 图片暂不可用 line.
                             CYDesignedCover(title: value.name)
                                 .aspectRatio(16 / 9, contentMode: .fit)
-                                .accessibilityIdentifier("topic.detail.designedCover")
                         }
                     }
                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: CYSpacing.md, trailing: 0))
@@ -296,11 +295,11 @@ struct TopicDetailView: View {
                     .listRowBackground(Color.clear)
                 // One container for 详情 / 故事 / 路线: inline here, and pinned under the bar once it scrolls away.
                 TopicXcxTabs(proxy: proxy, productType: value.productType).selection($tab)
-                    .listRowBackground(Color.clear)
                     .opacity(tabsPinned ? 0 : 1)
                     .onGeometryChange(for: Bool.self) { $0.frame(in: .global).minY < pinLine } action: { pinned in
                         if tabsPinned != pinned { tabsPinned = pinned }
                     }
+                    .listRowBackground(Color.clear)
             }
             // verify-r1 3.1 (`169:6954`): the hero block reads as one page header, not as list rows with dividers.
             .listRowSeparator(.hidden)
@@ -498,8 +497,10 @@ struct TopicDetailView: View {
         .overlay(alignment: .top) {
             if tabsPinned {
                 TopicXcxTabs(proxy: proxy, productType: value.productType).selection($tab)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .background(palette.bgPage)
+                    .frame(maxHeight: .infinity, alignment: .top)
                     .transition(.opacity)
             }
         }

@@ -413,6 +413,7 @@ struct CityPropertyDrawer: View {
     }
 
     @State private var landed = false
+    @State private var sourceReady = false
 
     /// The lead: the pin's tile, from the pin to the deed's photo slot.
     private var flyingTile: some View {
@@ -421,12 +422,13 @@ struct CityPropertyDrawer: View {
             ZStack(alignment: .topLeading) {
                 if let origin {
                     Color.clear.frame(width: 34, height: 34)
-                        .position(x: origin.x - frame.minX, y: origin.y - frame.minY)
                         .matchedGeometryEffect(id: CityDeedPhotoSlot.sourceID, in: flight, isSource: true)
+                        .position(x: origin.x - frame.minX, y: origin.y - frame.minY)
                 }
                 CityDeedPhoto(url: place.photoURL, corner: flown ? 0 : 17, place: place, cover: .compact)
                     .matchedGeometryEffect(id: flown ? CityDeedPhotoSlot.slotID : CityDeedPhotoSlot.sourceID, in: flight,
                                            properties: .frame, isSource: false)
+                    .opacity(sourceReady ? 1 : 0)
             }
         }
         .ignoresSafeArea()
@@ -462,7 +464,15 @@ struct CityPropertyDrawer: View {
             landed = true
         } else {
             withAnimation(CYMotion.sheet) { shown = true }
-            if flies { withAnimation(CYMotion.hero) { flown = true } } else { landed = true }
+            if flies {
+                // Lay the pin's frame out first (the tile is hidden for that turn), then fly.
+                Task { @MainActor in
+                    await Task.yield()
+                    sourceReady = true
+                    try? await Task.sleep(for: .milliseconds(16))
+                    withAnimation(CYMotion.hero) { flown = true }
+                }
+            } else { landed = true }
             // Content that exists only at the end fades in after about half the move.
             withAnimation(.easeOut(duration: CYMotion.Duration.quick).delay(0.22)) { contentShown = true }
             Task { @MainActor in

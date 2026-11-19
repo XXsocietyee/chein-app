@@ -43,6 +43,7 @@ struct CYDesignedCover: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
+        .accessibilityElement(children: .ignore)
         .accessibilityHidden(true)
     }
 }
