@@ -62,9 +62,9 @@ import SwiftUI
             }
             // xrefs-1 Adopt 4: the three counters are a plain row with hairline dividers, no tiles.
             CYPlainStatRow(stats: [
-                stat(snapshot?.friendCountText, id: "friends", label: "member.card.friends"),
-                stat(snapshot?.followCountText, id: "following", label: "member.card.following"),
-                stat(snapshot?.fansCountText, id: "fans", label: "member.card.fans")
+                stat(snapshot?.friendCountText, id: "friends", key: "member.card.friends"),
+                stat(snapshot?.followCountText, id: "following", key: "member.card.following"),
+                stat(snapshot?.fansCountText, id: "fans", key: "member.card.fans")
             ])
             // Mini-program member header: one full-width 票夹 pill under the counters.
             if let onOpenTickets {
@@ -205,10 +205,10 @@ import SwiftUI
         .accessibilityHidden(true)
     }
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
-    private func stat(_ value: String?, id: String, label: String.LocalizationValue) -> CYPlainStat {
+    private func stat(_ value: String?, id: String, key: String.LocalizationValue) -> CYPlainStat {
         let shown = value ?? MemberHomePageModel.unknownDisplay
         return CYPlainStat(id: id, value: shown,
-                           label: String(localized: LocalizedStringResource(label, table: "MemberProfile", locale: locale)),
+                           label: String(localized: LocalizedStringResource(key, table: "MemberProfile", locale: locale)),
                            rollValue: Double(shown), accessibilityIdentifier: "member.card.\(id)")
     }
     private func tile<Title: View, Value: View>(symbol: String, @ViewBuilder title: () -> Title, @ViewBuilder value: () -> Value) -> some View {

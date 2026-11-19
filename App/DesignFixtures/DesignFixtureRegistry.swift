@@ -9,6 +9,9 @@ enum DesignFixtureRegistry {
     @MainActor static func make(_ name: String) -> AnyView {
         switch name {
         case "design-kit": return AnyView(DesignKitFixture())
+        // ui/h-code-r3-player: the shared in-place result kit (App/DesignFixtures/R3InPlaceKitFixtures.swift).
+        case "r3-inplace": return AnyView(R3InPlaceKitFixture())
+        case "r3-inplace-light": return AnyView(R3InPlaceKitFixture(domain: .topicEditor))
         case "kit": return AnyView(KitGalleryFixture(domain: .player))
         // City Monopoly kit and flows (App/DesignFixtures/CityKitFixtures.swift).
         case let city where city.hasPrefix("city-"): return CityKitFixtures.make(city)

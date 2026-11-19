@@ -28,22 +28,28 @@ enum TopicXcxTab: Int, CaseIterable, Identifiable {
 struct TopicXcxTabs: View {
     let proxy: ScrollViewProxy
     var productType: Int = 0
-    /// Shared by the inline and the pinned copy, so both show the same tab.
-    @Binding var selection: TopicXcxTab
     @Environment(\.locale) private var locale
     @QuestifyReduceMotion private var reduceMotion
+    @State private var ownSelection: TopicXcxTab = .details
+    /// Shared selection, so the inline and the pinned copy of the tabs show the same tab.
+    private var shared: Binding<TopicXcxTab>?
 
-    init(proxy: ScrollViewProxy, productType: Int = 0, selection: Binding<TopicXcxTab>) {
-        self.proxy = proxy; self.productType = productType; _selection = selection
+    init(proxy: ScrollViewProxy, productType: Int = 0) {
+        self.proxy = proxy; self.productType = productType
     }
+
+    /// Binds the selected tab to a value the page owns (the pinned copy reads the same one).
+    func selection(_ binding: Binding<TopicXcxTab>) -> Self { var copy = self; copy.shared = binding; return copy }
+
+    private var selection: Binding<TopicXcxTab> { shared ?? $ownSelection }
 
     var body: some View {
         let items = TopicXcxTab.allCases.map { tab in
             CYTabItem(id: tab, title: appLocalized(String.LocalizationValue(tab.titleKeyString(productType: productType)), locale: locale))
         }
-        CYTabs(items: items, selection: $selection, variant: .sticky)
+        CYTabs(items: items, selection: selection, variant: .sticky)
             .accessibilityIdentifier("topic.tabs")
-            .onChange(of: selection) { _, tab in
+            .onChange(of: selection.wrappedValue) { _, tab in
                 withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
                     proxy.scrollTo(tab.anchor, anchor: .top)
                 }

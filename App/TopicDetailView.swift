@@ -295,7 +295,7 @@ struct TopicDetailView: View {
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value), stops: value.locationCount)
                     .listRowBackground(Color.clear)
                 // One container for 详情 / 故事 / 路线: inline here, and pinned under the bar once it scrolls away.
-                TopicXcxTabs(proxy: proxy, productType: value.productType, selection: $tab)
+                TopicXcxTabs(proxy: proxy, productType: value.productType).selection($tab)
                     .listRowBackground(Color.clear)
                     .opacity(tabsPinned ? 0 : 1)
                     .onGeometryChange(for: Bool.self) { $0.frame(in: .global).minY < pinLine } action: { pinned in
@@ -307,8 +307,8 @@ struct TopicDetailView: View {
             // 详情 tab (mini-program `det3`): title, one-line subtitle, venue card, then the audio guide.
             Section {
                 // Coordinator review: an unknown or zero stop count is not a fact worth a row.
-                if let stops = value.locationCount, stops > 0 {
-                    TopicTotalStops(count: stops, identifier: "topic.totalStops")
+                if (value.locationCount ?? 0) > 0 {
+                    TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 }
                 if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 if let venue = TopicXcxFacts.venue(value.addressName) {
@@ -494,16 +494,16 @@ struct TopicDetailView: View {
         .listRowSeparatorTint(palette.borderSubtle)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
-        .safeAreaInset(edge: .top, spacing: 0) {
+        // An overlay, not a safe-area inset: an inset would shift the list and flip the pin back and forth.
+        .overlay(alignment: .top) {
             if tabsPinned {
-                TopicXcxTabs(proxy: proxy, productType: value.productType, selection: $tab)
+                TopicXcxTabs(proxy: proxy, productType: value.productType).selection($tab)
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .background(palette.bgPage)
                     .transition(.opacity)
             }
         }
-        .animation(.easeOut(duration: CYMotion.Duration.quick), value: tabsPinned)
-        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY } action: { pinLine = $0 }
+        .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY + $0.safeAreaInsets.top } action: { pinLine = $0 }
         .cyTracksHeroScroll($heroScrolledAway, threshold: 280)
         .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }
