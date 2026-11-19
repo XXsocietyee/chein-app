@@ -17,7 +17,8 @@ struct TopicDetailView: View {
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
-    /// Continuity r1 (6): which bar button opened the sheet now up; nil for every other opener. Cleared on dismiss.
+    /// Continuity r1 (6): which bar button opened the self-play / tickets / pricing sheet now up; nil for every other opener.
+    /// Cleared on dismiss. The session sheet has no other opener, so it always zooms from the bar.
     @State private var barSheetOrigin: TopicBarSheet?
     @Namespace private var barHero
     /// Load lifecycle (docs/release/state-machines/views.md). `loadedKey` guards a phase that belongs to a stale key.
@@ -477,17 +478,17 @@ struct TopicDetailView: View {
         .cyTracksHeroScroll($heroScrolledAway, threshold: 280)
         .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }
-        .modifier(TopicBarRecede(active: barSheetOrigin != nil && (showingSessionSelection || showingSelfPlay || showingTickets || showsPricing)))
+        .modifier(TopicBarRecede(active: showingSessionSelection || (barSheetOrigin != nil && (showingSelfPlay || showingTickets || showsPricing))))
         .safeAreaInset(edge: .bottom) {
-            TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { barSheetOrigin = .sessions; showingSessionSelection = true } },
+            TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { barSheetOrigin = .selfPlay; showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { barSheetOrigin = .pricing; showsPricing = true },
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
         }
-        .sheet(isPresented: $showingSessionSelection, onDismiss: { barSheetOrigin = nil; loads.start { await load() } }) {
+        .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)
-                .modifier(TopicBarHeroDestination(sheet: .sessions, origin: barSheetOrigin, namespace: barHero))
+                .modifier(TopicBarHeroDestination(sheet: .sessions, origin: .sessions, namespace: barHero)) // only the bar opens it
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }

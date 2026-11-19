@@ -110,9 +110,9 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
-    /// Continuity r1 (+): true while a sheet up was opened by the footer pill, which is its zoom source. The tile path
-    /// (`performPrimaryAction`) leaves it false and keeps the plain slide-up. Cleared on dismiss.
-    @State private var footerOpenedSheet = false
+    /// Continuity r1 (+): the footer pill is the zoom source of the registration / ticket-wallet sheet it opens. The first
+    /// tile (`performPrimaryAction`) opens the same sheets; it sets this so they keep the plain slide-up. Cleared on dismiss.
+    @State private var tileOpenedSheet = false
     @Namespace private var footerHero
     @State private var showsPlay = false
     /// One load lifecycle instead of `access` / `loading` / `failed` (docs/release/state-machines/views.md).
@@ -244,11 +244,11 @@ struct ActivityDetailView: View {
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
         }
-        .sheet(isPresented:$showsRegistration, onDismiss: { footerOpenedSheet = false }) {
+        .sheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
-            .modifier(ActivityFooterHeroDestination(active: footerOpenedSheet, namespace: footerHero))
+            .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
             .cyPlayerSheetGlass()
@@ -262,13 +262,13 @@ struct ActivityDetailView: View {
                 SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
             } else if let playReaderForActivity { PlaySessionView(reader: playReaderForActivity(id)) }
         }
-        .sheet(isPresented:$showsTicketWallet, onDismiss: { footerOpenedSheet = false }) {
+        .sheet(isPresented:$showsTicketWallet, onDismiss: { tileOpenedSheet = false }) {
             // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
             if let session = reader as? AppSession {
                 TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTicketWallet=false },
                                  orderLifecycleCoordinator:session.orderLifecycleCoordinator)
                     .id(session.ticketWalletReader.scope)
-                    .modifier(ActivityFooterHeroDestination(active: footerOpenedSheet, namespace: footerHero))
+                    .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .cyPlayerSheetGlass()
@@ -605,9 +605,9 @@ struct ActivityDetailView: View {
         primaryAction == .signUp || (primaryAction != .cancelled && reader is AppSession)
     }
     private func performPrimaryAction() {
-        if primaryAction == .signUp { showsRegistration = true }
+        if primaryAction == .signUp { tileOpenedSheet = true; showsRegistration = true }
         else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
-        else if primaryAction != .cancelled, reader is AppSession { showsTicketWallet = true }
+        else if primaryAction != .cancelled, reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
     }
     /// "From ¥58 · 24 going"; an unknown price or count is an em dash, never 0.
     /// Known parts only: price and attendee count joined by a dot. Nil (line hidden) when neither is known.
@@ -630,7 +630,7 @@ struct ActivityDetailView: View {
                     .accessibilityIdentifier("activity.pinned.summary")
             }
             if primaryAction == .signUp {
-                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { footerOpenedSheet = true; showsRegistration = true }
+                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { showsRegistration = true }
                     .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                     .accessibilityIdentifier("activity.openRegistration")
                     .accessibilityLabel(Text(LocalizedStringKey(primaryAction.titleKey)))
@@ -640,7 +640,7 @@ struct ActivityDetailView: View {
                 let walletAvailable = reader is AppSession
                 CYPillButton(LocalizedStringKey(action.titleKey)) {
                     if action == .continueExploring, playReaderForActivity != nil { showsPlay = true }
-                    else if action != .cancelled, walletAvailable { footerOpenedSheet = true; showsTicketWallet = true }
+                    else if action != .cancelled, walletAvailable { showsTicketWallet = true }
                 }
                 .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                 .disabled(action == .cancelled || (!walletAvailable && !(action == .continueExploring && playReaderForActivity != nil)))
@@ -762,7 +762,7 @@ private struct ActivityActionTiles: View {
 /// Continuity r1 (+): the registration / ticket-wallet sheet zooms out of the footer pill that opened it. Only one pill is
 /// on screen at a time, so one id pairs it with whichever sheet it opened. Inactive (tile opener): the plain slide-up.
 private struct ActivityFooterHeroDestination: ViewModifier {
-    static let id = "activity.footer.primary"
+    static let id = "footer.primary"
     let active: Bool
     let namespace: Namespace.ID
     @ViewBuilder func body(content: Content) -> some View {
