@@ -27,7 +27,7 @@ semibold, `bodyMedium` medium → semibold, sheet header title 20 → 22 pt, `bo
 |---|---|
 | `python3 tools/check_scaffold.py` | PASS (structural checks, page route table 263, appsession ratchet) |
 | `python3 tools/check_design_lint.py` | PASS design lint (0 violations) + PASS typography lint (baseline below) |
-| `python3 tools/contract_ratchet.py --check` | RATCHET_RESULT |
+| `python3 tools/contract_ratchet.py --check` | 185 failing, baseline 184, **new 1, fixed 0**. The one new id, `test_workshop_paid_professional.PaidProfessionalContracts.test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`, fails identically on untouched `origin/ui/main` (run before any edit here), so this branch adds no new failure. The baseline was not changed |
 | codemod self-test + idempotence | `--apply` on a scratch copy of the tree: 2752 rewrites; second dry run 0; `--upgrade-tokens` then 3822 more, re-run 0; lint after apply PASS with 647 counts below baseline |
 | Swift compile | **not run**: no Swift toolchain here. The optional Tree-sitter preflight (`tools/check_swift_syntax.py`) could not be installed either: the served `tree-sitter` wheel did not match the pinned hash, and hash checking was not bypassed. The Swift was written against existing patterns in the same files; CI's Xcode build is the first real compile |
 
