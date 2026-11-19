@@ -107,50 +107,6 @@ struct ProjectEditTopicCard: View {
     }
 }
 
-/// `Topic/Chapter Card` label: eyebrow 第 N 章, the name, one meta line, and a red dot when the chapter blocks
-/// publishing. The whole card opens the chapter; ⋯ and the handle sit beside it in the row.
-struct ProjectEditChapterCardLabel: View {
-    let ordinal: Int
-    let chapter: ProjectEditChapter
-    var blocked = false
-    private var palette: CYDomainPalette { CYDomainPalette(.topicEditor) }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Text("editor.chapter.ordinal \(ordinal)", tableName: OpsR3Text.table)
-                    .font(.footnote.weight(.semibold).monospacedDigit())
-                    .foregroundStyle(palette.textTertiary)
-                if blocked {
-                    Circle().fill(palette.danger).frame(width: 6, height: 6)
-                        .accessibilityLabel(OpsR3Text.text("editor.chapter.blocked"))
-                }
-            }
-            ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
-                .font(.headline)
-                .foregroundStyle(palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-            meta
-                .font(.footnote)
-                .foregroundStyle(chapter.nodes.isEmpty && (chapter.blocks ?? []).isEmpty ? palette.textTertiary : palette.textSecondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, CYSpacing.xs)
-        .accessibilityElement(children: .combine)
-    }
-
-    @ViewBuilder private var meta: some View {
-        let blocks = chapter.blocks?.count ?? 0
-        if chapter.nodes.isEmpty && blocks == 0 {
-            OpsR3Text.text("editor.chapter.empty")
-        } else if blocks > 0 {
-            Text("editor.chapter.metaStory \(chapter.nodes.count) \(blocks)", tableName: OpsR3Text.table)
-        } else {
-            Text("editor.chapter.meta \(chapter.nodes.count)", tableName: OpsR3Text.table)
-        }
-    }
-}
-
 /// 地图 view of the 创作页 (Figma 237:32444): every node with usable coordinates as a pin; the selected pin grows to
 /// 1.15 and a node card sits at the bottom with 编辑节点. Nodes without coordinates are counted under the map.
 struct ProjectEditNodeMap<Destination: View>: View {
@@ -191,12 +147,14 @@ struct ProjectEditNodeMap<Destination: View>: View {
                     ForEach(pins) { pin in
                         Annotation(pin.name.isEmpty ? "—" : pin.name, coordinate: pin.coordinate, anchor: .bottom) {
                             pinView(pin, selected: selection == pin.id)
+                                .onTapGesture { selection = selection == pin.id ? nil : pin.id }
                         }
                         .tag(pin.id)
                         .annotationTitles(.hidden)
                     }
                 }
                 .mapStyle(.standard(emphasis: .muted, pointsOfInterest: .excludingAll))
+                .onAppear { position = Self.camera(for: pins) }
                 .mapControls { MapCompass() }
                 .frame(height: 420)
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
@@ -229,6 +187,19 @@ struct ProjectEditNodeMap<Destination: View>: View {
             }
         }
         .accessibilityIdentifier("projectEdit.map")
+    }
+
+    /// A region that holds every pin with a margin; a single pin gets a street-level span instead of the closest zoom.
+    static func camera(for pins: [Pin]) -> MapCameraPosition {
+        guard let first = pins.first else { return .automatic }
+        var minLat = first.coordinate.latitude, maxLat = minLat, minLon = first.coordinate.longitude, maxLon = minLon
+        for pin in pins {
+            minLat = min(minLat, pin.coordinate.latitude); maxLat = max(maxLat, pin.coordinate.latitude)
+            minLon = min(minLon, pin.coordinate.longitude); maxLon = max(maxLon, pin.coordinate.longitude)
+        }
+        let center = CLLocationCoordinate2D(latitude: (minLat + maxLat) / 2, longitude: (minLon + maxLon) / 2)
+        let span = MKCoordinateSpan(latitudeDelta: max(0.012, (maxLat - minLat) * 1.6), longitudeDelta: max(0.012, (maxLon - minLon) * 1.6))
+        return .region(MKCoordinateRegion(center: center, span: span))
     }
 
     private func pinView(_ pin: Pin, selected: Bool) -> some View {

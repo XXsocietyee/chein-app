@@ -683,7 +683,8 @@ import SwiftUI
             let messageKey = model.coordinator.messageKey
             if messageKey != lastToastMessageKey {
                 lastToastMessageKey = messageKey
-                if let messageKey {
+                // The save chip already says 已存; an autosave never toasts on top of the editor's own toasts.
+                if let messageKey, messageKey != "projectEdit.localSaved" {
                     toastMessage = appLocalized(String.LocalizationValue(messageKey), locale: locale)
                 }
             }
@@ -940,12 +941,11 @@ import SwiftUI
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Group {
+                // The node count is the chip above; this line only adds what the chip does not say.
                 if let blocks = chapter.blocks, !blocks.isEmpty {
                     Text("editor.chapter.metaStory \(nodeCount) \(blocks.count)", tableName: OpsR3Text.table)
                 } else if nodeCount == 0 {
                     OpsR3Text.text("editor.chapter.empty")
-                } else {
-                    Text("editor.chapter.meta \(nodeCount)", tableName: OpsR3Text.table)
                 }
             }
             .font(CYTypography.meta)

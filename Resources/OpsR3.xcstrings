@@ -81,22 +81,6 @@
         }
       }
     },
-    "editor.chapter.meta %lld": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld 个节点"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%lld stops"
-          }
-        }
-      }
-    },
     "editor.chapter.metaStory %lld %lld": {
       "localizations": {
         "zh-Hans": {
