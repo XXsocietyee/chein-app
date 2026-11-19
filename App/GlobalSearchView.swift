@@ -665,6 +665,11 @@ private struct GlobalSearchFieldMorph: ViewModifier, Animatable {
         let boxY = moving ? (s.minY - r.minY) * (1 - t) : 0
         let midY = moving ? (s.midY - r.midY) * (1 - t) : 0
         content
+            .offset(x: boxX, y: midY)
+            // Measured AFTER the travel offset: a modifier applied after `.offset` sees the field's layout frame, not
+            // the moved one. Measured before it, the reading would include the offset that is derived from it, and
+            // `rest` would flip between two frames on every update (integ-r3: an endless update loop, search stuck
+            // invisible at progress 0 while its `.isModal` layer hid 首页 from VoiceOver).
             .background {
                 GeometryReader { proxy in
                     Color.clear
@@ -672,7 +677,6 @@ private struct GlobalSearchFieldMorph: ViewModifier, Animatable {
                         .onChange(of: proxy.frame(in: .global)) { _, frame in place(frame) }
                 }
             }
-            .offset(x: boxX, y: midY)
             .background(alignment: .topLeading) {
                 Capsule(style: .continuous).fill(CYColor.bgElevated)
                     .frame(width: moving ? max(r.width + (s.width - r.width) * (1 - t), 1) : nil,
@@ -693,6 +697,9 @@ private struct GlobalSearchFieldMorph: ViewModifier, Animatable {
     }
     private func place(_ frame: CGRect) {
         guard frame.width > 1, rest != frame else { return }
+        // The first reading can come from a layout pass before the top inset is placed (seen on iOS 27: x −83,
+        // y −22, 52 pt wide). Only a frame inside the window may start the move.
+        if rest == nil, frame.minX < 0 || frame.minY < 0 { return }
         let first = rest == nil
         rest = frame
         if first { onPlaced(frame) }
