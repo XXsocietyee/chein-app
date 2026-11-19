@@ -186,6 +186,8 @@ struct PassMarketView: View {
 
     @State private var tab: PassMarketTab = .shop
     @State private var didSetTab = false
+    /// Continuity r1 (10): the balance card is the zoom source of the points ledger it opens.
+    @Namespace private var pointsHero
 
     var body: some View {
         ScrollView {
@@ -235,7 +237,13 @@ struct PassMarketView: View {
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("passMarket.points")
         if let pointsDestination {
-            NavigationLink { pointsDestination() } label: { label }.buttonStyle(.cyPressable)
+            // The card (and its balance number) zooms into the ledger's balance header; the ledger fades its history in
+            // after the midpoint (`walletLedgerZoomArrival`). iOS 17 / Reduce Motion: the plain push, unchanged.
+            NavigationLink {
+                pointsDestination()
+                    .environment(\.walletLedgerZoomArrival, true)
+                    .cyHeroDestinationWithFallback("passMarket.points", in: pointsHero)
+            } label: { label.cyHeroSource("passMarket.points", in: pointsHero, cornerRadius: CYRadius.lg) }.buttonStyle(.cyPressable)
         } else {
             label
         }

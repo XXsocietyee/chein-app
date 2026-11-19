@@ -436,8 +436,26 @@ enum WalletPayoutCapability {
         revision += 1; await pager.load(reader: reader, kind: kind); revision += 1
     }
 }
+/// Continuity r1 (10): true when the ledger was pushed with a zoom out of a balance card, so the balance header arrives
+/// with the zoom and the history fades in after its midpoint. Default false: every other entry is unchanged.
+private struct WalletLedgerZoomArrivalKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var walletLedgerZoomArrival: Bool {
+        get { self[WalletLedgerZoomArrivalKey.self] }
+        set { self[WalletLedgerZoomArrivalKey.self] = newValue }
+    }
+}
+
 @MainActor struct WalletLedgerView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.walletLedgerZoomArrival) private var zoomArrival
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var historyArrived = false
+    /// The zoom only runs on iOS 18 without Reduce Motion; anywhere else the history is there from the first frame.
+    private var historyWaitsForZoom: Bool {
+        guard zoomArrival, !reduceMotion else { return false }
+        if #available(iOS 18.0, *) { return true } else { return false }
+    }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -457,6 +475,8 @@ enum WalletPayoutCapability {
     var body: some View {
         List {
             balanceHero
+            // Everything below the balance header exists only at the end of the zoom: it fades in from about 50% of it.
+            Group {
             Picker("wallet.direction", selection: $direction) {
                 // Source points-history chips read 全部 / 获得 / 使用; money ledgers keep 收入 / 支出.
                 Text("wallet.all").tag("all")
@@ -512,7 +532,14 @@ enum WalletPayoutCapability {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
                     .accessibilityIdentifier("wallet.ledger.loadMore")
             }
-        }.appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger")
+            }
+            .opacity(historyArrived || !historyWaitsForZoom ? 1 : 0)
+        }
+            .onAppear {
+                guard historyWaitsForZoom, !historyArrived else { return }
+                withAnimation(.easeOut(duration: CYMotion.Duration.quick).delay(0.25)) { historyArrived = true }
+            }
+            .appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger")
             .cyHideTabBar()
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
             .onDisappear { if incomeDetail == nil { model.cancel() } }
