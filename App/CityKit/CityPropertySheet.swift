@@ -424,10 +424,9 @@ struct CityPropertyDrawer: View {
                         .position(x: origin.x - frame.minX, y: origin.y - frame.minY)
                         .matchedGeometryEffect(id: CityDeedPhotoSlot.sourceID, in: flight, isSource: true)
                 }
-                CityDeedPhoto(url: place.photoURL, place: place, cover: .compact)
+                CityDeedPhoto(url: place.photoURL, corner: flown ? 0 : 17, place: place, cover: .compact)
                     .matchedGeometryEffect(id: flown ? CityDeedPhotoSlot.slotID : CityDeedPhotoSlot.sourceID, in: flight,
                                            properties: .frame, isSource: false)
-                    .clipShape(RoundedRectangle(cornerRadius: flown ? 0 : 17, style: .continuous))
             }
         }
         .ignoresSafeArea()

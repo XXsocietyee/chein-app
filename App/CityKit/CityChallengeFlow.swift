@@ -395,10 +395,12 @@ struct CityClaimedMoment: View {
                         .matchedGeometryEffect(id: CityDeedPhotoSlot.sourceID, in: flight, isSource: true)
                 }
                 if let photo {
-                    Image(uiImage: photo).resizable().scaledToFill()
+                    // Fill inside the matched frame and clip there, so the photo never spills past its slot mid-flight.
+                    Color.clear
+                        .overlay { Image(uiImage: photo).resizable().scaledToFill() }
+                        .clipShape(RoundedRectangle(cornerRadius: flown ? 0 : 12, style: .continuous))
                         .matchedGeometryEffect(id: flown ? CityDeedPhotoSlot.slotID : CityDeedPhotoSlot.sourceID, in: flight,
                                                properties: .frame, isSource: false)
-                        .clipShape(RoundedRectangle(cornerRadius: flown ? 0 : 12, style: .continuous))
                 }
             }
         }

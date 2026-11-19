@@ -243,8 +243,11 @@ struct CityRoamRootView: View {
         guard store.place(id: id) != nil else { return }
         route = .property(id)
         if let place = store.place(id: id) {
+            // Keep the pin in view above the property drawer: centre the camera a quarter-span south of it.
+            let span = 900.0 / 111_320
+            let centre = CLLocationCoordinate2D(latitude: place.clCoordinate.latitude - span * 0.27, longitude: place.clCoordinate.longitude)
             withAnimation(reduceMotion ? CityTokens.reducedFade : CityTokens.sheetSpring) {
-                position = .region(MKCoordinateRegion(center: place.clCoordinate, latitudinalMeters: 900, longitudinalMeters: 900))
+                position = .region(MKCoordinateRegion(center: centre, latitudinalMeters: 900, longitudinalMeters: 900))
             }
         }
     }
