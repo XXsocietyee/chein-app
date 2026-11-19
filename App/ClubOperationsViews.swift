@@ -1480,7 +1480,6 @@ struct ClubCreateStepBarView: View {
         Button { bar.advance() } label: { Text(verbatim: bar.primaryTitle).frame(maxWidth: .infinity) }
             .buttonStyle(CYPillButtonStyle())
             .disabled(bar.checking)
-            .layoutPriority(1)
     }
 
     var body: some View {

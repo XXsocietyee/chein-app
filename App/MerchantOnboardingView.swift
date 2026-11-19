@@ -336,7 +336,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     .disabled(model.isBusy || model.coordinator.submission.isLocked)
                     .accessibilityIdentifier("merchant.onboarding.previous")
             }
-            primary().layoutPriority(1)
+            primary()
         }
     }
     private var basicSection: some View {

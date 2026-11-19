@@ -1325,7 +1325,7 @@ struct MerchantRefundDecisionBar: View {
             (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))) {
                 Button(action: reject) { OpsR3Text.text("r3merchant.refund.reject").frame(maxWidth: .infinity) }
                     .buttonStyle(CYPillButtonStyle(style: .secondary))
-                    .accessibilityIdentifier("r3merchant.refund.reject")
+                    .accessibilityIdentifier("merchant.refund.reject")
                 Button(action: agree) {
                     Group {
                         if let amount { Text("r3merchant.refund.agreeAmount \(amount)", tableName: OpsR3Text.table) }
@@ -1335,8 +1335,7 @@ struct MerchantRefundDecisionBar: View {
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(CYPillButtonStyle())
-                .accessibilityIdentifier("r3merchant.refund.agree")
-                .layoutPriority(1)
+                .accessibilityIdentifier("merchant.refund.agree")
             }
         }
     }
