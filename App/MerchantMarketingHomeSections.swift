@@ -22,7 +22,8 @@ import SwiftUI
             }
         }
         hero
-        // Source tiles: up to four round tools under the hero.
+        // Source tiles: up to four round tools under the hero. SR2-15 (`182:8065`): four distinct glyphs, as the
+        // Figma's Icon/chart · Icon/store · Icon/route · Icon/cal.
         Section {
             HStack(alignment: .top, spacing: CYSpacing.sm) {
                 if access.canReadMarketing {
@@ -30,10 +31,10 @@ import SwiftUI
                         .accessibilityIdentifier("merchantOps.marketing.tool.insight")
                 }
                 if access.canManageCoop {
-                    QuestifyRoundAction(title: tool("merchantOps.marketing.tool.decor"), systemImage: "paintbrush") { onRoute(.decoration) }
+                    QuestifyRoundAction(title: tool("merchantOps.marketing.tool.decor"), systemImage: "storefront") { onRoute(.decoration) }
                         .accessibilityIdentifier("merchantOps.marketing.tool.decor")
                 }
-                QuestifyRoundAction(title: tool("merchantOps.marketing.tool.topic"), systemImage: "square.and.pencil") { onRoute(.content) }
+                QuestifyRoundAction(title: tool("merchantOps.marketing.tool.topic"), systemImage: "point.topleft.down.to.point.bottomright.curvepath") { onRoute(.content) }
                     .accessibilityIdentifier("merchantOps.marketing.tool.topic")
                 QuestifyRoundAction(title: tool("merchantOps.marketing.tool.activity"), systemImage: "calendar.badge.plus") { onRoute(.topicCooperation) }
                     .accessibilityIdentifier("merchantOps.marketing.tool.activity")
