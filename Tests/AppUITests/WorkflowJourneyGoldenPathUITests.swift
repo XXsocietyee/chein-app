@@ -194,7 +194,7 @@ final class WorkflowJourneyGoldenPathUITests: XCTestCase {
             submissionError.label
         )
         XCTAssertFalse(any("externalGame.submissions.empty", library).exists)
-        XCTAssertTrue(library.buttons["externalGame.submitReview"].exists)
+        XCTAssertTrue(library.buttons["externalGame.more"].exists) // 提交审核 is in the "⋯" menu (Figma 247:17370)
     }
 
     func testMerchantCustomerTimelineOpensWithoutAWrite() {
