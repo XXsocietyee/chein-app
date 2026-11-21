@@ -49,6 +49,9 @@ import SwiftUI
             if view.showsReview, let member = view.revieweeID, let topic = invite.topicId, member != reader.session?.accountID {
                 CooperationInviteReviewRow(reader: reader, memberID: member, topicID: topic, partnerName: invite.partner?.name)
             }
+        }
+        // MR-36 (`186:6119`): 取消合作 sits alone in the last group of the actions, not among the normal rows.
+        Section {
             if view.cancelLocked {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("cooperation.detail.cancelAccepted").foregroundStyle(.secondary)
