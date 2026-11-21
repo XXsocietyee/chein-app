@@ -61,7 +61,7 @@ Status words: **done** (in code; a screenshot is still owed locally), **partial*
 |---|---|
 | `python3 -B tools/check_scaffold.py` | PASS (structural, bilingual keys, routes) |
 | `python3 -B tools/check_design_lint.py` | PASS (0 violations) |
-| `python3 -B tools/contract_ratchet.py --check` | First run: 186 failing against a baseline of 184, 2 new. (1) `test_cooperation_structure…no_custom_motion`, caused by this branch's star animation, now fixed (the class passes). (2) `test_workshop_paid_professional…generic_draft_cas…`: it asserts on `Core/WorkshopPaidProfessionalPreparation.swift`, which this branch does not touch (no Core diff against the base), so it is a base or baseline mismatch, not a regression from this branch. Re-run result below. |
+| `python3 -B tools/contract_ratchet.py --check` | First run: 186 failing against a baseline of 184, 2 new. (1) `test_cooperation_structure…no_custom_motion`, caused by this branch's star animation, now fixed (the class passes). (2) `test_workshop_paid_professional…generic_draft_cas…`: it asserts on `Core/WorkshopPaidProfessionalPreparation.swift`, which this branch does not touch (no Core diff against the base), so it is a base or baseline mismatch, not a regression from this branch. Re-run on `f26dde802`: 185 failing against 184; the only new failure is (2), which this branch didn't cause. |
 | Swift build, unit and UI tests | **not run** (no Swift in the cloud). New tests in `Tests/AppUnitTests/CodeR3OpsTests.swift`: `testClubWorkbenchSummaryKeepsUnknownAsDash`, `testClubR4CopyIsBilingual`, `testClubR4DateReadsTheSourceDayAsHandbookDate`, `testEditorMapPreviewAndPageCopy`, `testCoopStarMapsOntoTheReviewScore`. |
 
 ## Local verification checklist
