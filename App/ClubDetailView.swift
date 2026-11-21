@@ -22,6 +22,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var managementRevision: UInt64 = 0
     @State private var detailGeneration: UInt64 = 0
     @State private var reportingClub = false
+    /// r4 workbench (`170:1744`): 待审批 / 去审批 push 入会申请 from the 管理 tab's head.
+    @State private var showsApprovals = false
     @State private var heroScrolledAway = false
     @State private var loadedClubName: String?
     @Environment(\.clubBadgeHostFactory) private var badgeHost
@@ -67,6 +69,13 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
                 ClubDetailTabBar(tabs: tabs.tabs, selection: tab) { selectedTab = tabs.select($0, from: tab) }
+                // r4 · 主理人工作台 (`170:1744`, MC-28): 现在要做 and the three numbers head the 管理 tab; the project and
+                // management rows below keep their order (项目 · 合作与期次 · 管理).
+                if tab == .manage, club.canGovern {
+                    ClubWorkbenchSection(summary: ClubWorkbenchSummary(club: club),
+                                         onApprovals: management == nil ? nil : { showsApprovals = true },
+                                         onEvents: { selectedTab = tabs.select(.events, from: tab) })
+                }
                 if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
                     Section {
                         NavigationLink { SessionClubChatView(clubID: id, session: session) } label: {
@@ -283,6 +292,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
             .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.club")
+            .navigationDestination(isPresented: $showsApprovals) {
+                if let management {
+                    ClubManagementView(clubID: id, identity: reader.clubIdentity, access: management.access, coordinator: management.coordinator,
+                                       viewerRevision: management.viewerRevision, onMembershipChanged: { managementNeedsRefresh = true })
+                }
+            }
+            .toolbar {
+                // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
+                ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubName: club.name) }
+            }
             .navigationDestination(isPresented: $reportingClub) {
                 if let governance = management?.governance {
                     // 举报俱乐部: the governance case form, target type CLUB for this club.
@@ -467,6 +486,12 @@ private struct ClubDetailHeader: View {
                     .accessibilityIdentifier("club.detail.factsGrid")
                 }
                 statusTags
+                // MC-22 Member / Manager header: 邀请朋友加入 is the header's one full-width action (the visitor's 加入
+                // stays in the action panel right under the header).
+                if club.isOwner || club.isJoined {
+                    ClubHeaderInviteButton(clubName: club.name)
+                        .padding(.top, CYSpacing.xs)
+                }
             }
             .padding(.horizontal, CYSpacing.lg)
         }
