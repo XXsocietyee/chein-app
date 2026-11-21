@@ -23,10 +23,10 @@ Status words: **done (code)** = built to the frame, not yet seen on a device; **
 | `210:10082` share badge (`ShareBadgeView`) | **done (code)** | Badge art **144 pt** on the story poster; the medal share and the celebration badge share open on the **navy field** (`ocean`) instead of mustard/ink; the swatch row offers `CYShareCardTint.pickable` (**no mustard**, `gold` is never offered); the 带上路线 switch uses the **neutral tint** (ink at 32 %, white knob). | `App/DesignSystem/CYShareCard.swift`, `CYShareComposer.swift`, `CYCelebrationShare.swift`, `App/RoamMedalShareView.swift`, `App/DesignFixtures/E3ShareFixtures.swift` (fixture swatch list) |
 | `210:10045` new badge (`NewBadgeView` = `CYBadgeUnlockCover`) | **done (code)** | Full-screen moment kept (a big one). The two particle bursts are removed (xrefs-1 §3 row 13 rejects sparkle particles; the badge is the one object). **Tap skips** to the end; buttons land by **1.5 s** (SR2-49 ceiling) and are hit-testable from then. Haptics unchanged (engine: success on unlock). Reduce Motion unchanged (cross-fade). | `App/DesignSystem/CYCelebrationViews.swift` |
 | `396:4404` 提示 sheet | **done (code)** | `CYSheetKind.hint` → `.medium, .large` (was fit / medium), the hand-off detents; same kit sheet (`sheetGlass`, rows `bgRaised`), system dimming below the largest detent. `DesignR1FoundationTests` updated. | `App/DesignSystem/CYPlayerKit.swift`, `Tests/AppUnitTests/DesignR1FoundationTests.swift` |
-| `396:4449` 队伍聊天 sheet | **partial** | Reached from the HUD's 队伍 circle. The sheet itself is the in-game channel (IM) presentation, which the brief reserves for the continuity branch; not edited. `CYSheetKind.teamChat` is already medium / large. |
-| `396:4369` 选择票种 sheet | **left** | The ticket picker lives in the registration sheet (`RegistrationSheetView`), owned by the sheets / 活动报名 continuity work; not touched. `CYSheetKind.ticketType` is already `fit`. |
+| `396:4449` 队伍聊天 sheet | **partial** | Reached from the HUD's 队伍 circle (done). The sheet itself is presented by `InGameChannelToolbarButton` → the IM host (`inGameChannelHost`), which the brief reserves for the continuity branch (IM views); not edited. `CYSheetKind.teamChat` is already medium / large. Left for the IM owner: present it with `.teamChat` detents and raise to `.large` when the keyboard shows (full-player sheet table). | `App/PlayHUD.swift` (entry only) |
+| `396:4369` 选择票种 sheet | **done (on base, verified, no change)** | Checked against the hand-off (`detent fit`, sheet spring, system scrim; full-player sheet table: `fit`, commits on tap). `RegistrationSheetView.ticketSheetContent` is already `CYOptionSheet` + `.cyFitSheetDetent()`: one row per ticket (name, gated price, `ticket` glyph), the selected row marked by a **neutral ink checkmark** (no purple), tap selects and closes (no 完成 / 选这张), then the quote is re-read. `CYSheetKind.ticketType` is `fit`. Nothing to change; the registration sheet belongs to the 活动报名 / sheets continuity work, so it was not edited. | — (read: `App/RegistrationSheetView.swift`, `App/DesignSystem/CYSheetModal.swift`) |
 | `166:3280` R1 error (首页) | **done (code)** | When every rail and the first feed page failed and nothing is on screen, the home shows **one inline error** under the header (`首页加载失败`, one 重试 that re-reads the three rails and the feed) and **no section titles with nothing under them, no 主题 / 活动 tabs, no banner error**. Partial failures keep the per-rail retry rows. The header is untouched (global-search owner). | `App/HomeFeedView.swift` |
-| `169:4754` R1 error (我的) | **partial** | Already an inline state on the member card (`member.card.failed` + 重试, offline banner when offline); not changed. No frame geometry beyond the id to build further against. |
+| `169:4754` R1 error (我的) | **done (code)** | The member card's failed state now reads like the 首页 R1 error (166:3280): one line with the warning glyph (`exclamationmark.triangle`, `bodyCompact`, secondary text) and one **secondary** 重新加载 button (`.cySecondary`, 44 pt min), full width, instead of a 12 pt caption and a bare tinted text button. Signed out is not an error: no glyph, no retry. Offline keeps `CYOfflineBanner`. 积分 / 等级 still show "—" (`CYUnknownValue`), never 0. Identifiers `member.card.failed` / `member.card.retry` unchanged (UI test `MemberHomeFlowTests`). PL-30 (N67 header, 积分 first) is the 我的 root, not this error frame; not touched. | `App/MemberHomeHeader.swift` |
 
 Not in scope and not touched: TopicDetail bottom-bar presenters, the City kit, global search, CYTabs, IM views.
 
@@ -36,6 +36,8 @@ Not in scope and not touched: TopicDetail bottom-bar presenters, the City kit, g
 - `CYCelebrationShareSheet.style` is computed: medal → `ocean`, walk → `ink`; route `Toggle` tint neutral.
 - `CYBadgeUnlockCover`: bursts removed, `static let settled = 1.5`, tap-to-skip.
 - `CYSheetKind.hint` sizes.
+
+Other files (not DesignSystem): `App/MemberHomeHeader.swift` failed state only (169:4754).
 
 ## Strings
 
@@ -103,11 +105,14 @@ Screens to shoot (dark player theme):
    no channel button while the HUD is up; after the run ends the HUD goes and the channel returns to the toolbar.
 10. Home error: a reader that fails all three rails and the first page (TEST offline after launch, or a failing
     fixture reader) — one 首页加载失败 card with 重试 under the header, no titles, no tabs; 重试 reloads all.
+11. 我的 error: `MemberHomeFlowTests` failing-reader path (or TEST offline → online flip so it is a server failure, not
+    the offline banner) — the card shows the warning line and one secondary 重新加载 (same look as the home error); signed
+    out shows only the sign-in line; 积分 and Lv show "—". AX5: the line wraps, the button stays 44 pt.
+12. 选择票种 (no change, regression only): 活动报名 → 票种 row: fit sheet, neutral check on the selected ticket, tap closes.
 
 Edge data: a stop with no coordinates (no distance); a run with branches (`currentNodeID == nil`: no HUD, the old
 primary); a run with no backpack models (no 背包 circle); a team run (背包 → team backpack, 队伍 → team channel);
 `accuracyMeters > 100` (no distance).
 
-Left for the owner / other branches: 选择票种 and 队伍聊天 sheet surfaces (sheets + IM continuity), the 我的 error
-frame, chapter covers on the HUD (no per-chapter cover read in the play view), the 排行榜 podium third seat and its
+Left for the owner / other branches: the 队伍聊天 sheet surface (IM continuity: `.teamChat` detents, keyboard → large), chapter covers on the HUD (no per-chapter cover read in the play view), the 排行榜 podium third seat and its
 count-up-on-every-visit hero (not in this area's frame list).

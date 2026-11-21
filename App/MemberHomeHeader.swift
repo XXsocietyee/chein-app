@@ -151,18 +151,28 @@ import SwiftUI
             CYOfflineBanner { Task { await load() } }
                 .accessibilityIdentifier("member.card.offline")
         case .failed(let signedOut):
-            VStack(alignment: .leading, spacing: 6) {
+            // R1 error state (169:4754): the same inline error as 首页 (166:3280): one line with the warning glyph and one
+            // secondary 重新加载. Signed out is not an error (no glyph, no retry); 积分 and 等级 stay "—", never 0.
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Group {
                     if signedOut { Text("member.card.signedOut", tableName: "MemberProfile") }
-                    else if reader.isConfigured { Text("member.card.failed", tableName: "MemberProfile") }
-                    else { Text("member.card.unavailable", tableName: "MemberProfile") }
-                }.font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    else {
+                        Label {
+                            if reader.isConfigured { Text("member.card.failed", tableName: "MemberProfile") }
+                            else { Text("member.card.unavailable", tableName: "MemberProfile") }
+                        } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
+                    }
+                }.font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if reader.isConfigured, !signedOut {
-                    Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile").frame(minHeight: CYSpacing.minTouchTarget) }
+                    Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
+                        .buttonStyle(.cySecondary)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("member.card.retry")
                 }
-            }.accessibilityIdentifier("member.card.failed")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityIdentifier("member.card.failed")
         case .ready:
             EmptyView()
         }
