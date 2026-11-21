@@ -32,13 +32,13 @@ import QuestifyCore
         var rows: [[String: Any]] = [
             ["propertyId": "t-wukang", "title": "武康大楼", "tier": 4, "lvl": 2, "districtId": "d1", "status": "ACTIVE",
              "holder": ["maskedName": "我", "isMe": true], "protectedUntil": now + 5 * 3_600_000, "decayState": "OK",
-             "lat": Self.base.lat + 0.0018, "lng": Self.base.lng - 0.0012, "invested": 1_040],
+             "lat": Self.base.lat + 0.0018, "lng": Self.base.lng - 0.0012, "invested": 1_040, "deedSerial": 12],
             ["propertyId": "t-anfu12", "title": "安福路 12 号", "tier": 2, "lvl": 1, "districtId": "d2", "status": "ACTIVE",
              "holder": ["maskedName": "我", "isMe": true], "decayState": "WEATHERED",
              "lat": Self.base.lat + 0.0032, "lng": Self.base.lng + 0.0016, "invested": 180],
             ["propertyId": "t-flower", "title": "转角花店", "tier": 2, "lvl": 1, "districtId": "d1", "status": "ACTIVE",
              "holder": ["maskedName": "小李", "isMe": false], "decayState": "WEATHERED",
-             "lat": Self.base.lat - 0.0016, "lng": Self.base.lng + 0.0022, "invested": 180],
+             "lat": Self.base.lat - 0.0016, "lng": Self.base.lng + 0.0022, "invested": 180, "deedSerial": 3],
             ["propertyId": "t-books", "title": "梧桐书店", "tier": 3, "lvl": 2, "districtId": "d3", "status": "ACTIVE",
              "holder": ["maskedName": "阿兰", "isMe": false], "protectedUntil": now + 3 * 3_600_000, "decayState": "OK",
              "lat": Self.base.lat - 0.0028, "lng": Self.base.lng - 0.0020, "invested": 624],
@@ -65,8 +65,15 @@ import QuestifyCore
         return try decode(["revenueMode": "POINTS", "territories": empty ? [] : items])
     }
 
-    func territoryMap(bbox: String?, zoom: Int?) async throws -> CityTerritoryMapResponse { try decode(["items": held]) }
-    func territoryMap(bounds: CityMapBounds) async throws -> CityTerritoryMapResponse { try decode(["items": held]) }
+    /// fix/city-gaps-r3 `districts[]`: two real names and one placeholder seed (name == id → 街区 N), no serial on t-books.
+    var districts: [[String: Any]] {
+        [["districtId": "d1", "name": "武康路", "colorToken": "district.c1", "colorIndex": 1, "ownableCount": 6, "safetyBlocked": false],
+         ["districtId": "d2", "name": "安福路", "colorToken": "district.c2", "colorIndex": 2, "ownableCount": 4, "safetyBlocked": false],
+         ["districtId": "d3", "name": "d3", "colorToken": "district.c3", "colorIndex": 3, "ownableCount": 3, "safetyBlocked": false]]
+    }
+
+    func territoryMap(bbox: String?, zoom: Int?) async throws -> CityTerritoryMapResponse { try decode(["items": held, "districts": districts]) }
+    func territoryMap(bounds: CityMapBounds) async throws -> CityTerritoryMapResponse { try decode(["items": held, "districts": districts]) }
     func pointsSummary() async throws -> CityPointsSummary {
         CityPointsSummary(balance: balance, pending: 186, holdings: empty ? 0 : (claimed ? 3 : 2), holdingLimit: 9)
     }
@@ -145,6 +152,8 @@ enum CityKitFixtures {
     let name: String
     @StateObject private var store: CityBoardStore
     @State private var loaded = false
+    /// `city-live-on-map`: the synthetic live controller (no network, a fixed fix).
+    @State private var liveFixture = RoamLiveFixture()
 
     init(name: String) {
         self.name = name
@@ -200,10 +209,44 @@ enum CityKitFixtures {
             CityPlaceLostMoment(place: store.place(id: "t-wukang")!, compensation: 40, onDone: {})
         case "city-defended":
             CityDefendedMoment(place: store.place(id: "t-wukang")!, hours: 12, onDone: {})
+        case "city-notice":
+            // fix/city-gaps-r3 §4: the cityTerritory system cards in the message-list notice style.
+            ScrollView {
+                VStack(spacing: CYSpacing.sm) {
+                    ForEach(Self.notices, id: \.messageID) { notice in
+                        CityTerritoryNoticeCard(notice: notice, stamp: "09:30", onOpen: { _ in })
+                    }
+                }
+                .padding(CYSpacing.pageHorizontal)
+            }
+            .background(CYColor.bgPage)
+        case "city-notice-open":
+            // The DEFENDED card's deep link: the property drawer opens over the map for t-wukang.
+            CityRoamRootView(store: store, dependencies: deps)
+                .onAppear { CityDeepLinks.shared.openProperty("t-wukang") }
+        case "city-live-on-map":
+            // Needs `--city-live-on-map`, location allowed and the live consent stored; otherwise the hold pushes.
+            CityRoamRootView(store: store, dependencies: liveDeps(deps))
         default:
             CityRoamRootView(store: store, dependencies: deps)
         }
     }
+
+    private func liveDeps(_ base: CityRoamRootDependencies) -> CityRoamRootDependencies {
+        var deps = base
+        let controller = liveFixture.controller
+        deps.liveDestination = { AnyView(RoamLiveSessionView(controller: controller, offlineExample: true)) }
+        deps.liveController = { controller }
+        return deps
+    }
+
+    static let notices: [CityTerritoryNotice] = [
+        CityTerritoryNotice(messageID: 1, kind: .defended, territoryId: "t-wukang", title: "武康大楼", points: 27),
+        CityTerritoryNotice(messageID: 2, kind: .defended, territoryId: "t-wukang", title: "武康大楼", points: 0),
+        CityTerritoryNotice(messageID: 3, kind: .placeLost, territoryId: "t-flower", title: "转角花店", points: 36),
+        CityTerritoryNotice(messageID: 4, kind: .rent, territoryId: "t-wukang", title: "武康大楼", points: 12),
+        CityTerritoryNotice(messageID: 5, kind: .rentSettled, territoryId: nil, title: "租金", points: 42, sentence: "今天的租金 42 积分已入账。")
+    ]
 
     private func id(_ title: String) -> String { store.places.first { $0.title == title }?.id ?? "" }
     private var fogID: String { store.places.first { $0.ownership == .fogged }?.id ?? "" }
