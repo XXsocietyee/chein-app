@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import Questify
 
 /// Code r3 · ops worker (ui/h-code-r3-ops): the topic editor's 主题详情 count, the one delete rule, the club
@@ -98,5 +99,22 @@ final class CodeR3OpsTests: XCTestCase {
         XCTAssertTrue(text.contains("11月15日"), text)
         XCTAssertTrue(text.contains("周六"), text)
         XCTAssertEqual(ClubR4Date.day("下周六", locale: zh), "下周六")
+    }
+
+    // r4 · creator map (`237:32444`): the Form preview and the full-bleed page keep distinct identifiers and copy.
+    func testEditorMapPreviewAndPageCopy() {
+        XCTAssertEqual(ProjectEditNodeMap<EmptyView>.identifier(fullBleed: false), "projectEdit.map")
+        XCTAssertEqual(ProjectEditNodeMap<EmptyView>.identifier(fullBleed: true), "projectEdit.mapPage")
+        let zh = Locale(identifier: "zh-Hans"), en = Locale(identifier: "en")
+        XCTAssertEqual(OpsR3Text.string("editor.map.open", locale: zh), "打开地图")
+        XCTAssertEqual(OpsR3Text.string("editor.map.title", locale: en), "Map")
+    }
+
+    // r4 · 协作详情 rating (MR-36): a tapped star maps onto the existing review score and its word.
+    func testCoopStarMapsOntoTheReviewScore() {
+        let zh = Locale(identifier: "zh-Hans")
+        XCTAssertEqual(CoopReviewScore(rawValue: String(4))?.scoreValue, 4)
+        XCTAssertEqual(CoopReviewScore(rawValue: String(5))?.option(locale: zh).title, "5 星 · 很满意")
+        XCTAssertNil(CoopReviewScore(rawValue: String(0)))
     }
 }
