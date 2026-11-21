@@ -63,7 +63,12 @@ is left is named), **left**.
   On the way, `test_activity_publishing_wizard` (hash lock on `PublishingModesViews.swift`) and
   `test_project_cloud_draft_intent` (one `cloudDraftProjectsHost` per host) caught two first attempts; both fixed.
 
-RATCHET_RESULT
+Ratchet result (2026-11-21 run): `185 failing, baseline 184, new 1, fixed 0`. The one "new" id is
+`test_workshop_paid_professional.PaidProfessionalContracts.test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`
+(looks for `value.businessType == "TOPIC"` in `Core/WorkshopPaidProfessionalPreparation.swift`). It fails identically on
+the base `origin/ui/h-code-r3-ops` (checked in a clean worktree), and this branch has no diff under `Core/` or `Tests/`:
+it was already failing on the base and is missing from `docs/release/contract-failing-baseline.txt`, so it is not caused
+by this branch. The baseline was not rewritten here (outside this area); the integrator should add it or fix the marker.
 
 ## Compile risk (checked by reading, not by a compiler)
 
