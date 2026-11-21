@@ -65,7 +65,10 @@ struct CYCelebrationShareSheet: View {
     @State private var failed = false
 
     private var shown: CYShareCardContent { includeRoute ? (routeContent ?? content) : content }
-    private let style = CYShareCardStyle(template: .poster, ratio: .story, tint: .ink)
+    /// A badge sits on the navy field of the new-badge moment (210:10045 → 210:10082); a walk keeps ink.
+    private var style: CYShareCardStyle {
+        CYShareCardStyle(template: .poster, ratio: .story, tint: content.kind == .medal ? .ocean : .ink)
+    }
 
     var body: some View {
         let copy = CYCelebrationCopy(locale: locale)
@@ -80,6 +83,8 @@ struct CYCelebrationShareSheet: View {
                 .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
             if routeContent != nil {
                 Toggle(CYKitCopy(locale: locale)("Include the route", "卡片带上路线"), isOn: $includeRoute)
+                    // SR2-08 / verify-r1 Q3: the kit switch in its neutral tint (ink track at 32 %, white knob).
+                    .tint(palette.textPrimary.opacity(0.32))
                     .font(CYTypography.bodyCompact)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("cy.celebration.share.route")

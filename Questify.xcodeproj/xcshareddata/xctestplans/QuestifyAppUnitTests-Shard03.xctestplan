@@ -484,6 +484,7 @@
         "PushNotificationAndLiveActivitySectionViewTests",
         "QuestLiveActivityMappingTests",
         "R3PlayerMotionTests",
+        "R4PlayFlowTests",
         "ReceivedStampsAndPassportToolsSectionViewTests",
         "ReferenceChatTaskAppTests",
         "ReformWorkPackagesW02ToW20SectionViewTests",

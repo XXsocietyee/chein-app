@@ -501,6 +501,7 @@
         "QuestifyProgressiveBlurArtworkTests",
         "QuickPublishingJourneyOwnerTests",
         "R3PlayerMotionTests",
+        "R4PlayFlowTests",
         "ReferenceChatTaskAppTests",
         "ReferenceMapCardAppTests",
         "ReformWorkPackagesW02ToW20SectionViewTests",

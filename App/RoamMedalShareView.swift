@@ -16,7 +16,8 @@ import UIKit
     @StateObject private var photoSave: RoamSharePhotoSaveModel
     @StateObject private var presentation: RoamSharePresentationLifetime
     @State private var machine = CYShareComposerMachine()
-    @State private var style = CYShareCardStyle(template: .poster, ratio: .story, tint: .gold)
+    // 210:10082: the badge on the navy field of 210:10045; no mustard swatch (SR2-08).
+    @State private var style = CYShareCardStyle(template: .poster, ratio: .story, tint: .ocean)
     @State private var caption = ""
     @State private var renderedSelection: RoamMedalShareSelection?
     @State private var visible = false
@@ -231,10 +232,10 @@ enum RoamMedalShareCardContent {
     static func render(content: CYShareCardContent, style: CYShareCardStyle) -> UIImage? {
         CYShareCardRenderer.render(content, style: style)
     }
-    /// Default poster (story, gold). `dynamicTypeSize` and `posterHeight` are accepted for source compatibility;
+    /// Default poster (story, navy field). `dynamicTypeSize` and `posterHeight` are accepted for source compatibility;
     /// the artboard is fixed, so neither changes the export.
     static func render(_ card: RoamMedalShareSelection.Card, dynamicTypeSize: DynamicTypeSize = .large, posterHeight: CGFloat = 640) -> UIImage? {
         render(content: RoamMedalShareCardContent.make(card, caption: "", locale: .current),
-               style: CYShareCardStyle(template: .poster, ratio: .story, tint: .gold))
+               style: CYShareCardStyle(template: .poster, ratio: .story, tint: .ocean))
     }
 }

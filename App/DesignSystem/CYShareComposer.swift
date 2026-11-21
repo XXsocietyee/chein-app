@@ -141,7 +141,7 @@ struct CYShareComposer<Controls: View, Actions: View>: View {
     private var swatches: some View {
         ScrollView(.horizontal) {
             HStack(spacing: CYSpacing.md) {
-                ForEach(CYShareCardTint.allCases) { tint in
+                ForEach(CYShareCardTint.pickable) { tint in
                     let selected = tint == style.tint
                     Button {
                         withAnimation(animation) { style.tint = tint }

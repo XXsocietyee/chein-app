@@ -499,14 +499,13 @@ struct CYBadgeUnlockCover: View {
                 }
                 .padding(.horizontal, CYSpacing.xxl)
                 .padding(.bottom, CYSpacing.lg)
-                if e >= 0.45 {
-                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.32), count: 40, duration: 1.8, style: .dust, reach: 190).ignoresSafeArea()
-                }
-                if e >= 1.0 {
-                    CYBurst(origin: UnitPoint(x: 0.5, y: 0.32), count: 86, duration: 2.8, style: .dust, reach: 300).ignoresSafeArea()
-                }
+                // New badge (210:10045, r4): no particle bursts. xrefs-1 §3 row 13 rejects sparkle particles; the
+                // badge art is the one object of this moment.
             }
             .opacity(reduceMotion ? (shown ? 1 : 0) : 1)
+            // Every moment is skippable by a tap (skill-r2 SR2-49): a tap before the buttons land jumps to the end.
+            .contentShape(Rectangle())
+            .onTapGesture { if e < Self.settled { start = .distantPast } }
         }
         .gesture(
             DragGesture(minimumDistance: 24).onEnded { value in
@@ -564,8 +563,11 @@ struct CYBadgeUnlockCover: View {
         .opacity(min(1, u))
     }
 
+    /// The choreography is settled (buttons in) by 1.5 s, the SR2-49 ceiling for a moment.
+    static let settled: Double = 1.5
+
     @ViewBuilder private func buttons(_ copy: CYCelebrationCopy, at e: Double) -> some View {
-        let u = reduceMotion ? 1 : Self.span(e, 1.5, 1.7)
+        let u = reduceMotion ? 1 : Self.span(e, 1.3, settled)
         VStack(spacing: CYSpacing.sm) {
             if shareEnabled {
                 CYPillButton(verbatim: copy.shareBadge) { onShare?(); sharing = true }
@@ -576,7 +578,7 @@ struct CYBadgeUnlockCover: View {
         }
         .offset(y: 16 * (1 - u))
         .opacity(u)
-        .allowsHitTesting(e >= 1.5)
+        .allowsHitTesting(e >= Self.settled)
     }
 
     private func play() async {
