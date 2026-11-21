@@ -218,8 +218,14 @@ import SwiftUI
     private func hostedFieldRow(_ host: GlobalSearchInPageHost) -> some View {
         HStack(spacing: CYSpacing.sm) {
             HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                TextField(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
+                // Same ink as the 首页 field it starts on (magnifier and prompt in textSecondary), so the hand-over frame
+                // matches the field at rest exactly.
+                Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                TextField(text: Binding(get: { filter.keyword }, set: setKeyword),
+                          prompt: Text(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder")).foregroundStyle(CYColor.textSecondary)) {
+                    Text(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"))
+                }
+                    .textInputAutocapitalization(.never)
                     .submitLabel(.search).onSubmit { Task { await search() } }
                     .focused($keywordFocused)
                     .accessibilityIdentifier("searchMap.keyword")
@@ -618,6 +624,10 @@ extension View {
         if let host {
             modifier(GlobalSearchProgressFade(progress: host.progress, start: 0.5, end: 1))
                 .safeAreaInset(edge: .top, spacing: 0) { row(host) }
+                // The hosted root has no bar. Without these the layer's stack drew its large 搜索 title over 首页 on
+                // the hand-over frame (integ-r3, iOS 27 sim); the title still names pushed results' back button.
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar(.hidden, for: .navigationBar)
         } else {
             self
         }
