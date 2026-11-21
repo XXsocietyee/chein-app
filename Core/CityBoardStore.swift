@@ -266,6 +266,16 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
         return try? await service.property(territoryId)
     }
 
+    /// Deep link (the cityTerritory inbox card): the place for a territory id. When the current window does not hold it,
+    /// the property read gives its coordinate and the board reloads around it. Nil when the server no longer knows it.
+    public func locate(territoryId: String) async -> CityPlace? {
+        if let known = place(id: territoryId) { return known }
+        guard let service, let card = try? await service.property(territoryId),
+              let lat = card.lat, let lng = card.lng, let coordinate = RoamCoordinate(latitude: lat, longitude: lng) else { return nil }
+        await load(center: coordinate)
+        return place(id: territoryId) ?? place(id: card.propertyId)
+    }
+
     public func loadRevenue() async {
         guard let service else { return }
         do {

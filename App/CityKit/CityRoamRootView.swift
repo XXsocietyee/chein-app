@@ -66,6 +66,8 @@ struct CityRoamRootView: View {
     @State private var showsPassport = false
     /// The tapped pin's centre in the window, for the pin → deed flight.
     @State private var pinOrigin: (id: String, point: CGPoint)?
+    /// The cityTerritory inbox card's deep link (open this place's property sheet on the map).
+    @ObservedObject private var links = CityDeepLinks.shared
 
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
@@ -132,7 +134,9 @@ struct CityRoamRootView: View {
             .task {
                 await locateAndLoad()
                 if let initialRoute, store.place(id: initialRoute.placeID) != nil { route = initialRoute }
+                await openDeepLink()
             }
+            .onChange(of: links.pendingProperty) { _, id in if id != nil, store.phase != .idle { Task { await openDeepLink() } } }
             .onChange(of: store.places) { _, _ in Task { await CityNotifications.sync(store: store, locale: locale) } }
             .onChange(of: store.lost) { _, lost in
                 guard let first = lost.first else { return }
@@ -250,6 +254,17 @@ struct CityRoamRootView: View {
                 position = .region(MKCoordinateRegion(center: centre, latitudinalMeters: 900, longitudinalMeters: 900))
             }
         }
+    }
+
+    /// The inbox card's link: back to the map (pop pushes, close the open sheet or moment), then the place's property
+    /// sheet over the SAME map. A place outside the loaded window is located through its property read first.
+    private func openDeepLink() async {
+        guard let id = links.consume() else { return }
+        path = NavigationPath()
+        moment = nil
+        route = nil
+        guard let place = await store.locate(territoryId: id) else { return }
+        open(place.id)
     }
 
     private func locateAndLoad(recenter: Bool = false) async {
