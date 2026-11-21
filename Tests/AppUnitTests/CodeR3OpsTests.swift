@@ -91,4 +91,12 @@ final class CodeR3OpsTests: XCTestCase {
         XCTAssertEqual(String(format: ClubR4Text.string("r4club.now.approvals", locale: zh), 3), "3 位入会申请待审批")
         XCTAssertNotEqual(OpsR3Text.string("r3club.consequence.endTopic.title", locale: zh), "r3club.consequence.endTopic.title")
     }
+
+    func testClubR4DateReadsTheSourceDayAsHandbookDate() {
+        let zh = Locale(identifier: "zh-Hans")
+        let text = ClubR4Date.day("2026-11-15", locale: zh)
+        XCTAssertTrue(text.contains("11月15日"), text)
+        XCTAssertTrue(text.contains("周六"), text)
+        XCTAssertEqual(ClubR4Date.day("下周六", locale: zh), "下周六")
+    }
 }

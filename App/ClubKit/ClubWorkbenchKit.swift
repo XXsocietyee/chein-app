@@ -225,3 +225,18 @@ struct ClubHeaderShareButton: View {
         .accessibilityIdentifier("club.detail.share")
     }
 }
+
+/// Handbook dates (`full-member-club.md` §2): 「11月22日 周六」, never `2026-11-22`. The source sends a calendar day
+/// (`yyyy-MM-dd`), so it is read and shown in UTC to keep the same day; anything else is returned unchanged.
+enum ClubR4Date {
+    static func day(_ raw: String, locale: Locale) -> String {
+        let parts = raw.split(separator: "-").compactMap { Int($0) }
+        guard raw.count == 10, parts.count == 3, let utc = TimeZone(identifier: "UTC") else { return raw }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = utc
+        guard let date = calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2])) else { return raw }
+        var style = Date.FormatStyle.dateTime.month(.abbreviated).day().weekday(.abbreviated).locale(locale)
+        style.timeZone = utc
+        return date.formatted(style)
+    }
+}
