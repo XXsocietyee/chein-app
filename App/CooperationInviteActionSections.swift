@@ -79,7 +79,6 @@ import SwiftUI
     @Environment(\.locale) private var locale
     @State private var rating: Int?
     @State private var loadedSession: CoopFlowSession?
-    @State private var showsRatingSheet = false
     @State private var selectedScoreID: String?
     @State private var showsCommentPrompt = false
     @State private var commentText = ""
@@ -95,39 +94,32 @@ import SwiftUI
                 LabeledContent { Text(verbatim: String(repeating: "★", count: rating)) } label: { Text("cooperation.detail.reviewed") }
                     .accessibilityIdentifier("cooperation.detail.reviewed")
             } else {
-                Button {
-                    selectedScoreID = nil
-                    commentText = ""
-                    showsRatingSheet = true
-                } label: {
-                    HStack {
-                        Text("cooperation.detail.review")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(CYTypography.caption.weight(.semibold))
-                            .foregroundStyle(CYColor.textSecondary)
-                            .accessibilityHidden(true)
+                // MR-36 (`186:6119`): five tappable stars in place (no pick sheet); the word under them follows the tap,
+                // then 下一步 asks for the optional comment and opens the same request review as before.
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("cooperation.detail.review")
+                    CoopStarRatingControl(selection: $selectedScoreID, locale: locale)
+                    if selectedScoreID != nil {
+                        Button {
+                            commentText = ""
+                            showsCommentPrompt = true
+                        } label: {
+                            HStack {
+                                Text(verbatim: MerchantAreaCopy.text("下一步", "Next", locale))
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(CYTypography.caption.weight(.semibold))
+                                    .foregroundStyle(CYColor.textSecondary)
+                                    .accessibilityHidden(true)
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("cooperation.detail.review")
                     }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                .accessibilityIdentifier("cooperation.detail.review")
             }
-        }
-        .sheet(isPresented: $showsRatingSheet) {
-            MerchantChoiceOptionSheet(
-                title: MerchantAreaCopy.text("这次合作打几分", "Rate this cooperation", locale),
-                options: CoopReviewScore.allCases.map { $0.option(locale: locale) },
-                domain: .merchant,
-                selectedID: $selectedScoreID,
-                onSelect: { option in
-                    selectedScoreID = option.id
-                    showsRatingSheet = false
-                    showsCommentPrompt = true
-                },
-                onClose: { showsRatingSheet = false }
-            )
         }
         .cyPromptModalOverlay(
             isPresented: showsCommentPrompt,
@@ -196,3 +188,72 @@ struct CooperationInviteDepositText: View {
 }
 /// No default amount, exchange rate, estimated deposit or contract total.
 func cooperationInviteNumber(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0...8))) }
+
+/// MR-36 star rating: five stars, tap to set; the word under them changes with the tap. Stars fill left to right on a
+/// short non-uniform stagger and the tapped one pops to 1.15 (`CYMotion.release`); one `.selection` tick per tap.
+/// Reduce Motion: the fill cross-fades and nothing scales.
+struct CoopStarRatingControl: View {
+    @Binding var selection: String?
+    let locale: Locale
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var popped: Int?
+    /// 0 / 40 / 70 / 90 / 110 ms (non-uniform, CYMotion.Stagger rule).
+    private static let stagger: [Double] = [0, 0.04, 0.07, 0.09, 0.11]
+
+    private var value: Int { selection.flatMap(Int.init) ?? 0 }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            HStack(spacing: CYSpacing.xs) {
+                ForEach(1...5, id: \.self) { star in
+                    Button { select(star) } label: {
+                        Image(systemName: star <= value ? "star.fill" : "star")
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(star <= value ? CYColor.warningText : CYColor.textTertiary)
+                            .scaleEffect(!reduceMotion && popped == star ? CYMotion.Scale.pinSelected : 1)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                            .animation(CYMotion.resolve(CYMotion.release, reduceMotion: reduceMotion)
+                                .delay(reduceMotion ? 0 : CYMotion.Stagger.delay(star - 1, in: Self.stagger)), value: value)
+                            .animation(CYMotion.resolve(CYMotion.release, reduceMotion: reduceMotion), value: popped)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHidden(true)
+                }
+            }
+            .sensoryFeedback(.selection, trigger: value)
+            Group {
+                if let score = selection.flatMap(CoopReviewScore.init(rawValue:)) {
+                    Text(verbatim: score.option(locale: locale).title)
+                } else {
+                    Text(verbatim: MerchantAreaCopy.text("点星星打分", "Tap a star to rate", locale))
+                }
+            }
+            .font(CYTypography.meta)
+            .foregroundStyle(CYColor.textSecondary)
+            .contentTransition(.opacity)
+            .cyAnimation(CYMotion.standard, value: selection)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: MerchantAreaCopy.text("评分", "Rating", locale)))
+        .accessibilityValue(Text(verbatim: value == 0 ? "—" : "\(value) / 5"))
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: select(min(5, max(1, value + 1)))
+            case .decrement: select(max(1, value - 1))
+            @unknown default: break
+            }
+        }
+        .accessibilityIdentifier("cooperation.detail.rating")
+    }
+
+    private func select(_ star: Int) {
+        selection = String(star)
+        guard !reduceMotion else { return }
+        popped = star
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 120_000_000)
+            if popped == star { popped = nil }
+        }
+    }
+}
