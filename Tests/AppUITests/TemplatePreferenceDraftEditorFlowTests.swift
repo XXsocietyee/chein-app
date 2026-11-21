@@ -62,7 +62,7 @@ import XCTest
         let option = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
         XCTAssertTrue(option.waitForExistence(timeout: 5), app.debugDescription, file: file, line: line)
         XCTAssertTrue(option.isHittable, app.debugDescription, file: file, line: line)
-        option.tap()
+        option.tap(); confirmGameplay(in: app)
     }
     private func assertBytes(_ actual: String?, equal expected: String,
                              file: StaticString = #filePath, line: UInt = #line) {
@@ -221,5 +221,11 @@ import XCTest
         reveal(dimension, in: app, requiresHittable: false)
         XCTAssertEqual(dimension.label, "space")
         assertSource(original, in: app, towardTop: true)
+    }
+
+    /// Screens r4 (Figma 237:71933): the gameplay is picked in a sheet whose one confirm is 完成 in the header.
+    private func confirmGameplay(in app: XCUIApplication) {
+        let done = app.buttons["editorKit.sheet.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription); done.tap()
     }
 }

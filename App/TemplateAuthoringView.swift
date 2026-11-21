@@ -248,6 +248,12 @@ extension EnvironmentValues {
     @State private var errorJumps = 0
     // CF-44 (polish-d-r1): the cover is chosen with the shared 16:9 picker/crop/upload, not typed as a URL.
     @StateObject private var cover = ActivityCoverAuthoringOwner()
+    // Screens r4 (verify-r1 2.10): 题目图片 uses the same picker / crop / upload owner as the cover, with its own target.
+    @StateObject private var questionImage = ActivityCoverAuthoringOwner()
+    // Screens r4: C2's one delete rule (undo toast + UndoManager) for the gameplay editor's lists.
+    @StateObject private var undoCenter = ProjectEditUndoCenter()
+    @Environment(\.undoManager) private var undoManager
+    @State private var gameplayPicker = false
     @Environment(\.scenePhase) private var scenePhase
     private let makeCoverService: (() -> ActivityCoverService?)?
     private let coverSession: () -> PublishingSession?
@@ -291,6 +297,15 @@ extension EnvironmentValues {
         }, apply: { reference in
             guard model.canEdit else { return false }
             model.draft.imgUrl = reference; return true
+        }, service: { (makeCoverService ?? environmentCover?.makeService)?() })
+        let _ = questionImage.bind(read: {
+            guard model.coordinator.session != nil, step == .edit else { return nil }
+            return .init(session: coverSession() ?? environmentCover?.session(), target: .templateQuestionImage(model.coordinator.identity.draftID),
+                         draft: try? JSONEncoder().encode(model.draft), reference: model.draft.questionImg ?? "", editable: model.canEdit)
+        }, apply: { reference in
+            guard model.canEdit else { return false }
+            model.mediaReferencesWillChange()
+            model.draft.questionImg = reference.isEmpty ? nil : reference; return true
         }, service: { (makeCoverService ?? environmentCover?.makeService)?() })
         ScrollViewReader { proxy in
         Form {
@@ -339,6 +354,10 @@ extension EnvironmentValues {
             }
         }
         .formStyle(.grouped).cyGroupedSurface()
+        .environment(\.configUndoCenter, undoCenter)
+        .environment(\.templateMediaReviewController, media)
+        .environment(\.templateQuestionImageOwner, (makeCoverService != nil || environmentCover != nil) ? questionImage : nil)
+        .editorToast($undoCenter.toast)
         .navigationTitle(model.coordinator.session != nil && step == .edit ? appLocalized("templateAuthor.editNavTitle", locale: locale) : "")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .topicEditor)
@@ -399,11 +418,22 @@ extension EnvironmentValues {
         .onChange(of: model.draft) { _, _ in model.changed() }
         .onChange(of: sessionRevision) { _, _ in preview = false; step = .intro; model.load(); media.reload() }
         .onDisappear { if !cover.hasNativeSelection { cover.disappear() } }
+        .onDisappear { if !questionImage.hasNativeSelection { questionImage.disappear() } }
         .onDisappear { media.retire(); model.leave() }
-        .onAppear { cover.appear(active: scenePhase == .active) }
-        .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active) }
+        .onAppear { cover.appear(active: scenePhase == .active); questionImage.appear(active: scenePhase == .active) }
+        .onAppear { undoCenter.attach(undoManager) }
+        .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active); questionImage.setActive(phase == .active) }
         .background { ActivityCoverLifetime(owner: cover, departure: {}).frame(width: 0, height: 0) }
         .background { RetainedImagePresenterHost(host: cover.pickerHost).frame(width: 0, height: 0) }
+        .background { ActivityCoverLifetime(owner: questionImage, departure: {}).frame(width: 0, height: 0) }
+        .background { RetainedImagePresenterHost(host: questionImage.pickerHost).frame(width: 0, height: 0) }
+        // Screens r4 · Figma 237:71933 (CF-51, SR2-19): 选择玩法 as a sheet with the one confirm in the header.
+        .editorSheet(isPresented: $gameplayPicker, family: .gameplayPicker) {
+            TemplateGameplayPickerSheet(current: model.draft.validationMethod, locked: !model.draft.advanced.enabledGames.isEmpty) { picked in
+                model.legacyHintMethodBinding().wrappedValue = picked
+            }
+            .themeDomain(.topicEditor)
+        }
         .preference(key: TemplateAuthoringSavedResultPreferenceKey.self, value: TemplateAuthoringSavedResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .preference(key: TemplateAuthoringPublishResultPreferenceKey.self, value: TemplateAuthoringPublishResultObservation.capture(model: model, eligible: onSavedDraft == nil))
         .modifier(TemplateMediaReviewPresentation(controller: media))
@@ -517,9 +547,15 @@ extension EnvironmentValues {
             Section("templateAuthor.finish") {
                 Toggle("templateAuthor.moduleEnabled", isOn: $model.draft.finishEnabled)
                 if model.draft.finishEnabled {
-                    Picker("templateAuthor.finish", selection: model.legacyHintMethodBinding()) {
-                        ForEach(TemplateAuthoringMethod.allCases) { Text(LocalizedStringKey($0.labelKey)).tag($0) }
-                    }.disabled(!model.draft.advanced.enabledGames.isEmpty).accessibilityIdentifier("templateAuthor.method")
+                    // Screens r4 · Figma 237:71933: the gameplay is picked in the 选择玩法 sheet (grid of previews).
+                    Button { gameplayPicker = true } label: {
+                        EditorRow(label: ConfigR4Text.text("config.gameplay.row"),
+                                  value: Text(LocalizedStringKey(model.draft.validationMethod.labelKey)),
+                                  systemImage: TemplateGameplayPickerSheet.symbol(model.draft.validationMethod),
+                                  isLocked: !model.draft.advanced.enabledGames.isEmpty)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!model.draft.advanced.enabledGames.isEmpty).accessibilityIdentifier("templateAuthor.method")
                     TemplateAuthoringCompletionFields(model: model)
                     NavigationLink("templateAuthor.advanced") { TemplateAuthoringAdvancedView(model: model) }.accessibilityIdentifier("creatorComposition.open")
                 }

@@ -121,7 +121,7 @@ import XCTest
         let picker = app.descendants(matching: .any)["templateAuthor.method"].firstMatch
         reveal(picker, in: app, towardTop: true); XCTAssertTrue(picker.isEnabled); picker.tap()
         let choice = app.buttons["Multiple choice"]
-        XCTAssertTrue(choice.waitForExistence(timeout: 5)); XCTAssertTrue(choice.isHittable); choice.tap()
+        XCTAssertTrue(choice.waitForExistence(timeout: 5)); XCTAssertTrue(choice.isHittable); choice.tap(); confirmGameplay(in: app)
         tap("templateMedia.open.optionImage.A", in: app)
         assertDestination("Choice image A", reference: "  fixture:option-A-e\u{301}\r\n", in: app)
         tap("templateMedia.synthetic.ready", in: app)
@@ -150,5 +150,11 @@ import XCTest
         XCTAssertFalse(app.buttons["templateMedia.cancel"].exists)
         XCTAssertFalse(app.images["templateMedia.image"].exists)
         XCTAssertEqual(try inspect(app).requestCount, 0)
+    }
+
+    /// Screens r4 (Figma 237:71933): the gameplay is picked in a sheet whose one confirm is 完成 in the header.
+    private func confirmGameplay(in app: XCUIApplication) {
+        let done = app.buttons["editorKit.sheet.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription); done.tap()
     }
 }

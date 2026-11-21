@@ -71,73 +71,41 @@ import SwiftUI
 }
 
 @MainActor struct TemplateChoiceOptionRowsFields: View {
+    typealias Letter = TemplateChoiceOptionMedia.Letter
     @ObservedObject var model: TemplateAuthoringModel
     @StateObject private var editor: TemplateChoiceOptionRowsEditor
-    @State private var expandedLetter: TemplateChoiceOptionMedia.Letter?
+    @State private var expandedLetter: Letter?
+    @FocusState private var focused: Letter?
+    @Environment(\.configUndoCenter) private var undoCenter
+    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
     init(model: TemplateAuthoringModel) {
         self.model = model; _editor = StateObject(wrappedValue: .init(model: model))
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            LabeledContent("templateChoiceRows.count", value: "\(editor.letters.count) / 4")
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             if !model.draft.choiceOptionMedia.isSupported {
-                Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
+                Text("templateAuthor.optionMedia.unsupported").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }
             if !editor.rows.supportsReordering {
-                Text("templateChoiceRows.reorderUnavailable").font(.caption).foregroundStyle(.secondary)
+                Text("templateChoiceRows.reorderUnavailable").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("templateChoiceRows.reorderUnavailable")
             }
             if let issue = model.optionMediaIssue {
-                Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateAuthor.optionMedia.limit")
+                EditorFieldFootnote(error: Text(LocalizedStringKey(issue))).accessibilityIdentifier("templateAuthor.optionMedia.limit")
             }
-            // Design hand-off r1 CF-46: one row per option with the correct-answer control in front; only the
-            // option being edited expands to show its attachments. Delete lives in the row "⋯".
-            ForEach(Array(editor.letters.enumerated()), id: \.element) { index, letter in
-                let answer = editor.answer()
-                let isCorrect = answer.wrappedValue == letter.rawValue
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(alignment: .bottom, spacing: CYSpacing.xs) {
-                        Button { answer.wrappedValue = isCorrect ? "" : letter.rawValue } label: {
-                            Image(systemName: isCorrect ? "checkmark.circle.fill" : "circle")
-                                .font(.title3)
-                                .foregroundStyle(isCorrect ? CYColor.textPrimary : CYColor.borderStrong)
-                                .editorHitTarget()
-                        }
-                        .accessibilityLabel(Text("editorKit.answer.correctLetter \(letter.rawValue)", tableName: "EditorKit"))
-                        .accessibilityValue(EditorKitText.text(isCorrect ? "editorKit.answer.selected" : "editorKit.answer.notSelected"))
-                        .accessibilityAddTraits(isCorrect ? [.isSelected] : [])
-                        .accessibilityIdentifier("templateChoiceRows.correctAnswer." + letter.rawValue)
-                        .sensoryFeedback(.selection, trigger: isCorrect)
-                        TemplateAuthoringField("question" + letter.rawValue, text: editor.text(letter),
-                            accessibilityID: "templateChoiceRows.text." + letter.rawValue)
-                        Button { expandedLetter = expandedLetter == letter ? nil : letter } label: {
-                            Image(systemName: expandedLetter == letter ? "chevron.up" : "paperclip")
-                                .foregroundStyle(CYColor.textSecondary)
-                                .editorHitTarget()
-                        }
-                        .accessibilityLabel(Text("templateAuthor.optionMedia.title"))
-                        .accessibilityIdentifier("templateChoiceRows.attachments." + letter.rawValue)
-                        EditorRowActionsMenu(
-                            index: index, count: editor.letters.count, actions: [.delete],
-                            deleteTitle: Text("templateChoiceRows.removeLetter \(letter.rawValue)"),
-                            deleteID: "templateChoiceRows.remove." + letter.rawValue
-                        ) { _ in editor.action(.remove(letter))() }
-                        .disabled(!editor.rows.canRemove)
-                    }
-                    if expandedLetter == letter {
-                        ForEach(TemplateChoiceOptionMedia.Kind.allCases) { kind in
-                            Text(LocalizedStringKey(kind.labelKey)).font(.subheadline.weight(.semibold))
-                            TextField(LocalizedStringKey(kind.labelKey), text: editor.attachment(letter, kind))
-                                .textInputAutocapitalization(.never).autocorrectionDisabled()
-                                .disabled(!model.draft.choiceOptionMedia.isSupported)
-                                .accessibilityIdentifier("templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
-                        }
-                        TemplateBasicFieldClearButton(model: model, field: .optionMedia(letter), iconOnly: false)
-                    }
-                }
+            // Screens r4 · Figma 238:16749 (CF-46 / CF-60): one 52 pt row per option, the correct-answer circle in
+            // front, the text, "⋯" and the handle. Only the option being edited expands (its attachments). Long-press
+            // drags a row; it settles with the release velocity. Delete happens at once and can be undone.
+            EditorDragReorderStack(items: editor.letters, isEnabled: editor.canEdit && editor.rows.supportsReordering,
+                                   onMove: { from, to in editor.action(.move(from: from, to: to))() }) { letter, index in
+                optionRow(letter, index: index)
             }
-            Button("templateChoiceRows.add", systemImage: "plus", action: editor.action(.add))
-                .disabled(!editor.rows.canAdd).accessibilityIdentifier("templateChoiceRows.add")
+            EditorAddRow(title: Text("templateChoiceRows.add"), count: editor.letters.count, limit: 4,
+                         accessibilityID: "templateChoiceRows.add") { add() }
+                .disabled(!editor.rows.canAdd)
             if let raw = model.draft.correctAnswer, !raw.isEmpty, !editor.letters.contains(where: { $0.rawValue == raw }) {
             Picker("templateAuthor.field.correctAnswer", selection: editor.answer()) {
                 Text("templateAuthor.choose").tag("")
@@ -148,9 +116,127 @@ import SwiftUI
             }.accessibilityIdentifier("templateChoiceRows.correctAnswer")
             }
         }.buttonStyle(.borderless).disabled(!editor.canEdit)
+            .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: editor.letters)
             .onAppear { editor.reload() }
             .onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }
             .onChange(of: model.legacyHintGeneration) { _, _ in editor.reload() }
+    }
+
+    @ViewBuilder private func optionRow(_ letter: Letter, index: Int) -> some View {
+        let answer = editor.answer()
+        let isCorrect = answer.wrappedValue == letter.rawValue
+        let count = editor.letters.count
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(spacing: CYSpacing.xs) {
+                Button { answer.wrappedValue = isCorrect ? "" : letter.rawValue } label: {
+                    Image(systemName: isCorrect ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(isCorrect ? palette.textPrimary : palette.borderStrong)
+                        .contentTransition(.symbolEffect(.replace))
+                        .editorHitTarget()
+                }
+                .accessibilityLabel(Text("editorKit.answer.correctLetter \(letter.rawValue)", tableName: "EditorKit"))
+                .accessibilityValue(EditorKitText.text(isCorrect ? "editorKit.answer.selected" : "editorKit.answer.notSelected"))
+                .accessibilityAddTraits(isCorrect ? [.isSelected] : [])
+                .accessibilityIdentifier("templateChoiceRows.correctAnswer." + letter.rawValue)
+                .sensoryFeedback(.selection, trigger: isCorrect)
+                TextField(text: editor.text(letter), prompt: Text("config.option.placeholder \(letter.rawValue)", tableName: ConfigR4Text.table)) {
+                    Text("config.option.name \(letter.rawValue)", tableName: ConfigR4Text.table)
+                }
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textPrimary)
+                .focused($focused, equals: letter)
+                .submitLabel(index == count - 1 && editor.rows.canAdd ? .return : .next)
+                .onSubmit { submitted(letter, index: index) }
+                .accessibilityIdentifier("templateChoiceRows.text." + letter.rawValue)
+                Button { expandedLetter = expandedLetter == letter ? nil : letter } label: {
+                    Image(systemName: expandedLetter == letter ? "chevron.up" : "paperclip")
+                        .foregroundStyle(palette.textSecondary)
+                        .editorHitTarget()
+                }
+                .accessibilityLabel(Text("templateAuthor.optionMedia.title"))
+                .accessibilityIdentifier("templateChoiceRows.attachments." + letter.rawValue)
+                EditorRowActionsMenu(
+                    index: index, count: count, actions: editor.rows.canRemove ? [.moveUp, .moveDown, .delete] : [.moveUp, .moveDown],
+                    deleteTitle: Text("templateChoiceRows.removeLetter \(letter.rawValue)"),
+                    menuID: "templateChoiceRows.menu." + letter.rawValue,
+                    deleteID: "templateChoiceRows.remove." + letter.rawValue
+                ) { act($0, letter: letter, index: index) }
+                .disabled(!editor.rows.supportsReordering)
+                EditorDragHandle()
+            }
+            .frame(minHeight: EditorKitMetric.optionRowHeight)
+            .background(RoundedRectangle(cornerRadius: EditorKitMetric.fieldRadius, style: .continuous).fill(palette.inputFilledBg))
+            if expandedLetter == letter {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    ForEach(TemplateChoiceOptionMedia.Kind.allCases) { kind in
+                        EditorField(label: Text(LocalizedStringKey(kind.labelKey)), text: editor.attachment(letter, kind),
+                                    accessibilityID: "templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                            .disabled(!model.draft.choiceOptionMedia.isSupported)
+                    }
+                    TemplateBasicFieldClearButton(model: model, field: .optionMedia(letter), iconOnly: false)
+                }
+                .padding(.leading, CYSpacing.md)
+                .transition(.opacity)
+            }
+        }
+        .animation(EditorKitMotion.reveal(reduceMotion: reduceMotion), value: expandedLetter)
+        .editorReorderAccessibility(index: index, count: count) { act($0, letter: letter, index: index) }
+    }
+
+    private func act(_ action: EditorRowAction, letter: Letter, index: Int) {
+        switch action {
+        case .moveUp, .moveDown:
+            guard let destination = EditorReorder.destination(for: action, index: index, count: editor.letters.count) else { return }
+            withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) {
+                editor.action(.move(from: index, to: destination))()
+            }
+        case .delete:
+            guard editor.rows.canRemove else { return }
+            remove(letter)
+        case .duplicate:
+            break
+        }
+    }
+
+    /// C2's one delete rule: the option goes at once, 已删除「选项 B」 撤销 stays 5 s (and shake / ⌘Z).
+    /// Undo writes back only the choice fields, so edits made elsewhere in the meantime are kept.
+    private func remove(_ letter: Letter) {
+        let previous = model.draft
+        if expandedLetter == letter { expandedLetter = nil }
+        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { editor.action(.remove(letter))() }
+        guard model.draft != previous, let undoCenter else { return }
+        let name = ConfigR4Text.string("config.option.short", locale: locale) + " " + letter.rawValue
+        let owner = model, rows = editor
+        undoCenter.recordDelete(
+            message: String(format: OpsR3Text.string("editor.deleted.item", locale: locale), name),
+            actionName: ConfigR4Text.string("config.option.undoDelete", locale: locale)
+        ) {
+            guard owner.canEdit else { return false }
+            owner.mediaReferencesWillChange()
+            var restored = owner.draft
+            restored.questionA = previous.questionA; restored.questionB = previous.questionB
+            restored.questionC = previous.questionC; restored.questionD = previous.questionD
+            restored.correctAnswer = previous.correctAnswer; restored.questionOptionMediaJson = previous.questionOptionMediaJson
+            owner.draft = restored; owner.changed(); rows.reload()
+            return true
+        }
+    }
+
+    private func add() {
+        guard editor.rows.canAdd else { return }
+        let next = editor.letters.count
+        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { editor.action(.add)() }
+        if Letter.allCases.indices.contains(next) { focused = Letter.allCases[next] }
+    }
+
+    /// CF-74: Return moves to the next option; on the last one it adds a new option (as in Reminders).
+    private func submitted(_ letter: Letter, index: Int) {
+        let letters = editor.letters
+        if index + 1 < letters.count { focused = letters[index + 1] }
+        else if editor.rows.canAdd { add() }
+        else { focused = nil }
     }
 }

@@ -106,4 +106,17 @@ final class TemplateChoiceOptionRowsTests: XCTestCase {
         XCTAssertNil(payload["questionC"]); XCTAssertNil(payload["questionD"])
         XCTAssertEqual(payload["correctAnswer"], .string("B"))
     }
+    /// Screens r4 (238:16749): a dragged option takes its text, attachments and correct mark with it.
+    func testMoveCarriesTextMediaAndAnswerAndKeepsRowCount() throws {
+        let original = full()
+        let moved = try XCTUnwrap(TemplateChoiceOptionRows(draft: original).applying(.move(from: 3, to: 0), to: original))
+        XCTAssertEqual(moved.questionA, "duplicate"); XCTAssertEqual(moved.questionB, "A text")
+        XCTAssertEqual(moved.questionC, "B text"); XCTAssertEqual(moved.questionD, "duplicate")
+        XCTAssertEqual(moved.correctAnswer, "A")
+        XCTAssertEqual(moved.choiceOptionMedia.text(.a, .audio), "fourth")
+        XCTAssertEqual(moved.choiceOptionMedia.text(.b, .image), "first")
+        XCTAssertEqual(TemplateChoiceOptionRows(draft: moved).letters.count, 4)
+        XCTAssertNil(TemplateChoiceOptionRows(draft: original).applying(.move(from: 1, to: 2), to: original))
+        XCTAssertNil(TemplateChoiceOptionRows(draft: original).applying(.move(from: 7, to: 0), to: original))
+    }
 }

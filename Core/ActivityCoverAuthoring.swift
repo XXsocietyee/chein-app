@@ -20,12 +20,16 @@ public enum ActivityCoverTarget: Equatable {
     /// polish-d-r1 (CF-44): a gameplay-template draft's 16:9 cover. Its own replay key, so an uncertain template
     /// upload never locks an activity cover and the other way round.
     case template(UUID)
+    /// Screens r4 (verify-r1 2.10): a gameplay-template draft's 题目图片, picked and uploaded like the cover. Its own
+    /// replay key, so an uncertain question-image upload never locks the cover and the other way round.
+    case templateQuestionImage(UUID)
     var replayKey: String {
         // Unsaved draft recreation must not bypass an uncertain new-activity upload.
         switch self {
         case .newDraft: return "activity.cover:new"
         case .existing(let id): return "activity.cover:\(id)"
         case .template(let id): return "template.cover:\(id.uuidString)"
+        case .templateQuestionImage(let id): return "template.questionImage:\(id.uuidString)"
         }
     }
 }

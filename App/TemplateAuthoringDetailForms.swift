@@ -9,10 +9,10 @@ import SwiftUI
                 TemplateSensorDraftConfigurationFields(model: model)
             }
             TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) },
-                includesHints: false, includesChoiceOptions: false)
+                includesHints: false, includesChoiceOptions: false, includesMedia: false)
             if [.text, .choice].contains(model.draft.validationMethod) {
-                TemplateBasicFieldClearButton(model: model, field: .questionImage, iconOnly: false)
-                TemplateBasicFieldClearButton(model: model, field: .questionAudio, iconOnly: false)
+                // Screens r4 · verify-r1 2.10: 题目图片 / 题目音频 are picked, not typed; 清空 is in each tile's "⋯".
+                TemplateQuestionMediaFields(model: model)
             }
             TemplateLegacyHintFields(model: model)
             TemplateHintLadderFields(model: model)
@@ -68,10 +68,13 @@ import SwiftUI
     var annotation: (TemplateQAField) -> String? = { _ in nil }
     var includesHints = true
     var includesChoiceOptions = true
+    /// Raw reference rows for 题目图片 / 题目音频. Owner inspection keeps them read-only; the editor uses picker tiles.
+    var includesMedia = true
     var body: some View {
         Group {
             if [.text, .choice].contains(method) {
-                entry(.questionName, multiline: true); entry(.questionImg); entry(.questionAudio)
+                entry(.questionName, multiline: true)
+                if includesMedia { entry(.questionImg); entry(.questionAudio) }
             }
             if method == .text { entry(.questionAnswer) }
             if method == .choice && includesChoiceOptions {

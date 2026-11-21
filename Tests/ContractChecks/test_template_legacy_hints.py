@@ -62,7 +62,7 @@ class TemplateLegacyHintChecks(unittest.TestCase):
         self.assertIn('self.legacyHintLeaseIsCurrent(session, identity, generation) ? self.draft.validationMethod : .manual', app)
         for method in ['func load()', 'func restore()', 'func discard()']:
             self.assertIn('legacyHintGeneration = UUID()', model.split(method)[1].split('\n    }')[0])
-        self.assertIn('selection: model.legacyHintMethodBinding()', model)
+        self.assertIn('model.legacyHintMethodBinding().wrappedValue = picked', model)
         for network in ['.prepare(', '.confirm(', '.submit(', 'URLSession', 'Task {']:
             self.assertNotIn(network, app)
 
