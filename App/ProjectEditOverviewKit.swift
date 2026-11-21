@@ -120,6 +120,9 @@ struct ProjectEditNodeMap<Destination: View>: View {
         static func == (lhs: Pin, rhs: Pin) -> Bool { lhs.id == rhs.id }
     }
     let chapters: [ProjectEditChapter]
+    /// r4 (`237:32444`): `false` in the Form is a still preview (no pan, no pins to tap, so a drag over it scrolls the
+    /// page) that opens the full-bleed page; `true` is that page: edge to edge under the bars, every gesture on.
+    var fullBleed: Bool = false
     @ViewBuilder let destination: (_ chapterID: String, _ nodeID: String) -> Destination
     @State private var selection: String?
     @State private var position: MapCameraPosition = .automatic
@@ -143,11 +146,11 @@ struct ProjectEditNodeMap<Destination: View>: View {
         let pins = pins
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             ZStack(alignment: .bottom) {
-                Map(position: $position, selection: $selection) {
+                Map(position: $position, interactionModes: fullBleed ? .all : [], selection: $selection) {
                     ForEach(pins) { pin in
                         Annotation(pin.name.isEmpty ? "—" : pin.name, coordinate: pin.coordinate, anchor: .bottom) {
                             pinView(pin, selected: selection == pin.id)
-                                .onTapGesture { selection = selection == pin.id ? nil : pin.id }
+                                .onTapGesture { if fullBleed { selection = selection == pin.id ? nil : pin.id } }
                         }
                         .tag(pin.id)
                         .annotationTitles(.hidden)
@@ -155,9 +158,12 @@ struct ProjectEditNodeMap<Destination: View>: View {
                 }
                 .mapStyle(.standard(emphasis: .muted, pointsOfInterest: .excludingAll))
                 .onAppear { position = Self.camera(for: pins) }
-                .mapControls { MapCompass() }
-                .frame(height: 420)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .mapControls { if fullBleed { MapCompass(); MapScaleView() } }
+                .frame(maxWidth: .infinity)
+                .frame(height: fullBleed ? nil : 220)
+                .frame(maxHeight: fullBleed ? .infinity : nil)
+                .clipShape(RoundedRectangle(cornerRadius: fullBleed ? 0 : CYRadius.lg, style: .continuous))
+                .ignoresSafeArea(.container, edges: fullBleed ? [.top, .bottom] : [])
                 .overlay {
                     if pins.isEmpty {
                         VStack(spacing: CYSpacing.xs) {
@@ -172,7 +178,23 @@ struct ProjectEditNodeMap<Destination: View>: View {
                         .accessibilityElement(children: .combine)
                     }
                 }
-                if let pin = pins.first(where: { $0.id == selection }) {
+                if !fullBleed, !pins.isEmpty {
+                    // The preview's one action: the whole map opens the full-bleed page (the label names it).
+                    NavigationLink { ProjectEditNodeMapPage(chapters: chapters, destination: destination) } label: {
+                        Label { OpsR3Text.text("editor.map.open") } icon: { Image(systemName: "arrow.up.left.and.arrow.down.right") }
+                            .font(CYTypography.label)
+                            .foregroundStyle(palette.textPrimary)
+                            .padding(.horizontal, CYSpacing.md)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .background(Capsule().fill(palette.bgElevated))
+                            .padding(CYSpacing.sm)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("projectEdit.map.open")
+                }
+                if fullBleed, let pin = pins.first(where: { $0.id == selection }) {
                     nodeCard(pin)
                         .padding(CYSpacing.sm)
                         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
@@ -184,9 +206,16 @@ struct ProjectEditNodeMap<Destination: View>: View {
                 Text("editor.map.unplaced \(unplaced)", tableName: OpsR3Text.table)
                     .font(.footnote)
                     .foregroundStyle(palette.textSecondary)
+                    .padding(.horizontal, fullBleed ? CYSpacing.lg : 0)
             }
         }
-        .accessibilityIdentifier("projectEdit.map")
+        .accessibilityIdentifier(Self.identifier(fullBleed: fullBleed))
+    }
+
+    /// Not localization keys: the preview's and the page's accessibility identifiers.
+    static func identifier(fullBleed: Bool) -> String {
+        let suffix = fullBleed ? "mapPage" : "map"
+        return "projectEdit." + suffix
     }
 
     /// A region that holds every pin with a margin; a single pin gets a street-level span instead of the closest zoom.
@@ -236,6 +265,20 @@ struct ProjectEditNodeMap<Destination: View>: View {
         .padding(CYSpacing.md)
         .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
         .shadow(color: .black.opacity(0.12), radius: 12, y: 4)
+    }
+}
+
+/// The full-bleed 地图 page (`237:32444`): the map runs under the navigation bar and to the bottom edge; the system back
+/// returns to the Form, the inline title is 地图, and the node card with 编辑节点 floats above the home indicator.
+struct ProjectEditNodeMapPage<Destination: View>: View {
+    let chapters: [ProjectEditChapter]
+    @ViewBuilder let destination: (_ chapterID: String, _ nodeID: String) -> Destination
+
+    var body: some View {
+        ProjectEditNodeMap(chapters: chapters, fullBleed: true, destination: destination)
+            .navigationTitle(OpsR3Text.text("editor.map.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
     }
 }
 
