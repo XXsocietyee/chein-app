@@ -183,16 +183,18 @@ import SwiftUI
 }
 
 /// One AI-written field: when the draft's generation changes, the old text blurs out and the new text blurs in
-/// (`blurReplace`, 250 ms) at its slot's delay from the top (`CYMotion.Stagger.rewrite`). Stations follow at
-/// 120 ms apart, rising 8 pt. Reduce Motion: a cross-fade, no delay.
+/// (`blurReplace`, 250 ms) at its slot's delay from the top (`CYMotion.Stagger.rewrite`). Stations follow on
+/// `stations` (shrinking gaps), rising 8 pt. Reduce Motion: a cross-fade, no delay.
 private struct PublishingAIRewrite: ViewModifier {
     let generation: Int
     let order: Int
     var station: Int?
     @QuestifyReduceMotion private var reduceMotion
+    /// CF-59 stations: 120 ms to the second, then shrinking gaps; the rest land with the fifth (no uniform stagger).
+    static let stations: [Double] = [0, 0.12, 0.2, 0.25, 0.28]
 
     private var delay: Double {
-        if let station { return CYMotion.Stagger.delay(order, in: CYMotion.Stagger.rewrite) + Double(station) * 0.12 }
+        if let station { return CYMotion.Stagger.delay(order, in: CYMotion.Stagger.rewrite) + CYMotion.Stagger.delay(station, in: Self.stations) }
         return CYMotion.Stagger.delay(order, in: CYMotion.Stagger.rewrite)
     }
 

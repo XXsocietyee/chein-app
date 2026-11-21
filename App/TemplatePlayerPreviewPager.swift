@@ -5,7 +5,7 @@ import SwiftUI
 /// swipe or a tap on the content. Each step plays its real moment once when it becomes current, and a tap skips it:
 /// - step change: the pager slides; the progress segment fills on `CYMotion.standard` (220–300 ms); no haptic;
 /// - 到达: the arrival card rises 24 pt and fades in on `CYMotion.moment` (.42 / .8);
-/// - 剧情: beats fade up 12 pt one by one, 120 ms apart;
+/// - 剧情: beats fade up 12 pt one by one (120 ms, then shrinking gaps);
 /// - 任务 (选择题): a tile presses (.97), then resolves: correct → neutral border turns `success` and a check draws
 ///   (`.success`); wrong → the tile shakes 3 × 6 pt in 240 ms (`.error`);
 /// - 成功: 任务完成 (no exclamation mark), the medal lands on the stamp spring `CYMotion.seal` with `.impactHeavy`;
@@ -141,8 +141,9 @@ struct PlayerPreviewShake: GeometryEffect {
 private enum PlayerPreviewMotion {
     /// CF-63: the wrong-answer shake, 3 × 6 pt in 240 ms.
     static let shake = Animation.linear(duration: 0.24)
-    /// CF-63: story beats, 120 ms apart.
-    static let beatGap: Double = 0.12
+    /// CF-63 story beats: the first gap is the spec's 120 ms, later gaps shrink and the tail arrives together
+    /// (emil choreograph: no uniform stagger; product UI total stays ~300 ms).
+    static let beats: [Double] = [0, 0.12, 0.2, 0.26, 0.3]
 }
 
 // MARK: - 到达
@@ -250,11 +251,11 @@ private struct PlayerPreviewStoryPage: View {
         }
     }
 
-    /// Each beat fades up 220 ms, 120 ms after the one above it (hiding is instant, off screen).
+    /// Each beat fades up 220 ms after the one above it on `PlayerPreviewMotion.beats` (hiding is instant, off screen).
     private func beatAnimation(_ index: Int) -> Animation? {
         guard revealed > 0 else { return nil }
         return CYMotion.resolve(.easeOut(duration: CYMotion.Duration.quick), reduceMotion: reduceMotion)
-            .delay(reduceMotion ? 0 : Double(index) * PlayerPreviewMotion.beatGap)
+            .delay(reduceMotion ? 0 : CYMotion.Stagger.delay(index, in: PlayerPreviewMotion.beats))
     }
 }
 
