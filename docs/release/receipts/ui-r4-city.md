@@ -140,7 +140,7 @@ No DesignSystem file was changed. No edits to global search, CYTabs, the IM view
 
 - `python3 -B tools/check_scaffold.py`: PASS (structural checks, 4921 Swift files, the project matches the generator).
 - `python3 -B tools/check_design_lint.py`: PASS (0 violations).
-- `python3 -B tools/contract_ratchet.py --check`: 185 failing vs baseline 184. The one "new" id, `test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`, is the same pre-existing red named in `ui-h-code-r3-player.md` (red on `ui/main`). It is unrelated to City, so this branch adds no new failure.
+- `python3 -B tools/contract_ratchet.py --check`: 185 failing vs baseline 184. The one "new" id, `test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`, is the same pre-existing red named in `ui-h-code-r3-player.md` (red on `ui/main`). It is unrelated to City, so this branch adds no new failure. Re-checked on the resumed run: that test fails on `origin/ui/h-code-r3-ops` itself (`python3 -m unittest …test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging` → FAILED).
 - Not run (no Swift here): Core `swift test`, AppUnit, the build.
 
 ## LOCAL VERIFICATION CHECKLIST
