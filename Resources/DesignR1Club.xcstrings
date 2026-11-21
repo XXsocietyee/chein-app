@@ -374,13 +374,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request withdrawal via support"
+            "value": "Request withdrawal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通过客服申请提现"
+            "value": "申请提现"
           }
         }
       }
