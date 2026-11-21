@@ -194,11 +194,14 @@ struct CityPropertySheet: View {
         guard let card else { return place }
         return CityPlace(id: place.id, title: card.title ?? place.title, coordinate: place.coordinate, territoryId: place.territoryId,
                          poiId: place.poiId, boardId: place.boardId, pointId: place.pointId, districtId: place.districtId,
-                         districtIndex: place.districtIndex, tier: card.tier ?? place.tier, level: card.lvl ?? place.level,
+                         districtIndex: CityDistrictInfo.slot(index: nil, token: card.districtColorToken) ?? place.districtIndex,
+                         tier: card.tier ?? place.tier, level: card.lvl ?? place.level,
                          ownership: place.ownership, holderName: card.holder?.maskedName ?? place.holderName,
                          protectedUntil: card.protectedUntil?.date ?? place.protectedUntil, decay: card.decay ?? place.decay,
                          photoURL: card.photoURL ?? place.photoURL, radiusM: place.radiusM, distanceM: place.distanceM,
-                         invested: card.invested ?? place.invested, districtName: place.districtName, deedSerial: place.deedSerial)
+                         invested: card.invested ?? place.invested,
+                         districtName: CityDistrictBook.usable(card.districtName, districtId: place.districtId) ?? place.districtName,
+                         deedSerial: card.deedSerial ?? place.deedSerial)
     }
     private var distance: Double? { display.distance(from: fix?.coordinate ?? store.center) }
 

@@ -43,8 +43,8 @@ public struct CityPlace: Identifiable, Equatable {
     public let radiusM: Int
     public let distanceM: Double?
     public let invested: Int64?
-    /// HOOK (fix/city-gaps-r3): server district name and deed serial; nil today, so the band falls back to "街区 N"
-    /// and no serial is shown (Q10).
+    /// fix/city-gaps-r3 (live on TEST): the server's district name and deed serial. Nil when the server has no district
+    /// row (or only the placeholder seed) or issued no serial: the band falls back to "街区 N" and no serial is shown.
     public let districtName: String?
     public let deedSerial: Int?
 
@@ -135,6 +135,33 @@ public enum CityDistrictSlots {
     }
 }
 
+/// fix/city-gaps-r3: `districts[]` from the map and nearby reads, looked up by board + district (or district alone).
+public struct CityDistrictBook {
+    private var byBoard: [String: CityDistrictInfo] = [:]
+    private var byDistrict: [String: CityDistrictInfo] = [:]
+
+    public init(_ districts: [CityDistrictInfo]) {
+        for info in districts {
+            guard let id = info.districtId, !id.isEmpty else { continue }
+            if let board = info.boardId { byBoard[board + "|" + id] = byBoard[board + "|" + id] ?? info }
+            byDistrict[id] = byDistrict[id] ?? info
+        }
+    }
+
+    public func info(_ districtId: String?, board: String?) -> CityDistrictInfo? {
+        guard let districtId, !districtId.isEmpty else { return nil }
+        if let board, let hit = byBoard[board + "|" + districtId] { return hit }
+        return byDistrict[districtId]
+    }
+
+    /// A name worth showing: not blank, and not the migration's placeholder seed (the district id itself).
+    public static func usable(_ name: String?, districtId: String?) -> String? {
+        guard let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return nil }
+        if let districtId, trimmed.caseInsensitiveCompare(districtId) == .orderedSame { return nil }
+        return trimmed
+    }
+}
+
 /// Live `/api/roam/territory/nearby` read for the store (the App wires the reviewed service).
 public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> RoamTerritoryNearbyResponse
 
@@ -201,18 +228,24 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
         issueCode = nil
         var spaces: [RoamTerritoryItem] = []
         var layer: [CityTerritoryProperty] = []
+        var districts: [CityDistrictInfo] = []
         var failure: String?
         if let nearby {
-            do { spaces = try await nearby(center).items } catch { failure = Self.code(error) }
+            do {
+                let response = try await nearby(center)
+                spaces = response.items; districts += response.districts
+            } catch { failure = Self.code(error) }
         }
         if let service {
-            do { layer = try await service.territoryMap(bounds: CityMapBounds(center: center, radiusMeters: radiusMeters)).properties }
-            catch { failure = failure ?? Self.code(error) }
+            do {
+                let map = try await service.territoryMap(bounds: CityMapBounds(center: center, radiusMeters: radiusMeters))
+                layer = map.properties; districts += map.districts
+            } catch { failure = failure ?? Self.code(error) }
             if let summary = try? await service.pointsSummary() { points = summary }
             if let current = try? await service.seasonCurrent() { season = current }
             if let page = try? await service.revenue(cursor: nil, day: nil) { revenue = page }
         }
-        let merged = Self.merge(spaces: spaces, layer: layer, memberID: memberID, center: center)
+        let merged = Self.merge(spaces: spaces, layer: layer, memberID: memberID, center: center, districts: districts)
         let nowMine = Set(merged.filter { $0.ownership == .mine }.compactMap(\.territoryId))
         if let knownMine, !knownMine.subtracting(nowMine).isEmpty {
             // Only places still inside this window count: a place outside it simply was not read.
@@ -332,8 +365,18 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
     // MARK: Merge
 
     public static func merge(spaces: [RoamTerritoryItem], layer: [CityTerritoryProperty], memberID: Int64?,
-                             center: RoamCoordinate?) -> [CityPlace] {
+                             center: RoamCoordinate?, districts: [CityDistrictInfo] = []) -> [CityPlace] {
         let slots = CityDistrictSlots.slots(for: layer.map(\.districtId) + spaces.map(\.districtId))
+        let book = CityDistrictBook(districts)
+        /// Colour slot: the place's own `district.cN` key, else the board's `districts[]` entry, else the client slot.
+        func slot(_ district: String?, board: String?, token: String?) -> Int {
+            CityDistrictInfo.slot(index: nil, token: token) ?? book.info(district, board: board)?.colorSlot
+                ?? district.flatMap { slots[$0] } ?? 0
+        }
+        func name(_ district: String?, board: String?, own: String?...) -> String? {
+            for candidate in own { if let usable = CityDistrictBook.usable(candidate, districtId: district) { return usable } }
+            return CityDistrictBook.usable(book.info(district, board: board)?.name, districtId: district)
+        }
         var byTerritory: [String: CityTerritoryProperty] = [:]
         var byPoint: [String: CityTerritoryProperty] = [:]
         var byPoi: [Int64: CityTerritoryProperty] = [:]
@@ -356,20 +399,23 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
                 ownership = (memberID != nil && item.ownerMemberId == memberID) ? .mine : .other
             } else { ownership = .open }
             let district = held?.districtId ?? item.districtId
+            let board = item.boardId ?? held?.boardId
             out.append(CityPlace(
                 id: item.territoryId ?? held?.propertyId ?? item.id,
                 title: held?.title ?? item.title,
                 coordinate: coordinate,
                 territoryId: held?.propertyId ?? item.territoryId,
                 poiId: item.poiId ?? held?.poiId, boardId: item.boardId ?? held?.boardId, pointId: item.pointId ?? held?.pointId,
-                districtId: district, districtIndex: district.flatMap { slots[$0] } ?? 0,
+                districtId: district,
+                districtIndex: slot(district, board: board, token: held?.districtColorToken ?? item.districtColorToken),
                 tier: held?.tier ?? item.tier, level: held?.lvl ?? item.upgradeLevel ?? 0, ownership: ownership,
                 holderName: held?.holder?.maskedName ?? item.ownerNickname,
                 protectedUntil: (held?.protectedUntil?.date) ?? item.protectedUntilMillis.map { Date(timeIntervalSince1970: TimeInterval($0) / 1000) },
                 decay: held?.decay ?? CityDecayState(wire: item.decayState),
                 photoURL: item.claimPhotoUrl, radiusM: item.radiusM,
                 distanceM: center.map { CityPresencePreflight.distanceM($0, coordinate) } ?? item.distanceM,
-                invested: held?.invested, districtName: held?.districtName, deedSerial: held?.deedSerial))
+                invested: held?.invested, districtName: name(district, board: board, own: held?.districtName, item.districtName),
+                deedSerial: held?.deedSerial ?? item.deedSerial))
         }
         for property in layer {
             if let id = property.propertyId, used.contains(id) { continue }
@@ -382,11 +428,13 @@ public typealias CityNearbyRead = @MainActor (RoamCoordinate) async throws -> Ro
                 id: property.propertyId ?? ("fog-" + (property.geohash7 ?? property.id)),
                 title: property.title, coordinate: coordinate, territoryId: property.propertyId,
                 poiId: property.poiId, boardId: property.boardId, pointId: property.pointId,
-                districtId: property.districtId, districtIndex: property.districtId.flatMap { slots[$0] } ?? 0,
+                districtId: property.districtId,
+                districtIndex: slot(property.districtId, board: property.boardId, token: property.districtColorToken),
                 tier: property.tier, level: property.lvl ?? 0, ownership: ownership, holderName: property.holder?.maskedName,
                 protectedUntil: property.protectedUntil?.date, decay: property.decay,
                 distanceM: center.map { CityPresencePreflight.distanceM($0, coordinate) }, invested: property.invested,
-                districtName: property.districtName, deedSerial: property.deedSerial))
+                districtName: name(property.districtId, board: property.boardId, own: property.districtName),
+                deedSerial: property.isFogged ? nil : property.deedSerial))
         }
         return out.sorted { ($0.distanceM ?? .infinity, $0.id) < ($1.distanceM ?? .infinity, $1.id) }
     }

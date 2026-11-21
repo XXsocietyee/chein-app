@@ -141,6 +141,37 @@ import XCTest
         XCTAssertNil(blank.deedSerial)
     }
 
+    /// fix/city-gaps-r3 live fields: `districts[]` names and colour keys (placeholder seed = no name), item colour
+    /// tokens, nearby `deedSerial`, and fogged items keep the public district name but never a serial.
+    func testGapsR3DistrictsColourKeysAndDeedSerialReachThePlaces() throws {
+        let nearby = try decode(RoamTerritoryNearbyResponse.self, ["revenueMode": "POINTS", "boardId": "gz", "territories": [
+            ["boardId": "gz", "pointId": "p1", "title": "北京路口", "latitude": 23.12, "longitude": 113.26, "radiusM": 80, "claimed": false,
+             "status": "AVAILABLE", "isProtected": false, "checkinTollPoints": 0, "ownerRevenuePoints": 0, "checkinCount": 0,
+             "revenueTotalPoints": 0, "districtId": "d2", "deedSerial": 7],
+            ["boardId": "gz", "pointId": "p2", "title": "上下九", "latitude": 23.121, "longitude": 113.261, "radiusM": 80, "claimed": false,
+             "status": "AVAILABLE", "isProtected": false, "checkinTollPoints": 0, "ownerRevenuePoints": 0, "checkinCount": 0,
+             "revenueTotalPoints": 0, "districtId": "d9", "districtColorToken": "district.c5"]
+        ], "districts": [
+            ["boardId": "gz", "districtId": "d2", "name": "北京路", "colorToken": "district.c4", "colorIndex": 4, "ownableCount": 6, "safetyBlocked": false],
+            ["boardId": "gz", "districtId": "d9", "name": "d9", "colorToken": "brand.x", "ownableCount": 3, "safetyBlocked": false]
+        ]])
+        XCTAssertEqual(nearby.districts.count, 2)
+        let map = try decode(CityTerritoryMapResponse.self, ["items": [
+            ["districtId": "d2", "tier": 1, "geohash7": "ws0e9cb", "districtName": "北京路", "districtColorToken": "district.c4", "deedSerial": 3]
+        ], "districts": []])
+        let places = CityBoardStore.merge(spaces: nearby.items, layer: map.properties, memberID: nil, center: nil,
+                                          districts: nearby.districts + map.districts)
+        let named = try XCTUnwrap(places.first { $0.pointId == "p1" })
+        XCTAssertEqual(named.districtName, "北京路"); XCTAssertEqual(named.districtIndex, 4); XCTAssertEqual(named.deedSerial, 7)
+        let seeded = try XCTUnwrap(places.first { $0.pointId == "p2" })
+        XCTAssertNil(seeded.districtName, "the placeholder seed (name == id) falls back to 街区 N")
+        XCTAssertEqual(seeded.districtIndex, 5, "the item's own district.cN key wins")
+        let fog = try XCTUnwrap(places.first { $0.ownership == .fogged })
+        XCTAssertEqual(fog.districtName, "北京路"); XCTAssertNil(fog.deedSerial)
+        XCTAssertEqual(CityDistrictInfo.slot(index: nil, token: "district.c8"), 2)
+        XCTAssertNil(CityDistrictInfo.slot(index: nil, token: "district.cx"))
+    }
+
     func testStoreLoadsQuotesAndReportsRejectionsAndLosses() async throws {
         let stub = Stub()
         let lease = try XCTUnwrap(CityGameProductionLease(host: "city.example.test", regionID: "r1"))

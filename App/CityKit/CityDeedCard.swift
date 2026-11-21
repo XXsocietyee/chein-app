@@ -6,8 +6,8 @@ import QuestifyCore
 
 // `City/Deed Card` (Figma 381:1401, skill-r2 SR2-42): the game's one signature object.
 // Every field is real: name, district, level, rent per visit, holder and photo come from the
-// server. The serial "地契 · No. N" is shown only when the server issues one (Q10); today it
-// does not, so the band carries the district alone.
+// server. The serial "地契 · No. N" is shown only when the server issues one (Q10, `deedSerial`,
+// fix/city-gaps-r3); without it the band carries the district and the tier.
 
 enum CityDeedSize { case full, sheet, row, mini }
 
@@ -18,6 +18,16 @@ extension CityPlace {
                   districtId: districtId, districtIndex: districtIndex, tier: tier, level: level ?? self.level, ownership: ownership,
                   holderName: holder, protectedUntil: protectedUntil, decay: ownership == .mine ? nil : decay, photoURL: photoURL,
                   radiusM: radiusM, distanceM: distanceM, invested: invested, districtName: districtName, deedSerial: deedSerial)
+    }
+
+    /// The same place with the serial a claim / challenge command just returned (`property.deedSerial`), when the
+    /// reloaded layer has none yet. A nil serial changes nothing.
+    func withDeedSerial(_ serial: Int?) -> CityPlace {
+        guard let serial, deedSerial == nil else { return self }
+        return CityPlace(id: id, title: title, coordinate: coordinate, territoryId: territoryId, poiId: poiId, boardId: boardId, pointId: pointId,
+                         districtId: districtId, districtIndex: districtIndex, tier: tier, level: level, ownership: ownership,
+                         holderName: holderName, protectedUntil: protectedUntil, decay: decay, photoURL: photoURL,
+                         radiusM: radiusM, distanceM: distanceM, invested: invested, districtName: districtName, deedSerial: serial)
     }
 }
 
@@ -326,7 +336,7 @@ struct CityDeedCard: View {
         HStack {
             Text(verbatim: copy.district(place) ?? (unlit ? copy("未点亮", "Unlit") : copy("城市地产", "City place")))
             Spacer(minLength: CYSpacing.sm)
-            // The serial appears only once the server issues one (Q10; hook `CityPlace.deedSerial`).
+            // The serial appears only when the server issued one (Q10; `CityPlace.deedSerial`).
             if let serial = place.deedSerial, !unlit { Text(verbatim: copy("地契 · No. \(serial)", "Deed · No. \(serial)")).monospacedDigit() }
             else if let tier = copy.tier(place.tier), !unlit { Text(verbatim: tier) }
         }
