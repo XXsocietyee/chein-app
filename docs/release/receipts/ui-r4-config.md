@@ -76,8 +76,12 @@ frame's spec in code, awaiting the local build and shots; **partial** = what is 
 - `python3 -B tools/check_scaffold.py` — PASS (appsession ratchet, 263 page routes, 4922 Swift files, bilingual keys,
   references, scheme, project equivalence).
 - `python3 -B tools/check_design_lint.py` — PASS (1718 files, 0 violations).
-- `python3 -B tools/contract_ratchet.py --check` — see the result line appended below. Before this round's fix it
-  reported 3 new failures; 1 was this branch's (`test_template_legacy_hints`, fixed in `a6ef3b54e`).
+- `python3 -B tools/contract_ratchet.py --check` — at `72dc1806a`: 186 failing, baseline 184, **new 2**:
+  `test_external_game_import_localization…declares_localized_resources` (this branch: the 小游戏库 header had
+  dropped 4 Localizable resources; fixed in the next commit by using `importAction` / `importUrlOrQr` as the ＋
+  button's VoiceOver label / hint and `importFile` for the 文件 item — the test now passes) and the base-inherited
+  workshop failure below. Earlier this session `test_template_legacy_hints` (also this branch) was fixed in
+  `a6ef3b54e`. Expected after the fix: new 1 (workshop, inherited).
   `test_workshop_paid_professional…bounded_paging` fails identically on the base (`ui/h-code-r3-ops`; the marker
   `value.businessType == "TOPIC"` is absent there too) — not touched by this branch.
 
@@ -117,4 +121,3 @@ Build: Xcode 27, iPhone 17 simulator, iOS 27; light editor and dark player theme
 9. **243:3249** — trigger any toast on the plaza in dark mode (none is wired in this view; use `cur6-shelf-games` if
    it toasts) and confirm the dark pill.
 
-Ratchet result (this tree):

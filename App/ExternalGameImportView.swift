@@ -58,12 +58,13 @@ import WebKit
                         Label { ConfigR4Text.text("config.games.importScan") } icon: { Image(systemName: "qrcode.viewfinder") }
                     }
                     Button { showingFileImporter = true } label: {
-                        Label { ConfigR4Text.text("config.games.importFile") } icon: { Image(systemName: "folder") }
+                        Label(String(localized: LocalizedStringResource("playx.externalGame.importFile", defaultValue: "Import from File (.json)", locale: locale)), systemImage: "folder")
                     }
                 } label: {
                     headerCircle("plus")
                 }
-                .accessibilityLabel(ConfigR4Text.text("config.games.import"))
+                .accessibilityLabel(String(localized: LocalizedStringResource("playx.externalGame.importAction", defaultValue: "Import Game", locale: locale)))
+                .accessibilityHint(String(localized: LocalizedStringResource("playx.externalGame.importUrlOrQr", defaultValue: "Link / Scan to Import", locale: locale)))
                 .accessibilityIdentifier("externalGameImportButton")
                 Menu {
                     Button { submitForReview = true } label: {
