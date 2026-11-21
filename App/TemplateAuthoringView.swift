@@ -688,13 +688,13 @@ struct TemplateAuthoringReviewView: View {
 }
 
 @MainActor struct TemplateAuthoringPreviewView: View {
-    @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     let draft: TemplateAuthoringDraft
     @Environment(\.templateConfiguredRehearsals) private var configuredRehearsals
     var body: some View {
         List {
-            Section { CYHeroHeader(verbatim: draft.title.isEmpty ? String(localized: LocalizedStringResource("templateAuthor.preview", table: "Localizable", locale: locale)) : draft.title, subtitle: draft.description.isEmpty ? nil : draft.description) }.e1HeroRow()
+            // Screens r4 · Figma 238:25435 (CF-63): the five-step 玩家视角预览 leads; the per-gameplay rehearsals stay below.
+            Section { TemplatePlayerPreviewPager(draft: draft) }.e1HeroRow()
             Section("templateAuthor.finish") {
                 Text(LocalizedStringKey(draft.validationMethod.labelKey))
                 if draft.validationMethod.rawValue == 7 {
@@ -745,7 +745,9 @@ struct TemplateAuthoringReviewView: View {
                     LabeledContent("templateAuthor.field.medalStyle", value: style)
                 }
             } }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen().cyDomainScreen(.topicEditor)
+        }.listStyle(.insetGrouped).cyGroupedSurface()
+            .navigationTitle(ConfigR4Text.text("config.preview.title")).navigationBarTitleDisplayMode(.inline)
+            .cyDomainScreen(.topicEditor)
             .toolbar { ToolbarItem(placement: .cancellationAction) { if let configuredRehearsals {
                 TemplateConfiguredRehearsalCloseButton(controller: configuredRehearsals)
             } else { Button("templateAuthor.close") { dismiss() } } } }
