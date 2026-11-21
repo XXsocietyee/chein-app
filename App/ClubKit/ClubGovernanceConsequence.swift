@@ -3,7 +3,7 @@ import SwiftUI
 /// verify-r1 3.8 / MC-33 (Figma 222:5684): which club governance commands confirm in `ClubConsequenceSheet`, and what
 /// that sheet says. The sheet replaces the form's plain confirm, so each command is still confirmed exactly once.
 enum ClubGovernanceConsequence: Equatable {
-    case ban, transferOwner, revokeRole, dissolve
+    case ban, transferOwner, revokeRole, dissolve, endTopic
 
     init?(_ operation: ClubGovernanceMutation) {
         switch operation {
@@ -11,6 +11,8 @@ enum ClubGovernanceConsequence: Equatable {
         case .transferOwner: self = .transferOwner
         case .revokeRole: self = .revokeRole
         case .dissolve: self = .dissolve
+        // r4 · MC-27: ending a topic cancels its sessions and refunds people, so it confirms with its consequences.
+        case .endTopic: self = .endTopic
         default: return nil
         }
     }
@@ -21,6 +23,7 @@ enum ClubGovernanceConsequence: Equatable {
         case .transferOwner: return "transferOwner"
         case .revokeRole: return "revokeRole"
         case .dissolve: return "dissolve"
+        case .endTopic: return "endTopic"
         }
     }
 
@@ -30,6 +33,7 @@ enum ClubGovernanceConsequence: Equatable {
         case .transferOwner: return ("crown", "person.crop.circle.badge.minus")
         case .revokeRole: return ("shield.slash", "person.2")
         case .dissolve: return ("trash", "person.3.sequence")
+        case .endTopic: return ("calendar.badge.minus", "arrow.uturn.backward.circle")
         }
     }
 

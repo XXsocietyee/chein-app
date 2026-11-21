@@ -47,6 +47,7 @@ final class CodeR3OpsTests: XCTestCase {
         XCTAssertEqual(ClubGovernanceConsequence(.transferOwner), .transferOwner)
         XCTAssertEqual(ClubGovernanceConsequence(.revokeRole), .revokeRole)
         XCTAssertEqual(ClubGovernanceConsequence(.dissolve), .dissolve)
+        XCTAssertEqual(ClubGovernanceConsequence(.endTopic), .endTopic)
         for light in [ClubGovernanceMutation.unban, .report, .assignRole, .sendNotification, .cancelOccurrence, .saveCustomer] {
             XCTAssertNil(ClubGovernanceConsequence(light), "\(light) keeps the form's own confirm")
         }
@@ -59,5 +60,35 @@ final class CodeR3OpsTests: XCTestCase {
             XCTAssertNotEqual(OpsR3Text.string(key, locale: zh), key, key)
             XCTAssertNotEqual(OpsR3Text.string(key, locale: en), key, key)
         }
+    }
+
+    // r4 · club workbench (`170:1744`, ui/r4-club-merchant): only 待审批 is read; unknown counts are "—", never 0.
+    func testClubWorkbenchSummaryKeepsUnknownAsDash() throws {
+        let unknown = try JSONDecoder().decode(ClubRecord.self, from: Data(#"{"id":9,"isOwner":true}"#.utf8))
+        let summary = ClubWorkbenchSummary(club: unknown)
+        XCTAssertNil(summary.pendingApprovals)
+        XCTAssertEqual(summary.now, .unknown)
+        XCTAssertEqual(ClubWorkbenchSummary.display(summary.pendingApprovals), "—")
+        XCTAssertEqual(ClubWorkbenchSummary.display(summary.pendingCheckins), "—")
+        XCTAssertEqual(ClubWorkbenchSummary.display(summary.sessionsThisWeek), "—")
+
+        let three = try JSONDecoder().decode(ClubRecord.self, from: Data(#"{"id":9,"isOwner":true,"pendingJoinRequestCount":3}"#.utf8))
+        XCTAssertEqual(ClubWorkbenchSummary(club: three).now, .approvals(3))
+        XCTAssertEqual(ClubWorkbenchSummary.display(3), "3")
+
+        let zero = try JSONDecoder().decode(ClubRecord.self, from: Data(#"{"id":9,"isOwner":true,"pendingJoinRequestCount":0}"#.utf8))
+        XCTAssertEqual(ClubWorkbenchSummary(club: zero).now, .clear)
+        XCTAssertEqual(ClubWorkbenchSummary.display(0), "0")
+    }
+
+    func testClubR4CopyIsBilingual() {
+        let zh = Locale(identifier: "zh-Hans"), en = Locale(identifier: "en")
+        for key in ["r4club.now.title", "r4club.now.approvals", "r4club.now.approve", "r4club.tile.approvals",
+                    "r4club.tile.checkins", "r4club.tile.sessions", "r4club.header.invite", "r4club.header.share"] {
+            XCTAssertNotEqual(ClubR4Text.string(key, locale: zh), key, key)
+            XCTAssertNotEqual(ClubR4Text.string(key, locale: en), key, key)
+        }
+        XCTAssertEqual(String(format: ClubR4Text.string("r4club.now.approvals", locale: zh), 3), "3 位入会申请待审批")
+        XCTAssertNotEqual(OpsR3Text.string("r3club.consequence.endTopic.title", locale: zh), "r3club.consequence.endTopic.title")
     }
 }
