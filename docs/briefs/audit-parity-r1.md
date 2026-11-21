@@ -23,4 +23,4 @@ Write docs/audit/parity/<area>.md in the APP repo on branch audit/parity-<area> 
 - A table per page: MP path → app view/file → function checklist with status → findings, each with severity, the skill rule, evidence (MP file:line and app file:line) and a concrete fix (file, SwiftUI change, token).
 - A cross-page consistency section for your area: patterns that differ between pages that should be the same.
 - A batched fix plan for an executor (ordered, with files).
-Commit message ending `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`. Don't edit product code. Never push main or ui/main. No secrets. If the usage limit stops you, push what you have first.
+Commit message ending `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. Don't edit product code. Never push main or ui/main. No secrets. If the usage limit stops you, push what you have first.
