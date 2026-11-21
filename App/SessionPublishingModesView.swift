@@ -5,6 +5,9 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil
     var appliesPushedChrome: Bool = true
+    /// 发布 tab root (P 210:8374): large root title and the 从模板开始 section.
+    var isTabRoot = false
+    var openTemplates: (() -> Void)? = nil
     @State private var seed: ProjectEditDraft?
     @State private var showEditor = false
     @State private var resource: PublishedResource?
@@ -20,23 +23,42 @@ import SwiftUI
             imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled }, library: library)
             .modifier(TemplateAuthoringPublishCompletion(coordinator: coordinator, library: library)).id(session.sessionRevision))
     }
-    var body: some View {
-        PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
+    /// Empty professional editor for the chosen route type (mini-program 专业手动).
+    private func professionalEditor(_ product: ProjectEditProduct) -> AnyView {
+        AnyView(ProjectEditView(coordinator: session.projectEditor(product: product), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }, cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) }).id(session.projectEditorContextID))
+    }
+    /// 互动: template intro, naming, then the template editor.
+    private func templateAuthoring() -> AnyView {
+        AnyView(TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor() },
+            completion: session.templateAuthoringCompletionContext,
+            sessionRevision: session.sessionRevision, metadataReader: session,
+            imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
+            .environment(\.templateCoverSource, .init(makeService: { session.makeActivityCoverService() }, session: { session.publishingSession }))
+            .id(session.templateAuthoringViewIdentity))
+    }
+    /// 发布 tab root (P 210:8374) or the pushed publish menu; both get the same inputs and destinations.
+    @ViewBuilder private var modes: some View {
+        if isTabRoot {
+            PublishRootContent(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
                             makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
                             makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
                             placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
                             openResource: { resource = $0 },
-                            makeProfessional: { product in
-                                AnyView(ProjectEditView(coordinator: session.projectEditor(product: product), sessionRevision: session.sessionRevision, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }, cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) }).id(session.projectEditorContextID))
-                            },
-                            makeTemplateAuthoring: {
-                                AnyView(TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor() },
-                                    completion: session.templateAuthoringCompletionContext,
-                                    sessionRevision: session.sessionRevision, metadataReader: session,
-                                    imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
-                                    .environment(\.templateCoverSource, .init(makeService: { session.makeActivityCoverService() }, session: { session.publishingSession }))
-                                    .id(session.templateAuthoringViewIdentity))
-                            })
+                            makeProfessional: { professionalEditor($0) },
+                            makeTemplateAuthoring: { templateAuthoring() },
+                               openTemplates: openTemplates)
+        } else {
+            PublishingModesView(service: session.publishingService, account: session.publishingSession, makeAIDraft: makeAIDraft ?? session.g6PublishingAIDraftFactory,
+                            makeIdentityRegistration: { session.makePublisherIdentityRegistrationService() },
+                            makeActivityTemplate: { activityTemplateCreator() }, makeActivityCover: { session.makeActivityCoverService() },
+                            placeSearch: PublishingMapKitAdapter(), draftStore: session.publishingDraftStore, openProfessional: { seed = $0; showEditor = true },
+                            openResource: { resource = $0 },
+                            makeProfessional: { professionalEditor($0) },
+                            makeTemplateAuthoring: { templateAuthoring() })
+        }
+    }
+    var body: some View {
+        modes
             .navigationDestination(isPresented: $showEditor) {
                 if let seed {
                     ProjectEditView(coordinator: session.projectEditor(product: seed.product, owner: seed.owner), sessionRevision: session.sessionRevision, seed: seed, publisherClient: session.publisherLifecycleContext?.client, publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) }, cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) })
