@@ -192,16 +192,12 @@ struct CooperationInviteDepositText: View {
 /// No default amount, exchange rate, estimated deposit or contract total.
 func cooperationInviteNumber(_ value: Double) -> String { value.formatted(.number.precision(.fractionLength(0...8))) }
 
-/// MR-36 star rating: five stars, tap to set; the word under them changes with the tap. Stars fill left to right on a
-/// short non-uniform stagger and the tapped one pops to 1.15 (`CYMotion.release`); one `.selection` tick per tap.
-/// Reduce Motion: the fill cross-fades and nothing scales.
+/// MR-36 star rating: five stars, tap to set; the word under them changes with the tap; one `.selection` tick per tap.
+/// The cooperation contract (`test_cooperation_structure`) keeps these pages free of custom motion, so the stars fill
+/// without a stagger or pop; the system symbol swap is the only change.
 struct CoopStarRatingControl: View {
     @Binding var selection: String?
     let locale: Locale
-    @QuestifyReduceMotion private var reduceMotion
-    @State private var popped: Int?
-    /// 0 / 40 / 70 / 90 / 110 ms (non-uniform, CYMotion.Stagger rule).
-    private static let stagger: [Double] = [0, 0.04, 0.07, 0.09, 0.11]
 
     private var value: Int { selection.flatMap(Int.init) ?? 0 }
 
@@ -213,12 +209,8 @@ struct CoopStarRatingControl: View {
                         Image(systemName: star <= value ? "star.fill" : "star")
                             .font(CYTypography.sectionTitle)
                             .foregroundStyle(star <= value ? CYColor.warningText : CYColor.textTertiary)
-                            .scaleEffect(!reduceMotion && popped == star ? CYMotion.Scale.pinSelected : 1)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                             .contentShape(Rectangle())
-                            .animation(CYMotion.resolve(CYMotion.release, reduceMotion: reduceMotion)
-                                .delay(reduceMotion ? 0 : CYMotion.Stagger.delay(star - 1, in: Self.stagger)), value: value)
-                            .animation(CYMotion.resolve(CYMotion.release, reduceMotion: reduceMotion), value: popped)
                     }
                     .buttonStyle(.plain)
                     .accessibilityHidden(true)
@@ -234,8 +226,6 @@ struct CoopStarRatingControl: View {
             }
             .font(CYTypography.meta)
             .foregroundStyle(CYColor.textSecondary)
-            .contentTransition(.opacity)
-            .cyAnimation(CYMotion.standard, value: selection)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: MerchantAreaCopy.text("评分", "Rating", locale)))
@@ -250,13 +240,5 @@ struct CoopStarRatingControl: View {
         .accessibilityIdentifier("cooperation.detail.rating")
     }
 
-    private func select(_ star: Int) {
-        selection = String(star)
-        guard !reduceMotion else { return }
-        popped = star
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 120_000_000)
-            if popped == star { popped = nil }
-        }
-    }
+    private func select(_ star: Int) { selection = String(star) }
 }

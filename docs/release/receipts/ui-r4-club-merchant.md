@@ -27,7 +27,7 @@ Status words: **done** (in code; a screenshot is still owed locally), **partial*
 | Frame | View / files | Status | Notes |
 |---|---|---|---|
 | `182:8065` 营销 · SR2-15 icons | `App/MerchantMarketingHomeSections.swift` | **done** | Four distinct glyphs, as the Figma's Icon/chart · store · route · cal: `chart.bar.xaxis` · `storefront` · `point.topleft.down.to.point.bottomright.curvepath` · `calendar.badge.plus`. **No extra 96 pt inset:** the system tab bar already insets the List's scroll content, so 96 pt more would leave a band. Check that on device. |
-| `186:6119` 协作详情 · MR-36 rating | `App/CooperationInviteActionSections.swift` (`CoopStarRatingControl`) | **done** | Five tappable stars in place of the pick sheet. The word under them follows the tap (the existing `CoopReviewScore` copy), then 下一步 › opens the same optional comment and request review. Motion: the fill runs 0/40/70/90/110 ms left to right, the tapped star pops to 1.15 on `CYMotion.release`, and each tap gives one `.selection`. Reduce Motion: cross-fade only. VoiceOver: one adjustable element, "评分 N / 5". |
+| `186:6119` 协作详情 · MR-36 rating | `App/CooperationInviteActionSections.swift` (`CoopStarRatingControl`) | **done** | Five tappable stars in place of the pick sheet. The word under them follows the tap (the existing `CoopReviewScore` copy), then 下一步 › opens the same optional comment and request review. Each tap gives one `.selection`. **No stagger or pop:** the Figma motion (40 ms stagger, 1.15 pop) conflicts with the contract `test_cooperation_structure…no_custom_motion` (no `.animation` / `.scaleEffect` on cooperation pages), so the contract wins and only the symbol swaps. VoiceOver: one adjustable element, "评分 N / 5". |
 | `186:6119` · MR-36 terms and actions | `App/CooperationInviteDetailView.swift`, `App/CooperationInviteActionSections.swift` | **done** | The terms stay a LabeledContent table and the split (分成) row is the one semibold row. 取消合作 (or its locked note) sits alone in the last group, below 联系对方 / 申报 / 评价. |
 | `233:9703` 暂停接待 in a ⋯ menu | `MerchantGameNodeView.runCard` | **left** | UI tests (`MerchantGameNodeFlowTests`) tap `gameNode.pause` directly. Moving it into a menu changes those flows, and they can't run in the cloud. The quiet red row keeps it reachable. |
 | MR-37 / MR-25 (merchant cards, address map snapshot) | — | **left** | Not started this round. |
@@ -47,11 +47,11 @@ Status words: **done** (in code; a screenshot is still owed locally), **partial*
 ## Skill rules applied
 
 - apple-design-interaction: "Make targets reachable & affordant: ≥44 pt". Stars, 下一步 and 打开地图 are all ≥ `CYSpacing.minTouchTarget`. "Scroll is an input — decide consciously": the map preview no longer captures the page's scroll.
-- apple-design-motion: "Interruptible", "Every action gets feedback": the star pop is a spring and a re-tap retargets it. One `.selection` per commit, no double-firing.
+- apple-design-motion: "Every action gets feedback": the stars fill and tick with one `.selection` per commit, no double-firing. The editor map pin keeps its existing interruptible 1.15 spring.
 - apple-design-foundations: no ignored safe areas. The full-bleed map ignores only the container insets; the node card and the unplaced line keep them.
-- emil choreograph / animation-vocabulary "Stagger 30–80 ms", and `CYMotion.Stagger` "never index × constant": non-uniform 0/40/70/90/110 ms.
+- emil choreograph: one lead per change. On the map page the pin leads and the node card follows; everything else stays still.
 - emil mobile-native and haptics: the haptic fires on the same frame as the visual and is never the only feedback.
-- mifb make-interfaces-feel-better: the label under the stars changes with a cross-fade, not a jump. Unknown counts show "—".
+- mifb make-interfaces-feel-better: the hit targets are larger than the glyphs (stars, map preview), and unknown counts show "—".
 - Owner rules: never 0 for unknown (workbench tiles); money stays TEST-only (settlement, 申请提现); no feature hidden (暂停接待 stays a row).
 - consist-1 type-and-chrome: system back only, inline 17 pt title on the pushed map page, no custom chevrons, `CYTypography` tokens in all new code.
 
@@ -61,7 +61,7 @@ Status words: **done** (in code; a screenshot is still owed locally), **partial*
 |---|---|
 | `python3 -B tools/check_scaffold.py` | PASS (structural, bilingual keys, routes) |
 | `python3 -B tools/check_design_lint.py` | PASS (0 violations) |
-| `python3 -B tools/contract_ratchet.py --check` | see the final commit note (run after the last code change) |
+| `python3 -B tools/contract_ratchet.py --check` | First run: 186 failing against a baseline of 184, 2 new. (1) `test_cooperation_structure…no_custom_motion`, caused by this branch's star animation, now fixed (the class passes). (2) `test_workshop_paid_professional…generic_draft_cas…`: it asserts on `Core/WorkshopPaidProfessionalPreparation.swift`, which this branch does not touch (no Core diff against the base), so it is a base or baseline mismatch, not a regression from this branch. Re-run result below. |
 | Swift build, unit and UI tests | **not run** (no Swift in the cloud). New tests in `Tests/AppUnitTests/CodeR3OpsTests.swift`: `testClubWorkbenchSummaryKeepsUnknownAsDash`, `testClubR4CopyIsBilingual`, `testClubR4DateReadsTheSourceDayAsHandbookDate`, `testEditorMapPreviewAndPageCopy`, `testCoopStarMapsOntoTheReviewScore`. |
 
 ## Local verification checklist
@@ -72,6 +72,6 @@ Status words: **done** (in code; a screenshot is still owed locally), **partial*
 4. **Roster / settlement**: roster card date `11月15日 周六`; a settlement row with an unverified amount shows "—" and 待核验, and the button reads 申请提现 (TEST switches only).
 5. **结束主题**: run the governance end-topic command and shoot the consequence sheet. Confirm it asks once.
 6. **营销** `182:8065`: four different icons. Scroll to the bottom and check that the 优惠券 card's last line clears the tab bar with no overlap and no extra band.
-7. **协作详情** `186:6119`: an accepted invite where the viewer can review. Tap star 3, then 5: the fill runs left to right and the tapped star pops. The word changes (3 星 · 一般 → 5 星 · 很满意) and 下一步 appears; it opens the comment prompt and then the request review. With Reduce Motion on, there is no pop and no stagger. With VoiceOver, swipe up and down on the rating. Check the bold 分成 row and 取消合作 alone in the last group.
+7. **协作详情** `186:6119`: an accepted invite where the viewer can review. Tap star 3, then 5: the stars fill and the word changes (3 星 · 一般 → 5 星 · 很满意) and 下一步 appears; it opens the comment prompt and then the request review. With VoiceOver, swipe up and down on the rating. Check the bold 分成 row and 取消合作 alone in the last group.
 8. **Editor map** `237:32444`: topic editor → 列表 / 地图 → 地图, on a topic whose nodes have coordinates. A drag over the preview scrolls the Form. Tap 打开地图: the full-bleed page shows the map under the bar, tap a pin to get the 1.15 pin and the node card, then 编辑节点 pushes the node, and back returns to the map and then to the Form. Edge data: no coordinates (empty overlay, no 打开地图), one pin (street-level span), unplaced nodes (count under the map). Interrupt the push with an edge swipe halfway.
 9. **Light/dark**: merchant and editor pages stay light, the club stays dark player.
