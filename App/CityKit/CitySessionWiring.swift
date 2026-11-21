@@ -41,6 +41,13 @@ extension AppSession {
     @State private var store: CityBoardStore?
     @State private var identity: String?
 
+    /// The retained live controller (the one the live page drives), for the flagged live-on-map controls.
+    private var liveController: (@MainActor () -> RoamLiveSessionController)? {
+        guard liveDestination != nil else { return nil }
+        let session = session
+        return { session.makeRoamLiveSessionController() }
+    }
+
     var body: some View {
         Group {
             if let store {
@@ -49,6 +56,7 @@ extension AppSession {
                     fallbackCenter: session.roamArea?.coordinate,
                     photoUploader: session.makeCityClaimPhotoUploader(),
                     liveDestination: liveDestination,
+                    liveController: liveController,
                     passportDestination: passportDestination,
                     onChooseArea: onChooseArea))
                     .id(identity)
