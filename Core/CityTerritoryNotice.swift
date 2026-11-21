@@ -40,7 +40,7 @@ public struct CityTerritoryNotice: Equatable, Sendable {
     /// `currency == "POINTS"` (or no currency). Anything else is not a City card.
     public static func parse(message: MessagingMessage, conversation: MessagingConversation? = nil) -> Self? {
         if let conversation, conversation.kind != .system { return nil }
-        guard message.isPayloadVisible, message.type == 3, (message.senderID ?? 0) == 0,
+        guard message.isPayloadVisible, message.type == 3, message.senderID == 0,
               let text = message.extraJSON, let data = text.data(using: .utf8), data.count <= 16 * 1024 else { return nil }
         return parse(extra: data, messageID: message.id, content: message.content, createdAt: message.createdAt)
     }
