@@ -9,7 +9,7 @@ import SwiftUI
                 TemplateSensorDraftConfigurationFields(model: model)
             }
             TemplateAuthoringQAFields(method: model.draft.validationMethod, field: { model.optional($0.draftPath) },
-                includesHints: false, includesChoiceOptions: false, includesMedia: false)
+                includesMedia: false, includesHints: false, includesChoiceOptions: false)
             if [.text, .choice].contains(model.draft.validationMethod) {
                 // Screens r4 · verify-r1 2.10: 题目图片 / 题目音频 are picked, not typed; 清空 is in each tile's "⋯".
                 TemplateQuestionMediaFields(model: model)
@@ -66,10 +66,10 @@ import SwiftUI
     let field: (TemplateQAField) -> Binding<String>
     var readOnly = false
     var annotation: (TemplateQAField) -> String? = { _ in nil }
-    var includesHints = true
-    var includesChoiceOptions = true
     /// Raw reference rows for 题目图片 / 题目音频. Owner inspection keeps them read-only; the editor uses picker tiles.
     var includesMedia = true
+    var includesHints = true
+    var includesChoiceOptions = true
     var body: some View {
         Group {
             if [.text, .choice].contains(method) {
