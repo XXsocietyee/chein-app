@@ -191,7 +191,9 @@ import UIKit
                 .onSubmit(of: .search) { submitFeedSearch() }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
                 .onChange(of: query) { _, value in model.schedule(.query(value), reader: reader, permit: permit) }
-                .refreshable { await model.reload(reader: reader, query: query) }
+                // Pull to refresh: light tick at release and a 0.45 s floor so a fast reload never flashes the spinner.
+                // Loaded rails stay on screen and change in place (cross-fade per rail); the first-load stagger does not replay.
+                .cyRefreshable { await model.reload(reader: reader, query: query) }
                 .cySkeletonTiming(isLoading: model.loadingPage && model.pagination.items.isEmpty, visible: $streamSkeleton)
                 .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: streamSkeleton)
             }

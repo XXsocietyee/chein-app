@@ -14,6 +14,7 @@ struct CityHomeRail: View {
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
+    @QuestifyReduceMotion private var reduceMotion
     private var copy: CityCopy { CityCopy(locale: locale) }
 
     var body: some View {
@@ -21,7 +22,10 @@ struct CityHomeRail: View {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Button(action: onOpenMap) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(verbatim: title).font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
+                        // Section header on the type scale, like 编辑精选 and 附近活动 above and below it; long titles wrap.
+                        Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                            .monospacedDigit()
+                            .cyWrapText()
                         Spacer(minLength: CYSpacing.sm)
                         HStack(spacing: 2) {
                             Text(verbatim: copy("全部", "All"))
@@ -41,17 +45,26 @@ struct CityHomeRail: View {
                     }
                     .buttonStyle(.plain)
                 } else {
+                    // xrefs-1 Adopt 9 (focused card in a rail): cards snap to the margin and the neighbours sit at 94 % / 70 %.
+                    // Scroll-linked, so it costs no time; off under Reduce Motion. A place that leaves or arrives on a
+                    // refresh fades in place instead of the row jumping.
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: CYSpacing.md) {
+                        LazyHStack(spacing: CYSpacing.md) {
                             ForEach(store.mine) { place in
                                 Button(action: onOpenMap) { CityDeedCard(place: place, size: .mini) }
-                                    .buttonStyle(.plain)
+                                    .buttonStyle(.cyPressable)
+                                    .modifier(CityHomeRailFocus(enabled: !reduceMotion))
+                                    .transition(.opacity)
                                     .accessibilityIdentifier("homeFeed.cityRail.\(place.id)")
                             }
                         }
+                        .scrollTargetLayout()
                         .padding(.horizontal, CYSpacing.pageHorizontal)
                     }
+                    .scrollTargetBehavior(.viewAligned)
+                    .scrollClipDisabled()
                     .padding(.horizontal, -CYSpacing.pageHorizontal)
+                    .animation(reduceMotion ? nil : CYMotion.standard, value: store.mine.map(\.id))
                 }
             }
             .accessibilityElement(children: .contain)
@@ -62,6 +75,20 @@ struct CityHomeRail: View {
     private var title: String {
         if let rent = store.todayRent, rent > 0 { return copy("我的地盘 · 今天 +\(rent)", "My places · today +\(rent)") }
         return copy("我的地盘", "My places")
+    }
+}
+
+/// Neighbour cards recede (scale 0.94, opacity 0.7) while the focused card stays at full size (xrefs-1 Adopt 9).
+private struct CityHomeRailFocus: ViewModifier {
+    let enabled: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled {
+            content.scrollTransition(.interactive, axis: .horizontal) { view, phase in
+                view.scaleEffect(phase.isIdentity ? 1 : 0.94).opacity(phase.isIdentity ? 1 : 0.7)
+            }
+        } else {
+            content
+        }
     }
 }
 
