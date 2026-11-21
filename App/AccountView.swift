@@ -33,9 +33,14 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true }, refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
+                MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true },
+                                          // 积分 opens 钱包, where 积分明细 lives (the Passport root's one wallet entry).
+                                          onOpenPoints: showsPassportOverview ? { showsPassportWallet = true } : nil,
+                                          refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 if showsPassportOverview {
                     PassportOverviewSection(reader: session.roamExperienceReader, growth: session.growthCenterReader, refreshToken: memberRefreshToken, onOpenTickets: { showsTicketPass = true },
+                                            // verify-r1: 票夹 is the card's pill; no second 票夹 circle 250 pt lower (same destination).
+                                            showsTicketsAction: false,
                                             onOpenWallet: { showsPassportWallet = true }, onOpenMessages: { showsPassportMessages = true },
                                             onOpenStamps: session.roamExperienceReader.isConfigured ? { showsPassportStamps = true } : nil,
                                             onOpenBadges: { showsPassportBadges = true })
@@ -166,7 +171,8 @@ import SwiftUI
                 }
                 }
             }
-            .refreshable { memberRefreshToken += 1 }
+            // Pull to refresh: light tick at release; the cards reload in place (numbers roll, nothing re-enters).
+            .cyRefreshable { await MainActor.run { memberRefreshToken += 1 } }
             .listSectionSpacing(CYSpacing.xl)
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()

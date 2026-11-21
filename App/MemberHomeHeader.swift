@@ -8,6 +8,8 @@ import SwiftUI
     let reader: any MemberHomeReading
     var growth: (any GrowthCenterReading)? = nil
     var onOpenTickets: (() -> Void)? = nil
+    /// 积分 opens the place its ledger lives (钱包 → 积分明细). Nil keeps the number static.
+    var onOpenPoints: (() -> Void)? = nil
     /// Bump from the owning screen's pull-to-refresh to reload identity and growth together.
     var refreshToken: Int = 0
     var avatarAccess: MemberIdentityAvatarAccess? = nil
@@ -15,7 +17,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var typeSize
     /// Rows become columns at accessibility sizes so labels never truncate or overflow.
-    private var rowLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm)) }
+    private var rowLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.lg)) }
     enum Phase: Equatable { case loading, ready(MemberIdentitySnapshot), failed(signedOut: Bool) }
     @State private var phase: Phase = .loading
     @State private var failureOffline = false
@@ -23,6 +25,9 @@ import SwiftUI
     @State private var streakDays: Int?
     /// 积分 from the growth center; nil until read, shown as "—".
     @State private var points: Int?
+    /// First-load entrance only (xrefs-1 motion rules): the card rises once per screen, never on a refresh.
+    @State private var stagger = CYStaggerGate()
+    @ScaledMetric(relativeTo: .largeTitle) private var assetDivider: CGFloat = 40
     @Environment(\.cyPalette) private var palette
     @Environment(\.themeDomain) private var themeDomain
     @QuestifyReduceMotion private var reduceMotion
@@ -58,8 +63,13 @@ import SwiftUI
             // xrefs-1 Adopt 6 (`Player/Streak Row`): the streak gets its own row under the name, not a caption.
             if let streakDays {
                 CYStreakRow(streakDays: streakDays)
+                    .transition(.opacity)
                     .accessibilityIdentifier("member.card.streak")
             }
+            // 我的资产 (design hand-off r1 PL-30, owner Q-B; P 210:8603): 积分 first and large, as a plain number with no tile
+            // (xrefs-1 Adopt 4: stats without a box). 积分 is the only currency. The ¥ 账户余额 column appears only when this
+            // account holds real money (the server sent a balance), after a hairline. Unknown 积分 reads "—", never 0.
+            assets
             // xrefs-1 Adopt 4: the three counters are a plain row with hairline dividers, no tiles.
             CYPlainStatRow(stats: [
                 stat(snapshot?.friendCountText, id: "friends", key: "member.card.friends"),
@@ -75,34 +85,12 @@ import SwiftUI
                 .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
-            // 我的资产 (design hand-off r1 PL-30, owner Q-B): 积分 first and large; 积分 is the only currency. The ¥ 账户余额
-            // tile appears only when this account holds real money (the server sent a balance). Unknown 积分 reads "—".
-            rowLayout {
-                tile(symbol: "circle.hexagongrid.fill") { Text("member.card.points", tableName: "DesignR1") } value: {
-                    Text(verbatim: pointsText)
-                        .font(.title2.weight(.bold).monospacedDigit())
-                        .contentTransition(.numericText())
-                        .accessibilityLabel(PageTemplateVoiceOver.spoken(pointsText, locale: locale))
-                        .accessibilityIdentifier("member.card.pointsValue")
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("member.card.points")
-                if let raw = snapshot?.balancePreviewText, snapshot?.balanceText != nil {
-                    // verify-r1 1.5 / N-16, owner Q8: real money reads ¥560.00, never a bare "560.00".
-                    let balance = MemberBalanceDisplay.text(raw, locale: locale)
-                    tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
-                        Text(verbatim: balance)
-                            .font(.subheadline.weight(.semibold).monospacedDigit())
-                            .accessibilityLabel(PageTemplateVoiceOver.spoken(balance, locale: locale))
-                            .accessibilityIdentifier("member.card.balanceValue")
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("member.card.balance")
-                }
-            }
             identityState
             }
+            // Late values (streak, 积分) arrive in place: the card grows on `standard`, nothing else moves.
+            .cyAnimation(CYMotion.standard, value: streakDays)
             .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
+            .cyStaggeredAppear(index: 0, gate: stagger)
         }
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
@@ -123,7 +111,13 @@ import SwiftUI
         if case .failed = phase { return account.level }
         return nil
     }
-    private var pointsText: String { CYUnknownValue.count(points) }
+    /// Grouped digits so a large balance stays readable (1,286 / 1,234,567); unknown is "—".
+    private var pointsText: String { CYUnknownValue.text(points) { $0.formatted(.number.locale(locale)) } }
+    /// ¥ 账户余额 only when the server sent a real-money balance (owner Q-B / Q8: ¥560.00, never a bare 560.00).
+    private var balanceDisplay: String? {
+        guard let raw = snapshot?.balancePreviewText, snapshot?.balanceText != nil else { return nil }
+        return MemberBalanceDisplay.text(raw, locale: locale)
+    }
     private var levelText: String {
         guard let knownLevel else { return MemberHomePageModel.unknownDisplay }
         return "Lv.\(knownLevel)"
@@ -211,16 +205,70 @@ import SwiftUI
                            label: String(localized: LocalizedStringResource(key, table: "MemberProfile", locale: locale)),
                            rollValue: Double(shown), accessibilityIdentifier: "member.card.\(id)")
     }
-    private func tile<Title: View, Value: View>(symbol: String, @ViewBuilder title: () -> Title, @ViewBuilder value: () -> Value) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Image(systemName: symbol).font(.title3).foregroundStyle(palette.textPrimary).accessibilityHidden(true)
-            title().font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-            value().foregroundStyle(palette.textPrimary)
+    /// 积分 hero + optional ¥ column. Columns stack at accessibility sizes (no hairline then).
+    private var assets: some View {
+        rowLayout {
+            pointsBlock
+            if let balance = balanceDisplay {
+                if !typeSize.isAccessibilitySize {
+                    Rectangle().fill(palette.borderSubtle).frame(width: 1, height: assetDivider).accessibilityHidden(true)
+                }
+                balanceBlock(balance)
+            }
         }
-        .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
-        .padding(CYSpacing.md)
-        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("member.card.assets")
+    }
+
+    /// 积分: label (with a chevron when it opens the ledger), then the number in the stat-hero style. It rolls in
+    /// tabular digits only when the value really changes (xrefs-1 Adopt 3), never on a plain visit.
+    @ViewBuilder private var pointsBlock: some View {
+        let content = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            HStack(spacing: CYSpacing.xs) {
+                Text("member.card.points", tableName: "DesignR1")
+                if onOpenPoints != nil {
+                    Image(systemName: "chevron.right").imageScale(.small).accessibilityHidden(true)
+                }
+            }
+            .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: pointsText)
+                .font(CYTypography.dataXL)
+                .foregroundStyle(points == nil ? palette.textTertiary : palette.textPrimary)
+                .lineLimit(1).minimumScaleFactor(0.6)
+                .modifier(MemberAssetRoll(value: points.map { Double($0) }))
+                .accessibilityLabel(PageTemplateVoiceOver.spoken(pointsText, locale: locale))
+                .accessibilityIdentifier("member.card.pointsValue")
+        }
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .contentShape(Rectangle())
+        if let onOpenPoints {
+            Button(action: onOpenPoints) { content }
+                .buttonStyle(.cyPressable)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityIdentifier("member.card.points")
+        } else {
+            content
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("member.card.points")
+        }
+    }
+
+    private func balanceBlock(_ balance: String) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Text("member.card.balance", tableName: "MemberProfile")
+                .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: balance)
+                .font(CYTypography.numericBody)
+                .foregroundStyle(palette.textPrimary)
+                .lineLimit(1).minimumScaleFactor(0.7)
+                .accessibilityLabel(PageTemplateVoiceOver.spoken(balance, locale: locale))
+                .accessibilityIdentifier("member.card.balanceValue")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("member.card.balance")
     }
 
     private func load() async {
@@ -351,5 +399,13 @@ enum MemberBalanceDisplay {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: "")
         guard let value = Decimal(string: trimmed, locale: Locale(identifier: "en_US_POSIX")) else { return raw }
         return value.formatted(.currency(code: "CNY").locale(locale).precision(.fractionLength(2)))
+    }
+}
+
+/// Rolls a known number on change (`cyNumericRoll`); an unknown "—" is plain tabular text.
+private struct MemberAssetRoll: ViewModifier {
+    let value: Double?
+    @ViewBuilder func body(content: Content) -> some View {
+        if let value { content.cyNumericRoll(value) } else { content.monospacedDigit() }
     }
 }
