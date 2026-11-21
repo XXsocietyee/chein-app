@@ -1,0 +1,14 @@
+const PAGEID='237:14642'; const PROBE=['238:11777','238:11908','238:12032','238:12156','249:35825','238:25435','238:25821','237:31646','238:19720','239:31923','237:31986','237:32141','237:67490','237:67711','239:6450','239:19592','241:21572','237:33756','237:42181','237:50816','237:73731','237:60884','238:16459','239:22803','238:19113','244:16953','238:16389','243:23964','239:22606','237:43689','237:64541','237:31646','239:2948','238:21479','239:27044','237:68146','238:25709','237:59761','246:8022','237:59829','243:26106','246:2850','247:17110','239:1632','237:14274','239:19531','239:23200','243:25232','239:22519','238:12993','237:51424','238:14596','238:15346','238:15290','238:16088','238:16196','237:65956','237:21833','237:63388','238:19444','238:19557','239:24018','244:16367']; const DEEP=['238:11777','249:35825','238:25435'];
+const PG=await figma.getNodeByIdAsync(PAGEID); await figma.setCurrentPageAsync(PG);
+const out={secs:[],cats:[],probe:{},text:{},react:0,annos:0};
+out.cats=(await figma.annotations.getAnnotationCategoriesAsync()).map(c=>c.label+'='+c.id+':'+c.color);
+for(const s of PG.children) out.secs.push(`${s.id}|${s.type}|${s.name}|${Math.round(s.x)},${Math.round(s.y)},${Math.round(s.width)}x${Math.round(s.height)}|${s.children?s.children.filter(c=>c.type==='FRAME'&&!c.name.startsWith('note')).length:0}`);
+for(const id of PROBE){const n=await figma.getNodeByIdAsync(id); if(!n){out.probe[id]='MISSING';continue;} let s=`${n.type}|${n.name}|${Math.round(n.x)},${Math.round(n.y)},${Math.round(n.width)}x${Math.round(n.height)}|par=${n.parent&&n.parent.id}|pg=${(()=>{let a=n;while(a&&a.type!=="PAGE")a=a.parent;return a&&a.name})()}`; if(DEEP.includes(id)&&'children' in n){s+='\n  '+n.children.map(c=>`${c.id} ${c.type} ${c.name} ${Math.round(c.x)},${Math.round(c.y)},${Math.round(c.width)}x${Math.round(c.height)}`+(c.type==='TEXT'?' "'+c.characters.slice(0,40)+'"':'')).join('\n  ');} out.probe[id]=s;}
+const PATS={ell:/(?<!…)…$|\.\.\.$/, ok:/^确定$/, del:/确认删除/, login:/去登录/, done:/任务完成[!！]/, num:/第\d+章/, tk:/票单名称\d/, fail:/加载失败|重新加载|未加载|暂时不可用/, pre:/发布前提示/, colon:/已添加: /, ellmid:/…|\.\.\./};
+const texts=PG.findAllWithCriteria({types:['TEXT']});
+for(const k in PATS) out.text[k]={n:0,s:[]};
+for(const t of texts){ if(t.name.startsWith('note')) continue; let anc=t.parent, isNote=false; while(anc&&anc.type!=='SECTION'&&anc.type!=='PAGE'){ if(anc.name.startsWith('note:')||anc.name.startsWith('label')){isNote=true;break;} anc=anc.parent;} if(isNote) continue; const c=t.characters; for(const k in PATS) if(PATS[k].test(c)){ const o=out.text[k]; o.n++; if(o.s.length<(k==='ell'||k==='ellmid'?25:12)) o.s.push(t.id+' '+c.slice(0,36).replace(/\n/g,'⏎'));}}
+for(const n of PG.findAll(n=>'reactions' in n && n.reactions.length>0)) out.react++;
+for(const n of PG.findAll(n=>'annotations' in n && n.annotations.length>0)) out.annos++;
+out.nTexts=texts.length;
+return out;

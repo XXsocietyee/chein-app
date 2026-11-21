@@ -1,0 +1,1521 @@
+{
+ "part": "B · Topic editor (/pages/publish/fabu/index)",
+ "executor": "task_24392e2a0b11",
+ "date": "2026-11-15",
+ "file": "0YyoybGnU1KG0657wdGCPX",
+ "page": {
+  "id": "237:14642",
+  "name": "C1 主题配置 · 编辑器"
+ },
+ "counts": {
+  "frames": 186,
+  "firstScreenCompanions": 27,
+  "distinctStates": 159,
+  "sections": 12
+ },
+ "ownerRulingsApplied": [
+  "Q1 story flow = TE P7/P8 (insert seams + bottom 下一步; 下一步 opens 章节设置 per TE S42); code-only block types (分支/分割线) added to the seam chips",
+  "Q2 sheets = grey ✕ + black 完成 pill; separate text pop-ups (B7e1–e3); TE text headers kept where the TE frame itself uses them (章节弹窗 P6, wheel pickers)",
+  "Q3–Q6 not in Part B scope",
+  "Q7 Apple Health wording in 归零后 · 走够步数",
+  "Q8 drag handles on chapters, node rows, story blocks, 章末消耗, 互斥组, effects, ticket rows, values, prep items, results, bag items, drops, 运行结局 (B2.3/B2.4/B4.10/B5.4e show the drag states)",
+  "积分 only: ticket prices, 权益门槛, 计酬上限 shown in 积分",
+  "light topic-editor look (MP-Light tokens, TE screens)"
+ ],
+ "notes": [
+  "Every frame carries an annotation with its spec ID, TE reference and verbatim copy list; values marked sample have no capture.",
+  "Images reuse hashes already in the file (landmark/street/cafe/club); empty slots are labelled light placeholders.",
+  "B10.1 follows owner 新稿 E1–E3 (role-based publish sheet) instead of the mini-program four-tile layer.",
+  "Not drawn: B7.1 category sheet (PRESENT 116:2263 / twin 188:5698), B10.8 date pickers in-app (native; wheel look shown in B8g/B8h), ⋯ menu of the code v2 story editor (superseded by Q1)."
+ ],
+ "frames": [
+  {
+   "item": "B1.1",
+   "state": "未登录",
+   "frameId": "237:21622",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.2",
+   "state": "加载中",
+   "frameId": "237:21650",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.3",
+   "state": "加载失败",
+   "frameId": "237:21681",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.6",
+   "state": "已恢复本地草稿",
+   "frameId": "237:21719",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.7",
+   "state": "草稿冲突",
+   "frameId": "237:21833",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.8",
+   "state": "未存本机仍要返回",
+   "frameId": "237:21953",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.9",
+   "state": "已过审字段锁定",
+   "frameId": "237:22073",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.10",
+   "state": "保存失败",
+   "frameId": "237:22192",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B1.11",
+   "state": "撤销条",
+   "frameId": "237:22339",
+   "sectionId": "237:21621",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.1",
+   "state": "城市定向 · 完整 (full)",
+   "frameId": "237:31646",
+   "sectionId": "237:31645",
+   "height": 1214,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.1",
+   "state": "城市定向 · 完整 · 首屏",
+   "frameId": "249:37911",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B2.2",
+   "state": "自由探索 · 节点行",
+   "frameId": "237:31806",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.3",
+   "state": "拖动排序 · 章节",
+   "frameId": "237:31986",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.4",
+   "state": "拖动排序 · 节点行",
+   "frameId": "237:32141",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.5",
+   "state": "待编排区",
+   "frameId": "237:32292",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.6",
+   "state": "地图视图",
+   "frameId": "237:32444",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.7",
+   "state": "红色提示 · 地点待办",
+   "frameId": "237:32538",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.8",
+   "state": "俱乐部 · 空态",
+   "frameId": "237:32682",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B2.9",
+   "state": "商家 · 模式固定",
+   "frameId": "237:32772",
+   "sectionId": "237:31645",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B3.1",
+   "state": "主题模式 · 选择",
+   "frameId": "237:51012",
+   "sectionId": "237:51011",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B3.2",
+   "state": "复制为新草稿 · 确认",
+   "frameId": "237:51154",
+   "sectionId": "237:51011",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B3.3",
+   "state": "复制后需重新选择",
+   "frameId": "237:51305",
+   "sectionId": "237:51011",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.1",
+   "state": "空章节 · 刚创建",
+   "frameId": "237:51424",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.2",
+   "state": "故事流 · 收起",
+   "frameId": "237:65700",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.3",
+   "state": "插入点展开",
+   "frameId": "237:51859",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.4",
+   "state": "文字块选中",
+   "frameId": "237:65956",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.5",
+   "state": "图片块选中",
+   "frameId": "237:66174",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.6",
+   "state": "待编排节点已选",
+   "frameId": "237:66404",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7",
+   "state": "末尾缝展开",
+   "frameId": "237:66638",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.8",
+   "state": "节点 · 角色与下一站",
+   "frameId": "237:66866",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.9",
+   "state": "其他块类型 (full)",
+   "frameId": "237:67108",
+   "sectionId": "237:51423",
+   "height": 2092,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.9",
+   "state": "其他块类型 · 首屏",
+   "frameId": "249:38071",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B4.10",
+   "state": "拖动中",
+   "frameId": "237:67490",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.11",
+   "state": "拖入段落 · 拆分",
+   "frameId": "237:67711",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.12",
+   "state": "撤销条",
+   "frameId": "237:67919",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.13",
+   "state": "删除节点 · 确认",
+   "frameId": "237:68146",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.14",
+   "state": "删除文字 · 确认",
+   "frameId": "237:68363",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.15",
+   "state": "块菜单 · 上移下移删除",
+   "frameId": "237:68581",
+   "sectionId": "237:51423",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7a",
+   "state": "图片 · 版式",
+   "frameId": "238:10351",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7b",
+   "state": "分支任务 · 两个分支",
+   "frameId": "238:10642",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7b2",
+   "state": "分支任务 · 三个分支",
+   "frameId": "238:10960",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7c",
+   "state": "插入变量",
+   "frameId": "238:11297",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7d",
+   "state": "插入变量 · 空",
+   "frameId": "238:11545",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7e",
+   "state": "弹窗预览 · 主题开始",
+   "frameId": "238:11777",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7f",
+   "state": "弹窗预览 · 章节开始",
+   "frameId": "238:11850",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7g",
+   "state": "弹窗预览 · 章节结束",
+   "frameId": "238:11923",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7h",
+   "state": "弹窗预览 · 玩法开始",
+   "frameId": "238:11999",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7i",
+   "state": "弹窗预览 · 玩法结束",
+   "frameId": "238:12075",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7j",
+   "state": "弹窗预览 · 分支选择",
+   "frameId": "238:12156",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B4.7k",
+   "state": "文字说明 · 自由探索节点",
+   "frameId": "238:12236",
+   "sectionId": "238:10350",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1a",
+   "state": "新建节点 · 未选地点",
+   "frameId": "238:19720",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1b",
+   "state": "已选地点",
+   "frameId": "238:20056",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1c",
+   "state": "已挂模板 · 共用模板 (full)",
+   "frameId": "238:20393",
+   "sectionId": "238:19719",
+   "height": 1170,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1c",
+   "state": "已挂模板 · 共用模板 · 首屏",
+   "frameId": "249:38453",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B5.1d",
+   "state": "编辑节点 · 已保存",
+   "frameId": "238:20772",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1e",
+   "state": "自由探索节点",
+   "frameId": "238:21136",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1f",
+   "state": "删除节点 · 确认",
+   "frameId": "238:21479",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1g",
+   "state": "完成报错 · 缺名称",
+   "frameId": "238:21851",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.1h",
+   "state": "地图选点",
+   "frameId": "238:22215",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.2a",
+   "state": "玩法模板 · 选择",
+   "frameId": "239:2948",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.2b",
+   "state": "玩法模板 · 空与失败",
+   "frameId": "238:22593",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.2c",
+   "state": "玩法模板 · 加载中",
+   "frameId": "238:22885",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.3a",
+   "state": "到达与引导 (full)",
+   "frameId": "239:3280",
+   "sectionId": "238:19719",
+   "height": 1192,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.3a",
+   "state": "到达与引导 · 首屏",
+   "frameId": "249:38831",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B5.3b",
+   "state": "到达与引导 · 报错",
+   "frameId": "239:3768",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.3c",
+   "state": "到达与引导 · 节点未保存",
+   "frameId": "239:4264",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.4a",
+   "state": "下一站 · 收起",
+   "frameId": "239:4607",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.4b",
+   "state": "下一站 · 展开规则 (full)",
+   "frameId": "239:5014",
+   "sectionId": "238:19719",
+   "height": 1331,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.4b",
+   "state": "下一站 · 展开规则 · 首屏",
+   "frameId": "249:39318",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B5.4c",
+   "state": "添加条件",
+   "frameId": "239:5505",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.4d",
+   "state": "添加效果",
+   "frameId": "239:5982",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.4e",
+   "state": "效果 · 拖动排序",
+   "frameId": "239:6450",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.4f",
+   "state": "条件组 · 效果编辑 · 报错",
+   "frameId": "239:6886",
+   "sectionId": "238:19719",
+   "height": 1079,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B5.4f",
+   "state": "条件组 · 效果编辑 · 报错 · 首屏",
+   "frameId": "249:39808",
+   "sectionId": "238:19719",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B6a",
+   "state": "城市定向 · 编辑章节 (full)",
+   "frameId": "239:24873",
+   "sectionId": "239:24872",
+   "height": 1962,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6a",
+   "state": "城市定向 · 编辑章节 · 首屏",
+   "frameId": "249:40292",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B6b",
+   "state": "自由探索 · 商家承接 (full)",
+   "frameId": "239:25247",
+   "sectionId": "239:24872",
+   "height": 1229,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6b",
+   "state": "自由探索 · 商家承接 · 首屏",
+   "frameId": "249:40665",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B6c",
+   "state": "结局章",
+   "frameId": "239:25461",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6d",
+   "state": "序章 · 开场视频",
+   "frameId": "239:25642",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6e",
+   "state": "添加章节 · 空",
+   "frameId": "239:25811",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6f",
+   "state": "名称报错 · 配给不可用",
+   "frameId": "239:26091",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6g",
+   "state": "故事流 → 下一步 → 编辑章节",
+   "frameId": "239:26351",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6h",
+   "state": "保存后 · 还差一步",
+   "frameId": "239:26778",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6i",
+   "state": "删除章节 · 确认",
+   "frameId": "239:27044",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B6j",
+   "state": "完成要求 · 下拉",
+   "frameId": "239:27314",
+   "sectionId": "239:24872",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7a",
+   "state": "主题详情 · 全部 (full)",
+   "frameId": "239:31923",
+   "sectionId": "239:31922",
+   "height": 3123,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7a",
+   "state": "主题详情 · 全部 · 首屏",
+   "frameId": "249:40880",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7b",
+   "state": "主题详情 · 新主题 · 必填未完成",
+   "frameId": "239:32500",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7c",
+   "state": "通关条件报错 · 旧版配置",
+   "frameId": "239:32749",
+   "sectionId": "239:31922",
+   "height": 2420,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7c",
+   "state": "通关条件报错 · 旧版配置 · 首屏",
+   "frameId": "249:41456",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7d",
+   "state": "清空本地草稿 · 确认",
+   "frameId": "239:33192",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7e1",
+   "state": "文本编辑 · 主题名称",
+   "frameId": "239:33463",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7e2",
+   "state": "文本编辑 · 主题描述",
+   "frameId": "239:33587",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7e3",
+   "state": "文本编辑 · 剧情详情",
+   "frameId": "239:33711",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7f",
+   "state": "可玩时段 · 自定义",
+   "frameId": "239:33835",
+   "sectionId": "239:31922",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.2a",
+   "state": "画面风格 · 纸本 (full)",
+   "frameId": "241:1680",
+   "sectionId": "241:1679",
+   "height": 994,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.2a",
+   "state": "画面风格 · 纸本 · 首屏",
+   "frameId": "249:41900",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.2b",
+   "state": "画面风格 · 末世 · 每章时间 (full)",
+   "frameId": "241:2059",
+   "sectionId": "241:1679",
+   "height": 1280,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.2b",
+   "state": "画面风格 · 末世 · 每章时间 · 首屏",
+   "frameId": "249:42278",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.2c",
+   "state": "画面风格 · 星尘",
+   "frameId": "241:2475",
+   "sectionId": "241:1679",
+   "height": 994,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.2c",
+   "state": "画面风格 · 星尘 · 首屏",
+   "frameId": "249:42693",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.2d",
+   "state": "画面风格 · 夜城",
+   "frameId": "241:2854",
+   "sectionId": "241:1679",
+   "height": 994,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.2d",
+   "state": "画面风格 · 夜城 · 首屏",
+   "frameId": "249:43071",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.2e",
+   "state": "风格预览 · look-preview",
+   "frameId": "241:3231",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.3a",
+   "state": "伏笔",
+   "frameId": "241:3540",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.3b",
+   "state": "伏笔 · 旧配置与报错",
+   "frameId": "241:3821",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.4",
+   "state": "自定义数值 · 体力",
+   "frameId": "241:4114",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.5a",
+   "state": "归零后 · 完成恢复挑战 (full)",
+   "frameId": "242:1967",
+   "sectionId": "241:1679",
+   "height": 857,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.5b",
+   "state": "归零后 · 走够步数",
+   "frameId": "242:2287",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.5c",
+   "state": "归零后 · 等待一段时间",
+   "frameId": "242:2589",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.5d",
+   "state": "归零后 · 主题失败",
+   "frameId": "242:2890",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.5e",
+   "state": "归零后 · 下拉",
+   "frameId": "242:3169",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.6a",
+   "state": "进行方式",
+   "frameId": "242:3471",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.6b",
+   "state": "运行结局",
+   "frameId": "242:3777",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.7a",
+   "state": "休整 · 配给 · 设施 · 结果卡 (full)",
+   "frameId": "242:4102",
+   "sectionId": "241:1679",
+   "height": 1077,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.7a",
+   "state": "休整 · 配给 · 设施 · 结果卡 · 首屏",
+   "frameId": "249:43447",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.7b",
+   "state": "休整与救助 · 条目",
+   "frameId": "242:4500",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.7c",
+   "state": "幕配给 · 条目",
+   "frameId": "242:4824",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.7d",
+   "state": "设施 · 条目 (full)",
+   "frameId": "242:5141",
+   "sectionId": "241:1679",
+   "height": 1104,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.7d",
+   "state": "设施 · 条目 · 首屏",
+   "frameId": "249:43844",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.7e",
+   "state": "设施 · 无条件",
+   "frameId": "242:5534",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.8a",
+   "state": "d20 与角色设定 (full)",
+   "frameId": "243:5502",
+   "sectionId": "241:1679",
+   "height": 1206,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.8a",
+   "state": "d20 与角色设定 · 首屏",
+   "frameId": "249:44236",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.8b",
+   "state": "更多规则 · 进度钟与特质",
+   "frameId": "243:5918",
+   "sectionId": "241:1679",
+   "height": 994,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.8b",
+   "state": "更多规则 · 进度钟与特质 · 首屏",
+   "frameId": "249:44651",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.9a",
+   "state": "开局前准备",
+   "frameId": "243:6286",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.9b",
+   "state": "主题通关奖励",
+   "frameId": "243:6646",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.9b2",
+   "state": "→ 优惠券选择（叠放）",
+   "frameId": "243:6962",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.9c",
+   "state": "宾果九宫格",
+   "frameId": "243:7267",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.9c2",
+   "state": "编辑格子",
+   "frameId": "243:7558",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.10",
+   "state": "背包 (full)",
+   "frameId": "243:7832",
+   "sectionId": "241:1679",
+   "height": 1026,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.10",
+   "state": "背包 · 首屏",
+   "frameId": "249:45018",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.11",
+   "state": "途中彩蛋 (full)",
+   "frameId": "243:8206",
+   "sectionId": "241:1679",
+   "height": 1320,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.11",
+   "state": "途中彩蛋 · 首屏",
+   "frameId": "249:45391",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.12a",
+   "state": "初始状态 (full)",
+   "frameId": "243:8571",
+   "sectionId": "241:1679",
+   "height": 952,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.12a",
+   "state": "初始状态 · 首屏",
+   "frameId": "249:45755",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B7.12b",
+   "state": "开局带着 · 添加",
+   "frameId": "243:8923",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.13a",
+   "state": "线索与物品",
+   "frameId": "243:9240",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B7.13b",
+   "state": "线索与物品 · 失败与只读",
+   "frameId": "243:9590",
+   "sectionId": "241:1679",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8a",
+   "state": "票务设置 · 城市定向 (full)",
+   "frameId": "246:5536",
+   "sectionId": "246:5535",
+   "height": 1011,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8a",
+   "state": "票务设置 · 城市定向 · 首屏",
+   "frameId": "249:46117",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B8b",
+   "state": "支持组队",
+   "frameId": "246:5687",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8c",
+   "state": "票种编辑器 · 城市定向 (full)",
+   "frameId": "246:5882",
+   "sectionId": "246:5535",
+   "height": 2043,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8c",
+   "state": "票种编辑器 · 城市定向 · 首屏",
+   "frameId": "249:46267",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B8d",
+   "state": "票种编辑器 · 自由探索 (full)",
+   "frameId": "246:6169",
+   "sectionId": "246:5535",
+   "height": 1762,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8d",
+   "state": "票种编辑器 · 自由探索 · 首屏",
+   "frameId": "249:46553",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B8e",
+   "state": "俱乐部 · 商家招商",
+   "frameId": "246:6396",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8f",
+   "state": "未填项 · 实名 (full)",
+   "frameId": "246:6568",
+   "sectionId": "246:5535",
+   "height": 1292,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8f",
+   "state": "未填项 · 实名 · 首屏",
+   "frameId": "249:46779",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B8g",
+   "state": "选择开始时间",
+   "frameId": "246:6728",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8h",
+   "state": "选择集合时间 · 报错",
+   "frameId": "246:6908",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8i",
+   "state": "票种报错 (full)",
+   "frameId": "246:7094",
+   "sectionId": "246:5535",
+   "height": 2007,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B8i",
+   "state": "票种报错 · 首屏",
+   "frameId": "249:46938",
+   "sectionId": "246:5535",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B9.1a",
+   "state": "剧情预览 · 可发布 (full)",
+   "frameId": "249:16472",
+   "sectionId": "249:16471",
+   "height": 2557,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.1a",
+   "state": "剧情预览 · 可发布 · 首屏",
+   "frameId": "249:47215",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": true
+  },
+  {
+   "item": "B9.1b",
+   "state": "剧情预览 · 有阻断",
+   "frameId": "249:16773",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.1c",
+   "state": "剧情预览 · 仅建议",
+   "frameId": "249:17076",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.1d",
+   "state": "阅读剧情",
+   "frameId": "249:17369",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.1e",
+   "state": "安全预检中",
+   "frameId": "249:17706",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.1f",
+   "state": "预检跳过 · 继续",
+   "frameId": "249:17998",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.1g",
+   "state": "发布前提示",
+   "frameId": "249:18299",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.1h",
+   "state": "发布确认 · J7",
+   "frameId": "249:18596",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.3a",
+   "state": "草稿已保存到云端",
+   "frameId": "249:18913",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.3b",
+   "state": "已提交审核",
+   "frameId": "249:19029",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.3c",
+   "state": "城市路线已发布",
+   "frameId": "249:19340",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.3d",
+   "state": "已发布 · 修改仍在本机",
+   "frameId": "249:19653",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.3e",
+   "state": "审核未通过",
+   "frameId": "249:19962",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.3f",
+   "state": "这次还没有发布出去",
+   "frameId": "249:20272",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.3g",
+   "state": "发布结果待确认",
+   "frameId": "249:20582",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B9.4",
+   "state": "保存草稿 · 需先命名",
+   "frameId": "249:32506",
+   "sectionId": "249:16471",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.1a",
+   "state": "发布入口 · 玩家",
+   "frameId": "249:32604",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.1b",
+   "state": "发布入口 · 俱乐部主理人",
+   "frameId": "249:32735",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.1c",
+   "state": "发布入口 · 商家",
+   "frameId": "249:32865",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.2",
+   "state": "俱乐部发布 · 发布什么",
+   "frameId": "249:32995",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.3a",
+   "state": "选择奖励 · 体验卡 · 空",
+   "frameId": "249:33124",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.3b",
+   "state": "新建优惠券",
+   "frameId": "249:33404",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.4",
+   "state": "地点待办",
+   "frameId": "249:33706",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.5a",
+   "state": "AI 助写 · 展开",
+   "frameId": "249:33879",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.5b",
+   "state": "AI 助写 · 生成中",
+   "frameId": "249:34151",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.5c",
+   "state": "AI 助写 · 已生成",
+   "frameId": "249:34423",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.5d",
+   "state": "AI 助写 · 失败",
+   "frameId": "249:34699",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.5e",
+   "state": "AI 助写 · 次数用完",
+   "frameId": "249:34974",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.6a",
+   "state": "选择合作者",
+   "frameId": "249:35244",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.6b",
+   "state": "选择合作者 · 加载与失败",
+   "frameId": "249:35539",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  },
+  {
+   "item": "B10.7",
+   "state": "章节闸 · 预览",
+   "frameId": "249:35825",
+   "sectionId": "249:32603",
+   "height": 852,
+   "firstScreenCompanion": false
+  }
+ ]
+}

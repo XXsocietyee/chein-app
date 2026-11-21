@@ -1,0 +1,728 @@
+{
+ "group": "Part A · A0–A4 (temp 节点玩法模板编辑)",
+ "file": "0YyoybGnU1KG0657wdGCPX",
+ "page": "235:178 C2 玩法配置 · 模板编辑",
+ "sections": {
+  "K 编辑器组件": "236:15762 (C2/Input 236:15775, C2/Dropdown 236:15792, C2/Switch 236:15797, C2/Drag Handle 236:15798, C2/Sheet Header (TE) 236:15806)",
+  "A1 页面状态": "237:29522",
+  "A2 编辑器主体": "237:29523",
+  "A3 选择玩法": "237:71932",
+  "A4 问答": "238:16388",
+  "A4 推理": "239:19530",
+  "A4 互动": "239:22274"
+ },
+ "frameCount": 117,
+ "notes": [
+  "Light MP mode (MP-Light 81:1), A0 tokens from owner legend 5375:13150; all colours bound to MP variables; local components on the page (K section).",
+  "Owner answers applied: TE sheet header (grey ✕ + black 完成) Q2; drag handles on every list editor Q8; media URL fields drawn as upload slots (camera/photos/files) Q4; 判断/揭晓式猜图/碎片拼图/刮刮卡 drawn as full types with fields from backend feature/game-types (f9e107746) Q3; Apple Health wording for 计步 Q7 (picker line).",
+  "Split per coordinator msg_018600fd7dfc: A4 挑战 family (A4.24–A4.34), participation/legacy (A4.35–A4.36) and the G4 传感器挑战 card are drawn by the design lead, not here. The 挑战 tags (incl. 传感器挑战) appear only in the A3 picker.",
+  "A1.3 load-failed access is the existing restored frame 94:4659 / twin 171:6655 (not redrawn). A1.11 saved result sheets are A12 (not in A0–A4).",
+  "Sample data where no capture exists: seeded template 老城钟楼暗号挑战 and chapters; category chips 城市漫游/解谜; sign-in button label 去登录; 找东西 empty-scene text adapted to the upload slot.",
+  "Notes per frame are in frame annotations.",
+  "My A3/A4 sections were restacked (y 30399–43918) to clear the A5/A6 sections another executor placed while mine were growing."
+ ],
+ "frames": [
+  {
+   "item": "A1.1 未登录",
+   "frameId": "237:59761",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.2 加载中",
+   "frameId": "237:59795",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.4 加载失败 · 网络",
+   "frameId": "237:59829",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.4 加载失败 · 格式异常",
+   "frameId": "237:59864",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.4 加载失败 · 未加载",
+   "frameId": "237:59899",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.5 采用尚未确认",
+   "frameId": "237:59934",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.8 读取玩法支持范围中",
+   "frameId": "237:59972",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.8 玩法支持信息未加载",
+   "frameId": "237:60429",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.9 校验错误 · 标题/看点/类别",
+   "frameId": "237:60884",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.9 校验错误 · 看点超长",
+   "frameId": "237:61028",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.9 校验错误 · 未选玩法",
+   "frameId": "237:61483",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.9 校验错误 · 玩法设置",
+   "frameId": "237:61597",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.10 玩法没有保存成功 · 主题节点",
+   "frameId": "237:62048",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.10 草稿没有保存成功",
+   "frameId": "237:62464",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.10 玩法没有发布成功",
+   "frameId": "237:62926",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.12 离开 · 放弃未保存",
+   "frameId": "237:63388",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.13 只读个人模板",
+   "frameId": "237:63852",
+   "section": "A1 页面状态 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.6 新建 · 未选玩法 · full",
+   "frameId": "237:43424",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 1501
+  },
+  {
+   "item": "A1.6 新建 · 未选玩法",
+   "frameId": "237:43565",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.7 选项问答 · 已填 · full",
+   "frameId": "237:43689",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 4940
+  },
+  {
+   "item": "A1.7 选项问答 · 已填",
+   "frameId": "237:44143",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.7 选项问答 · 滚到玩法设置",
+   "frameId": "237:44507",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.7 选项问答 · 滚到结果反馈",
+   "frameId": "237:44871",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A1.7 选项问答 · 滚到完成奖励",
+   "frameId": "237:45235",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2 from=fabu · 主题节点进入 · full",
+   "frameId": "237:45599",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 4574
+  },
+  {
+   "item": "A2 from=fabu · 主题节点进入",
+   "frameId": "237:46007",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2 from=citynode · 商家城市节点 · full",
+   "frameId": "237:46330",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 5016
+  },
+  {
+   "item": "A2 from=citynode · 玩法形态 下拉展开",
+   "frameId": "237:46789",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.5 参与方式 · 下拉展开",
+   "frameId": "237:47181",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.6 呈现方式 · 下拉展开",
+   "frameId": "237:47587",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.9 状态不好时松一点 · full",
+   "frameId": "237:47990",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 5064
+  },
+  {
+   "item": "A2.9 状态不好时松一点 · 下拉展开",
+   "frameId": "237:48454",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.5 扫码参与 · 扫完回复 文字 · full",
+   "frameId": "237:53447",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 5082
+  },
+  {
+   "item": "A2.5 扫码参与 · 扫完回复 文字",
+   "frameId": "237:53908",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.5 扫码参与 · 已存语音回复 · full",
+   "frameId": "237:54277",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 5038
+  },
+  {
+   "item": "A2.5 扫码参与 · 已存语音回复",
+   "frameId": "237:54742",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.2 原封面不可用 · 移除类别 · full",
+   "frameId": "237:55116",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 4940
+  },
+  {
+   "item": "A2.2 原封面不可用 · 移除类别",
+   "frameId": "237:55565",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.4 玩法规则 · 12 步上限 · full",
+   "frameId": "237:55926",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 5508
+  },
+  {
+   "item": "A2.4 玩法规则 · 12 步上限",
+   "frameId": "237:56530",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.10 按这份配置试玩 · 还要再填",
+   "frameId": "237:56966",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.19 模块全部移除 · full",
+   "frameId": "237:57337",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 1486
+  },
+  {
+   "item": "A2.19 模块全部移除",
+   "frameId": "237:57453",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A2.8/15 需要的资源 · 旧设置 · full",
+   "frameId": "237:57539",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 5267
+  },
+  {
+   "item": "A2.8/15 需要的资源 · 旧设置",
+   "frameId": "237:58011",
+   "section": "A2 编辑器主体 · 编辑玩法模板 · /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A3 问答 · 未选",
+   "frameId": "237:71933",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A3 问答 · full",
+   "frameId": "237:72185",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 929
+  },
+  {
+   "item": "A3 推理 · 已选排序",
+   "frameId": "237:72437",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A3 互动 · 已选翻卡",
+   "frameId": "237:72643",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A3 互动 · full",
+   "frameId": "237:72910",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 994
+  },
+  {
+   "item": "A3 挑战 · 已选 D20",
+   "frameId": "237:73177",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A3 挑战 · full",
+   "frameId": "237:73454",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 1058
+  },
+  {
+   "item": "A3 不可用 · 无承接商家 · 问答",
+   "frameId": "237:73731",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 944
+  },
+  {
+   "item": "A3 不可用 · 主题要求确认完成 · 挑战",
+   "frameId": "237:73983",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 1178
+  },
+  {
+   "item": "A3 不可用 · 归零挑战",
+   "frameId": "237:74256",
+   "section": "A3 选择玩法 · 弹层（A11.2）· /pages/publish/temp/index",
+   "height": 852
+  },
+  {
+   "item": "A4.1 文字问答",
+   "frameId": "238:16389",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 774
+  },
+  {
+   "item": "A4.1 文字问答 · 写法重复",
+   "frameId": "238:16459",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 746
+  },
+  {
+   "item": "A4.1 文字问答 · 题干附件（旧模板）",
+   "frameId": "238:16528",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 867
+  },
+  {
+   "item": "A4.2 逐字猜词",
+   "frameId": "238:16611",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 578
+  },
+  {
+   "item": "A4.2 逐字猜词 · 没留空格",
+   "frameId": "238:16676",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 601
+  },
+  {
+   "item": "A4.3 选项问答 · 单选",
+   "frameId": "238:16749",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 1826
+  },
+  {
+   "item": "A4.3 选项问答 · 多选",
+   "frameId": "238:16930",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 1971
+  },
+  {
+   "item": "A4.3 选项问答 · 不判对错（问卷）",
+   "frameId": "238:17139",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 1429
+  },
+  {
+   "item": "A4.4 人物指认",
+   "frameId": "238:17275",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 3191
+  },
+  {
+   "item": "A4.4 人物指认 · 校验错误",
+   "frameId": "238:17563",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 3242
+  },
+  {
+   "item": "A4.5 拍照打卡",
+   "frameId": "238:17853",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 451
+  },
+  {
+   "item": "A4.6 猜图",
+   "frameId": "238:23751",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 824
+  },
+  {
+   "item": "A4.6 猜图 · 两张都设为正确",
+   "frameId": "238:23850",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 852
+  },
+  {
+   "item": "A4.7 闭眼盲品",
+   "frameId": "238:23952",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 964
+  },
+  {
+   "item": "A4.8 预测",
+   "frameId": "238:24057",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 978
+  },
+  {
+   "item": "A4.8 预测 · 揭晓早于截止",
+   "frameId": "238:24147",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 1001
+  },
+  {
+   "item": "A4.8 预测 · 第几天揭晓 下拉",
+   "frameId": "238:24238",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 978
+  },
+  {
+   "item": "A4.9 拍照审核",
+   "frameId": "238:24355",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 690
+  },
+  {
+   "item": "A4.9 拍照审核 · 已设轮廓",
+   "frameId": "238:24406",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 751
+  },
+  {
+   "item": "A4.9 拍照审核 · 未写判定",
+   "frameId": "238:24466",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 713
+  },
+  {
+   "item": "A4.10 拍物成卡",
+   "frameId": "238:24518",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 830
+  },
+  {
+   "item": "G1 判断",
+   "frameId": "238:24583",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 898
+  },
+  {
+   "item": "G1 判断 · 未选答案",
+   "frameId": "238:24641",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 921
+  },
+  {
+   "item": "G5 揭晓式猜图",
+   "frameId": "238:24700",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 1143
+  },
+  {
+   "item": "G5 揭晓式猜图 · 未配图",
+   "frameId": "238:24806",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 1171
+  },
+  {
+   "item": "A4 再加一段题目 · 下拉展开",
+   "frameId": "238:24917",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 1826
+  },
+  {
+   "item": "A4 再加一段题目 · 已加一段",
+   "frameId": "238:25111",
+   "section": "A4 玩法设置卡 · 问答 family（A4.1–A4.10 · 判断 · 揭晓式猜图）",
+   "height": 2218
+  },
+  {
+   "item": "A4.11 排序",
+   "frameId": "239:19531",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 648
+  },
+  {
+   "item": "A4.11 排序 · 拖动中",
+   "frameId": "239:19592",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 594
+  },
+  {
+   "item": "A4.11 排序 · 至少 2 条",
+   "frameId": "239:19651",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 372
+  },
+  {
+   "item": "A4.12 连线",
+   "frameId": "239:19683",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 648
+  },
+  {
+   "item": "A4.12 连线 · 右侧缺项",
+   "frameId": "239:19759",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 620
+  },
+  {
+   "item": "A4.13 分类",
+   "frameId": "239:19834",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 952
+  },
+  {
+   "item": "A4.13 分类 · 条目未选类别",
+   "frameId": "239:19950",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 952
+  },
+  {
+   "item": "G2 碎片拼图",
+   "frameId": "239:20066",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 634
+  },
+  {
+   "item": "G2 碎片拼图 · 未配图",
+   "frameId": "239:20118",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 481
+  },
+  {
+   "item": "G2 碎片拼图 · 行数 下拉",
+   "frameId": "239:20166",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 634
+  },
+  {
+   "item": "A1.7 排序 · 已填 · full",
+   "frameId": "239:20236",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 3494
+  },
+  {
+   "item": "A1.7 排序 · 滚到玩法",
+   "frameId": "239:20526",
+   "section": "A4 玩法设置卡 · 推理 family（A4.11–A4.13 · 碎片拼图）",
+   "height": 852
+  },
+  {
+   "item": "A4.14 抛硬币",
+   "frameId": "239:22275",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 336
+  },
+  {
+   "item": "A4.15 掷骰子",
+   "frameId": "239:22303",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 618
+  },
+  {
+   "item": "A4.16 翻卡",
+   "frameId": "239:22352",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 979
+  },
+  {
+   "item": "A4.16 翻卡 · ID 重复",
+   "frameId": "239:22435",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 1007
+  },
+  {
+   "item": "G3 刮刮卡",
+   "frameId": "239:22519",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 671
+  },
+  {
+   "item": "G3 刮刮卡 · 未写揭晓内容",
+   "frameId": "239:22560",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 694
+  },
+  {
+   "item": "A4.17 猜数字",
+   "frameId": "239:22606",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 538
+  },
+  {
+   "item": "A4.17 猜数字 · 量程错误",
+   "frameId": "239:22654",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 566
+  },
+  {
+   "item": "A4.18 找东西 ① 没有场景图",
+   "frameId": "239:22703",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 1202
+  },
+  {
+   "item": "A4.18 找东西 ② 图 + 3 个点位",
+   "frameId": "239:22803",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 1280
+  },
+  {
+   "item": "A4.18 找东西 ③ 正在标第 3 个",
+   "frameId": "239:22904",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 1280
+  },
+  {
+   "item": "A4.18 找东西 ④ 两点挨太近",
+   "frameId": "239:23003",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 1312
+  },
+  {
+   "item": "A4.19 角色建档 · 打字答",
+   "frameId": "239:27826",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 796
+  },
+  {
+   "item": "A4.19 角色建档 · 选项答 + 咔哒",
+   "frameId": "239:27886",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 2100
+  },
+  {
+   "item": "A4.20 留言",
+   "frameId": "239:28076",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 829
+  },
+  {
+   "item": "A4.21 今日城市签",
+   "frameId": "239:28156",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 612
+  },
+  {
+   "item": "A4.22 相册",
+   "frameId": "239:28205",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 783
+  },
+  {
+   "item": "A4.22 相册 · 整页 · full",
+   "frameId": "239:28271",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 2413
+  },
+  {
+   "item": "A4.22 相册 · 滚到玩法",
+   "frameId": "239:28477",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 852
+  },
+  {
+   "item": "A4.23 九宫格 · 整页 · full",
+   "frameId": "239:28627",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 1901
+  },
+  {
+   "item": "A4.23 九宫格 · 滚到玩法",
+   "frameId": "239:28766",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 852
+  },
+  {
+   "item": "A1.7 翻卡 · 已填 · full",
+   "frameId": "239:30205",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 4085
+  },
+  {
+   "item": "A1.7 翻卡 · 滚到玩法设置",
+   "frameId": "239:30547",
+   "section": "A4 玩法设置卡 · 互动 family（A4.14–A4.23 · 刮刮卡）",
+   "height": 852
+  }
+ ]
+}

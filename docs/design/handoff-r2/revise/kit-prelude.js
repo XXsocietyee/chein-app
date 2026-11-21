@@ -1,0 +1,19 @@
+const page=await figma.getNodeByIdAsync('6:3'); await figma.setCurrentPageAsync(page);
+const V={}; for(const v of await figma.variables.getLocalVariablesAsync()) if(!V[v.name]) V[v.name]=v;
+const TS={}; for(const s of await figma.getLocalTextStylesAsync()) TS[s.name]=s;
+for(const s of ['Regular','Medium','Semibold','Bold']) await figma.loadFontAsync({family:'SF Pro',style:s});
+const P=(n,op)=>{ const p=figma.variables.setBoundVariableForPaint({type:'SOLID',color:{r:0,g:0,b:0}},'color',V[n]); return op!=null?{...p,opacity:op}:p; };
+const F=(n,k,op)=>{n.fills=k?[P(k,op)]:[]; return n;};
+const S=(n,k,w=1,dash)=>{n.strokes=[P(k)]; n.strokeWeight=w; n.strokeAlign='INSIDE'; if(dash) n.dashPattern=dash; return n;};
+const R=(n,k)=>{ if(typeof k==='number'){n.cornerRadius=k;} else for(const c of ['topLeftRadius','topRightRadius','bottomLeftRadius','bottomRightRadius']) n.setBoundVariable(c,V[k]); return n;};
+function AL(dir,name,o={}){ const f=figma.createAutoLayout(dir); f.name=name; f.fills=[]; if(o.gap!=null) f.itemSpacing=o.gap; if(o.pad){ const [t,r=t,b=t,l=r]=o.pad; f.paddingTop=t; f.paddingRight=r; f.paddingBottom=b; f.paddingLeft=l;} if(o.fill) F(f,o.fill,o.op); if(o.r!=null) R(f,o.r); f.counterAxisAlignItems=o.align||'CENTER'; if(o.justify) f.primaryAxisAlignItems=o.justify; return f; }
+function add(p,c,h,v){ p.appendChild(c); if(h) c.layoutSizingHorizontal=h; if(v) c.layoutSizingVertical=v; return c; }
+async function T(par,chars,style,color='ink',o={}){ const t=figma.createText(); if(par) par.appendChild(t); if(style) await t.setTextStyleIdAsync(TS[style].id); else { t.fontName={family:'SF Pro',style:o.w||'Regular'}; t.fontSize=o.size||14; if(o.lh) t.lineHeight={unit:'PIXELS',value:o.lh}; } t.characters=chars; F(t,color); t.name=o.name||'label'; if(o.fill&&par){ t.layoutSizingHorizontal='FILL'; t.textAutoResize='HEIGHT'; } if(o.align) t.textAlignHorizontal=o.align; if(o.trunc){ t.textTruncation='ENDING'; t.maxLines=1; } return t; }
+const ICON={}; for(const n of page.findAllWithCriteria({types:['COMPONENT']})) if(n.name.startsWith('Icon/')) ICON[n.name.slice(5)]=n;
+function I(par,name,size=20,color='ink',nm){ const i=ICON[name].createInstance(); if(par) par.appendChild(i); i.resize(size,size); const g=i.findOne(n=>n.type==='TEXT'); g.fontSize=Math.round(size*0.82); g.fills=[P(color)]; i.name=nm||('icon/'+name); return i; }
+function SP(par){ const s=figma.createFrame(); s.name='spacer'; s.fills=[]; par.appendChild(s); s.resize(1,1); s.layoutSizingHorizontal='FILL'; return s; }
+function hit(par,w=44,h=44,name='hit 44'){ const f=AL('HORIZONTAL',name,{justify:'CENTER'}); par.appendChild(f); f.resize(w,h); f.primaryAxisSizingMode='FIXED'; f.counterAxisSizingMode='FIXED'; return f; }
+function MK(frame){ return figma.createComponentFromNode(frame); }
+function SET(comps,name,desc,cols){ const s=figma.combineAsVariants(comps,SEC); s.name=name; s.description=desc||''; const g=24; let x=g,y=g,rowH=0,c=0; for(const v of s.children){ if(cols&&c===cols){ x=g; y+=rowH+g; rowH=0; c=0; } v.x=x; v.y=y; x+=v.width+g; rowH=Math.max(rowH,v.height); c++; } s.resizeWithoutConstraints(Math.max(...s.children.map(v=>v.x+v.width))+g, Math.max(...s.children.map(v=>v.y+v.height))+g); F(s,'bg'); s.cornerRadius=16; S(s,'sep',1,[6,4]); return s; }
+function PROP(owner,name,type,def,nodeName,field){ const key=owner.addComponentProperty(name,type,def); const kids=owner.type==='COMPONENT_SET'?owner.children:[owner]; for(const v of kids){ v.findAll(n=>n.name===nodeName&&!(()=>{let p=n.parent; while(p&&p!==v){ if(p.type==='INSTANCE') return true; p=p.parent;} return false;})()).forEach(n=>{ n.componentPropertyReferences={...(n.componentPropertyReferences||{}),[field]:key}; }); } return key; }
+let SEC=page.children.find(n=>n.type==='SECTION'&&n.name.startsWith('Editor · 编辑器组件'));

@@ -1,0 +1,2 @@
+function moveTo(n,target){ const a=n.absoluteBoundingBox, b=target.absoluteBoundingBox; n.x+=b.x-a.x; n.y+=b.y-a.y; }
+async function addLine(slotN){ const par=slotN.parent; for(const o of par.children.filter(c=>c.name==='Editor/Drop Line · 落点'&&Math.abs(c.y-(slotN.y+slotN.height/2-4))<2)) o.remove(); const d=(await byId('330:911')).createInstance(); par.appendChild(d); d.name='Editor/Drop Line · 落点'; if(par.layoutMode&&par.layoutMode!=='NONE') d.layoutPositioning='ABSOLUTE'; d.resize(slotN.width,8); d.x=slotN.x; d.y=Math.round(slotN.y+slotN.height/2-4); return d.id; }

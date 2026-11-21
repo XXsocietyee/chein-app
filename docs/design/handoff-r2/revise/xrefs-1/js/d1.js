@@ -1,0 +1,18 @@
+const out={};
+out.pages=figma.root.children.map(p=>p.name+' '+p.id);
+const cols=await figma.variables.getLocalVariableCollectionsAsync();
+out.cols=cols.map(c=>c.name+' '+c.id+' modes:'+c.modes.map(m=>m.name).join('/')+' n='+c.variableIds.length);
+const vars=await figma.variables.getLocalVariablesAsync();
+const mot=vars.filter(v=>/motion|spring|dur|stagger|ease/i.test(v.name));
+out.motion=mot.map(v=>{const c=cols.find(c=>c.id===v.variableCollectionId);return v.name+' '+v.id+' '+v.resolvedType+' ='+JSON.stringify(v.valuesByMode[c.modes[0].modeId])+' |'+(v.description||'').slice(0,60)});
+const sum=async(id,depth=2)=>{const n=await figma.getNodeByIdAsync(id); if(!n) return id+' MISSING'; const f=(n,d)=>{let s=n.type+' '+n.name.slice(0,40)+' '+n.id+' '+Math.round(n.width)+'x'+Math.round(n.height); if(n.type==='TEXT') s+=' «'+n.characters.slice(0,50)+'»'; if(n.type==='INSTANCE'){ const mc=n.mainComponent; s+=' <'+(mc&&mc.parent&&mc.parent.type==='COMPONENT_SET'?mc.parent.name+'|'+mc.name:mc&&mc.name)+'>'; } if(d>0&&'children' in n&&n.type!=='INSTANCE') return [s, n.children.slice(0,30).map(c=>f(c,d-1))]; return s;}; return f(n,depth);};
+out.board=await sum('402:647',1);
+out.spec=await sum('443:653',0);
+const ho=await figma.getNodeByIdAsync('445:2'); out.handoff=ho?ho.children.map(c=>c.type+' '+c.name.slice(0,50)+' '+c.id+' '+Math.round(c.width)+'x'+Math.round(c.height)):null;
+out.N22=await sum('204:26968',2);
+out.N38=await sum('204:34407',2);
+out.N18=await sum('204:26708',2);
+const cov=await figma.getNodeByIdAsync('381:993'); out.cover=cov?(cov.type+' '+cov.name+' '+('children' in cov?cov.children.map(c=>c.name+' '+c.id).join(' ; '):'')):null;
+const btn=await figma.getNodeByIdAsync('285:20238'); out.btn=btn?(btn.type+' '+btn.name+' '+(btn.type==='COMPONENT_SET'?JSON.stringify(Object.fromEntries(Object.entries(btn.componentPropertyDefinitions).map(([k,v])=>[k,v.type+(v.variantOptions?':'+v.variantOptions.join('/'):'')]))):'')):null;
+const deed=await figma.getNodeByIdAsync('381:1401'); out.deed=deed?JSON.stringify(Object.fromEntries(Object.entries(deed.componentPropertyDefinitions).map(([k,v])=>[k,v.type+(v.variantOptions?':'+v.variantOptions.join('/'):'')+(v.type==='INSTANCE_SWAP'?' def='+v.defaultValue:'')]))):null;
+return out;

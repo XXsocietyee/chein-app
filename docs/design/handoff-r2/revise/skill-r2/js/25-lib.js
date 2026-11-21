@@ -1,0 +1,12 @@
+// Batch 6b · Library · SR2-42 (Sheet photo binding + re-apply), SR2-47 (deprecations), SR2-48 (descriptions left)
+await goPage(LIB);
+{ const all=await figma.listAvailableFontsAsync(); for(const f of all){ if(/^(Noto Sans (JP|SC)|PingFang SC|Inter)$/.test(f.fontName.family)){ try{ await figma.loadFontAsync(f.fontName); }catch(e){} } } }
+const B=async(name,fn)=>{ try{ await fn(); R.info[name]=R.info[name]||'ok'; }catch(e){ R.warn.push(name+': '+String(e).slice(0,160)); } };
+await B('sheetPhoto',async()=>{ const d=await byId(DEED); const key=Object.keys(d.componentPropertyDefinitions).find(k=>k.split('#')[0]==='Photo'); let n=0; for(const v of d.children.filter(v=>/Size=Sheet/.test(v.name))){ const ph=v.findOne(x=>x.name==='photo'&&x.type==='INSTANCE'); if(ph&&key){ ph.componentPropertyReferences={mainComponent:key}; n++; } } R.info.bound=n;
+  const PH={'老麦咖啡馆':'435:4517','梧桐书店':'382:1063','武康大楼':'382:1055'}; let m=0; for(const pid of [N1,P]){ const pg=await byId(pid); await pg.loadAsync(); const ids=pg.findAllWithCriteria({types:['INSTANCE']}).filter(i=>i.name==='City/Deed Card'&&!i.id.includes(';')).map(i=>i.id); for(const id of ids){ const i=await byId(id); const mc=await i.getMainComponentAsync(); if(!mc||!/Size=Sheet/.test(mc.name)) continue; const p=i.componentProperties; const nm=(Object.entries(p).find(([k])=>k.startsWith('名称'))||[])[1]; const ph=nm&&PH[nm.value]; if(ph){ try{ setProps(i,{Photo:ph}); m++; }catch(e){} } } } R.info.sheetPhotos=m; });
+await B('deprecate',async()=>{ let s=0,c=0; for(const st of await figma.getLocalTextStylesAsync()){ if(/^MP\//.test(st.name)){ st.name='Deprecated/'+st.name; s++; } }
+  const n1=await byId(N1); await n1.loadAsync(); for(const k of n1.findAll(x=>(x.type==='COMPONENT'||x.type==='COMPONENT_SET')&&/^N1\/Icon\//.test(x.name))){ k.name='Deprecated/'+k.name; k.description='Deprecated (skill-r2 SR2-47): use the Library Icon/* set; kept only so old instances stay linked.'; c++; }
+  for(const k of figma.currentPage.findAll(x=>(x.type==='COMPONENT_SET'||(x.type==='COMPONENT'&&x.parent.type!=='COMPONENT_SET'))&&/^MP\/(Nav Bar|Button|Chip|Tag)$/.test(x.name))){ k.name='Deprecated/'+k.name; k.description='Deprecated (skill-r2 SR2-47): mini-program part. Final frames use Player/* or Merchant/*; only 还原 frames keep it.'; c++; }
+  R.info.deprecated=`styles ${s} · components ${c}`; });
+await shot(variant(await byId(DEED),{Size:'Sheet',State:'Protected'}),1.2);
+return R;

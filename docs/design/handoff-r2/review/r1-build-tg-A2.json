@@ -1,0 +1,762 @@
+{
+ "fileKey": "0YyoybGnU1KG0657wdGCPX",
+ "page": "235:178 C2 玩法配置 · 模板编辑",
+ "executor": "A2 · task_5d9157338074",
+ "date": "2026-11-15",
+ "scope": "Part A · A5–A13 and build list #46–#55",
+ "rulings": [
+  "Q2 TE sheet header: grey round ✕ + black 完成 pill on every sheet",
+  "Q4 media URL fields drawn as upload slots + source action sheet (A11.3k)",
+  "Q6 Chinese labels: 判失败/判过期, 用时/得分/完成数, 本场/本主题",
+  "Q7 订阅消息模板 ID removed from 时段限定",
+  "Q8 drag handles on every list-editor row + one lifted-row state per list (A5.3b, A6.7, A7.7)",
+  "积分 only; MP-Light tokens; neutral black selection; rpx/2 sizes from owner legend 5375:13150"
+ ],
+ "components": {
+  "section": "236:14482",
+  "TE/Switch": "236:14487",
+  "TE/Field": "236:14530",
+  "TE/Textarea": "236:14552",
+  "TE/Switch Row": "236:14553",
+  "TE/Sheet Header": "236:14559",
+  "TE/List Item Header": "236:14568",
+  "TE/Add Row": "236:14580",
+  "TE/Toast": "236:14582",
+  "TE/Editor Bottom Bar": "236:14584"
+ },
+ "sections": {
+  "A5": "237:14273",
+  "A6": "237:41065",
+  "A7": "237:49529",
+  "A8": "237:52776",
+  "A10": "237:64308",
+  "A11.3": "238:12378",
+  "A11": "238:15289",
+  "A12": "238:25434",
+  "A12-save": "239:20808",
+  "legacy": "239:23105"
+ },
+ "count": 120,
+ "frames": [
+  {
+   "item": "A5.1 结果反馈 · 默认（选项问答，两个开关都关）",
+   "frameId": "237:14274",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A5.2 结果反馈 · 成功/失败反馈展开 (full)",
+   "frameId": "237:14385",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A5.3 结果反馈 · 只看完成的玩法（拍照打卡）",
+   "frameId": "237:14540",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A5.4 每个结果单独回复 · 不可用（多选题）",
+   "frameId": "237:25477",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A5.5 效果作用于 · 下拉展开",
+   "frameId": "237:25577",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A5.6 效果作用于 · 已有投票工具时改动",
+   "frameId": "237:25689",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A11.4a 消耗与效果 · 收起",
+   "frameId": "237:25791",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A11.4b 消耗与效果 · 行展开（数量 / 增加·恢复到至少 / 删除）",
+   "frameId": "237:25961",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A11.4c 消耗与效果 · ＋添加消耗 展开",
+   "frameId": "237:32889",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A11.4d 添加效果 · 第二层",
+   "frameId": "237:33070",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A11.4e 结果之后 · 选「1893」之后（之后 展开）",
+   "frameId": "237:33216",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A11.4f 结果之后 · 完成校验报错",
+   "frameId": "237:33389",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A5.3 效果行 · 新样式 / 旧样式（卡片，用于角色建档、D20、A11.4）",
+   "frameId": "237:33571",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A5.3b 效果行 · 拖动排序中 + 已满 16 条",
+   "frameId": "237:33756",
+   "sectionId": "237:14273",
+   "buildList": "#46 A5 + A11.4"
+  },
+  {
+   "item": "A6.1 提示 · 关",
+   "frameId": "237:41066",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A6.2 提示 · 开 · 3 层（文字免费 / 图片 5 积分 / 答案 20 积分）",
+   "frameId": "237:41118",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A6.2 提示 · 开 · 3 层 (full)",
+   "frameId": "237:41284",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A6.3 提示 · 一层报错（图片未上传）",
+   "frameId": "237:41450",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A6.4 提示 · 类型下拉展开",
+   "frameId": "237:41616",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A6.5 提示 · 6 层已满 (full)",
+   "frameId": "237:41803",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A6.6 提示 · 免费次数 / 首字位置报错",
+   "frameId": "237:42051",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A6.7 提示 · 拖动排序（第 2 层抬起）",
+   "frameId": "237:42181",
+   "sectionId": "237:41065",
+   "buildList": "#47 A6.1"
+  },
+  {
+   "item": "A7.1 反馈分段 · 空",
+   "frameId": "237:49530",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A7.2 反馈分段 · 三段（第 1 段带 2 个选项）",
+   "frameId": "237:49589",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A7.2 反馈分段 · 三段 (full)",
+   "frameId": "237:49784",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A7.3 反馈分段 · 去向下拉展开",
+   "frameId": "237:49997",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A7.4 分支剧情（旧设置）· 旧模板 (full)",
+   "frameId": "237:50201",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A7.5 反馈分段 · 已满 50 段",
+   "frameId": "237:50422",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A7.6 反馈分段 · 选项已满 12 个",
+   "frameId": "237:50619",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A7.7 反馈分段 · 拖动排序（步骤 2 抬起）",
+   "frameId": "237:50816",
+   "sectionId": "237:49529",
+   "buildList": "#48 A7"
+  },
+  {
+   "item": "A8.1 完成奖励 · 全部关闭（发布校验报错）",
+   "frameId": "237:52777",
+   "sectionId": "237:52776",
+   "buildList": "#49 A8"
+  },
+  {
+   "item": "A8.2 完成奖励 · 优惠券 + 勋章（已填）",
+   "frameId": "237:52843",
+   "sectionId": "237:52776",
+   "buildList": "#49 A8"
+  },
+  {
+   "item": "A8.3 完成奖励 · 刚打开（未填）",
+   "frameId": "237:52934",
+   "sectionId": "237:52776",
+   "buildList": "#49 A8"
+  },
+  {
+   "item": "A8.4 完成奖励 · 勋章缺名称报错",
+   "frameId": "237:53023",
+   "sectionId": "237:52776",
+   "buildList": "#49 A8"
+  },
+  {
+   "item": "A8.5 完成奖励 · 勋章样式下拉",
+   "frameId": "237:53114",
+   "sectionId": "237:52776",
+   "buildList": "#49 A8"
+  },
+  {
+   "item": "A8.6 完成奖励 · 旧模板含文字反馈",
+   "frameId": "237:53214",
+   "sectionId": "237:52776",
+   "buildList": "#49 A8"
+  },
+  {
+   "item": "A8.7 选择奖励 sheet（共享奖励选择器 B10.3）",
+   "frameId": "237:53314",
+   "sectionId": "237:52776",
+   "buildList": "#49 A8"
+  },
+  {
+   "item": "A10.0 互动工具 · 已添加 6 项",
+   "frameId": "237:64309",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.0b 互动工具 · 投票 + 物资交换（旧模板）",
+   "frameId": "237:64443",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A11.8a 互动工具选择 · 已添加 4 项 + 点了不可用项",
+   "frameId": "237:64541",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A11.8b 互动工具选择 · 还没选主玩法",
+   "frameId": "237:64724",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.1a 费用 · 固定费用",
+   "frameId": "237:64911",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.1b 费用 · 任选一组（2 组）",
+   "frameId": "237:65131",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.1c 费用 · 新资源起名 + 报错",
+   "frameId": "237:65380",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.1a 费用 · 固定费用 (full)",
+   "frameId": "237:69114",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.1b 费用 · 任选一组（2 组） (full)",
+   "frameId": "237:69250",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.2a 奖励（掉落）· 固定奖励",
+   "frameId": "237:69390",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.2b 奖励 · 任选一组 + 报错",
+   "frameId": "237:69592",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.3a 线索",
+   "frameId": "237:69781",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.3b 线索 · 报错",
+   "frameId": "237:69968",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.4 成功使用次数",
+   "frameId": "237:70136",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.4b 成功使用次数 · 次数计算方式下拉",
+   "frameId": "237:70283",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.5 物资交换（旧模板）",
+   "frameId": "237:70439",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.6a 投票与投入",
+   "frameId": "237:70572",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.6a 投票与投入 (full)",
+   "frameId": "237:70859",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.6b 投票与投入 · 报错",
+   "frameId": "237:71146",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.7a 限时挑战 · 开",
+   "frameId": "237:74533",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.7b 限时挑战 · 超时结果下拉 + 时长报错",
+   "frameId": "237:74680",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.7c 限时挑战 · 此玩法不支持",
+   "frameId": "237:74836",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.8 时段限定 · 开（跨午夜）",
+   "frameId": "237:74963",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.9a 排行榜 · 开",
+   "frameId": "237:75125",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.9b 排行榜 · 排名依据下拉",
+   "frameId": "237:75280",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.9c 排行榜 · 排行范围下拉",
+   "frameId": "237:75447",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.10a 语音讲解 · 未上传",
+   "frameId": "237:75611",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.10b 语音讲解 · 已上传（播放中）",
+   "frameId": "237:75748",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.10c 语音讲解 · 报错 + 预听失败",
+   "frameId": "237:75890",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.11a 背景音乐 · 已上传",
+   "frameId": "237:76030",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A10.11b 背景音乐 · 未上传",
+   "frameId": "237:76180",
+   "sectionId": "237:64308",
+   "buildList": "#50 A10 + A11.8"
+  },
+  {
+   "item": "A2.5 参与方式 · 扫码参与 + 扫完回复（文字）",
+   "frameId": "238:12379",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A2.5b 参与方式 · 已存语音/图片/AR 回复",
+   "frameId": "238:12462",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A2.5c 参与方式 · 下拉展开",
+   "frameId": "238:12545",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3a 扫完回复 · 文字",
+   "frameId": "238:12643",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3b 扫码后回什么 · 下拉",
+   "frameId": "238:12725",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3c 扫完回复 · 语音（上传位）",
+   "frameId": "238:12826",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3d 扫完回复 · 图片（上传位）",
+   "frameId": "238:12912",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3e 显形 · 东西怎么出来 = 不开",
+   "frameId": "238:12993",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3f 显形 · 放在地上 + 待上传 3D 模型",
+   "frameId": "238:13091",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3g 显形 · 认一张图 + 已上传 3D 模型 (full)",
+   "frameId": "238:13194",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3h 显形 · 东西怎么出来 下拉",
+   "frameId": "238:13305",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3i 扫完回复 · 报错（显形缺叠加图 / 模型格式）",
+   "frameId": "238:13417",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3j 扫完回复 · 文字为空报错",
+   "frameId": "238:13523",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A11.3k 上传位 · 选择来源（Q4）",
+   "frameId": "238:13611",
+   "sectionId": "238:12378",
+   "buildList": "#51 A11.3"
+  },
+  {
+   "item": "A2.19 空模块状态（A11.1 入口）",
+   "frameId": "238:15290",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A2.3 模板信息（A11.6 / A11.7 入口）",
+   "frameId": "238:15346",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.1a 添加模块",
+   "frameId": "238:15426",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.1b 添加模块 · 全部已添加",
+   "frameId": "238:15498",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.6a 选择适用场所（商铺类型选择器）",
+   "frameId": "238:15554",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.6b 选择器 · 暂无可选项",
+   "frameId": "238:15632",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.6c 选择器 · 加载失败",
+   "frameId": "238:15688",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.7 玩法类别 · 多选（TE S31 样式）",
+   "frameId": "238:15744",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.7b 玩法类别 · 移除类别",
+   "frameId": "238:15824",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.5a 添加加值 · 种类列表",
+   "frameId": "238:15880",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.5b 添加加值 · 展开「数值」",
+   "frameId": "238:15942",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.5c 添加代价 · 展开「物资」",
+   "frameId": "238:16017",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.9 确认移除模块 · 玩法",
+   "frameId": "238:16088",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.9 确认移除模块 · 完成奖励",
+   "frameId": "238:16142",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A11.9 确认移除模块 · 剧情故事",
+   "frameId": "238:16196",
+   "sectionId": "238:15289",
+   "buildList": "#52 A11.1/A11.5/A11.6/A11.7/A11.9"
+  },
+  {
+   "item": "A12.1 预览 · 到达节点 1/5",
+   "frameId": "238:25435",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.2 预览 · 剧情解锁 2/5",
+   "frameId": "238:25485",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.3 预览 · 节点任务 3/5（内嵌故事流）",
+   "frameId": "238:25538",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.3b 预览 · 节点任务 · 判定成功",
+   "frameId": "238:25573",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.3c 预览 · 节点任务 · 判定失败",
+   "frameId": "238:25615",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.3d 预览 · 节点任务 · 旧方式简卡",
+   "frameId": "238:25654",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.4 预览 · 任务完成 4/5",
+   "frameId": "238:25709",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.5 预览 · 获得奖励 5/5",
+   "frameId": "238:25761",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.5b 预览 · 获得奖励 · 未配置奖励模块",
+   "frameId": "238:25821",
+   "sectionId": "238:25434",
+   "buildList": "#53 A12 preview"
+  },
+  {
+   "item": "A12.6 保存草稿 · 结果「模板草稿已保存」",
+   "frameId": "239:20809",
+   "sectionId": "239:20808",
+   "buildList": "#54 A12 save results (A1.11)"
+  },
+  {
+   "item": "A12.7 发布玩法 · 结果「节点玩法已发布」",
+   "frameId": "239:20874",
+   "sectionId": "239:20808",
+   "buildList": "#54 A12 save results (A1.11)"
+  },
+  {
+   "item": "A12.8 保存并绑定 · 结果「节点玩法已保存」（from=fabu）",
+   "frameId": "239:20944",
+   "sectionId": "239:20808",
+   "buildList": "#54 A12 save results (A1.11)"
+  },
+  {
+   "item": "A12.9 主题节点内保存草稿 · toast",
+   "frameId": "239:21014",
+   "sectionId": "239:20808",
+   "buildList": "#54 A12 save results (A1.11)"
+  },
+  {
+   "item": "A12.10 保存玩法 · toast「玩法已保存」（from=citynode）",
+   "frameId": "239:21070",
+   "sectionId": "239:20808",
+   "buildList": "#54 A12 save results (A1.11)"
+  },
+  {
+   "item": "A12.11 保存玩法 · 岗位无权限（from=citynode）",
+   "frameId": "239:21126",
+   "sectionId": "239:20808",
+   "buildList": "#54 A12 save results (A1.11)"
+  },
+  {
+   "item": "A4.36a 旧模板 · 文字题 + 旧提示 + 旧设置 (full)",
+   "frameId": "239:23106",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  },
+  {
+   "item": "A4.36b 旧模板 · 选项题（点圆圈设为正确答案）",
+   "frameId": "239:23200",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  },
+  {
+   "item": "A4.36c 旧模板 · 选项数量边界",
+   "frameId": "239:23321",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  },
+  {
+   "item": "A4.36d 旧模板 · 拍照要求 + 旧提示关",
+   "frameId": "239:23417",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  },
+  {
+   "item": "A4.36e 旧模板 · 偏好题配置",
+   "frameId": "239:23486",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  },
+  {
+   "item": "A9.1 剧情故事（旧模块）",
+   "frameId": "239:23552",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  },
+  {
+   "item": "A9.1 剧情故事 (full)",
+   "frameId": "239:23674",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  },
+  {
+   "item": "A9.2 剧情故事 · 第 6 张后再加图",
+   "frameId": "239:23796",
+   "sectionId": "239:23105",
+   "buildList": "#55 A4.36/A6.2/A9"
+  }
+ ]
+}

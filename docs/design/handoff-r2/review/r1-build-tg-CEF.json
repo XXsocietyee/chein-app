@@ -1,0 +1,822 @@
+{
+ "fileKey": "0YyoybGnU1KG0657wdGCPX",
+ "page": "235:13237 C3 发布·票务·模板·外部游戏",
+ "executor": "CEF (task_82e972d6ad12)",
+ "date": "2026-11-15",
+ "counts": {
+  "frames": 155,
+  "byPart": {
+   "C": 46,
+   "D": 20,
+   "E": 50,
+   "F": 35,
+   "G": 4
+  },
+  "specItemsCovered": 74
+ },
+ "sections": {
+  "C": "237:58979",
+  "D": "239:23977",
+  "E1": "241:6259",
+  "E2": "241:6372",
+  "E3": "243:25996",
+  "E4 preview": "246:2531",
+  "E4 detail": "246:2715",
+  "E5": "246:7459",
+  "F1 list": "247:16927",
+  "F1 detail": "247:17191",
+  "F2 app": "247:17368",
+  "G6": "249:36386",
+  "assets": "237:9072"
+ },
+ "notCoveredHere": {
+  "G1 判断 / G2 碎片拼图 / G3 刮刮卡 / G5 揭晓式猜图": "drawn by the Part A executor on page C2 (235:178), sections 238:16388, 239:19530, 239:22274 (config cards) and 237:71932 (picker)",
+  "G4 传感器挑战": "drawn by the Part A executor on C2, section 243:25477",
+  "B10.x shared pieces": "Part B"
+ },
+ "notes": [
+  "Restore-first from chengyinhub-xcx origin/integration/backend-app-r3 WXML/JS; where the spec and the code differ the code wins and the frame annotation says so (C3.3 grid without rating badge, ticket delete is the text 删除, E1.2 is a card skeleton, F1.1 rows have no icon, result sheet shows meta line startDate · N 个票种, E2.2 shelves only list the 25 art.GAMES titles).",
+  "Activity publish (C) and AI quick create (D) are MP-Light topic-editor look (TE S29/S31 sheet style); E/F are MP-Dark like their restored frames; E2.8 merchant variant is light with the code's merchant tab bar 工作台/营销/模板/发现/我的.",
+  "Long pages have a 393x852 first-screen frame plus a '· full' frame.",
+  "Images are the mini-program's own static assets (templatedetail art props/covers, route covers, avatars), uploaded once to the local asset section 237:9072; no private screenshots were used.",
+  "F2.11 follows owner Q5: creator price kept (TEST only), traffic reward 积分 only — TEST 现金 option and TEST 流量现金 row not drawn.",
+  "Sample values (no capture) are marked in each frame annotation."
+ ],
+ "frames": [
+  {
+   "item": "C2.1",
+   "state": "未登录",
+   "frameId": "237:58981"
+  },
+  {
+   "item": "C2.2",
+   "state": "校验身份中",
+   "frameId": "237:59056"
+  },
+  {
+   "item": "C2.3",
+   "state": "身份校验失败",
+   "frameId": "237:59132"
+  },
+  {
+   "item": "C2.4",
+   "state": "无权发布 · 俱乐部",
+   "frameId": "237:59207"
+  },
+  {
+   "item": "C2.4",
+   "state": "无权发布 · 店员",
+   "frameId": "237:59281"
+  },
+  {
+   "item": "C2.5",
+   "state": "活动加载失败（编辑）",
+   "frameId": "237:59355"
+  },
+  {
+   "item": "C2.7",
+   "state": "第1步 · 已填写",
+   "frameId": "237:59431"
+  },
+  {
+   "item": "C2.8",
+   "state": "第1步 · 校验错误",
+   "frameId": "237:59532"
+  },
+  {
+   "item": "C2.9",
+   "state": "第1步 · 已售出锁定",
+   "frameId": "237:59657"
+  },
+  {
+   "item": "C2.11",
+   "state": "第2步 · 已填写",
+   "frameId": "238:14231"
+  },
+  {
+   "item": "C2.11",
+   "state": "第2步 · 封面上传中",
+   "frameId": "238:14318"
+  },
+  {
+   "item": "C2.11",
+   "state": "第2步 · 封面上传失败",
+   "frameId": "238:14405"
+  },
+  {
+   "item": "C2.11",
+   "state": "第2步 · 校验错误",
+   "frameId": "238:14501"
+  },
+  {
+   "item": "C2.13",
+   "state": "第3步 · 两种票单 + 合作者",
+   "frameId": "238:14596"
+  },
+  {
+   "item": "C2.13",
+   "state": "第3步 · 两种票单 + 合作者 · full",
+   "frameId": "238:14747"
+  },
+  {
+   "item": "C2.14",
+   "state": "第3步 · 校验错误",
+   "frameId": "238:14857"
+  },
+  {
+   "item": "C2.14",
+   "state": "第3步 · 校验错误 · full",
+   "frameId": "238:14996"
+  },
+  {
+   "item": "C2.15",
+   "state": "第3步 · 发布者实名（待填写）",
+   "frameId": "238:17887"
+  },
+  {
+   "item": "C2.15",
+   "state": "第3步 · 发布者实名（待填写） · full",
+   "frameId": "238:18023"
+  },
+  {
+   "item": "C2.15",
+   "state": "第3步 · 发布者实名（已登记）",
+   "frameId": "238:18118"
+  },
+  {
+   "item": "C2.15",
+   "state": "第3步 · 发布者实名（已登记） · full",
+   "frameId": "238:18242"
+  },
+  {
+   "item": "C2.16",
+   "state": "编辑模式 · 修改摘要",
+   "frameId": "238:18325"
+  },
+  {
+   "item": "C2.16",
+   "state": "编辑模式 · 修改摘要 · full",
+   "frameId": "238:18475"
+  },
+  {
+   "item": "C2.17",
+   "state": "提交失败 · 新建",
+   "frameId": "238:18584"
+  },
+  {
+   "item": "C2.17",
+   "state": "提交失败 · 新建 · full",
+   "frameId": "238:18736"
+  },
+  {
+   "item": "C2.17",
+   "state": "提交失败 · 编辑（结果未知）",
+   "frameId": "238:18847"
+  },
+  {
+   "item": "C2.17",
+   "state": "提交失败 · 编辑（结果未知） · full",
+   "frameId": "238:19000"
+  },
+  {
+   "item": "C2.18",
+   "state": "发布成功 · 结果面板",
+   "frameId": "238:19113"
+  },
+  {
+   "item": "C2.18",
+   "state": "保存成功 · 编辑",
+   "frameId": "238:19278"
+  },
+  {
+   "item": "C2.19",
+   "state": "离开确认 · 新建",
+   "frameId": "238:19444"
+  },
+  {
+   "item": "C2.19",
+   "state": "离开确认 · 编辑",
+   "frameId": "238:19557"
+  },
+  {
+   "item": "C3.1",
+   "state": "设置活动时间 · 开始",
+   "frameId": "239:625"
+  },
+  {
+   "item": "C3.1",
+   "state": "设置活动时间 · 结束",
+   "frameId": "239:771"
+  },
+  {
+   "item": "C3.2",
+   "state": "活动类型 · 多选",
+   "frameId": "239:919"
+  },
+  {
+   "item": "C3.2",
+   "state": "活动类型 · 加载中",
+   "frameId": "239:1084"
+  },
+  {
+   "item": "C3.2",
+   "state": "活动类型 · 加载失败",
+   "frameId": "239:1210"
+  },
+  {
+   "item": "C3.3",
+   "state": "我的模板 · 已选一个",
+   "frameId": "239:1333"
+  },
+  {
+   "item": "C3.3",
+   "state": "我的模板 · 加载中",
+   "frameId": "239:1509"
+  },
+  {
+   "item": "C3.3",
+   "state": "我的模板 · 加载失败",
+   "frameId": "239:1632"
+  },
+  {
+   "item": "C3.3",
+   "state": "我的模板 · 空",
+   "frameId": "239:1749"
+  },
+  {
+   "item": "C3.4",
+   "state": "选择合作者 · 列表",
+   "frameId": "239:21290"
+  },
+  {
+   "item": "C3.4",
+   "state": "选择合作者 · 加载中",
+   "frameId": "239:21462"
+  },
+  {
+   "item": "C3.4",
+   "state": "选择合作者 · 加载失败",
+   "frameId": "239:21619"
+  },
+  {
+   "item": "C3.4",
+   "state": "选择合作者 · 空",
+   "frameId": "239:21768"
+  },
+  {
+   "item": "C3.4",
+   "state": "选择合作者 · 加载更多",
+   "frameId": "239:21916"
+  },
+  {
+   "item": "C3.4",
+   "state": "选择合作者 · 更多加载失败",
+   "frameId": "239:22084"
+  },
+  {
+   "item": "D1",
+   "state": "未登录",
+   "frameId": "239:23979"
+  },
+  {
+   "item": "D3",
+   "state": "已选标签 + 已输入",
+   "frameId": "239:24018"
+  },
+  {
+   "item": "D3",
+   "state": "空发送 toast",
+   "frameId": "239:24151"
+  },
+  {
+   "item": "D4",
+   "state": "生成中",
+   "frameId": "239:24276"
+  },
+  {
+   "item": "D5",
+   "state": "生成失败 · 可重试",
+   "frameId": "239:24415"
+  },
+  {
+   "item": "D5",
+   "state": "生成失败 · 原结果待确认",
+   "frameId": "239:24557"
+  },
+  {
+   "item": "D6",
+   "state": "今日额度已用完",
+   "frameId": "239:24700"
+  },
+  {
+   "item": "D7",
+   "state": "草稿卡（收起）",
+   "frameId": "239:28946"
+  },
+  {
+   "item": "D8",
+   "state": "逐站确认 · 未确认地点",
+   "frameId": "239:29100"
+  },
+  {
+   "item": "D8",
+   "state": "逐站确认 · 未确认地点 · full",
+   "frameId": "239:29304"
+  },
+  {
+   "item": "D8",
+   "state": "逐站确认 · 全部已确认",
+   "frameId": "239:29508"
+  },
+  {
+   "item": "D8",
+   "state": "逐站确认 · 全部已确认 · full",
+   "frameId": "239:29710"
+  },
+  {
+   "item": "D9",
+   "state": "恢复 · 结果待确认",
+   "frameId": "239:29913"
+  },
+  {
+   "item": "D9",
+   "state": "恢复 · 查找中",
+   "frameId": "239:30054"
+  },
+  {
+   "item": "D9",
+   "state": "恢复 · 结果待确认 · full",
+   "frameId": "239:30881"
+  },
+  {
+   "item": "D9",
+   "state": "恢复 · 查找中 · full",
+   "frameId": "239:31022"
+  },
+  {
+   "item": "D10",
+   "state": "选择原起草记录",
+   "frameId": "239:31173"
+  },
+  {
+   "item": "D10",
+   "state": "选择原起草记录 · 无历史",
+   "frameId": "239:31330"
+  },
+  {
+   "item": "D10",
+   "state": "本机保留记录 · 空",
+   "frameId": "239:31468"
+  },
+  {
+   "item": "D11",
+   "state": "另起一次 · 确认",
+   "frameId": "239:31606"
+  },
+  {
+   "item": "E1.2",
+   "state": "精选示例加载中",
+   "frameId": "241:6261"
+  },
+  {
+   "item": "E1.3",
+   "state": "精选示例加载失败",
+   "frameId": "241:6295"
+  },
+  {
+   "item": "E1.4",
+   "state": "创建页面没有打开",
+   "frameId": "241:6329"
+  },
+  {
+   "item": "E2.2",
+   "state": "玩法 tab",
+   "frameId": "241:6374"
+  },
+  {
+   "item": "E2.2",
+   "state": "玩法 tab · full",
+   "frameId": "241:6675"
+  },
+  {
+   "item": "E2.3",
+   "state": "玩法 · 分类「解谜」",
+   "frameId": "243:1807"
+  },
+  {
+   "item": "E2.3",
+   "state": "主题 · 分类「一小时内」",
+   "frameId": "243:1964"
+  },
+  {
+   "item": "E2.4",
+   "state": "全部分类 · 弹层",
+   "frameId": "243:2078"
+  },
+  {
+   "item": "E2.5",
+   "state": "加载中",
+   "frameId": "243:2575"
+  },
+  {
+   "item": "E2.6",
+   "state": "主题加载失败",
+   "frameId": "243:2671"
+  },
+  {
+   "item": "E2.6",
+   "state": "玩法加载失败",
+   "frameId": "243:2760"
+  },
+  {
+   "item": "E2.7",
+   "state": "主题为空",
+   "frameId": "243:2849"
+  },
+  {
+   "item": "E2.7",
+   "state": "玩法为空",
+   "frameId": "243:2937"
+  },
+  {
+   "item": "E2.8",
+   "state": "商家版 · 店主",
+   "frameId": "243:3025"
+  },
+  {
+   "item": "E2.8",
+   "state": "商家版 · 店员只读",
+   "frameId": "243:3137"
+  },
+  {
+   "item": "E2.9",
+   "state": "预览模板 · 点击提示",
+   "frameId": "243:3249"
+  },
+  {
+   "item": "E3.2",
+   "state": "能力 tab",
+   "frameId": "243:25998"
+  },
+  {
+   "item": "E3.3",
+   "state": "加载中",
+   "frameId": "243:26065"
+  },
+  {
+   "item": "E3.4",
+   "state": "加载失败",
+   "frameId": "243:26106"
+  },
+  {
+   "item": "E3.5",
+   "state": "链接失效",
+   "frameId": "243:26145"
+  },
+  {
+   "item": "E3.6",
+   "state": "文字作答",
+   "frameId": "243:26185"
+  },
+  {
+   "item": "E3.6",
+   "state": "选项作答",
+   "frameId": "243:26341"
+  },
+  {
+   "item": "E3.6",
+   "state": "其他验证方式",
+   "frameId": "243:26503"
+  },
+  {
+   "item": "E3.7",
+   "state": "我的模板 · 可编辑",
+   "frameId": "244:16367"
+  },
+  {
+   "item": "E3.7",
+   "state": "我的模板 · 可编辑 · full",
+   "frameId": "244:16510"
+  },
+  {
+   "item": "E3.7",
+   "state": "我的模板 · 仅查看",
+   "frameId": "244:16669"
+  },
+  {
+   "item": "E3.7",
+   "state": "我的模板 · 仅查看 · full",
+   "frameId": "244:16811"
+  },
+  {
+   "item": "E3.8",
+   "state": "官方发布",
+   "frameId": "244:16953"
+  },
+  {
+   "item": "E3.9",
+   "state": "简介展开 / 规则更多",
+   "frameId": "244:17097"
+  },
+  {
+   "item": "E4.2",
+   "state": "卡片翻面",
+   "frameId": "246:2533"
+  },
+  {
+   "item": "E4.3",
+   "state": "加载中",
+   "frameId": "246:2595"
+  },
+  {
+   "item": "E4.3",
+   "state": "加载失败",
+   "frameId": "246:2637"
+  },
+  {
+   "item": "E4.3",
+   "state": "缺少模板ID（拒绝）",
+   "frameId": "246:2676"
+  },
+  {
+   "item": "E4.5",
+   "state": "能力 tab",
+   "frameId": "246:2717"
+  },
+  {
+   "item": "E4.5",
+   "state": "能力 tab · full",
+   "frameId": "246:7367"
+  },
+  {
+   "item": "E4.6",
+   "state": "加载中",
+   "frameId": "246:2809"
+  },
+  {
+   "item": "E4.6",
+   "state": "加载失败",
+   "frameId": "246:2850"
+  },
+  {
+   "item": "E4.6",
+   "state": "链接失效（拒绝）",
+   "frameId": "246:2889"
+  },
+  {
+   "item": "E4.7",
+   "state": "应用 · 正在配置",
+   "frameId": "246:2928"
+  },
+  {
+   "item": "E4.7",
+   "state": "应用失败",
+   "frameId": "246:2996"
+  },
+  {
+   "item": "E4.7",
+   "state": "店员仅可浏览",
+   "frameId": "246:3064"
+  },
+  {
+   "item": "E5.2",
+   "state": "⋯ 菜单展开",
+   "frameId": "246:7461"
+  },
+  {
+   "item": "E5.3",
+   "state": "空",
+   "frameId": "246:7932"
+  },
+  {
+   "item": "E5.4",
+   "state": "加载中",
+   "frameId": "246:7964"
+  },
+  {
+   "item": "E5.5",
+   "state": "加载失败",
+   "frameId": "246:7989"
+  },
+  {
+   "item": "E5.6",
+   "state": "未登录",
+   "frameId": "246:8022"
+  },
+  {
+   "item": "E5.6",
+   "state": "无权查看",
+   "frameId": "246:8055"
+  },
+  {
+   "item": "E5.7",
+   "state": "加载更多",
+   "frameId": "246:8088"
+  },
+  {
+   "item": "E5.7",
+   "state": "正在加载更多",
+   "frameId": "246:8549"
+  },
+  {
+   "item": "E5.7",
+   "state": "更多加载失败",
+   "frameId": "246:9012"
+  },
+  {
+   "item": "F1.1",
+   "state": "列表 · 已到底",
+   "frameId": "247:16929"
+  },
+  {
+   "item": "F1.1",
+   "state": "列表 · 有更多",
+   "frameId": "247:16992"
+  },
+  {
+   "item": "F1.2",
+   "state": "加载中",
+   "frameId": "247:17055"
+  },
+  {
+   "item": "F1.2",
+   "state": "目录加载失败",
+   "frameId": "247:17110"
+  },
+  {
+   "item": "F1.2",
+   "state": "空",
+   "frameId": "247:17152"
+  },
+  {
+   "item": "F1.3",
+   "state": "详情",
+   "frameId": "247:17193"
+  },
+  {
+   "item": "F1.4",
+   "state": "加载中",
+   "frameId": "247:17250"
+  },
+  {
+   "item": "F1.4",
+   "state": "已下架或不存在",
+   "frameId": "247:17291"
+  },
+  {
+   "item": "F1.4",
+   "state": "详情加载失败",
+   "frameId": "247:17329"
+  },
+  {
+   "item": "F2.2",
+   "state": "游戏库 · 已导入",
+   "frameId": "247:17370"
+  },
+  {
+   "item": "F2.3",
+   "state": "导入菜单",
+   "frameId": "247:17427"
+  },
+  {
+   "item": "F2.3",
+   "state": "导入 · HTTPS 链接",
+   "frameId": "247:17464"
+  },
+  {
+   "item": "F2.3",
+   "state": "导入 · 二维码内容",
+   "frameId": "247:17512"
+  },
+  {
+   "item": "F2.4",
+   "state": "导入错误 · 签名",
+   "frameId": "247:17565"
+  },
+  {
+   "item": "F2.4",
+   "state": "导入错误 · 全部文案",
+   "frameId": "247:17619"
+  },
+  {
+   "item": "F2.5",
+   "state": "确认导入",
+   "frameId": "248:3258"
+  },
+  {
+   "item": "F2.5",
+   "state": "确认更新",
+   "frameId": "248:3357"
+  },
+  {
+   "item": "F2.5",
+   "state": "确认导入 · 离线无权限",
+   "frameId": "248:3448"
+  },
+  {
+   "item": "F2.6",
+   "state": "年龄分级",
+   "frameId": "248:3549"
+  },
+  {
+   "item": "F2.7",
+   "state": "运行中",
+   "frameId": "248:3589"
+  },
+  {
+   "item": "F2.7",
+   "state": "签名提交中",
+   "frameId": "248:3623"
+  },
+  {
+   "item": "F2.7",
+   "state": "结果已签名上报",
+   "frameId": "248:3658"
+  },
+  {
+   "item": "F2.7",
+   "state": "入口未通过校验",
+   "frameId": "248:3693"
+  },
+  {
+   "item": "F2.7",
+   "state": "不支持 WebKit",
+   "frameId": "248:3734"
+  },
+  {
+   "item": "F2.7",
+   "state": "⋯ 举报或屏蔽",
+   "frameId": "248:3775"
+  },
+  {
+   "item": "F2.8",
+   "state": "屏蔽确认",
+   "frameId": "248:3818"
+  },
+  {
+   "item": "F2.8",
+   "state": "举报",
+   "frameId": "248:3864"
+  },
+  {
+   "item": "F2.10",
+   "state": "我的提交 · 列表",
+   "frameId": "249:24548"
+  },
+  {
+   "item": "F2.10",
+   "state": "我的提交 · 加载失败",
+   "frameId": "249:24599"
+  },
+  {
+   "item": "F2.10",
+   "state": "我的提交 · 空",
+   "frameId": "249:24626"
+  },
+  {
+   "item": "F2.10",
+   "state": "我的提交 · 结果未知",
+   "frameId": "249:24653"
+  },
+  {
+   "item": "F2.11",
+   "state": "创作者变现 · 仅流量激励 · full",
+   "frameId": "249:24688"
+  },
+  {
+   "item": "F2.11",
+   "state": "创作者变现 · 付费购买 (TEST) · full",
+   "frameId": "249:24757"
+  },
+  {
+   "item": "F2.11",
+   "state": "创作者变现 · 仅流量激励",
+   "frameId": "249:36244"
+  },
+  {
+   "item": "F2.11",
+   "state": "创作者变现 · 付费购买 (TEST)",
+   "frameId": "249:36313"
+  },
+  {
+   "item": "G6",
+   "state": "问答 · 10 个",
+   "frameId": "249:36388"
+  },
+  {
+   "item": "G6",
+   "state": "推理 · 4 个",
+   "frameId": "249:36556"
+  },
+  {
+   "item": "G6",
+   "state": "互动 · 11 个",
+   "frameId": "249:37576"
+  },
+  {
+   "item": "G6",
+   "state": "挑战 · 12 个",
+   "frameId": "249:37739"
+  }
+ ]
+}

@@ -1,0 +1,1601 @@
+{
+ "group": "C · Merchant console",
+ "file": "0YyoybGnU1KG0657wdGCPX",
+ "page": "90:26 R4 小程序还原 · 商家",
+ "specItems": 225,
+ "screens": 28,
+ "frames": 259,
+ "framesPerScreen": {
+  "M01": 14,
+  "M02": 18,
+  "M03": 12,
+  "M04": 5,
+  "M05": 4,
+  "M06": 9,
+  "M07": 9,
+  "M08": 6,
+  "M09": 10,
+  "M10": 6,
+  "M11": 14,
+  "M12": 5,
+  "M13": 7,
+  "M14": 9,
+  "M15": 8,
+  "M16": 16,
+  "M17": 19,
+  "M18": 6,
+  "M19": 6,
+  "M20": 9,
+  "M21": 6,
+  "M22": 10,
+  "M23": 6,
+  "M24": 16,
+  "M25": 6,
+  "M26": 7,
+  "M27": 5,
+  "M28": 11
+ },
+ "notes": [
+  "All frames 393x852, light MP theme (MP-Light), placed in the route's existing R4 section, first row right of the last frame, 120 px gaps, label above each frame.",
+  "Overlays drawn over a clone of the route's restored/optimized frame with scrim + sheet/alert in one frame.",
+  "Images reuse hashes already in the file (store photo, project/topic cover, NPC avatar and intro art); only the 营业执照 thumbnail is a labelled light placeholder.",
+  "M02 status labels use INDEX row 103 (spec text said 104, which is the ledger row).",
+  "113 数据暂缺 is a clone of twin 182:8263 with the hero card replaced by the shell."
+ ],
+ "frames_list": [
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 入驻审核中",
+   "frameId": "218:1623",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 消息展开",
+   "frameId": "218:1688",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 消息看完",
+   "frameId": "218:1805",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 核销员",
+   "frameId": "218:1904",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 更多",
+   "frameId": "218:1993",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 选择章节",
+   "frameId": "218:2159",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 选择节点",
+   "frameId": "218:2299",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 核销成功",
+   "frameId": "218:2439",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 核销失败",
+   "frameId": "218:2577",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 待复核",
+   "frameId": "218:2707",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 登录",
+   "frameId": "218:2837",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 项目加载中",
+   "frameId": "218:2895",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 项目加载失败",
+   "frameId": "218:2997",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/index/index",
+   "state": "097 工作台加载失败",
+   "frameId": "218:3099",
+   "screen": "M01"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100a 首屏",
+   "frameId": "221:2200",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "103 提交成功",
+   "frameId": "221:2267",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "103 审核中",
+   "frameId": "221:2339",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "103 未通过",
+   "frameId": "221:2407",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "103 已通过",
+   "frameId": "221:2477",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 俱乐部移交",
+   "frameId": "221:2545",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 校验",
+   "frameId": "221:2615",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "101 校验",
+   "frameId": "221:2681",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "102 已上传",
+   "frameId": "221:2747",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 认领 · 搜索",
+   "frameId": "221:2830",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 认领 · 表单",
+   "frameId": "221:2905",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 认领 · 已提交",
+   "frameId": "221:2996",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 认领 · 被驳回",
+   "frameId": "221:3051",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 行业类型",
+   "frameId": "221:3108",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "101 设置经营时间",
+   "frameId": "221:3188",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 正在确认",
+   "frameId": "221:3279",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 登录",
+   "frameId": "221:3313",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/apply/index",
+   "state": "100 加载失败",
+   "frameId": "221:3348",
+   "screen": "M02"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 结算",
+   "frameId": "221:3406",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 项目动态",
+   "frameId": "221:3493",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 筛选",
+   "frameId": "221:3542",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 无财务权限",
+   "frameId": "221:3623",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 加载中",
+   "frameId": "221:3667",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 加载失败",
+   "frameId": "221:3735",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 空 · 核销",
+   "frameId": "221:3774",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 空 · 结算",
+   "frameId": "221:3819",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 空 · 项目动态",
+   "frameId": "221:3859",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 无权限",
+   "frameId": "221:3896",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 链接已失效",
+   "frameId": "221:3930",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/index",
+   "state": "104 正在更新",
+   "frameId": "221:3966",
+   "screen": "M03"
+  },
+  {
+   "route": "pages/merchant/ledger/order-detail/index",
+   "state": "105 加载中",
+   "frameId": "223:7648",
+   "screen": "M04"
+  },
+  {
+   "route": "pages/merchant/ledger/order-detail/index",
+   "state": "105 缺少参数",
+   "frameId": "223:7688",
+   "screen": "M04"
+  },
+  {
+   "route": "pages/merchant/ledger/order-detail/index",
+   "state": "105 记录不可见",
+   "frameId": "223:7724",
+   "screen": "M04"
+  },
+  {
+   "route": "pages/merchant/ledger/order-detail/index",
+   "state": "105 加载失败",
+   "frameId": "223:7760",
+   "screen": "M04"
+  },
+  {
+   "route": "pages/merchant/ledger/order-detail/index",
+   "state": "105 状态未更新",
+   "frameId": "223:7797",
+   "screen": "M04"
+  },
+  {
+   "route": "pages/merchant/ledger/batch-detail/index",
+   "state": "106 加载中",
+   "frameId": "223:7874",
+   "screen": "M05"
+  },
+  {
+   "route": "pages/merchant/ledger/batch-detail/index",
+   "state": "106 缺少参数",
+   "frameId": "223:7930",
+   "screen": "M05"
+  },
+  {
+   "route": "pages/merchant/ledger/batch-detail/index",
+   "state": "106 批次不可见",
+   "frameId": "223:7966",
+   "screen": "M05"
+  },
+  {
+   "route": "pages/merchant/ledger/batch-detail/index",
+   "state": "106 加载失败",
+   "frameId": "223:8002",
+   "screen": "M05"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 处理中",
+   "frameId": "223:8043",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 已完成",
+   "frameId": "223:8102",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 加载中",
+   "frameId": "223:8161",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 加载失败",
+   "frameId": "223:8217",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 无权限",
+   "frameId": "223:8255",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 空 · 待回应",
+   "frameId": "223:8289",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 空 · 处理中",
+   "frameId": "223:8337",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 空 · 已完成",
+   "frameId": "223:8385",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/index",
+   "state": "107 搜索无结果",
+   "frameId": "223:8433",
+   "screen": "M06"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 同意",
+   "frameId": "223:8522",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 不同意",
+   "frameId": "223:8672",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 补充凭证",
+   "frameId": "223:8822",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 确认",
+   "frameId": "223:8943",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 已处理",
+   "frameId": "223:9095",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 工单",
+   "frameId": "223:9166",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 加载中",
+   "frameId": "223:9219",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 加载失败",
+   "frameId": "223:9254",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/aftercare/detail/index",
+   "state": "109 无权限",
+   "frameId": "223:9291",
+   "screen": "M07"
+  },
+  {
+   "route": "pages/merchant/predict/index",
+   "state": "108 列表",
+   "frameId": "223:9334",
+   "screen": "M08"
+  },
+  {
+   "route": "pages/merchant/predict/index",
+   "state": "108 公布答案",
+   "frameId": "223:9389",
+   "screen": "M08"
+  },
+  {
+   "route": "pages/merchant/predict/index",
+   "state": "108 登录",
+   "frameId": "223:9427",
+   "screen": "M08"
+  },
+  {
+   "route": "pages/merchant/predict/index",
+   "state": "108 加载中",
+   "frameId": "223:9462",
+   "screen": "M08"
+  },
+  {
+   "route": "pages/merchant/predict/index",
+   "state": "108 加载失败",
+   "frameId": "223:9505",
+   "screen": "M08"
+  },
+  {
+   "route": "pages/merchant/predict/index",
+   "state": "108 无权限",
+   "frameId": "223:9542",
+   "screen": "M08"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 帖文",
+   "frameId": "223:9582",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 纠错 · 哪里不对",
+   "frameId": "223:9773",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 纠错 · 填写",
+   "frameId": "223:9945",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 纠错 · 已提交",
+   "frameId": "223:10111",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 纠错 · 未成功",
+   "frameId": "223:10265",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 纠错 · 结果未知",
+   "frameId": "223:10422",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 加载中",
+   "frameId": "223:10580",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 加载失败",
+   "frameId": "223:10620",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 链接已失效",
+   "frameId": "223:10657",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/profile/index",
+   "state": "110 不存在",
+   "frameId": "223:10693",
+   "screen": "M09"
+  },
+  {
+   "route": "pages/merchant/marketing/index",
+   "state": "111 登录",
+   "frameId": "223:10741",
+   "screen": "M10"
+  },
+  {
+   "route": "pages/merchant/marketing/index",
+   "state": "111 无权限",
+   "frameId": "223:10798",
+   "screen": "M10"
+  },
+  {
+   "route": "pages/merchant/marketing/index",
+   "state": "111 加载中",
+   "frameId": "223:10881",
+   "screen": "M10"
+  },
+  {
+   "route": "pages/merchant/marketing/index",
+   "state": "111 加载失败",
+   "frameId": "223:10948",
+   "screen": "M10"
+  },
+  {
+   "route": "pages/merchant/marketing/index",
+   "state": "111 空 · 内容",
+   "frameId": "223:11032",
+   "screen": "M10"
+  },
+  {
+   "route": "pages/merchant/marketing/index",
+   "state": "111 无优惠券",
+   "frameId": "223:11119",
+   "screen": "M10"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 写评价",
+   "frameId": "225:7412",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 暂不能评价",
+   "frameId": "225:7478",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 回复中",
+   "frameId": "225:7535",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 修改回复",
+   "frameId": "225:7596",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 举报",
+   "frameId": "225:7661",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 回复待确认",
+   "frameId": "225:7735",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 删除回复",
+   "frameId": "225:7801",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 加载中",
+   "frameId": "225:7872",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 无权限",
+   "frameId": "225:7908",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 登录",
+   "frameId": "225:7944",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 加载失败",
+   "frameId": "225:7979",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 信息不完整",
+   "frameId": "225:8016",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 空",
+   "frameId": "225:8052",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/reviews/index",
+   "state": "112 筛选无结果",
+   "frameId": "225:8089",
+   "screen": "M11"
+  },
+  {
+   "route": "pages/merchant/marketing/ai-insight/index",
+   "state": "113 推荐主题",
+   "frameId": "225:8155",
+   "screen": "M12"
+  },
+  {
+   "route": "pages/merchant/marketing/ai-insight/index",
+   "state": "113 数据暂缺",
+   "frameId": "225:8321",
+   "screen": "M12"
+  },
+  {
+   "route": "pages/merchant/marketing/ai-insight/index",
+   "state": "113 加载中",
+   "frameId": "225:8493",
+   "screen": "M12"
+  },
+  {
+   "route": "pages/merchant/marketing/ai-insight/index",
+   "state": "113 加载失败",
+   "frameId": "225:8533",
+   "screen": "M12"
+  },
+  {
+   "route": "pages/merchant/marketing/ai-insight/index",
+   "state": "113 无权限",
+   "frameId": "225:8570",
+   "screen": "M12"
+  },
+  {
+   "route": "pages/merchant/relation/index",
+   "state": "114 俱乐部",
+   "frameId": "225:8609",
+   "screen": "M13"
+  },
+  {
+   "route": "pages/merchant/relation/index",
+   "state": "114 发帖",
+   "frameId": "225:8697",
+   "screen": "M13"
+  },
+  {
+   "route": "pages/merchant/relation/index",
+   "state": "114 登录",
+   "frameId": "225:9360",
+   "screen": "M13"
+  },
+  {
+   "route": "pages/merchant/relation/index",
+   "state": "114 加载中",
+   "frameId": "225:9417",
+   "screen": "M13"
+  },
+  {
+   "route": "pages/merchant/relation/index",
+   "state": "114 加载失败",
+   "frameId": "225:9481",
+   "screen": "M13"
+  },
+  {
+   "route": "pages/merchant/relation/index",
+   "state": "114 空 · 帖文",
+   "frameId": "225:9547",
+   "screen": "M13"
+  },
+  {
+   "route": "pages/merchant/relation/index",
+   "state": "114 空 · 俱乐部",
+   "frameId": "225:9611",
+   "screen": "M13"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 申请中",
+   "frameId": "225:9682",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 认领平台节点",
+   "frameId": "225:9754",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 到店打卡码",
+   "frameId": "225:9842",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 节点是什么",
+   "frameId": "225:10153",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 配额",
+   "frameId": "225:10210",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 加载中",
+   "frameId": "225:10267",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 加载失败",
+   "frameId": "225:10310",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 无权限",
+   "frameId": "225:10347",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/index",
+   "state": "115 空",
+   "frameId": "225:10381",
+   "screen": "M14"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 可提交",
+   "frameId": "225:10463",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 确认店址",
+   "frameId": "225:10521",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 已提交",
+   "frameId": "225:10578",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 离开确认",
+   "frameId": "225:10630",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 登录",
+   "frameId": "225:10672",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 确认权限",
+   "frameId": "225:10707",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 无权限",
+   "frameId": "225:10740",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/citynode/create/index",
+   "state": "116 权限加载失败",
+   "frameId": "225:10774",
+   "screen": "M15"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 品牌介绍",
+   "frameId": "227:17435",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 合作经营",
+   "frameId": "227:17510",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 门店信息",
+   "frameId": "227:17603",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 门店信息 · 编辑",
+   "frameId": "227:17672",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 入驻资料",
+   "frameId": "227:17766",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 字段 · 单行",
+   "frameId": "227:17808",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 字段 · 多行",
+   "frameId": "227:17892",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 标签",
+   "frameId": "227:17985",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 经营时间",
+   "frameId": "227:18092",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 修改图片",
+   "frameId": "227:18200",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 还没有保存",
+   "frameId": "227:18219",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 升级权益 · 支付状态",
+   "frameId": "227:18300",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 加载中",
+   "frameId": "227:18377",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 无权限",
+   "frameId": "227:18417",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 加载失败",
+   "frameId": "227:18451",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/index",
+   "state": "117 不可用",
+   "frameId": "227:18488",
+   "screen": "M16"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 底页",
+   "frameId": "227:18542",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 编辑",
+   "frameId": "227:18612",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 上传角色形象",
+   "frameId": "227:18696",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 引导 2",
+   "frameId": "227:18742",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 引导 3",
+   "frameId": "227:18806",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 引导 4",
+   "frameId": "227:18870",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 选现成的",
+   "frameId": "227:18934",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 字段 · 名字",
+   "frameId": "227:19015",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 字段 · 店铺知识",
+   "frameId": "227:19075",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 性格设定",
+   "frameId": "227:19138",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 声音 · 录制",
+   "frameId": "227:19212",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 声音 · 已录好",
+   "frameId": "227:19289",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 声音 · 生成中",
+   "frameId": "227:19366",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 声音 · 可用",
+   "frameId": "227:19432",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 声音 · 失败",
+   "frameId": "227:19495",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 声音 · 结果未知",
+   "frameId": "227:19560",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 还没有保存",
+   "frameId": "227:19615",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 加载中",
+   "frameId": "227:19685",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/ai-npc/index",
+   "state": "118 加载失败",
+   "frameId": "227:19725",
+   "screen": "M17"
+  },
+  {
+   "route": "pages/merchant/decor/coop-setting/index",
+   "state": "119 编辑字段",
+   "frameId": "230:8360",
+   "screen": "M18"
+  },
+  {
+   "route": "pages/merchant/decor/coop-setting/index",
+   "state": "119 还没有保存",
+   "frameId": "230:8408",
+   "screen": "M18"
+  },
+  {
+   "route": "pages/merchant/decor/coop-setting/index",
+   "state": "119 加载中",
+   "frameId": "230:8451",
+   "screen": "M18"
+  },
+  {
+   "route": "pages/merchant/decor/coop-setting/index",
+   "state": "119 无权限",
+   "frameId": "230:8489",
+   "screen": "M18"
+  },
+  {
+   "route": "pages/merchant/decor/coop-setting/index",
+   "state": "119 加载失败",
+   "frameId": "230:8523",
+   "screen": "M18"
+  },
+  {
+   "route": "pages/merchant/decor/coop-setting/index",
+   "state": "119 不可用",
+   "frameId": "230:8560",
+   "screen": "M18"
+  },
+  {
+   "route": "pages/merchant/decor/gallery/index",
+   "state": "120 还没有保存",
+   "frameId": "230:8602",
+   "screen": "M19"
+  },
+  {
+   "route": "pages/merchant/decor/gallery/index",
+   "state": "120 登录",
+   "frameId": "230:8662",
+   "screen": "M19"
+  },
+  {
+   "route": "pages/merchant/decor/gallery/index",
+   "state": "120 加载中",
+   "frameId": "230:8697",
+   "screen": "M19"
+  },
+  {
+   "route": "pages/merchant/decor/gallery/index",
+   "state": "120 无权限",
+   "frameId": "230:8734",
+   "screen": "M19"
+  },
+  {
+   "route": "pages/merchant/decor/gallery/index",
+   "state": "120 加载失败",
+   "frameId": "230:8768",
+   "screen": "M19"
+  },
+  {
+   "route": "pages/merchant/decor/gallery/index",
+   "state": "120 不可用",
+   "frameId": "230:8805",
+   "screen": "M19"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 添加",
+   "frameId": "230:8847",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 校验",
+   "frameId": "230:8916",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 删除",
+   "frameId": "230:8983",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 还没有保存",
+   "frameId": "230:9012",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 已失效",
+   "frameId": "230:9074",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 加载中",
+   "frameId": "230:9114",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 无权限",
+   "frameId": "230:9150",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 加载失败",
+   "frameId": "230:9184",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/decor/perks/index",
+   "state": "121 空",
+   "frameId": "230:9221",
+   "screen": "M20"
+  },
+  {
+   "route": "pages/merchant/coop-center/index",
+   "state": "122 官方活动",
+   "frameId": "230:9269",
+   "screen": "M21"
+  },
+  {
+   "route": "pages/merchant/coop-center/index",
+   "state": "122 加载中",
+   "frameId": "230:9352",
+   "screen": "M21"
+  },
+  {
+   "route": "pages/merchant/coop-center/index",
+   "state": "122 路线加载失败",
+   "frameId": "230:9398",
+   "screen": "M21"
+  },
+  {
+   "route": "pages/merchant/coop-center/index",
+   "state": "122 官方活动加载失败",
+   "frameId": "230:9446",
+   "screen": "M21"
+  },
+  {
+   "route": "pages/merchant/coop-center/index",
+   "state": "122 空 · 广场",
+   "frameId": "230:9494",
+   "screen": "M21"
+  },
+  {
+   "route": "pages/merchant/coop-center/index",
+   "state": "122 空 · 官方活动",
+   "frameId": "230:9540",
+   "screen": "M21"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 筛选客户",
+   "frameId": "230:9592",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 管理",
+   "frameId": "230:9724",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 批量",
+   "frameId": "230:9833",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 导出",
+   "frameId": "230:9905",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 结果",
+   "frameId": "230:9975",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 登录",
+   "frameId": "230:10055",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 无权限",
+   "frameId": "230:10090",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 加载中",
+   "frameId": "230:10124",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 加载失败",
+   "frameId": "230:10179",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/index",
+   "state": "123 空",
+   "frameId": "230:10217",
+   "screen": "M22"
+  },
+  {
+   "route": "pages/merchant/customer/detail/index",
+   "state": "125 编辑标签与备注",
+   "frameId": "230:10275",
+   "screen": "M23"
+  },
+  {
+   "route": "pages/merchant/customer/detail/index",
+   "state": "125 加载中",
+   "frameId": "230:10376",
+   "screen": "M23"
+  },
+  {
+   "route": "pages/merchant/customer/detail/index",
+   "state": "125 加载失败",
+   "frameId": "230:10416",
+   "screen": "M23"
+  },
+  {
+   "route": "pages/merchant/customer/detail/index",
+   "state": "125 找不到客户",
+   "frameId": "230:10453",
+   "screen": "M23"
+  },
+  {
+   "route": "pages/merchant/customer/detail/index",
+   "state": "125 无权限",
+   "frameId": "230:10491",
+   "screen": "M23"
+  },
+  {
+   "route": "pages/merchant/customer/detail/index",
+   "state": "125 无参与记录",
+   "frameId": "230:10525",
+   "screen": "M23"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 节点邀请",
+   "frameId": "233:9577",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 准备清单",
+   "frameId": "233:9629",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 运行中",
+   "frameId": "233:9703",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 已暂停",
+   "frameId": "233:9773",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 多站",
+   "frameId": "233:9834",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 结果待确认",
+   "frameId": "233:9891",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 拒绝节点邀请",
+   "frameId": "233:9948",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 暂停接待",
+   "frameId": "233:9998",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 核验游戏提交",
+   "frameId": "233:10091",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 服务时段",
+   "frameId": "233:10169",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 本站打卡码",
+   "frameId": "233:10254",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 本站复盘",
+   "frameId": "233:10550",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 加载中",
+   "frameId": "233:10624",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 空",
+   "frameId": "233:10659",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 不能查看",
+   "frameId": "233:10695",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/game-node/index",
+   "state": "124 加载失败",
+   "frameId": "233:10729",
+   "screen": "M24"
+  },
+  {
+   "route": "pages/merchant/verify-records/index",
+   "state": "126 已撤销",
+   "frameId": "233:10782",
+   "screen": "M25"
+  },
+  {
+   "route": "pages/merchant/verify-records/index",
+   "state": "126 加载中",
+   "frameId": "233:10826",
+   "screen": "M25"
+  },
+  {
+   "route": "pages/merchant/verify-records/index",
+   "state": "126 加载失败",
+   "frameId": "233:10875",
+   "screen": "M25"
+  },
+  {
+   "route": "pages/merchant/verify-records/index",
+   "state": "126 无权限",
+   "frameId": "233:10912",
+   "screen": "M25"
+  },
+  {
+   "route": "pages/merchant/verify-records/index",
+   "state": "126 空 · 已核销",
+   "frameId": "233:10946",
+   "screen": "M25"
+  },
+  {
+   "route": "pages/merchant/verify-records/index",
+   "state": "126 空 · 已撤销",
+   "frameId": "233:10987",
+   "screen": "M25"
+  },
+  {
+   "route": "pages/merchant/payout-account/index",
+   "state": "127 待签约",
+   "frameId": "233:11034",
+   "screen": "M26"
+  },
+  {
+   "route": "pages/merchant/payout-account/index",
+   "state": "127 待验证",
+   "frameId": "233:11078",
+   "screen": "M26"
+  },
+  {
+   "route": "pages/merchant/payout-account/index",
+   "state": "127 加载中",
+   "frameId": "233:11122",
+   "screen": "M26"
+  },
+  {
+   "route": "pages/merchant/payout-account/index",
+   "state": "127 加载失败",
+   "frameId": "233:11159",
+   "screen": "M26"
+  },
+  {
+   "route": "pages/merchant/payout-account/index",
+   "state": "127 无权限",
+   "frameId": "233:11196",
+   "screen": "M26"
+  },
+  {
+   "route": "pages/merchant/payout-account/index",
+   "state": "127 暂未开放",
+   "frameId": "233:11230",
+   "screen": "M26"
+  },
+  {
+   "route": "pages/merchant/payout-account/index",
+   "state": "127 未开通",
+   "frameId": "233:11266",
+   "screen": "M26"
+  },
+  {
+   "route": "pages/merchant/crm-campaigns/index",
+   "state": "128 触达明细",
+   "frameId": "233:11311",
+   "screen": "M27"
+  },
+  {
+   "route": "pages/merchant/crm-campaigns/index",
+   "state": "128 加载中",
+   "frameId": "233:11374",
+   "screen": "M27"
+  },
+  {
+   "route": "pages/merchant/crm-campaigns/index",
+   "state": "128 加载失败",
+   "frameId": "233:11417",
+   "screen": "M27"
+  },
+  {
+   "route": "pages/merchant/crm-campaigns/index",
+   "state": "128 无权限",
+   "frameId": "233:11454",
+   "screen": "M27"
+  },
+  {
+   "route": "pages/merchant/crm-campaigns/index",
+   "state": "128 空",
+   "frameId": "233:11488",
+   "screen": "M27"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 加入经营团队",
+   "frameId": "233:11529",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 邀请已创建",
+   "frameId": "233:11564",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 选择邀请岗位",
+   "frameId": "233:11628",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 调整岗位",
+   "frameId": "233:11700",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 确认移除",
+   "frameId": "233:11768",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 撤销邀请",
+   "frameId": "233:11813",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 员工视角",
+   "frameId": "233:11863",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 登录",
+   "frameId": "233:11903",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 加载中",
+   "frameId": "233:11938",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 加载失败",
+   "frameId": "233:11982",
+   "screen": "M28"
+  },
+  {
+   "route": "pages/merchant/team/index",
+   "state": "129 还没有员工",
+   "frameId": "233:12039",
+   "screen": "M28"
+  }
+ ]
+}

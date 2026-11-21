@@ -1,0 +1,1248 @@
+{
+ "fileKey": "0YyoybGnU1KG0657wdGCPX",
+ "executor": "DEF (task_d9a986aedd67)",
+ "date": "2026-11-15",
+ "counts": {
+  "D": 115,
+  "E": 4,
+  "F": 16,
+  "total": 135
+ },
+ "stateKitComponents": {
+  "K/State (Kind=Error|Empty|Lock|Missing|Location|Loading)": "219:5570",
+  "K/Skeleton (list|card|detail|form|metric|amount)": "219:5645",
+  "K/Alert (Destructive|Default)": "219:5668",
+  "home": "R5 section 97:151 本地组件"
+ },
+ "notDrawn": {
+  "T10 coop/withdraw": "PRESENT, nothing missing",
+  "T17 poi-detail": "PRESENT, nothing missing",
+  "N03 管理员视角": "covered by club executor (B-C02 frame 15; seen as 222:5463 on R3)",
+  "N04 场次系列": "belongs to B-C12 (club ops executor batch 5); not duplicated",
+  "N05 招商 J3/J4/J5": "belongs to B-C20 frames 21-22 (club ops executor batch 5); not duplicated",
+  "N06 站点运营": "covered by merchant executor in B-M24 (124 服务时段 / 本站复盘 etc. on R4)",
+  "N07 承接报名成功 / 进度五态": "drawn inside T01/T02: 091 进度 ×4 + 092 报名已提交"
+ },
+ "openQuestions": [
+  "Merchant tab bar still 工作台/营销/模板/合作/我的? (N08 drawn per handbook 290:547/290:997, flagged in annotation)",
+  "merchantinfo tab names: drew 详情 | 路线节点 per owner (code says 任务向导)",
+  "A01 calendar exists only in the app (older MP revision) — keep?"
+ ],
+ "frames": [
+  {
+   "group": "D",
+   "spec": "T08",
+   "page": "R5 90:2",
+   "section": "97:1915",
+   "route": "pages/coop/finance/index",
+   "state": "134 加载中",
+   "frameId": "220:2893"
+  },
+  {
+   "group": "D",
+   "spec": "T08",
+   "page": "R5 90:2",
+   "section": "97:1915",
+   "route": "pages/coop/finance/index",
+   "state": "134 加载失败",
+   "frameId": "220:2935"
+  },
+  {
+   "group": "D",
+   "spec": "T08",
+   "page": "R5 90:2",
+   "section": "97:1915",
+   "route": "pages/coop/finance/index",
+   "state": "134 空",
+   "frameId": "220:2977"
+  },
+  {
+   "group": "D",
+   "spec": "T09",
+   "page": "R5 90:2",
+   "section": "97:4919",
+   "route": "pages/coop/settlement-detail/index",
+   "state": "135 加载中",
+   "frameId": "220:3021"
+  },
+  {
+   "group": "D",
+   "spec": "T09",
+   "page": "R5 90:2",
+   "section": "97:4919",
+   "route": "pages/coop/settlement-detail/index",
+   "state": "135 缺少参数",
+   "frameId": "220:3063"
+  },
+  {
+   "group": "D",
+   "spec": "T09",
+   "page": "R5 90:2",
+   "section": "97:4919",
+   "route": "pages/coop/settlement-detail/index",
+   "state": "135 记录不可见",
+   "frameId": "220:3108"
+  },
+  {
+   "group": "D",
+   "spec": "T09",
+   "page": "R5 90:2",
+   "section": "97:4919",
+   "route": "pages/coop/settlement-detail/index",
+   "state": "135 加载失败",
+   "frameId": "220:3149"
+  },
+  {
+   "group": "D",
+   "spec": "T11",
+   "page": "R5 90:2",
+   "section": "97:5018",
+   "route": "pages/coop/withdraw/records/index",
+   "state": "137 正在跳转",
+   "frameId": "220:3195"
+  },
+  {
+   "group": "D",
+   "spec": "T11",
+   "page": "R5 90:2",
+   "section": "97:5018",
+   "route": "pages/coop/withdraw/records/index",
+   "state": "137 打开失败",
+   "frameId": "220:3236"
+  },
+  {
+   "group": "D",
+   "spec": "T11",
+   "page": "R5 90:2",
+   "section": "97:5018",
+   "route": "pages/coop/withdraw/records/index",
+   "state": "137 无权限",
+   "frameId": "220:3278"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 发出的",
+   "frameId": "223:4343"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 卡片种类",
+   "frameId": "223:4478"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 保证金",
+   "frameId": "223:4571"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 登录",
+   "frameId": "223:4607"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 加载中",
+   "frameId": "223:4648"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 无权限",
+   "frameId": "223:4710"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 加载失败",
+   "frameId": "223:4758"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 空 · 收到的",
+   "frameId": "223:4807"
+  },
+  {
+   "group": "D",
+   "spec": "T04",
+   "page": "R5 90:2",
+   "section": "96:2908",
+   "route": "pages/coop/list/index",
+   "state": "130 空 · 发出的",
+   "frameId": "223:4855"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 待确认 · 收到",
+   "frameId": "224:2093"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 待确认 · 发出",
+   "frameId": "224:2185"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 已结束",
+   "frameId": "224:2275"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 历史只读",
+   "frameId": "224:2360"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 申报本次供给",
+   "frameId": "224:2553"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 评价",
+   "frameId": "224:2647"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 已评价",
+   "frameId": "224:2446"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 加载中",
+   "frameId": "224:2752"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 无法打开",
+   "frameId": "224:2790"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 不在列表",
+   "frameId": "224:2835"
+  },
+  {
+   "group": "D",
+   "spec": "T05",
+   "page": "R5 90:2",
+   "section": "96:3072",
+   "route": "pages/coop/invite-detail/index",
+   "state": "131 加载失败",
+   "frameId": "224:2876"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 选择对象",
+   "frameId": "224:6059"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 核销据点",
+   "frameId": "224:6135"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 编辑邀约语",
+   "frameId": "224:6175"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 已发送",
+   "frameId": "224:6245"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 发送失败",
+   "frameId": "224:6292"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 结果待确认",
+   "frameId": "224:6382"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 登录",
+   "frameId": "224:6418"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 加载中",
+   "frameId": "224:6522"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 无权限",
+   "frameId": "224:6596"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 加载失败",
+   "frameId": "224:6672"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 无主题",
+   "frameId": "224:6746"
+  },
+  {
+   "group": "D",
+   "spec": "T06",
+   "page": "R5 90:2",
+   "section": "97:1804",
+   "route": "pages/coop/invite/index",
+   "state": "132 无对象",
+   "frameId": "224:6817"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 有商家",
+   "frameId": "225:2730"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 选择补位操作",
+   "frameId": "225:2761"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 加载中",
+   "frameId": "225:2892"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 登录",
+   "frameId": "225:2948"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 定位权限",
+   "frameId": "225:2990"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 主题无效",
+   "frameId": "225:3032"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 加载失败",
+   "frameId": "225:3078"
+  },
+  {
+   "group": "D",
+   "spec": "T07",
+   "page": "R5 90:2",
+   "section": "97:1872",
+   "route": "pages/coop/nearby/index",
+   "state": "133 定位授权",
+   "frameId": "225:3121"
+  },
+  {
+   "group": "D",
+   "spec": "T03",
+   "page": "R1 90:3",
+   "section": "116:1173",
+   "route": "pages/topic/pricing/partner/index",
+   "state": "094 加载中",
+   "frameId": "220:7022"
+  },
+  {
+   "group": "D",
+   "spec": "T03",
+   "page": "R1 90:3",
+   "section": "116:1173",
+   "route": "pages/topic/pricing/partner/index",
+   "state": "094 加载失败",
+   "frameId": "220:7076"
+  },
+  {
+   "group": "D",
+   "spec": "T03",
+   "page": "R1 90:3",
+   "section": "116:1173",
+   "route": "pages/topic/pricing/partner/index",
+   "state": "094 链接失效",
+   "frameId": "220:7116"
+  },
+  {
+   "group": "D",
+   "spec": "T03",
+   "page": "R1 90:3",
+   "section": "116:1173",
+   "route": "pages/topic/pricing/partner/index",
+   "state": "094 缺少合作方",
+   "frameId": "220:7159"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 浏览 · 详情",
+   "frameId": "225:17833"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 浏览 · 路线节点",
+   "frameId": "225:17943"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 我的承接",
+   "frameId": "225:18021"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 主办方",
+   "frameId": "225:18138"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 进度 · 待确认",
+   "frameId": "225:18644"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 进度 · 被驳回",
+   "frameId": "225:18867"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 进度 · 进行中",
+   "frameId": "225:19096"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 进度 · 已结束",
+   "frameId": "225:19332"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 选择承接节点",
+   "frameId": "226:4087"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 路线模式介绍",
+   "frameId": "226:4230"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 选择章节",
+   "frameId": "226:4378"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 打卡码 · 本站",
+   "frameId": "226:4515"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 打卡码 · 主题",
+   "frameId": "226:4692"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 分润明细",
+   "frameId": "226:4869"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 链接失效",
+   "frameId": "225:19569"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 登录",
+   "frameId": "225:19612"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 无权查看",
+   "frameId": "225:19651"
+  },
+  {
+   "group": "D",
+   "spec": "T01 (+N07)",
+   "page": "R1 90:3",
+   "section": "113:1347",
+   "route": "pages/topic/merchantinfo/merchantinfo",
+   "state": "091 加载失败",
+   "frameId": "225:19690"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 已填",
+   "frameId": "227:11692"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 报名已提交",
+   "frameId": "227:11791"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 修改",
+   "frameId": "227:11904"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 修改已保存",
+   "frameId": "227:12001"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 选择可配合日期",
+   "frameId": "227:12113"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 可配合时间",
+   "frameId": "227:12350"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 登录",
+   "frameId": "227:12514"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 加载中",
+   "frameId": "227:12553"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 加载失败",
+   "frameId": "227:12594"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 无报名权限",
+   "frameId": "227:12634"
+  },
+  {
+   "group": "D",
+   "spec": "T02 (+N07)",
+   "page": "R1 90:3",
+   "section": "116:1169",
+   "route": "pages/topic/merchantapply/index",
+   "state": "092 不能修改",
+   "frameId": "227:12673"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 待到店",
+   "frameId": "228:4790"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 已到店",
+   "frameId": "228:4894"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 照片已记录",
+   "frameId": "228:5003"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 已核销",
+   "frameId": "228:5109"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 本站任务",
+   "frameId": "228:5242"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 本站任务 · 结果",
+   "frameId": "228:5361"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 到店任务",
+   "frameId": "228:5487"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 门店授权",
+   "frameId": "228:5606"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 评价安全感受",
+   "frameId": "228:5712"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 评价已提交",
+   "frameId": "228:5849"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 待确认",
+   "frameId": "228:5981"
+  },
+  {
+   "group": "D",
+   "spec": "T15",
+   "page": "R1 90:3",
+   "section": "95:1001",
+   "route": "pages/play/merchant/index",
+   "state": "017 登录",
+   "frameId": "228:6090"
+  },
+  {
+   "group": "D",
+   "spec": "T13",
+   "page": "R2 91:656",
+   "section": "105:1588",
+   "route": "subpackageMember/coupon/coupon?scope=merchant",
+   "state": "167 加载中",
+   "frameId": "220:9675"
+  },
+  {
+   "group": "D",
+   "spec": "T13",
+   "page": "R2 91:656",
+   "section": "105:1588",
+   "route": "subpackageMember/coupon/coupon?scope=merchant",
+   "state": "167 加载失败",
+   "frameId": "220:9730"
+  },
+  {
+   "group": "D",
+   "spec": "T13",
+   "page": "R2 91:656",
+   "section": "105:1588",
+   "route": "subpackageMember/coupon/coupon?scope=merchant",
+   "state": "167 空",
+   "frameId": "220:9772"
+  },
+  {
+   "group": "D",
+   "spec": "T14",
+   "page": "R2 91:656",
+   "section": "105:1620",
+   "route": "subpackageMember/couponInfo/couponInfo?scope=merchant",
+   "state": "168 校验错误",
+   "frameId": "222:6235"
+  },
+  {
+   "group": "D",
+   "spec": "T14",
+   "page": "R2 91:656",
+   "section": "105:1620",
+   "route": "subpackageMember/couponInfo/couponInfo?scope=merchant",
+   "state": "168 已发布",
+   "frameId": "222:6320"
+  },
+  {
+   "group": "D",
+   "spec": "T16",
+   "page": "R2 91:656",
+   "section": "124:1856",
+   "route": "subpackageRoam/citynode-code/index",
+   "state": "195 无法打开",
+   "frameId": "220:9816"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 活动",
+   "frameId": "222:2633"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 模板",
+   "frameId": "222:2722"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 管理",
+   "frameId": "222:2761"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 审核记录",
+   "frameId": "222:2890"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 确认 · 删除场次",
+   "frameId": "222:5684"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 确认 · 取消活动",
+   "frameId": "222:5798"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 确认 · 取消主题",
+   "frameId": "222:5906"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 确认 · 删除路线",
+   "frameId": "222:6014"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 确认 · 删除模板",
+   "frameId": "222:6126"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 登录",
+   "frameId": "222:3001"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 加载中",
+   "frameId": "222:3052"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 无权限",
+   "frameId": "222:3103"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 加载失败",
+   "frameId": "222:3154"
+  },
+  {
+   "group": "D",
+   "spec": "T12",
+   "page": "R2 91:656",
+   "section": "91:1411",
+   "route": "subpackageA/pages/myproject/index?scope=merchant",
+   "state": "029 空",
+   "frameId": "222:3206"
+  },
+  {
+   "group": "E",
+   "spec": "N01",
+   "page": "R3 91:33",
+   "section": "233:3449",
+   "route": "新稿 s7SEFaoJ3GQUIxJhdqcFUb 290:444 (no route)",
+   "state": "N01 会费设置",
+   "frameId": "233:3264"
+  },
+  {
+   "group": "E",
+   "spec": "N02",
+   "page": "R3 91:33",
+   "section": "233:3449",
+   "route": "新稿 s7SEFaoJ3GQUIxJhdqcFUb 290:680 (no route)",
+   "state": "N02 我的账单",
+   "frameId": "233:3365"
+  },
+  {
+   "group": "E",
+   "spec": "N08",
+   "page": "R4 90:26",
+   "section": "233:12462",
+   "route": "handbook 5aU5V8MXZ5nPT0GtcOEEC7 290:547 / 290:997 (no route)",
+   "state": "N08 模板",
+   "frameId": "233:12260"
+  },
+  {
+   "group": "E",
+   "spec": "N08",
+   "page": "R4 90:26",
+   "section": "233:12462",
+   "route": "handbook 5aU5V8MXZ5nPT0GtcOEEC7 290:547 / 290:997 (no route)",
+   "state": "N08 我的",
+   "frameId": "233:12356"
+  },
+  {
+   "group": "F",
+   "spec": "A01",
+   "page": "R6 91:34",
+   "section": "230:2853",
+   "route": "App/ClubEventCalendarView.swift",
+   "state": "A01 日历",
+   "frameId": "230:2168"
+  },
+  {
+   "group": "F",
+   "spec": "A01",
+   "page": "R6 91:34",
+   "section": "230:2853",
+   "route": "App/ClubEventCalendarView.swift",
+   "state": "A01 选中日期",
+   "frameId": "230:2410"
+  },
+  {
+   "group": "F",
+   "spec": "A01",
+   "page": "R6 91:34",
+   "section": "230:2853",
+   "route": "App/ClubEventCalendarView.swift",
+   "state": "A01 空月 / 日期待明确",
+   "frameId": "230:2651"
+  },
+  {
+   "group": "F",
+   "spec": "A02",
+   "page": "R6 91:34",
+   "section": "230:2942",
+   "route": "App/ClubStatsOverviewView.swift",
+   "state": "A02 概况",
+   "frameId": "230:2857"
+  },
+  {
+   "group": "F",
+   "spec": "A03",
+   "page": "R6 91:34",
+   "section": "230:3003",
+   "route": "App/ClubTerminalSessionView.swift",
+   "state": "A03 场次状态",
+   "frameId": "230:2944"
+  },
+  {
+   "group": "F",
+   "spec": "A04",
+   "page": "R6 91:34",
+   "section": "231:6832",
+   "route": "App/CityMerchantOperationsView.swift",
+   "state": "A04 接入",
+   "frameId": "231:6645"
+  },
+  {
+   "group": "F",
+   "spec": "A04",
+   "page": "R6 91:34",
+   "section": "231:6832",
+   "route": "App/CityMerchantOperationsView.swift",
+   "state": "A04 确认",
+   "frameId": "231:6711"
+  },
+  {
+   "group": "F",
+   "spec": "A04",
+   "page": "R6 91:34",
+   "section": "231:6832",
+   "route": "App/CityMerchantOperationsView.swift",
+   "state": "A04 状态",
+   "frameId": "231:6763"
+  },
+  {
+   "group": "F",
+   "spec": "A05",
+   "page": "R6 91:34",
+   "section": "231:7006",
+   "route": "App/MerchantDeskSkuPage.swift",
+   "state": "A05 规格列表",
+   "frameId": "231:6836"
+  },
+  {
+   "group": "F",
+   "spec": "A05",
+   "page": "R6 91:34",
+   "section": "231:7006",
+   "route": "App/MerchantDeskSkuPage.swift",
+   "state": "A05 编辑",
+   "frameId": "231:6904"
+  },
+  {
+   "group": "F",
+   "spec": "A05",
+   "page": "R6 91:34",
+   "section": "231:7006",
+   "route": "App/MerchantDeskSkuPage.swift",
+   "state": "A05 确认",
+   "frameId": "231:6954"
+  },
+  {
+   "group": "F",
+   "spec": "A06",
+   "page": "R6 91:34",
+   "section": "231:7474",
+   "route": "App/MerchantNPCKnowledgeDraftView.swift",
+   "state": "A06 草稿",
+   "frameId": "231:7010"
+  },
+  {
+   "group": "F",
+   "spec": "A06",
+   "page": "R6 91:34",
+   "section": "231:7474",
+   "route": "App/MerchantNPCKnowledgeDraftView.swift",
+   "state": "A06 校验",
+   "frameId": "231:7168"
+  },
+  {
+   "group": "F",
+   "spec": "A06",
+   "page": "R6 91:34",
+   "section": "231:7474",
+   "route": "App/MerchantNPCKnowledgeDraftView.swift",
+   "state": "A06 已暂存",
+   "frameId": "231:7324"
+  },
+  {
+   "group": "F",
+   "spec": "A07",
+   "page": "R6 91:34",
+   "section": "231:7608",
+   "route": "App/MerchantEngagementComposer.swift",
+   "state": "A07 新建",
+   "frameId": "231:7478"
+  },
+  {
+   "group": "F",
+   "spec": "A07",
+   "page": "R6 91:34",
+   "section": "231:7608",
+   "route": "App/MerchantEngagementComposer.swift",
+   "state": "A07 预览并核对",
+   "frameId": "231:7547"
+  }
+ ]
+}

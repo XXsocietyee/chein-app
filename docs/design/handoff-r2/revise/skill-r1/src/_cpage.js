@@ -1,0 +1,5 @@
+// shared C-page pass: SR1-17 (text < 11 → t-cap2, counters → t-cap) + SR1-43 springs
+async function cpass(){ const pg=figma.currentPage; let small=0, counters=0, spr=0;
+  for(const t of pg.findAllWithCriteria({types:['TEXT']})){ if(t.id.includes(';')||typeof t.fontSize!=='number') continue; if(t.fontSize<11){ await loadFontsOf(t); const fl=t.fills; if(/^\d+\s?\/\s?\d+$/.test(t.characters.trim())){ await t.setTextStyleIdAsync(TS['t-cap'].id); counters++; } else { await t.setTextStyleIdAsync(TS['t-cap2'].id); small++; } t.fills=fl; } }
+  for(const n of pg.findAll(x=>'reactions' in x&&x.reactions&&x.reactions.length)){ let ch=false; const rs=n.reactions.map(r=>({trigger:r.trigger,actions:actsOf(r).map(a=>{ if(!a||a.type!=='NODE'||!a.transition||(a.transition.easing&&a.transition.easing.type==='CUSTOM_SPRING')) return a; const t=a.transition; const role=t.type==='PUSH'||/SLIDE/.test(t.type)?'push':(/MOVE/.test(t.type)?'sheet':(t.type==='DISSOLVE'?'sheet':'press')); ch=true; return {...a,transition:{...t,easing:SP(role),duration:DUR[role]}}; })})); if(ch){ try{ await n.setReactionsAsync(rs); spr++; }catch(e){} } }
+  return {small,counters,spr}; }
