@@ -340,7 +340,7 @@ struct OfficialParticipationPresentation {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(safetyConsented ? .isSelected : [])
-                .accessibilityIdentifier("official.safetyNotice.consent")
+                .accessibilityIdentifier("officialAction.safetyNotice.consent")
             }
             // The mini-program signs up through the SIGNUP command with a kept request id.
             if case .signup(let eventID)? = command, gapService != nil {
