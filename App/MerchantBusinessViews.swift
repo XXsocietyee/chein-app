@@ -967,7 +967,15 @@ import SwiftUI
     }
     @ViewBuilder private func rowView(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {
         let isDirectory: Bool = { switch query { case .customers, .aftercare, .batches, .redemptions: return true; default: return false } }()
-        if isDirectory, let destination = row.destination {
+        if row.isManualCase, let line = MerchantAftercareParity.ListRow(row) {
+            // Parity aftercare P0: 人工退款工单 rows open a read-only platform-progress detail.
+            NavigationLink { MerchantManualCaseDetailView(row: line) } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }
+                    MerchantAftercareRowLabel(row: line)
+                }
+            }.accessibilityIdentifier("merchant.business.row.manualCase.\(row.id)")
+        } else if isDirectory, let destination = row.destination {
             VStack(alignment: .leading, spacing: 8) {
             HStack {
                 if row.kind == .customer, access.allows("merchant:crm:segment"), let id = Int(row.id) {

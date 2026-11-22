@@ -17,7 +17,8 @@ struct MerchantAftercareRowLabel: View {
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.xs))
         layout {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: row.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: row.isManualCase ? MerchantOpsCopy.text("merchantOps.aftercare.manualCase.title") + " " + row.title : row.title)
+                    .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 metadataLayout {
                     if let time = row.timeText { Text(verbatim: time + " ·").monospacedDigit().foregroundStyle(CYColor.textSecondary) }
                     Text(verbatim: MerchantOpsCopy.text(row.statusKey)).foregroundStyle(toneColor)
@@ -26,7 +27,8 @@ struct MerchantAftercareRowLabel: View {
                 if let activity = row.activityTitle { Text(verbatim: activity).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             }
             if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
-            if let amount = row.amountDisplay { Text(verbatim: amount).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
+            if row.isManualCase { EmptyView() }
+            else if let amount = row.amountDisplay { Text(verbatim: amount).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
             else { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.amountPending")).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
         }
         .fixedSize(horizontal: false, vertical: true)
@@ -66,5 +68,50 @@ struct MerchantAftercareReadOnlyNote: View {
     var body: some View {
         Text(verbatim: MerchantOpsCopy.text(reason == .roleViewOnly ? "merchantOps.aftercare.readOnly.role" : "merchantOps.aftercare.readOnly.closed"))
             .cyText(.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchantOps.aftercare.readOnly")
+    }
+}
+
+/// Source pages/merchant/aftercare/detail (recordType=MANUAL_CASE): a read-only 人工退款工单 with the platform's
+/// status and a two-step timeline. No amount and no merchant decision (the platform handles the refund).
+struct MerchantManualCaseDetailView: View {
+    let row: MerchantAftercareParity.ListRow
+    private var completed: Bool { row.tone == .neutral }
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.title") + " " + row.title)
+                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    CYStatusChip(verbatim: MerchantOpsCopy.text(row.statusKey), tone: completed ? .neutral : .warning)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.note"))
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                .padding(.vertical, CYSpacing.xs)
+                if let activity = row.activityTitle {
+                    LabeledContent { Text(verbatim: activity) } label: { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.activity")) }
+                        .cyText(.body)
+                }
+            }
+            Section {
+                timelineNode(title: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.requested"),
+                             time: [row.dayKey, row.timeText].compactMap { $0 }.joined(separator: " "), done: true)
+                timelineNode(title: MerchantOpsCopy.text(row.statusKey), time: nil, done: completed)
+            } header: { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.progress")) }
+        }
+        .navigationTitle(Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.manualCase.title")))
+        .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("merchantOps.aftercare.manualCase.\(row.id)")
+    }
+    private func timelineNode(title: String, time: String?, done: Bool) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
+            Image(systemName: done ? "checkmark.circle.fill" : "clock")
+                .foregroundStyle(done ? CYColor.successText : CYColor.warningText)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: title).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                if let time, !time.isEmpty { Text(verbatim: time).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }

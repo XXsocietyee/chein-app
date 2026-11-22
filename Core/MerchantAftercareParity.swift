@@ -21,6 +21,8 @@ public enum MerchantAftercareParity {
         public let amountDisplay: String?
         /// yyyy-MM-dd of the request time in the source civil zone, or nil when unknown.
         public let dayKey: String?
+        /// Platform-handled 人工退款工单 (read-only; no amount, no merchant actions).
+        public let isManualCase: Bool
 
         public init?(_ record: MerchantBusinessRecord) {
             guard record.kind == .refund else { return nil }
@@ -30,7 +32,10 @@ public enum MerchantAftercareParity {
                 return value
             }
             id = record.id
-            title = text("customerNickname") ?? text("refundNo") ?? "#\(record.id)"
+            isManualCase = record.isManualCase
+            let caseNumber = record.isManualCase ? String(record.id.dropFirst(MerchantBusinessRecord.manualCasePrefix.count)) : nil
+            // Manual rows: "#<caseId>"; the view prefixes the localized 人工退款工单 label.
+            title = caseNumber.map { "#" + $0 } ?? text("customerNickname") ?? text("refundNo") ?? "#\(record.id)"
             let minute = text("createTime").map { String($0.replacingOccurrences(of: "T", with: " ").prefix(16)) }
             if let minute, minute.range(of: #"^\d{4}-\d{2}-\d{2}"#, options: .regularExpression) != nil {
                 dayKey = String(minute.prefix(10))
@@ -39,7 +44,11 @@ public enum MerchantAftercareParity {
                 timeText = String(minute.suffix(5))
             } else { timeText = nil }
             let processing = text("processing") ?? "UNKNOWN"
-            if text("bucket") == "PENDING" { statusKey = "merchantOps.aftercare.status.awaitingResponse"; tone = .warning }
+            if record.isManualCase {
+                statusKey = "merchantOps.aftercare.manualCase.status." + processing
+                tone = ["NO_REFUND", "MANUAL_REFUND_EVIDENCE_VERIFIED"].contains(processing) ? .neutral : .warning
+            }
+            else if text("bucket") == "PENDING" { statusKey = "merchantOps.aftercare.status.awaitingResponse"; tone = .warning }
             else if fields["refunded"]?.bool == true { statusKey = "merchantOps.aftercare.status.returned"; tone = .success }
             else { statusKey = "merchantOps.aftercare.processing." + (MerchantAftercareProgress.Processing(rawValue: processing)?.rawValue ?? "UNKNOWN"); tone = .neutral }
             isTakenOver = text("platformTakeoverAt") != nil

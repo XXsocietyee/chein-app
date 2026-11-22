@@ -71,4 +71,33 @@ final class MerchantAftercareParityTests: XCTestCase {
         }
         XCTAssertEqual(MerchantAftercareParity.platformSteps(.unknown).map(\.state), [.todo])
     }
+
+    // Parity aftercare P0: one MP MANUAL_CASE row (tests/unit/merchant-aftercare-view-model.test.js) must not fail the page.
+    private func manualCase(_ change: (inout MerchantBusinessObject) -> Void = { _ in }) -> MerchantBusinessObject {
+        var fields: MerchantBusinessObject = ["recordType": .string("MANUAL_CASE"), "manualCaseId": .int(81),
+            "manualCaseStatus": .string("PENDING_ASSESSMENT"), "refundId": .null, "refundAmount": .null,
+            "processing": .string("PENDING_ASSESSMENT"), "merchantOpinion": .string("NOT_REQUIRED"), "bucket": .string("PROCESSING"),
+            "canRespond": .bool(false), "refunded": .bool(false), "allowedDecisions": .array([]), "responses": .array([]),
+            "activityTitle": .string("Example topic"), "createTime": .string("2026-11-06 10:00:00")]
+        change(&fields)
+        return fields
+    }
+    func testManualCaseRowDecodesReadOnlyWithItsOwnID() throws {
+        let record = try MerchantBusinessRecord(kind: .refund, fields: manualCase())
+        XCTAssertTrue(record.isManualCase); XCTAssertEqual(record.id, "MANUAL_CASE:81"); XCTAssertNil(record.destination)
+        let line = try XCTUnwrap(MerchantAftercareParity.ListRow(record))
+        XCTAssertTrue(line.isManualCase); XCTAssertEqual(line.title, "#81"); XCTAssertNil(line.amountCents)
+        XCTAssertEqual(line.statusKey, "merchantOps.aftercare.manualCase.status.PENDING_ASSESSMENT"); XCTAssertEqual(line.tone, .warning)
+        let page: MerchantBusinessValue = .object(["bucket": .string("PROCESSING"), "pageNum": .int(1), "pageSize": .int(20),
+            "total": .int(1), "hasMore": .bool(false), "items": .array([.object(manualCase())])])
+        let document = try MerchantBusinessDocument(query: .aftercare(.processing, page: 1), payload: page)
+        XCTAssertEqual(document.rows.map(\.id), ["MANUAL_CASE:81"])
+    }
+    func testManualCaseRejectsRefundFieldsAndUnknownStatus() {
+        let changes: [(inout MerchantBusinessObject) -> Void] = [{ $0["refundId"] = .int(81) }, { $0["canRespond"] = .bool(true) },
+                       { $0["refundAmount"] = .string("80.00") }, { $0["manualCaseStatus"] = .string("UNKNOWN"); $0["processing"] = .string("UNKNOWN") }]
+        for change in changes {
+            XCTAssertThrowsError(try MerchantBusinessRecord(kind: .refund, fields: manualCase(change)))
+        }
+    }
 }
