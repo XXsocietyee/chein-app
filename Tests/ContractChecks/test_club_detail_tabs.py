@@ -15,7 +15,8 @@ class ClubDetailTabContracts(unittest.TestCase):
         core = read('Core/ClubDetailTabs.swift')
         self.assertIn('case posts, events, overview, manage', core)
         self.assertIn('publicTabs: [ClubDetailTab] = [.posts, .events, .overview]', core)
-        self.assertIn('isOwner || isJoined ? .posts : .overview', core)
+        # CLB-detail-13 (parity r1): every viewer opens on 概览, as the MP (owner ruling 2026-10-22).
+        self.assertIn('public var defaultTab: ClubDetailTab { .overview }', core)
         self.assertIn('canGovern || grant?.allowsManage == true', core)
         for permission in ['club:write', 'club:member:approve', 'club:member:manage', 'club:content:manage', 'club:role:manage',
                            'club:notify:send', 'club:activity:manage', 'club:event:operate', 'club:event:checkin', 'club:finance:read']:

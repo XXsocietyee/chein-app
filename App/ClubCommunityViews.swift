@@ -257,7 +257,9 @@ struct ClubCommunityFeedView: View {
         self.identity = identity; self.clubID = clubID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
-    private var canCompose: Bool { clubID != nil && identity.isSignedIn }
+    /// CLB-detail-16: compose only for members and the owner (MP wxml:100); the server still enforces memberPostAllowed.
+    @State private var canPost = false
+    private var canCompose: Bool { clubID != nil && identity.isSignedIn && canPost }
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -371,6 +373,10 @@ struct ClubCommunityFeedView: View {
             page = 1
             await model.load(operation)
             if let clubID { _ = model.recoverPendingState(clubID: clubID) }
+            canPost = false
+            if let clubID, let evidence = try? await model.context.evidence(clubID, nil, nil), evidence.identity == identity {
+                canPost = evidence.allows(.create(content: "", images: []))
+            }
         }
         .task(id: page) { await model.load(operation) }
         // Pushing a row destination must not remove the NavigationLink that owns it.
@@ -567,9 +573,12 @@ struct ClubCommunityPostTile: View {
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("club.community.detail.\(post.id)")
                 }
-                Button(action: openHistory) { Text("club.community.history") }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("club.community.history.\(post.id)")
+                // CLB-detail-17: MP shows 历史 only for an edited post (version > 0).
+                if post.version > 0 {
+                    Button(action: openHistory) { Text("club.community.history") }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("club.community.history.\(post.id)")
+                }
                 if post.authorMemberID != identity.accountID {
                     UGCSafetyMenuButton(
                         presentation: UGCReportPresentationTarget(
