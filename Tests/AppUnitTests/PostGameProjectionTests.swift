@@ -83,7 +83,7 @@ import XCTest
         XCTAssertEqual(content.primary, .view)
         XCTAssertEqual(content.facts.map(\.kind), [.inviteValid, .signupClosed])
         XCTAssertEqual(content.facts.first?.value, "2026.11.30 20:00")
-        XCTAssertEqual(PlayerJourneyProjection.landingTarget(kind: .referral, envelope: ok(json)), .init(isActivity: true, id: "31"))
+        XCTAssertEqual(PlayerJourneyProjection.landingTarget(kind: .referral, envelope: ok(json)), PlayerJourneyProjection.LandingTarget(isActivity: true, id: "31"))
         let noView = json.replacingOccurrences(of: "VIEW_TARGET", with: "NONE")
         guard case .ready(let hidden) = PlayerJourneyProjection.landing(link: referral, envelope: ok(noView), choices: nil, activeMode: nil) else { return XCTFail("ready") }
         XCTAssertNil(hidden.primary)
