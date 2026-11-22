@@ -278763,6 +278763,40 @@
           }
         }
       }
+    },
+    "club.detail.events.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This club has no activities yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时俱乐部还没有活动"
+          }
+        }
+      }
+    },
+    "club.detail.events.publish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish a topic"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布主题"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

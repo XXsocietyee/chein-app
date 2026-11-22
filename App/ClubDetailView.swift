@@ -26,6 +26,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var showsApprovals = false
     @State private var heroScrolledAway = false
     @State private var loadedClubName: String?
+    @State private var openedTopicID: Int?
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -136,27 +137,21 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
                     }
                 }
-                // Public topics use their own optional viewer grant, never access/me.
+                // CLB-detail-02: 活动 lists the club's current activities inline for every viewer (MP detail
+                // wxml:163-216, /api/club/topics). Public topics use their own viewer grant, never access/me.
                 if tab == .events, let session = reader as? AppSession {
-                    Section {
-                        NavigationLink {
-                            SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn)
-                        } label: {
-                            Label { Text("publicTopics.title", tableName: "ClubPublicTopics") }
-                                  icon: { Image(systemName: "list.bullet.rectangle") }
+                    if club.isOwner {
+                        // MP 「发布 +」 / 发布主题 for the owner (wxml:204-213).
+                        Section {
+                            NavigationLink { SessionClubProjectLaunchView(session: session, club: club) } label: {
+                                CYListRow("club.detail.events.publish", trailing: .chevron) { CYRowIcon(systemImage: "plus") }
+                            }
+                            .accessibilityIdentifier("club.detail.events.publish")
                         }
-                        .accessibilityIdentifier("club.publicTopics.open")
                     }
-                }
-                // V2 governance has its own access/me model, including delegated event staff.
-                if tab == .events, management?.governance == nil {
-                    Section {
-                        CYEmptyState(systemImage: "calendar", "club.detail.events.unavailable")
-                            .accessibilityIdentifier("club.detail.events.unavailable")
-                    }
+                    SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 })
                 }
                 if tab == .events, let governance = management?.governance {
-                    ClubDetailEventsSection(club: club, identity: reader.clubIdentity, governance: governance, reader: reader)
                     Section {
                         ClubSessionQuickStartEntry(club: club, reader: reader, governance: governance)
                     }
@@ -301,6 +296,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
                 ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubName: club.name) }
+            }
+            .navigationDestination(item: $openedTopicID) { topicID in
+                if let session = reader as? AppSession { SessionTopicDetailView(id: topicID, session: session) }
             }
             .navigationDestination(isPresented: $reportingClub) {
                 if let governance = management?.governance {

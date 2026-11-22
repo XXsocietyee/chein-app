@@ -16,7 +16,11 @@ class ClubDetailEventsSectionTests(unittest.TestCase):
                        'club.calendar.open', 'task(id: ReadTrigger(context: readContext', 'model.invalidate()']:
             self.assertIn(symbol, section)
         self.assertIn('ClubDetailEventsSummary', self.text('Core/ClubDetailEventsSummary.swift'))
-        self.assertIn('ClubDetailEventsSection(', self.text('App/ClubDetailView.swift'))
+        # CLB-detail-02 (parity r1): the 活动 tab lists the club's activities inline for every viewer, as the MP
+        # does; the counts summary and calendar link left the club page.
+        detail = self.text('App/ClubDetailView.swift')
+        self.assertIn('SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded:', detail)
+        self.assertNotIn('ClubDetailEventsSection(', detail)
 
     def test_no_new_endpoints_or_writes(self):
         for path in ['App/ClubDetailEventsSection.swift', 'Core/ClubDetailEventsSummary.swift']:

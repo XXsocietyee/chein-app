@@ -28,7 +28,7 @@ class ClubDetailTabContracts(unittest.TestCase):
         self.assertIn('tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))', view)
         # Header and join/quit stay above the tabs; each moved section is behind its tab.
         self.assertLess(view.index('ClubActionPanel('), view.index('ClubDetailTabBar('))
-        for marker, tab in [('club.chat.entry', '.posts'), ('ClubCommunityEntry(', '.posts'), ('ClubDetailEventsSection(', '.events'),
+        for marker, tab in [('club.chat.entry', '.posts'), ('ClubCommunityEntry(', '.posts'), ('SessionClubPublicActivityListView(clubID: id', '.events'),
                             ('club.openManagement', '.manage'), ('club.statsOverview.open', '.manage'), ('club.openMembers', '.overview'),
                             ('ClubMerchantDiscoveryView(', '.manage'), ('club.projectLaunch.entry', '.manage'),
                             ('club.detail.leaderboard.open', '.overview')]:
