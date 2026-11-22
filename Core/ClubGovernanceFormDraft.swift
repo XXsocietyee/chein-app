@@ -54,7 +54,9 @@ public struct ClubGovernanceFormDraft {
             } else {
                 text = ["targetType": "CLUB", "targetId": scope.clubID.map(String.init) ?? "", "reason": ""]
             }
-        case .assignRole: text = ["targetMemberId": "", "roleCode": scope.activityID == nil ? "CLUB_OPERATOR" : "EVENT_CHECKIN"]
+        case .assignRole:
+            text = ["targetMemberId": "", "roleCode": scope.activityID == nil ? "CLUB_OPERATOR" : "EVENT_CHECKIN"]
+            if scope.activityID != nil { flags["customerPhoneVisible"] = false }
         case .sendNotification: text = ["audienceType": scope.activityID == nil ? "ALL_MEMBERS" : "REGISTERED", "title": "", "content": ""]
         case .saveTopicSettings: for key in ["coopOpen", "pinned", "memberOnly"] { flags[key] = seed[key]?.bool ?? false }
         case .chapterRecruit: flags["enabled"] = false
@@ -85,6 +87,9 @@ public struct ClubGovernanceFormDraft {
     public mutating func applyClubRolePicker(memberID: String, roleCode: String) {
         text["targetMemberId"] = memberID.trimmingCharacters(in: .whitespacesAndNewlines)
         text["roleCode"] = roleCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        // CLB-roles-01: 可见客户手机号 is offered only for the 本场核销 delegate, default off.
+        if text["roleCode"] == "EVENT_CHECKIN" { if flags["customerPhoneVisible"] == nil { flags["customerPhoneVisible"] = false } }
+        else if flags["customerPhoneVisible"] != nil { flags.removeValue(forKey: "customerPhoneVisible") }
     }
     public func command(now: Date = Date()) throws -> ClubGovernanceCommand {
         var values = anchors
@@ -107,6 +112,8 @@ public struct ClubGovernanceFormDraft {
         }
         // Wire anchors (e.g. a roster-derived `arrived`) are immutable; a draft flag never replaces one.
         for (key, flag) in flags where anchors[key] == nil { values[key] = operation == .hostApply || key == "enabled" ? .integer(flag ? 1 : 0) : .bool(flag) }
+        // MP roles/index.js:405 sends the flag only when it is on.
+        if operation == .assignRole, values["customerPhoneVisible"] != .bool(true) || text["roleCode"] != "EVENT_CHECKIN" { values.removeValue(forKey: "customerPhoneVisible") }
         if operation == .hostApply { values["hasExperience"] = .integer(text["experience"] == "没有经验" ? 0 : 1) }
         if [.createSeries, .updateSeries].contains(operation) {
             if text["recurrenceType"] != "CUSTOM_DATES" { values["customDates"] = .null }

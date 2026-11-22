@@ -186,6 +186,10 @@ import SwiftUI
                         memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
                         canEdit: { !busy && !locked && review == nil },
                         applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
+                    if draft.flags["customerPhoneVisible"] != nil {
+                        Text("club.rolePicker.phoneVisible.hint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("club.rolePicker.phoneVisible.hint")
+                    }
                 }
                 if route.operation == .createSeries {
                     ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,

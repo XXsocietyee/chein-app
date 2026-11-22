@@ -104,7 +104,7 @@ public struct ClubGovernanceCommand: Equatable {
         case .transferOwner: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "reason", "requestId"]
         case .report: scopeKeys = ["clubId"]; requiredKeys = ["targetType", "targetId", "reason", "requestId"]
         case .appeal: scopeKeys = ["clubId"]; requiredKeys = ["reason", "requestId"]
-        case .assignRole: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "roleCode", "requestId"]
+        case .assignRole: scopeKeys = ["clubId"]; requiredKeys = ["targetMemberId", "roleCode", "requestId"]; optionalKeys = ["customerPhoneVisible"]
         case .revokeRole: scopeKeys = ["clubId"]; requiredKeys = ["assignmentId", "version", "reason", "requestId"]
         case .sendNotification: scopeKeys = ["clubId"]; requiredKeys = ["audienceType", "title", "content", "requestId"]
         case .retryNotification: scopeKeys = ["campaignId"]; requiredKeys = []
@@ -123,6 +123,11 @@ public struct ClubGovernanceCommand: Equatable {
         result.merge(values) { _, new in new }
         if operation == .updateSeries { guard let id = scope.seriesID else { throw ClubGovernanceFailure.invalidRequest }; result["seriesId"] = .integer(id) }
         if [.assignRole, .revokeRole].contains(operation), let id = scope.activityID { result["activityId"] = .integer(id) }
+        // CLB-roles-01: MP roles/index.js:405 sends `customerPhoneVisible` only for the
+        // 本场核销 delegate (EVENT_CHECKIN); any other role with the flag is rejected.
+        if operation == .assignRole, let flag = result["customerPhoneVisible"] {
+            guard flag.bool != nil, result["roleCode"]?.string == "EVENT_CHECKIN" else { throw ClubGovernanceFailure.invalidRequest }
+        }
         if operation == .sendNotification { result["activityId"] = scope.activityID.map(ClubGovernanceValue.integer) ?? .null; result["channel"] = .string("IN_APP") }
         if operation == .report { result["evidence"] = .object([:]) }
         if [.chapterRecruit, .chapterFinish].contains(operation) { guard (result["scope"] ?? .string("")) == .string("") else { throw ClubGovernanceFailure.invalidRequest }; result["scope"] = .string("") }

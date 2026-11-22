@@ -278661,6 +278661,40 @@
           }
         }
       }
+    },
+    "club.gov.field.customerPhoneVisible": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can see customer phone numbers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可见客户手机号"
+          }
+        }
+      }
+    },
+    "club.rolePicker.phoneVisible.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When on, this check-in helper can see and call attendees' phone numbers during this session."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开后，这位核销员在本场核销时能看到并拨打报名人的手机号。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
