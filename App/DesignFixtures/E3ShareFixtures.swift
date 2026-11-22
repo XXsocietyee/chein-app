@@ -88,7 +88,7 @@ enum E3ShareFixtureContent {
 /// Every template at both ratios, for the four content kinds. Pure review surface.
 private struct E3ShareTemplateGallery: View {
     @Environment(\.locale) private var locale
-    private let tints: [CYShareCardTint] = [.ink, .ember, .ocean, .gold]
+    private let tints: [CYShareCardTint] = [.ink, .ember, .ocean, .moss]
     var body: some View {
         NavigationStack {
             ScrollView {

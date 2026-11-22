@@ -288,8 +288,8 @@ enum CYSheetKind: CaseIterable, Hashable {
         case .district: return [.height(96), .medium, .large]
         case .roamNearby: return [.height(64), .medium, .large]
         case .liveRoam: return [.height(120), .medium]
-        case .teamChat, .memberManagement, .editorList: return [.medium, .large]
-        case .hint: return [.fit, .medium]
+        // 提示 (396:4404) and 队伍聊天 (396:4449): medium / large, scrim 40 % (skill-r2 hand-off, SR2-49 table).
+        case .teamChat, .hint, .memberManagement, .editorList: return [.medium, .large]
         case .login, .share, .editorLarge: return [.large]
         case .pickerLong, .editorFitLarge: return [.fit, .large]
         case .editorNode: return [.fraction(0.62), .large]

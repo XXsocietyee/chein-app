@@ -99,18 +99,29 @@ import UIKit
                                 .pageTemplateReadingOrder(70)
                         }
                         CYScreenOfflineWriteBanner(routes: ["/api/compliance/consents"])
+                        if feedDown {
+                            // R1 error state (166:3280): when every rail and the feed failed, one inline error under the
+                            // header, with one retry for all of it; no section titles with nothing under them, no tabs.
+                            retry(Text("homeFeed.feedFailed"), id: "feed") {
+                                for section in HomeFeedSection.allCases { model.schedule(.section(section), reader: reader, permit: permit) }
+                                model.schedule(.page, reader: reader, permit: permit)
+                            }
+                            .padding(.top, CYSpacing.sm)
+                            .pageTemplateReadingOrder(60)
+                        }
                         // Mini-program order: 编辑精选, 附近活动, 即将上线, then 主题 / 活动.
                         feedSection(.recommended, order: 2).pageTemplateReadingOrder(60)
                         if let cityRail { cityRail.pageTemplateReadingOrder(55) }
                     }
                     feedSection(.nearby, order: 3).pageTemplateReadingOrder(50)
-                    if model.bannerFailed || !model.banners.isEmpty {
+                    if !feedDown, model.bannerFailed || !model.banners.isEmpty {
                         bannerSection
                             .padding(.horizontal, -CYSpacing.pageHorizontal)
                             .cySectionReveal(order: 8, gate: reveal)
                             .pageTemplateReadingOrder(45)
                     }
                     feedSection(.upcoming, order: 4).pageTemplateReadingOrder(40)
+                    if !feedDown {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         // Source pages/index feed tabs are 主题 / 活动. The indicator uses textPrimary.
                         CYTabs(
@@ -158,6 +169,7 @@ import UIKit
                     }
                     .cySectionReveal(order: 5, gate: reveal)
                     .pageTemplateReadingOrder(30)
+                    }
                     todayCard.cySectionReveal(order: 6, gate: reveal).pageTemplateReadingOrder(20)
                     // Mini-program store card (city pass entry): one feed card, never a paywall.
                     MPPassExploreCard().pageTemplateReadingOrder(15)
@@ -253,7 +265,7 @@ import UIKit
         let items = model.sections[section]
         let failed = model.failedSections.contains(section)
         let hidesEmpty = !failed && (items?.isEmpty ?? !model.loading)
-        if !hidesEmpty {
+        if !hidesEmpty, !feedDown {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 switch section {
                 case .recommended:
@@ -394,6 +406,12 @@ import UIKit
             + Text("homeFeed.status.time") + Text(verbatim: " ") + time + Text(verbatim: ", ")
             + Text("homeFeed.place") + Text(verbatim: " ") + placeText
     }
+    /// Every rail and the first feed page failed and nothing is on screen: the page shows one inline error (166:3280).
+    private var feedDown: Bool {
+        HomeFeedSection.allCases.allSatisfy { model.failedSections.contains($0) && (model.sections[$0]?.isEmpty ?? true) }
+            && model.pageFailed && model.pagination.items.isEmpty && !model.loading && !model.loadingPage
+    }
+
     private func retry(_ message: Text, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Label { message } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }

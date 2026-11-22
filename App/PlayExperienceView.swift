@@ -40,6 +40,10 @@ import SwiftUI
     /// Session attachment. Nil leaves the map on the ids this view already holds.
     var routeActionRead: RouteActionPageReadRequest? = nil
     @State private var selectedNode: Int?
+    /// 提示 on the play HUD (401:4731): the stop opens with its hint ladder already up. Cleared once it is used.
+    @State private var hintNode: Int?
+    /// 背包 on the play HUD: the theme (or team) backpack pushed over the play map.
+    @State private var showBackpack = false
     @State private var showRouteMap = false
     @State private var confirmEnd = false
     @State private var presentedMode: PlayGameplayMode?
@@ -105,8 +109,12 @@ import SwiftUI
         .appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedNode) { id in
-            nodeDestination(id)
+            nodeDestination(id, opensHelp: hintNode == id)
                 .cyPushedChrome(domain: .game)
+        }
+        .onChange(of: selectedNode) { _, id in if id == nil { hintNode = nil } }
+        .navigationDestination(isPresented: $showBackpack) {
+            backpackDestination.cyPushedChrome(domain: .game)
         }
         .navigationDestination(isPresented: $showRouteMap) {
             PlayRouteMapView(
@@ -116,7 +124,8 @@ import SwiftUI
                 .cyPushedChrome(domain: .game)
         }
         .toolbar {
-            if let scope = playChannelScope {
+            // The play HUD carries the channel as its 队伍 circle; elsewhere it stays in the bar.
+            if let scope = playChannelScope, hudStop == nil {
                 ToolbarItem(placement: .topBarTrailing) {
                     InGameChannelToolbarButton(
                         scope: scope,
@@ -563,8 +572,44 @@ import SwiftUI
     /// Map-first play screen: static map ground, glass clock / route map / end on top, the one primary
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
     private var orientationContent: some View {
-        CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: { runHeader }, floating: { runPrimary },
+        CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: { runHeader }, floating: { runFloating },
                       panel: { orientationList })
+    }
+    /// The one current stop of a live run, for the play HUD (401:4731). nil while branches are a choice, before the
+    /// read is current, after the run ends, or when the run is unresolved: then the floating area is the run primary.
+    private var hudStop: (node: PlayNode, snapshot: PlaySnapshot)? {
+        guard model.gameplayMode == .cityOrientation, model.hasCurrentMediaSnapshot, !model.unresolved,
+              model.clock.phase != .ended, let snapshot = model.snapshot,
+              let id = PlayTaskSummaryPresentation(snapshot: snapshot).currentNodeID,
+              let node = snapshot.visibleNodes.first(where: { $0.id == id }) else { return nil }
+        return (node, snapshot)
+    }
+    @ViewBuilder private var runFloating: some View {
+        if let hud = hudStop {
+            PlayHUDView(node: hud.node, snapshot: hud.snapshot, elapsedSeconds: model.clock.elapsedSeconds,
+                        onOpenStop: { selectedNode = hud.node.id },
+                        onHint: { hintNode = hud.node.id; selectedNode = hud.node.id },
+                        onBackpack: (backpackModel != nil || teamBackpackModel != nil) ? { showBackpack = true } : nil,
+                        primary: { runPrimary },
+                        team: {
+                            if let scope = playChannelScope {
+                                InGameChannelToolbarButton(scope: scope, titleKey: playChannelTitleKey,
+                                                           accessibilityID: "ingame.channel.play.entry",
+                                                           reloadTrigger: model.snapshot?.result.teamID ?? 0)
+                            }
+                        })
+        } else {
+            runPrimary
+        }
+    }
+    @ViewBuilder private var backpackDestination: some View {
+        if let teamBackpackModel, model.snapshot?.result.teamID ?? 0 > 0 {
+            PlayTeamBackpackView(model: teamBackpackModel)
+        } else if let backpackModel {
+            PlayThemeBackpackView(model: backpackModel, externalGamesEnabled: ExternalGameSessionRead.externalGamesOpen(baseURL: externalGameSession?.baseURL))
+        } else if let teamBackpackModel {
+            PlayTeamBackpackView(model: teamBackpackModel)
+        }
     }
     /// Elapsed clock plus route map and end as glass controls (max three with the toolbar refresh).
     @ViewBuilder private var runHeader: some View {
@@ -638,14 +683,14 @@ import SwiftUI
             }.accessibilityIdentifier("journey.record.open." + query.key)
         }
     }
-    @ViewBuilder private func nodeDestination(_ id: Int) -> some View {
+    @ViewBuilder private func nodeDestination(_ id: Int, opensHelp: Bool = false) -> some View {
         if model.gameplayMode == .cityOrientation {
         let configuration = try? PlayStillnessConfiguration(raw: model.extras[id]?.sensorConfig ?? .null)
         PlayExperienceNodeView(nodeID: id, model: model, device: deviceModel?(id), advanced: advancedModel.flatMap { $0(id) },
             stillness: configuration.flatMap { configuration in motionModel.flatMap { $0(id, configuration) } },
             preference: preferenceModel.flatMap { $0(id) }, journey: journeyModel.flatMap { $0(id) }, narrative: narrativeModel?(.questions(nodeID: id)), shopNPC: shopNPCModel?(id),
             mediaScope: mediaScope, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, approvedArtworkHosts: approvedArtworkHosts, makeSensorProvider: makeSensorProvider, spatialApproval: spatialApproval,
-            makeTeamPool: teamPoolModel, openNode: { selectedNode = $0 })
+            makeTeamPool: teamPoolModel, openNode: { selectedNode = $0 }, opensHelp: opensHelp)
         } else { Text("playMode.unavailable") }
     }
     @ViewBuilder private var finishMedalScreen: some View {
@@ -717,6 +762,10 @@ import SwiftUI
     var makeTeamPool: ((Int) -> TeamPoolHintModel?)? = nil
     /// Opens another stop from the outcome card ("Next stop"); nil hides that shortcut.
     var openNode: ((Int) -> Void)? = nil
+    /// Opened from 提示 on the play HUD: the hint ladder sheet comes up once the ladder has loaded (no ladder: the
+    /// stop's own hint rows are on the page).
+    var opensHelp = false
+    @State private var helpOpenedOnce = false
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     @State private var answer = ""
@@ -926,6 +975,7 @@ import SwiftUI
             .task(id: [model.identity, node.map { String($0.id) }, (model.snapshot?.route?.sessionID).map(String.init), (model.snapshot?.route?.version).map(String.init)]) {
                 if let node {
                     await loadHelp(node: node)
+                    if opensHelp, !helpOpenedOnce, helpEnabled { helpOpenedOnce = true; showHelpPanel = true }
                     await journey?.probe(nodeDone: model.snapshot?.isDone(node) == true)
                     guard !Task.isCancelled, self.node?.id == node.id, model.hasCurrentMediaSnapshot else { journey?.roleContent.close(); return }
                     await journey?.roleContent.load(expectedRunID: model.snapshot?.route?.sessionID, minimumStateVersion: model.snapshot?.route?.version)

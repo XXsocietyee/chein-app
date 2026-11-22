@@ -490,17 +490,26 @@ struct JourneyReportView: View {
                             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                             .background(result.win ? AnyShapeStyle(CYNight.lantern) : AnyShapeStyle(CYNight.ink2), in: Capsule())
                     }
+                    // 战报 (204:15044, skill-r2 SR2-07): 本局不计分 is said once, as the subtitle, never again as a tile.
+                    if report.score == nil {
+                        Text("mp.report.notScored").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("journeyReport.notScored")
+                    }
                 }
                 .frame(maxWidth: .infinity)
-                // 战报 (204:15044, xrefs-1 Adopt 4): three numbers with hairline dividers, no tile.
-                HStack(spacing: 0) {
-                    stat(Text(verbatim: MPText.orDash(report.nodesText)), "mp.report.stat.nodes", muted: false)
-                    statDivider
-                    stat(Text(verbatim: MPText.orDash(report.elapsedText)), "mp.report.stat.time", muted: report.elapsedText == nil)
-                    statDivider
-                    stat(report.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.notScored"), "mp.report.stat.score", muted: report.score == nil)
+                // 战报 (204:15044, xrefs-1 Adopt 4): the numbers with hairline dividers, no tile. A number the report
+                // cannot read is left out (SR1-43: no 0 / 6 or — tiles), so the row holds one to three stats.
+                let stats = Self.stats(report)
+                if !stats.isEmpty {
+                    HStack(spacing: 0) {
+                        ForEach(Array(stats.enumerated()), id: \.offset) { index, item in
+                            if index > 0 { statDivider }
+                            stat(Text(verbatim: item.value), item.label)
+                        }
+                    }
+                    .padding(.vertical, CYSpacing.sm)
+                    .accessibilityIdentifier("journeyReport.stats")
                 }
-                .padding(.vertical, CYSpacing.sm)
                 MPCard {
                     Button { rankShown = true } label: {
                         MPRow(title: Text("mp.report.rankRow"), sub: report.rankBasisCount.map { Text("mp.report.rankBasis \($0)") },
@@ -565,9 +574,18 @@ struct JourneyReportView: View {
         Rectangle().fill(CYColor.borderSubtle).frame(width: 1, height: 28).accessibilityHidden(true)
     }
 
-    private func stat(_ value: Text, _ label: LocalizedStringKey, muted: Bool) -> some View {
+    /// The 战报 stats the report can actually read, in the frame's order: 完成站点, 用时, 得分.
+    static func stats(_ report: JourneyReport) -> [(label: LocalizedStringKey, value: String)] {
+        var rows: [(label: LocalizedStringKey, value: String)] = []
+        if let nodes = report.nodesText, !nodes.isEmpty { rows.append(("mp.report.stat.nodes", nodes)) }
+        if let elapsed = report.elapsedText, !elapsed.isEmpty { rows.append(("mp.report.stat.time", elapsed)) }
+        if let score = report.score { rows.append(("mp.report.stat.score", String(score))) }
+        return rows
+    }
+
+    private func stat(_ value: Text, _ label: LocalizedStringKey) -> some View {
         VStack(spacing: CYSpacing.xxs) {
-            value.font(CYTypography.dataXL).monospacedDigit().foregroundStyle(muted ? CYColor.textTertiary : CYColor.textPrimary)
+            value.font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 .cyWrapText(alignment: .center)
             Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }
@@ -716,6 +734,10 @@ struct JourneySettleView: View {
     @State private var shareKind: ShareKind = .post
     @State private var overviewOn = false
     @State private var shownScore = 0
+    /// A tap on the overview jumps every beat to its settled frame (SR2-49: every moment is skippable).
+    @State private var skipped = false
+    /// The success haptic 150 ms after the seal's contact (skill-r2 SR2-49 "Seal lands").
+    @State private var sealSuccess = false
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @QuestifyReduceMotion private var reduceMotion
@@ -747,16 +769,8 @@ struct JourneySettleView: View {
         .cyPushedChrome(domain: .player)
         .navigationTitle(Text("mp.settle.title"))
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(phase.isReady && step != .overview)
-        .toolbar {
-            if phase.isReady && step != .overview {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { go(Step(rawValue: step.rawValue - 1) ?? .overview) } label: { Image(systemName: "chevron.left") }
-                        .accessibilityLabel(Text("mp.settle.back"))
-                        .accessibilityIdentifier("journeySettle.back")
-                }
-            }
-        }
+        // consist-1 type-and-chrome: the system back stays; no custom chevron replaces it. The steps only go forward
+        // (each has its own next or skip), and back leaves 结算 as it does on every pushed page.
         .cyDomainScreen(.player)
     }
 
@@ -794,52 +808,89 @@ struct JourneySettleView: View {
             .frame(maxHeight: .infinity)
             footer
         }
-        .overlay { if rate == .thanks && step == .rate { thanks } }
+        .task(id: rate) {
+            guard rate == .thanks, step == .rate else { return }
+            try? await Task.sleep(for: .seconds(CYMotion.Delay.sheetDismiss))
+            guard !Task.isCancelled, step == .rate else { return }
+            go(.share)
+        }
     }
 
-    // 1 overview: trophy + sparkles, result, topic, rank, score / nodes (score counts up once the card lands).
+    private var ratePhase: CYResultPhase {
+        switch rate {
+        case .busy: return .loading
+        case .thanks: return .done
+        case .idle, .error: return .idle
+        }
+    }
+
+    // 1 overview (204:15096): the seal, result, topic, rank, then score / stops. The score counts up once the text is
+    // in; nothing redraws. Beats follow the moment table (seal from 0, text +950 ms, chips 0 / 50 / 90).
     private func overview(_ report: JourneyReport) -> some View {
         VStack(spacing: CYSpacing.md) {
             Spacer()
             // 结算 (204:15096, skill-r2 SR2-07): the `Moment/Art` seal at 96 pt lands over the stop count (6 / 6),
-            // in place of the trophy and the row of ticks. It lands on `CYMotion.seal` with one heavy impact.
-            ZStack {
-                Circle().fill(CYNight.glow(radius: 90)).frame(width: 260, height: 260)
-                CYMomentSeal(text: Text("playx.completed"), landed: overviewOn)
+            // in place of the trophy and the row of ticks. No glow behind it (AGENTS 删减: no 发光).
+            CYMomentSeal(text: Text("playx.completed"), landed: overviewOn)
+                .frame(height: 160)
+                .accessibilityHidden(true)
+            if let result = report.result {
+                Text(result.label).font(CYTypography.label).tracking(0.6).foregroundStyle(CYNight.lanternHot)
+                    .settleRise(overviewOn, 0, skipped: skipped, reduceMotion: reduceMotion)
             }
-            .frame(height: 200)
-            .accessibilityHidden(true)
-            if let result = report.result { Text(result.label).font(CYTypography.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).settleRise(overviewOn, 0) }
-            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).font(CYTypography.display).multilineTextAlignment(.center).settleRise(overviewOn, 1)
+            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).font(CYTypography.display).multilineTextAlignment(.center)
+                .settleRise(overviewOn, 1, skipped: skipped, reduceMotion: reduceMotion)
             if let rank = report.rank, report.rankBasisCount != nil {
-                Text("mp.settle.rank \(rank)").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary).settleRise(overviewOn, 2)
+                Text("mp.settle.rank \(rank)").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary)
+                    .settleRise(overviewOn, 2, skipped: skipped, reduceMotion: reduceMotion)
             }
             HStack(spacing: CYSpacing.xxxl) {
                 if let score = report.score {
                     VStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: String(shownScore)).font(CYTypography.data2XL).monospacedDigit().contentTransition(.numericText(value: Double(shownScore)))
+                        Text(verbatim: String(shownScore)).font(CYTypography.data2XL)
+                            .cyNumericRoll(Double(shownScore))
                         Text("mp.report.stat.score").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("mp.report.stat.score") + Text(verbatim: " \(score)"))
-                    .onAppear {
-                        if reduceMotion { shownScore = score; return }
-                        withAnimation(.easeOut(duration: CYMotion.Duration.slow).delay(1.1)) { shownScore = score }
-                    }
+                    .accessibilityIdentifier("journeySettle.score")
+                    .task(id: skipped) { await countUp(to: score) }
                 }
+                // The stop count under the seal (6 / 6); unknown is a dash, never 0.
                 VStack(spacing: CYSpacing.xxs) {
                     Text(verbatim: MPText.orDash(report.nodesText)).font(CYTypography.data2XL).monospacedDigit()
                     Text("mp.settle.nodes").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
             }
-            .settleRise(overviewOn, 3)
+            .settleRise(overviewOn, 3, skipped: skipped, reduceMotion: reduceMotion)
             Spacer()
         }
         .padding(.horizontal, CYSpacing.pageHorizontal)
+        .contentShape(Rectangle())
+        .onTapGesture { if !skipped { skipped = true } }
+        .cyHaptic(.success, trigger: sealSuccess) { _, new in new }
         .onAppear {
-            withAnimation(CYMotion.resolve(.spring(response: 0.6, dampingFraction: 0.7), reduceMotion: reduceMotion)) { overviewOn = true }
+            // The seal owns its spring (`CYMotion.seal`) and its heavy impact at contact.
+            overviewOn = true
         }
+        .task {
+            // Seal contact ≈ 180 ms after it starts; success follows 150 ms later. Haptics stay under Reduce Motion.
+            try? await Task.sleep(for: .milliseconds(330))
+            guard !Task.isCancelled else { return }
+            sealSuccess = true
+        }
+    }
+
+    /// The score counts up from 0 once the text beat is in (`cyNumericRoll`: tabular digits, numericText, one roll).
+    /// Reduce Motion cross-fades the digits; a skip lands on the value at once.
+    private func countUp(to score: Int) async {
+        guard shownScore != score else { return }
+        if !(reduceMotion || skipped) {
+            try? await Task.sleep(for: .seconds(CYMotion.Delay.momentText + CYMotion.Stagger.delay(3)))
+            guard !Task.isCancelled else { return }
+        }
+        shownScore = score
     }
 
     // 3 rate: five gold stars light in order, chips after a star, one line, errors under the field.
@@ -933,7 +984,11 @@ struct JourneySettleView: View {
             case .rank:
                 CYPillButton("mp.settle.toRate") { go(.rate) }.accessibilityIdentifier("journeySettle.toRate")
             case .rate:
-                CYMorphButton("mp.settle.rate.submit", state: rate == .busy ? .working : .idle, action: submit).identifier("journeySettle.submitRate")
+                // The rating result lands in the button that sent it (xrefs-1 B.0 "in place"): 提交 → 正在提交 → 已提交,
+                // then the flow moves on to 分享 after the hold. No thank-you card over the page.
+                CYResultButton("mp.settle.rate.submit", loading: "mp.settle.rate.submitting", done: "mp.settle.rate.submitted",
+                               phase: ratePhase, action: submit)
+                    .identifier("journeySettle.submitRate")
                 Button("mp.settle.skip") { go(.share) }.font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                     .frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("journeySettle.skip")
             case .share:
@@ -948,29 +1003,8 @@ struct JourneySettleView: View {
         }
     }
 
-    private var thanks: some View {
-        ZStack {
-            CYColor.bgPage.opacity(0.85).ignoresSafeArea().accessibilityHidden(true)
-            VStack(spacing: CYSpacing.md) {
-                Image(systemName: "star.fill").font(CYTypography.display).foregroundStyle(CYNight.lantern)
-                    .background { Circle().fill(CYNight.glow(radius: 50)).frame(width: 160, height: 160) }
-                    .accessibilityHidden(true)
-                Text("mp.settle.thanks").font(CYTypography.pageTitle)
-                Text("mp.settle.thanks.line").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
-                CYPillButton("mp.settle.toShare") { go(.share) }.accessibilityIdentifier("journeySettle.toShare")
-            }
-            .padding(CYSpacing.xxl)
-            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
-            .padding(CYSpacing.xxl)
-            .transition(.scale(scale: 0.9).combined(with: .opacity))
-            .accessibilityElement(children: .contain)
-            .accessibilityAddTraits(.isModal)
-        }
-        .cyHaptic(.success, trigger: rate == .thanks)
-    }
-
     private func go(_ next: Step) {
-        withAnimation(CYMotion.resolve(.spring(response: 0.42, dampingFraction: 0.86), reduceMotion: reduceMotion)) { step = next }
+        withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { step = next }
     }
 
     private func submit() {
@@ -985,14 +1019,15 @@ struct JourneySettleView: View {
     private static let tagResource: [String.LocalizationValue] = ["mp.settle.tag.story", "mp.settle.tag.places", "mp.settle.tag.puzzles", "mp.settle.tag.far", "mp.settle.tag.hints", "mp.settle.tag.hard"]
 }
 
-private extension JourneySettlePhase {
-    var isReady: Bool { if case .ready = self { return true } else { return false } }
-}
-
 private extension View {
-    func settleRise(_ on: Bool, _ index: Int) -> some View {
-        opacity(on ? 1 : 0).offset(y: on ? 0 : 14)
-            .animation(.spring(response: 0.5, dampingFraction: 0.85).delay(0.25 + Double(index) * 0.08), value: on)
+    /// 结算 text beats: headline offset 12 → 0 with opacity on `CYMotion.moment` from +950 ms, the following lines
+    /// 0 / 50 / 90 ms after it. Reduce Motion: opacity only (200 ms). A skip lands them at once.
+    func settleRise(_ on: Bool, _ index: Int, skipped: Bool, reduceMotion: Bool) -> some View {
+        let delay = CYMotion.Delay.momentText + CYMotion.Stagger.delay(index)
+        let animation: Animation? = skipped ? nil : (reduceMotion ? CYMotion.reduced.delay(delay) : CYMotion.moment.delay(delay))
+        return opacity(on || skipped ? 1 : 0).offset(y: on || skipped || reduceMotion ? 0 : 12)
+            .animation(animation, value: on)
+            .animation(nil, value: skipped)
     }
 }
 

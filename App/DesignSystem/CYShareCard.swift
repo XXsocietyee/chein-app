@@ -60,6 +60,9 @@ enum CYShareCardRatio: String, CaseIterable, Identifiable {
 enum CYShareCardTint: String, CaseIterable, Identifiable {
     case ink, ember, ocean, moss, sunset, gold
     var id: String { rawValue }
+    /// The swatches a person can pick (skill-r2 SR2-08, owner Q11): the share-card palette has no mustard, so `gold`
+    /// stays only for cards rendered before this rule and is never offered.
+    static var pickable: [CYShareCardTint] { allCases.filter { $0 != .gold } }
     /// Bright colour: strokes, eyebrow text, glow.
     var primary: Color {
         switch self {
@@ -396,7 +399,8 @@ private struct CYShareCardPoster: View {
                 CYShareEyebrowRow(eyebrow: content.eyebrow, brand: content.brand, tint: .white.opacity(0.9))
                 Spacer(minLength: 12)
                 if content.kind == .medal {
-                    CYShareMedalArt(content: content, tint: style.tint, size: ratio.metric(170, 120))
+                    // Share badge (210:10082, SR2-08): the earned badge at 144 pt on the story card.
+                    CYShareMedalArt(content: content, tint: style.tint, size: ratio.metric(144, 120))
                         .frame(maxWidth: .infinity)
                 } else if !content.silhouette.isEmpty {
                     CYShareCardSilhouette(points: content.silhouette, stroke: .white, lineWidth: ratio.metric(5, 4))

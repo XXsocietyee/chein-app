@@ -117,7 +117,7 @@ final class DesignR1FoundationTests: XCTestCase {
         XCTAssertEqual(CYSheetKind.roamNearby.sizes, [.height(64), .medium, .large])
         XCTAssertEqual(CYSheetKind.liveRoam.sizes, [.height(120), .medium])
         XCTAssertEqual(CYSheetKind.teamChat.sizes, [.medium, .large])
-        XCTAssertEqual(CYSheetKind.hint.sizes, [.fit, .medium])
+        XCTAssertEqual(CYSheetKind.hint.sizes, [.medium, .large], "提示 396:4404: medium / large (r4)")
         XCTAssertEqual(CYSheetKind.ticketType.sizes, [.fit])
         XCTAssertEqual(CYSheetKind.released.sizes, [.fit])
         XCTAssertEqual(CYSheetKind.login.sizes, [.large])
