@@ -41,6 +41,8 @@ struct PassportBadge: Identifiable, Equatable {
     var growth: (any GrowthCenterReading)? = nil
     var refreshToken = 0
     var onOpenTickets: () -> Void
+    /// False when the host already shows 票夹 (the identity card's pill): one entry per destination on the page.
+    var showsTicketsAction = true
     var onOpenWallet: () -> Void
     var onOpenMessages: () -> Void
     /// Stamp collection and badge rail each get one tap to their existing list (history / growth center); nil = static.
@@ -64,7 +66,7 @@ struct PassportBadge: Identifiable, Equatable {
             case .ready:
                 EmptyView()
             }
-            PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
+            PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, showsTicketsAction: showsTicketsAction, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages, onOpenStamps: onOpenStamps, onOpenBadges: onOpenBadges)
         }
         // No white slab: the section rows are clear and each block below draws its own dark glass card.
         .listRowBackground(Color.clear)
@@ -145,6 +147,7 @@ private struct PassportRollingCount: View {
     /// nil = unknown (em dash); empty = known none (rail hidden); otherwise the earned badges.
     var badges: [PassportBadge]? = nil
     var onOpenTickets: () -> Void = {}
+    var showsTicketsAction = true
     var onOpenWallet: () -> Void = {}
     var onOpenMessages: () -> Void = {}
     var onOpenStamps: (() -> Void)? = nil
@@ -154,18 +157,24 @@ private struct PassportRollingCount: View {
     @Environment(\.cyOpenPassportStamp) private var openStamp
     /// Glass circle scales with the glyph (Dynamic Type) so the icon never outgrows it.
     @ScaledMetric(relativeTo: .title3) private var actionCircle: CGFloat = 56
+    /// First-load entrance, 50 ms apart, once per screen (continues the identity card's index 0).
+    @State private var stagger = CYStaggerGate()
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            actions
-            stamps.passportFlatCard()
-            if badges?.isEmpty != true { badgeRail.passportFlatCard() }
+            actions.cyStaggeredAppear(index: 1, gate: stagger)
+            stamps.passportFlatCard().cyStaggeredAppear(index: 2, gate: stagger)
+            if badges?.isEmpty != true { badgeRail.passportFlatCard().cyStaggeredAppear(index: 3, gate: stagger).transition(.opacity) }
         }
+        // Badges that arrive after the first frame fade in place.
+        .cyAnimation(CYMotion.standard, value: badges?.count)
     }
 
     private var actions: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            action("ticketWallet.title", "ticket", id: "passport.action.tickets", perform: onOpenTickets)
+            if showsTicketsAction {
+                action("ticketWallet.title", "ticket", id: "passport.action.tickets", perform: onOpenTickets)
+            }
             action("wallet.title", "creditcard", id: "passport.action.wallet", perform: onOpenWallet)
             action("messaging.title", "bubble.left.and.bubble.right", id: "passport.action.messages", perform: onOpenMessages)
         }

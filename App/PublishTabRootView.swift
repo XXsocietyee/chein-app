@@ -10,19 +10,15 @@ import SwiftUI
     @State private var showsCreatorCenter = false
 
     var body: some View {
-        SessionPublishingModesView(appliesPushedChrome: false)
+        // P 210:8374: the template browser is the page's 从模板开始 section, so the header keeps 消息 plus one page
+        // action (the creator ⋯ menu), as the root-header rule asks (verify-r1 2.5).
+        SessionPublishingModesView(appliesPushedChrome: false, isTabRoot: true,
+                                   openTemplates: session.isConfigured ? { showsTemplates = true } : nil)
             .id(session.publishingSession?.epoch)
             // Design hand-off r1 PL-11: 消息 is the first trailing action on every tab root.
             .modifier(SessionMessagingToolbarEntry(session: session))
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    if session.isConfigured {
-                        Button("discovery.browseTemplates", systemImage: "square.stack.3d.up") {
-                            showsTemplates = true
-                        }
-                        .accessibilityLabel(Text("discovery.browseTemplates"))
-                        .accessibilityIdentifier("publishTab.openTemplates")
-                    }
                     if session.publishingSession != nil {
                         Menu {
                             Button("creatorContent.projects", systemImage: "square.stack") {

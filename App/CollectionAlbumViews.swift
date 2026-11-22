@@ -23,33 +23,46 @@ extension EnvironmentValues {
     }
 }
 
-/// `album-head`: the 收集册 title and the segment chips (selected chip solid).
+/// `album-head`: the segment chips (R2 204:30158). The page title 收集册 is the system inline title (type-and-chrome
+/// §2: a pushed page draws no second page-type title in its content). The selected chip is the neutral solid capsule
+/// and slides to the picked segment in place (`standard`; a cross-fade under Reduce Motion). Chips scroll sideways when
+/// long labels or large Dynamic Type no longer fit.
 struct CollectionAlbumHead: View {
     let segments: [CollectionAlbumSegment]
     let active: CollectionAlbumSegment
     let select: (CollectionAlbumSegment) -> Void
+    @Environment(\.cyPalette) private var palette
+    @Namespace private var chip
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("u10.album.title").font(CYTypography.display).foregroundStyle(CYColor.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+        ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: CYSpacing.sm) {
                 ForEach(segments, id: \.self) { segment in
                     let on = segment == active
                     Button { select(segment) } label: {
                         Text(segment.title).font(CYTypography.label)
-                            .foregroundStyle(on ? CYNight.ink0 : CYColor.textPrimary)
-                            .padding(.horizontal, CYSpacing.xl).frame(minHeight: 44)
-                            .background(on ? Color.white : CYNight.ink0, in: Capsule())
+                            .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
+                            .lineLimit(1)
+                            .padding(.horizontal, CYSpacing.xl).frame(minHeight: CYSpacing.minTouchTarget)
+                            .background {
+                                if on {
+                                    Capsule().fill(palette.textPrimary)
+                                        .matchedGeometryEffect(id: "selected", in: chip)
+                                } else {
+                                    Capsule().fill(palette.bgElevated)
+                                }
+                            }
+                            .contentShape(Capsule())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.cyPressable)
                     .accessibilityAddTraits(on ? [.isSelected] : [])
                     .accessibilityIdentifier("collection.album.segment.\(segment.rawValue)")
                 }
             }
+            .padding(.horizontal, CYSpacing.lg)
             .accessibilityElement(children: .contain)
         }
+        .padding(.top, CYSpacing.sm).padding(.bottom, CYSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm).padding(.bottom, CYSpacing.md)
         .accessibilityIdentifier("collection.album.head")
     }
 }
@@ -61,7 +74,7 @@ struct CollectionAlbumHead: View {
     var object: (() -> AnyView)?
     @State private var active: CollectionAlbumSegment
     @State private var forward = true
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @QuestifyReduceMotion private var reduceMotion
 
     init(initial: CollectionAlbumSegment, medal: (() -> AnyView)? = nil, stamp: (() -> AnyView)? = nil, object: (() -> AnyView)? = nil) {
         self.medal = medal; self.stamp = stamp; self.object = object
@@ -99,6 +112,7 @@ struct CollectionAlbumHead: View {
             .clipped()
         }
         .sensoryFeedback(.selection, trigger: active)
+        .navigationTitle(Text("u10.album.title"))
         .navigationBarTitleDisplayMode(.inline)
         .cyDomainPageBackground()
         .accessibilityIdentifier("collection.album")
