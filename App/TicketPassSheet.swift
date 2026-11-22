@@ -319,7 +319,8 @@ enum CYPassCardPick {
 
     @ViewBuilder private var tile: some View {
         VStack(spacing: CYSpacing.md) {
-            if let codeFactory, ticket.status == .ready {
+            // MP k4 (j2 F-22): a cleared ticket or a locked (upcoming / refunding) one issues no entry code (PLY-21-4).
+            if let codeFactory, ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
                 VerificationCodeView(model: codeFactory(.init(kind: .ticket, id: ticket.id)), embeddedQRSide: Self.qrSide)
                     .id(ticket.id)
             } else {

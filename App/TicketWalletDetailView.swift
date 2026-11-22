@@ -36,7 +36,8 @@ import SwiftUI
                     TicketWalletDetailHeader(ticket: ticket)
                         .cyHeroSource("present", in: presentHero)
                         .questifyCardListRow()
-                    if ticket.status == .ready {
+                    if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {
+                        // MP: a cleared ticket shows no entry code (PLY-21-4); a locked one cannot be presented yet.
                         // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
                         CYPillButton(verbatim: c.t("出示票券", "Present pass"), systemImage: "qrcode") { presenting = true }
                             .accessibilityIdentifier("ticketWallet.present.open")
