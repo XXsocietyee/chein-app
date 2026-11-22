@@ -344,7 +344,8 @@ struct ClubOperationsWorkspaceView: View {
             if target != .create, let profile = value.profile {
                 ClubEditFactsSection(clubID: profile.club.id, governanceAvailable: hostApplication != nil)
             }
-            if target != .create || ClubPlayerSurface.flatCreateForm {
+            // CLB-create-01: MP create step 3 carries a 16:9 cover and a 1:1 logo above the name.
+            if target != .create || ClubPlayerSurface.flatCreateForm || createStepBar.step == 3 {
                 ClubProfileMediaSection(draft: $draft, snapshot: value, identity: identity, service: access.profileMedia,
                     flow: profileMedia, enabled: scenePhase == .active && !loading && !state.locksForm && !profileDraftBlocked && access.identity == identity)
             }
