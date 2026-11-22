@@ -12,7 +12,7 @@ final class TicketWalletSourceCopyFlowTests: XCTestCase {
     func testTrueEmptyShowsSourceHintWithoutFailureTitle() {
         launch("empty")
         XCTAssertTrue(app.staticTexts["ticketWallet.empty"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["ticketWallet.emptyHint"].exists)
+        XCTAssertFalse(app.staticTexts["ticketWallet.emptyHint"].exists) // MP「还没有票」has no sub line (PLY-21-11)
         XCTAssertFalse(app.staticTexts["ticketWallet.errorTitle"].exists)
     }
     func testFullFailureShowsSourceTitleAboveReasonAndRetry() {

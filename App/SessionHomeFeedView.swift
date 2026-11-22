@@ -36,7 +36,7 @@ import SwiftUI
         .task(id:session.sessionRevision) { await cityConsent.refresh(session) }
         .cyToast(message: $cityConsent.toast)
         .sheet(isPresented:$showsTodayTickets) {
-            TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTodayTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).id(session.ticketWalletReader.scope)
+            SessionTicketWalletHost(onClose:{ showsTodayTickets=false }).environmentObject(session)
                 .cyPlayerSheetGlass()
         }
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }

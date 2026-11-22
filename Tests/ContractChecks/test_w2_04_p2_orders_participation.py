@@ -40,7 +40,8 @@ class W204P2OrdersParticipationChecks(unittest.TestCase):
     def test_start_falls_back_to_ticket_wallet_route(self):
         self.assertIn('verification, support, ticketWallet }', self.journey)
         self.assertIn('Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }', self.journey)
-        self.assertIn('TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator)', self.journey)
+        # One shared wallet host (PLY-21-3): play entry, pending order and sign-in on every wallet entry.
+        self.assertIn('SessionTicketWalletHost(isPushed: true)', self.journey)
         self.assertLess(self.journey.index('if let target = detail.record.playEntry {'), self.journey.index('open(.ticketWallet)'))
 
     def test_row_cover_uses_https_only_artwork_or_placeholder(self):

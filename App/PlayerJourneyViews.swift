@@ -49,8 +49,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
             case .support: ParticipationSupportView()
             // Source mycanyuinfo 开始玩 without topic/activity ids falls back to the ticket wallet (signup).
             case .ticketWallet:
-                TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator)
-                    .id(session.ticketWalletReader.scope)
+                SessionTicketWalletHost(isPushed: true)
             case .verification: SessionNativeVerificationView()
             case .memberTemplate(let id): SessionMemberTemplateDetailView(id: id)
             case .history(let scope):

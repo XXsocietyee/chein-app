@@ -52,7 +52,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     }, reviewOwner: session.contextualReviews?.coordinator(.topic(id)),
                     selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
                     ticketWalletDestination: { topicID in
-                        AnyView(TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator, focusTopicID: topicID))
+                        AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
                     })
                     .id(session.contentDetailRevision)
             }

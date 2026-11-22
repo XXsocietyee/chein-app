@@ -265,9 +265,8 @@ struct ActivityDetailView: View {
         .sheet(isPresented:$showsTicketWallet, onDismiss: { tileOpenedSheet = false }) {
             // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
             if let session = reader as? AppSession {
-                TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTicketWallet=false },
-                                 orderLifecycleCoordinator:session.orderLifecycleCoordinator)
-                    .id(session.ticketWalletReader.scope)
+                SessionTicketWalletHost(onClose:{ showsTicketWallet=false })
+                    .environmentObject(session)
                     .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)

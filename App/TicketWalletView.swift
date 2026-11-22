@@ -11,6 +11,11 @@ import SwiftUI
     var onExplore: (() -> Void)? = nil
     /// Topic page opens the wallet on this topic's ticket (`topicId` query). Nil keeps the first row.
     var focusTopicID: Int? = nil
+    /// MP `signup/index?focusId=` (exact registration id): open that ticket. Not in the usable list → the
+    /// registration read decides; still nothing → 未定位到原报名凭证 + 重试 (index.js:158-219).
+    var focusRegistrationID: Int? = nil
+    /// Pushed inside a host stack (deep link, topic, participation): no own NavigationStack (PLY-21-9).
+    var isPushed = false
     @Environment(\.ticketWalletPendingOrderProvider) private var pendingOrderProvider
     @Environment(\.ticketWalletCompletionReader) private var completionReader
     @State private var walletFilter = TicketWalletFilter.all
@@ -24,6 +29,7 @@ import SwiftUI
     @State private var pendingOrderEntry = TicketWalletPendingOrderEntry()
     @State private var pendingOrderReadOwner: TicketWalletPendingOrderOwner?
     @State private var didFocusTopic = false
+    @State private var focusPhase = TicketWalletFocusPhase.idle
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader) }
     var body: some View {
         let offeredPresentation = model.presentation
@@ -31,38 +37,31 @@ import SwiftUI
         // The reader wraps the stack, not the stack's root: as the root it made SwiftUI build a second list
         // whose disappearance cancelled the first load (TicketWalletFlowTests, 2026-11-14).
         ScrollViewReader { proxy in
-        NavigationStack {
+        TicketWalletStack(embedded: !isPushed) {
             List {
                 if !reader.isAuthenticated {
                     TicketWalletIssueView(issue: .login)
-                    if let onSignIn { Button("ticketWallet.signIn", action: onSignIn) }
+                    if let onSignIn {
+                        CYPillButton("ticketWallet.signIn", action: onSignIn)
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("ticketWallet.signIn")
+                    }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
                 else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("mpfresh.ticketWallet.loading", tableName: "MpFresh")) }
                 else if let issue = model.issue(owner: key) {
                     // Source failure title 票夹没能打开 precedes the specific reason.
-                    Text("ticketWallet.parity.error.title").font(.headline)
+                    Text("ticketWallet.parity.error.title").cyText(.sectionTitle)
                         .accessibilityIdentifier("ticketWallet.errorTitle")
                     TicketWalletIssueView(issue: issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
                 } else if let snapshot = model.value(owner: key) {
-                    if let partial = snapshot.partialFailure {
-                        Section {
-                            Text(LocalizedStringKey(partial.lane == .route ? "ticketWallet.partial.route" : "ticketWallet.partial.activity"))
-                                .font(.headline).accessibilityIdentifier("ticketWallet.partialFailure")
-                            TicketWalletIssueView(issue: partial.issue, retry: { schedule(model.presentation ?? model.beginPresentation(owner: key)) })
-                        }
-                    }
+                    focusSection
                     if snapshot.tickets.isEmpty {
-                        // A partial empty response never claims the whole wallet is empty.
+                        // A partial empty response never claims the whole wallet is empty. MP empty is「还没有票」, no sub line.
                         ContentUnavailableView {
                             Label {
                                 Text(LocalizedStringKey(snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"))
                                     .accessibilityIdentifier("ticketWallet.empty")
                             } icon: { Image(systemName: "ticket") }
-                        } description: {
-                            if snapshot.partialFailure == nil {
-                                Text("ticketWallet.parity.empty.detail")
-                                    .accessibilityIdentifier("ticketWallet.emptyHint")
-                            }
                         }
                         .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
                         .listRowBackground(Color.clear)
@@ -79,7 +78,7 @@ import SwiftUI
                     ticketCarousel(shown)
                     // Source preserves both lanes and row order, including repeated server IDs.
                     ForEach(Array(snapshot.tickets.enumerated()).filter { shown.contains($0.element) }, id: \.offset) { rowIndex, ticket in
-                        if ticket.action == .detail {
+                        if ticket.action == .detail && !ticket.isWalletLocked {
                             NavigationLink {
                                 TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
                             } label: { TicketWalletRow(ticket: ticket) }
@@ -121,18 +120,19 @@ import SwiftUI
                         .accessibilityIdentifier("ticketWallet.teams")
                     }
                 }
-                // Payment, refunds and completion rewards are not in the app; shown in every state so the wallet never implies otherwise.
-                Section {
-                    Text("ticketWallet.readOnly").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("ticketWallet.readOnly")
+                // MP F-R2U-01: one lane failing leaves the other lane's tickets on screen with a quiet note, no red block.
+                if let partial = model.value(owner: key)?.partialFailure {
+                    Text(LocalizedStringKey(partial.lane == .route ? "ticketWallet.partial.route" : "ticketWallet.partial.activity"))
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                        .accessibilityIdentifier("ticketWallet.partialFailure")
                 }
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
             .cyDomainScreen(.player)
             .listSectionSpacing(20)
-            .appNavigationTitle("ticketWallet.title")
+            .cyPageTitle("ticketWallet.title")
             .cyHideTabBar()
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }
@@ -144,11 +144,6 @@ import SwiftUI
                         Button(action: onExplore) { Label { Text("mpfresh.ticketWallet.explore", tableName: "MpFresh") } icon: { Image(systemName: "plus") } }
                             .accessibilityIdentifier("ticketWallet.explore")
                     }
-                }
-                ToolbarItem(placement: .primaryAction) {
-                    Button { schedule(model.presentation ?? model.beginPresentation(owner: key)) } label: { Label("ticketWallet.refresh", systemImage: "arrow.clockwise") }
-                        .disabled(model.isLoading || !reader.isAuthenticated || !reader.isConfigured)
-                        .accessibilityIdentifier("ticketWallet.refresh")
                 }
             }
             .onChange(of: key) { _, _ in replacePresentation() }
@@ -185,8 +180,29 @@ import SwiftUI
             .accessibilityIdentifier("ticketWallet.list")
             .appSwitcherPrivacyShield()
             .onAppear { focusTopic(proxy) }
-            .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy) }
+            .onChange(of: model.value(owner: key)?.tickets.map(\.id)) { _, _ in focusTopic(proxy); focusRegistration(proxy) }
+            .onChange(of: model.isLoading) { _, loading in if !loading { focusRegistration(proxy) } }
         }
+        }
+    }
+    /// PLY-21-2: open the focused registration once. In the usable list → scroll to it and open its detail (the detail
+    /// re-reads `registration/info` by id). Not in the usable list → 未定位到原报名凭证 + 重试 (MP index.js:158-219).
+    /// No extra task: the owned wallet presentation stays the only read here.
+    private func focusRegistration(_ proxy: ScrollViewProxy) {
+        guard let focusRegistrationID, focusPhase == .idle, let tickets = model.value(owner: key)?.tickets else { return }
+        guard let index = tickets.firstIndex(where: { $0.id == focusRegistrationID }) else { focusPhase = .missing; return }
+        focusPhase = .found
+        proxy.scrollTo(index, anchor: .center)
+        if !tickets[index].isWalletLocked { carouselTicketID = focusRegistrationID }
+    }
+    @ViewBuilder private var focusSection: some View {
+        if focusPhase == .missing {
+            CYStateView(content: .empty(glyph: "ticket", title: appLocalized("ticketWallet.focus.missing", locale: locale),
+                                        body: "", actionTitle: appLocalized("ticketWallet.focus.retry", locale: locale)),
+                        onPrimary: { focusPhase = .idle; schedule(model.presentation ?? model.beginPresentation(owner: key)) },
+                        compact: true)
+                .listRowBackground(Color.clear)
+                .accessibilityIdentifier("ticketWallet.focus.missing")
         }
     }
     private func focusTopic(_ proxy: ScrollViewProxy) {
@@ -217,7 +233,8 @@ import SwiftUI
         retirePendingOrder()
         let captured = key
         let provider = pendingOrderProvider
-        await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketWallet() }
+        // MP F13: the wallet holds usable tickets only, in walletOrder (PLY-21-1). Unpaid ones live in 我的订单.
+        await model.load(presentation: presentation, currentOwner: { key }) { try await reader.ticketWallet().walletUsable }
         if !Task.isCancelled, model.accepts(presentation, currentOwner: key), captured == key,
            let provider, provider.owner == pendingOrderProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured) != nil {
@@ -284,6 +301,22 @@ extension TicketWalletView {
     }
 }
 
+/// A sheet-hosted wallet owns its stack; a pushed wallet uses the host's (no nested bar, working back).
+private struct TicketWalletStack<Content: View>: View {
+    let embedded: Bool
+    @ViewBuilder var content: Content
+    var body: some View {
+        if embedded { NavigationStack { content } } else { content }
+    }
+}
+
+enum TicketWalletFocusPhase: Equatable { case idle, found, missing }
+
+extension TicketWalletTicket {
+    /// MP `wLocked`: an upcoming or refunding ticket stays in the wallet but does not open (no code, no start).
+    var isWalletLocked: Bool { isUpcoming || isRefunding }
+}
+
 /// Ticket stub outline: rounded card with a semicircular notch cut from both sides at `notchY` (the perforation line).
 struct TicketStubShape: Shape {
     var notchY: CGFloat
@@ -320,21 +353,22 @@ private struct TicketWalletRow: View {
     }
     private var hasStub: Bool {
         (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
-            || ticket.action != .detail || (ticket.statusHintKey != nil && ticket.action == .detail) || showsPendingOrderAction
+            || ticket.action != .detail || ticket.walletTypeKey != nil || showsPendingOrderAction
     }
     var body: some View {
-        let dimmed = ticket.status == .cancelled || ticket.status == .expired
+        let dimmed = ticket.status == .cancelled || ticket.status == .expired || ticket.isWalletLocked
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
                 LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
                 Image(systemName: "ticket.fill").resizable().scaledToFit().frame(width: 120, height: 120).rotationEffect(.degrees(-14))
                     .foregroundStyle(.white.opacity(0.07)).offset(x: 90, y: -10).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    TicketWalletStatusBadge(status: ticket.status)
+                    // Owner rule (MP 2026-10-28): no status on the card. Only the MP tag: M月D日开始 / 退款中 / 已通关 / 未通关.
+                    TicketWalletCardTag(ticket: ticket)
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                         .cyText(.sectionTitle).foregroundStyle(.white)
                         .fixedSize(horizontal: false, vertical: true)
-                    completionCaption
+                    if ticket.clearedFlag == nil { completionCaption }
                 }
                 .padding(CYSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -356,26 +390,27 @@ private struct TicketWalletRow: View {
                     if ticket.needsScheduleSync {
                         Label { Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true) }
                             icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
                     }
                     if ticket.action != .detail {
                         Label { Text(LocalizedStringKey(ticket.sourceNoticeKey)).fixedSize(horizontal: false, vertical: true) }
                             icon: { Image(systemName: "info.circle").accessibilityHidden(true) }
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("ticketWallet.sourceNotice.\(ticket.id)")
                     }
-                    if let hint = ticket.statusHintKey, ticket.action == .detail {
-                        Text(LocalizedStringKey(hint)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                            .accessibilityIdentifier("ticketWallet.statusHint.\(ticket.id)")
+                    if let type = ticket.walletTypeKey {
+                        // MP card sub-line: 类型 · 剩 N 天 / 今天过期 (signup/index.js walletCard). Unknown date → type only.
+                        TicketWalletSubline(ticket: ticket, typeKey: type)
+                            .accessibilityIdentifier("ticketWallet.subline.\(ticket.id)")
                     }
                     if showsPendingOrderAction {
                         Label { Text("ticketPendingOrder.open", tableName: "TicketPendingOrder") } icon: { Image(systemName: "list.bullet.rectangle") }
-                            .font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textPrimary)
                     }
                 }
                 Spacer(minLength: 0)
-                if !typeSize.isAccessibilitySize, ticket.action == .detail {
+                if !typeSize.isAccessibilitySize, ticket.action == .detail, !ticket.isWalletLocked {
                     Image(systemName: "qrcode").resizable().scaledToFit().frame(width: 34, height: 34).foregroundStyle(CYColor.textPrimary.opacity(0.85))
                         .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .accessibilityHidden(true)
@@ -406,6 +441,62 @@ private struct TicketWalletRow: View {
     }
     private struct Line: Shape {
         func path(in rect: CGRect) -> Path { var p = Path(); p.move(to: CGPoint(x: rect.minX, y: rect.midY)); p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)); return p }
+    }
+}
+
+/// MP F13 tag. Upcoming「M月D日开始」(or 即将开始), 退款中, 已通关 / 未通关; nothing otherwise.
+private struct TicketWalletCardTag: View {
+    let ticket: TicketWalletTicket
+    var body: some View {
+        if ticket.isUpcoming {
+            if let start = ticket.upcomingStartMonthDay {
+                CYStatusChip("ticketWallet.tag.startsOn \(start.month) \(start.day)", tone: .info)
+            } else { CYStatusChip("ticketWallet.tag.upcoming", tone: .info) }
+        } else if ticket.isRefunding {
+            CYStatusChip("ticketWallet.tag.refunding", tone: .warning)
+        } else if let cleared = ticket.clearedFlag {
+            CYStatusChip(cleared ? "ticketWallet.tag.cleared" : "ticketWallet.tag.notCleared", tone: cleared ? .success : .neutral)
+                .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")
+        }
+    }
+}
+
+/// 类型 · 剩 N 天 / 今天过期. Natural days in Beijing time, as the MP `passDaysLeft`. Upcoming and session tickets
+/// show the type only (their time is on the stub lines).
+private struct TicketWalletSubline: View {
+    let ticket: TicketWalletTicket
+    let typeKey: String
+    var body: some View {
+        if let days = ticket.walletDaysLeft {
+            if days == 0 {
+                (Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.today"))
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            } else {
+                (Text(LocalizedStringKey(typeKey)) + Text(verbatim: " · ") + Text("ticketWallet.subline.daysLeft \(days)"))
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            }
+        } else {
+            Text(LocalizedStringKey(typeKey)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        }
+    }
+}
+
+extension TicketWalletTicket {
+    /// MP `wType`: 城市定向 / 自由探索 for route tickets, 场次 for sessions. Unknown lane → nil (no sub-line).
+    var walletTypeKey: String? {
+        switch lane {
+        case .route?: return productType == 2 ? "ticketWallet.type.explore" : "ticketWallet.type.route"
+        case .activity?: return "ticketWallet.type.session"
+        case nil: return nil
+        }
+    }
+    /// Whole days from today to `usableUntil` (Beijing calendar). Nil when upcoming, a session ticket, or no date.
+    var walletDaysLeft: Int? {
+        guard !isUpcoming, lane == .route, let until = TicketWalletTicket.sourceDate(usableUntil ?? endDate) else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Asia/Shanghai") ?? .current
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: Date()), to: calendar.startOfDay(for: until)).day
+        return days.map { max(0, $0) }
     }
 }
 
