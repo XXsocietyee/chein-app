@@ -472,6 +472,20 @@ enum T5PageFixtures {
                     pointsDestination: nil
                 )
             })
+        case "t5-pass-market-points":
+            // Integ verify: the balance card with a points destination, so the card → ledger zoom can be checked.
+            return wrapPlayer(NavigationStack {
+                PassMarketView(
+                    state: PassMarketState(content: .ready(PassMarketContent(products: [samplePass], orders: [], giftsBought: [], giftsReceived: [])),
+                                           pointBalance: 1280, member: .plans("¥19/mo"), refreshFailed: false),
+                    initialTab: .shop,
+                    onReload: { _ in },
+                    onOpenProduct: { _ in },
+                    onOpenMembership: {},
+                    onOpenLibrary: nil,
+                    pointsDestination: { AnyView(WalletLedgerPointsFixturePage()) }
+                )
+            })
         case "t5-pass-market-error":
             return wrapPlayer(NavigationStack {
                 PassMarketView(

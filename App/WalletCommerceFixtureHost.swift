@@ -85,6 +85,13 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
         return try await fallback.send(request)
     }
 }
+/// DEBUG: the real points ledger on the fixture reader, without its own NavigationStack, so a fixture can push it
+/// (`--design-fixture t5-pass-market-points`: the 通行证与礼品 balance card zooms into it).
+@MainActor struct WalletLedgerPointsFixturePage: View {
+    @StateObject private var state = WalletFixtureState(failed: false)
+    var body: some View { WalletLedgerView(reader: state.reader, kind: .points) }
+}
+
 /// Register only in the existing DEBUG --uitesting-module switch, never ordinary navigation.
 @MainActor struct WalletCommerceFixtureHost: View {
     static var selected: Bool { ProcessInfo.processInfo.arguments.contains("--wallet-commerce-fixture") }
