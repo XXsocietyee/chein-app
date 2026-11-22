@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocation
 
 @MainActor final class NearbyTeamScreenModel: ObservableObject {
     let coordinator: NearbyTeamCoordinator
@@ -22,6 +23,9 @@ import SwiftUI
     @StateObject private var model: NearbyTeamScreenModel
     @State private var latitude = ""
     @State private var longitude = ""
+    /// RNEAR-1: MP nearby locates the device (one foreground fix, GCJ-02) instead of asking for typed coordinates.
+    @State private var locating = false
+    @State private var locateFailure: LocalizedStringKey?
     @State private var radius = 3000
     @State private var showingRange = false
     @State private var showingMapStyle = false
@@ -155,6 +159,9 @@ import SwiftUI
                     latitude = String(context.latitude); longitude = String(context.longitude)
                     submitManualContext(.init(latitude: context.latitude, longitude: context.longitude, radius: radius))
                     await model.run { await coordinator.loadNearby(.init(latitude: context.latitude, longitude: context.longitude, radius: radius)) }
+                } else if [.authorizedWhenInUse, .authorizedAlways].contains(CLLocationManager().authorizationStatus) {
+                    // RNEAR-1: already allowed → locate straight away like the MP; otherwise wait for 使用当前位置.
+                    await locateAndSearch()
                 }
             }
             .onChange(of: tab) { _, value in if value == 1 { Task { await loadMine() } } }
@@ -248,9 +255,20 @@ import SwiftUI
     private var contextControls: some View {
         VStack(alignment: .leading, spacing: 12) {
             if initialContext == nil {
-                Text("nearby.context.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("nearby.context.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                CYPillButton(LocalizedStringKey(locating ? "nearby.locating" : "nearby.useLocation"), style: .primary, systemImage: "location.fill", fullWidth: false) {
+                    Task { await locateAndSearch() }
+                }
+                .disabled(locating || model.running).accessibilityIdentifier("nearby.useLocation")
+                if let locateFailure {
+                    Text(locateFailure).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("nearby.locateFailed")
+                }
+                #if DEBUG
+                // Manual coordinates stay a DEBUG-only tool for fixtures and simulators.
                 TextField("nearby.latitude", text: $latitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.latitude")
                 TextField("nearby.longitude", text: $longitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.longitude")
+                #endif
             }
             HStack {
                 Button { showingRange = true } label: {
@@ -271,6 +289,21 @@ import SwiftUI
                 CYPillButton("nearby.search", style: .secondary, systemImage: "magnifyingglass", fullWidth: false) { Task { await refresh() } }
                     .disabled(model.running).accessibilityIdentifier("nearby.search")
             }
+        }
+    }
+    /// One foreground fix through the standard permission flow (RoamDeviceFixGCJ), then the same search as before.
+    private func locateAndSearch() async {
+        guard !locating else { return }
+        locating = true; locateFailure = nil
+        defer { locating = false }
+        do {
+            let fix = try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: RuntimeNativeLocationProvider(enabled: true))
+            latitude = String(fix.coordinate.latitude); longitude = String(fix.coordinate.longitude)
+            await refresh()
+        } catch is CancellationError {
+            return
+        } catch {
+            locateFailure = error as? RoamActionFailure == .locationDenied ? "nearby.locationDenied" : "nearby.locationFailed"
         }
     }
     private func refresh() async {
