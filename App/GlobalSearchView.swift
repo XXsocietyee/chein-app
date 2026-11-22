@@ -18,7 +18,10 @@ import SwiftUI
     var onSignIn: (() -> Void)? = nil
     var recommendedKeywords: [String] = []
     var publicLayers: MapPublicLayerCaller? = nil
+    /// MP link keyword / filters (PC-A-3-2): applied and searched once.
+    var initialQuery: GlobalSearchQuery? = nil
     let destination: (SearchMapDestination) -> Destination
+    @State private var initialQueryApplied = false
     @State private var filter = GlobalSearchQuery()
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
@@ -181,7 +184,12 @@ import SwiftUI
                 filterSheetVisible = false; updateCategoryPresentation()
             }
         }
-        .task(id: readOwner) { await prepare() }
+        .task(id: readOwner) {
+            await prepare()
+            if let initialQuery, !initialQueryApplied, reader.isConfigured {
+                initialQueryApplied = true; filter = initialQuery; await search()
+            }
+        }
         #if DEBUG
         .task {
             // Design fixtures only: `--design-search-keyword <text>` runs one search so the results list can be shot.

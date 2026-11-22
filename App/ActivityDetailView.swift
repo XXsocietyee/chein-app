@@ -12,16 +12,19 @@ struct ActivityDetailView: View {
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     /// DEBUG design fixtures open the "More info" disclosure on first appearance; production always starts collapsed.
     var startsWithMoreInfoOpen = false
+    /// MP `pages/activity/baoming` link: open the registration sheet once the detail loads and sign-up is the action.
+    var opensRegistrationOnLoad = false
     var body: some View {
         if let session = reader as? AppSession {
             SessionActivityDetailView(id: id, session: session,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
-                hostCancelAccess: hostCancelAccess)
+                hostCancelAccess: hostCancelAccess, opensRegistrationOnLoad: opensRegistrationOnLoad)
         } else {
             ActivityDetailContentView(id: id, reader: reader,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
                 peopleProfile: peopleProfile, requiredClubDestination: requiredClubDestination,
-                hostCancelAccess: hostCancelAccess, startsWithMoreInfoOpen: startsWithMoreInfoOpen)
+                hostCancelAccess: hostCancelAccess, startsWithMoreInfoOpen: startsWithMoreInfoOpen,
+                opensRegistrationOnLoad: opensRegistrationOnLoad)
         }
     }
 }
@@ -32,6 +35,7 @@ struct ActivityDetailView: View {
     var playReaderForActivity: ((Int)->PlaySessionReader)?
     var registrationEnabled: Bool
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
+    var opensRegistrationOnLoad = false
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         Group {
@@ -67,7 +71,8 @@ struct ActivityDetailView: View {
                                 session.activityPresentationIdentity == activityIdentity && session.clubIdentity == clubIdentity
                         }))
                     },
-                    hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess)
+                    hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
+                    opensRegistrationOnLoad: opensRegistrationOnLoad)
                     .environment(\.inGameChannelHost, session.inGameChannelHost)
                     .id(session.contentDetailRevision)
             }
@@ -90,6 +95,8 @@ struct ActivityDetailView: View {
     var requiredClubDestination: ((Int, @escaping () -> Bool) -> AnyView)? = nil
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var startsWithMoreInfoOpen = false
+    var opensRegistrationOnLoad = false
+    @State private var openedRegistrationOnLoad = false
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
@@ -669,6 +676,9 @@ struct ActivityDetailView: View {
                 phase = .loaded(result); loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
                 gateActivityID = capturedActivityID; gateReaderID = capturedReaderID
                 gateReaderIdentity = capturedReaderIdentity; gateReadID = UUID()
+                if opensRegistrationOnLoad, !openedRegistrationOnLoad, registrationEnabled, primaryAction == .signUp {
+                    openedRegistrationOnLoad = true; showsRegistration = true
+                }
             }
         }
         catch is CancellationError { }

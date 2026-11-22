@@ -44,6 +44,27 @@ final class MiniProgramPageLinkTests: XCTestCase {
         })
     }
 
+    /// Parity r1 player-content (X1): the MP `onLoad` query reaches the native screen instead of rejecting the link.
+    func testParityPlayerContentPagesKeepTheirQuery() {
+        let accepted: [(String, [String: String])] = [
+            ("pages/templatedetail/topic-preview/index", ["id": "12", "scope": "MERCHANT"]),
+            ("pages/templatedetail/topic-detail/index", ["id": "12", "tab": "details"]),
+            ("pages/search2/index", ["keyword": "城"]),
+            ("pages/search2/result/index", ["keyword": "城", "categoryId": "3", "minPrice": "0", "maxPrice": "100"]),
+            ("pages/searchmap/index", ["params": "{\"keyword\":\"城\"}"]),
+            ("pages/activity/baoming/baoming", ["activityId": "8", "ticketId": "2"]),
+            ("pages/activity/official-organizer/index", ["id": "88"]),
+            ("subpackageB/pages/im/chat/index", ["conversationId": "41", "type": "1", "name": "小城"]),
+            ("pages/topic/merchantinfo/merchantinfo", ["topicId": "5", "id": "9"]),
+            ("pages/topic/merchantapply/index", ["topicId": "5", "nodeId": "2"]),
+            ("pages/topic/pricing/index", ["topicId": "5", "club": "1"]),
+            ("pages/topic/pricing/partner/index", ["topicId": "5", "toId": "6", "toType": "CLUB"]),
+        ]
+        for (page, query) in accepted { XCTAssertEqual(MiniProgramPageLink(path: page, query: query)?.query, query, page) }
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageB/pages/im/chat/index", query: ["conversationId": "x"]))
+        XCTAssertNil(MiniProgramPageLink(path: "pages/topic/pricing/index", query: ["topicId": "05"]))
+    }
+
     func testTableCoversEveryReviewedPage() {
         XCTAssertEqual(Set(table.map(\.1)), Set(MiniProgramPageLink.reviewedPages.keys))
     }
