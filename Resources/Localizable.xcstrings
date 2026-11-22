@@ -278967,6 +278967,23 @@
           }
         }
       }
+    },
+    "mp.route.missingParam": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This link is missing what it needs to open"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接缺少必要参数"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

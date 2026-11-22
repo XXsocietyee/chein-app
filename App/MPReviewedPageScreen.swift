@@ -144,6 +144,28 @@ import SwiftUI
             SquareReportProgressView(session: session)
         case "subpackageMember/appeal-mine/index":
             MemberScoreAppealListView(session: session)
+        case "subpackageMember/invoice/index":
+            invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+        case "subpackageMember/invoice-detail/index":
+            if let id = reviewedID(query) {
+                invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
+            } else { unavailable }
+        case "subpackageMember/invoice-apply/index":
+            invoice { InvoiceLaunchApplyView(model: $0, onSignIn: signIn) }
+        case "subpackageMember/invoice-titles/index":
+            invoice { InvoiceLaunchTitlesView(model: $0, onSignIn: signIn) }
+        case "subpackageMember/invoice-title-edit/index":
+            invoice { InvoiceLaunchTitleEditor(model: $0, title: nil, onSignIn: signIn) }
+        case "subpackageMember/points-history/index":
+            PassMarketPointsBridge.destination(for: session)()
+        case "subpackageMember/coupon-wallet/index", "subpackageMember/coupon-qr/index":
+            // coupon-qr needs the owner-scoped coupon selection to mint a code; the link lands on the wallet,
+            // one tap from the code (the code page itself re-checks the owner).
+            AccountCollectionCouponsView(reader: session.accountCollectionReader)
+        case "subpackageMember/free-explore/index":
+            freeExplore
+        case "subpackageMember/complaint/index":
+            complaint
         case "subpackageMember/coupon/coupon", "subpackageMember/couponInfo/couponInfo":
             SessionCouponManagementView().environmentObject(session)
         case "subpackageMember/tixian/tixian":
@@ -221,6 +243,38 @@ import SwiftUI
             .environment(\.inGameChannelHost, session.inGameChannelHost)
     }
 
+    /// Same composition as the 我的 → 投诉与建议 row (`ProfileComplaintPreparationLink`).
+    private var complaint: some View {
+        let _ = WP06ComplaintWrite.install()
+        let revision = session.sessionRevision
+        let owner = session.cooperationFlowReader.session
+        return ProfileComplaintPreparationView(reader: session.cooperationFlowReader,
+            isCurrent: { session.sessionRevision == revision && session.cooperationFlowReader.session == owner },
+            submitter: ProfileComplaintPreparationLink.submitterFactory?(session))
+            .id(revision)
+    }
+
+    private func signIn() { PlayerJourneySignInBridge.shared.request() }
+
+    @ViewBuilder private func invoice<V: View>(@ViewBuilder _ make: (InvoiceLaunchPresentation) -> V) -> some View {
+        if let model = session.makeInvoiceLaunchPresentation() { make(model) } else { unavailable }
+    }
+
+    /// `free-explore?registrationId=` opens that order (its 自由探索权益 entry hosts the bundle read);
+    /// `?topicId=` opens the topic (the catalog entry before purchase); `?requestId=` (purchase receipt) opens 我的订单.
+    @ViewBuilder private var freeExplore: some View {
+        if let id = reviewedID(query, key: "registrationId") {
+            ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
+        } else if let id = reviewedID(query, key: "topicId") {
+            SessionTopicDetailView(id: id, session: session)
+        } else if query["requestId"] != nil {
+            SessionOwnedOrdersView(session: session)
+        } else {
+            CYStateLayout(kind: .generic, title: Text("mp.route.missingParam"))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -229,8 +283,8 @@ import SwiftUI
 }
 
 /// Canonical positive decimal id, the same shape `MiniProgramPageLink` already required.
-private func reviewedID(_ query: [String: String]) -> Int? {
-    guard let text = query["id"], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
+private func reviewedID(_ query: [String: String], key: String = "id") -> Int? {
+    guard let text = query[key], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }
     return value
 }
