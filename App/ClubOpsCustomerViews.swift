@@ -148,13 +148,6 @@ struct ClubOpsCustomerRowView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                    if row.hasRemark {
-                        CYStatusChip(
-                            verbatim: String(localized: LocalizedStringResource("clubOps.customers.remarkBadge", table: "ClubOpsCustomer", locale: locale)),
-                            tone: .neutral,
-                            systemImage: "note.text"
-                        )
-                    }
                     if let name = row.displayName {
                         Text(verbatim: name)
                             .cyText(.cardTitle)
@@ -166,6 +159,14 @@ struct ClubOpsCustomerRowView: View {
                             .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
+                    }
+                    // CLB-customers-03: MP puts the 备注 tag after the name.
+                    if row.hasRemark {
+                        CYStatusChip(
+                            verbatim: String(localized: LocalizedStringResource("clubOps.customers.remarkBadge", table: "ClubOpsCustomer", locale: locale)),
+                            tone: .neutral,
+                            systemImage: "note.text"
+                        )
                     }
                 }
                 meta

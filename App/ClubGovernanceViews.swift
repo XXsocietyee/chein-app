@@ -1416,6 +1416,12 @@ struct ClubGovernanceReadView: View {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
                 if sessions.isEmpty { CYEmptyState(systemImage: "calendar", "club.topic.noSessions") }
+                // CLB-topic-detail-07: 接下来 links to event ops (MP 管理场次 → pages/club/event-ops).
+                if scope.clubID != nil {
+                    NavigationLink { ClubOpsEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID), identity: identity, access: access, coordinator: coordinator) } label: {
+                        Label("club.topic.manageSessions", systemImage: "calendar.badge.plus")
+                    }.accessibilityIdentifier("club.topic.manageSessions")
+                }
                 ForEach(Array(sessions.enumerated()), id: \.offset) { _, row in
                     if let id = row["id"].int {
                         let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
