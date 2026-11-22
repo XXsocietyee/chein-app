@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 // Mini-program `subpackageMember/market/passes` (list: on sale / my orders / gifts), `market/pass` (detail + quote),
 // and `market/gift` (claim a gift). Purchase and gift claim stay OFF (`MPCommerceGate`): the offer and the quote are
@@ -1017,7 +1016,7 @@ struct PassOrderDetailView: View {
                 }
                 MPDivider()
                 Button {
-                    UIPasteboard.general.string = order.orderNo
+                    LocalPasteboard.copy(order.orderNo)
                     copied = true
                 } label: {
                     MPRow(title: Text("mp.passOrder.number"),

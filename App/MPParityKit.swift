@@ -164,8 +164,8 @@ enum MPParityRoute: Hashable, Identifiable {
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
             // A missing token still opens the page, which shows the shared missing-link state (MKT-3-2).
-            let token = nonEmpty("token") ?? ""
-            if token.contains("..") || token.contains("://") { return nil }
+            guard let token = nonEmpty("token") else { self = .gift(token: ""); return }
+            guard !token.contains(".."), !token.contains("://") else { return nil }
             self = .gift(token: token)
         case "subpackageMember/market/membership/index":
             self = .membership
