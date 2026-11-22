@@ -501,6 +501,10 @@ struct SessionRootView: View {
                   imageSelectionApproved: { session.retainedImagePickerHost.nativeSelectionEnabled })
         })
         .environment(\.clubBadgeHostFactory, { session.clubBadgeHost(clubID: $0) })
+        .environment(\.clubOperationsFactory, {
+            let management = session.clubManagementContext
+            return management.operations.map { ($0, management.governance) }
+        })
         .environment(\.playerGapService, session.playerGapService)
         .environment(\.analyticsEventClient, session.analyticsEventClient)
         .environment(\.verificationCodeFactory, { session.makeVerificationCodeCoordinator(target: $0) })

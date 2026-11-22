@@ -310,6 +310,7 @@ import SwiftUI
                     }
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
                 }
+                if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) }.listRowBackground(Color.clear) }
             }
         }
         .background {

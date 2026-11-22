@@ -1320,6 +1320,7 @@ struct ClubGovernanceReadView: View {
                                                               allowance: value["allowance"]).allowance.displayText)
                     }
                 }
+                Section { ClubCreateMyClubLink(identity: identity) }.listRowBackground(Color.clear)
             } else {
                 // Source club/apply intro: one large two-line title over the 成为主理人 CTA, nothing else.
                 Section {
