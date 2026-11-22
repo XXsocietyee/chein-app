@@ -13,7 +13,6 @@ import SwiftUI
         let binding = model.bind(reader)
         let permit = model.permit(reader)
         List {
-            CYHeroHeader("social.invites.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if reader.isOfflineExample { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
             if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
@@ -51,10 +50,12 @@ import SwiftUI
                 if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
                 if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
-                    CYPillButton("square.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
+                    CYPillButton("wallet.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
                 }
             }
-        }.cyHeroScreen().privacySensitive()
+        }
+            // FIN-20-3: inline bar title, no second title in the content (type-and-chrome §2).
+            .cyPageTitle("social.invites.title").cyPushedChrome(domain: .player).privacySensitive()
             .onAppear { model.appear(reader) }
             .onChange(of: binding) { _, _ in model.replaceReader(reader) }
             .refreshable { await model.refresh(reader, permit: permit) }
