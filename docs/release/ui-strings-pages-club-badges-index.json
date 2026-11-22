@@ -80,8 +80,8 @@
       "zh-Hans": "说明"
     },
     "limits": {
-      "en": "Name: up to 120 UTF-16 units. Description: up to 255. Some emoji use two units.",
-      "zh-Hans": "名称最多 120 个 UTF-16 单位，说明最多 255 个，部分表情占两个单位。"
+      "en": "Badge name: up to 120 characters. Description: up to 255.",
+      "zh-Hans": "勋章名最多 120 个字，说明最多 255 个字。"
     },
     "confirmCreate": {
       "en": "Confirm creation",

@@ -16,7 +16,7 @@
   {"key": "club.gov.sub.leaderboard", "en": "Top member contributors", "zh-Hans": "成员贡献榜"},
   {"key": "club.gov.sub.posts", "en": "Club posts", "zh-Hans": "俱乐部动态内容"},
   {"key": "club.gov.sub.roles", "en": "Assign and revoke roles", "zh-Hans": "分配与撤销角色"},
-  {"key": "club.gov.sub.bans", "en": "Muted members", "zh-Hans": "被禁言的成员"},
+  {"key": "club.gov.sub.bans", "en": "Banned members", "zh-Hans": "被封禁的成员"},
   {"key": "club.gov.sub.cases", "en": "Reports and appeals", "zh-Hans": "举报与申诉"},
   {"key": "club.gov.sub.audienceCounts", "en": "Audience reach", "zh-Hans": "可触达人数"},
   {"key": "club.gov.sub.dissolutionBlockers", "en": "Items to clear before dissolving", "zh-Hans": "解散前需处理的事项"},
