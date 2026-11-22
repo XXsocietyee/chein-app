@@ -6,8 +6,21 @@ import SwiftUI
 /// hosts; the production host stays closed) and the path is not a blocked money route.
 @MainActor struct CoopFlowPreviewWriteFactory {
     let make: (CoopFlowMutation) -> CoopFlowCoordinator?
+    /// Parity perks P0: an executor for unprotected template writes (perk-template/save, perk-template/delete),
+    /// nil where merchant writes are closed so the perks page stays read-only there.
+    var executor: () -> (any CoopFlowExecuting)? = { nil }
 
     static func live(_ session: AppSession) -> CoopFlowPreviewWriteFactory {
+        var factory = coordinators(session)
+        factory.executor = { [weak session] in
+            guard let session, let api = session.regionalConfiguration?.apiConfiguration,
+                  ReviewedAreaSwitch.merchantWrites(apiHost: api.baseURL.host) else { return nil }
+            return CoopFlowDormantExecutor(service: CoopFlowService(configuration: api, transport: session.runtimeHTTPTransport,
+                                                                    dormantWritesEnabled: true))
+        }
+        return factory
+    }
+    private static func coordinators(_ session: AppSession) -> CoopFlowPreviewWriteFactory {
         CoopFlowPreviewWriteFactory { [weak session] operation in
             guard let session, let api = session.regionalConfiguration?.apiConfiguration,
                   session.cooperationFlowReader.session != nil,

@@ -220,6 +220,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @ObservedObject var events: MerchantLoadModel<[MerchantEvent]>
     let onChildReturn: () -> Void
     @Environment(\.merchantAuthoringDestination) private var merchantAuthoringDestination
+    @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
     @State private var operationsAccess: MerchantOperationsAccess?
     @State private var businessStatus: MerchantBusinessStatus?
 
@@ -452,7 +453,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink {
                         MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
                             .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
-                                { AnyView(MerchantPerkTemplatesHost(reader: flowReader)) }
+                                { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
                             })
                             .id(operationsReader.scope)
                             .onDisappear(perform: onChildReturn)
