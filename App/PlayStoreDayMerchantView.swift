@@ -17,6 +17,8 @@ import SwiftUI
     @State private var showingArrivePurpose = false
     @State private var arrivePurposeShown = false
     @State private var showingMore = false
+    /// PLAYM-3: no 到店体验 page-type title over the hero; the store's name shows inline once the hero scrolls away.
+    @State private var heroScrolledAway = false
 
     private enum Sheet: String, Identifiable { case game, task; var id: String { rawValue } }
     private var sheet: Binding<Sheet?> {
@@ -38,8 +40,7 @@ import SwiftUI
         }
         .privacySensitive()
         .background(CYColor.bgPage)
-        .navigationTitle(Text("playStoreDay.title", tableName: "PlayStoreDay"))
-        .navigationBarTitleDisplayMode(.inline)
+        .modifier(PlayStoreDayTitle(hero: model.phase == .loaded && model.node != nil, name: model.node?.name, scrolledAway: heroScrolledAway))
         .task(id: model.nodeID) { await model.load() }
         .sheet(item: sheet) { item in
             switch item {
@@ -149,6 +150,7 @@ import SwiftUI
             }
         }
         .background(CYColor.bgPage)
+        .cyTracksHeroScroll($heroScrolledAway, threshold: 200)
         .safeAreaInset(edge: .bottom) { bottomBar(node) }
     }
     @ViewBuilder private func hero(_ node: PlayStoreDayNode) -> some View {
@@ -170,7 +172,7 @@ import SwiftUI
     }
     private func header(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).cyText(.micro).tracking(1.5).foregroundStyle(CYColor.textTertiary)
+            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).cyText(.micro).foregroundStyle(CYColor.textTertiary)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                 .background(CYColor.bgRaised, in: Capsule()).accessibilityIdentifier("storeDayPage.tag")
             Group {
@@ -188,7 +190,7 @@ import SwiftUI
     /// Letter-spaced key + primary value, baseline aligned (mini-program .mp-mc).
     private func metaRow(label: Text, value: Text) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            label.cyText(.micro).tracking(1.5).foregroundStyle(CYColor.textTertiary)
+            label.cyText(.micro).foregroundStyle(CYColor.textTertiary)
             value.cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }.accessibilityElement(children: .combine)
     }
@@ -203,7 +205,7 @@ import SwiftUI
     }
     private func proofSection(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.proof", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.proof", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             step(1, done: node.arrived, title: L("playStoreDay.step.scan.title"), detail: L("playStoreDay.step.scan.detail"), id: "scan")
             step(2, done: node.selfReported, title: L("playStoreDay.step.photo.title"),
@@ -232,7 +234,7 @@ import SwiftUI
     }
     private func referenceSection(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.reference", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.reference", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             // Unknown values stay an em dash (the mini-program shows 0 here; the native app must not).
             HStack(alignment: .top, spacing: CYSpacing.sm) {
@@ -245,7 +247,7 @@ import SwiftUI
     private static func number(_ value: Double) -> String { value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value) }
     private func stat(_ value: String, _ label: String, id: String) -> some View {
         VStack(spacing: CYSpacing.xs) {
-            Text(verbatim: value).cyText(.dataXL).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
+            Text(verbatim: value).cyText(.sectionTitle, monospacedDigit: true).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
             Text(verbatim: label).cyText(.micro).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -254,7 +256,7 @@ import SwiftUI
     }
     private var consentSection: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.consent", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.consent", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             HStack(spacing: CYSpacing.md) {
                 Text(verbatim: String(format: L("playStoreDay.consent.scope"), storeName)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -270,7 +272,7 @@ import SwiftUI
     }
     private func infoSection(_ node: PlayStoreDayNode, address: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.info", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.info", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             // Address card: pin, address, open hours, trailing navigate control (mini-program .mp-addr).
             VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -511,6 +513,20 @@ import SwiftUI
         case .consentWriteFailed: return L("playStoreDay.notice.consentWriteFailed")
         case .consentUnconfirmed: return L("playStoreDay.notice.consentUnconfirmed")
         case .consentWritesUnavailable: return L("playStoreDay.notice.consentWritesUnavailable")
+        }
+    }
+}
+
+/// PLAYM-3: states keep the 到店体验 bar title; the loaded hero page shows the store name only after the hero.
+private struct PlayStoreDayTitle: ViewModifier {
+    let hero: Bool
+    let name: String?
+    let scrolledAway: Bool
+    func body(content: Content) -> some View {
+        if hero {
+            content.cyPageTitle(verbatim: scrolledAway ? (name ?? "") : "")
+        } else {
+            content.navigationTitle(Text("playStoreDay.title", tableName: "PlayStoreDay")).navigationBarTitleDisplayMode(.inline)
         }
     }
 }
