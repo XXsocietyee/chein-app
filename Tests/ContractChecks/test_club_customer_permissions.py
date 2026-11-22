@@ -64,6 +64,13 @@ class ClubCustomerPermissionContracts(unittest.TestCase):
         r4_uses_form = b'    /// Body format. Only the topic overview is a form; `access` (club/access/me) is JSON, as the backend serves it (E2E R4).\n    public var usesForm: Bool { self == .topicOverview }\n'
         contracts_raw = (ROOT / 'Core/ClubGovernanceContracts.swift').read_bytes()
         self.assertEqual(contracts_raw.count(r4_uses_form), 1)
+        # Parity r1 CLB-customers-01: customers pages with pageNum/pageSize (MP customers/index.js:139).
+        parity_paging = (b'            // CLB-customers-01: MP customers/index.js:139 pages with pageNum / pageSize (50).\n'
+                         b'            allowed = ["filter", "keyword", "pageNum", "pageSize"]; fields["filter"] = .string("all"); fields["keyword"] = .string("")\n'
+                         b'            fields["pageNum"] = .integer(1); fields["pageSize"] = .integer(ClubOpsCustomerListPresentation.pageSize)\n')
+        pre_paging = b'            allowed = ["filter", "keyword"]; fields["filter"] = .string("all"); fields["keyword"] = .string("")\n'
+        self.assertEqual(contracts_raw.count(parity_paging), 1)
+        contracts_raw = contracts_raw.replace(parity_paging, pre_paging, 1)
         self.assertIsInstance(restore_product_source('Core/ClubGovernanceContracts.swift', contracts_raw.replace(r4_uses_form, b'', 1)), bytes)
         self.assertIsInstance(restore_product_source('Core/ClubCustomerHistoryTopicRoute.swift', (ROOT / 'Core/ClubCustomerHistoryTopicRoute.swift').read_bytes()), bytes)
 

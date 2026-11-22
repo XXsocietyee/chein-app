@@ -151,6 +151,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                     SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 })
                 }
+                // V2 governance has its own access/me model, including delegated event staff.
                 if tab == .events, let governance = management?.governance {
                     Section {
                         ClubSessionQuickStartEntry(club: club, reader: reader, governance: governance)
