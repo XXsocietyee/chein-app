@@ -87,7 +87,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     Section {
                         // Figma 223:3698: 邀请成员 is the first row. Clubs have no invite link yet, so it shares a
                         // text invitation (club name + how to find it in the app) through the system share sheet.
-                        if directory.club.canSeeMembers {
+                        if directory.club.isOwner || directory.club.viewerIsAdmin {
                             ClubMemberInviteRow(clubName: directory.club.name)
                                 .listRowInsets(Self.rowInsets)
                                 .listRowBackground(Color.clear)

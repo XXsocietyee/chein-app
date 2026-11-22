@@ -279035,6 +279035,23 @@
           }
         }
       }
+    },
+    "club.gov.myRecords": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My governance records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的治理记录"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

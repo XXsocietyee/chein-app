@@ -166,7 +166,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             } label: { Label("club.statsOverview.title", systemImage: "chart.bar") }
                                 .accessibilityIdentifier("club.statsOverview.open")
                         }
-                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, terminalSessions: governance.terminalSessions, ownerFunds: governance.ownerFunds)
+                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, terminalSessions: governance.terminalSessions, ownerFunds: governance.ownerFunds, titleKey: tab == .manage ? "club.gov.workspace" : "club.gov.myRecords")
                     }
                 }
                 if (club.isOwner || club.viewerIsAdmin), tab == .manage, let management {
@@ -500,7 +500,8 @@ private struct ClubDetailHeader: View {
                 statusTags
                 // MC-22 Member / Manager header: 邀请朋友加入 is the header's one full-width action (the visitor's 加入
                 // stays in the action panel right under the header).
-                if club.isOwner || club.isJoined {
+                // CLB-detail-24: MP gives 邀请成员 to the owner and administrators only (wxml:260, 765).
+                if club.isOwner || club.viewerIsAdmin {
                     ClubHeaderInviteButton(clubName: club.name)
                         .padding(.top, CYSpacing.xs)
                 }

@@ -56,10 +56,12 @@ struct ClubGovernanceEntryButton: View {
     var storyTemplates = ClubStoryTemplateContext()
     var terminalSessions = ClubTerminalSessionContext()
     var ownerFunds = ClubOwnerFundsContext()
+    /// CLB-detail-23: members without the 管理 tab see 我的治理记录, never a second 管理.
+    var titleKey: LocalizedStringKey = "club.gov.workspace"
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: {
-            CYListRow("club.gov.workspace", trailing: .chevron) { CYRowIcon(systemImage: "person.3.sequence.fill") }
+            CYListRow(titleKey, trailing: .chevron) { CYRowIcon(systemImage: "person.3.sequence.fill") }
         }
             .accessibilityIdentifier("club.gov.open")
             .sheet(isPresented: $presented) {
