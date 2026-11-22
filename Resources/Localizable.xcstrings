@@ -279831,23 +279831,6 @@
           }
         }
       }
-    },
-    "templateOwnShelf.more": {
-      "extractionState": "manual",
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更多操作"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "More actions"
-          }
-        }
-      }
     }
   },
   "version": "1.0"
