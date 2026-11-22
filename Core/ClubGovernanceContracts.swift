@@ -177,7 +177,9 @@ public enum ClubGovernanceRead: String, CaseIterable {
         var allowed = Set<String>()
         switch self {
         case .customers:
-            allowed = ["filter", "keyword"]; fields["filter"] = .string("all"); fields["keyword"] = .string("")
+            // CLB-customers-01: MP customers/index.js:139 pages with pageNum / pageSize (50).
+            allowed = ["filter", "keyword", "pageNum", "pageSize"]; fields["filter"] = .string("all"); fields["keyword"] = .string("")
+            fields["pageNum"] = .integer(1); fields["pageSize"] = .integer(ClubOpsCustomerListPresentation.pageSize)
         case .topicCustomers: allowed = ["filter"]; fields["filter"] = .string("")
         case .leaderboard: allowed = ["sortBy"]; fields["sortBy"] = .string("composite")
         case .feed: allowed = ["limit"]; fields["limit"] = .integer(20)

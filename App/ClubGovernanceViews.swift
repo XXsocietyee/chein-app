@@ -174,6 +174,7 @@ struct ClubGovernanceReadView: View {
     let coordinator: ClubGovernanceCoordinator
     var expectedCreatedSeries: ClubCreatedSeriesReceipt? = nil
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var customerPager = ClubOpsCustomerPager()
     @StateObject private var attendanceReturn = ClubAttendanceCorrectionReturn()
     @StateObject private var attendanceReads = ClubAttendanceRosterRead()
     @StateObject private var roleManagementReturn = ClubRoleManagementReturn()
@@ -1509,7 +1510,13 @@ struct ClubGovernanceReadView: View {
         } else {
             if operation == .customers {
                 if let list = try? ClubOpsCustomerListPresentation(value: value) {
-                    ClubOpsCustomerListContent(list: list, filtered: snapshotCustomerFilters?.isFiltered == true) { id in
+                    let pageFilters = snapshotCustomerFilters ?? customerFilters
+                    ClubOpsCustomerListContent(first: list, filtered: snapshotCustomerFilters?.isFiltered == true, pager: customerPager,
+                        readPage: { pageNum in
+                            try await access.read(.customers, scope: scope, options: [
+                                "filter": .string(pageFilters.filter), "keyword": .string(pageFilters.keyword),
+                                "pageNum": .integer(pageNum), "pageSize": .integer(ClubOpsCustomerListPresentation.pageSize)]).value
+                        }) { id in
                         AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
                     }
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }

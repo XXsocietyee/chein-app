@@ -62,6 +62,19 @@ public struct ClubOpsCustomerListPresentation: Equatable {
         }
         self.total = total; self.monthNew = monthNew; self.rows = rows
     }
+    private init(total: Int, monthNew: Int, rows: [ClubOpsCustomerRow]) { self.total = total; self.monthNew = monthNew; self.rows = rows }
+    /// MP customers/index.js PAGE_SIZE.
+    public static let pageSize = 50
+    /// First page: more exists only when the page was full and still short of the total (MP js:155).
+    public var hasMoreAfterFirstPage: Bool { rows.count >= Self.pageSize && rows.count < total }
+    /// MP appendPage (js:179-189): dedupe by memberId, keep the newest counts, stop on a page
+    /// that adds nothing, a short page, or once the list reaches the total.
+    public func appending(_ page: ClubOpsCustomerListPresentation) -> (list: ClubOpsCustomerListPresentation, hasMore: Bool) {
+        let seen = Set(rows.map(\.id))
+        let fresh = page.rows.filter { !seen.contains($0.id) }
+        let merged = ClubOpsCustomerListPresentation(total: page.total, monthNew: page.monthNew, rows: rows + fresh)
+        return (merged, !fresh.isEmpty && page.rows.count >= Self.pageSize && merged.rows.count < page.total)
+    }
 }
 
 public enum ClubOpsCustomerRecordStatus: String, CaseIterable, Equatable {
