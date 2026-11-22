@@ -562,9 +562,13 @@ struct TopicDetailView: View {
     private func load() async {
         generation += 1
         let operation = generation, captured = key
-        phase = .idle; loadedKey = nil
+        // combined-r4 verify: a refresh of the topic already on screen (session sheet dismissed, review sent) keeps the
+        // page until the new read lands. Blanking it to the skeleton removed the bar mid zoom-back, so the sheet shrank
+        // into the middle of an empty page and the scroll position was lost.
+        let refreshing = loadedKey == captured && detail != nil
+        if !refreshing { phase = .idle; loadedKey = nil }
         guard reader.isConfigured else { return }
-        phase = .loading
+        if !refreshing { phase = .loading }
         defer { if operation == generation { settleLoading() } }
         do {
             let result = try await reader.topicDetail(id: id)
@@ -574,6 +578,8 @@ struct TopicDetailView: View {
         } catch is CancellationError { }
         catch {
             guard operation == generation, captured == key, !Task.isCancelled else { return }
+            // A failed refresh keeps the topic the user is reading; only a first read shows the issue state.
+            guard !refreshing else { return }
             phase = .failed(TopicScreenIssue(error), retry: nil); loadedKey = captured
         }
     }
