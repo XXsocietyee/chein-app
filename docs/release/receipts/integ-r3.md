@@ -111,8 +111,66 @@ simulator hold (05:03–05:18 on 11-21), and the 17-second `CodeR3OpsTests` conf
 
 - True mid-animation reversal and on-device VoiceOver (need frame-accurate input / VoiceOver; not possible from this
   sandbox).
-- Merchant aftercare response editor: near-white text on the white sheet (§3b), likely pre-existing theme arbitration;
-  the fix belongs with the editor's owner (the file is hash-protected).
+- ~~Merchant aftercare response editor: near-white text on the white sheet (§3b)~~: fixed in §6 (fixture role root;
+  the editor and its presenter are untouched).
 - C2 reorder on device (needs a fixture with two chapters or a live lease).
 - The 14 contract-pinned files still carry raw fonts; a contract-aware sweep should move them with their pins.
 - `RegistrationUncertainEvidenceCacheTests` (pre-existing), the intermittent `OwnAccountRefreshOrderingTests` class.
+
+## 6 · combined-r4 verification (task_ae4e670fb1b3, builds 993d5d347 → 28d9b2bdc)
+
+Third pass, run in this same worktree while §3b ran (the two passes shared the tree; each committed only its own
+paths). Own DerivedData `DES-ag6-c4v`, every build and simulator batch under the lock (batches 09:36–09:47,
+10:27–10:35, 10:48–10:53, 10:56–10:57, tests 11:08–11:21), a disk watchdog that aborts a build below 6 GB free (it
+fired once at 5 GB while other agents built; retried). To get the disk back I emptied Lane2's symbolication cache
+(`data/Library/Caches/com.apple.coresymbolicationd/data`, 5.2 GB, rebuilt by the simulator on demand). One slip,
+stated: the very first `simctl install` ran while another worker held the lock (install only, no build).
+
+Reduce Motion here = the **system** setting (`defaults write com.apple.Accessibility ReduceMotionEnabled` on Lane2 +
+relaunch), which also reaches the 66 views that read `accessibilityReduceMotion` directly (the in-app switch and
+`--uitesting-reduce-motion` do not reach those). Shots: `/Users/fanning/chengyin-refs/combined-r4-verify/` (`index.md`;
+bursts ordered by **write** time: a slow `simctl` capture can start earlier and land later, which made one search
+burst look like it flickered).
+
+### Fixes (all re-checked on the simulator, pushed to ui/combined-r4)
+
+| Commit | Finding | Fix |
+|---|---|---|
+| 78324d048 | **Topic bar sheet zoom-back lands in an empty page.** Dismissing 查看场次 (drag or 关闭) reloads the topic; `load()` reset the page to the skeleton, so mid zoom-back the bar (the zoom source) was gone, the sheet shrank into the middle of a blank page and the scroll position was lost (`burst/int-bar-sheet-drag-cancel`, frame 10) | a reload of the topic already on screen keeps it until the new read lands; a failed refresh keeps it too; first reads unchanged (contract tokens kept). After: `burst/fix-bar-sheet-dismiss-after` |
+| 4ee27427b | **IM sent bubble unreadable.** The 收件人预览 rows inside a sent bubble (light fill on the dark page) used the page's `textSecondary` (light grey on near-white) and the issued values `textPrimary` (white: invisible). Pre-existing (the §3 `comb-im-send-fixed` shot shows it) | `ChatMessageBubble` hands its ink down (`imPreviewInk`); other hosts keep the page tokens (`12-` before, `13-` after) |
+| fe922e664 | **VoiceOver read 帖文 as 俱乐部.** The club top tabs' container label and id landed on both buttons (automation tree: two 俱乐部 buttons, both `clubTab.topTabs`) | one `.contain` container; the tree now reads 帖文 / 俱乐部 |
+| fe922e664 | **Search open left the VoiceOver cursor behind.** The in-page search is a custom `.isModal` layer, so nothing moved VoiceOver off the hidden 首页 field | a screen change is posted once the field is placed (lands on the layer's first element, the field). Close already returned focus (`AccessibilityFocusState`) |
+| be062b1c9 | **模板 › 玩法预设 rows centred their wrapped second line** (button label default; reads as a ragged block with the taller CJK lines) | leading alignment on the row (`25-`) |
+| 28d9b2bdc | **Merchant refund editor sheet: near-white on white** (§3b finding). Fixture-only: the merchant-business fixture host had no role root, so the role defaulted to player; `cyDomainSheet` → `roleThemedPresentation` themed the sheet content dark over the merchant page's light ground, and no merchant bar chrome was installed (white large title). The app presents these pages under the merchant role root (`HomeSearchTabParityViews`: `cyScreenStyle` + `roleTheme(.merchant)`) | the fixture host does the same; `MerchantBusinessEditor` / `MerchantBusinessViews` untouched (hash-pinned), so no pin changed. Readable in light and dark (`40-`, `41-`). `check_merchant_business.py` (3) and the fixture-ownership contract (2) fail identically before and after (pre-existing) |
+
+### Checks
+
+| Item | Result | Evidence |
+|---|---|---|
+| 1 · Reduce Motion (system) | **pass** for the app's own motion: search open/close cross-fade in place (mid frame caught), club pill and topic tabs jump without travel, topic bar sheet plain (no zoom, no recede), drag-release settles. **System motion stays**: pushes still slide and the keyboard still rises (iOS keeps both under Reduce Motion; with RM the zoom pushes fall back to that plain push) | `burst/rm-*`, `10-` |
+| 2 · Light / dark | player screens identical under system light and dark (the shell forces its palette); light editor pushed from the dark shell keeps a **dark status bar** in both (`30-`, `31-`); merchant editor sheet fixed (above). The merchant shell on TEST was not signed in (9009 is a player) | `20-`–`31-`, `40-`, `41-` |
+| 3 · VoiceOver focus | **not runnable**: the simulator has no VoiceOver and the Accessibility Inspector cannot be driven from this sandbox. Checked through the automation (accessibility) tree and code: labels/ids (club tabs fixed), search open/close focus (open fixed, close already handled), sheets / pushes / City sheets / IM chat are system presentations (focus moves in and is restored by UIKit), IM chat has a header on the conversation name. The automation tree does not apply modal semantics (it lists the presenter under system sheets too), so it cannot prove what is hidden. Noted, not fixed: an empty-label `switch` beside 邀约提醒 in 消息 and an empty-label button next to the editor's ⋯; 玩法预设 rows read a trailing "—" | snapshots in this pass |
+| 4 · Interruption | fast repeated taps (batch taps 0.05–0.1 s apart): IM row ×3 → one chat; zoom card ×2 → one page; 查看场次 ×3 → one sheet, one recede; 首页 field ×2 → one layer. Drag released half-way: sheet settles back (RM and normal). 取消 then 首页 field: ends clean, but the second tap did not land mid-close (MCP tap latency). Back during a zoom / short edge swipe: the swipe preset did not engage the pop, so not shown | `burst/int-*` |
+| 5 · Zoom paths | topic bar sheet: open (one sheet + recede), dismiss **fixed** (above); card → topic and back: system zoom, mid frames missed; points ledger and activity zooms: covered by §3b (pass, pill fixed there). The 我的 积分 tile opens 账户收益 (wallet), not a ledger: as designed in `AccountView` | `burst/zoom-*`, `fix-*` |
+| 6 · C2 flows | covered by §3b (delete + undo, pinned wizard bar, refund pair: pass). Extra: on TEST the editor's 创建章节 does nothing for 9009 (`starter.createChapter` needs an opening lease), same root cause as §3b's "reorder not testable" | — |
+| 7 · Typography (new line heights) | 15 screens, no clipped or overlapping text: 首页, topic detail (+ pinned 路线/故事), 筛选 sheet, 消息, IM chat, 俱乐部, 我的, 发布, 模板 (fixed), 漫游, City passport sheet, editor, 开局大厅 (`t5-seats`), 通行证 balance (`t5-pass-market-points`), merchant aftercare editor. **Dynamic Type XXL** (`simctl ui content_size extra-extra-large`) on 首页, topic detail, pinned tabs, 开局大厅, 俱乐部: everything wraps (titles to two lines), no clipping, bars keep their height | `20-`–`29-`, `50-`–`54-` |
+
+### Gates (tree 28d9b2bdc)
+
+| Gate | Result |
+|---|---|
+| Build (Questify, Debug, Lane2, arm64, `OTHER_SWIFT_FLAGS=$(inherited) -disable-sandbox`) | BUILD SUCCEEDED on every fix; build-for-testing (QuestifyAppUnitTests) TEST BUILD SUCCEEDED |
+| `tools/check_scaffold.py` | PASS (the a11y lint inside it rejected a first IM fix that used `.secondary` / opacity; the shipped fix uses CY tokens) |
+| design lint + typography lint | PASS; typography raw text style 1199 (unchanged) |
+| `tools/contract_ratchet.py --check` | 185 failing, baseline 184, new 1 = `test_workshop_paid_professional…bounded_paging` (red on `ui/main`, as in §4): **unchanged** |
+| AppUnit, 4 shards (xctestruns from the shard plans, `test_sim`) | 6 / 15 / 26 / 25 failing → **72 unique names, 0 new** against §4's run of this branch (bundles 11-22 15:43–15:50): gone = `CodeR3OpsTests…HandbookDate` (fixed in §2) and `OwnAccountRefreshOrderingTests…NewPhoneLoginCannotClearNewCredential` (intermittent class). Targeted run first (13 classes near the changed views, 121 tests): 117 pass; the 4 failures (`ProfileFavoriteTopicReadTests…ChapterCoverReturn…`, 3 `RoamNearbyEventsOriginalHostTests`) are in the 15:45 / known-hosted baseline |
+
+Not re-run: Core `swift test` (no file under `Core/`, `Tests/CoreTests` or `Package.swift` changed since §4's 27 =
+baseline run; the Core package does not compile `App/`).
+
+### Left
+
+- On-device VoiceOver and true mid-animation reversal (needs VoiceOver / frame-accurate input).
+- The merchant shell on TEST (sign in as 9002) for a light-domain pass with live data; aftercare is closed on TEST.
+- The two empty-label accessibility elements above; the topic route card stack's square inner corners (`11-`), a
+  pre-existing list-section look, not a type-sweep effect.
