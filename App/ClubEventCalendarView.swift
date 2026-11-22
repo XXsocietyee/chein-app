@@ -170,7 +170,7 @@ import SwiftUI
     @ViewBuilder private func calendar(_ snapshot: ClubEventCalendarSnapshot) -> some View {
         Section {
             HStack {
-                Button { shift(-1) } label: { Image(systemName: "chevron.backward") }
+                Button { shift(-1) } label: { Image(systemName: "chevron.left") }
                     .buttonStyle(.borderless)
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     .disabled(month.shifted(by: -1) == nil)

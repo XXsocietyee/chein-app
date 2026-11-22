@@ -459,7 +459,7 @@ private struct ClubPostImagePreviewSheet: View {
                     .foregroundStyle(.secondary)
             }
             .padding()
-            .navigationTitle(Text("club.community.imagePreview"))
+            .navigationTitle(Text("club.community.imagePreview")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 Button("club.community.closePreview") {
                     onClose()

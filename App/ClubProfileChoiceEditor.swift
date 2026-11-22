@@ -127,7 +127,7 @@ import SwiftUI
             if failed || !draft.isValid { Text("club.profileChoice.unavailable").accessibilityIdentifier("club.profileChoice.failure") }
         }
         .cyGroupedSurface()
-        .navigationTitle(LocalizedStringKey(draft.kind == .type ? "club.profileChoice.type" : "club.profileChoice.directions"))
+        .navigationTitle(LocalizedStringKey(draft.kind == .type ? "club.profileChoice.type" : "club.profileChoice.directions")).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: cancel) }
             ToolbarItem(placement: .confirmationAction) {

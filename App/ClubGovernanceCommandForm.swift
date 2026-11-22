@@ -334,7 +334,7 @@ import SwiftUI
         }
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
-        .navigationTitle(ClubOpsEventFormCopy.title(route))
+        .navigationTitle(ClubOpsEventFormCopy.title(route)).navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
             CYConfirmSheet(
                 title: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmTitle", table: "ClubOpsEvent", locale: locale)),

@@ -105,7 +105,7 @@ import SwiftUI
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
         }
         .cyGroupedSurface()
-        .navigationTitle(locale.pick("入会欢迎语", "Welcome message"))
+        .navigationTitle(locale.pick("入会欢迎语", "Welcome message")).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(locale.pick("关闭", "Close")) { retire(); dismiss() } } }
         .sheet(isPresented: $confirming) {
             let trimmed = flow.draft.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -189,7 +189,7 @@ import SwiftUI
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
         }
         .cyGroupedSurface()
-        .navigationTitle(locale.pick("欢迎语原请求", "Welcome message requests"))
+        .navigationTitle(locale.pick("欢迎语原请求", "Welcome message requests")).navigationBarTitleDisplayMode(.inline)
         .task { guard visit.isCurrent else { return }; active = true; await load() }
         .onDisappear { retire() }
         .onChange(of: identity) { _, _ in retire(); dismiss() }

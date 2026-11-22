@@ -100,7 +100,7 @@ import SwiftUI
                         .accessibilityIdentifier("club.context.ai.adopt").listRowBackground(Color.clear)
                 }
             }
-        }.navigationTitle("context.ai.title").scrollDismissesKeyboard(.interactively)
+        }.navigationTitle("context.ai.title").scrollDismissesKeyboard(.interactively).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { focused = false } } }
             .onChange(of: session) { _, _ in operationID = UUID(); generating = false; model.flow.cancel(); idea = ""; style = ""; minutes = ""; model.revision += 1 }
             .onDisappear { operationID = UUID(); generating = false; model.flow.cancel(); model.revision += 1 }

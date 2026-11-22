@@ -191,7 +191,7 @@ struct ClubOperationsWorkspaceView: View {
                     .disabled(loading || state.locksForm || profileDraftBlocked)
             }
         }
-        .navigationTitle(title)
+        .navigationTitle(title).navigationBarTitleDisplayMode(.inline)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: loading)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

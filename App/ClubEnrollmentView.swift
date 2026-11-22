@@ -162,7 +162,7 @@ extension EnvironmentValues {
         .cyGroupedSurface()
         // The enrollment UI test addresses navigationBars["Enrollment roster"].
         // That bar title is the one screen title; a second hero would duplicate it.
-        .navigationTitle("club.enroll.title")
+        .navigationTitle("club.enroll.title").navigationBarTitleDisplayMode(.inline)
         .background {
             if let attachment = navigation.attachment {
                 ClubEnrollmentLifetime {

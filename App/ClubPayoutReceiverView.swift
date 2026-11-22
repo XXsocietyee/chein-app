@@ -35,7 +35,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
-        .navigationTitle(Text("payoutReceiver.title", tableName: "PayoutReceiver"))
+        .navigationTitle(Text("payoutReceiver.title", tableName: "PayoutReceiver")).navigationBarTitleDisplayMode(.inline)
         .refreshable { await load() }
         .task { await load() }
         .sheet(isPresented: $confirmingBind) {
