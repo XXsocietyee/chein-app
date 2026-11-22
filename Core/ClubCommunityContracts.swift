@@ -104,7 +104,8 @@ public struct ClubCommunitySnapshot {
     }
 }
 public enum ClubCommunityOperation: Equatable {
-    case create(content: String, images: [String])
+    /// CLB-detail-12: `notice` posts a 公告 (type 2), offered to the owner and administrators only (MP canAnnounce).
+    case create(content: String, images: [String], notice: Bool = false)
     case update(content: String, images: [String], requestID: String)
     case pin(Bool, requestID: String), delete, report, toggleLike
     case comment(String), deleteComment, reportComment
@@ -130,7 +131,7 @@ public struct ClubCommunityEvidence: Equatable {
         let mine = post?.authorMemberID == viewer
         let manager = owner || administrator || post?.viewerCanManage == true
         switch operation {
-        case .create: return joined || owner
+        case let .create(_, _, notice): return notice ? (owner || administrator) : (joined || owner)
         case .update: return post != nil && (post?.type == 2 ? manager : mine)
         case .pin: return post?.type == 2 && manager
         case .delete: return post != nil && (mine || manager)
@@ -156,9 +157,11 @@ public struct ClubCommunityReview: Equatable, Identifiable {
         }
         let postID = evidence.post?.id ?? 0, commentID = evidence.comment?.id ?? 0
         switch operation {
-        case let .create(content, images):
+        case let .create(content, images, notice):
             try body(content, images); var fields: [String: Any] = ["clubId": evidence.clubID, "content": content]
-            if !images.isEmpty { fields["images"] = images.joined(separator: ";") }; return fields
+            if !images.isEmpty { fields["images"] = images.joined(separator: ";") }
+            if notice { fields["type"] = 2 }
+            return fields
         case let .update(content, images, key):
             try body(content, images); guard !key.isEmpty else { throw ClubCommunityFailure.invalid }
             return ["id": postID, "content": content, "images": images.joined(separator: ";"), "version": evidence.post!.version, "requestId": key]

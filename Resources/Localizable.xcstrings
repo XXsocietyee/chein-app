@@ -278950,6 +278950,40 @@
           }
         }
       }
+    },
+    "club.community.asNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Post as a notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作为公告发布"
+          }
+        }
+      }
+    },
+    "club.community.pinnedNotice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

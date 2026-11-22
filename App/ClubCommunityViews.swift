@@ -276,6 +276,24 @@ struct ClubCommunityFeedView: View {
                     } else if snapshot.posts.isEmpty {
                         CYEmptyState(systemImage: "text.bubble", "club.community.empty")
                     }
+                    // CLB-detail-05: MP cy-club-pinned-notice, one line + chevron for the pinned 公告, opening the post.
+                    if let clubID, let pinned = snapshot.posts.first(where: { $0.pinned && $0.type == 2 }) {
+                        Button { destination = .init(post: pinned, clubID: pinned.clubID ?? clubID, screen: .detail) } label: {
+                            HStack(spacing: CYSpacing.sm) {
+                                Image(systemName: "pin.fill").foregroundStyle(CYColor.brand).accessibilityHidden(true)
+                                Text("club.community.pinnedNotice").cyText(.label).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: pinned.content.isEmpty ? "—" : pinned.content)
+                                    .cyText(.body).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                        .accessibilityIdentifier("club.community.pinnedNotice")
+                    }
                     ForEach(snapshot.feedItems) { item in
                         UGCBlockedFilterContainer(memberID: item.post.authorMemberID, authorName: item.post.nickname) {
                             feedItem(item, snapshot: snapshot)
@@ -718,6 +736,8 @@ struct ClubCommunityComposer: View {
     @State private var content = ""
     @State private var images: [String] = []
     @State private var uploading = false
+    @State private var canAnnounce = false
+    @State private var asAnnouncement = false
     @StateObject private var imageBridge: ClubPostImageComposerBridge
     init(model: ClubCommunityViewModel, clubID: Int, post: ClubCommunityPost?) {
         self.model = model
@@ -761,8 +781,13 @@ struct ClubCommunityComposer: View {
                         uploading: $uploading,
                         notice: $model.notice
                     )
+                    if post == nil, canAnnounce {
+                        // MP post-compose 作为公告发布 (owner / content managers only).
+                        Toggle(isOn: $asAnnouncement) { Text("club.community.asNotice") }
+                            .accessibilityIdentifier("club.community.asNotice")
+                    }
                     CYPillButton("club.community.review") {
-                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images) : .update(content: content, images: images, requestID: UUID().uuidString)
+                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images, notice: canAnnounce && asAnnouncement) : .update(content: content, images: images, requestID: UUID().uuidString)
                         model.stageDraft(operation, clubID: clubID, post: post)
                         dismiss()
                     }
@@ -778,6 +803,10 @@ struct ClubCommunityComposer: View {
                     ClubPostEditExitControl(post: post, clubID: clubID, source: model,
                         content: $content, images: $images, canExit: { !model.busy && !uploading && !imageBridge.isBusy }, close: { dismiss() })
                 } else { Button("club.community.cancel") { dismiss() } }
+            }
+            .task {
+                guard post == nil, let evidence = try? await model.context.evidence(clubID, nil, nil) else { return }
+                canAnnounce = evidence.allows(.create(content: "", images: [], notice: true))
             }
             .onAppear {
                 if content.isEmpty && images.isEmpty {
@@ -848,7 +877,7 @@ struct ClubCommunityReviewView: View {
                 }
 
                 switch review.operation {
-                case let .create(content, images), let .update(content, images, _):
+                case let .create(content, images, _), let .update(content, images, _):
                     Text(verbatim: content)
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
