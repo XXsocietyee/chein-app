@@ -84,14 +84,15 @@ struct RoamHomeTabPicker: View {
     let destination: () -> AnyView
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(LocalizedStringKey(banner.titleKey), systemImage: banner == .needsCheck ? "exclamationmark.circle" : "arrow.uturn.backward.circle")
-                .fixedSize(horizontal: false, vertical: true)
             if banner == .needsCheck {
+                Label(LocalizedStringKey(banner.titleKey), systemImage: "exclamationmark.circle")
+                    .fixedSize(horizontal: false, vertical: true)
                 NavigationLink { destination() } label: { Text("roam.w208.recovery.check") }
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("roam.home.recovery.check")
             } else if let onContinue {
-                Button("roam.live.resume", action: onContinue)
+                // ROAM-6 / P-27: the MP dropped the 已找回 banner; an unfinished walk shows 继续漫游 only.
+                Button(action: onContinue) { Label("roam.w208.recovery.continue", systemImage: "figure.walk") }
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("roam.home.recovery.continue")
             }

@@ -190630,7 +190630,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "附近还没有活动"
+            "value": "附近暂无活动"
           }
         }
       }
@@ -191338,13 +191338,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld trips"
+            "value": "%lld completed trips"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld 次旅程"
+            "value": "%lld 次已完成旅程"
           }
         }
       }
@@ -191372,13 +191372,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld stamps"
+            "value": "%lld stamps on this phone"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld 张邮票"
+            "value": "%lld 张本机邮票"
           }
         }
       }
@@ -191389,13 +191389,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check roam record"
+            "value": "Confirm roam record"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核对漫游记录"
+            "value": "确认漫游记录"
           }
         }
       }
@@ -191406,13 +191406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your last roam needs checking"
+            "value": "Your last roam needs confirming"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次漫游需要核对"
+            "value": "上次漫游需要确认"
           }
         }
       }
@@ -279508,6 +279508,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "继续"
+          }
+        }
+      }
+    },
+    "roam.w208.recovery.continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue roaming"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续漫游"
           }
         }
       }

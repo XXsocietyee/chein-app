@@ -492,7 +492,7 @@ struct RoamBrowserView: View {
                             .accessibilityIdentifier("roam.rules")
                         NavigationLink { startDestination().cyPushedChrome() } label: { CYGoLabel() }
                             .buttonStyle(CYGoPressStyle())
-                            .accessibilityLabel(Text("GO"))
+                            .accessibilityLabel(Text("roam.w208.intro.start"))   // ROAM-12: 走起, not a spelled-out "G O"
                             .accessibilitySortPriority(10)   // the one primary action is read before rules / open map
                             .accessibilityIdentifier("roam.go")
                         if let nearbyTeamsDestination {

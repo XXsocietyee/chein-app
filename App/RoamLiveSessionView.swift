@@ -491,6 +491,8 @@ import QuestifyCore
                         Spacer(minLength: 0)
                         CYGoHoldPill(enabled: !owner.busy) { commitGo() }
                             .matchedGeometryEffect(id: "go", in: goNamespace)
+                            // ROAM-12 / PL-42: VoiceOver and Switch Control start without the hold gesture.
+                            .accessibilityAction(named: Text("roam.w208.intro.start")) { if !owner.busy { commitGo() } }
                         Spacer(minLength: 0)
                     }
                 } else if canStart, owner.record?.finishRequested == false {
