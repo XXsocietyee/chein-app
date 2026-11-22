@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // Mini-program `subpackageJourney/pages/report` (P7 battle report + P8 run memory + P9 board sheet),
 // `pages/settle` (four steps: overview -> board -> rate -> share) and `components/rank-board`.
@@ -806,7 +807,7 @@ struct JourneySettleView: View {
                 }
             }
             .frame(maxHeight: .infinity)
-            footer
+            footer(report)
         }
         .task(id: rate) {
             guard rate == .thanks, step == .rate else { return }
@@ -974,7 +975,7 @@ struct JourneySettleView: View {
         .padding(.top, CYSpacing.md)
     }
 
-    @ViewBuilder private var footer: some View {
+    @ViewBuilder private func footer(_ report: JourneyReport) -> some View {
         MPBottomBar {
             switch step {
             case .overview:
@@ -994,13 +995,28 @@ struct JourneySettleView: View {
             case .share:
                 HStack(spacing: CYSpacing.md) {
                     if let shareURL {
-                        ShareLink(item: shareURL) { Text("mp.common.share").frame(maxWidth: .infinity) }
-                            .buttonStyle(.cyPrimary).accessibilityIdentifier("journeySettle.share")
+                        // JSETTLE-1: the link travels with the rendered card as its preview (mini-program share imageUrl).
+                        ShareLink(item: shareURL,
+                                  preview: SharePreview(topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun"), image: cardImage(report))) {
+                            Text("mp.common.share").frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.cyPrimary).accessibilityIdentifier("journeySettle.share")
                     }
                     CYPillButton("action.done", style: .secondary, action: onDone).accessibilityIdentifier("journeySettle.finish")
                 }
             }
         }
+    }
+
+    /// The share card as an image (post or story size), the same face the step shows.
+    @MainActor private func cardImage(_ report: JourneyReport) -> Image {
+        let card = JourneyShareCard(report: report, topicName: topicName, story: shareKind == .story)
+            .frame(width: shareKind == .story ? 270 : 360)
+            .environment(\.locale, locale)
+            .environment(\.colorScheme, .dark)
+        let renderer = ImageRenderer(content: card)
+        renderer.scale = 3
+        return renderer.uiImage.map(Image.init(uiImage:)) ?? Image(systemName: "photo")
     }
 
     private func go(_ next: Step) {
