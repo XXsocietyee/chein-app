@@ -336,5 +336,13 @@ def main():
     return 0
 
 
+def main_with_typography():
+    """consist-1: the typography / back-button / title ratchet runs in the same gate."""
+    status = main()
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import check_typography_lint
+    return status or check_typography_lint.run()
+
+
 if __name__ == '__main__':
-    sys.exit(main())
+    sys.exit(main_with_typography())

@@ -100,22 +100,21 @@ enum Theme {
     }
 
     enum Font {
-        // Native semantic TextStyle is preserved where it matches the mini-program base size
-        // (16pt .callout, 22pt .title2, 12pt .caption, 11pt .caption2); exact generated lengths
-        // supply the remaining mini-program ramp points (29pt, 28pt, 18pt, 14pt, 10pt, 32pt, 42pt).
-        static let pageTitle = SwiftUI.Font.system(size: Theme.length("--cy-type-page-title"), weight: .heavy)
-        static let sheetTitle = SwiftUI.Font.system(.title2, weight: .bold)
-        static let sectionTitle = SwiftUI.Font.system(size: Theme.length("--cy-type-section-title"), weight: .bold)
-        static let cardTitle = SwiftUI.Font.system(.callout, weight: .bold)
-        static let button = SwiftUI.Font.system(.callout, weight: .bold)
-        static let body = SwiftUI.Font.system(size: Theme.length("--cy-type-body"))
-        static let label = SwiftUI.Font.system(.caption, weight: .medium)
-        static let caption = SwiftUI.Font.system(.caption2)
-        static let micro = SwiftUI.Font.system(size: Theme.length("--cy-type-micro"), weight: .medium)
-        // Fixed source display sizes are separate from readable body typography.
-        static let display = SwiftUI.Font.system(size: Theme.length("--cy-type-display"), weight: .bold)
-        static let dataXL = SwiftUI.Font.system(size: Theme.length("--cy-type-data-xl"), weight: .bold, design: .rounded)
-        static let data2XL = SwiftUI.Font.system(size: Theme.length("--cy-type-data-2xl"), weight: .bold, design: .rounded)
+        // consist-1: one type scale. Every member reads `CYTextStyle.spec` (CYDesignTokens.swift), which takes the
+        // mini-program sizes (rpx / 2, `Theme.length("--cy-type-*")`) and weights. Prefer `CYTypography` / `.cyText(_:)`
+        // in views; these names stay for existing callers.
+        static var pageTitle: SwiftUI.Font { CYTextStyle.pageTitle.font }
+        static var sheetTitle: SwiftUI.Font { CYTextStyle.sheetTitle.font }
+        static var sectionTitle: SwiftUI.Font { CYTextStyle.sectionTitle.font }
+        static var cardTitle: SwiftUI.Font { CYTextStyle.cardTitle.font }
+        static var button: SwiftUI.Font { CYTextStyle.button.font }
+        static var body: SwiftUI.Font { CYTextStyle.body.font }
+        static var label: SwiftUI.Font { CYTextStyle.label.font }
+        static var caption: SwiftUI.Font { CYTextStyle.caption.font }
+        static var micro: SwiftUI.Font { CYTextStyle.micro.font }
+        static var display: SwiftUI.Font { CYTextStyle.display.font }
+        static var dataXL: SwiftUI.Font { CYTextStyle.dataXL.font }
+        static var data2XL: SwiftUI.Font { CYTextStyle.data2XL.font }
     }
 
     enum Motion {

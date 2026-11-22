@@ -329,7 +329,8 @@ enum CYSheetHeaderStyle {
 }
 
 /// The one sheet header (Editor/Sheet Header and Player/Sheet): 36×5 grabber (drawn by the system when resizable),
-/// a 52 pt bar, a 32 pt grey ✕ circle in a 44 pt target, a 44 pt black 完成 pill, and a 20 Bold title.
+/// a 52 pt bar, a 32 pt grey ✕ circle in a 44 pt target, a 44 pt black 完成 pill, and the scale's sheet title
+/// (`.cyText(.sheetTitle)`: 22 pt bold = mini-program 44rpx, consist-1).
 struct CYSheetHeader: View {
     let title: Text?
     let eyebrow: Text?
@@ -365,7 +366,6 @@ struct CYSheetHeader: View {
     }
 
     @Environment(\.cyPalette) private var palette
-    @ScaledMetric(relativeTo: .title3) private var titleSize: CGFloat = 20
 
     var body: some View {
         let style = self.style.resolved(in: palette.domain)
@@ -377,7 +377,7 @@ struct CYSheetHeader: View {
                         if let eyebrow { eyebrow.font(.footnote).foregroundStyle(palette.textTertiary) }
                         if let title {
                             title
-                                .font(.system(size: titleSize, weight: .bold))
+                                .cyText(.sheetTitle)
                                 .foregroundStyle(palette.textPrimary)
                                 .accessibilityAddTraits(.isHeader)
                         }
@@ -408,7 +408,7 @@ struct CYSheetHeader: View {
                     }
                     if let title {
                         title
-                            .font(.system(size: titleSize, weight: .bold))
+                            .cyText(.sheetTitle)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityAddTraits(.isHeader)
                     }
@@ -423,7 +423,7 @@ struct CYSheetHeader: View {
                     if showsBack { leading }
                     if let title {
                         title
-                            .font(.system(size: titleSize, weight: .bold))
+                            .cyText(.sheetTitle)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityAddTraits(.isHeader)
                             .frame(maxWidth: .infinity, alignment: .leading)
