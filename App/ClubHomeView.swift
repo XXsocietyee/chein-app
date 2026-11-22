@@ -62,6 +62,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             .padding(.vertical, CYSpacing.sm)
             .background(CYColor.bgPage)
             .zIndex(1)
+            // One container: without it the label and id below landed on both tab buttons, so VoiceOver read
+            // 帖文 as "俱乐部" too (combined-r4 verify).
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("clubTab.topTabs")
             .accessibilityLabel(Text("club.title"))
             .cyHaptic(.selection, trigger: topTab)

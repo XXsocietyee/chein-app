@@ -298,6 +298,9 @@ import SwiftUI
         if let source = search.source, source.maxY < rest.minY { search.source = nil }
         search.placed = true
         withAnimation(searchMotion) { search.progress = 1 }
+        // VoiceOver: the in-page layer is a new screen (`.isModal`), not a system presentation, so nothing moves the
+        // VoiceOver cursor off the hidden 首页 field. A screen change lands it on the layer's first element, the field.
+        AccessibilityNotification.ScreenChanged(nil).post()
     }
     private func closeSearch() {
         guard search.mounted else { return }
