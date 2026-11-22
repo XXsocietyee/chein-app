@@ -7612,31 +7612,18 @@ final class AppSession: ObservableObject {
         return authChannelSnapshot
     }
 
+    private var logoutServerConfirmed = false // B-SZ-02 (MP ruling #16): set once the server confirmed; logout() then skips the second send
     /// Return true only while the guest result of this exact sign-out remains current.
     /// A newer sign-in may replace a completed local logout while remote revocation awaits;
     /// in that case false suppresses the old presentation callback, not the new session.
-    /// Settings 退出账号 (MP ruling #16, fix-parity B-SZ-02): the server confirms first. Success, or 401 (the token is
-    /// already invalid), clears the local session; any other failure keeps it and returns false so the confirm can retry.
-    func logout(matching expected: AuthChannelSessionSnapshot) async -> Bool {
+    func logout(matching expected: AuthChannelSessionSnapshot) async -> Bool { // server first: 200/401 clear locally, other failures keep the session
         guard expected.accountID != nil, authChannelSnapshot == expected, !Task.isCancelled else { return false }
-        var serverConfirmed = false
-        if let accountSessionService, accountSessionService.storageScope == storageScope, let current = token {
-            do { try await accountSessionService.logout(token: current) }
-            catch { guard error as? APIError == .unauthorized else { return false } }
-            guard authChannelSnapshot == expected, !Task.isCancelled else { return false }
-            serverConfirmed = true
-        }
-        let signedOutEpoch = expected.epoch &+ 1
-        logoutServerConfirmed = serverConfirmed
-        await logout()
-        return gate.currentStamp == signedOutEpoch && account == nil && token == nil
+        if let accountSessionService, accountSessionService.storageScope == storageScope, let current = token { do { try await accountSessionService.logout(token: current) } catch { guard error as? APIError == .unauthorized else { return false } }
+            guard authChannelSnapshot == expected, !Task.isCancelled else { return false }; logoutServerConfirmed = true }
+        let signedOutEpoch = expected.epoch &+ 1; await logout(); return gate.currentStamp == signedOutEpoch && account == nil && token == nil
     }
-
-    /// Set only by `logout(matching:)` after the server already confirmed; the local clear then skips the second send.
-    private var logoutServerConfirmed = false
     func logout() async {
-        let serverConfirmed = logoutServerConfirmed; logoutServerConfirmed = false
-        sessionRestorationRetry.discard()
+        let serverConfirmed = logoutServerConfirmed; logoutServerConfirmed = false; sessionRestorationRetry.discard()
         retainedPersonalLocationShareHost?.prepareLogout()
         nativeWeChatPaymentAdapter.cancelPending()
         weChatAuth.cancel()
