@@ -263,7 +263,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
                 inviteURL = facts.flatMap { PlayerJourneyProjection.seatInviteURL(envelope, facts: $0) }
                 guard inviteURL != nil else {
                     content.inviteShareURL = nil
-                    content.actionError = String(localized: "mp.seats.invite.linkFailed")
+                    content.actionError = appLocalized("mp.seats.invite.linkFailed", locale: .current)
                     phase = .ready(content)
                     return
                 }
@@ -589,7 +589,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
         // JSETTLE-2, mini-program settle `submitRate`: owner type 2 + the activity id when the run has an activity,
         // else owner type 1 + the topic id. A run id is never an owner.
         guard let owner = PlayerJourneyProjection.ratingOwner(report: readyReport, scope: scope) else {
-            rate = .error(String(localized: "mp.settle.rate.unavailable"))
+            rate = .error(appLocalized("mp.settle.rate.unavailable", locale: .current))
             return
         }
         guard (1...5).contains(stars), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
@@ -607,12 +607,12 @@ struct PlayerJourneySignInSheet: ViewModifier {
                 rateRequestID = nil
                 rate = .thanks
             } else if envelope.netFail {
-                rate = .error(String(localized: "mp.settle.rate.netKept"))
+                rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))
             } else {
-                rate = .error(envelope.message ?? String(localized: "mp.settle.rate.netKept"))
+                rate = .error(envelope.message ?? appLocalized("mp.settle.rate.netKept", locale: .current))
             }
         } catch {
-            rate = .error(String(localized: "mp.settle.rate.netKept"))
+            rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))
         }
     }
 
@@ -754,20 +754,20 @@ enum PlayerJourneyProjection {
     static func landingStateText(kind: JourneyLandingLink.Kind, state: String?) -> String {
         if kind == .gift {
             switch state {
-            case "TOKEN_EXPIRED": return String(localized: "mp.landing.state.giftLinkExpired")
-            case "CLAIMED": return String(localized: "mp.landing.state.giftClaimed")
-            case "GIFT_EXPIRED": return String(localized: "mp.landing.state.giftExpired")
-            case "GIFT_REVOKED": return String(localized: "mp.landing.state.giftRevoked")
-            case "PRODUCT_UNAVAILABLE": return String(localized: "mp.landing.state.giftProductUnavailable")
-            default: return String(localized: "mp.landing.state.giftInvalid")
+            case "TOKEN_EXPIRED": return appLocalized("mp.landing.state.giftLinkExpired", locale: .current)
+            case "CLAIMED": return appLocalized("mp.landing.state.giftClaimed", locale: .current)
+            case "GIFT_EXPIRED": return appLocalized("mp.landing.state.giftExpired", locale: .current)
+            case "GIFT_REVOKED": return appLocalized("mp.landing.state.giftRevoked", locale: .current)
+            case "PRODUCT_UNAVAILABLE": return appLocalized("mp.landing.state.giftProductUnavailable", locale: .current)
+            default: return appLocalized("mp.landing.state.giftInvalid", locale: .current)
             }
         }
         switch state {
-        case "TOKEN_EXPIRED": return String(localized: "mp.landing.state.inviteExpired")
-        case "TOKEN_REVOKED": return String(localized: "mp.landing.state.inviteRevoked")
-        case "TARGET_UNAVAILABLE": return String(localized: "mp.landing.state.targetUnavailable")
-        case "INVITER_UNAVAILABLE": return String(localized: "mp.landing.state.inviterUnavailable")
-        default: return String(localized: "mp.landing.state.inviteInvalid")
+        case "TOKEN_EXPIRED": return appLocalized("mp.landing.state.inviteExpired", locale: .current)
+        case "TOKEN_REVOKED": return appLocalized("mp.landing.state.inviteRevoked", locale: .current)
+        case "TARGET_UNAVAILABLE": return appLocalized("mp.landing.state.targetUnavailable", locale: .current)
+        case "INVITER_UNAVAILABLE": return appLocalized("mp.landing.state.inviterUnavailable", locale: .current)
+        default: return appLocalized("mp.landing.state.inviteInvalid", locale: .current)
         }
     }
 
@@ -1005,9 +1005,9 @@ enum PlayerJourneyProjection {
 
     private static func unavailableText(_ reason: String?) -> String {
         switch reason {
-        case "TEAM_MODE_DISABLED": return String(localized: "mp.journey.unavailable.teamOff")
-        case "RUN_CONFIG_SNAPSHOT_MISSING": return String(localized: "mp.journey.unavailable.noSnapshot")
-        default: return String(localized: "mp.journey.unavailable.generic")
+        case "TEAM_MODE_DISABLED": return appLocalized("mp.journey.unavailable.teamOff", locale: .current)
+        case "RUN_CONFIG_SNAPSHOT_MISSING": return appLocalized("mp.journey.unavailable.noSnapshot", locale: .current)
+        default: return appLocalized("mp.journey.unavailable.generic", locale: .current)
         }
     }
 
