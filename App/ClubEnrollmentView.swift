@@ -334,6 +334,28 @@ extension EnvironmentValues {
             }
             .cyText(.bodyCompact)
             .accessibilityIdentifier("club.enroll.summary.\(team.id)")
+            // CLB-enroll-01: MP C-13 per-session money, matched to the books to the cent (owner only).
+            if !roster.sessionMoney.isEmpty {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    ForEach(roster.sessionMoney) { money in
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            HStack(spacing: CYSpacing.xs) {
+                                if let label = money.label { Text(verbatim: label).lineLimit(1) } else { Text("club.enroll.money.session") }
+                                if money.cancelled { CYStatusChip("club.enroll.money.cancelled", tone: .neutral) }
+                            }
+                            .cyText(.bodyCompact)
+                            .foregroundStyle(palette.textPrimary)
+                            Text("club.enroll.money.line \(money.paidText) \(money.refundedText) \(money.netText)")
+                                .cyText(.numericBody)
+                                .monospacedDigit()
+                                .foregroundStyle(palette.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("club.enroll.money.\(money.id)")
+                    }
+                }
+            }
             if roster.tickets.isEmpty {
                 Text("club.enroll.emptyTickets").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
