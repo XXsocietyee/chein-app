@@ -44,6 +44,9 @@ import SwiftUI
     @State private var hintNode: Int?
     /// 背包 on the play HUD: the theme (or team) backpack pushed over the play map.
     @State private var showBackpack = false
+    /// PLAY-1: MP 章节结算 half sheet (journey/stage-end) when a chapter's last place is done; 底部 = 继续.
+    @State private var stageSettlement: PlayStageSettlementTarget?
+    @State private var settledChapters: Set<Int>?
     @State private var showRouteMap = false
     @State private var confirmEnd = false
     @State private var presentedMode: PlayGameplayMode?
@@ -164,6 +167,30 @@ import SwiftUI
             }
         }
         .overlay { titleCardOverlay }
+        .onChange(of: doneChapterIDs, initial: true) { _, done in
+            // The first read only records what was already settled; a chapter finishing in this visit opens the sheet.
+            guard let previous = settledChapters else { settledChapters = done; return }
+            settledChapters = done
+            if let chapterID = done.subtracting(previous).sorted().first, narrativeModel?(.stage(chapterID: chapterID)) != nil {
+                stageSettlement = PlayStageSettlementTarget(chapterID: chapterID)
+            }
+        }
+        .sheet(item: $stageSettlement) { target in
+            if let narrative = narrativeModel?(.stage(chapterID: target.chapterID)) {
+                NavigationStack {
+                    JourneyNarrativeView(model: narrative, imageReader: narrativeImageReader, makeAudio: makeAudio, mediaScope: mediaScope)
+                        .safeAreaInset(edge: .bottom) {
+                            Button { stageSettlement = nil } label: { Text("playx.stage.continue").frame(maxWidth: .infinity) }
+                                .buttonStyle(.cyPrimary(fullWidth: true))
+                                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
+                                .background(.bar)
+                                .accessibilityIdentifier("playx.stage.continue")
+                        }
+                }
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
+        }
         .onChange(of: model.snapshot?.result.topicID) { _, topicID in
             chapterFilter = nil
             presentTitleCardIfNeeded(topicID)
@@ -673,6 +700,14 @@ import SwiftUI
                         nodeDestination: { AnyView(freeStoreDestination($0)) }))
                 }, storeDayModel: storeDayModel)
         } else { Text("playMode.unavailable") }
+    }
+    /// Chapters whose visible places are all done and unlocked (the same rule as the 旅程记录 stage rows).
+    private var doneChapterIDs: Set<Int> {
+        guard let snapshot = model.snapshot, model.hasCurrentMediaSnapshot else { return [] }
+        return Set(snapshot.result.chapters.compactMap { chapter in
+            let nodes = snapshot.visibleNodes.filter { $0.chapterID == chapter.id }
+            return !nodes.isEmpty && nodes.allSatisfy({ snapshot.isDone($0) && !snapshot.isLocked($0) }) ? chapter.id : nil
+        })
     }
     @ViewBuilder private func narrativeLink(_ query: JourneyNarrativeQuery, subtitle: String? = nil) -> some View {
         if let narrative = narrativeModel?(query) {
@@ -1553,4 +1588,9 @@ struct PlayExperiencePresentationKey: Hashable {
         guard model !== next || session != next.identity else { return false }
         model = next; session = next.identity; return true
     }
+}
+
+struct PlayStageSettlementTarget: Identifiable, Equatable {
+    let chapterID: Int
+    var id: Int { chapterID }
 }
