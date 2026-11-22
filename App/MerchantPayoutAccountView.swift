@@ -75,7 +75,10 @@ import UIKit
                     label: { Text("payoutAccount.row.subMchid", tableName: "PayoutReceiver").cyText(.body).foregroundStyle(CYColor.textSecondary) }
                     // Parity payout P1 (PG-083): 商户号 is a copy-only row.
                     .textSelection(.enabled)
-                    .contextMenu { Button("payoutAccount.copySubMchid", systemImage: "doc.on.doc") { UIPasteboard.general.string = masked } }
+                    .contextMenu { Button("payoutAccount.copySubMchid", systemImage: "doc.on.doc") {
+                        UIPasteboard.general.setItems([["public.utf8-plain-text": masked]],
+                                                      options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
+                    } }
             }
             if let checked = account.checkedAt {
                 LabeledContent { Text(checked, format: .dateTime.month().day().hour().minute()).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }

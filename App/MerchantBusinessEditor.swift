@@ -71,7 +71,7 @@ struct MerchantBusinessEditorContext: Identifiable {
                     // Parity customer-detail P1: a named colour choice, not a hex text field (wire value stays #RRGGBB).
                     Picker("merchant.business.tagColor", selection: $color) {
                         ForEach(MerchantTagColorChoice.all, id: \.hex) { choice in
-                            Label { Text(choice.titleKey) } icon: { Image(systemName: "circle.fill").foregroundStyle(choice.color) }.tag(choice.hex)
+                            Text(choice.titleKey).tag(choice.hex)
                         }
                         if !color.isEmpty, !MerchantTagColorChoice.all.contains(where: { $0.hex == color }) { Text(verbatim: color).tag(color) }
                     }
@@ -417,9 +417,5 @@ private struct MerchantNoteCorrectionTargetSummary: View {
 struct MerchantTagColorChoice {
     let hex: String
     let titleKey: LocalizedStringKey
-    var color: Color {
-        let value = Int(hex.dropFirst(), radix: 16) ?? 0
-        return Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
-    }
     static let all: [MerchantTagColorChoice] = MerchantTagColorPalette.entries.map { .init(hex: $0.hex, titleKey: LocalizedStringKey($0.titleKey)) }
 }
