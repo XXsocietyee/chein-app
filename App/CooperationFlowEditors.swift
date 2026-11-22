@@ -3,11 +3,60 @@ import SwiftUI
 /// A local immutable review, never a permission grant or agreement signature.
 struct CoopFlowRequestPreview: View {
     @Environment(\.locale) private var locale
+    @Environment(\.coopFlowPreviewWrite) private var write
+    @Environment(\.dismiss) private var dismiss
     private let review: CoopFlowRequestReviewContext?
+    private let operation: CoopFlowMutation
+    private enum Outcome: Equatable { case idle, sending, sent, failed(String?), unknown }
+    @State private var outcome: Outcome = .idle
     init(operation: CoopFlowMutation, invitationContext: CoopFlowInvitationContext? = nil,
          currentSession: CoopFlowSession? = nil) {
+        self.operation = operation
         review = try? CoopFlowRequestReviewContext(operation: operation, invitationContext: invitationContext,
                                                   currentSession: currentSession)
+    }
+    /// Parity X1: one primary that dispatches through the reviewed coordinator; never a permanently dead button.
+    @ViewBuilder private var submitSection: some View {
+        Section {
+            switch outcome {
+            case .sent:
+                Label("coopflow.submit.sent", systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
+                    .accessibilityIdentifier("coopflow.submit.sent")
+                Button("coopflow.submit.done") { dismiss() }
+            case .unknown:
+                Label("coopflow.submit.unknown", systemImage: "questionmark.circle").foregroundStyle(CYColor.warningText)
+                    .accessibilityIdentifier("coopflow.submit.unknown")
+            default:
+                if review != nil, write?.make(operation) != nil {
+                    Button { Task { await submit() } } label: {
+                        HStack { Text("coopflow.submit"); if outcome == .sending { Spacer(); ProgressView() } }
+                    }
+                    .disabled(outcome == .sending)
+                    .accessibilityIdentifier("coopflow.submit")
+                    if case .failed(let message) = outcome {
+                        Group { if let message { Text(verbatim: message) } else { Text("coopflow.submit.failed") } }
+                            .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    }
+                } else {
+                    // Gated, not removed: production keeps merchant writes closed (ReviewedAreaSwitch).
+                    Button("coopflow.submit") {}.disabled(true).accessibilityIdentifier("coopflow.submit.disabled")
+                    Text("coopflow.submit.gated").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                }
+            }
+        }
+    }
+    private func submit() async {
+        guard outcome != .sending, let coordinator = write?.make(operation) else { return }
+        outcome = .sending
+        do {
+            let accepted = try await coordinator.prepare(operation)
+            _ = try await coordinator.confirm(accepted)
+            outcome = .sent
+        } catch CoopFlowFailure.server(_, let message) { outcome = .failed(message) }
+        catch CoopFlowFailure.inactiveMerchant(_, let message) { outcome = .failed(message) }
+        catch CoopFlowFailure.ambiguous { outcome = .unknown }
+        catch CoopFlowFailure.permission { outcome = .failed(nil) }
+        catch { outcome = .failed(nil) }
     }
     var body: some View {
         List {
@@ -21,8 +70,8 @@ struct CoopFlowRequestPreview: View {
                 } else { Text("coopflow.invalid") }
             }
             Section { CoopFlowSafetyNotice(); Text("coopflow.review.local") }
-            Button("coopflow.submit") {}.disabled(true).accessibilityIdentifier("coopflow.submit.disabled")
-        }.navigationTitle("coopflow.reviewAction").accessibilityIdentifier("coopflow.review")
+            submitSection
+        }.navigationTitle("coopflow.reviewAction").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("coopflow.review")
     }
     @ViewBuilder private func reviewValue(_ value: CoopFlowRequestReviewValue) -> some View {
         switch value {
