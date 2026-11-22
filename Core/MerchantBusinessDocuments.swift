@@ -88,7 +88,7 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
             guard ["AGREE", "REJECT", "EVIDENCE"].contains(try fields.mbRequiredText("decision")) else { throw MerchantBusinessFailure.malformed }
         case .verification:
             // This source wrapper has no stronger shape guarantee; no fabricated detail ID.
-            id = fields["id"]?.numberText ?? fields.mbText("recordKey") ?? UUID().uuidString
+            id = fields.mbText("recordKey") ?? fields["recordId"]?.numberText ?? fields["id"]?.numberText ?? UUID().uuidString
         }
     }
     public var destination: MerchantBusinessQuery? {
@@ -310,8 +310,10 @@ public struct MerchantBusinessDocument: Equatable {
             guard completeFinance || redactedFinance else { throw MerchantBusinessFailure.malformed }
             sections = [try section("redemption", [object], .redemption)]
         case .verificationRecords:
-            let values = try (payload.array ?? object.mbArray("rows"))
-            let objects = try values.map { guard let value = $0.object else { throw MerchantBusinessFailure.malformed }; return value }
+            // finance/redemptions page {rows,total}; rows carry recordKey/chapterName/topicName/storeName/fulfillmentState/occurredAt.
+            let objects = try object.mbObjects("rows")
+            total = object["total"]?.integer
+            // One 50-row page; the list marks counts "+" when total exceeds it (no prev/next pager).
             sections = [try section("verifications", objects, .verification)]
         case .operators:
             sections = [try section("operators", object.mbObjects("operators"), .operatorMember), try section("invites", object.mbObjects("invites"), .invite)]

@@ -88,9 +88,10 @@ final class MerchantBusinessServiceTests: XCTestCase {
         let fake = BusinessRecordingTransport("{}"), service = try service(fake)
         let verification = try service.makeRequest(MerchantBusinessQuery.verificationRecords.request(), token: "synthetic-token")
         let financial = try service.makeRequest(MerchantBusinessQuery.redemptions(filter: "all", page: 1).request(), token: "synthetic-token")
-        XCTAssertTrue(verification.value(forHTTPHeaderField: "Content-Type")!.hasPrefix("multipart/form-data"))
+        // Parity X5: both read the same finance redemption source (pageSize 50 for the verify list).
+        XCTAssertEqual(verification.value(forHTTPHeaderField: "Content-Type"), "application/json")
         XCTAssertEqual(financial.value(forHTTPHeaderField: "Content-Type"), "application/json")
-        XCTAssertNotEqual(verification.url, financial.url)
+        XCTAssertEqual(verification.url, financial.url)
     }
     func testDeskSkuSaveDispatchesOriginalPath() async throws {
         let fake = BusinessRecordingTransport(#"{"code":200,"msg":"Synthetic saved","data":{"skuId":44}}"#)

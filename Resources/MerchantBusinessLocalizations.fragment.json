@@ -4740,13 +4740,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Verification actions"
+          "value": "Redemption records"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "核销动作记录"
+          "value": "核销记录"
         }
       }
     }

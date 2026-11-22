@@ -82190,13 +82190,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verification actions"
+            "value": "Redemption records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销动作记录"
+            "value": "核销记录"
           }
         }
       }
@@ -278658,6 +278658,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "首页加载失败"
+          }
+        }
+      }
+    },
+    "merchant.verifyRecords.tab.VERIFIED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeemed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核销"
+          }
+        }
+      }
+    },
+    "merchant.verifyRecords.tab.REVERSED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reversed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已撤销"
+          }
+        }
+      }
+    },
+    "merchant.verifyRecords.empty.VERIFIED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No redeemed records yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有已核销记录"
+          }
+        }
+      }
+    },
+    "merchant.verifyRecords.empty.REVERSED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reversed records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有已撤销记录"
+          }
+        }
+      }
+    },
+    "merchant.verifyRecords.unknownDay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间未知"
+          }
+        }
+      }
+    },
+    "merchant.verifyRecords.dayTotal %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 条"
+          }
+        }
+      }
+    },
+    "merchant.verifyRecords.defaultName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This store's station"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本店站点"
           }
         }
       }

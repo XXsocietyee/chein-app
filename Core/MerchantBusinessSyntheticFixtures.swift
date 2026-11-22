@@ -33,7 +33,9 @@ public enum MerchantBusinessSyntheticFixtures {
         case .batches: return try page(batch)
         case .batch: return .object(["batch": try row(batch), "earningEntries": .array([]), "adjustments": .array([try row(entry)])])
         case .redemption: return try decode(redemption)
-        case .verificationRecords: return .array([.object(["id": .int(69001), "operatorName": .string("Example operator"), "verificationCodeTail": .string("0012"), "occurredAt": .string("2026-09-30 15:00:00")])])
+        case .verificationRecords: return .object(["total": .int(2), "rows": .array([
+            .object(["recordKey": .string("redemption:69001"), "recordId": .string("69001"), "chapterName": .string("Example station"), "topicName": .string("Example topic"), "storeName": .string("Example store"), "fulfillmentState": .string("ACTIVE"), "occurredAt": .string("2026-09-30 15:00:00")]),
+            .object(["recordKey": .string("redemption:69002"), "recordId": .string("69002"), "chapterName": .string("Example station"), "topicName": .string("Example topic"), "storeName": .string("Example store"), "fulfillmentState": .string("REVERSED"), "occurredAt": .string("2026-09-29 11:20:00")])])])
         case .operators: return try decode(operators)
         case .roles: return try decode(roles)
         }

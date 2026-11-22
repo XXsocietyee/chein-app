@@ -530,7 +530,7 @@ import SwiftUI
                         NavigationLink { coopCenterDestination(.plaza, nil) } label: { Text(mcc("merchantCoopCenter.customerEntry", locale)) }
                             .accessibilityIdentifier("merchant.business.customers.coopCenter")
                     }
-                } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
+                } else if query != .operators, query != .verificationRecords, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     if case .aftercare(let bucket, _) = query {
                         CYEmptyState(systemImage: "arrow.uturn.backward.circle", LocalizedStringKey(MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))))
                             .listRowBackground(Color.clear)
@@ -567,6 +567,9 @@ import SwiftUI
                         Section { rowActions(refund, access: snapshot.access) }
                     }
                     MerchantAftercareProgressView(progress: progress)
+                } else if query == .verificationRecords {
+                    // Parity X5: 已核销 / 已撤销 chip tabs with counts and day groups (pages/merchant/verify-records).
+                    MerchantVerifyRecordsSections(records: snapshot.document.rows, total: snapshot.document.total)
                 } else {
                     ForEach(snapshot.document.sections) { section in
                         let rows = visibleRows(section, in: snapshot.document)
