@@ -52,7 +52,7 @@ import SwiftUI
         .safeAreaInset(edge: .bottom, spacing: 0) { if c.isCurrent, c.snapshot != nil || submittedID != nil { submitBar } }
         .cyDomainScreen(.merchant)
         .cyHideTabBar(true)
-        .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.create.title"))
+        .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.create.title")).navigationBarTitleDisplayMode(.inline)
         .task(id: service.scope) { resetDraft(); await model.load(); seedIfNeeded() }
         .onChange(of: c.snapshot?.observedAt) { _, stamp in
             if !dirty, !handoffReading, submittedID == nil, stamp != protectedReadback { seedIfNeeded() }

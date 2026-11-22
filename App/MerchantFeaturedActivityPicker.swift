@@ -136,7 +136,7 @@ import SwiftUI
                     Button("merchant.featuredPicker.apply") { if picker.apply() { close() } }
                         .disabled(!picker.canApply).accessibilityIdentifier("merchant.featuredPicker.apply")
                 }
-            }.appNavigationTitle("merchant.featuredPicker.choose")
+            }.cyPageTitle("merchant.featuredPicker.choose")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: close).accessibilityIdentifier("merchant.featuredPicker.cancel") } }
                 .task { await picker.loadFirst() }
                 .onDisappear { picker.cancel() }

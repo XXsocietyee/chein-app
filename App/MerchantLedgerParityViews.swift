@@ -267,7 +267,7 @@ struct MerchantSettlementStatementCard: View {
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.business.batch")
+        .cyPageTitle("merchant.business.batch")
         .task { visible = true; await load() }
         .onAppear { visible = true }
         .onDisappear {

@@ -111,7 +111,7 @@ extension EnvironmentValues {
                     }
                 }
             }
-        }.cyMiniListScreen().appNavigationTitle("cooperation.nearby.title").accessibilityIdentifier("nearbyMerchant.list")
+        }.cyMiniListScreen().cyPageTitle("cooperation.nearby.title").accessibilityIdentifier("nearbyMerchant.list")
             .sheet(item: $publicHomeSelection) { selection in
                 NavigationStack {
                     Group {

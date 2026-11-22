@@ -153,7 +153,7 @@ struct MerchantBusinessField: View {
             }
             if let issueDetail { Text(verbatim: issueDetail).foregroundStyle(.secondary).accessibilityIdentifier("merchant.business.redeemPlace") }
             if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
-        }.appNavigationTitle("merchant.business.scan")
+        }.cyPageTitle("merchant.business.scan")
         .onDisappear { raw = ""; preview = nil; issue = nil; issueDetail = nil }
     }
 }

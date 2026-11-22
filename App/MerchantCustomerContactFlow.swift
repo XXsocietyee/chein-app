@@ -97,7 +97,7 @@ import SwiftUI
                     if flow.deviceIssue { Text("merchant.contactFlow.deviceFailed") }
                 }
             }
-            .navigationTitle("merchant.contactFlow.title")
+            .navigationTitle("merchant.contactFlow.title").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("merchant.contactFlow.close") { flow.invalidate(); dismiss() } } }
         }
         .sheet(item: Binding(get: { flow.coordinator.review }, set: { if $0 == nil && !flow.coordinator.busy { flow.cancelReview() } })) { review in

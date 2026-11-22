@@ -81,7 +81,7 @@ struct MerchantOperationsHomeView: View {
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.operations.title")
+        .cyPageTitle("merchant.operations.title")
         .refreshable { await load(readPermit) }
         .task(id: readPermit) { await load(readPermit) }
         .onAppear { readLifetime.appear(active: scenePhase == .active) }
@@ -268,7 +268,7 @@ struct MerchantOperationsDocumentView: View {
         }
         .cyDomainPageBackground()
         .themeDomain(.merchant)
-        .appNavigationTitle(key: destination.titleKey)
+        .appNavigationTitle(key: destination.titleKey).navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
             if let templateReturn { MerchantCityTemplateReturnFooter(coordinator: coordinator, action: templateReturn) }
         }
@@ -393,7 +393,7 @@ private struct MerchantOperationsCityView: View {
                             Text(LocalizedStringKey(node.status == 1 ? "merchant.operations.node.online" : node.status == 0 ? "merchant.operations.node.offline" : "merchant.operations.review.unknown"))
                             if let template = node.templateTitle { LabeledContent("merchant.operations.template", value: template) }
                             if let tags = node.tagsText { LabeledContent("merchant.operations.tags", value: tags) }
-                        }.appNavigationTitle("merchant.operations.nodeDetail")
+                        }.cyPageTitle("merchant.operations.nodeDetail")
                     } label: {
                         if let name = node.name, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.operations.untitled") }
                     }.accessibilityIdentifier("merchant.operations.node." + String(node.id))

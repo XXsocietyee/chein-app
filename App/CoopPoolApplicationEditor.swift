@@ -201,7 +201,7 @@ import SwiftUI
             CoopFlowSafetyNotice()
         }
         .cyGroupedSurface()
-        .navigationTitle("coopflow.apply")
+        .navigationTitle("coopflow.apply").navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) {
             Button("action.cancel") {
                 guard current else { model.cancel(id: session.id); return }

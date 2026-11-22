@@ -132,7 +132,7 @@ import UIKit
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .navigationTitle(Text("merchant.business.overview"))
+        .navigationTitle(Text("merchant.business.overview")).navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: cover) { item in
             MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner,
                 onDenied: { model.batchDenied(item) }, onReturn: { model.childPopped(item) })
@@ -320,7 +320,7 @@ import UIKit
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .navigationTitle(Text("merchant.business.batch"))
+        .navigationTitle(Text("merchant.business.batch")).navigationBarTitleDisplayMode(.inline)
         .onAppear { model.appear() }
         .onDisappear { model.disappear() }
         .onChange(of: reader.scope) { _, _ in model.appear() }

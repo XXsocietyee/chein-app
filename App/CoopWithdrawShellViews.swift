@@ -67,7 +67,7 @@ import SwiftUI
             }
         }
         .id(attempt)
-        .appNavigationTitle("cooperation.withdrawRecords.title")
+        .cyPageTitle("cooperation.withdrawRecords.title")
         .accessibilityIdentifier("cooperation.withdrawRecords")
     }
 }

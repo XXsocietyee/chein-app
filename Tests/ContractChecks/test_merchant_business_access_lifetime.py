@@ -362,7 +362,7 @@ class MerchantBusinessAccessLifetimeChecks(unittest.TestCase):
                       '.entries(source: "all", page: 1)', '.batches(page: 1)', '.verificationRecords',
                       'access.require(query.permissions)', 'access.allows("merchant:verify")',
                       'merchant.business.open.scan', 'merchant.cityRedeem.entry',
-                      '.appNavigationTitle("merchant.business.title")']:
+                      '.cyPageTitle("merchant.business.title")']:
             self.assertIn(token, OLD_HOME)
             self.assertIn(token, CURRENT_HOME)
 

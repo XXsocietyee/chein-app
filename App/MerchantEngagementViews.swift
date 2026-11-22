@@ -123,7 +123,7 @@ import SwiftUI
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.engagement.title")
+        .cyPageTitle("merchant.engagement.title")
         .task(id: reader.scope) {
             model.invalidate(); await model.load()
             if let command = pending, !Task.isCancelled { pending = nil; await model.prepare(command) }

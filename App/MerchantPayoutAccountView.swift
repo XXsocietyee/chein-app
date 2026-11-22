@@ -27,7 +27,7 @@ import UIKit
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver"))
+        .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver")).navigationBarTitleDisplayMode(.inline)
         .refreshable { await load(refreshing: true) }
         .task { await load(refreshing: false) }
         .cyToast(verbatimMessage: $toastMessage)

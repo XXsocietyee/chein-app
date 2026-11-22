@@ -352,7 +352,7 @@ import SwiftUI
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.business.title")
+        .cyPageTitle("merchant.business.title")
         // The destination host remains outside the access-dependent rows. Clearing
         // Home on push does not remove a destination already on the navigation stack.
         .navigationDestination(for: MerchantBusinessHomeRoute.self) { route in
@@ -668,7 +668,7 @@ import SwiftUI
             }
         }
         .cyDomainScreen(.merchant)
-        .appNavigationTitle(key: query.titleKey)
+        .appNavigationTitle(key: query.titleKey).navigationBarTitleDisplayMode(.inline)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }

@@ -50,7 +50,7 @@ import SwiftUI
                 }
             }
         }
-        .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.title"))
+        .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.title")).navigationBarTitleDisplayMode(.inline)
         .onAppear { visible = true; if scenePhase == .active { reads.appear(service: service) } }
         .onDisappear { visible = false; reads.disappear() }
         .onChange(of: ObjectIdentifier(service)) { _, _ in

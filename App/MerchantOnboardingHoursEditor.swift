@@ -65,7 +65,7 @@ import SwiftUI
                     if let blocker = editor.hours.blocker { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary) }
                 }
             }.disabled(!editor.isCurrent)
-                .appNavigationTitle("merchant.onboarding.hours")
+                .cyPageTitle("merchant.onboarding.hours")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: close).disabled(false) }
                     ToolbarItem(placement: .confirmationAction) {
