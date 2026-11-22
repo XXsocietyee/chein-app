@@ -35,27 +35,34 @@ func playerFactOrDash(_ raw: String?) -> String {
     @State private var filter: MemberScoreAppealFilter = .all
     @State private var visible = false
     @State private var selection: MemberScoreAppealSelection?
+    @State private var showsSignIn = false
+    @State private var showsReputation = false
     var body: some View {
         let rendered = readIntent()
         List {
-            Section {
-                CYHeroHeader("score.mine.title", subtitle: "score.mine.boundary", tableName: "MemberScoreAppealList")
-            }.e1HeroRow()
+            // PLY-30-2/4: inline bar title 我的申诉; no boundary subtitle.
             Picker(selection: $filter) {
                 ForEach(MemberScoreAppealFilter.allCases) { memberScoreText("score.filter.\($0.rawValue)").tag($0) }
             } label: { memberScoreText("score.filter.title") }
             .pickerStyle(.segmented)
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             if let flow, flow.isCurrent {
+                // PLY-30-1: the reputation row opens the mini-program 账号信誉 explanation; an unknown reputation is hidden.
                 if let reputation = flow.reputation {
-                    MemberScoreChipChrome(tone: reputation == .normal ? .success : .warning, symbol: reputation == .normal ? "checkmark.seal" : "exclamationmark.triangle") {
-                        memberScoreText("score.reputation.\(reputation.rawValue)")
+                    Button { showsReputation = true } label: {
+                        HStack(spacing: CYSpacing.sm) {
+                            MemberScoreChipChrome(tone: reputation == .normal ? .success : .warning, symbol: reputation == .normal ? "checkmark.seal" : "exclamationmark.triangle") {
+                                memberScoreText("score.reputation.\(reputation.rawValue)")
+                            }
+                            Spacer(minLength: CYSpacing.sm)
+                            Image(systemName: "info.circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
                     }
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                } else if flow.reputationUnavailable {
-                    MemberScoreChipChrome(tone: .neutral, symbol: "questionmark") {
-                        memberScoreText("score.reputation.unavailable")
-                    }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityHint(Text("score.reputation.hint", tableName: "MemberScoreAppealList"))
+                    .accessibilityIdentifier("score.mine.reputation")
                     .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                 }
                 ForEach(flow.rows) { row in
@@ -71,7 +78,7 @@ func playerFactOrDash(_ raw: String?) -> String {
                     .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                 }
                 if flow.loaded && flow.rows.isEmpty {
-                    CYEmptyState(systemImage: "text.bubble", "score.mine.empty", tableName: "MemberScoreAppealList")
+                    CYEmptyState(systemImage: "text.bubble", LocalizedStringKey("score.mine.empty." + filter.rawValue), tableName: "MemberScoreAppealList")
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
                 }
@@ -88,33 +95,32 @@ func playerFactOrDash(_ raw: String?) -> String {
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
                 }
                 if let failure = flow.failure {
-                    Label {
-                        memberScoreText("score.error.\(failure)")
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
-                    }
-                    .cyText(.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("score.mine.status")
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    // PLY-30-3: mini-program 申诉记录加载失败 + 重试 in place.
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "score.mine.failed", tableName: "MemberScoreAppealList",
+                                 detail: LocalizedStringKey("score.error." + String(describing: failure)), messageIdentifier: "score.mine.status",
+                                 actionTitle: "score.mine.retry", actionIdentifier: "score.mine.retry", kind: .failure) { load(rendered) }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
                 }
-                memberScoreText("score.time.source")
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textTertiary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            } else if session.account == nil {
+                // PLY-30-3: signed out → 登录后查看申诉 with a way to sign in.
+                CYEmptyState(systemImage: "person.crop.circle", "score.mine.signIn", tableName: "MemberScoreAppealList",
+                             actionTitle: "score.mine.signIn.action", actionIdentifier: "score.mine.signIn", actionStyle: .primary) { showsSignIn = true }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
             } else {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "score.error.disabled", tableName: "MemberScoreAppealList", kind: .failure)
+                CYEmptyState(systemImage: "exclamationmark.triangle", "score.mine.failed", tableName: "MemberScoreAppealList", kind: .failure)
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
             }
-            CYPillButton("score.mine.refresh", style: .tertiary, tableName: "MemberScoreAppealList") { load(rendered) }
-                .disabled(rendered == nil || flow?.busy == true)
-                .e1ActionRow()
         }
         .listStyle(.insetGrouped)
-        .cyGroupedSurface().cyHeroScreen().privacySensitive()
+        .cyGroupedSurface()
+        .cyPushedChrome(domain: .player)
+        .navigationTitle(memberScoreText("score.mine.title")).navigationBarTitleDisplayMode(.inline)
+        .privacySensitive()
+        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { LoginView(intent: .player).environmentObject(session) }
+        .sheet(isPresented: $showsReputation) { MemberScoreReputationSheet(current: flow?.reputation) }
         .accessibilityIdentifier("score.mine.list")
         .navigationDestination(item: $selection) { MemberScoreAppealDetailView(selection: $0, session: session) }
         .onAppear { visible = true; start() }
@@ -140,6 +146,35 @@ func playerFactOrDash(_ raw: String?) -> String {
         Task { await original.loadList(more: more, intent: intent) }
     }
     private func retire() { if let owner { flow?.end(owner) }; flow = nil; owner = nil }
+}
+
+/// Mini-program appeal-mine 账号信誉 sheet: what 正常 and 受限 mean for the player (PLY-30-1).
+private struct MemberScoreReputationSheet: View {
+    let current: MemberScoreReputation?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSheetHeader(title: memberScoreText("score.reputation.sheet.title"), style: .player, onClose: { dismiss() })
+            ForEach([MemberScoreReputation.normal, .restricted], id: \.rawValue) { value in
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    HStack(spacing: CYSpacing.sm) {
+                        memberScoreText("score.reputation.sheet.\(value.rawValue)").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        if value == current {
+                            CYStatusChip("score.reputation.sheet.current", tone: value == .normal ? .success : .warning, tableName: "MemberScoreAppealList")
+                        }
+                    }
+                    memberScoreText("score.reputation.sheet.\(value.rawValue).detail")
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+            }
+            Spacer(minLength: 0)
+        }
+        .cyDomainSheet(detents: [.half])
+    }
 }
 
 private struct MemberScoreAppealRowLabel: View {

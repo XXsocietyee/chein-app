@@ -83,7 +83,8 @@ class ProfileComplaintPreparationChecks(unittest.TestCase):
         for t in ['ObjectIdentifier(reader)', 'reader.session?.accountID', 'reader.session?.epoch', '.id(ProfileComplaintPresentationKey(reader))']:
             self.assertIn(t, self.app)
     def test_background_close_and_disappear_clear(self):
-        self.assertIn('Button("action.close") { model.retire(); dismiss() }', self.app)
+        # PLY-27-2: a pushed page keeps the system back only; leaving still retires the model.
+        self.assertNotIn('Button("action.close") { model.retire(); dismiss() }', self.app)
         self.assertIn('if phase == .background { focused = nil; model.retire() }', self.app)
         self.assertIn('.onDisappear { model.retire() }', self.app)
         self.assertIn('.privacySensitive()', self.app)

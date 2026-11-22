@@ -13,6 +13,14 @@ public struct MemberReportProgressSelection: Identifiable, Hashable {
     public static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
     public func hash(into hasher: inout Hasher) { hasher.combine(id) }
     fileprivate init(record: MemberReportProgressRecord, reader: MemberReportProgressReader) { self.record = record; self.reader = reader }
+    /// `report-detail?reportId=` (PLY-29-1): the owner's own report, found in the same `reports/mine` read the list uses.
+    /// Nil when the id is not one of this account's reports, so a link never opens someone else's case.
+    @MainActor public static func owned(reportID: Int64, reader: MemberReportProgressReader) async throws -> MemberReportProgressSelection? {
+        guard reportID > 0, reader.allows(.detail) else { return nil }
+        let rows = try await reader.history()
+        guard let record = rows.first(where: { $0.id == reportID }) else { return nil }
+        return .init(record: record, reader: reader)
+    }
 }
 /// C6 returns one complete owner array. Display pages and filters never fabricate a server cursor.
 @MainActor @Observable public final class MemberReportProgressCoordinator {

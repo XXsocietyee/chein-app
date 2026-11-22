@@ -15,12 +15,11 @@ struct MemberReportProgressTimeView: View {
     @State private var owner: MemberReportProgressPresentation?
     @State private var visible = false
     @State private var selection: MemberReportProgressSelection?
+    @State private var showsSignIn = false
     var body: some View {
         let rendered = readIntent()
         List {
-            CYHeroHeader("report.history.title", tableName: "MemberReportProgress")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            memberReportProgressText("report.read.boundary").cyText(.bodyCompact)
+            // PLY-28-1/2: inline bar title; no developer boundary line and no 刷新 pill next to pull-to-refresh.
             if let flow, flow.isCurrent {
                 Picker(selection: Binding(get: { flow.filter }, set: { value in
                     guard let (original, intent) = rendered else { return }; original.changeFilter(value, intent: intent)
@@ -52,6 +51,12 @@ struct MemberReportProgressTimeView: View {
                             MemberReportProgressTimeView(value: record.createTime)
                                 .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
+                            // PLY-28-3: mini-program ETA line 「预计 … 前给出结论」 while the report is still open.
+                            if !["RESOLVED", "CLOSED"].contains(record.stageKey), let eta = record.estimatedResolveAt?.display() {
+                                Text("report.eta \(eta)", tableName: "MemberReportProgress")
+                                    .cyText(.meta)
+                                    .foregroundStyle(CYColor.textSecondary)
+                            }
                             Text("u9cde.report.number \(String(record.id))")
                                 .cyText(.meta)
                                 .monospacedDigit()
@@ -62,7 +67,10 @@ struct MemberReportProgressTimeView: View {
                     }.disabled(flow.busy || !flow.reader.allows(.detail))
                     .accessibilityIdentifier("report.progress.row.\(record.id)")
                 }
-                if flow.loaded && flow.records.isEmpty { CYEmptyState(systemImage: "doc.text.magnifyingglass", "report.history.empty", tableName: "MemberReportProgress") }
+                if flow.loaded && flow.records.isEmpty {
+                    // PLY-28-3: one empty line per filter, as the mini-program.
+                    CYEmptyState(systemImage: "doc.text.magnifyingglass", LocalizedStringKey("report.history.empty." + flow.filter.rawValue), tableName: "MemberReportProgress")
+                }
                 if flow.hasMore {
                     Button {
                         guard let (original, intent) = rendered else { return }; original.showMore(intent: intent)
@@ -77,14 +85,20 @@ struct MemberReportProgressTimeView: View {
                 if flow.busy { CYSkeleton() }
                 if let failure = flow.failure {
                     let message = LocalizedStringKey("report.error." + String(describing: failure))
-                    CYEmptyState(systemImage: "exclamationmark.triangle", message, tableName: "MemberReportProgress", messageIdentifier: "report.progress.error", actionTitle: "report.refresh", action: { load(rendered) })
+                    CYEmptyState(systemImage: "exclamationmark.triangle", message, tableName: "MemberReportProgress", messageIdentifier: "report.progress.error", actionTitle: "report.retry", action: { load(rendered) })
                 }
+            } else if session.account == nil {
+                // PLY-28-4: signed out → mini-program login gate with a way to sign in.
+                CYEmptyState(systemImage: "person.crop.circle", "report.signIn.title", tableName: "MemberReportProgress",
+                             messageIdentifier: "report.progress.signIn", actionTitle: "report.signIn.action",
+                             actionIdentifier: "report.progress.signIn.action", actionStyle: .primary) { showsSignIn = true }
             } else { memberReportProgressText("report.error.disabled") }
-            CYPillButton("report.refresh", style: .secondary, tableName: "MemberReportProgress") { load(rendered) }
-                .listRowBackground(Color.clear).disabled(rendered == nil || flow?.busy == true)
         }
         .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive()
+        .cyPushedChrome(domain: .player)
+        .navigationTitle(memberReportProgressText("report.history.title")).navigationBarTitleDisplayMode(.inline)
+        .privacySensitive()
+        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { LoginView(intent: .player).environmentObject(session) }
         .accessibilityIdentifier("report.progress.history")
         .navigationDestination(item: $selection) { MemberReportProgressDetailView(selection: $0, session: session) }
         .onAppear { visible = true; start() }

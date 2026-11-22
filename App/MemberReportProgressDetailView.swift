@@ -14,15 +14,13 @@ import SwiftUI
     var body: some View {
         let rendered = readIntent()
         List {
-            CYHeroHeader("report.detail.title", tableName: "MemberReportProgress")
-                .listRowBackground(Color.clear)
-                .listRowInsets(gutter)
+            // PLY-29-5: the title is the bar's inline title; pull-to-refresh replaces the 刷新 pill.
             if let flow, let original = flow.detailRecord {
                 if let record = flow.detail {
                     // Source report-detail head card: 「对象 · 原因」 with the stage on the right, then 编号 N · 提交于 time.
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYStatusChip(verbatim: copy("report.stage.\(record.stageKey)"), tone: stageTone(record.stage))
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                             Text(verbatim: copy("report.target.\(record.targetKey)"))
                             Text(verbatim: "·").accessibilityHidden(true)
                             if let label = flow.reasonLabel(for: record) { Text(verbatim: shown(label)) }
@@ -31,7 +29,14 @@ import SwiftUI
                         .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: 4) {
+                        // PLY-29-3: mini-program stage hint (report-common STAGES[].hint).
+                        if ["SUBMITTED", "TRIAGED", "INVESTIGATING", "RESOLVED", "CLOSED", "APPEALED"].contains(record.stageKey) {
+                            Text(verbatim: copy("report.stageHint.\(record.stageKey)"))
+                                .cyText(.bodyCompact)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        HStack(spacing: CYSpacing.xs) {
                             Text("u9cde.report.number \(String(original.id))")
                             Text(verbatim: "·").accessibilityHidden(true)
                             Text("u9cde.report.submittedAt")
@@ -51,6 +56,15 @@ import SwiftUI
                     if CommunityTrustPlayerService.appealableStages.contains(record.stage), let client = session.playerCapabilityClient() {
                         ReportAppealSection(reportID: Int(original.id), client: client,
                                             stageLabel: { CommunityTrustPlayerService.stageLabels[$0] }, readBack: { load(readIntent()) })
+                    }
+                    if record.stageKey == "APPEALED" {
+                        memberReportProgressText("report.appealed.note")
+                            .cyText(.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .listRowInsets(gutter)
+                            .listRowBackground(Color.clear)
+                            .accessibilityIdentifier("report.detail.appealed")
                     }
                     if let summary = record.decisionSummary, !summary.isEmpty {
                         Section { Text(verbatim: shown(summary)).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).listRowInsets(gutter) } header: { Text("u9cde.report.decision") }
@@ -96,7 +110,7 @@ import SwiftUI
                     CYSkeleton().listRowInsets(gutter).listRowBackground(Color.clear)
                 }
                 if let failure = flow.failure {
-                    CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress", actionTitle: "report.refresh", action: { load(rendered) })
+                    CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failureKey(failure)), tableName: "MemberReportProgress", actionTitle: "report.retry", action: { load(rendered) })
                         .listRowInsets(gutter)
                         .listRowBackground(Color.clear)
                 }
@@ -105,20 +119,13 @@ import SwiftUI
                     .listRowInsets(gutter)
                     .listRowBackground(Color.clear)
             }
-            memberReportProgressText("report.detail.boundary")
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .listRowInsets(gutter)
-                .listRowBackground(Color.clear)
-            CYPillButton("report.refresh", tableName: "MemberReportProgress") { load(rendered) }
-                .disabled(rendered == nil || flow?.busy == true)
-                .listRowInsets(gutter)
-                .listRowBackground(Color.clear)
+            // PLY-29-2: the developer boundary footer (which contradicted the appeal button) is gone.
         }
         .listStyle(.plain)
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .cyPushedChrome(domain: .player)
+        .navigationTitle(memberReportProgressText("report.detail.title")).navigationBarTitleDisplayMode(.inline)
+        .refreshable { if let (original, intent) = readIntent(), original.accepts(intent) { await original.loadDetail(intent: intent) } }
         .privacySensitive()
         .accessibilityIdentifier("report.progress.detail")
         .cyAnimation(value: flow?.busy == true)
@@ -199,4 +206,63 @@ import SwiftUI
         Task { await original.loadDetail(intent: intent) }
     }
     private func retire() { if let owner { flow?.end(owner) }; flow = nil; owner = nil }
+}
+
+/// `subpackageMember/report-detail/index?reportId=` for the page router (PLY-29-1). Finds the report in the owner's
+/// own `reports/mine` read, then shows the same detail screen. Signed out, not this account's report, or a failed read
+/// each show one state with a way out.
+@MainActor struct MemberReportProgressDeepLinkScreen: View {
+    let reportID: Int64
+    @ObservedObject var session: AppSession
+    @State private var selection: MemberReportProgressSelection?
+    @State private var phase: Phase = .loading
+    @State private var showsSignIn = false
+    private enum Phase: Equatable { case loading, ready, notFound, failed, signedOut }
+
+    var body: some View {
+        Group {
+            if phase == .ready, let selection {
+                MemberReportProgressDetailView(selection: selection, session: session)
+            } else {
+                state
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .cyPushedChrome(domain: .player)
+                    .navigationTitle(memberReportProgressText("report.detail.title")).navigationBarTitleDisplayMode(.inline)
+                    .cyDomainScreen(.player)
+            }
+        }
+        .task(id: session.memberReportProgressIdentity) { await resolve() }
+        .sheet(isPresented: $showsSignIn, onDismiss: { Task { await resolve() } }) { LoginView(intent: .player).environmentObject(session) }
+    }
+
+    @ViewBuilder private var state: some View {
+        switch phase {
+        case .loading, .ready:
+            CYSkeleton().padding(CYSpacing.pageHorizontal)
+        case .signedOut:
+            CYEmptyState(systemImage: "person.crop.circle", "report.signIn.title", tableName: "MemberReportProgress",
+                         actionTitle: "report.signIn.action", actionIdentifier: "report.detail.signIn", actionStyle: .primary) { showsSignIn = true }
+        case .notFound:
+            CYEmptyState(systemImage: "doc.text.magnifyingglass", "report.detail.notFound", tableName: "MemberReportProgress")
+        case .failed:
+            CYEmptyState(systemImage: "exclamationmark.triangle", "report.detail.failed", tableName: "MemberReportProgress",
+                         actionTitle: "report.retry", kind: .failure) { Task { await resolve() } }
+        }
+    }
+
+    private func resolve() async {
+        selection = nil
+        guard session.account != nil else { phase = .signedOut; return }
+        guard let reader = session.makeMemberReportProgressReader() else { phase = .notFound; return }
+        phase = .loading
+        do {
+            let found = try await MemberReportProgressSelection.owned(reportID: reportID, reader: reader)
+            selection = found
+            phase = found == nil ? .notFound : .ready
+        } catch is CancellationError {
+            return
+        } catch {
+            phase = .failed
+        }
+    }
 }
