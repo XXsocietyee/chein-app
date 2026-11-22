@@ -216,7 +216,7 @@
     {
       "key": "club.ops.owner",
       "en": "Owner",
-      "zh-Hans": "创建者",
+      "zh-Hans": "主理人",
       "accessibilityIdentifier": "club.ops.owner"
     },
     {
