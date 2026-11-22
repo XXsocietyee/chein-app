@@ -278746,6 +278746,23 @@
           }
         }
       }
+    },
+    "playBadge.openWall": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View in collection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看收藏"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

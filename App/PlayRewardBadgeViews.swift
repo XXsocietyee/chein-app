@@ -57,8 +57,11 @@ import SwiftUI
                 if model.isLoading { CYSkeleton().accessibilityLabel(Text("profile.loading")) }
                 else if model.failed { Text("playBadge.failed").accessibilityIdentifier("playBadge.failed") }
                 else if let focus = model.focus { PlayRewardBadgeFocusContent(focus: focus) }
-                if let growthReader {
-                    Section {
+                // BWALL-1: MP 查看收藏 reads the earned badge back on the wall (badge-wall?badgeCode=); 成长中心 stays secondary.
+                Section {
+                    NavigationLink("playBadge.openWall") { ObjectBadgeWallView(reader: reader, focusBadgeCode: model.target.code) }
+                        .accessibilityIdentifier("playBadge.openWall")
+                    if let growthReader {
                         NavigationLink("growth.title") { GrowthCenterView(reader: growthReader).id(growthReader.scope) }
                             .accessibilityIdentifier("playBadge.growth")
                     }
