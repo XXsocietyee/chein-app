@@ -977,6 +977,9 @@ private struct ClubOperationsProfileForm: View {
                     .accessibilityIdentifier("club.player.create.intro")
                     // A Section's own onAppear does not fire inside a List; the row's does.
                     .onAppear { publishCreateBar() }
+                    // On the page ground like the steps after it: without this the title sat in the system row fill,
+                    // a white capsule under a light system appearance (integ verify).
+                    .listRowBackground(Color.clear)
             }
         } else {
             // verify-r1 2.2 / N-08 (Figma 204:24591): the step header sits on the page, not in a white card: a
