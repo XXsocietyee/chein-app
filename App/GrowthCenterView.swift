@@ -163,7 +163,7 @@ extension EnvironmentValues {
                 if let mileage = GrowthCenterFormatting.mileage(overview.progress.value?.totalMileage) {
                     HStack(spacing: 2) {
                         Text(mileage, format: .number.precision(.fractionLength(0...1))).monospacedDigit()
-                        Text("roam.history.km")
+                        Text(verbatim: "km")   // GROWTH-4: one unit, beside the value (label is 累计距离)
                     }
                 } else { Text("growth.unknown").accessibilityLabel(Text("growth.unknownValue")) }
             }.accessibilityIdentifier("growth.mileage")

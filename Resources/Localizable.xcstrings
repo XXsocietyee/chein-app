@@ -66466,7 +66466,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No one on this board yet"
+            "value": "Nobody is on this board yet"
           }
         },
         "zh-Hans": {
@@ -66874,13 +66874,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Total distance (km)"
+            "value": "Total distance"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "累计距离（km）"
+            "value": "累计距离"
           }
         }
       }
@@ -67203,7 +67203,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "经验"
+            "value": "EXP"
           }
         }
       }
@@ -279593,6 +279593,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 %lld 点钟方向"
+          }
+        }
+      }
+    },
+    "growth.board.emptyHint %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish a city exploration to start earning %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成一次城市探索即可累计%@"
           }
         }
       }
