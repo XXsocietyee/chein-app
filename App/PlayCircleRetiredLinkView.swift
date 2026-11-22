@@ -17,6 +17,8 @@ import SwiftUI
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .background(CYColor.bgPage)
+        // PLAYC-2: MP cy-nav-bar 自由探索 on every host (deep link and in-app).
+        .cyPageTitle("playFree.title")
     }
 }
 
