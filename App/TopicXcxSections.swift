@@ -525,3 +525,50 @@ struct TopicXcxNodeFootView: View {
         }
     }
 }
+
+/// PC-B-1-2: topic 收藏 on the detail page, as MP `pages/topic/index` `_loadFav` / `toggleFav` (index.js:642-686).
+/// State comes from `POST api/topic/like_list {pageNum:1,pageSize:200}`; the write is `POST api/topic/like {id,type}`
+/// with an explicit final state (`TopicLikeOperationFactory`). Both go through the session's composition transport, so
+/// the reviewed player-write lease still decides whether the request may leave the device.
+@MainActor struct TopicFavoriteAccess {
+    /// Nil = unknown (signed out, read failed): the bookmark is hidden rather than guessed.
+    let load: @MainActor (_ topicID: Int) async -> Bool?
+    let set: @MainActor (_ topicID: Int, _ liked: Bool) async -> TopicLikeWriteOutcome
+}
+
+extension AppSession {
+    func topicFavoriteAccess() -> TopicFavoriteAccess? {
+        guard isSignedIn, let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let transport = compositionTransport
+        return TopicFavoriteAccess(
+            load: { [weak self] topicID in
+                guard let self, let token = self.token, topicID > 0,
+                      let request = try? AuthRequestBuilder.makeFormRequest(
+                        url: configuration.baseURL.appendingPathComponent("api/topic/like_list"),
+                        fields: ["pageNum": "1", "pageSize": "200"], token: token),
+                      let response = try? await transport.send(request), (200..<300).contains(response.1) else { return nil }
+                return TopicFavoriteList.contains(topicID, in: response.0)
+            },
+            set: { [weak self] topicID, liked in
+                guard let self, let token = self.token,
+                      let request = try? TopicLikeOperationFactory(configuration: configuration)
+                        .request(topicID: topicID, direction: TopicLikeDirection(liked: liked), token: token) else { return .rejected(nil) }
+                guard let response = try? await transport.send(request) else { return .unknown }
+                return TopicLikeWriteOutcome.decode(data: response.0, status: response.1)
+            })
+    }
+}
+
+/// `like_list` envelope `{code:200,data:{rows:[{id}]}}`. Anything else is unknown (nil), never "not favourited".
+enum TopicFavoriteList {
+    static func contains(_ topicID: Int, in data: Data) -> Bool? {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              String(describing: object["code"] ?? "") == "200",
+              let body = object["data"] as? [String: Any], let rows = body["rows"] as? [[String: Any]] else { return nil }
+        return rows.contains { row in
+            if let id = row["id"] as? Int { return id == topicID }
+            if let id = row["id"] as? String { return id == String(topicID) }
+            return false
+        }
+    }
+}

@@ -53,8 +53,14 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
                     ticketWalletDestination: { topicID in
                         AnyView(TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator, focusTopicID: topicID))
-                    })
+                    }, favorites: session.topicFavoriteAccess())
                     .id(session.contentDetailRevision)
+                    // PC-B-4-3 / PC-B-1-3 (X1): every entry gets the owner pricing page and the play runtime client,
+                    // not only the topic browser sheet (SessionTopicBrowserView).
+                    .environment(\.topicPricingDestination, session.publisherLifecycleContext.map { context -> (Int) -> AnyView in
+                        { topicID in AnyView(PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)) }
+                    })
+                    .environment(\.playRuntimeTopicClient, PlayRuntimeGapBridge.topicClient(session: session))
             }
         }
     }
