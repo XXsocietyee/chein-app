@@ -278729,6 +278729,40 @@
           }
         }
       }
+    },
+    "club.groupCode.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to Photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存到相册"
+          }
+        }
+      }
+    },
+    "club.groupCode.save.hint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves the game code to Photos so you can print it and post it at a stop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存游戏码到相册，可打印后贴在节点"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
