@@ -406,6 +406,23 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         Label(LocalizedStringKey(MerchantWorkbenchBusinessShortcut.aftercare.query.titleKey), systemImage: MerchantWorkbenchBusinessShortcut.aftercare.symbol)
                     }.accessibilityIdentifier("merchant.workbench.direct.aftercare")
                 }
+                if let businessReader, let businessJournal, access.allows(.verify) || access.allows(.verifyRecordRead) {
+                    // Parity verify-records P1 / bundle-reservations P0: MP 更多 › 核销记录 and 套票到店 are one tap away.
+                    NavigationLink {
+                        MerchantBusinessPage(reader: businessReader, journal: businessJournal, query: .verificationRecords)
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.business.verifications", systemImage: "checkmark.seal") }
+                        .accessibilityIdentifier("merchant.workbench.verifyRecords")
+                    if access.allows(.verify) {
+                        NavigationLink {
+                            MerchantBundleReservationsView(reader: businessReader)
+                                .onDisappear(perform: onChildReturn)
+                                .cyPushedChrome(domain: .merchant)
+                        } label: { Label("merchant.bundleReservations.entry", systemImage: "calendar.badge.clock") }
+                            .accessibilityIdentifier("merchant.workbench.bundleReservations")
+                    }
+                }
                 if let businessReader, let businessJournal {
                     NavigationLink {
                         MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)

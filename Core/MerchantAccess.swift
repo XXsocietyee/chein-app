@@ -25,6 +25,8 @@ public struct MerchantAccess: Decodable, Equatable {
         // gate presentation; every server read still re-checks the operator role.
         case aftercareRead = "merchant:aftercare:read"
         case verify = "merchant:verify"
+        /// Parity verify-records: MP VERIFY_RECORD_READ (a verifier can read 核销记录 without finance).
+        case verifyRecordRead = "merchant:verify:record:read"
         case crmRead = "merchant:crm:read"
         case profileWrite = "merchant:profile:write"
         case couponManage = "merchant:coupon:manage"

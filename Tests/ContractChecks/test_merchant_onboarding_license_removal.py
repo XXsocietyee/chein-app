@@ -14,7 +14,9 @@ class LicenseRemovalContracts(unittest.TestCase):
         for x in ['request.identity == identity','request.generation == generation','request.revision == revision','request.draft == draft','pendingLicenseRemovalID == request.id','pendingLicenseRemovalID = nil']:
             self.assertIn(x,self.addition)
     def test_state_and_auth_fences(self):
-        for x in ['!isBusy','!coordinator.isUploading','identity == coordinator.identity','coordinator.identityGate == .registered','!coordinator.submission.isLocked','confirmation == nil','selectedImage == nil','selectedBrandImage == nil','case .loaded(.none)','application.canReapply']:
+        # Parity apply P0: the license step no longer waits on a registered identity (registered at submit).
+        self.assertNotIn('coordinator.identityGate == .registered',self.addition)
+        for x in ['!isBusy','!coordinator.isUploading','identity == coordinator.identity','!coordinator.submission.isLocked','confirmation == nil','selectedImage == nil','selectedBrandImage == nil','case .loaded(.none)','application.canReapply']:
             self.assertIn(x,self.addition)
     def test_normal_entry_and_confirmation(self):
         self.assertIn('merchant.onboarding.license.remove',self.view)

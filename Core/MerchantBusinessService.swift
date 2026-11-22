@@ -79,6 +79,25 @@ public struct MerchantBusinessService {
         guard let object = try JSONDecoder().decode(MerchantBusinessValue.self, from: data).object else { throw MerchantBusinessFailure.malformed }
         return object
     }
+    /// Bundle reservation reads and the no-show write (MerchantBundleReservations.swift). A write whose
+    /// outcome is not definite is `.unknown`; the caller refreshes instead of retrying.
+    func bundleSend(_ request: URLRequest, write: Bool = false) async throws -> MerchantBusinessValue {
+        try Task.checkCancellation()
+        let response: (Data, Int)
+        do { response = try await readTransport.send(request) } catch {
+            if write { throw MerchantBusinessFailure.unknown }
+            throw error
+        }
+        let (data, status) = response
+        if status == 401 { throw APIError.unauthorized }
+        if status == 403 { throw MerchantBusinessFailure.denied }
+        guard (200..<300).contains(status), let body = try? JSONDecoder().decode(MerchantBusinessValue.self, from: data).object,
+              let code = body["code"]?.integer else { throw write ? MerchantBusinessFailure.unknown : MerchantBusinessFailure.malformed }
+        if code == 401 { throw APIError.unauthorized }
+        if code == 403 { throw MerchantBusinessFailure.denied }
+        guard code == 200 else { throw MerchantBusinessFailure.rejected(code, body.mbText("msg")) }
+        return body["data"] ?? .null
+    }
     static func unwrap(_ body: MerchantBusinessObject) throws -> MerchantBusinessValue {
         let code = try body.mbInt("code")
         if code == 401 { throw APIError.unauthorized }
