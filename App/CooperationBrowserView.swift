@@ -10,11 +10,13 @@ import SwiftUI
     /// Existing public topic screen. Nil keeps the topic reference and does not navigate.
     var topicDestination: ((Int) -> AnyView)? = nil
     @State private var direction: CooperationDirection
+    /// Parity coop/list P1: false when pushed onto an existing stack (no nested NavigationStack / double bar).
+    private let embedsNavigationStack: Bool
     init(reader: any CooperationReading, onClose: (() -> Void)? = nil, peerReader: (any CoopFlowReading)? = nil,
          operationScope: String? = nil, initialDirection: CooperationDirection = .received,
-         topicDestination: ((Int) -> AnyView)? = nil) {
+         topicDestination: ((Int) -> AnyView)? = nil, embedsNavigationStack: Bool = true) {
         self.reader = reader; self.onClose = onClose; self.peerReader = peerReader; self.operationScope = operationScope
-        self.topicDestination = topicDestination
+        self.topicDestination = topicDestination; self.embedsNavigationStack = embedsNavigationStack
         _direction = State(initialValue: initialDirection)
     }
     @State private var topicFilter: CooperationInboxTopicFilter?
@@ -25,7 +27,12 @@ import SwiftUI
         return topicFilter?.selectedTopic(owner: ObjectIdentifier(reader), scope: reader.scope)
     }
     var body: some View {
-        NavigationStack {
+        Group {
+            if embedsNavigationStack { NavigationStack { page } } else { page }
+        }
+        .id(CooperationProjectNavigationHost(scope: reader.scope, authenticated: reader.isAuthenticated, reader: ObjectIdentifier(reader)))
+    }
+    private var page: some View {
             CooperationReadScreen(reader: reader, resource: "inbox.\(direction.rawValue)", operation: { try await reader.inbox(direction: direction) }) { snapshot in
                 let listPage = CoopListPageCoordinator.project(direction: direction, canRead: reader.isConfigured && reader.isAuthenticated,
                                                                inbox: .success(snapshot), canComposeInvite: peerReader != nil, canReadFlowLegs: peerReader != nil)
@@ -85,8 +92,6 @@ import SwiftUI
             .sheet(item: $rowAction) { action in
                 NavigationStack { CoopFlowRequestPreview(operation: action.operation) }
             }
-        }
-        .id(CooperationProjectNavigationHost(scope: reader.scope, authenticated: reader.isAuthenticated, reader: ObjectIdentifier(reader)))
     }
     @ViewBuilder private func topicFilterSection(_ inbox: CooperationInbox) -> some View {
         let owner = ObjectIdentifier(reader)

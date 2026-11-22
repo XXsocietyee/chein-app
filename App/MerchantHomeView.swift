@@ -221,6 +221,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     let onChildReturn: () -> Void
     @Environment(\.merchantAuthoringDestination) private var merchantAuthoringDestination
     @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
+    @Environment(\.merchantCoopInboxDestination) private var coopInboxDestination
     @State private var operationsAccess: MerchantOperationsAccess?
     @State private var businessStatus: MerchantBusinessStatus?
 
@@ -495,12 +496,21 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
                         .accessibilityIdentifier("merchant.coopCenter.open")
                 }
+                // Parity coop/list P1: 协作邀请 opens the invitation list (MP pages/coop/list), not the tools workbench.
+                if let coopInboxDestination {
+                    NavigationLink {
+                        coopInboxDestination()
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
+                        .accessibilityIdentifier("merchant.coopInbox.open")
+                }
                 if let cooperationFlowReader {
                     NavigationLink {
                         CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT")
                             .onDisappear(perform: onChildReturn)
                             .cyPushedChrome(domain: .merchant)
-                    } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
+                    } label: { Label("cooprelation.tools", systemImage: "square.grid.2x2") }
                         .accessibilityIdentifier("merchant.cooperationFlows.open")
                 }
             }

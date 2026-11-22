@@ -583,6 +583,10 @@ struct SessionRootView: View {
         v
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.coopFlowPreviewWrite, CoopFlowPreviewWriteFactory.live(session))
+        .environment(\.merchantCoopInboxDestination, {
+            AnyView(CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
+                                           operationScope: "MERCHANT", embedsNavigationStack: false))
+        })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
         .environment(\.merchantOpsWp03Bridge, MerchantOpsWp03Bridge(

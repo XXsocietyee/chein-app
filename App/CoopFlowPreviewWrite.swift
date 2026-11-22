@@ -53,6 +53,17 @@ import SwiftUI
     func complete(_ key: String) throws { keys.remove(key) }
 }
 
+private struct MerchantCoopInboxDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    /// Parity coop/list P1: the workbench 协作邀请 row pushes the invitation list (no nested NavigationStack).
+    var merchantCoopInboxDestination: (@MainActor () -> AnyView)? {
+        get { self[MerchantCoopInboxDestinationKey.self] }
+        set { self[MerchantCoopInboxDestinationKey.self] = newValue }
+    }
+}
+
 private struct CoopFlowPreviewWriteFactoryKey: EnvironmentKey {
     static let defaultValue: CoopFlowPreviewWriteFactory? = nil
 }

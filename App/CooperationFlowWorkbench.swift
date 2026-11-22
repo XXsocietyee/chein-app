@@ -28,7 +28,7 @@ import SwiftUI
                     NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
                         .accessibilityIdentifier("coopflow.route.coopflow.nearby")
                 }
-                CoopWithdrawEntryLinks(isSignedIn: reader.session != nil)
+                // Parity X2: MP deleted pages/coop/withdraw*; 提现 lives on 分润明细 (CoopFinanceProfitView), not the tools root.
             }
             Section("coopflow.supply") {
                 link("coopflow.templates", resource: .templates)
