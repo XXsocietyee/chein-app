@@ -29989,13 +29989,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "End session"
+            "value": "Check in"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结束活动"
+            "value": "去核销"
           }
         }
       }
@@ -278794,6 +278794,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "发布主题"
+          }
+        }
+      }
+    },
+    "club.topic.status.cancelled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消"
+          }
+        }
+      }
+    },
+    "club.topic.primary.chooseSession": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去选一场"
+          }
+        }
+      }
+    },
+    "club.topic.primary.openSession": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open a session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去开场"
+          }
+        }
+      }
+    },
+    "club.topic.notOnSale.1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recruiting · not on sale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "招募中 · 未开售"
+          }
+        }
+      }
+    },
+    "club.topic.notOnSale.2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pricing · not on sale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定价中 · 未开售"
+          }
+        }
+      }
+    },
+    "club.topic.notOnSale.7": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting approval · not on sale"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立项待审 · 未开售"
           }
         }
       }

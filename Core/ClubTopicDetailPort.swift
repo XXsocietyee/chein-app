@@ -20,6 +20,35 @@ public enum ClubTopicDetailPort {
         return .confirmed
     }
 
+    /// Mini `resolveStateKey` on the info-to-user payload (CLB-topic-detail-04). Production sends the numeric
+    /// `cms_topic.status` (0 待审核 / 1 通过 / 2 失败) plus lifecycle and the phase timestamps; the string
+    /// `status` is only the synthetic fixture's shape and is still honoured as the MP does.
+    public static func stateKey(_ raw: ClubGovernanceValue) -> State {
+        func present(_ key: String) -> Bool {
+            switch raw[key] {
+            case .null: return false
+            case .string(let v): return !v.isEmpty
+            case .bool(let v): return v
+            default: return true
+            }
+        }
+        let numeric: Int? = { if case .integer(let v) = raw["status"] { return v }; return raw["status"].string.flatMap(Int.init) }()
+        let word = raw["status"].string
+        let reject = raw["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if numeric == 2 || !reject.isEmpty || word == "rejected" { return .rejected }
+        if numeric == 0 || raw["lifecycle"].int == 7 || word == "reviewing" { return .reviewing }
+        if present("endedAt") || word == "ended" { return .ended }
+        if present("startedAt") || word == "running" { return raw["selfPublished"] == .bool(true) ? .selfrun : .running }
+        if present("preparingAt") || word == "preparing" { return .preparing }
+        return .confirmed
+    }
+
+    /// Mini `NOT_ON_SALE_TEXT` keys: lifecycle 1 招募中 / 2 定价中 / 7 立项待审 are not on sale yet.
+    public static func notOnSaleKey(lifecycle: Int?) -> String? {
+        guard let lifecycle, [1, 2, 7].contains(lifecycle) else { return nil }
+        return "club.topic.notOnSale.\(lifecycle)"
+    }
+
     /// Mini `SESSION_STATUS_KEYS`; unknown values return nil so the audit state is kept.
     public static func sessionState(_ status: String?) -> State? {
         switch (status ?? "").uppercased() {
@@ -34,6 +63,7 @@ public enum ClubTopicDetailPort {
     public struct Display: Equatable {
         public let state: State
         public let cancelled: Bool
+        public init(state: State, cancelled: Bool) { self.state = state; self.cancelled = cancelled }
     }
 
     /// Reviewing/rejected always win; otherwise the session status decides, falling back to the audit state.
