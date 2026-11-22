@@ -151,6 +151,9 @@ public struct OwnMediaService {
     public func status(id: Int64, token: String) async throws -> OwnMediaStatus {
         try await OwnMediaStatusService(configuration: configuration, transport: transport).status(id: id, token: token)
     }
+    public func retry(id: Int64, token: String) async throws {
+        try await OwnMediaStatusService(configuration: configuration, transport: transport).retry(id: id, token: token)
+    }
     public func page(before cursor: Int64?, token: String) async throws -> OwnMediaPage {
         let request = try OwnMediaReadRoute.request(baseURL: configuration.baseURL, before: cursor, token: token)
         try Task.checkCancellation()
@@ -189,7 +192,7 @@ public struct OwnMediaSession: Equatable {
     func page(before cursor: Int64?) async throws -> OwnMediaPage
 }
 
-@MainActor public final class OwnMediaSessionReader: OwnMediaStatusReading {
+@MainActor public final class OwnMediaSessionReader: OwnMediaRetryWriting {
     private let service: OwnMediaService?
     private let currentSession: () -> OwnMediaSession?
     private let onUnauthorized: (OwnMediaSession) -> Void
@@ -203,6 +206,18 @@ public struct OwnMediaSession: Equatable {
     public var isSignedIn: Bool { currentSession() != nil }
     public var isAvailable: Bool { service != nil && currentSession()?.approval != nil }
     public var isStatusAvailable: Bool { isAvailable && currentSession()?.statusApproved == true }
+    public var isRetryAvailable: Bool { isStatusAvailable }
+    public func retry(id: Int64) async throws {
+        try Task.checkCancellation()
+        guard let captured = currentSession() else { throw APIError.unauthorized }
+        guard captured.approval != nil, captured.statusApproved, let service else { throw APIError.notConfigured }
+        do {
+            try await service.retry(id: id, token: captured.token)
+        } catch {
+            if error as? APIError == .unauthorized, currentSession() == captured { onUnauthorized(captured) }
+            throw error
+        }
+    }
     public init(service: OwnMediaService?, currentSession: @escaping () -> OwnMediaSession?,
                 onUnauthorized: @escaping (OwnMediaSession) -> Void = { _ in }) {
         self.service = service; self.currentSession = currentSession; self.onUnauthorized = onUnauthorized

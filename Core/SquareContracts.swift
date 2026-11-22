@@ -91,6 +91,8 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     public let dislikeCount: Int
     public let commentCount: Int?
     public let isLiked: Int
+    /// MP `info.isBookmarked` (fix-parity C-S2): 1 when the viewer saved this post.
+    public let isBookmarked: Int
     public let nickname: String?
     public let avatar: String?
     public let verified: Bool
@@ -141,6 +143,7 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         dislikeCount = post["nolikeNum"].number ?? 0
         commentCount = SquareCountDisplay.known(post["commentCount"].number)
         isLiked = post["viewerLiked"].truthy ? 1 : (post["isLiked"].number ?? 0)
+        isBookmarked = post["viewerBookmarked"].truthy ? 1 : (post["isBookmarked"].number ?? 0)
         nickname = post.first("authorNickname", "memberNickname").string
         avatar = post.first("authorAvatar", "memberAvatar").string
         verified = post["rz"].truthy

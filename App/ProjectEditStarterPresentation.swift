@@ -32,7 +32,7 @@ import SwiftUI
                             Text(verbatim: model.starterChapter(original).wrappedValue.name)
                         }
                         if controller.saveUnconfirmed { Section { Text("projectPending.saveUnconfirmed").accessibilityIdentifier("projectPending.saveUnconfirmed") } }
-                        ProjectEditNodeFields(node: controller.node(for: original))
+                        ProjectEditNodeFields(node: controller.node(for: original)).typedCoordinates()
                             .descriptionEditing(.init(model: model, sourceID: "starter:\(original.id)",
                                 isCurrent: { controller.isCurrent(original) }))
                             .merchantDraftSelection(.init(

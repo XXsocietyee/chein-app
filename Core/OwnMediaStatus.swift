@@ -66,6 +66,28 @@ public enum OwnMediaStatusRoute {
     }
 }
 
+/// MP privacy 我的待审媒体 › 重新提审 (fix-parity B-PV-01): `POST api/media/asset/{id}/retry`, owner-scoped on the server,
+/// offered only for a REJECTED or UNAVAILABLE asset and riding the same explicit status approval as the status read.
+public enum OwnMediaRetryRoute {
+    public static func assetID(_ request: URLRequest, baseURL: URL) -> Int64? {
+        guard request.httpMethod == "POST", request.httpBody == nil, request.httpBodyStream == nil,
+              let token = request.value(forHTTPHeaderField: "Authorization"), AuthRequestBuilder.isValidToken(token),
+              let url = request.url, url.query == nil, url.fragment == nil, url.lastPathComponent == "retry",
+              let id = OwnMediaPage.identifier(url.deletingLastPathComponent().lastPathComponent),
+              url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent("api/media/asset/\(id)/retry").absoluteString.utf8)
+        else { return nil }
+        return id
+    }
+    static func request(baseURL: URL, id: Int64, token: String) throws -> URLRequest {
+        guard id > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        var request = URLRequest(url: baseURL.appendingPathComponent("api/media/asset/\(id)/retry"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        return request
+    }
+}
+
 @MainActor public protocol OwnMediaStatusReading: OwnMediaReading {
     var isStatusAvailable: Bool { get }
     func status(id: Int64) async throws -> OwnMediaStatus
@@ -87,4 +109,22 @@ public struct OwnMediaStatusService {
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         return try OwnMediaStatus.decode(data, requestedID: id)
     }
+    /// Resubmits one own asset for review. Success is the envelope `code == 200`; the caller re-reads the list.
+    public func retry(id: Int64, token: String) async throws {
+        try Task.checkCancellation()
+        let request = try OwnMediaRetryRoute.request(baseURL: configuration.baseURL, id: id, token: token)
+        let (data, status) = try await transport.send(request)
+        if status == 401 { throw APIError.unauthorized }
+        if status == 403 { throw OwnMediaReadFailure.rejected(code: 403) }
+        guard (200..<300).contains(status), data.count <= 128 * 1024 else { throw APIError.httpStatus(status) }
+        struct Code: Decodable { let code: Int }
+        guard let code = try? JSONDecoder().decode(Code.self, from: data).code else { throw APIError.malformedResponse }
+        if code == 401 || code == 2 { throw APIError.unauthorized }
+        guard code == 200 else { throw OwnMediaReadFailure.rejected(code: code) }
+    }
+}
+
+@MainActor public protocol OwnMediaRetryWriting: OwnMediaStatusReading {
+    var isRetryAvailable: Bool { get }
+    func retry(id: Int64) async throws
 }

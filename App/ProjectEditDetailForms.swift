@@ -422,7 +422,12 @@ import SwiftUI
     @Binding var node: ProjectEditNode
     var merchantDraftContext: ProjectMerchantDraftContext? = nil
     var descriptionContext: ProjectEditNodeDescriptionContext? = nil
+    /// C-F2: only the new-node sheets without a place picker still take typed coordinates (follow-up: picker there too).
+    var typesCoordinates = false
     @Environment(\.locale) private var merchantDraftLocale
+    func typedCoordinates() -> Self {
+        var result = self; result.typesCoordinates = true; return result
+    }
     func descriptionEditing(_ context: ProjectEditNodeDescriptionContext) -> Self {
         var result = self; result.descriptionContext = context; return result
     }
@@ -442,8 +447,20 @@ import SwiftUI
                         .accessibilityIdentifier("projectEdit.nodeDescription")
                 }
                 TextField("projectEdit.address", text: $node.address).accessibilityIdentifier("projectEdit.address")
-                TextField("projectEdit.longitude", text: $node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude").id("project-issue-anchor-coordinates")
-                TextField("projectEdit.latitude", text: $node.latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.latitude")
+                if typesCoordinates {
+                    TextField("projectEdit.longitude", text: $node.longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.longitude").id("project-issue-anchor-coordinates")
+                    TextField("projectEdit.latitude", text: $node.latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("projectEdit.latitude")
+                } else {
+                // C-F2 (MP ruling 2026-08-11): the place comes from the place picker only; coordinates are never typed.
+                LabeledContent("projectEdit.nodePlace") {
+                    if node.longitude.isEmpty || node.latitude.isEmpty {
+                        Text("projectEdit.nodePlace.unset").foregroundStyle(CYColor.dangerText)
+                    } else {
+                        Text("projectEdit.nodePlace.set").foregroundStyle(CYColor.textSecondary)
+                    }
+                }
+                .accessibilityIdentifier("projectEdit.nodePlace").id("project-issue-anchor-coordinates")
+                }
                 Stepper {
                     LabeledContent("projectEdit.nodeMinutes", value: String(node.nodeTime))
                 } onIncrement: {

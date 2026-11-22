@@ -18,6 +18,7 @@ extension EnvironmentValues {
     let post: SquarePost
     let source: SquareContentRoute
     let squareReader: any SquareReading
+    var titleKey: LocalizedStringKey = "activity.viewTopic"
     let onSelect: (SquareRelatedTopicSelection) -> Void
     @Environment(\.squareRelatedTopic) private var context
     var body: some View {
@@ -25,7 +26,7 @@ extension EnvironmentValues {
             if let context, context.squareScope == squareReader.scope,
                let route = SquareRelatedTopicRoute(post: post, source: source) {
                 let selected = SquareRelatedTopicSelection(route: route, squareScope: context.squareScope, topicScope: context.reader.scope)
-                CYPillButton("activity.viewTopic", style: .secondary, systemImage: "map") {
+                CYPillButton(titleKey, style: .secondary, systemImage: "map") {
                     guard selected.isCurrent(squareScope: squareReader.scope, topicScope: context.reader.scope) else { return }
                     onSelect(selected)
                 }

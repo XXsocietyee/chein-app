@@ -2649,7 +2649,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         let favoriteList = ProfileFavoritesReadRoute(request: request, baseURL: api.baseURL)
         let favoriteDetail = ProfileFavoriteDetailRoute(request: request, baseURL: api.baseURL)
         let ticketWalletList = TicketWalletListReadRoute(request: request, baseURL: api.baseURL)
+        // B-PV-01: 重新提审 rides the same explicit own-media status approval as the status read.
         let ownMediaStatus = OwnMediaStatusRoute.assetID(request, baseURL: api.baseURL) != nil
+            || OwnMediaRetryRoute.assetID(request, baseURL: api.baseURL) != nil
         let ownMedia = OwnMediaReadRoute.accepts(request, baseURL: api.baseURL) || ownMediaStatus
         let entryNearbyArea = manualMapSelection?.snapshot
         let entryNearby: URLRequest? = entryNearbyArea.flatMap { areaSnapshot in

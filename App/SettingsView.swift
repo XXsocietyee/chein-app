@@ -8,6 +8,7 @@ struct SettingsView: View {
     @AppStorage(AppLanguage.storageKey) private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
+    @State private var showsSignIn = false
 #if DEBUG
     /// Design fixtures only: stub signed-in identity and search text injected into the real page.
     struct DesignOverride { var nickname = "Mia Chen"; var level = 7; var query = "" }
@@ -32,8 +33,11 @@ struct SettingsView: View {
                     SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: false)
                 }
             } else {
-                Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
-                    .accessibilityIdentifier("settingsNative.profileSignedOut")
+                // B-SZ-04: the MP signed-out row starts sign-in.
+                Button { showsSignIn = true } label: {
+                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
+                }
+                .accessibilityIdentifier("settingsNative.profileSignedOut")
             }
             // pages/shezhi: `SettingsHomePage` phases beyond signed-in/out. Loading and error say so; an unknown
             // role or market says so instead of falling through to the player rows.
@@ -129,13 +133,19 @@ struct SettingsView: View {
                 .environment(\.settingsTileTint, SettingsTint.teal)
                 NPCChatDataReadSettingsEntry(session: session).environment(\.settingsTileTint, SettingsTint.indigo)
                 SettingsPostGovernanceEntry(session: session).environment(\.settingsTileTint, SettingsTint.red)
+                // MP V1-P53 (B-SZ-01): 投诉建议 sits in Settings, after 帖文处置与申诉.
+                Section { ProfileComplaintPreparationLink(session: session) }
+                    .environment(\.settingsTileTint, SettingsTint.teal)
                 SettingsSupportSafetyEntry().environment(\.settingsTileTint, SettingsTint.teal)
-                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
+                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator,
+                                        // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
+                                        showsNPCChatDataEntry: false)
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
             .labelStyle(SettingsTileLabelStyle())
             }
             }
+            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("settings.search.prompt"))
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()

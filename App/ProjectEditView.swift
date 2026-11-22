@@ -293,6 +293,7 @@ import SwiftUI
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var discardConfirmation = false
+    @State private var showsSignIn = false
     @State private var copiedCoordinator: ProjectEditCoordinator?
     @State private var showingCopy = false
     @State private var modeCopyFailed = false
@@ -326,6 +327,7 @@ import SwiftUI
     /// modifier in the chain (not only the Form) are light when this is pushed from the dark player shell.
     var body: some View {
         pageBody.cyDomainScreen(.topicEditor)
+            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
     }
     @ViewBuilder private var pageBody: some View {
         let opening = model.captureStarterLease()
@@ -396,7 +398,9 @@ import SwiftUI
             }
             if model.coordinator.session == nil {
                 Section {
-                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "projectEdit.signIn", messageIdentifier: "projectEdit.signIn")
+                    // C-F9: MP 登录后创建主题 + 去登录.
+                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "projectEdit.signIn", messageIdentifier: "projectEdit.signIn",
+                                 actionTitle: "action.goSignIn", actionIdentifier: "projectEdit.goSignIn", actionStyle: .primary) { showsSignIn = true }
                         .listRowBackground(Color.clear)
                 }
             } else if model.coordinator.snapshot == nil, !model.busy, !model.coordinator.isLocked,

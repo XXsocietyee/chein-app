@@ -254,6 +254,7 @@ extension EnvironmentValues {
     @StateObject private var undoCenter = ProjectEditUndoCenter()
     @Environment(\.undoManager) private var undoManager
     @State private var gameplayPicker = false
+    @State private var showsSignIn = false
     @Environment(\.scenePhase) private var scenePhase
     private let makeCoverService: (() -> ActivityCoverService?)?
     private let coverSession: () -> PublishingSession?
@@ -291,6 +292,7 @@ extension EnvironmentValues {
     /// verify-r2 N-01: the topic-editor domain wraps the whole page (ground, section bar, bottom bar), not only the Form.
     var body: some View {
         pageBody.cyDomainScreen(.topicEditor)
+            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
     }
     @ViewBuilder private var pageBody: some View {
         let _ = cover.bind(read: {
@@ -314,11 +316,15 @@ extension EnvironmentValues {
         Form {
             // verify-r1 2.9 / N-09: while editing, the page title is the inline nav title, so the section bar sits
             // directly under the bar; the 34 pt heading stays on the intro and name steps only.
-            if !(model.coordinator.session != nil && step == .edit) {
+            // C-I2: the intro has no title (MP P-22: the copy is the hero); the heading stays on the name step.
+            if !(model.coordinator.session != nil && step != .name) {
                 Section { CYHeroHeader("templateAuthor.title") }.e1HeroRow()
             }
             if model.coordinator.session == nil {
-                Section { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "templateAuthor.signIn", messageIdentifier: "templateAuthor.signIn").listRowBackground(Color.clear) }
+                // C-T7: MP 登录后编辑玩法模板 + 去登录.
+                Section { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "templateAuthor.signIn", messageIdentifier: "templateAuthor.signIn",
+                                       actionTitle: "action.goSignIn", actionIdentifier: "templateAuthor.goSignIn", actionStyle: .primary) { showsSignIn = true }
+                    .listRowBackground(Color.clear) }
             }
             restoreSection
             if model.coordinator.session != nil {

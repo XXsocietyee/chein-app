@@ -66,3 +66,48 @@ import SwiftUI
         }
     }
 }
+
+/// MP 我的待审媒体 › 重新提审 (fix-parity B-PV-01). Only a REJECTED or UNAVAILABLE own asset offers it; success re-reads
+/// the list, which stays the only source of the new review state.
+@MainActor struct OwnMediaRetryButton: View {
+    let reader: any OwnMediaRetryWriting
+    let asset: OwnMediaAsset
+    let onRetried: () -> Void
+    @State private var busy = false
+    @State private var failed = false
+    @State private var task: Task<Void, Never>?
+    private var offered: Bool {
+        (asset.reviewState == .rejected || asset.reviewState == .unavailable) && reader.isSignedIn && reader.isRetryAvailable
+    }
+    var body: some View {
+        if offered {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Button { retry() } label: { Text("retry", tableName: "OwnMediaStatus") }
+                    .disabled(busy)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("member.media.retrySubmit.\(asset.id)")
+                if failed {
+                    Text("retryFailed", tableName: "OwnMediaStatus").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("member.media.retrySubmit.failed.\(asset.id)")
+                }
+            }
+            .onDisappear { task?.cancel(); task = nil; busy = false }
+        }
+    }
+    private func retry() {
+        guard !busy else { return }
+        busy = true; failed = false
+        let scope = reader.scope
+        task = Task { @MainActor in
+            defer { busy = false; task = nil }
+            do {
+                try await reader.retry(id: asset.id)
+                guard !Task.isCancelled, reader.scope == scope else { return }
+                onRetried()
+            } catch {
+                guard !Task.isCancelled else { return }
+                failed = true
+            }
+        }
+    }
+}

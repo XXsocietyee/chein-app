@@ -79,9 +79,23 @@ import SwiftUI
                     Section { Text("templateOwnerConfig.partial").accessibilityIdentifier("templateOwnerConfig.partial") }
                 }
             } else if !host.loading {
-                Section { Text(LocalizedStringKey(host.available ? "templateOwnerConfig.failed" : "templateAuthor.unavailable")) }
+                // C-T2: MP temp load failure names the cause and offers 重新加载 (below) and 查看我的玩法.
+                Section {
+                    CYEmptyState(systemImage: "exclamationmark.triangle",
+                                 LocalizedStringKey(host.available ? "templateOwnerConfig.loadFailed" : "templateOwnerConfig.cannotRead"),
+                                 detail: LocalizedStringKey(host.available ? "templateOwnerConfig.failed" : "templateAuthor.unavailable"),
+                                 messageIdentifier: "templateOwnerConfig.failedState", kind: .failure)
+                        .listRowBackground(Color.clear)
+                    NavigationLink {
+                        TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
+                            memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) },
+                            ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0)) },
+                            creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) }).id(session.templateShelfViewIdentity)
+                    } label: { Text("templateOwnerConfig.viewMine") }
+                        .accessibilityIdentifier("templateOwnerConfig.viewMine")
+                }
             }
-            Section { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise") { Task { await host.load(id: id) } }.disabled(host.loading).accessibilityIdentifier("templateOwnerConfig.reload").e1ActionRow() }
+            Section { CYPillButton("action.reload", style: .secondary, systemImage: "arrow.clockwise") { Task { await host.load(id: id) } }.disabled(host.loading).accessibilityIdentifier("templateOwnerConfig.reload").e1ActionRow() }
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .privacySensitive().accessibilityIdentifier("templateOwnerConfig.form")
             .task(id: id) { showingStory = false; if host.snapshot?.id != id { await host.load(id: id) } }
