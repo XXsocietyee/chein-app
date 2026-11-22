@@ -65,6 +65,7 @@ struct IMUnreadBadge: View {
     let count: Int?
     var muted = false
     var unknownAsDash = false
+    @QuestifyReduceMotion private var reduceMotion
     private var text: String? {
         unknownAsDash ? IMListPageReady.rowUnreadBadge(count) : IMInboxSummary.badgeText(count)
     }
@@ -73,6 +74,10 @@ struct IMUnreadBadge: View {
             let quiet = muted || text == IMListPageReady.unknownMark
             Text(verbatim: text)
                 .font(.caption2.weight(.semibold)).monospacedDigit()
+                // Continuity: a count that drops (read in the chat, read-all) rolls down digit by digit instead of
+                // redrawing; Reduce Motion keeps a short cross-fade.
+                .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(count ?? 0)))
+                .cyAnimation(CYMotion.standard, value: text)
                 .padding(.horizontal, 6).padding(.vertical, 2)
                 .foregroundStyle(quiet ? CYColor.textSecondary : CYColor.textOnAccent)
                 .background(Capsule().fill(quiet ? CYColor.textSecondary.opacity(0.25) : CYColor.dangerSolid))
@@ -100,6 +105,7 @@ struct IMInboxRow: View {
                     // Unread dot on the avatar; the count badge stays on the preview line.
                     if (conversation.unread ?? 0) > 0 && conversation.muted != true {
                         Circle().fill(CYColor.dangerSolid).frame(width: 12, height: 12).offset(x: 2, y: -2)
+                            .transition(.scale.combined(with: .opacity))
                     }
                 }
                 .accessibilityHidden(true)
@@ -130,9 +136,12 @@ struct IMInboxRow: View {
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true, unknownAsDash: true)
+                        .transition(.scale.combined(with: .opacity))
                 }
             }
         }
+        // The last unread leaving takes the badge and the avatar dot with it (scale + fade), in place.
+        .cyAnimation(CYMotion.standard, value: conversation.unread)
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
         // Mini-program cy-fly-in: rows settle in with a short rise; Reduce Motion shows them at once.
@@ -203,5 +212,90 @@ struct CYIMCoverArt: View {
         }
         .accessibilityIdentifier("im.cover.\(seed)")
         .accessibilityHidden(true)
+    }
+}
+
+
+// MARK: - Chat continuity (composer to bubble)
+
+/// Carries a just-sent text from the composer field into its transcript bubble (continuity r1, item 9). Presentation
+/// only: it never decides what was sent or accepted. The history page read stays the only source of bubbles; the
+/// ghost is the field's own text, drawn where it was typed until the acknowledged message lands.
+@MainActor final class IMSendFlight: ObservableObject {
+    /// The text the user just sent, kept in the field while the send is in flight.
+    @Published private(set) var ghost: String?
+    /// The server message the ghost lands on, once the send is acknowledged.
+    @Published private(set) var landingID: Int?
+    /// The history's namespace; nil under Reduce Motion, so the ghost and the bubble only cross-fade.
+    var namespace: Namespace.ID?
+
+    func launch(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        landingID = nil
+        ghost = trimmed.isEmpty ? nil : trimmed
+    }
+    /// Only a ghost that is still in the field can land; a retry or a second tap has none.
+    func land(on messageID: Int) { if ghost != nil { landingID = messageID } }
+    /// Call inside the transaction that inserts the bubble, so the ghost leaving and the bubble arriving are matched.
+    func settle() { ghost = nil }
+    func cancel() { ghost = nil; landingID = nil }
+    /// Matched-geometry key of the ghost: the landing message id, or a key no bubble uses (ids are positive).
+    var ghostKey: Int { landingID ?? -1 }
+}
+
+extension View {
+    /// Shares one position (never the size) between the composer ghost and the transcript bubble with the same id,
+    /// pinned at the trailing bottom corner where Send sits. Without a namespace it does nothing.
+    func imSendFlight(_ id: Int, in namespace: Namespace.ID?) -> some View {
+        modifier(IMSendFlightMatch(id: id, namespace: namespace))
+    }
+    /// Transcript row insert/remove. A new incoming (or refreshed) row settles in place with the list insert
+    /// (scale from 0.96 and fade); the landing bubble is the moving element itself, so it stays opaque and lets the
+    /// matched position carry it. Reduce Motion: fade only.
+    func imChatRowTransition(landing: Bool) -> some View { modifier(IMChatRowTransition(landing: landing)) }
+}
+
+private struct IMSendFlightMatch: ViewModifier {
+    let id: Int
+    let namespace: Namespace.ID?
+    @ViewBuilder func body(content: Content) -> some View {
+        if let namespace {
+            content.matchedGeometryEffect(id: id, in: namespace, properties: .position, anchor: .bottomTrailing)
+        } else {
+            content
+        }
+    }
+}
+
+private struct IMChatRowTransition: ViewModifier {
+    let landing: Bool
+    @QuestifyReduceMotion private var reduceMotion
+    func body(content: Content) -> some View {
+        let transition: AnyTransition = reduceMotion ? .opacity
+            : landing ? .identity
+            : .asymmetric(insertion: .scale(scale: 0.96).combined(with: .opacity), removal: .opacity)
+        return content.transition(transition)
+    }
+}
+
+/// The sent text in the field's own type and inset while it is on its way to the bubble. It leaves with a quick fade
+/// (about the first third of the move) while the bubble takes over its position.
+struct IMSendGhost: View {
+    let text: String
+    let key: Int
+    let namespace: Namespace.ID?
+    var body: some View {
+        Text(verbatim: text)
+            .lineLimit(1...5)
+            .foregroundStyle(.secondary)
+            .padding(.vertical, 11).padding(.leading, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .imSendFlight(key, in: namespace)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .transition(leaving)
+    }
+    private var leaving: AnyTransition {
+        .asymmetric(insertion: .identity, removal: AnyTransition.opacity.animation(.easeOut(duration: CYMotion.Duration.instant)))
     }
 }

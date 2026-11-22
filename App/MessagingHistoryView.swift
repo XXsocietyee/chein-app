@@ -79,6 +79,10 @@ struct MessagingHistoryView: View {
     @State private var safety: IMSafetyPresentation?
     @Environment(\.dismiss) private var dismissHistory
     @Environment(\.ugcSafetyContext) private var ugcSafety
+    /// Continuity (r1 item 9): carries the sent text from the composer into its bubble. Presentation only.
+    @StateObject private var sendFlight = IMSendFlight()
+    @Namespace private var sendFlightSpace
+    @QuestifyReduceMotion private var reduceMotion
 
     init(conversationID: Int, conversation: MessagingConversation? = nil, reader: any MessagingReading, sender:MessageActionCoordinator?=nil,mediaReader:(any SocialMessageMediaReading)?=nil,expanded:IMExpandedNavigationContext?=nil, admission: ChannelAdmissionRoute? = nil, directory: ChannelDirectoryAdmissionRequest? = nil, onConversationMutationAccepted: @escaping (IMScope) -> Void = { _ in }) {
         self.conversationID = conversationID; self.conversation = conversation; self.reader = reader;self.sender=sender;self.mediaReader=mediaReader;self.expanded=expanded
@@ -178,8 +182,12 @@ struct MessagingHistoryView: View {
                 MessageActionComposer(coordinator: sender, identity: reader.identity,
                     conversationReady: currentHistoryReady,
                     canReply: { authority.permitsReply(lease) },
-                    createPoll: canCreatePoll ? { showingPollComposer = true } : nil) { _ in
-                    Task { await reload() }
+                    createPoll: canCreatePoll ? { showingPollComposer = true } : nil,
+                    flight: sendFlight) { receipt in
+                    // The ghost lands on the acknowledged message only if its bubble is not on screen yet.
+                    if history.messages.contains(where: { $0.id == receipt.id }) { sendFlight.cancel() }
+                    else { sendFlight.land(on: receipt.id) }
+                    Task { await refreshInPlace() }
                 }
             }
         }
@@ -234,6 +242,9 @@ struct MessagingHistoryView: View {
                         }
                     }
                     .accessibilityElement(children: .combine)
+                    // The tapped row's avatar and name settle into the bar while the system push slides the inbox
+                    // title into the Back button (standard push, so the edge-swipe back stays native).
+                    .cyHeroTitleRise()
                 } else { Text("messaging.history.title").font(.headline) }
             }
         }
@@ -249,7 +260,9 @@ struct MessagingHistoryView: View {
         .themeDomain(.player)
         .cyDomainPageBackground()
         .onChange(of: reader.identity) { _, _ in showingPollComposer = false; safety = nil }
-        .refreshable { if issue?.isTerminal != true { await reload() } }
+        .refreshable { if issue?.isTerminal != true { await refreshInPlace() } }
+        .onAppear { sendFlight.namespace = reduceMotion ? nil : sendFlightSpace }
+        .onChange(of: reduceMotion) { _, reduced in sendFlight.namespace = reduced ? nil : sendFlightSpace }
         .task(id: MessagingHistoryLoadKey(identity: reader.identity, conversationID: conversationID,
             readerID: ObjectIdentifier(reader), configured: reader.isConfigured)) {
             // Returning from a message detail keeps earlier pages and the visible anchor.
@@ -323,6 +336,7 @@ struct MessagingHistoryView: View {
                             } label: {
                                 MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single)
                                     .environment(\.imRecipientPreview, recipientPreviewInput)
+                                    .imSendFlight(message.id, in: sendFlight.namespace)
                             }
                             .buttonStyle(.plain)
                             .accessibilityIdentifier("messaging.message.\(message.id)")
@@ -330,6 +344,7 @@ struct MessagingHistoryView: View {
                         .padding(.top, [.middle, .last].contains(positions[message.id] ?? .single) ? -CYSpacing.xs - 1 : 0)
                         .id(message.id)
                     }
+                    .imChatRowTransition(landing: message.id == sendFlight.landingID)
                 }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
@@ -369,17 +384,65 @@ struct MessagingHistoryView: View {
             phase = .failed(MessagingLoadIssue(error), retry: nil)
         }
     }
+    /// Same read and end state as `reload()` (first page, scrolled to the newest), but the transcript stays on screen
+    /// while it loads and the new page lands in one animated step: new messages insert in place and a sent message
+    /// takes over its ghost's position. Anything but a ready transcript takes the full `reload()`.
+    private func refreshInPlace() async {
+        guard currentHistoryReady else { sendFlight.cancel(); await reload(); return }
+        generation &+= 1
+        let request = generation, identity = reader.identity, source = ObjectIdentifier(reader)
+        do {
+            let page = try await reader.messagingMessages(conversationID: conversationID, cursor: 0)
+            guard isCurrent(request, identity, source: source) else { return }
+            var next = MessagingHistory(conversationID: conversationID)
+            try next.replace(with: page)
+            // Same rebinding as reload(): old callbacks lose their lease before the state changes.
+            replyAuthority.invalidate()
+            if page.blockedByMe == true, let peerID = conversation?.counterparty?.id, peerID > 0 {
+                ugcSafety?.blockedStore.recordLocalBlock(memberID: peerID, authorName: conversation?.counterparty?.nickname)
+            }
+            // An earlier-page read started meanwhile would prepend onto the old cursor: drop it, as reload() does.
+            if isLoadingEarlier { generation &+= 1 }
+            withAnimation(CYMotion.resolve(.easeInOut(duration: CYMotion.Duration.standard), reduceMotion: reduceMotion)) {
+                history = next
+                pageBlocked = page.blocked; pageBlockedByMe = page.blockedByMe
+                sessionPage = IMChatSessionWire.fromReader(conversation: conversation, page: page)
+                earlierPhase = .idle
+                visibleMessageID = history.messages.last?.id
+                sendFlight.settle()
+            }
+            loadedIdentity = identity; loadedReaderID = source
+            phase = .loaded(())
+        } catch is CancellationError {
+            if generation == request { sendFlight.cancel(); settleLoadingEarlier() }
+        } catch {
+            guard isCurrent(request, identity, source: source) else { return }
+            replyAuthority.invalidate()
+            sendFlight.cancel()
+            history = MessagingHistory(conversationID: conversationID)
+            loadedIdentity = nil; loadedReaderID = nil; earlierPhase = .idle
+            pageBlocked = nil; pageBlockedByMe = nil
+            sessionPage = IMChatSessionWire.failed(error, conversation: conversation)
+            phase = .failed(MessagingLoadIssue(error), retry: nil)
+        }
+    }
     private func loadEarlier() async {
         guard !isLoading, !isLoadingEarlier, history.conversationID == conversationID, history.hasMore, let cursor = history.nextCursor,
               loadedIdentity != nil, loadedIdentity == reader.identity else { return }
-        let request = generation, identity = loadedIdentity, source = ObjectIdentifier(reader), anchor = visibleMessageID
+        let request = generation, identity = loadedIdentity, source = ObjectIdentifier(reader), startAnchor = visibleMessageID
         earlierPhase = .loading
         defer { if generation == request { settleLoadingEarlier() } }
         do {
             let page = try await reader.messagingMessages(conversationID: conversationID, cursor: cursor)
             guard isCurrent(request, identity, source: source) else { return }
-            try history.prepend(page, requestedCursor: cursor)
-            visibleMessageID = anchor
+            // Keep the message the reader is looking at now (they may have scrolled while it loaded) pinned at the top,
+            // and apply the older rows in one unanimated step so nothing slides under the finger.
+            let anchor = visibleMessageID ?? startAnchor
+            var still = Transaction(); still.disablesAnimations = true
+            try withTransaction(still) {
+                try history.prepend(page, requestedCursor: cursor)
+                visibleMessageID = anchor
+            }
         } catch is CancellationError {} catch {
             guard isCurrent(request, identity, source: source) else { return }
             let failure = MessagingLoadIssue(error)
