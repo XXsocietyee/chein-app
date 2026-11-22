@@ -51,6 +51,21 @@ final class SearchMapTests: XCTestCase {
             await transport.set("/test/api/" + path, "{\"code\":200,\"data\":\(data)}")
         }
     }
+    /// PC-A-4-1: template lanes match MP discover-search.js:161-167,200-201.
+    func testTemplateSearchUsesTheTwoTemplateRoutesAndFiltersTopicTemplatesByName() async throws {
+        let t = SearchMapTestTransport()
+        await t.set("/test/api/template/topic-template/list", #"{"code":200,"data":{"rows":[{"id":5,"name":"城市漫步","subtitle":"老城"},{"id":6,"name":"山野","subtitle":"徒步"}]}}"#)
+        await t.set("/test/api/template/list", #"{"code":200,"data":{"rows":[{"id":9,"title":"城市寻宝"}]}}"#)
+        let result = try await service(t).templateSearch(.init(keyword: "城"), token: "synthetic-token")
+        XCTAssertEqual(result.rows.map(\.id), ["topicTemplate-5", "playTemplate-9"])
+        XCTAssertEqual(result.rows.first?.destination, .topicTemplate(5))
+        let requests = await t.requests
+        XCTAssertEqual(Set(requests.compactMap { $0.url?.path }), Set(["/test/api/template/topic-template/list", "/test/api/template/list"]))
+        let play = try XCTUnwrap(requests.first { $0.url?.path == "/test/api/template/list" })
+        XCTAssertTrue(String(decoding: try XCTUnwrap(play.httpBody), as: UTF8.self).contains("name=\"keyword\"\r\n\r\n城"))
+        let blank = try await service(t).templateSearch(.init(keyword: " ", categoryID: 3))
+        XCTAssertTrue(blank.rows.isEmpty)
+    }
     func testBlankSearchMakesNoRequests() async throws {
         let t = SearchMapTestTransport()
         let result = try await service(t).search(.init(keyword: " \n "))

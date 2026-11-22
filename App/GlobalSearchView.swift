@@ -22,6 +22,8 @@ import SwiftUI
     var initialQuery: GlobalSearchQuery? = nil
     let destination: (SearchMapDestination) -> Destination
     @State private var initialQueryApplied = false
+    /// PC-A-4-1: 主题模板 / 玩法模板 results for the same keyword (nil = not searched or not available).
+    @State private var templateResults: GlobalTemplateSearchResults?
     @State private var filter = GlobalSearchQuery()
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
@@ -520,6 +522,17 @@ import SwiftUI
                     .questifyCardListRow()
             }
         }
+        if selectedKind == nil, let templateResults, !templateResults.rows.isEmpty {
+            Section {
+                ForEach(templateResults.rows) { row in
+                    NavigationLink { destination(row.destination) } label: { GlobalTemplateResultRow(row: row) }
+                        .disabled(row.previewOnly)
+                        .accessibilityIdentifier("searchMap.templateResult.\(row.id)")
+                }
+            } header: {
+                Text("searchMap.templates").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
+            }
+        }
         if !loading { UnifiedSearchEntry(keyword: filter.keyword, destination: destination) }
         // Mini-program result footer: "内容已加载完" under results; "刷新搜索结果" also stays on an empty or failed page.
         if !loading {
@@ -581,6 +594,14 @@ import SwiftUI
         let captured = resultContext
         let ticket = retainedResults.begin(in: captured)
         phase = .loading
+        templateResults = nil
+        // Templates are a separate lane pair; their failure never fails the content search.
+        let templateScope = reader.scope
+        Task { @MainActor in
+            let templates = try? await reader.templateSearch(query)
+            guard isVisible, filter == query, reader.scope == templateScope else { return }
+            templateResults = templates
+        }
         do {
             let value = try await reader.search(query)
             guard !Task.isCancelled, isVisible, filter == query, retainedResults.accepts(ticket, in: resultContext) else { return }

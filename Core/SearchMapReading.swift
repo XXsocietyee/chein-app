@@ -30,6 +30,7 @@ public struct SearchMapContext: Equatable {
     func categories() async throws -> [DiscoveryCategory]
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow]
     func search(_ query: GlobalSearchQuery) async throws -> GlobalSearchResults
+    func templateSearch(_ query: GlobalSearchQuery) async throws -> GlobalTemplateSearchResults
     func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode]
     func citySearch(_ query: CityNodeSearchQuery) async throws -> CityNodeSearchResults
     func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage
@@ -48,6 +49,7 @@ public extension SearchMapReading {
     func merchantDiscovery(tag: MerchantDiscoveryTag) async throws -> [MerchantDiscoveryRow] { throw APIError.notConfigured }
     func cityActivityPage(_ query: CityNodeSearchQuery, page: Int) async throws -> SearchMapActivityPage { throw APIError.notConfigured }
     func publicLayers(area: RoamSearchArea, body: Data) async throws -> Data { throw APIError.notConfigured }
+    func templateSearch(_ query: GlobalSearchQuery) async throws -> GlobalTemplateSearchResults { throw APIError.notConfigured }
 }
 @MainActor public final class SearchMapSessionReader: SearchMapReading {
     private let service: SearchMapService?
@@ -89,6 +91,9 @@ public extension SearchMapReading {
             if token != nil, !result.gatedKinds.isEmpty { throw APIError.unauthorized }
             return result
         }
+    }
+    public func templateSearch(_ query: GlobalSearchQuery) async throws -> GlobalTemplateSearchResults {
+        try await read { try await $0.templateSearch(query, token: $1) }
     }
     public func cityNodes(_ query: CityNodeSearchQuery) async throws -> [SearchMapCityNode] {
         // Injection does not activate an unapproved reader.

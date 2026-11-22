@@ -222,6 +222,7 @@ import SwiftUI
         case .cityNode(let id): Text(verbatim: "Synthetic city node \(id)")
         case .activity(let id): Text(verbatim: "Synthetic activity \(id)").accessibilityIdentifier("searchMap.destination.activity.\(id)")
         case .club(let id): Text(verbatim: "Synthetic club \(id)").accessibilityIdentifier("searchMap.destination.club.\(id)")
+        case .topicTemplate(let id), .playTemplate(let id): Text(verbatim: "Synthetic template \(id)")
         }
     }
 }

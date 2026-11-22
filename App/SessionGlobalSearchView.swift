@@ -41,6 +41,8 @@ import SwiftUI
         case .club(let id): ClubDetailView(id: id, reader: session, onSignIn: onSignIn, actionCoordinator: session.clubActionCoordinator, management: session.clubManagementContext, community: session.clubCommunityContext, publicRoster: session.clubPublicRosterReader)
         case .merchant(let id): SearchMapMerchantDetailView(id: id, reader: session.searchMapReader)
         case .cityNode(let id): SearchMapCityDetailView(id: id, reader: session.searchMapReader, destination: cityNodeRelatedDestination)
+        case .topicTemplate(let id): DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: id))
+        case .playTemplate(let id): DiscoveryTemplateDetailView(id: id, reader: session)
         }
     }
     @ViewBuilder private func cityNodeRelatedDestination(_ related: SearchMapDestination) -> some View {
