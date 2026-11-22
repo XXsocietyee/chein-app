@@ -62,7 +62,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "竞猜待答"
+          "value": "预测待答"
         }
       }
     }
@@ -249,7 +249,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "AI 分析和竞猜结算暂不可用。"
+          "value": "AI 分析和预测结算暂不可用。"
         }
       }
     }
@@ -1150,7 +1150,7 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "暂无待结算竞猜"
+          "value": "暂无待结算预测"
         }
       }
     }

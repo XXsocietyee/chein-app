@@ -102951,7 +102951,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "竞猜待答"
+            "value": "预测待答"
           }
         }
       }
@@ -102968,7 +102968,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法读取竞猜"
+            "value": "暂时无法读取预测"
           }
         }
       }
@@ -109554,7 +109554,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有 %lld 轮竞猜待给答案"
+            "value": "有 %lld 轮预测待给答案"
           }
         }
       }
@@ -112268,7 +112268,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI 分析和竞猜结算暂不可用。"
+            "value": "AI 分析和预测结算暂不可用。"
           }
         }
       }
@@ -112285,7 +112285,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无待结算竞猜"
+            "value": "暂无待结算预测"
           }
         }
       }
@@ -112693,7 +112693,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "竞猜待答"
+            "value": "预测待答"
           }
         }
       }
@@ -279593,6 +279593,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "婉拒"
+          }
+        }
+      }
+    },
+    "payoutAccount.copySubMchid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy merchant number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制商户号"
           }
         }
       }

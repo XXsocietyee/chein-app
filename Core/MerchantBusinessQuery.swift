@@ -49,7 +49,10 @@ public enum MerchantBusinessQuery: Equatable, Hashable {
         switch self {
         case .customers, .customer: return ["merchant:crm:read"]
         case .aftercare, .refund: return ["merchant:aftercare:read"]
-        case .overview, .entries, .batches, .batch, .redemptions, .redemption: return ["merchant:finance:read"]
+        // Parity batch A #6 / X5: redemptions and their detail are VERIFY_RECORD_READ on the server (amounts redacted
+        // without finance:read), so a verifier can read them as in the MP.
+        case .redemptions, .redemption: return ["merchant:verify:record:read"]
+        case .overview, .entries, .batches, .batch: return ["merchant:finance:read"]
         case .verificationRecords: return ["merchant:verify:record:read"]
         case .operators, .roles: return ["merchant:operator:manage"]
         case .reviews: return [] // Source management rows supply canReply/canReport; do not invent review permissions
