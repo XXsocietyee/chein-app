@@ -43,7 +43,20 @@ import SwiftUI
         case "pages/team/detail/index":
             SessionTeamHomeView().environmentObject(session)
         case "pages/play/circle/index":
-            PlayCircleRetiredLinkView(goHome: { session.dismissNativeEntry() })
+            // PLAYC-1: old circle links with a topicId forward to play (MP redirectTo pages/play/index).
+            switch PlayRuntimeAuxiliaryBinding.resolveCircleRetirement(query: query) {
+            case .missingParameter:
+                PlayCircleRetiredLinkView(goHome: { session.dismissNativeEntry() })
+            case .redirectToPlay(let scope, _, _, _):
+                SessionPlayRuntimeView(session: session, destination: .journey(scope))
+            }
+        case "pages/play/index":
+            // PLAY-10: shared / redirected play links (topicId or activityId).
+            if let id = positiveID(query["activityId"]) {
+                SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
+            } else if let id = positiveID(query["topicId"]) {
+                SessionPlayRuntimeView(session: session, destination: .journey(.topic(id)))
+            } else { unavailable }
         case "pages/activity/detail/index":
             if let id = reviewedID(query) {
                 ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
@@ -76,8 +89,22 @@ import SwiftUI
             GrowthCenterView(reader: session.growthCenterReader)
         case "subpackageP3/pages/growthcenter/leaderboard/index":
             GrowthLeaderboardView(reader: session.growthCenterReader)
-        case "subpackageP3/pages/stamp-camera/index/index", "subpackageRoam/citystamp/index":
+        case "subpackageP3/pages/stamp-camera/index/index":
             SessionRoamStampCameraView().environmentObject(session)
+        case "subpackageRoam/citystamp/index":
+            // RSTAMP-1: the 3-step 投一张换一张 flow keeps kind / place.
+            SessionRoamCityStampFlowView(kind: query["kind"], place: query["place"]).environmentObject(session)
+        case "subpackageRoam/session/index":
+            // RSESS-1: a friend's ?shareToken= link lands on the shared footprint; the owner's own id opens the record.
+            if let token = query["shareToken"], !token.isEmpty {
+                RoamSharedFootprintView(token: token, reader: session.makeRoamShareSnapshotReader(), onOpenRoam: { session.dismissNativeEntry() })
+            } else if let sessionID = query["sessionId"] ?? query["id"], !sessionID.isEmpty {
+                RoamPassportRecordView(reader: session.roamPassportHistoryReader, sessionID: sessionID, localReader: session.roamExperienceReader)
+            } else { unavailable }
+        case "subpackageRoam/official-route/index":
+            if let reader = session.officialRouteReader, let id = query["id"] { OfficialRouteDetailView(reader: reader, routeID: id) } else { unavailable }
+        case "subpackageRoam/citynode-code/index":
+            RoamCityVoucherCodeView(poiID: positiveID(query["poiId"]), name: query["name"])
         case "subpackageP3/pages/stamp-album/index/index":
             RoamStampAlbumView(reader: session.roamExperienceReader)
         case "subpackageP3/pages/badge-wall/index/index":
@@ -226,6 +253,13 @@ import SwiftUI
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(CYNight.ink0.ignoresSafeArea())
     }
+}
+
+/// Canonical positive decimal id for a named query key (already checked by `MiniProgramPageLink`).
+private func positiveID(_ text: String?) -> Int? {
+    guard let text, text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
+          let value = Int(text), value > 0, String(value) == text else { return nil }
+    return value
 }
 
 /// Canonical positive decimal id, the same shape `MiniProgramPageLink` already required.
