@@ -45,7 +45,7 @@ import UIKit
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 Toggle("share.card.includePlace", isOn: $includePlace)
                                     .accessibilityIdentifier("share.card.includePlace")
-                                Text("share.card.includePlaceHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                Text("share.card.includePlaceHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             .padding(CYSpacing.lg)
@@ -84,7 +84,7 @@ import UIKit
             ShareLink(item: Image(uiImage: rendered),
                       preview: SharePreview(Text(verbatim: base.title), image: Image(uiImage: rendered))) {
                 Label("share.card.share", systemImage: "square.and.arrow.up")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .frame(maxWidth: .infinity, minHeight: 56)
             }
             .buttonStyle(.cyPrimary)
@@ -92,7 +92,7 @@ import UIKit
             .accessibilityIdentifier("share.card.share")
         } else {
             if case .renderFailed = machine.state {
-                Text("roam.share.renderFailed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("roam.share.renderFailed").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, identifier: "share.card.prepare") { prepare() }
         }

@@ -111,7 +111,7 @@ struct RoamCreatedStampReadOwner: Hashable {
             }
             CYPillButton("action.retry", style: .tertiary, systemImage: "arrow.clockwise") { refresh() }
         case .more:
-            Text("roam.createdStamp.moreHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("roam.createdStamp.moreHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             CYPillButton("roam.experience.loadMore", style: .secondary) { next() }
                 .accessibilityIdentifier("roam.createdStamp.more")
         case .hidden:

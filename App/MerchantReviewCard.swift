@@ -9,7 +9,7 @@ struct MerchantReviewCard: View {
             HStack(spacing: CYSpacing.sm) {
                 if let rating = presentation.rating {
                     Text(verbatim: "★ \(rating)/5")
-                        .font(CYTypography.meta.weight(.bold))
+                        .cyText(.meta, weight: .bold)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.warningText)
                 }
@@ -19,7 +19,7 @@ struct MerchantReviewCard: View {
                     } icon: {
                         Image(systemName: "checkmark.seal")
                     }
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.successText)
                 }
                 if presentation.photoCount > 0 {
@@ -31,7 +31,7 @@ struct MerchantReviewCard: View {
                     } icon: {
                         Image(systemName: "photo")
                     }
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .monospacedDigit()
                     .foregroundStyle(CYColor.textSecondary)
                 }
@@ -50,7 +50,7 @@ struct MerchantReviewCard: View {
                     LocalizedStringKey(presentation.replyTitleKey),
                     tableName: "MerchantReviewAndCustomerDetail"
                 )
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchant.business.review.replyState")
             }

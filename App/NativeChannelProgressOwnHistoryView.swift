@@ -19,7 +19,7 @@ import SwiftUI
                 if let best = model.best { NativeChannelProgressMeCard(row: best).listRowBackground(Color.clear) }
                 else if !model.busy && model.issue("best") == nil {
                     Text(verbatim: "—")
-                        .font(CYTypography.dataXL)
+                        .cyText(.dataXL)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(Text(verbatim: "—"))

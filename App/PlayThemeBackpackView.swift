@@ -88,11 +88,11 @@ import SwiftUI
             ) {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     effect(item.effect)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                     if let q = item.quantity {
                         Text(verbatim: copy("持有数量：\(q)", "Owned: \(q)"))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                     }
                 }
                 .padding(CYSpacing.pageHorizontal)
@@ -104,12 +104,12 @@ import SwiftUI
 
     @ViewBuilder private func content(_ bag: PlayThemeBackpack) -> some View {
         Section {
-            LabeledContent { Text("playx.backpack.slots \(bag.used) \(bag.capacity)").font(CYTypography.numericBody) } label: { Text("playx.backpack.load") }
+            LabeledContent { Text("playx.backpack.slots \(bag.used) \(bag.capacity)").cyText(.numericBody) } label: { Text("playx.backpack.load") }
                 .accessibilityIdentifier("playx.backpack.load")
             ForEach(bag.values, id: \.key) { row in
                 LabeledContent {
                     Text(verbatim: row.max.map { "\(row.value) / \($0)" } ?? row.value)
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                 } label: {
                     HStack { name(row.name); if row.zero { Text("playx.backpack.zero").foregroundStyle(CYColor.dangerText) } }
                 }
@@ -123,7 +123,7 @@ import SwiftUI
             Text("playx.backpack.tab.game").tag(Tab.game)
         }
         .pickerStyle(.segmented).accessibilityIdentifier("playx.backpack.tabs")
-        if bag.claimOnly { Text("playx.backpack.claimOnly").font(.footnote) }
+        if bag.claimOnly { Text("playx.backpack.claimOnly").cyText(.bodyCompact) }
         switch tab {
         case .items:
             if !bag.pending.isEmpty {
@@ -134,7 +134,7 @@ import SwiftUI
                             HStack(spacing: 4) {
                                 if let q = row.quantity { Text(verbatim: "×\(q)") }
                                 if let slots = row.slots { Text("playx.backpack.takesSlots \(slots)") }
-                            }.font(.caption)
+                            }.cyText(.meta)
                             if let actions = model.actions {
                                 Button(copy("领取", "Receive")) {
                                     openReview(.receive, id: row.id, name: row.name ?? copy("待领奖励", "Pending reward"), actions: actions)
@@ -143,7 +143,7 @@ import SwiftUI
                                 .accessibilityIdentifier("playx.backpack.receive.\(row.id)")
                                 if actions.facts?.status == "ACTIVE", actions.facts?.hasRoomForPending(row.id) == false {
                                     Text(copy("背包已满或容量信息未确认，请先确认库存。", "The backpack is full or capacity is unconfirmed. Check your inventory first."))
-                                        .font(.footnote)
+                                        .cyText(.bodyCompact)
                                 }
                             }
                         }
@@ -154,11 +154,11 @@ import SwiftUI
                 Section("playx.backpack.carried") {
                     ForEach(bag.items) { item in
                         HStack {
-                            VStack(alignment: .leading) { name(item.name); effect(item.effect).font(.caption).foregroundStyle(.secondary) }
+                            VStack(alignment: .leading) { name(item.name); effect(item.effect).cyText(.meta).foregroundStyle(.secondary) }
                             Spacer()
                             VStack(alignment: .trailing) {
-                                if let q = item.quantity { Text(verbatim: "×\(q)").font(CYTypography.numericBody) }
-                                if let cost = item.slotCost { Text("playx.backpack.perItemSlots \(cost)").font(.caption) }
+                                if let q = item.quantity { Text(verbatim: "×\(q)").cyText(.numericBody) }
+                                if let cost = item.slotCost { Text("playx.backpack.perItemSlots \(cost)").cyText(.meta) }
                             }
                         }
                         .accessibilityElement(children: .combine)
@@ -190,17 +190,17 @@ import SwiftUI
             }
             ForEach(bag.clues) { clue in
                 VStack(alignment: .leading, spacing: 4) {
-                    if let n = clue.name { Text(verbatim: n).font(.headline) } else { Text("playx.backpack.clue").font(.headline) }
+                    if let n = clue.name { Text(verbatim: n).cyText(.cardTitle) } else { Text("playx.backpack.clue").cyText(.cardTitle) }
                     switch clue.scope {
-                    case .publicAll: Text("playx.backpack.scope.public").font(.caption)
-                    case .team: Text("playx.backpack.scope.team").font(.caption)
+                    case .publicAll: Text("playx.backpack.scope.public").cyText(.meta)
+                    case .team: Text("playx.backpack.scope.team").cyText(.meta)
                     case .none: EmptyView()
                     }
                     if let content = clue.content { Text(verbatim: content).textSelection(.enabled) }
                     ForEach(Array(clue.blocks.enumerated()), id: \.offset) { _, block in
-                        if let source = block.source { Text(verbatim: source).font(.caption).foregroundStyle(.secondary) }
+                        if let source = block.source { Text(verbatim: source).cyText(.meta).foregroundStyle(.secondary) }
                         if let text = block.text { Text(verbatim: text).textSelection(.enabled) }
-                        if block.imageCount > 0 { Text("playx.backpack.clueImages \(block.imageCount)").font(.caption) }
+                        if block.imageCount > 0 { Text("playx.backpack.clueImages \(block.imageCount)").cyText(.meta) }
                     }
                 }
                 .accessibilityIdentifier("playx.backpack.clue")
@@ -223,7 +223,7 @@ import SwiftUI
         if !gameplay.playerRunText.isEmpty || !gameplay.playerExitText.isEmpty {
             Section {
                 Text(verbatim: [gameplay.playerRunText, gameplay.playerExitText].filter { !$0.isEmpty }.joined(separator: " · "))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
             }
         }
@@ -233,7 +233,7 @@ import SwiftUI
                     LabeledContent(gameplay.challenge.challengeProgressLabel, value: gameplay.challenge.challengeProgressText)
                 }
                 Text(verbatim: gameplay.challenge.challengeRestoreText)
-                Text(verbatim: gameplay.challenge.challengeRetryText).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: gameplay.challenge.challengeRetryText).cyText(.meta).foregroundStyle(.secondary)
                 ForEach(gameplay.challenge.challengeNodes, id: \.nodeId) { node in
                     Button(node.name) { gameplay.openChallengeNode(node.nodeId) }
                 }
@@ -244,12 +244,12 @@ import SwiftUI
                 ForEach(Array(gameplay.actionRows.enumerated()), id: \.element.id) { idx, row in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(verbatim: row.title).font(.subheadline.weight(.semibold))
+                            Text(verbatim: row.title).cyText(.bodyMedium)
                             Spacer()
-                            Text(verbatim: row.statusText).font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: row.statusText).cyText(.meta).foregroundStyle(.secondary)
                         }
                         if !row.costText.isEmpty {
-                            Text(verbatim: row.costText).font(.caption2).foregroundStyle(.secondary)
+                            Text(verbatim: row.costText).cyText(.caption).foregroundStyle(.secondary)
                         }
                         Button(row.actionLabel) {
                             let tap = gameplay.tapGameplayAction(index: idx)
@@ -273,11 +273,11 @@ import SwiftUI
                 ForEach(gameplay.plans) { plan in
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
-                            Text(verbatim: plan.title).font(.subheadline.weight(.semibold))
+                            Text(verbatim: plan.title).cyText(.bodyMedium)
                             Spacer()
-                            Text(verbatim: plan.phaseText).font(.caption)
+                            Text(verbatim: plan.phaseText).cyText(.meta)
                         }
-                        Text(verbatim: plan.teamCountText).font(.caption2).foregroundStyle(.secondary)
+                        Text(verbatim: plan.teamCountText).cyText(.caption).foregroundStyle(.secondary)
                     }
                 }
             }
@@ -289,8 +289,8 @@ import SwiftUI
                         gameplay.openPlayerOperation(op.action)
                     } label: {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: op.title).font(.subheadline.weight(.medium))
-                            Text(verbatim: op.caption).font(.caption2).foregroundStyle(.secondary)
+                            Text(verbatim: op.title).cyText(.bodyMedium)
+                            Text(verbatim: op.caption).cyText(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -349,7 +349,7 @@ import SwiftUI
                 Text(copy("操作结果未确认，点击重试", "Result unconfirmed. Retry the original action."))
                     .accessibilityIdentifier("playx.backpack.action.unknown")
                 Text(copy("重试会使用同一局、同一操作编号和原始选择，不会创建新操作。", "Retry keeps the same session, action ID and original choices. It does not create a new action."))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                 Button(copy("重试上一条操作", "Retry original action")) { Task { await actions.recover() } }
                     .disabled(!actions.canRecover).accessibilityIdentifier("playx.backpack.action.recover")
             case .storageUnavailable:
@@ -367,7 +367,7 @@ import SwiftUI
             }
             if let command = actions.pendingCommand, actions.isCurrent {
                 Text(verbatim: operationName(command.operation) + " · " + command.contentId)
-                    .font(.footnote).accessibilityIdentifier("playx.backpack.action.original")
+                    .cyText(.bodyCompact).accessibilityIdentifier("playx.backpack.action.original")
             }
             if actions.lastConfirmedOperation == .receive, actions.isCurrent {
                 Text(copy("待领奖励已领取", "Pending reward received")).accessibilityIdentifier("playx.backpack.action.received")
@@ -450,7 +450,7 @@ import SwiftUI
     @ViewBuilder private func zeroSection(_ zero: PlayThemeBackpack.ZeroHP, hp: PlayThemeBackpack.ValueName) -> some View {
         Section {
             Text(LocalizedStringKey("playx.backpack.zeroPolicy." + (zero.policy.flatMap { ["WAIT", "CHALLENGE", "STEPS", "BLOCK_HP_COST", "BLOCK_PAID", "THEME_FAIL"].contains($0) ? $0 : nil } ?? "OTHER")))
-                .font(.headline)
+                .cyText(.cardTitle)
             HStack { name(hp); Text("playx.backpack.zero") }
             if let message = zero.message { Text(verbatim: message) }
             if let progress = zero.progress, let required = zero.required {

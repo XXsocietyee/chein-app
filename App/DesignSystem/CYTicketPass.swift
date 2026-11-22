@@ -113,7 +113,7 @@ struct CYStatusRibbon: View {
             Image(systemName: state.systemImage)
             text
         }
-        .font(CYTypography.caption)
+        .cyText(.caption)
         .foregroundStyle(foreground)
         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xs + 1)
         .background(fill, in: Capsule())
@@ -125,7 +125,7 @@ struct CYStatusRibbon: View {
             Image(systemName: state.systemImage)
             text.textCase(.uppercase).kerning(1.1)
         }
-        .font(CYTypography.micro)
+        .cyText(.micro)
         .foregroundStyle(foreground)
         .lineLimit(1).minimumScaleFactor(0.7)
         .frame(width: 168, height: 24)

@@ -45,9 +45,9 @@ struct LoginView: View {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     WelcomeHero().scaleEffect(0.9).frame(height: 262).padding(.top, CYSpacing.lg)
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("auth.login.headline").font(.system(.largeTitle, design: .rounded, weight: .heavy)).foregroundStyle(CYColor.textPrimary)
+                        Text("auth.login.headline").cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                        Text("auth.login.subtitle").font(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text("auth.login.subtitle").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     if showsPasswordForm {
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -87,7 +87,7 @@ struct LoginView: View {
                         Text("region.usLoginPending").foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("region.auth.pending")
                     }
                     if !session.isConfigured {
-                        Label("auth.notConfigured",systemImage:"info.circle").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                        Label("auth.notConfigured",systemImage:"info.circle").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     }
                     if !showsPasswordForm, let key = shownErrorKey {
                         Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }.font(.footnote.weight(.medium)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")
@@ -117,12 +117,12 @@ struct LoginView: View {
                     .disabled(working || !consentGranted)
                     .accessibilityIdentifier("auth.otherChannels")
                     VStack(spacing: 0) {
-                        Text("auth.channels.legalConsent").font(.caption).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                        Text("auth.channels.legalConsent").cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                         HStack(spacing: CYSpacing.lg) {
                             Button("auth.channels.userAgreement") { rootLegal = AuthEntryLegalSheet(type: .userAgreement) }
                             Button("auth.channels.privacyPolicy") { rootLegal = AuthEntryLegalSheet(type: .privacyPolicy) }
                         }
-                        .font(.caption.weight(.semibold)).frame(minHeight: 44)
+                        .cyText(.meta, weight: .semibold).frame(minHeight: 44)
                     }
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.top, CYSpacing.md)

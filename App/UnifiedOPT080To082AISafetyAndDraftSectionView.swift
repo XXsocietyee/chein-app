@@ -13,9 +13,9 @@ public struct UnifiedOPT080To082AISafetyAndDraftSectionView: View {
             ForEach(UnifiedOPT080To082AIGatewaySafetyUsageAndDraftAssistContract.packages) { pkg in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(pkg.optID) · \(pkg.title)")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text("实现: \(pkg.iosCoreImplementation) -> \(pkg.iosViewImplementation)")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
             }

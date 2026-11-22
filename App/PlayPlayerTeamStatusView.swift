@@ -17,10 +17,10 @@ struct PlayPlayerTeamStatusView: View {
                 Section {
                     ForEach(members) { member in
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            if let name = member.displayName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                            else { Text("playerTeam.teammate").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            if let name = member.displayName { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            else { Text("playerTeam.teammate").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                             if let role = member.roleCode {
-                                LabeledContent("playerTeam.role") { Text(verbatim: role) }.font(CYTypography.meta)
+                                LabeledContent("playerTeam.role") { Text(verbatim: role) }.cyText(.meta)
                             }
                             CYStatusChip(LocalizedStringKey(member.status.titleKey), tone: .info)
                                 .accessibilityIdentifier("playerTeam.status." + member.status.rawValue.lowercased())

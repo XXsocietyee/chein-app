@@ -37,7 +37,7 @@ import SwiftUI
             }
             if model.hasCurrentProjection, let projection = model.projection {
                 Section("playx.player.role") {
-                    if let name = projection.role["name"].text { Text(verbatim: name).font(.headline) }
+                    if let name = projection.role["name"].text { Text(verbatim: name).cyText(.cardTitle) }
                     if let brief = projection.role["publicBrief"].text { Text(verbatim: brief) }
                     if projection.roleConfirmed { CYStatusChip("playx.player.role.confirmed", tone: .success, systemImage: "checkmark.seal") }
                     else { CYPillButton("playx.player.role.confirm") { actionReview.prepare(.role, ticket: ticket) }.listRowBackground(Color.clear).disabled(!canAct) }
@@ -46,21 +46,21 @@ import SwiftUI
                 PlayPlayerLeaderboardView(state: leaderboardReadback?.state ?? .hidden)
                 ForEach(projection.nodes) { node in
                     Section {
-                        Text(verbatim: node.name ?? "#\(node.id)").font(.headline)
-                        if let state = node.state { Text(verbatim: state).font(.caption) }
+                        Text(verbatim: node.name ?? "#\(node.id)").cyText(.cardTitle)
+                        if let state = node.state { Text(verbatim: state).cyText(.meta) }
                         if let clue = node.clue { Text(verbatim: clue) }
                         if let pause = PlayStationPauseNotice(state: node.state, pause: node.pause, fallback: node.fallback) {
                             PlayStationPauseView(notice: pause)
                         }
                         if node.state == "FALLBACK_COMPLETED" {
                             // U05-02: completed through the approved replacement; the history stays.
-                            Text("station.fallbackCompleted", tableName: "PlayRecovery").font(CYTypography.caption)
+                            Text("station.fallbackCompleted", tableName: "PlayRecovery").cyText(.caption)
                                 .accessibilityIdentifier("playRecovery.fallbackCompleted.\(node.id)")
                         }
                         if let prompt = node.task["prompt"].text {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text("playx.player.stationTask").font(CYTypography.meta).foregroundStyle(.secondary)
-                                Text(verbatim: prompt).font(CYTypography.cardTitle)
+                                Text("playx.player.stationTask").cyText(.meta).foregroundStyle(.secondary)
+                                Text(verbatim: prompt).cyText(.cardTitle)
                             }
                             .accessibilityElement(children: .combine)
                         }
@@ -91,19 +91,19 @@ import SwiftUI
                         if let level = node.hint["nextLevel"].integer, let impact = node.hint["nextImpactLabel"].text, !impact.isEmpty {
                             Button("playx.hints.request") { actionReview.prepare(.hint(nodeID: node.id), ticket: ticket) }
                                 .disabled(!canAct)
-                            Text(verbatim: impact).font(CYTypography.meta).foregroundStyle(.secondary)
+                            Text(verbatim: impact).cyText(.meta).foregroundStyle(.secondary)
                         }
                         if node.hint["revealAvailable"].bool == true, let impact = node.hint["revealImpactLabel"].text, !impact.isEmpty {
                             Button("playx.player.reveal") { actionReview.prepare(.reveal(nodeID: node.id), ticket: ticket) }
                                 .disabled(!canAct)
-                            Text(verbatim: impact).font(CYTypography.meta).foregroundStyle(.secondary)
+                            Text(verbatim: impact).cyText(.meta).foregroundStyle(.secondary)
                         }
-                        if let completion = node.completionStatus { Text(verbatim: completion).font(.footnote) }
+                        if let completion = node.completionStatus { Text(verbatim: completion).cyText(.bodyCompact) }
                     }
                 }
                 if let ending = projection.story["ending"].object {
                     Section("playx.ending") {
-                        if let title = ending["title"]?.text { Text(verbatim: title).font(.headline) }
+                        if let title = ending["title"]?.text { Text(verbatim: title).cyText(.cardTitle) }
                         if let text = ending["summary"]?.text ?? ending["text"]?.text { Text(verbatim: text) }
                     }
                 }

@@ -92,8 +92,8 @@ import SwiftUI
                         Color.clear.frame(height: 0).id("storyPreviewTop")
                         if controller.isCurrent(original) {
                             VStack(alignment: .leading, spacing: 8) {
-                                if projection.title.isEmpty { text("untitledTopic").font(.title.bold()).accessibilityAddTraits(.isHeader) }
-                                else { Text(verbatim: projection.title).font(.title.bold()).accessibilityAddTraits(.isHeader) }
+                                if projection.title.isEmpty { text("untitledTopic").cyText(.display).accessibilityAddTraits(.isHeader) }
+                                else { Text(verbatim: projection.title).cyText(.display).accessibilityAddTraits(.isHeader) }
                                 if !projection.subtitle.isEmpty { Text(verbatim: projection.subtitle).font(.subheadline) }
                                 text("scope").font(.footnote)
                                 text("mediaScope").font(.footnote).foregroundStyle(.secondary)
@@ -142,8 +142,8 @@ import SwiftUI
     @ViewBuilder private func chapter(_ chapter: ProjectDraftStoryPreview.Chapter) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             text("role." + chapter.role.rawValue).font(.subheadline).foregroundStyle(.secondary)
-            if chapter.title.isEmpty { text("untitledChapter").font(.title2.bold()) }
-            else { Text(verbatim: chapter.title).font(.title2.bold()) }
+            if chapter.title.isEmpty { text("untitledChapter").cyText(.sheetTitle) }
+            else { Text(verbatim: chapter.title).cyText(.sheetTitle) }
             if chapter.role == .ending { text("endingScope").font(.footnote) }
         }.accessibilityAddTraits(.isHeader)
         if chapter.unsupported { text("unsupportedChapter") }

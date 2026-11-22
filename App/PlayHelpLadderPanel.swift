@@ -46,7 +46,7 @@ import SwiftUI
                     } else {
                         HStack(spacing: CYSpacing.sm) {
                             CYStatusChip(verbatim: CYUnknownValue.dash, tone: .neutral, systemImage: "gift")
-                            Text("hint.freeLeft.unknown", tableName: "DesignR1").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                            Text("hint.freeLeft.unknown", tableName: "DesignR1").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("playHelp.freeLeft")
@@ -130,21 +130,21 @@ import SwiftUI
         Button { tap(row) } label: {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(LocalizedStringKey(row.typeLabelKey)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    Text(LocalizedStringKey(row.typeLabelKey)).cyText(.body).foregroundStyle(CYColor.textPrimary)
                     if let content = row.content { contentView(content, type: row.contentType ?? row.type, level: row.level) }
                     if let charged = row.chargedPoints, charged > 0 {
                         Group {
                             if let balance = row.balanceAfter { Text("playHelp.charged \(charged) \(balance)") }
                             else { Text("playHelp.chargedOnly \(charged)") }
                         }
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("playHelp.charged.\(row.level)")
                     }
                     if let problem = row.problem { problemText(problem).accessibilityIdentifier("playHelp.problem.\(row.level)") }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 if model.busyLevel == row.level { ProgressView().accessibilityLabel(Text("playHelp.sending")) }
-                else { actionText(row).font(CYTypography.label).foregroundStyle(row.tappable ? CYColor.textPrimary : CYColor.textTertiary) }
+                else { actionText(row).cyText(.label).foregroundStyle(row.tappable ? CYColor.textPrimary : CYColor.textTertiary) }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
             .contentShape(Rectangle())
@@ -189,7 +189,7 @@ import SwiftUI
                 if let message, !message.isEmpty { Text(verbatim: message) } else { Text("playHelp.refused") }
             }
         }
-        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+        .cyText(.meta).foregroundStyle(CYColor.dangerText)
     }
 
     private var skipRow: some View {
@@ -206,9 +206,9 @@ import SwiftUI
             } else { confirmSkip = true }
         } label: {
             HStack {
-                Text("playHelp.skip").font(CYTypography.body).foregroundStyle(CYColor.dangerText)
+                Text("playHelp.skip").cyText(.body).foregroundStyle(CYColor.dangerText)
                 Spacer()
-                if model.skipPending { Text("playHelp.keepChecking").font(CYTypography.label).foregroundStyle(CYColor.textPrimary) }
+                if model.skipPending { Text("playHelp.keepChecking").cyText(.label).foregroundStyle(CYColor.textPrimary) }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
             .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
@@ -228,7 +228,7 @@ import SwiftUI
                 if let message, !message.isEmpty { Text(verbatim: message) } else { Text("playHelp.skip.refused") }
             }
         }
-        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+        .cyText(.meta).foregroundStyle(CYColor.dangerText)
         .accessibilityIdentifier("playHelp.notice")
     }
 
@@ -236,7 +236,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 0) {
             Button { Task { await model.toggleReceipt() } } label: {
                 HStack {
-                    Text("playHelp.receipt").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    Text("playHelp.receipt").cyText(.body).foregroundStyle(CYColor.textPrimary)
                     Spacer()
                     Image(systemName: "chevron.down").rotationEffect(.degrees(model.receiptOpen ? 180 : 0))
                         .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
@@ -249,7 +249,7 @@ import SwiftUI
             .accessibilityIdentifier("playHelp.receipt")
             if model.receiptOpen {
                 if model.receiptUnavailable {
-                    Text("playHelp.receipt.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("playHelp.receipt.unavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.md)
                         .accessibilityIdentifier("playHelp.receipt.unavailable")
                 } else if let lines = model.receipt {
@@ -278,9 +278,9 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             ForEach(lines) { line in
                 HStack(alignment: .firstTextBaseline) {
-                    label(line).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    label(line).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     Spacer(minLength: CYSpacing.md)
-                    value(line).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).monospacedDigit()
+                    value(line).cyText(.label).foregroundStyle(CYColor.textPrimary).monospacedDigit()
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("playHelp.receipt." + line.id)

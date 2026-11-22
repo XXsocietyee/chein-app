@@ -49,24 +49,24 @@ import SwiftUI
             }
             if failed { CYErrorState("publishModes.readFailed", retryTitle: "publishModes.retry") { Task { await load() } }.projectRow() }
             if rows.isEmpty && !busy && !failed { CYEmptyState(systemImage: "square.stack", "publishModes.empty").projectRow() }
-            if total > rows.count + unknown { Text("publishModes.truncated").font(CYTypography.meta).foregroundStyle(palette.textTertiary).projectRow() }
-            if unknown > 0 { Text("publishModes.unknownTypes").font(CYTypography.meta).foregroundStyle(palette.textTertiary).projectRow() }
+            if total > rows.count + unknown { Text("publishModes.truncated").cyText(.meta).foregroundStyle(palette.textTertiary).projectRow() }
+            if unknown > 0 { Text("publishModes.unknownTypes").cyText(.meta).foregroundStyle(palette.textTertiary).projectRow() }
             if requestAccount == account, service?.currentSession == account, !requests.isEmpty {
                 Section {
                     CYSectionHeader(LocalizedStringKey(chinese ? "原状态操作记录" : "Original status requests")).projectRow()
                     Text((chinese ? "列表消失不代表删除成功；只读取原请求回执，不翻转重放。" : "A missing list row does not confirm deletion. Read the original receipt without replaying the request."))
-                        .font(CYTypography.meta).foregroundStyle(palette.textTertiary).projectRow()
+                        .cyText(.meta).foregroundStyle(palette.textTertiary).projectRow()
                     ForEach(requests) { saved in
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(saved.title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                            Text(saved.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                             Text(saved.action == .remove ? (chinese ? "已确认的原移除请求" : "Original confirmed removal request") : (saved.submit.command?.expectedOnline == true ? (chinese ? "已确认的原下架请求" : "Original confirmed offline request") : (chinese ? "已确认的原上架请求" : "Original confirmed online request")))
-                                .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                            Text(saved.id).font(.caption).foregroundStyle(palette.textTertiary).textSelection(.enabled)
+                                .cyText(.meta).foregroundStyle(palette.textSecondary)
+                            Text(saved.id).cyText(.meta).foregroundStyle(palette.textTertiary).textSelection(.enabled)
                             if let receipt = saved.receipt {
                                 Text(receipt.applied ? (chinese ? "原 writer 已执行本次操作" : "The original writer applied this request") : receipt.terminal ? (chinese ? "原请求已结束，目标操作未执行" : "The original request ended without applying the action") : (chinese ? "结果仍未知，保持原请求锁" : "Outcome remains unknown; the original request stays locked"))
-                                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                                if let reason = receipt.originalResult?.object?["msg"]?.text { Text(reason).font(CYTypography.meta).foregroundStyle(palette.textSecondary) }
-                            } else { Text((chinese ? "尚未读回原请求结果" : "The original outcome has not been read back")).font(CYTypography.meta).foregroundStyle(palette.textSecondary) }
+                                    .cyText(.meta).foregroundStyle(palette.textSecondary)
+                                if let reason = receipt.originalResult?.object?["msg"]?.text { Text(reason).cyText(.meta).foregroundStyle(palette.textSecondary) }
+                            } else { Text((chinese ? "尚未读回原请求结果" : "The original outcome has not been read back")).cyText(.meta).foregroundStyle(palette.textSecondary) }
                             Button((chinese ? "回读这次操作" : "Read this request’s outcome")) { Task { await readOutcome(saved) } }
                                 .buttonStyle(CYSecondaryButtonStyle())
                                 .disabled(busy || service?.canReadStateReceipt != true)
@@ -81,7 +81,7 @@ import SwiftUI
                     if readOnly { projectHeader(project) }
                     else { Button { openProject(project.resource) } label: { projectHeader(project) }.buttonStyle(.plain) }
                     if project.signupCount > 0 {
-                        Text("\(project.signupCount) " + appLocalized("publishModes.signups", locale: locale)).font(CYTypography.numericBody).foregroundStyle(palette.textSecondary)
+                        Text("\(project.signupCount) " + appLocalized("publishModes.signups", locale: locale)).cyText(.numericBody).foregroundStyle(palette.textSecondary)
                     }
                     if !readOnly && (project.canToggle || project.canDelete) {
                         HStack(spacing: CYSpacing.sm) {
@@ -89,12 +89,12 @@ import SwiftUI
                             if project.canDelete { Button("publishModes.remove", role: .destructive) { Task { await prepare(project, action: .remove) } }.buttonStyle(CYSecondaryButtonStyle()).foregroundStyle(palette.danger).disabled(busy || hasPendingRequest(project.resource)) }
                         }
                     }
-                    if !readOnly && project.canCancelWithRefund { Text("publishModes.refundHandoff").font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
+                    if !readOnly && project.canCancelWithRefund { Text("publishModes.refundHandoff").cyText(.meta).foregroundStyle(palette.textTertiary) }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg).projectRow()
             }
-            if !message.isEmpty { Text(message).font(CYTypography.meta).foregroundStyle(palette.textSecondary).projectRow().accessibilityIdentifier("publishModes.management.message") }
+            if !message.isEmpty { Text(message).cyText(.meta).foregroundStyle(palette.textSecondary).projectRow().accessibilityIdentifier("publishModes.management.message") }
         }
         .listStyle(.plain).scrollContentBackground(.hidden).cyDomainPageBackground()
         .navigationBarTitleDisplayMode(.large)
@@ -118,7 +118,7 @@ import SwiftUI
                     } else {
                         Text("publishModes.onlineQuestion \(snapshot.baseline?.title ?? "")")
                     }
-                }.font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
+                }.cyText(.sectionTitle).foregroundStyle(palette.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
                 VStack(spacing: CYSpacing.sm) {
                     Button { Task { await submit(snapshot) } } label: {
                         Text(LocalizedStringKey(snapshot.action == .remove ? "publishModes.remove" : snapshot.baseline?.online == true ? "publishModes.takeOffline" : "publishModes.putOnline")).frame(maxWidth: .infinity)
@@ -140,7 +140,7 @@ import SwiftUI
             Picker(title, selection: selection) { ForEach(options, id: \.self) { Text(LocalizedStringKey("publishModes.filter." + $0)).tag($0) } }
         } label: {
             HStack(spacing: CYSpacing.xs) {
-                (Text(title) + Text(verbatim: " · ") + Text(LocalizedStringKey("publishModes.filter." + selection.wrappedValue))).font(CYTypography.label).cyWrapText()
+                (Text(title) + Text(verbatim: " · ") + Text(LocalizedStringKey("publishModes.filter." + selection.wrappedValue))).cyText(.label).cyWrapText()
                 Image(systemName: "chevron.down").font(.caption.weight(.semibold))
             }
             .foregroundStyle(palette.textPrimary)
@@ -152,9 +152,9 @@ import SwiftUI
     private func projectHeader(_ project: PublishingProject) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(project.title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).multilineTextAlignment(.leading)
+                Text(project.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).multilineTextAlignment(.leading)
                 if let state = project.stateText {
-                    Text(state).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Text(state).cyText(.meta).foregroundStyle(palette.textSecondary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(Capsule(style: .continuous).fill(palette.bgRaised))
                 }
@@ -244,7 +244,7 @@ private extension View {
                     Text("publishModes.notRegistered")
                     Text("publishModes.identityHandoff").foregroundStyle(.secondary)
                 }
-                Text("publishModes.identityPrivacy").font(.caption)
+                Text("publishModes.identityPrivacy").cyText(.meta)
             }
         }.navigationTitle(Text("publishModes.identity"))
         .task(id: account?.epoch) {
@@ -275,9 +275,9 @@ struct PublishingTopicRewardsForm: View {
             }
             TextField("publishModes.medalName", text: $rewards.medalName)
             TextField("publishModes.medalImage", text: $rewards.medalImage).textInputAutocapitalization(.never).autocorrectionDisabled()
-            Text("publishModes.uploadDisabled").font(.caption)
+            Text("publishModes.uploadDisabled").cyText(.meta)
             TextField("publishModes.coupon", value: $rewards.couponID, format: .number).keyboardType(.numberPad)
-            Text("publishModes.couponNotice").font(.caption).foregroundStyle(.secondary)
+            Text("publishModes.couponNotice").cyText(.meta).foregroundStyle(.secondary)
         }.disabled(!fullEdit)
     }
 }

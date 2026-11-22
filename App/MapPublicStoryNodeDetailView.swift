@@ -55,7 +55,7 @@ struct MapPublicStoryNodeDetailView: View {
             } else if loading || loadedKey != key {
                 statePage {
                     layer("mapPublicLayers.storyNode.loading")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     CYSkeleton()
@@ -119,7 +119,7 @@ struct MapPublicStoryNodeDetailView: View {
                 .e1HeroRow()
                 CYStatusChip(verbatim: layerString("mapPublicLayers.source.story_node"), tone: .info, systemImage: "book.pages")
                 Text(verbatim: "node #\(node.id) · topic #\(detail.id) · chapter #\(chapter.id)")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .monospacedDigit()
                     .foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -164,7 +164,7 @@ struct MapPublicStoryNodeDetailView: View {
                 if !shown.isEmpty {
                     Section {
                         Text(verbatim: shown)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
@@ -203,7 +203,7 @@ struct MapPublicStoryNodeDetailView: View {
                 } icon: {
                     Image(systemName: "eye").accessibilityHidden(true)
                 }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("mapPublicLayers.storyNode.readOnlyNotice")
             }
@@ -219,7 +219,7 @@ struct MapPublicStoryNodeDetailView: View {
         return VStack(alignment: .leading, spacing: CYSpacing.md) {
             if theme.isEmpty {
                 Text(verbatim: "—")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("mapPublicLayers.storyNode.parentThemeName")
             } else {
@@ -227,13 +227,13 @@ struct MapPublicStoryNodeDetailView: View {
                     .accessibilityIdentifier("mapPublicLayers.storyNode.parentThemeName")
             }
             Text(verbatim: chapterTitle)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapPublicLayers.storyNode.parentChapterTitle")
             if let chapterDesc = chapter.description?.trimmingCharacters(in: .whitespacesAndNewlines), !chapterDesc.isEmpty {
                 Text(verbatim: chapterDesc)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -243,7 +243,7 @@ struct MapPublicStoryNodeDetailView: View {
     private func templateBlock(_ template: TopicTemplate) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: display(template.title))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if let duration = template.duration {

@@ -13,8 +13,8 @@ struct IATabsFixture: View {
                 NavigationStack {
                     VStack(spacing: CYSpacing.md) {
                         Image(systemName: tab.playerSystemImage).font(.largeTitle)
-                        Text(LocalizedStringKey(tab.playerTitleKey)).font(CYTypography.pageTitle)
-                        Text(verbatim: "Synthetic fixture").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(LocalizedStringKey(tab.playerTitleKey)).cyText(.pageTitle)
+                        Text(verbatim: "Synthetic fixture").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .cyDomainPageBackground()
@@ -36,7 +36,7 @@ struct IAExploreCreateFixture: View {
     var body: some View {
         NavigationStack {
             Text(verbatim: "Synthetic fixture: Explore root")
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .navigationTitle(Text("tabBar.explore"))
                 .toolbar {
@@ -68,7 +68,7 @@ struct IAPassportFixture: View {
             Form {
                 Section {
                     Text(verbatim: "Synthetic fixture: identity card goes here (MemberIdentityCardSection)")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 Section { PassportOverviewContent(stampCount: count, badges: badges) }
                     .listRowBackground(CYColor.bgSurface)
@@ -90,13 +90,13 @@ struct IADeepLinksFixture: View {
                            "chein://club/7/leave", "chein://ticket/0", "https://roam/go"]
     var body: some View {
         List {
-            Section { Text(verbatim: "Synthetic fixture: CheinDeepLink parse results").font(CYTypography.meta) }
+            Section { Text(verbatim: "Synthetic fixture: CheinDeepLink parse results").cyText(.meta) }
             ForEach(samples, id: \.self) { text in
                 let link = URL(string: text).flatMap(CheinDeepLink.init(url:))
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: text).font(CYTypography.label)
+                    Text(verbatim: text).cyText(.label)
                     Text(verbatim: link.map { "→ \(String(describing: $0.rootTab))" } ?? "→ rejected")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityIdentifier("ia.deeplink.\(text)")
             }

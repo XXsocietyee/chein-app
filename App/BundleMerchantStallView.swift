@@ -20,9 +20,9 @@ struct BundleMerchantStallView: View {
                 text("unavailable").accessibilityIdentifier("bundleStall.unavailable")
             case let .loaded(detail, window):
                 Section {
-                    if let name = detail.merchantName { Text(verbatim: name).font(.headline) }
-                    if let terms = detail.termsMode { Text(verbatim: terms).font(.footnote) }
-                    if let end = detail.validEnd { Text(verbatim: end.raw).font(.footnote) }
+                    if let name = detail.merchantName { Text(verbatim: name).cyText(.cardTitle) }
+                    if let terms = detail.termsMode { Text(verbatim: terms).cyText(.bodyCompact) }
+                    if let end = detail.validEnd { Text(verbatim: end.raw).cyText(.bodyCompact) }
                 }
                 if !detail.reasons.isEmpty {
                     Section {

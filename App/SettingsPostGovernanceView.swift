@@ -100,11 +100,11 @@ struct PostGovernanceRow: Identifiable, Equatable {
     var body: some View {
         NavigationStack {
             List {
-                Text("mpd.postGov.intro").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("mpd.postGov.intro").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))
                 content
                 if let notice {
-                    Text(notice).font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                    Text(notice).cyText(.meta).foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("settings.postGov.notice")
                         .listRowBackground(Color.clear)
                 }
@@ -160,7 +160,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
     @ViewBuilder private func rowView(_ row: PostGovernanceRow) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(alignment: .firstTextBaseline) {
-                Text(LocalizedStringKey("mpd.postGov.type." + row.typeKey)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(LocalizedStringKey("mpd.postGov.type." + row.typeKey)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Spacer(minLength: CYSpacing.sm)
                 CYStatusChip(LocalizedStringKey("mpd.postGov.state." + row.state.rawValue), tone: tone(row.state))
             }
@@ -169,12 +169,12 @@ struct PostGovernanceRow: Identifiable, Equatable {
                 if !row.created.isEmpty { Text(verbatim: " · " + row.created) }
                 if !row.ends.isEmpty { Text(verbatim: " · "); Text("mpd.postGov.until \(row.ends)") }
             }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+            .cyText(.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
             if row.state != .expired && row.state != .unknown {
-                Text(LocalizedStringKey("mpd.postGov.note." + row.state.rawValue)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(LocalizedStringKey("mpd.postGov.note." + row.state.rawValue)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             if !row.decisionReason.isEmpty {
-                Text("mpd.postGov.decision \(row.decisionReason)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("mpd.postGov.decision \(row.decisionReason)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             if row.canAppeal { appealArea(row) }
         }
@@ -187,7 +187,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
         let action = SquareGovernanceAction.appeal(enforcementID: row.id, reason: reason.trimmingCharacters(in: .whitespacesAndNewlines))
         if editingID != row.id {
             Button("mpd.postGov.appeal") { reason = ""; notice = nil; editingID = row.id }
-                .font(CYTypography.label).buttonStyle(.borderless)
+                .cyText(.label).buttonStyle(.borderless)
                 .accessibilityIdentifier("settings.postGov.appeal.\(row.id)")
         } else {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -198,7 +198,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
                     .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityIdentifier("settings.postGov.reason")
                 HStack {
-                    Text(verbatim: "\(reason.count)/\(Self.reasonMax)").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+                    Text(verbatim: "\(reason.count)/\(Self.reasonMax)").cyText(.caption).foregroundStyle(CYColor.textTertiary).monospacedDigit()
                     Spacer()
                     Button("action.cancel") { editingID = nil; reason = "" }.buttonStyle(.borderless).disabled(submitting)
                         .accessibilityIdentifier("settings.postGov.cancel")
@@ -210,7 +210,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
                     .accessibilityIdentifier("settings.postGov.submit")
                 }
                 if !coordinator.service.allows(action) {
-                    Text("mpd.postGov.liveDisabled").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    Text("mpd.postGov.liveDisabled").cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 }
             }
             .transition(.opacity.combined(with: .move(edge: .top)))

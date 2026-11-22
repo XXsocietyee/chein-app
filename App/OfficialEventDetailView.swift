@@ -81,14 +81,14 @@ enum OfficialDetailID {
             List {
                 if page.phase == .unknown {
                     Label("official.detailPage.unknown", systemImage: "questionmark.circle")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier(OfficialDetailID.unknown)
                 }
                 OfficialEventCard(event: event).questifyCardListRow()
                 OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                 HStack(spacing: CYSpacing.sm) {
                     CYStatusChip(LocalizedStringKey(presentation.categoryKey), tone: .neutral)
-                    Text("official.detailParity.organizer").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("official.detailParity.organizer").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.organizer)
                 Section("official.facts") {
                     OfficialDetailFactsStrip(facts: presentation.facts).accessibilityIdentifier(OfficialDetailID.facts)
@@ -101,15 +101,15 @@ enum OfficialDetailID {
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYHeroHeader(verbatim: event.title)
-                        if let intro = presentation.intro { Text(verbatim: intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
+                        if let intro = presentation.intro { Text(verbatim: intro).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
                 }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
                         ForEach(presentation.cards, id: \.index) { card in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                OfficialDetailTextView(value: card.title).font(CYTypography.cardTitle)
-                                OfficialDetailTextView(value: card.description).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                OfficialDetailTextView(value: card.title).cyText(.cardTitle)
+                                OfficialDetailTextView(value: card.description).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
@@ -125,7 +125,7 @@ enum OfficialDetailID {
                 if event.isV2 {
                     Section {
                         if event.signed != true {
-                            Text("official.detailParity.tasks.signupNote").font(.footnote).foregroundStyle(.secondary)
+                            Text("official.detailParity.tasks.signupNote").cyText(.bodyCompact).foregroundStyle(.secondary)
                         }
                         if event.paused {
                             if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(CYColor.dangerText) }
@@ -174,8 +174,8 @@ enum OfficialDetailID {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(alignment: .firstTextBaseline) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(verbatim: collective.percent.map { "\($0)%" } ?? "—").font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                                    Text("official.detailParity.collective.lit").font(.caption).foregroundStyle(.secondary)
+                                    Text(verbatim: collective.percent.map { "\($0)%" } ?? "—").cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                                    Text("official.detailParity.collective.lit").cyText(.meta).foregroundStyle(.secondary)
                                 }
                                 Spacer()
                                 Text(verbatim: "\(collective.current.map(String.init) ?? "—") / \(collective.threshold.map(String.init) ?? "—")").monospacedDigit()
@@ -183,7 +183,7 @@ enum OfficialDetailID {
                             if let fraction = collective.displayFraction {
                                 ProgressView(value: fraction).tint(CYColor.brand).accessibilityHidden(true)
                             }
-                            Text(LocalizedStringKey(presentation.collectiveTipKey)).font(.footnote).foregroundStyle(.secondary)
+                            Text(LocalizedStringKey(presentation.collectiveTipKey)).cyText(.bodyCompact).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
                     }
                 }
@@ -192,7 +192,7 @@ enum OfficialDetailID {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("official.detailParity.rewardFootnote.issue")
                             Text("official.detailParity.rewardFootnote.settlement")
-                        }.font(.footnote).foregroundStyle(.secondary)
+                        }.cyText(.bodyCompact).foregroundStyle(.secondary)
                             .accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.rewardFootnote)
                     }
                 }
@@ -316,9 +316,9 @@ struct OfficialDetailFactsStrip: View {
             HStack(alignment: .top, spacing: CYSpacing.xl) {
                 ForEach(facts) { fact in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(fact.labelKey)).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
-                        value(fact.value).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                        sub(fact.sub).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey(fact.labelKey)).cyText(.micro).foregroundStyle(CYColor.textTertiary)
+                        value(fact.value).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        sub(fact.sub).cyText(.micro).foregroundStyle(CYColor.textTertiary)
                     }.accessibilityElement(children: .combine)
                 }
             }.padding(.vertical, 4)
@@ -354,9 +354,9 @@ struct OfficialDetailMissionRow: View {
     var topicName: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            OfficialDetailTextView(value: mission.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            OfficialDetailTextView(value: mission.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
-            OfficialDetailTextView(value: mission.description).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            OfficialDetailTextView(value: mission.description).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
             CYStatusChip(LocalizedStringKey(mission.action.key), tone: mission.action == .verified ? .success : .neutral, systemImage: symbol)
         }.accessibilityElement(children: .combine)
     }

@@ -70,7 +70,7 @@ import SwiftUI
                     Button { Task { await source.recover() } } label: { Text("friend.recover", tableName: "NativeFriend") }.disabled(!friend.canRecover || !source.isCurrent)
                 }
                 if let issue = friend.issue { Text(LocalizedStringKey(issue), tableName: "NativeFriend") }
-                if let review = friend.lastReview { Text(LocalizedStringKey("friend.review." + review.state.rawValue), tableName: "NativeFriend").font(Theme.Font.label) }
+                if let review = friend.lastReview { Text(LocalizedStringKey("friend.review." + review.state.rawValue), tableName: "NativeFriend").cyText(.label) }
                 if let relation = friend.relationship, relation.state == .friend { Text("d7.channelMembers.nowFriends") }
             }
             Section {
@@ -79,7 +79,7 @@ import SwiftUI
                         Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: Theme.Space.s1) {
                             Text(verbatim: row.displayName).fixedSize(horizontal: false, vertical: true)
-                            if row.friendRemark != nil { Text(verbatim: row.nickname).font(Theme.Font.label).foregroundStyle(.secondary) }
+                            if row.friendRemark != nil { Text(verbatim: row.nickname).cyText(.label).foregroundStyle(.secondary) }
                         }
                         Spacer()
                         switch row.state {
@@ -128,7 +128,7 @@ import SwiftUI
                 NavigationStack {
                     Form {
                         Section {
-                            Text(verbatim: (selected?.displayName).flatMap { $0.isEmpty ? nil : $0 } ?? "—").font(Theme.Font.sectionTitle)
+                            Text(verbatim: (selected?.displayName).flatMap { $0.isEmpty ? nil : $0 } ?? "—").cyText(.sectionTitle)
                             if review.command.source != nil {
                                 if !source.channelName.isEmpty {
                                     LabeledContent { Text(verbatim: source.channelName) } label: { Text("d7.channelMembers.via") }

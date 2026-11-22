@@ -29,10 +29,10 @@ import SwiftUI
                 .listRowBackground(Color.clear)
         }
         Section {
-            Text("clubOpsEvent.roster.title \(roster.rosterTotal)", tableName: "ClubOpsEvent").font(.headline)
+            Text("clubOpsEvent.roster.title \(roster.rosterTotal)", tableName: "ClubOpsEvent").cyText(.cardTitle)
                 .accessibilityIdentifier("club.roster.total")
-            Text("club.roster.totalNote").font(.footnote).foregroundStyle(.secondary)
-            Text("club.roster.privacy").font(.footnote)
+            Text("club.roster.totalNote").cyText(.bodyCompact).foregroundStyle(.secondary)
+            Text("club.roster.privacy").cyText(.bodyCompact)
             ForEach(ClubRosterBucket.allCases, id: \.self) { bucket in
                 LabeledContent(LocalizedStringKey(bucket.localizationKey), value: String(roster.count(in: bucket)))
                     .accessibilityIdentifier("club.roster.count." + bucket.rawValue)
@@ -46,15 +46,15 @@ import SwiftUI
                     if let range = ClubOpsEventClock.correctionRange(start: roster.correctionStart, end: roster.correctionEnd, locale: locale) {
                         Text("clubOpsEvent.roster.window \(range)", tableName: "ClubOpsEvent")
                     } else { Text("clubOpsEvent.roster.windowGeneric", tableName: "ClubOpsEvent") }
-                }.font(.footnote).foregroundStyle(CYColor.warningText).accessibilityIdentifier("club.roster.windowClosed")
+                }.cyText(.bodyCompact).foregroundStyle(CYColor.warningText).accessibilityIdentifier("club.roster.windowClosed")
             }
         }
         Section(LocalizedStringKey(selected.localizationKey)) {
             if roster.members(in: selected).isEmpty { Text("clubOpsEvent.roster.emptyBucket", tableName: "ClubOpsEvent").accessibilityIdentifier("club.roster.emptyBucket") }
             ForEach(roster.members(in: selected)) { member in
                 VStack(alignment: .leading, spacing: 8) {
-                    if let name = member.nickname { Text(verbatim: name).font(.headline) } else { Text("club.roster.unnamed").font(.headline) }
-                    Text("club.memberNumber \(member.id)").font(.caption).foregroundStyle(.secondary)
+                    if let name = member.nickname { Text(verbatim: name).cyText(.cardTitle) } else { Text("club.roster.unnamed").cyText(.cardTitle) }
+                    Text("club.memberNumber \(member.id)").cyText(.meta).foregroundStyle(.secondary)
                     if let state = member.waitlistState { Text(verbatim: state) }
                     if let route = roster.correctionRoute(memberID: member.id, bucket: selected, context: context,
                                                           snapshotGeneration: snapshotGeneration, namespace: namespace) {
@@ -63,9 +63,9 @@ import SwiftUI
                     } else if let arrived = ClubOpsEventAttendance.arrivedTarget(selected), roster.correctionOperable == false {
                         Button {} label: { correctionLabel(arrived) }.buttonStyle(.borderless).disabled(true)
                             .accessibilityIdentifier("club.roster.correct.\(member.id)")
-                        Text("clubOpsEvent.roster.closed", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.secondary)
+                        Text("clubOpsEvent.roster.closed", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
                     } else if selected != .waitlist && member.correctionVersion == nil {
-                        Text("club.roster.versionUnknown").font(.footnote).accessibilityIdentifier("club.roster.versionUnknown")
+                        Text("club.roster.versionUnknown").cyText(.bodyCompact).accessibilityIdentifier("club.roster.versionUnknown")
                     }
                 }.accessibilityIdentifier("club.roster.member.\(member.id)")
             }

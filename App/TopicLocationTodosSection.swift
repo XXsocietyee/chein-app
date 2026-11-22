@@ -26,10 +26,10 @@ import QuestifyCore
                     Button { open = true } label: {
                         HStack(spacing: CYSpacing.sm) {
                             Image(systemName: "mappin.and.ellipse").foregroundStyle(palette.textSecondary).accessibilityHidden(true)
-                            Text(W8Text.t("地点待办", "Place to-dos")).font(CYTypography.label).foregroundStyle(palette.textPrimary)
+                            Text(W8Text.t("地点待办", "Place to-dos")).cyText(.label).foregroundStyle(palette.textPrimary)
                             Spacer(minLength: CYSpacing.sm)
                             Text(todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", "\(todos.rows.count) place(s)"))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(todos.blockingCount > 0 ? palette.danger : palette.textSecondary)
                             Image(systemName: "chevron.right").font(CYTypography.meta).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
                         }
@@ -73,7 +73,7 @@ import QuestifyCore
                 Section {
                     Text(W8Text.t("模板的地点要求和你这份草稿的实际地点分开保存。换了地址后，请确认相关题面、现场答案和照片仍然成立。",
                                   "The template's place requirements and your draft's actual places are saved separately. After changing an address, check that the related prompts, on-site answers and photos still hold."))
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("locationTodos.reconfirmNote")
                 }
@@ -133,29 +133,29 @@ import QuestifyCore
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                Text(row.title).font(CYTypography.label).foregroundStyle(palette.textPrimary).lineLimit(1)
+                Text(row.title).cyText(.label).foregroundStyle(palette.textPrimary).lineLimit(1)
                 if row.blocking {
-                    Text(W8Text.t("挡住发布", "Blocks publishing")).font(CYTypography.micro).foregroundStyle(palette.danger)
+                    Text(W8Text.t("挡住发布", "Blocks publishing")).cyText(.micro).foregroundStyle(palette.danger)
                         .accessibilityIdentifier("locationTodos.blocking")
                 } else if row.warning {
-                    Text(W8Text.t("待复核", "To review")).font(CYTypography.micro).foregroundStyle(palette.textSecondary)
+                    Text(W8Text.t("待复核", "To review")).cyText(.micro).foregroundStyle(palette.textSecondary)
                 }
             }
-            if let mapped { Text(mapped.node.place).font(CYTypography.meta).foregroundStyle(palette.textSecondary).lineLimit(1) }
-            Text(TopicLocationTodos.statusText(row.status)).font(CYTypography.meta)
+            if let mapped { Text(mapped.node.place).cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(1) }
+            Text(TopicLocationTodos.statusText(row.status)).cyText(.meta)
                 .foregroundStyle(row.blocking ? palette.danger : palette.textTertiary)
             // What to look at / what to do / when it can't be seen: shown only when the author contract has them.
             if let what = nonempty(row.observationTarget) {
-                Text(W8Text.t("看什么：\(what)", "Look at: \(what)")).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(W8Text.t("看什么：\(what)", "Look at: \(what)")).cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             if let how = nonempty(row.observationAction) {
-                Text(W8Text.t("怎么做：\(how)", "What to do: \(how)")).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(W8Text.t("怎么做：\(how)", "What to do: \(how)")).cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             if let fallback = TopicLocationTodos.fallbackText(row.alternativePolicy) {
-                Text(fallback).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(fallback).cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             if let message = nonempty(row.issueMessage) {
-                Text(message).font(CYTypography.meta).foregroundStyle(row.blocking ? palette.danger : palette.textSecondary)
+                Text(message).cyText(.meta).foregroundStyle(row.blocking ? palette.danger : palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             HStack(spacing: CYSpacing.sm) {
@@ -173,7 +173,7 @@ import QuestifyCore
             }
             .disabled(anyBusy)
             if let error {
-                Text(error).font(CYTypography.meta).foregroundStyle(palette.danger)
+                Text(error).cyText(.meta).foregroundStyle(palette.danger)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isStaticText)
                     .accessibilityIdentifier("locationTodos.error.\(row.slotKey)")

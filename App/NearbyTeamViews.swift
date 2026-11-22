@@ -239,7 +239,7 @@ import SwiftUI
                     Text(LocalizedStringKey(key)).accessibilityIdentifier("nearby.message")
                 }
                 if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
-            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            }.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         }
@@ -255,14 +255,14 @@ import SwiftUI
             HStack {
                 Button { showingRange = true } label: {
                     Text(verbatim: "\(radius / 1000) km")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                 }
                 .accessibilityIdentifier("nearby.radius")
                 .accessibilityLabel(Text(verbatim: PlayAreaPopupCopy.text("范围", "Range", locale: locale)))
                 Button { showingMapStyle = true } label: {
                     Text(verbatim: mapStyle.title(locale: locale))
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityIdentifier("nearby.mapStyle")
@@ -319,7 +319,7 @@ import SwiftUI
     private func teamCard(_ team: NearbyTeam) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 Spacer(minLength: 8)
                 NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode))
             }
@@ -331,12 +331,12 @@ import SwiftUI
             CYStatusChip(LocalizedStringKey(team.viewerStatus.key), tone: team.viewerStatus == .pending ? .warning : .neutral, systemImage: team.viewerStatus == .pending ? "clock" : "person.3")
             switch team.mode {
             case "leader":
-                Text("nearby.w208.leaderSub \(team.joinedCount) \(team.maxMembers) \(NearbyTeamPresentation.remainingSeats(team))").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text("nearby.w208.leaderSub \(team.joinedCount) \(team.maxMembers) \(NearbyTeamPresentation.remainingSeats(team))").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 CYPillButton(verbatim: String(localized: LocalizedStringResource("nearby.applicants", table: "Localizable", locale: locale)) + " · \(team.pendingCount)", style: .secondary, systemImage: "person.badge.plus") { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } }
                     .disabled(model.running)
             case "joined": routeButton("nearby.enter", destination: .team(team.id))
             case "pending": expiry(team.applyExpireTime); actionButton(.withdraw(team.id))
-            case "rejected": Text("nearby.rejected.foot").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            case "rejected": Text("nearby.rejected.foot").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             case "apply": actionButton(.apply(team.id))
             case "buy":
                 // xcx falls back to the topic page when the team has no activity session.
@@ -352,7 +352,7 @@ import SwiftUI
     }
     @ViewBuilder private var applicantSection: some View {
         if let teamID = coordinator.applicantsTeamID {
-            Text("nearby.applicants").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            Text("nearby.applicants").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
             if coordinator.applicants.isEmpty { CYEmptyState(systemImage: "person.badge.plus", "nearby.applicants.empty") }
             ForEach(coordinator.applicants) { applicant in
                 VStack(alignment: .leading, spacing: 10) {
@@ -398,8 +398,8 @@ import SwiftUI
                 HStack(spacing: 8) {
                     ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
                         VStack(spacing: 2) {
-                            Text(verbatim: String(NearbyMyTeamGroup.count(kind, in: groups))).font(CYTypography.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                            Text(LocalizedStringKey(kind.statKey)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: String(NearbyMyTeamGroup.count(kind, in: groups))).cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            Text(LocalizedStringKey(kind.statKey)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }.frame(maxWidth: .infinity)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("nearby.mine.stat.\(kind.rawValue)")
@@ -415,7 +415,7 @@ import SwiftUI
                 }
             }
             ForEach(groups) { group in
-                Text(LocalizedStringKey(group.kind.titleKey)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(LocalizedStringKey(group.kind.titleKey)).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("nearby.mine.group.\(group.kind.rawValue)")
                 ForEach(group.rows) { row in mineRow(row, leading: group.kind == .leading) }
@@ -432,8 +432,8 @@ import SwiftUI
                     Spacer(minLength: 8)
                     NearbyTeamBadgeView(badge: leading ? .leader : .joined, captain: leading)
                 }
-                if let start = NearbyTeamPresentation.startText(team.expireTime) { Text("nearby.w208.mine.start \(start)").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                else { Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                if let start = NearbyTeamPresentation.startText(team.expireTime) { Text("nearby.w208.mine.start \(start)").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                else { Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 NearbyMineMembersText(joined: team.joinedCount, maximum: team.maxMembers)
                 routeButton("nearby.enter", destination: .team(.init(team.id)))
             }.accessibilityElement(children: .contain)
@@ -446,12 +446,12 @@ import SwiftUI
                     Spacer(minLength: 8)
                     NearbyTeamBadgeView(badge: application.status == .pending ? .pending : .rejected)
                 }
-                if application.status == .pending, !application.activityName.isEmpty { Text(verbatim: application.activityName).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                if application.status == .pending, !application.activityName.isEmpty { Text(verbatim: application.activityName).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 NearbyMineMembersText(joined: application.joinedCount, maximum: application.maxMembers)
                 CYStatusChip(LocalizedStringKey(application.status.key), tone: application.status == .pending ? .warning : .danger)
                 if !application.leaderName.isEmpty { LabeledContent("nearby.leader") { Text(verbatim: application.leaderName) } }
                 if application.status == .pending { expiry(application.applyExpireTime); actionButton(.withdraw(application.id)) }
-                else { Text("nearby.rejected.foot").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary); CYPillButton("nearby.lookNearby", style: .secondary) { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 } }
+                else { Text("nearby.rejected.foot").cyText(.meta).foregroundStyle(CYColor.textTertiary); CYPillButton("nearby.lookNearby", style: .secondary) { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 } }
             }.accessibilityElement(children: .contain)
                         .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
         }
@@ -541,11 +541,11 @@ import SwiftUI
                         } icon: {
                             Image(systemName: "person.crop.circle")
                         }
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                     }
                     Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if !consequenceKeys.isEmpty {
@@ -557,7 +557,7 @@ import SwiftUI
                                         .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
                                         .accessibilityHidden(true)
                                     Text(LocalizedStringKey(key))
-                                        .font(CYTypography.bodyCompact)
+                                        .cyText(.bodyCompact)
                                         .foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }

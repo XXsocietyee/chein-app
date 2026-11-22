@@ -90,7 +90,7 @@ struct ClubConsequenceSheet: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             if let objectName, !objectName.isEmpty {
                 Text(verbatim: objectName)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
             }
             VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -101,7 +101,7 @@ struct ClubConsequenceSheet: View {
                             .frame(width: 24)
                             .accessibilityHidden(true)
                         Text(verbatim: item.text)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -177,7 +177,7 @@ struct ClubPageEndActions: View {
                 Text(verbatim: clubR1(key, locale))
                 Spacer(minLength: 0)
             }
-            .font(CYTypography.body.weight(.semibold))
+            .cyText(.bodyMedium)
             .foregroundStyle(palette.danger)
             .padding(.horizontal, CYSpacing.lg)
             .frame(minHeight: 52)
@@ -200,10 +200,10 @@ struct ClubWithdrawalHandOffNote: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: clubR1("funds.handOff.title", locale))
-                    .font(CYTypography.body.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
                 Text(verbatim: clubR1("funds.handOff.line", locale))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

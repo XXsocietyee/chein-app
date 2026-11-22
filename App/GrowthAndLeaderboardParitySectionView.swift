@@ -213,7 +213,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
     private var headerView: some View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.sectionTitle)
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("growthLeaderboardAudit.title")
             Spacer()
             Text(verbatim: "\(snapshot.badgeParitySpecID) · \(snapshot.leaderboardSpecID)")
@@ -229,7 +229,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 6) {
                 Text(verbatim: "I07 Form-Encoded 请求体")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                 Text(verbatim: snapshot.formEncodedContentType)
                     .font(.caption2.monospaced())
                     .foregroundStyle(.secondary)
@@ -259,7 +259,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
                 .accessibilityIdentifier("growthLeaderboardAudit.authStateCode")
 
             Text(verbatim: snapshot.statusBannerText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.primary)
                 .accessibilityIdentifier("growthLeaderboardAudit.authStatusBanner")
         }
@@ -270,13 +270,13 @@ public struct GrowthAndLeaderboardParitySectionView: View {
     private var badgeParityStripView: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "w2-10 成长勋章对齐 (\(snapshot.badges.count))")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .accessibilityIdentifier("growthLeaderboardAudit.badgeSectionHeader")
 
             ForEach(snapshot.badges) { badge in
                 HStack(spacing: 8) {
                     Text(verbatim: badge.isUnlocked ? "已解锁" : "未解锁")
-                        .font(.caption2.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
@@ -284,9 +284,9 @@ public struct GrowthAndLeaderboardParitySectionView: View {
                                 .fill(badge.isUnlocked ? CYColor.successText.opacity(0.2) : Color.gray.opacity(0.2))
                         )
                     Text(verbatim: badge.title)
-                        .font(.caption.weight(.medium))
+                        .cyText(.label)
                     Text(verbatim: badge.tierText)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
                     Text(verbatim: badge.progressText)
@@ -304,7 +304,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
     private var leaderboardListView: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "排行榜单 (\(snapshot.rows.count))")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .accessibilityIdentifier("growthLeaderboardAudit.leaderboardHeader")
 
             ForEach(snapshot.rows) { row in
@@ -319,17 +319,17 @@ public struct GrowthAndLeaderboardParitySectionView: View {
                             .fill(Color.accentColor.opacity(0.18))
                             .frame(width: 28, height: 28)
                         Text(verbatim: row.resolvedAvatarMonogram)
-                            .font(.caption.weight(.bold))
+                            .cyText(.meta, weight: .bold)
                             .accessibilityIdentifier("growthLeaderboardAudit.row.\(row.id).monogram")
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.nickname)
-                            .font(.caption.weight(.medium))
+                            .cyText(.label)
                             .accessibilityIdentifier("growthLeaderboardAudit.row.\(row.id).nickname")
                         if let badgeTitle = row.badgeTitle {
                             Text(verbatim: badgeTitle)
-                                .font(.caption2)
+                                .cyText(.caption)
                                 .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("growthLeaderboardAudit.row.\(row.id).badge")
                         }

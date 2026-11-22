@@ -94,7 +94,7 @@ import SwiftUI
                     .id(destination.id)
                     .safeAreaInset(edge: .bottom) {
                         Label("merchant.acceptedProject.boundary", systemImage: "info.circle")
-                            .font(.footnote).foregroundStyle(.secondary)
+                            .cyText(.bodyCompact).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, Theme.Space.s4).padding(.vertical, Theme.Space.s3)
                             .frame(maxWidth: .infinity, alignment: .leading).background(.bar)

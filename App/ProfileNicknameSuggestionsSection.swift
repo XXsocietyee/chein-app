@@ -33,7 +33,7 @@ import SwiftUI
         let action=model.flow.actionID
         VStack(alignment:.leading,spacing:10) {
             if active,reader?.isConfigured == true,model.flow.matchesInput(text) {
-                if let message=model.flow.state.message { Text(LocalizedStringKey(message),tableName:"ProfileNicknameRead").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("profile.nickname.availability") }
+                if let message=model.flow.state.message { Text(LocalizedStringKey(message),tableName:"ProfileNicknameRead").cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("profile.nickname.availability") }
                 if model.flow.state == .unavailable,let action {
                     Button { Task { guard active,model.flow.matchesInput(text) else { return };await model.flow.retryCheck(action:action);model.refresh() } } label: { Text("nickname.read.retry",tableName:"ProfileNicknameRead") }.accessibilityIdentifier("profile.nickname.retryCheck")
                 }
@@ -41,12 +41,12 @@ import SwiftUI
                     Button { guard active,model.flow.matchesInput(text),let action,let value=model.flow.select(nickname,action:action) else { return };text=value;model.refresh() } label:{ Text(verbatim:nickname) }
                         .disabled(model.flow.isSuggesting).accessibilityIdentifier("profile.nickname.suggestion")
                 }
-                if let message=model.flow.suggestionsMessage { Text(LocalizedStringKey(message),tableName:"ProfileNicknameRead").font(.footnote) }
+                if let message=model.flow.suggestionsMessage { Text(LocalizedStringKey(message),tableName:"ProfileNicknameRead").cyText(.bodyCompact) }
                 if model.flow.state == .taken,let action {
                     Button { Task { guard active,model.flow.matchesInput(text) else { return };await model.flow.loadSuggestions(action:action);model.refresh() } } label: { Text("nickname.read.more",tableName:"ProfileNicknameRead") }.disabled(!model.flow.canSuggest).accessibilityIdentifier("profile.nickname.more")
                 }
                 if model.flow.isSuggesting { ProgressView { Text("nickname.read.suggesting",tableName:"ProfileNicknameRead") } }
-                Text("nickname.read.notReserved",tableName:"ProfileNicknameRead").font(.caption).foregroundStyle(.secondary)
+                Text("nickname.read.notReserved",tableName:"ProfileNicknameRead").cyText(.meta).foregroundStyle(.secondary)
             }
         }
         .privacySensitive()

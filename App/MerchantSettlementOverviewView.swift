@@ -85,7 +85,7 @@ import SwiftUI
     var body: some View {
         List {
             if reader.isOfflineExample {
-                Text("merchant.business.synthetic").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.business.synthetic").cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchant.settlementOverview.synthetic")
             }
             sectionView(.overview)
@@ -165,7 +165,7 @@ import SwiftUI
                 }
                 ForEach(content.rows) { row in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(row.title).font(.headline)
+                        Text(row.title).cyText(.cardTitle)
                         MerchantBusinessRecordFields(row: row, access: snapshot.access, compact: false, settlementEntries: true)
                     }.accessibilityIdentifier("merchant.settlementOverview.entry.\(row.id)")
                 }
@@ -183,7 +183,7 @@ import SwiftUI
                             }
                         } label: {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(row.title).font(.headline)
+                                Text(row.title).cyText(.cardTitle)
                                 MerchantBusinessRecordFields(row: row, access: snapshot.access, compact: true)
                             }
                         }.accessibilityIdentifier("merchant.settlementOverview.batch.\(row.id)")

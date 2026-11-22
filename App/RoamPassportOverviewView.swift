@@ -50,12 +50,12 @@ import SwiftUI
                         LabeledContent("roam.passport.distanceCoverage", value: "\(summary.tripsWithDistance)/\(summary.trips)")
                         LabeledContent("roam.passport.shopsCoverage", value: "\(summary.tripsWithShops)/\(summary.trips)")
                         LabeledContent("roam.passport.dateCoverage", value: "\(summary.tripsWithDate)/\(summary.trips)")
-                    }.font(.caption).foregroundStyle(.secondary)
+                    }.cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityIdentifier("roam.passport.partial")
                 }
-                Text("roam.passport.localOnly").font(.caption).foregroundStyle(.secondary)
+                Text("roam.passport.localOnly").cyText(.meta).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("roam.passport.counting").font(.caption).foregroundStyle(.secondary)
+                Text("roam.passport.counting").cyText(.meta).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }.accessibilityIdentifier("roam.passport.overview")

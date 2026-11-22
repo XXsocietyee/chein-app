@@ -125,7 +125,7 @@ import SwiftUI
                 if applyStep == 0 {
                     Section {
                         Text(verbatim: ClubPlayerCopy.applyIntroTitle(locale))
-                            .font(CYTypography.pageTitle)
+                            .cyText(.pageTitle)
                             .accessibilityIdentifier("club.player.apply.intro")
                     }
                 }
@@ -133,11 +133,11 @@ import SwiftUI
                     Section {
                         ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { fieldRow($0) }
                         if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                            Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.nameGap")
                         }
                         if applyBlocked, (draft.text["phone"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                            Text(verbatim: ClubPlayerCopy.applyPhoneGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.phoneGap")
                         }
                     } header: { applyStepHeader(1) } footer: { Text("club.host.contactPrivate") }
@@ -147,7 +147,7 @@ import SwiftUI
                     Section {
                         ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { fieldRow($0) }
                         if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                            Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.experienceGap")
                         }
                     } header: { applyStepHeader(2) }
@@ -156,7 +156,7 @@ import SwiftUI
                 if applyStep == 3 {
                     Section {
                         ForEach(["canDesignRoute", "canDesignTask", "canNpc", "canMerchantCoop"], id: \.self) { flagRow($0) }
-                        Text("club.host.skills.selectedCount \(ClubHostApplyPort.capabilityCount(draft.flags))").font(.footnote).foregroundStyle(.secondary)
+                        Text("club.host.skills.selectedCount \(ClubHostApplyPort.capabilityCount(draft.flags))").cyText(.bodyCompact).foregroundStyle(.secondary)
                     } header: { applyStepHeader(3) }
                         .disabled(busy || locked || review != nil)
                 }
@@ -243,7 +243,7 @@ import SwiftUI
                 // Mini isPermissionDenial: terminal state with an exit, not a retry.
                 Section {
                     Label("club.gov.groupCode.noPermission", systemImage: "lock").accessibilityIdentifier("club.gov.groupCode.noPermission")
-                    Text("club.gov.groupCode.noPermission.hint").font(.footnote).foregroundStyle(.secondary)
+                    Text("club.gov.groupCode.noPermission.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     Button("club.gov.groupCode.backToClub") { dismiss() }.accessibilityIdentifier("club.gov.groupCode.back")
                 }
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
@@ -270,7 +270,7 @@ import SwiftUI
                         .listRowBackground(Color.clear)
                         .disabled(!coordinator.canDispatch(review.command) || busy || locked).accessibilityIdentifier("club.gov.confirm")
                     if ClubOpsEventWriteGate.state(canDispatch: coordinator.canDispatch(review.command), busy: busy, locked: locked).showsNotAvailableNote {
-                        Text("clubOpsEvent.write.notAvailable", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                        Text("clubOpsEvent.write.notAvailable", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
                             .accessibilityIdentifier("clubOpsEvent.write.notAvailable")
                     }
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
@@ -491,7 +491,7 @@ import SwiftUI
     @ViewBuilder private func applyStepHeader(_ step: Int) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: ClubPlayerCopy.progress(step))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityLabel(Text(verbatim: ClubPlayerCopy.progressLabel(step, locale: locale)))
                 .accessibilityIdentifier("club.player.apply.progress")
@@ -532,7 +532,7 @@ import SwiftUI
             // Mini inline "reason required" copy; display only (the command validation still blocks blank reasons).
             if key == "reason", dirty, let mode = Self.reasonMode(route.operation), !ClubGovernanceReportPort.reasonIsValid(draft.text[key] ?? "") {
                 Text(LocalizedStringKey(ClubGovernanceReportPort.reasonRequiredKey(mode)), tableName: "ClubOpsGovernance")
-                    .font(.footnote).foregroundStyle(CYColor.dangerText)
+                    .cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.gov.reasonRequired")
             }
         }

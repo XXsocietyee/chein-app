@@ -37,7 +37,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                             )
                         }
                         .accessibilityIdentifier("roam.serverHistory.open")
-                    if !offered.configured { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")).font(.caption) }
+                    if !offered.configured { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")).cyText(.meta) }
                 }.frame(maxWidth: .infinity, alignment: .leading).padding().background(.regularMaterial)
             }
             .onChange(of: offered) { _, _ in target = nil }
@@ -70,7 +70,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
             if owner != RoamPassportHistoryOwner(reader) { passportText("changed") }
             else if !reader.isConfigured || reader.identity == nil { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")) }
             else if scenePhase == .active {
-                Section { passportText("boundary").font(.footnote).foregroundStyle(.secondary) }
+                Section { passportText("boundary").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 if model.isVisible {
                     Section {
                         if let value = model.summary {
@@ -91,7 +91,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                                 selected = .init(id: item.sessionID, owner: owner)
                             } label: {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text(verbatim: "#" + item.sessionID).font(.headline)
+                                    Text(verbatim: "#" + item.sessionID).cyText(.cardTitle)
                                     if let date = passportDate(item.timestamp) { Text(date, format: .dateTime.year().month().day().hour().minute()) }
                                     else { passportText("dateUnknown") }
                                     HStack { Text(verbatim: item.distanceKM.map { String(format: "%.1f km", locale: locale, $0) } ?? "—"); Spacer(); Image(systemName: "chevron.forward") }
@@ -187,20 +187,20 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                 } else if let error = model.error { RoamExperienceIssue(error: error) { Task { await model.read(retry) } } }
                 if let fact = model.fact {
                     Section {
-                        Text(verbatim: "#" + fact.sessionID).font(.headline)
+                        Text(verbatim: "#" + fact.sessionID).cyText(.cardTitle)
                         if let date = passportDate(fact.timestamp) { Text(date, format: .dateTime.year().month().day().hour().minute()) }
                         else { passportText("dateUnknown") }
                         LabeledContent { Text(verbatim: fact.distanceKM.map { String(format: "%.1f km", locale: locale, $0) } ?? "—") } label: { passportText("distance") }
                         LabeledContent { Text(verbatim: fact.shops.map(String.init) ?? "—") } label: { passportText("shops") }
                         LabeledContent { Text(verbatim: fact.durationSeconds.map { "\($0 / 3600):" + String(format: "%02lld", $0 % 3600 / 60) } ?? "—") } label: { passportText("duration") }
                         RoamPassportTrackView(track: model.track, places: model.supplement?.pois.map(\.point) ?? [])
-                        passportText("trackBoundary").font(.caption).foregroundStyle(.secondary)
+                        passportText("trackBoundary").cyText(.meta).foregroundStyle(.secondary)
                     }
                     if let local = model.supplement {
                         Section {
                             if let zone = local.meaningfulZone { Text(verbatim: zone) }
                             LabeledContent { Text(verbatim: String(local.photos.count)) } label: { passportText("photos") }
-                            passportText("localBoundary").font(.caption).foregroundStyle(.secondary)
+                            passportText("localBoundary").cyText(.meta).foregroundStyle(.secondary)
                         } header: { passportText("localSupplement") }
                     }
                 }
@@ -232,7 +232,7 @@ private struct RoamPassportTrackView: View {
         let sketch = RoamRouteSketch(track: track, places: places)
         ZStack {
             RoundedRectangle(cornerRadius: 16).fill(Color.accentColor.opacity(0.08))
-            if sketch.track.isEmpty { Text("roam.experience.noTrack").font(.caption) }
+            if sketch.track.isEmpty { Text("roam.experience.noTrack").cyText(.meta) }
             else {
                 Canvas { context, size in
                     var path = Path()

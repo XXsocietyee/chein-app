@@ -34,7 +34,7 @@ import UIKit
                         .accessibilityHidden(true)
                     appName
                     Text("settingsNative.about.tagline")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .multilineTextAlignment(.center)
                 }
@@ -75,7 +75,7 @@ import UIKit
             if let phone = model.contactPhone {
                 Section {
                     Text(verbatim: phone)
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .foregroundStyle(palette.textPrimary)
                         .textSelection(.enabled)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -143,12 +143,12 @@ import UIKit
             case .loading:
                 Text("settingsNative.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
             case .error:
-                Text("settingsNative.about.playerCodeUnavailable").font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary)
+                Text("settingsNative.about.playerCodeUnavailable").cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("settingsNative.about.playerCodeUnavailable")
                 Text("settingsNative.about.playerCodeHint").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             case .empty, .unknown:
-                Text(verbatim: SettingsAboutMetadataPhase.unknownText).font(CYTypography.numericBody).foregroundStyle(palette.textSecondary)
+                Text(verbatim: SettingsAboutMetadataPhase.unknownText).cyText(.numericBody).foregroundStyle(palette.textSecondary)
                     .accessibilityLabel(Text("settingsNative.about.playerCodeUnavailable"))
             }
             if showsPlayerCodePending {
@@ -181,7 +181,7 @@ import UIKit
 
     private var appName: some View {
         Text(verbatim: "chein - 城瘾")
-            .font(CYTypography.pageTitle)
+            .cyText(.pageTitle)
             .foregroundStyle(palette.textPrimary)
             .multilineTextAlignment(.center)
             .accessibilityAddTraits(.isHeader)
@@ -194,7 +194,7 @@ import UIKit
 
     private var marketRow: some View {
         LabeledContent {
-            Text(verbatim: SettingsHomePage.marketText(market)).font(CYTypography.numericBody).foregroundStyle(palette.textSecondary)
+            Text(verbatim: SettingsHomePage.marketText(market)).cyText(.numericBody).foregroundStyle(palette.textSecondary)
         } label: {
             Label("region.market", systemImage: "globe").environment(\.settingsTileTint, SettingsTint.teal)
         }
@@ -237,7 +237,7 @@ private struct SettingsFactRow: View {
 
     @ViewBuilder private var labeledValue: some View {
         let text = Text(verbatim: shown)
-            .font(CYTypography.numericBody)
+            .cyText(.numericBody)
             .foregroundStyle(palette.textSecondary)
             .cyWrapText()
         if let value {

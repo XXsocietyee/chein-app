@@ -178,7 +178,7 @@ import SwiftUI
                     .accessibilityIdentifier("club.calendar.previous")
                 Spacer(minLength: CYSpacing.sm)
                 Text(verbatim: month.key)
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -193,7 +193,7 @@ import SwiftUI
                     .accessibilityIdentifier("club.calendar.next")
             }
             Text("club.calendar.startDates")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             let cells = month.cells(events: snapshot.events)
@@ -201,7 +201,7 @@ import SwiftUI
                 // Keep long names and every event reachable with large text.
                 ForEach(cells.filter { !$0.events.isEmpty }) { cell in
                     Text(verbatim: cell.day.id)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     ForEach(cell.events) { event in eventRow(event, showDate: false) }
@@ -210,7 +210,7 @@ import SwiftUI
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.xs), count: 7), spacing: CYSpacing.sm) {
                     ForEach(1...7, id: \.self) { day in
                         Text(LocalizedStringKey("club.calendar.weekday." + String(day)))
-                            .font(CYTypography.caption)
+                            .cyText(.caption)
                             .foregroundStyle(palette.textTertiary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityHidden(true)
@@ -242,7 +242,7 @@ import SwiftUI
                 }
                 if let selectedDay {
                     Text(verbatim: selectedDay.id)
-                        .font(CYTypography.sectionTitle)
+                        .cyText(.sectionTitle)
                         .foregroundStyle(palette.textPrimary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
@@ -251,7 +251,7 @@ import SwiftUI
                     let events = snapshot.events.filter { $0.startDay == selectedDay }
                     if events.isEmpty {
                         Label("club.calendar.noDayEvents", systemImage: "calendar.badge.clock")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .labelStyle(.titleAndIcon)
                             .fixedSize(horizontal: false, vertical: true)
@@ -260,7 +260,7 @@ import SwiftUI
                     ForEach(events) { event in eventRow(event, showDate: false) }
                 } else {
                     Text("club.calendar.pickDay")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -273,7 +273,7 @@ import SwiftUI
         if !snapshot.undated.isEmpty {
             Section("club.calendar.undated") {
                 Text("club.calendar.undatedHint")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 ForEach(snapshot.undated) { event in eventRow(event, showDate: false) }
@@ -302,7 +302,7 @@ import SwiftUI
         HStack(spacing: CYSpacing.md) {
             CYRowIcon(systemImage: "calendar.badge.clock")
             Text("sessions.title", tableName: "ClubCalendarSessions")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: CYSpacing.sm)

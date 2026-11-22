@@ -139,7 +139,7 @@ struct CityChallengeSheet: View {
                 ])
                 VStack(spacing: CYSpacing.sm) {
                     if let reason = startBlockingReason {
-                        Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        Text(verbatim: reason).cyText(.meta).foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                             .transition(.opacity)
                             .accessibilityIdentifier("city.challenge.reason")
@@ -156,7 +156,7 @@ struct CityChallengeSheet: View {
                 .cyAnimation(CYMotion.standard, value: canStart)
                 .cyHaptic(.selection, trigger: canStart) { _, new in new }
                 Text(verbatim: copy("没掷够，挑战费的 30% 给守方，其余销毁。", "If you miss, 30% of the fee goes to the holder and the rest is burned."))
-                    .font(CYTypography.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
+                    .cyText(.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
                 if let issue = store.issueCode {
                     CityBanner(text: CityReasonCopy.text(issue, chinese: copy.chinese), symbol: "exclamationmark.circle", tone: .error)
@@ -205,7 +205,7 @@ struct CityShieldSheet: View {
                     .init(label: copy("花费", "Cost"), value: String(CityMonopolyRules.shieldCost), coin: true)
                 ])
                 Text(verbatim: copy("同一块地 7 天只能开一次，最多叠到 48 小时。", "Once per place every 7 days, up to 48 hours."))
-                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             // In place (xrefs-1 C2, N47): 开护盾 → 正在开启 → 已开护盾, then the sheet closes after 600 ms with the
             // protection tag on the row behind it already updated.
@@ -256,12 +256,12 @@ struct CityUpgradeSheet: View {
                     .init(label: copy("升级费", "Upgrade cost"), value: String(cost), coin: true)
                 ])
                 Text(verbatim: copy("升级要本人到场：在原地停留 1 分钟。", "Upgrading needs you on site: stay one minute."))
-                    .font(CYTypography.meta).foregroundStyle(.secondary)
+                    .cyText(.meta).foregroundStyle(.secondary)
                 CityPresenceChecklist(checks: sampler.checks(anchor: place.coordinate), running: sampler.running)
                 VStack(spacing: CYSpacing.sm) {
                     if phase == .idle, let reason = quote == nil ? nil : CityBlockingReason.text(fixes: sampler.fixes, anchor: place.coordinate, running: sampler.running,
                                                                                                verb: ("升级", "upgrade"), copy: copy) {
-                        Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(.secondary)
+                        Text(verbatim: reason).cyText(.meta).foregroundStyle(.secondary)
                             .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                     }
                     CYResultButton(verbatim: copy("升级 · \(cost) 积分", "Upgrade · \(cost) pts"), loading: copy("正在升级", "Upgrading"),
@@ -470,8 +470,8 @@ struct CityDiceMoment: View {
                 if let dc {
                     CityOddsBar(needFace: CityOddsBar.needFace(dc: dc, mod: 0))
                 }
-                Text(verbatim: copy("准备掷骰", "Ready to roll")).font(Font.title.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
-                Text(verbatim: copy("把骰子甩出去，或点「掷骰」。", "Flick the die, or tap Roll.")).font(Font.body).foregroundStyle(palette.textSecondary)
+                Text(verbatim: copy("准备掷骰", "Ready to roll")).cyText(.display).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+                Text(verbatim: copy("把骰子甩出去，或点「掷骰」。", "Flick the die, or tap Roll.")).cyText(.body).foregroundStyle(palette.textSecondary)
                 CityInfoChip(text: copy("对手 ", "Holder ") + copy.level(place.level))
             }
             VStack(spacing: CYSpacing.sm) {

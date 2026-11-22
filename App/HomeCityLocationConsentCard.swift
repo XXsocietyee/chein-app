@@ -10,13 +10,13 @@ struct HomeCityLocationConsentCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Label {
-                Text("homeCityConsent.title").font(CYTypography.cardTitle)
+                Text("homeCityConsent.title").cyText(.cardTitle)
             } icon: {
                 Image(systemName: "location.circle").foregroundStyle(CYColor.brand)
             }
             .foregroundStyle(CYColor.textPrimary)
             Text("homeCityConsent.body")
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             ViewThatFits(in: .horizontal) {

@@ -17,7 +17,7 @@ struct ClubOpsJoinRequestsIntro: View {
                 Text("clubOpsJN.join.intro.pending \(pending)", tableName: "ClubOpsJoinNotify")
             } else { Text("clubOpsJN.join.intro.none", tableName: "ClubOpsJoinNotify") }
         }
-        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
         .accessibilityIdentifier("clubOpsJN.join.intro")
     }
 }
@@ -29,7 +29,7 @@ struct ClubOpsJoinRequestRowText: View {
         if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) { Text(verbatim: name) }
         else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify") }
         if let quote = ClubOpsJoinRequestPresentation.quotedMessage(request.joinMessage) {
-            Text(verbatim: quote).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).lineLimit(3)
+            Text(verbatim: quote).cyText(.caption).foregroundStyle(CYColor.textTertiary).lineLimit(3)
                 .accessibilityIdentifier("clubOpsJN.join.message.\(request.id)")
         }
     }
@@ -64,7 +64,7 @@ struct ClubOpsJoinRejectReasonField: View {
                 Spacer()
                 Text(verbatim: "\(ClubOpsJoinReviewReason.count(text))/\(ClubOpsJoinReviewReason.maximumUTF16Count)")
                     .monospacedDigit().foregroundStyle(.secondary)
-            }.font(.caption)
+            }.cyText(.meta)
         } header: { Text("clubOpsJN.join.reason.title", tableName: "ClubOpsJoinNotify") }
     }
 }

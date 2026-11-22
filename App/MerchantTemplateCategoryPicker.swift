@@ -39,7 +39,7 @@ import SwiftUI
                 Button("merchant.categories.choose", action: open)
                     .buttonStyle(.bordered).controlSize(.large)
                     .disabled(!editable).accessibilityIdentifier("merchant.categories.open")
-                Text("merchant.categories.scope").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.categories.scope").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
         }
     }
@@ -98,7 +98,7 @@ import SwiftUI
                     }
                     if !model.selection.unavailableIDs.isEmpty {
                         Section("merchant.categories.unavailable") {
-                            Text("merchant.categories.unavailableHint").font(.footnote)
+                            Text("merchant.categories.unavailableHint").cyText(.bodyCompact)
                             ForEach(model.selection.unavailableIDs, id: \.self) { id in
                                 Button { model.removeUnavailable(id) } label: { Text("merchant.categories.removeID \(id)") }
                                     .accessibilityIdentifier("merchant.categories.removeUnavailable.\(id)")
@@ -107,8 +107,8 @@ import SwiftUI
                     }
                     Section {
                         Text("merchant.categories.selectionCount \(model.selection.selectedIDs.count)")
-                            .font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true)
-                        Text("merchant.categories.minimum").font(.footnote).foregroundStyle(.secondary)
+                            .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                        Text("merchant.categories.minimum").cyText(.bodyCompact).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if model.selection.rows.isEmpty { Text("merchant.categories.empty").accessibilityIdentifier("merchant.categories.empty") }
@@ -158,13 +158,13 @@ private struct MerchantTemplateCategorySummary: View {
         else {
             ForEach(categories.selectedIDs, id: \.self) { id in
                 VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                    if let name = categories.name(id), !name.isEmpty { Text(verbatim: name).font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true) }
-                    Text("merchant.categories.id \(id)").font(Theme.Font.label).foregroundStyle(.secondary)
+                    if let name = categories.name(id), !name.isEmpty { Text(verbatim: name).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                    Text("merchant.categories.id \(id)").cyText(.label).foregroundStyle(.secondary)
                 }.padding(.vertical, Theme.Space.s1).accessibilityElement(children: .combine).accessibilityIdentifier("merchant.categories.selected.\(id)")
             }
         }
         if let id = categories.primaryID {
-            Text("merchant.categories.primary \(id)").font(.footnote).accessibilityIdentifier("merchant.categories.primary")
+            Text("merchant.categories.primary \(id)").cyText(.bodyCompact).accessibilityIdentifier("merchant.categories.primary")
         }
     }
 }
@@ -177,7 +177,7 @@ struct MerchantTemplateCategoryReview: View {
             if categories.replacedUnsupportedSource {
                 Text("merchant.categories.replacementReview").accessibilityIdentifier("merchant.categories.review.replacement")
             }
-            Text("merchant.categories.reviewHint").font(.footnote).foregroundStyle(.secondary)
+            Text("merchant.categories.reviewHint").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
     }
 }

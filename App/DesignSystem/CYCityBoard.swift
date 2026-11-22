@@ -22,9 +22,9 @@ struct CYCityTurnHUD: View {
         HStack(spacing: CYSpacing.lg) {
             CYCityDie(face: face, rolling: rolling)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("cityGame.hud.round", tableName: "CityGame").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                Text("cityGame.hud.round", tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: roundSeq.map { String($0) } ?? "—")
-                    .font(.system(.title, design: .rounded).weight(.heavy)).monospacedDigit()
+                    .cyText(.dataXL).monospacedDigit()
                     .foregroundStyle(CYColor.textPrimary).contentTransition(.numericText())
                 pips
             }
@@ -47,7 +47,7 @@ struct CYCityTurnHUD: View {
                 }
             }.accessibilityHidden(true)
         } else {
-            Text(verbatim: "—").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: "—").cyText(.caption).foregroundStyle(CYColor.textTertiary)
         }
     }
 
@@ -76,9 +76,9 @@ struct CYCityDie: View {
             if let face, (1...6).contains(face) {
                 pipGrid(face).transition(.opacity)
             } else if let face {
-                Text(verbatim: String(face)).font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: String(face)).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
             } else {
-                Text(verbatim: "—").font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: "—").cyText(.dataXL).foregroundStyle(CYColor.textTertiary)
             }
         }
         .frame(width: 56, height: 56)
@@ -251,12 +251,12 @@ struct CYCityVerdict: View {
 
     var body: some View {
         VStack(spacing: CYSpacing.md) {
-            Text("cityGame.verdict.title", tableName: "CityGame").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text("cityGame.verdict.title", tableName: "CityGame").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
             HStack(spacing: CYSpacing.xl) {
                 figure(holdingLimit.map { "\(held) / \($0)" } ?? String(held), key: "cityGame.rules.holdings")
                 figure(points.map { String($0) } ?? "—", key: "cityGame.points.balance")
             }
-            Text("cityGame.verdict.detail", tableName: "CityGame").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text("cityGame.verdict.detail", tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity).padding(CYSpacing.lg)
@@ -272,8 +272,8 @@ struct CYCityVerdict: View {
 
     private func figure(_ value: String, key: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value).font(.system(.title, design: .rounded).weight(.heavy)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            Text(key, tableName: "CityGame").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: value).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            Text(key, tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary)
         }
     }
 }

@@ -172,7 +172,7 @@ struct RoamItemDetailView: View {
     private var content: some View {
         List {
             Section {
-                RoamTitle(node?.name ?? item.title).font(.title2.bold())
+                RoamTitle(node?.name ?? item.title).cyText(.sheetTitle)
                 Label(item.kindLabel, systemImage: item.symbol)
                 if reader.isOfflineExample { Text("roam.offlineExample").font(.caption) }
             }

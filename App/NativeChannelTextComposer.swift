@@ -19,8 +19,8 @@ import SwiftUI
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             if historyReady && coordinator.isCurrent {
                 status
-                if coordinator.pendingMentionSummary != nil { Text("d7.channelChat.withMentions").fixedSize(horizontal: false, vertical: true).font(.footnote).foregroundStyle(.secondary) }
-                if coordinator.pendingQuotedMessageID != nil { Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote).foregroundStyle(.secondary) }
+                if coordinator.pendingMentionSummary != nil { Text("d7.channelChat.withMentions").fixedSize(horizontal: false, vertical: true).cyText(.bodyCompact).foregroundStyle(.secondary) }
+                if coordinator.pendingQuotedMessageID != nil { Text("channelText.replying", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).cyText(.bodyCompact).foregroundStyle(.secondary) }
                 if coordinator.canSendNew {
                     if coordinator.quotedMessageID != nil || coordinator.mentionSummary != nil {
                         // Reply and mention context sits above the field, cancelled in one tap.
@@ -36,7 +36,7 @@ import SwiftUI
                                     }
                                 }
                             }
-                            .font(.footnote).foregroundStyle(.secondary)
+                            .cyText(.bodyCompact).foregroundStyle(.secondary)
                             Spacer(minLength: 0)
                             Button { coordinator.cancelQuoteDraft() } label: {
                                 Label { Text("channelText.cancelReply", tableName: "NativeChannelText") } icon: { Image(systemName: "xmark.circle.fill") }
@@ -45,7 +45,7 @@ import SwiftUI
                             }.buttonStyle(.borderless)
                         }
                         if coordinator.quotedMessageID != nil && !coordinator.quoteDraftIsCurrent {
-                            Text("channelText.replyUnavailable", tableName: "NativeChannelText").font(.footnote).foregroundStyle(Theme.Color.danger(in: domain)).fixedSize(horizontal: false, vertical: true)
+                            Text("channelText.replyUnavailable", tableName: "NativeChannelText").cyText(.bodyCompact).foregroundStyle(Theme.Color.danger(in: domain)).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     // `+` on the left, then a rounded field with the send control inside it.
@@ -99,10 +99,10 @@ import SwiftUI
                             }.accessibilityIdentifier("channel.text.retryOriginal")
                         }
                     }
-                    .buttonStyle(.bordered).font(Theme.Font.button)
+                    .buttonStyle(.bordered).cyText(.button)
                 }
             } else {
-                Text("channelText.unavailable", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote).foregroundStyle(.secondary)
+                Text("channelText.unavailable", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).cyText(.bodyCompact).foregroundStyle(.secondary)
                 accessoryRow
             }
         }
@@ -132,23 +132,23 @@ import SwiftUI
     @ViewBuilder private var status: some View {
         switch coordinator.visibleState {
         case .idle:
-            if !coordinator.canSendNew { Text("channelText.unavailable", tableName: "NativeChannelText").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
-        case .sending: ProgressView { Text("channelText.sending", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true) }
-        case .checkingReceipt: ProgressView { Text("channelText.checking", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true) }
+            if !coordinator.canSendNew { Text("channelText.unavailable", tableName: "NativeChannelText").cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+        case .sending: ProgressView { Text("channelText.sending", tableName: "NativeChannelText").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true) }
+        case .checkingReceipt: ProgressView { Text("channelText.checking", tableName: "NativeChannelText").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true) }
         case .outcomeUnknown: Label { Text("channelText.unknown", tableName: "NativeChannelText") } icon: { Image(systemName: "clock") }.font(.footnote).fixedSize(horizontal: false, vertical: true)
-        case .receiptUnavailable: Text("channelText.receiptUnavailable", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
-        case .persistenceFailed: Text("channelText.storageUnavailable", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
-        case .accessClosed: Text("channelText.accessClosed", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
+        case .receiptUnavailable: Text("channelText.receiptUnavailable", tableName: "NativeChannelText").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
+        case .persistenceFailed: Text("channelText.storageUnavailable", tableName: "NativeChannelText").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
+        case .accessClosed: Text("channelText.accessClosed", tableName: "NativeChannelText").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
         case .acknowledged:
-            Text("channelText.received", tableName: "NativeChannelText").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("channel.text.serverReceived")
+            Text("channelText.received", tableName: "NativeChannelText").cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("channel.text.serverReceived")
             if coordinator.receiptPayloadWithheld {
-                Text("channelText.withheld", tableName: "NativeChannelText").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                Text("channelText.withheld", tableName: "NativeChannelText").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
             }
             if let message = coordinator.authoritativeMessage {
                 MessagingMessageContent(message: message).accessibilityIdentifier("channel.text.authoritativeMessage")
             }
             if coordinator.pendingClientMessageID != nil {
-                Text("channelText.cleanupPending", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).font(.footnote)
+                Text("channelText.cleanupPending", tableName: "NativeChannelText").fixedSize(horizontal: false, vertical: true).cyText(.bodyCompact)
             }
         }
     }

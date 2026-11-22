@@ -15,7 +15,7 @@ import SwiftUI
                 if model.state == .playing || model.state == .paused { model.toggle() } else { review = true }
             }.disabled(model.state == .gated || model.state == .disposed || model.state == .loading)
                 .accessibilityIdentifier("platform.audio.toggle")
-            Text("platform.audio.boundary").font(.footnote)
+            Text("platform.audio.boundary").cyText(.bodyCompact)
         }
         .confirmationDialog("platform.audio.review", isPresented: $review, titleVisibility: .visible) {
             Button("platform.audio.allow") { model.approveSelectedMedia(); model.toggle() }
@@ -38,7 +38,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 8) {
             CYPillButton("platform.map.open", style: .secondary) { review = true }.disabled(model.state == .gated || model.state == .opening)
                 .accessibilityIdentifier("platform.map.open")
-            Text(LocalizedStringKey("platform.map." + String(describing: model.state))).font(.footnote)
+            Text(LocalizedStringKey("platform.map." + String(describing: model.state))).cyText(.meta)
                 .accessibilityIdentifier("platform.map.state")
             if model.state == .launchFailed || model.state == .copyFailed || model.state == .noCoordinates {
                 CYPillButton("platform.map.copy", style: .tertiary) { model.copySelectedAddress() }.accessibilityIdentifier("platform.map.copy")

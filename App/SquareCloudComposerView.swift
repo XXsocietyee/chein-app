@@ -93,7 +93,7 @@ import SwiftUI
                         Rectangle().fill(CYNight.ink2).frame(width: 2).frame(maxHeight: .infinity)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(verbatim: displayName).font(.headline).foregroundStyle(.white).cyWrapText()
+                        Text(verbatim: displayName).cyText(.cardTitle).foregroundStyle(.white).cyWrapText()
                             .accessibilityIdentifier("square.cloud.author")
                         ZStack(alignment: .topLeading) {
                             if contents.isEmpty {
@@ -110,7 +110,7 @@ import SwiftUI
                                 .accessibilityIdentifier("square.cloud.text")
                         }
                         if let notice {
-                            Text(verbatim: notice).font(.footnote).foregroundStyle(.white.opacity(0.8))
+                            Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.white.opacity(0.8))
                                 .accessibilityIdentifier("square.cloud.notice")
                         }
                         previews
@@ -200,7 +200,7 @@ import SwiftUI
         HStack(spacing: CYSpacing.md) {
             Image(systemName: "person.crop.circle.fill").foregroundStyle(.white.opacity(0.8)).accessibilityHidden(true)
             Text(verbatim: "\(contents.count)/\(SquareComposeRules.maxLength)")
-                .font(.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.72))
+                .cyText(.meta, monospacedDigit: true).foregroundStyle(.white.opacity(0.72))
                 .accessibilityIdentifier("square.cloud.count")
             Spacer(minLength: CYSpacing.sm)
             if lock.phase == .unknown {
@@ -269,7 +269,7 @@ import SwiftUI
                 CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在读取草稿", "Loading drafts")))
                     .accessibilityIdentifier("square.cloud.drafts.loading")
             } else if drafts.isEmpty {
-                Text(verbatim: copy("还没有草稿", "No drafts yet")).font(.headline).foregroundStyle(.white)
+                Text(verbatim: copy("还没有草稿", "No drafts yet")).cyText(.cardTitle).foregroundStyle(.white)
                     .accessibilityIdentifier("square.cloud.drafts.empty")
                 Text(verbatim: copy("写到一半退出时会自动存成草稿，回到这里就能接着写。", "Leaving mid-write keeps a draft. Come back and continue."))
                     .font(.subheadline).foregroundStyle(.white.opacity(0.72))
@@ -279,9 +279,9 @@ import SwiftUI
                         Button { pick(row) } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 HStack {
-                                    Text(verbatim: row.nickname).font(.headline).foregroundStyle(.white).cyWrapText()
+                                    Text(verbatim: row.nickname).cyText(.cardTitle).foregroundStyle(.white).cyWrapText()
                                     Spacer(minLength: CYSpacing.sm)
-                                    Text(verbatim: row.date).font(.caption).foregroundStyle(.white.opacity(0.62))
+                                    Text(verbatim: row.date).cyText(.meta).foregroundStyle(.white.opacity(0.62))
                                 }
                                 Text(verbatim: row.summary).font(.subheadline).foregroundStyle(.white.opacity(0.8)).lineLimit(2)
                             }
@@ -298,7 +298,7 @@ import SwiftUI
                     }
                 }
                 Text(verbatim: copy("只有 \(drafts.count) 条草稿", "Only \(drafts.count) drafts"))
-                    .font(.caption).foregroundStyle(.white.opacity(0.62))
+                    .cyText(.meta).foregroundStyle(.white.opacity(0.62))
                     .accessibilityIdentifier("square.cloud.drafts.count")
             }
             if let undo {
@@ -320,7 +320,7 @@ import SwiftUI
 
     private var reviewPage: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Text(verbatim: contents).font(.body).foregroundStyle(.white).textSelection(.enabled)
+            Text(verbatim: contents).cyText(.body).foregroundStyle(.white).textSelection(.enabled)
             if let selectedActivity {
                 Text(verbatim: copy("活动「\(selectedActivity.name)」不会写入这次提交", "Activity “\(selectedActivity.name)” is not part of this submit"))
                     .font(.subheadline).foregroundStyle(.white.opacity(0.8))
@@ -341,7 +341,7 @@ import SwiftUI
                 Button(action: onClose) { Text(verbatim: copy("关闭", "Close")).frame(minHeight: CYSpacing.minTouchTarget) }
                     .accessibilityIdentifier("square.cloud.receiptClose")
             } else if lock.phase == .rejected {
-                Text(verbatim: copy("没有发出去", "It was not sent")).font(.headline).foregroundStyle(.white)
+                Text(verbatim: copy("没有发出去", "It was not sent")).cyText(.cardTitle).foregroundStyle(.white)
                     .accessibilityIdentifier("square.cloud.rejected")
             } else if preparing || lock.phase == .sending {
                 CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在提交", "Submitting")))
@@ -355,7 +355,7 @@ import SwiftUI
                 .disabled(review == nil)
                 .accessibilityIdentifier("square.cloud.reviewPublish")
             }
-            if let notice { Text(verbatim: notice).font(.footnote).foregroundStyle(.white.opacity(0.8)) }
+            if let notice { Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.white.opacity(0.8)) }
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.lg)
@@ -376,7 +376,7 @@ import SwiftUI
 
     private func status(_ title: String, _ detail: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: title).font(.headline).foregroundStyle(.white)
+            Text(verbatim: title).cyText(.cardTitle).foregroundStyle(.white)
             Text(verbatim: detail).font(.subheadline).foregroundStyle(.white.opacity(0.72))
             Spacer(minLength: 0)
         }

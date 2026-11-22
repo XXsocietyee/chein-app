@@ -221,7 +221,7 @@ extension EnvironmentValues {
         case .idle:
             if let readiness, !readiness.ready {
                 Text(verbatim: readiness.message ?? c.t("支付服务暂不可用", "Payment service unavailable"))
-                    .font(.callout)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("registration.pay.notReady")
             }
@@ -239,7 +239,7 @@ extension EnvironmentValues {
             .accessibilityIdentifier("registration.pay.submitting")
         case .blocked(let reason, let message):
             Text(verbatim: message ?? blockedCopy(reason))
-                .font(.callout)
+                .cyText(.body)
                 .foregroundStyle(CYColor.warningText)
                 .accessibilityIdentifier("registration.pay.blocked")
         case .paidOrParametersReceived(let response):
@@ -253,14 +253,14 @@ extension EnvironmentValues {
                 .accessibilityIdentifier("registration.pay.succeeded")
                 if let params = response.payParams, !params.isEmpty {
                     Text(c.t("支付通道参数已就绪 (\(params.count) 项)", "Payment channel ready (\(params.count) fields)"))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
             }
         case .expiredNeedsRebuild(let message):
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: message)
-                    .font(.callout)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("registration.pay.expired")
                 if let onExpiredRebuild {
@@ -273,20 +273,20 @@ extension EnvironmentValues {
         case .rejected(_, let message):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: message)
-                    .font(.callout)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("registration.pay.rejected")
                 if let row = RequestReferenceRow(pathFragment: "/api/registration/pay") { row }
             }
         case .unauthorized:
             Text(c.t("登录状态已过期，请重新登录", "Session expired, sign in again"))
-                .font(.callout)
+                .cyText(.body)
                 .foregroundStyle(CYColor.warningText)
         case .outcomeUnknown(let message):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: message ?? c.t("支付结果未明，已锁定不自动重试，请查单确认。",
                                           "Payment outcome unknown. Auto-retry is disabled; check order status."))
-                    .font(.callout)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("registration.pay.unknown")
                 if let row = RequestReferenceRow(pathFragment: "/api/registration/pay") { row }

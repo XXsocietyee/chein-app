@@ -77,7 +77,7 @@ enum CYPassCardPick {
                         TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
                         if let partial = snapshot.partialFailure {
                             Text(verbatim: c.t("部分票券没能读取，下拉或在菜单里刷新", "Some tickets did not load. Refresh from the menu."))
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 .multilineTextAlignment(.center)
                                 .accessibilityIdentifier("ticketPass.partial.\(partial.lane == .route ? "route" : "activity")")
                         }
@@ -298,7 +298,7 @@ enum CYPassCardPick {
                 Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
                 Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
             }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             .padding(CYSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -306,7 +306,7 @@ enum CYPassCardPick {
 
     private var title: some View {
         TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .lineLimit(3).fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
             .accessibilityIdentifier("ticketPass.title")
@@ -323,7 +323,7 @@ enum CYPassCardPick {
             } else {
                 whiteTile
             }
-            Text(verbatim: hint).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            Text(verbatim: hint).cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
     }
@@ -340,7 +340,7 @@ enum CYPassCardPick {
                     .accessibilityIdentifier("ticketPass.number")
             } else {
                 Image(systemName: state.systemImage).font(CYTypography.display).foregroundStyle(.black.opacity(0.55)).accessibilityHidden(true)
-                Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)).font(CYTypography.cardTitle).foregroundStyle(.black.opacity(0.7))
+                Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)).cyText(.cardTitle).foregroundStyle(.black.opacity(0.7))
             }
         }
         .padding(CYSpacing.md)

@@ -53,10 +53,10 @@ public enum SocialEditorPurpose: String, Identifiable {
                         LabeledContent {
                             Text(verbatim: "\(text.utf16.count) / \(limit)").monospacedDigit()
                         } label: { Text("count", tableName: "SocialCommentLength") }
-                            .font(.footnote).accessibilityIdentifier("social.editor.commentLength")
+                            .cyText(.bodyCompact).accessibilityIdentifier("social.editor.commentLength")
                         if commentTooLong {
                             Text("tooLong", tableName: "SocialCommentLength")
-                                .font(.footnote).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
+                                .cyText(.bodyCompact).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("social.editor.commentTooLong")
                         }
                     }
@@ -67,10 +67,10 @@ public enum SocialEditorPurpose: String, Identifiable {
                     Toggle("social.actionEnabled", isOn: $enabled).disabled(state.locksForm)
                 }
             }
-            if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
-            if purpose == .toggleFollow { Section { Text("social.followToggleHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
-            if purpose == .startChat { Section { Text("social.startChatHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
-            if purpose == .commentLike && contentGeneration != .communityV1 { Section { Text("social.toggleHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .toggleFollow { Section { Text("social.followToggleHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .startChat { Section { Text("social.startChatHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .commentLike && contentGeneration != .communityV1 { Section { Text("social.toggleHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) } }
             if purpose == .report {
                 Section {
                     if needsLegacyReason {
@@ -80,8 +80,8 @@ public enum SocialEditorPurpose: String, Identifiable {
                                 Text(LocalizedStringKey("squareReport.legacyReason." + String(index))).tag(Optional(label))
                             }
                         }.accessibilityIdentifier("social.editor.legacyReportReason")
-                        Text("squareReport.legacyHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    } else { Text("social.reportHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        Text("squareReport.legacyHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    } else { Text("social.reportHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
             }
             if let issue { SocialIssueView(error: issue) }

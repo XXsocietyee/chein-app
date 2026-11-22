@@ -16,7 +16,7 @@ func playerFactOrDash(_ raw: String?) -> String {
                 HStack(spacing: CYSpacing.md) {
                     CYRowIcon(systemImage: "text.bubble")
                     memberScoreText("score.mine.title")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: CYSpacing.sm)
@@ -93,14 +93,14 @@ func playerFactOrDash(_ raw: String?) -> String {
                     } icon: {
                         Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("score.mine.status")
                     .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                 }
                 memberScoreText("score.time.source")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
                     .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
@@ -181,21 +181,21 @@ private struct MemberScoreAppealRowLabel: View {
     private var copy: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             memberScoreText("score.kind.\(row.kind.rawValue)")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: playerFactOrDash(row.title))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: playerFactOrDash(row.createTime))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
                 .monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
             if !row.canReadSession {
                 memberScoreText("score.detail.missingContext")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -235,7 +235,7 @@ struct MemberScoreChipChrome<Label: View>: View {
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
             Image(systemName: symbol).font(.caption2.weight(.bold)).accessibilityHidden(true)
-            label().font(CYTypography.caption)
+            label().cyText(.caption)
         }
         .foregroundStyle(foreground)
         .padding(.horizontal, CYSpacing.md)

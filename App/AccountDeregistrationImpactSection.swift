@@ -35,8 +35,8 @@ struct AccountDeregistrationImpactSection: View {
                         .background(CYColor.warningText.gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
-                        if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").font(.body.weight(.semibold)) }
-                        else { Text(verbatim: item.key).font(.body.weight(.semibold)) }
+                        if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").cyText(.cardTitle) }
+                        else { Text(verbatim: item.key).cyText(.cardTitle) }
                         Group {
                             if item.key == "SEASON_REWARD_EFFECT" { Text("c08.display.29", tableName: "AccountDeregistrationPresentation") }
                             else if item.value == "true" { Text("c08.display.30", tableName: "AccountDeregistrationPresentation") }
@@ -44,7 +44,7 @@ struct AccountDeregistrationImpactSection: View {
                             else { Text(verbatim: item.value).monospacedDigit() }
                         }
                         .font(.subheadline).foregroundStyle(CYColor.textPrimary)
-                        Text(item.effect).font(.footnote).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text(item.effect).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .padding(.vertical, 2)
@@ -57,7 +57,7 @@ struct AccountDeregistrationImpactSection: View {
                 }.joined(separator: "、")))
                 Text("c08.display.33", tableName: "AccountDeregistrationPresentation")
             }
-            (Text("c08.display.34", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.revision)).font(Theme.Font.caption).textSelection(.enabled)
+            (Text("c08.display.34", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.revision)).cyText(.caption).textSelection(.enabled)
         } header: { Text("c08.display.28", tableName: "AccountDeregistrationPresentation") }
         .font(Theme.Font.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
@@ -76,7 +76,7 @@ struct AccountDeregistrationImpactConfirmation: View {
     private var matches: Bool { confirmation == "注销" }
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s3) {
-            Text("compliance.typeToConfirm").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+            Text("compliance.typeToConfirm").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
             TextField(text: $confirmation) { Text("c08.display.35", tableName: "AccountDeregistrationPresentation") }
                 .font(.system(.title3, design: .rounded, weight: .semibold))
                 .focused($focused)
@@ -87,7 +87,7 @@ struct AccountDeregistrationImpactConfirmation: View {
                 .accessibilityIdentifier("compliance.impactConfirmation")
             Button(role: .destructive) { focused = false; confirming = true } label: {
                 Text("compliance.submit", tableName: "AccountCompliance")
-                    .font(.body.weight(.bold)).frame(maxWidth: .infinity, minHeight: 52)
+                    .cyText(.cardTitle).frame(maxWidth: .infinity, minHeight: 52)
                     .foregroundStyle(matches ? Color.white : CYColor.textSecondary)
                     .background(matches ? CYColor.dangerText.opacity(0.92) : CYColor.bgRaised, in: Capsule())
             }

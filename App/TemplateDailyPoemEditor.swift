@@ -84,17 +84,17 @@ import Combine
     var body: some View {
         Form {
             Section {
-                Text("templatePoems.instructions").font(.callout)
+                Text("templatePoems.instructions").cyText(.body)
                 if editor.needsReload {
-                    Text("templatePoems.changed").font(.caption)
+                    Text("templatePoems.changed").cyText(.meta)
                     Button("templatePoems.reload") { editor.reload() }.disabled(!editor.canReload)
                         .accessibilityIdentifier("creator.poems.reload")
-                } else if !editor.isSupported { Text("templatePoems.unsupported").font(.caption) }
+                } else if !editor.isSupported { Text("templatePoems.unsupported").cyText(.meta) }
             }
             ForEach(Array(editor.rows.enumerated()), id: \.element.id) { index, row in
                 Section {
                     HStack {
-                        Text("templatePoems.number \(index + 1)").font(.headline)
+                        Text("templatePoems.number \(index + 1)").cyText(.cardTitle)
                         Spacer()
                         Button("creator.remove", role: .destructive, action: editor.removeAction(row.id))
                             .accessibilityIdentifier("creator.poems.remove.\(index)")
@@ -102,9 +102,9 @@ import Combine
                     TextEditor(text: editor.text(row.id)).frame(minHeight: 132)
                         .accessibilityLabel("templatePoems.input").accessibilityIdentifier("creator.poems.input.\(index)")
                     let lines = TemplateDailyPoemPool.lines(row.text)
-                    Text("templatePoems.lineCount \(lines.count)").font(.caption).foregroundStyle(.secondary)
+                    Text("templatePoems.lineCount \(lines.count)").cyText(.meta).foregroundStyle(.secondary)
                     DisclosureGroup("templatePoems.preview") {
-                        if lines.isEmpty { Text("templatePoems.empty").font(.caption) }
+                        if lines.isEmpty { Text("templatePoems.empty").cyText(.meta) }
                         ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line) }
                     }
                 }.disabled(!editor.canEdit)
@@ -112,7 +112,7 @@ import Combine
             Section {
                 Button("templatePoems.add", systemImage: "plus", action: editor.addAction())
                     .disabled(!editor.canAdd).accessibilityIdentifier("creator.poems.add")
-                if editor.rows.isEmpty && !editor.needsReload { Text("templatePoems.empty").font(.caption) }
+                if editor.rows.isEmpty && !editor.needsReload { Text("templatePoems.empty").cyText(.meta) }
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {

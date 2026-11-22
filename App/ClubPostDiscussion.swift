@@ -58,7 +58,7 @@ import SwiftUI
             if post.pinned { Label("club.community.pinned", systemImage: "pin") }
             if !post.content.isEmpty { Text(verbatim: post.content).textSelection(.enabled) }
             else { Text("club.discussion.openPost").font(.subheadline) }
-            if !post.createTime.isEmpty { Text(verbatim: post.createTime).font(.caption).foregroundStyle(.secondary) }
+            if !post.createTime.isEmpty { Text(verbatim: post.createTime).cyText(.meta).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
 }
@@ -88,7 +88,7 @@ import SwiftUI
             if current {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("club.community.comments").font(.headline)
+                        Text("club.community.comments").cyText(.cardTitle)
                         Spacer()
                         Button("club.discussion.collapse") { trace("collapse"); active = false; reader.invalidate(); close() }
                             .accessibilityIdentifier("club.discussion.close.\(target.post.id)")
@@ -105,8 +105,8 @@ import SwiftUI
                             UGCBlockedFilterContainer(memberID: comment.memberID, authorName: comment.nickname) {
                                 HStack(alignment: .top, spacing: 8) {
                                     VStack(alignment: .leading, spacing: 4) {
-                                        if comment.nickname.isEmpty { Text("club.community.user").font(.subheadline.bold()) }
-                                        else { Text(verbatim: comment.nickname).font(.subheadline.bold()) }
+                                        if comment.nickname.isEmpty { Text("club.community.user").cyText(.bodyMedium) }
+                                        else { Text(verbatim: comment.nickname).cyText(.bodyMedium) }
                                         Text(verbatim: comment.content).textSelection(.enabled)
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -211,7 +211,7 @@ import SwiftUI
 @MainActor private struct ClubPostDiscussionFixtureTraceLabel: View {
     @ObservedObject private var events = ClubPostDiscussionFixtureTrace.events
     var body: some View {
-        Text("Fixture discussion events").font(CYTypography.micro).frame(width: 1, height: 1).clipped()
+        Text("Fixture discussion events").cyText(.micro).frame(width: 1, height: 1).clipped()
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier("club.discussion.fixtureTrace")
             .accessibilityLabel("Fixture discussion events").accessibilityValue(events.value)

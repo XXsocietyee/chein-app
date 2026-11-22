@@ -39,8 +39,8 @@ struct PrivacyProtectionView: View {
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(.subheadline.weight(.medium))
-                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").cyText(.bodyMedium)
+                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -71,7 +71,7 @@ struct PrivacyProtectionView: View {
                     .accessibilityLabel(Text("authEntry.privacy.consentStatus", tableName: "AuthEntry"))
                     .accessibilityValue(Text(LocalizedStringKey(granted ? "authEntry.privacy.consentGranted" : "authEntry.privacy.consentMissing"), tableName: "AuthEntry"))
                     .accessibilityHint(Text("authEntry.privacy.manage", tableName: "AuthEntry"))
-                Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                Text("authEntry.privacy.manage", tableName: "AuthEntry").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 if granted {
                     Button(role: .destructive) {
                         policy.decline()

@@ -36,7 +36,7 @@ import SwiftUI
                         Text("followList.followers", tableName: "ProfileFollowList").tag(ProfileFollowListKind.followers)
                     } label: { Text("followList.title", tableName: "ProfileFollowList") }
                     .pickerStyle(.segmented).padding(.vertical, Theme.Space.s1).accessibilityIdentifier("profile.followList.kind")
-                    Text("followList.notFriends", tableName: "ProfileFollowList").font(CYTypography.meta).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    Text("followList.notFriends", tableName: "ProfileFollowList").cyText(.meta).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     if let error = flow.error {
                         SocialIssueView(error: error, retry: flow.canRetry ? { flow.retry() } : nil)
                     }
@@ -48,8 +48,8 @@ import SwiftUI
                                     else { E3Avatar(seed: SocialText.nonempty(member.nickname) ?? String(member.id), size: 48) }
                                 }
                                 VStack(alignment: .leading, spacing: 2) {
-                                    if let name = SocialText.nonempty(member.nickname) { Text(verbatim: name).font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true) }
-                                    else { Text("square.unknownAuthor").font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true) }
+                                    if let name = SocialText.nonempty(member.nickname) { Text(verbatim: name).cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true) }
+                                    else { Text("square.unknownAuthor").cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true) }
                                 }
                                 Spacer(minLength: Theme.Space.s2)
                                 // State pill (the row itself opens the profile): outlined + check when followed, never colour alone.
@@ -135,7 +135,7 @@ private struct ProfileFollowListMoreStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     @ViewBuilder func body(content: Content) -> some View {
         content.buttonStyle(.bordered)
-            .font(Theme.Font.button)
+            .cyText(.button)
             .tint(Theme.Color.accent(in: domain))
     }
 }

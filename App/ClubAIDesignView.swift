@@ -74,13 +74,13 @@ import SwiftUI
                             else { Text("clubAICandidate.unspecified") }
                         }
                     }.accessibilityIdentifier("clubAICandidate.source")
-                    Text(verbatim: result.title).font(CYTypography.sectionTitle)
-                    Text(verbatim: result.subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
-                    Text(verbatim: result.storyline).font(CYTypography.body)
-                    if !result.fitReason.isEmpty { Text(verbatim: result.fitReason).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    Text(verbatim: result.title).cyText(.sectionTitle)
+                    Text(verbatim: result.subtitle).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: result.storyline).cyText(.body)
+                    if !result.fitReason.isEmpty { Text(verbatim: result.fitReason).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     ForEach(Array(result.nodes.enumerated()), id: \.offset) { idx, node in
                         CYListRow(verbatim: node.name, meta: [node.address, node.task].filter { !$0.isEmpty }.joined(separator: " · "), trailing: .none) {
-                            Text(verbatim: String(idx + 1)).font(CYTypography.label).monospacedDigit().frame(width: 28, height: 28)
+                            Text(verbatim: String(idx + 1)).cyText(.label).monospacedDigit().frame(width: 28, height: 28)
                                 .background(CYColor.bgRaised, in: Circle())
                         }
                     }
@@ -92,7 +92,7 @@ import SwiftUI
                 if !result.promoCopy.isEmpty { Section("context.ai.promo") { Text(verbatim: result.promoCopy).textSelection(.enabled) } }
                 ClubAIDesignPromoFeedback(clubID: clubID, session: session, flow: model.flow, resultGeneration: resultGeneration, promoCopy: result.promoCopy, operationID: $operationID, generating: $generating)
                 Section {
-                    Text("context.ai.adoptHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("context.ai.adoptHint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     CYPillButton(showsPreviousResult ? LocalizedStringKey("clubAICandidate.adoptPrevious") : LocalizedStringKey("context.ai.adopt"), style: .primary) {
                         guard !generating else { return }
                         if let draft = try? model.flow.adopt(clubID: clubID, generation: resultGeneration) { onAdopt(draft) }

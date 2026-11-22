@@ -61,11 +61,11 @@ import SwiftUI
                 CYHeroHeader("poll.title")
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(verbatim: "原投票结果 · 只读")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: "结果读取不代表仍可参与；本页不创建、投票、关闭或重试任何原操作。")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -116,7 +116,7 @@ import SwiftUI
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 .accessibilityHidden(true)
             Text(verbatim: poll.question.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : poll.question)
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             statusChip(poll)
@@ -149,12 +149,12 @@ import SwiftUI
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: option.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : option.content)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let count = option.voteCount, let total = poll.totalVoters {
                     Text(verbatim: "\(count) / \(total)")
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     PollShareBar(count: count, total: total)
@@ -170,7 +170,7 @@ import SwiftUI
     private func loadingBlock(_ key: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYSkeleton().accessibilityHidden(true)

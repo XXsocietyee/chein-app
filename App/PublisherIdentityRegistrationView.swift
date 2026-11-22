@@ -128,7 +128,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         CYSkeletonBlock(height: 12).frame(maxWidth: 160)
                         Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "正在处理，请稍候" : "Processing, please wait")
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("publisherIdentity.busy")

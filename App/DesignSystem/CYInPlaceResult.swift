@@ -142,12 +142,12 @@ struct CYResultToast: View {
                         .transition(reduceMotion ? AnyTransition.opacity : AnyTransition(.blurReplace).combined(with: .scale(scale: 0.25)))
                 }
             }
-            .font(.body.weight(.semibold))
+            .cyText(.cardTitle)
             .frame(width: iconSize, height: iconSize)
             .accessibilityHidden(true)
 
             Text(verbatim: state.message)
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
@@ -156,7 +156,7 @@ struct CYResultToast: View {
             if showsAction, let title = state.actionTitle, let onAction {
                 Button(action: onAction) {
                     Text(verbatim: title)
-                        .font(CYTypography.label.weight(.bold))
+                        .cyText(.label, weight: .bold)
                         .foregroundStyle(palette.textPrimary)
                         .padding(.horizontal, CYSpacing.sm)
                         .frame(minHeight: CYSpacing.minTouchTarget)
@@ -268,7 +268,7 @@ struct CYDeltaNumber: View {
                 .cyNumericRoll(Double(value))
             if let delta, delta != 0, chipVisible {
                 Text(verbatim: delta > 0 ? "+\(delta)" : "−\(-delta)")
-                    .font(CYTypography.label.weight(.semibold).monospacedDigit())
+                    .cyText(.label, weight: .semibold, monospacedDigit: true)
                     .foregroundStyle(delta > 0 ? palette.success : palette.textSecondary)
                     .padding(.horizontal, CYSpacing.sm).padding(.vertical, 2)
                     .background(palette.bgRaised, in: Capsule())
@@ -323,12 +323,12 @@ struct CYPlainStatRow: View {
     @ViewBuilder private func cell(_ stat: CYPlainStat, alignment: HorizontalAlignment) -> some View {
         let body = VStack(alignment: alignment, spacing: 2) {
             Text(verbatim: stat.value)
-                .font(Font.title2.weight(.bold))
+                .cyText(.sheetTitle)
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .modifier(CYOptionalNumericRoll(value: stat.rollValue))
             Text(verbatim: stat.label)
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(palette.textTertiary)
                 .multilineTextAlignment(alignment == .center ? .center : .leading)
         }
@@ -472,7 +472,7 @@ struct CYMomentSeal: View {
                 .strokeBorder(Color.black.opacity(0.18), style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                 .padding(size * 0.1)
             text
-                .font(.title3.weight(.heavy))
+                .cyText(.sectionTitle)
                 .foregroundStyle(Color.black.opacity(0.75))
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)

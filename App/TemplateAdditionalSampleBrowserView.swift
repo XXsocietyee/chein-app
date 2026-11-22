@@ -120,11 +120,11 @@ import Combine
                 NavigationLink { TemplateCoinFlipRehearsalView(model: model, mode: .sourceExample) } label: { CYListRow("templateCoin.sample", trailing: .none) { CYRowIcon(systemImage: "circle.lefthalf.filled") } }
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateCoin.openSample")
             }
-            Section { Text("templateSampleCoverage.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            Section { Text("templateSampleCoverage.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             if controller.unavailable { Section { Text("templateSampleCoverage.unavailable").foregroundStyle(CYColor.warningText) } }
             ForEach(TemplateAdditionalSamplePreview.Choice.allCases) { choice in
                 Section(LocalizedStringKey(choice.labelKey)) {
-                    if choice == .pricePair { Text("templateSampleCoverage.nameOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    if choice == .pricePair { Text("templateSampleCoverage.nameOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                     CYPillButton("templateSamples.preview", style: .secondary, systemImage: "play.circle", action: controller.openAction(choice))
                         .disabled(!controller.canBrowse || controller.presentation != nil)
                         .accessibilityIdentifier("templateSampleCoverage.preview." + choice.rawValue).e1ActionRow()
@@ -156,10 +156,10 @@ import Combine
         Group {
             if let item = controller.visiblePresentation, item.id == presentationID {
                 VStack(spacing: CYSpacing.sm) {
-                    Text("templateSamples.previewScope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.horizontal)
-                    Text("templateSamples.filled \(item.sample.filledFields.count)").font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)
+                    Text("templateSamples.previewScope").cyText(.meta).foregroundStyle(CYColor.textTertiary).padding(.horizontal)
+                    Text("templateSamples.filled \(item.sample.filledFields.count)").cyText(.numericBody).foregroundStyle(CYColor.textSecondary)
                     if let family = item.sample.choice.family {
-                        if family == .pricePair { Text("templateSampleCoverage.nameOnly").font(.footnote) }
+                        if family == .pricePair { Text("templateSampleCoverage.nameOnly").cyText(.meta) }
                         TemplateCreatorRehearsalView(draft: item.sample.draft, family: family).id(item.id)
                     } else if item.sample.choice == .d20 {
                         TemplateD20RehearsalView(draft: item.sample.draft).id(item.id)
@@ -192,10 +192,10 @@ import Combine
                 }
                 if let sample {
                     Section("templateD6.sampleResult") {
-                        Text(verbatim: sample.pips.map(String.init).joined(separator: " + ")).font(CYTypography.dataXL).monospacedDigit()
+                        Text(verbatim: sample.pips.map(String.init).joined(separator: " + ")).cyText(.dataXL).monospacedDigit()
                         LabeledContent("playkit.dice.total", value: String(sample.total)).monospacedDigit()
                         if let action = sample.action { Text(verbatim: action) }
-                        else { Text("templateD6.sumOnly").font(.caption) }
+                        else { Text("templateD6.sumOnly").cyText(.meta) }
                     }
                 }
                 CYPillButton("creator.reset", style: .tertiary) { sample = nil }.accessibilityIdentifier("templateSampleCoverage.dice.reset").e1ActionRow()

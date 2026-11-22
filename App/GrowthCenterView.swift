@@ -95,7 +95,7 @@ extension EnvironmentValues {
                     leading: HStack(spacing: CYSpacing.md) {
                         GrowthProfileDisc(name: board.me.nickname)
                         if let name = GrowthCenterFormatting.nonempty(board.me.nickname) {
-                            Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary).cyWrapText()
+                            Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).cyWrapText()
                         }
                     },
                     trailing: HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
@@ -103,7 +103,7 @@ extension EnvironmentValues {
                             .foregroundStyle(palette.textPrimary)
                             .cyWrapText()
                         Group { if board.metric == .exp { Text("u10.growth.unit.exp") } else { Text("growth.unit.point") } }
-                            .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                            .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                     }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("growth.currentPoints"))
@@ -130,7 +130,7 @@ extension EnvironmentValues {
             Group {
                 if let rank { Text("u10.growth.boardRank \(rank)") } else { Text("u10.growth.board") }
             }
-            .font(CYTypography.body).foregroundStyle(palette.textPrimary)
+            .cyText(.body).foregroundStyle(palette.textPrimary)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("growth.myRank"))
             .accessibilityValue(rankValue(rank))
@@ -142,7 +142,7 @@ extension EnvironmentValues {
                         Text("growth.board.link")
                         Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
                     }
-                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 .frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
             }
@@ -150,7 +150,7 @@ extension EnvironmentValues {
         .frame(minHeight: 44)
     }
     private func growthHeader(_ key: LocalizedStringKey) -> some View {
-        Text(key).font(.title3.weight(.heavy)).textCase(nil).foregroundStyle(palette.textPrimary).padding(.top, 8)
+        Text(key).cyText(.sectionTitle).textCase(nil).foregroundStyle(palette.textPrimary).padding(.top, 8)
     }
     @ViewBuilder private func footprint(_ overview: GrowthCenterOverview) -> some View {
         // 我的足迹 in the mini-program order: 探索值, 徽章 (枚), 完成主题 (个), 累计距离 (km); level sits in the header.
@@ -274,7 +274,7 @@ struct GrowthProfileDisc: View {
         let initial = GrowthCenterFormatting.nonempty(name).map { String($0.prefix(1)) }
         ZStack {
             Circle().fill(palette.bgRaised)
-            if let initial { Text(verbatim: initial).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary) }
+            if let initial { Text(verbatim: initial).cyText(.sectionTitle).foregroundStyle(palette.textPrimary) }
             else { Image(systemName: "person.fill").font(.title3).foregroundStyle(palette.textTertiary) }
         }
         .frame(width: 48, height: 48)
@@ -297,24 +297,24 @@ struct GrowthBadgeMomentRow: View {
         Button(action: toggle) {
             HStack(spacing: CYSpacing.md) {
                 Text(verbatim: badge.displayName.map { String($0.prefix(1)) } ?? "—")
-                    .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                    .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(minWidth: 40, minHeight: 40)
                     .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     GrowthCenterName(name: badge.displayName, fallback: "growth.badge.unnamed")
-                        .font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                        .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                     Group {
                         if !expanded { Text("u10.growth.badge.hint") }
                         else if let moment = GrowthCenterFormatting.badgeMoment(badge.obtainedAt) { Text("u10.growth.badge.obtained \(moment)") }
                         else { Text("u10.growth.badge.noTime") }
                     }
-                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 Spacer(minLength: CYSpacing.sm)
                 Group { if expanded { Text("u10.template.cap.collapse") } else { Text("u10.growth.badge.view") } }
-                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
             }
             .frame(minHeight: 44)
             .contentShape(Rectangle())

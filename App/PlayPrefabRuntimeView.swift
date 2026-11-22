@@ -19,9 +19,9 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("playx.prefab.runtimeNotice").font(.footnote)
+                Text("playx.prefab.runtimeNotice").cyText(.meta)
                 if let station = model.station {
-                    if let name = station.name { Text(verbatim: name).font(.headline) }
+                    if let name = station.name { Text(verbatim: name).cyText(.cardTitle) }
                     if let address = station.address { Text(verbatim: address) }
                 }
                 if let issue = model.issue ?? localIssue { PlayExperienceIssueView(issue: issue) }
@@ -30,7 +30,7 @@ import SwiftUI
             }
             if loaded {
                 Section {
-                    Text(LocalizedStringKey("templateAuthor.prefab.scene." + scene.story.scene.rawValue)).font(.title2.bold())
+                    Text(LocalizedStringKey("templateAuthor.prefab.scene." + scene.story.scene.rawValue)).cyText(.sheetTitle)
                     sceneBody
                 }.disabled(model.phase != "ready")
                 Section("templateAuthor.prefab.state") {
@@ -152,12 +152,12 @@ import SwiftUI
             if model.record?.story.synced == true { CYStatusChip("playx.prefab.synced", tone: .success, systemImage: "checkmark.seal") }
             else { CYPillButton("playx.prefab.sync") { confirmSync = true }.listRowBackground(Color.clear).disabled(model.record?.hallPhotoURL == nil || model.phase != "ready") }
             CYSectionHeader("playx.prefab.endings.guide")
-            Text("playx.prefab.endings.fixed").font(.caption)
+            Text("playx.prefab.endings.fixed").cyText(.meta)
             ForEach(0..<6, id: \.self) { index in
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(LocalizedStringKey("playx.prefab.ending." + String(index) + ".title")).font(.headline)
+                    Text(LocalizedStringKey("playx.prefab.ending." + String(index) + ".title")).cyText(.cardTitle)
                     Text(LocalizedStringKey("playx.prefab.ending." + String(index) + ".quote"))
-                    Text(LocalizedStringKey("playx.prefab.ending." + String(index) + ".condition")).font(.caption)
+                    Text(LocalizedStringKey("playx.prefab.ending." + String(index) + ".condition")).cyText(.meta)
                 }
             }
         }
@@ -168,7 +168,7 @@ import SwiftUI
             CYPillButton(LocalizedStringKey(scene.holding ? "playx.prefab.hold.cancel" : "playx.prefab.hold.start"), style: .secondary) {
                 if scene.holding { scene.stopHold() } else { scene.beginHold(now: now) }
             }
-            Text(LocalizedStringKey(scene.story.scene.isDream ? "playx.prefab.hold.dream" : "playx.prefab.hold.birth")).font(.caption)
+            Text(LocalizedStringKey(scene.story.scene.isDream ? "playx.prefab.hold.dream" : "playx.prefab.hold.birth")).cyText(.meta)
         }
     }
     private func photoButton(_ key: String, label: String) -> some View {

@@ -36,7 +36,7 @@ import SwiftUI
                     if let error = model.issue {
                         Section {
                             if let operation = model.failedOperation, case .read = operation {
-                                Text("channel.receiptUnknown", tableName: "NativeChannel").font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                                Text("channel.receiptUnknown", tableName: "NativeChannel").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                             }
                             MessagingIssueView(issue: .init(error), identifier: "channel.history.error") {
                                 run(.retry)
@@ -60,7 +60,7 @@ import SwiftUI
                         let isOwn = message.senderID == model.client.identity?.accountID
                         VStack(spacing: CYSpacing.sm) {
                             if let divider = dividers[message.id] {
-                                IMChatDividerLabel(divider: divider).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                                IMChatDividerLabel(divider: divider).cyText(.meta).foregroundStyle(palette.textSecondary)
                                     .frame(maxWidth: .infinity)
                             }
                             Button {
@@ -115,7 +115,7 @@ import SwiftUI
                         LabeledContent {
                             Text(receipt.unread, format: .number).monospacedDigit()
                         } label: { Text("channel.unreadRemaining", tableName: "NativeChannel") }
-                            .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                            .cyText(.meta).foregroundStyle(palette.textSecondary)
                             .accessibilityIdentifier("channel.history.readResult")
                             .listRowSeparator(.hidden)
                     }
@@ -135,7 +135,7 @@ import SwiftUI
                 .scrollDismissesKeyboard(.interactively)
             }
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .navigationDestination(isPresented: $presentsMessage) {
             if let selectedMessageID, let message = currentMessage(selectedMessageID) {
                 MessagingMessageDetailView(message: message, conversation: model.conversation,
@@ -193,7 +193,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             CYHeroHeader("channel.history", tableName: "NativeChannel")
             MessagingConversationName(conversation: model.conversation)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

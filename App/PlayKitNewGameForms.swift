@@ -43,8 +43,8 @@ extension PlayKitScreen {
         )
         if projection.complete, let explanation = raw["explanation"].text, !explanation.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("playkit.trueFalse.explanation").font(CYTypography.caption).foregroundStyle(.secondary)
-                Text(verbatim: explanation).font(CYTypography.body)
+                Text("playkit.trueFalse.explanation").cyText(.caption).foregroundStyle(.secondary)
+                Text(verbatim: explanation).cyText(.body)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(CYSpacing.md)
@@ -76,7 +76,7 @@ extension PlayKitScreen {
                 .accessibilityIdentifier("playkit.imageGuess.revealPct")
                 if totalClues > 0 {
                     Text("playkit.imageGuess.cluesCount \(revealLevel) \(totalClues)")
-                        .font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
+                        .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
                         .accessibilityIdentifier("playkit.imageGuess.cluesCount")
                 }
             }
@@ -86,7 +86,7 @@ extension PlayKitScreen {
         if !clues.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 ForEach(Array(clues.enumerated()), id: \.offset) { index, clue in
-                    Text(verbatim: "\(index + 1). \(clue)").font(CYTypography.bodyCompact)
+                    Text(verbatim: "\(index + 1). \(clue)").cyText(.bodyCompact)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -147,12 +147,12 @@ extension PlayKitScreen {
             VStack(spacing: CYSpacing.sm) {
                 if let prize = raw["prizeText"].text, !prize.isEmpty {
                     Text(verbatim: prize)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("playkit.scratchCard.prize")
                 } else {
                     Text("playkit.scratch.revealedPlaceholder")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("playkit.scratchCard.placeholder")
                 }
@@ -188,7 +188,7 @@ extension PlayKitScreen {
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playkit.jigsaw.instructions").font(.footnote).foregroundStyle(.secondary)
+            Text("playkit.jigsaw.instructions").cyText(.bodyCompact).foregroundStyle(.secondary)
 
             LazyVGrid(
                 columns: Array(repeating: GridItem(.flexible(), spacing: CYSpacing.xs), count: cols),
@@ -202,7 +202,7 @@ extension PlayKitScreen {
                         ZStack(alignment: .topLeading) {
                             tileArtwork(piece: piece)
                             Text(verbatim: "#\(piece + 1)")
-                                .font(CYTypography.caption).monospacedDigit()
+                                .cyText(.caption).monospacedDigit()
                                 .padding(.horizontal, CYSpacing.xs)
                                 .padding(.vertical, 2)
                                 .background(Capsule().fill(CYNight.ink2.opacity(0.85)))

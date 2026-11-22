@@ -39,11 +39,11 @@ import SwiftUI
     var issueKey: String?
     var body: some View {
         Group {
-            Text("templateAuthor.optionMedia.title").font(.headline)
+            Text("templateAuthor.optionMedia.title").cyText(.cardTitle)
             if !configuration.isSupported {
                 Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }
-            if let issueKey { Text(LocalizedStringKey(issueKey)).font(.footnote).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateAuthor.optionMedia.limit") }
+            if let issueKey { Text(LocalizedStringKey(issueKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateAuthor.optionMedia.limit") }
             ForEach(TemplateChoiceOptionMedia.Letter.allCases) { letter in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(LocalizedStringKey(letter.labelKey)).font(.subheadline)
@@ -52,7 +52,7 @@ import SwiftUI
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .accessibilityIdentifier("templateAuthor.optionMedia." + letter.rawValue + "." + kind.rawValue)
                         if readOnly && configuration.isSupported && configuration.text(letter, kind) == nil {
-                            Text("templateOwnerConfig.missing").font(.caption).foregroundStyle(.secondary)
+                            Text("templateOwnerConfig.missing").cyText(.meta).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -93,7 +93,7 @@ import SwiftUI
     private func entry(_ key: TemplateQAField, multiline: Bool = false) -> some View {
         VStack(alignment: .leading) {
             TemplateAuthoringField(key.rawValue, text: field(key), multiline: multiline)
-            if let label = annotation(key) { Text(LocalizedStringKey(label)).font(.caption).foregroundStyle(.secondary) }
+            if let label = annotation(key) { Text(LocalizedStringKey(label)).cyText(.meta).foregroundStyle(.secondary) }
         }
     }
 }
@@ -146,7 +146,7 @@ import SwiftUI
                         .accessibilityIdentifier("templateReward.clearMedal")
                 }
                 if !rewards.hasSelection {
-                    Text("templateRewardKinds.empty").font(.caption).foregroundStyle(.secondary)
+                    Text("templateRewardKinds.empty").cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityIdentifier("templateRewardKinds.empty")
                 }
             }
@@ -204,10 +204,10 @@ import SwiftUI
                     TemplateStoryBeatFields(tag: editor.text(beat.id, \.tag), text: editor.text(beat.id, \.text), images: editor.images(beat.id), accessibilityPrefix: "templateStory.beat.\(index)")
                     LabeledContent("templateStory.imageCount", value: "\(beat.imgs.count) / \(TemplateAuthoringStory.maximumImagesPerBeat)")
                         .accessibilityIdentifier("templateStory.beat.\(index).imageCount")
-                    if beat.imgs.count > TemplateAuthoringStory.maximumImagesPerBeat { Text("templateStory.historicalImages").font(.caption).foregroundStyle(.secondary) }
+                    if beat.imgs.count > TemplateAuthoringStory.maximumImagesPerBeat { Text("templateStory.historicalImages").cyText(.meta).foregroundStyle(.secondary) }
                     ForEach(Array(beat.imgs.enumerated()), id: \.offset) { imageIndex, reference in
                         HStack(alignment: .top) {
-                            Text(verbatim: reference).font(.caption).textSelection(.enabled)
+                            Text(verbatim: reference).cyText(.meta).textSelection(.enabled)
                             Spacer()
                             Button("templateStory.removeImage", role: .destructive,
                                    action: editor.removeImageAction(beat.id, at: imageIndex))
@@ -257,7 +257,7 @@ import SwiftUI
                     Text("playkitAuthor.presentation.inline").tag("inline")
                     Text("playkitAuthor.presentation.focused").tag("fullscreen")
                 }.accessibilityIdentifier("creatorComposition.presentation")
-                if model.draft.advanced.presentationRequiresFullscreen { Text("playkitAuthor.presentation.focusedRequired").font(.footnote).foregroundStyle(CYColor.dangerText) }
+                if model.draft.advanced.presentationRequiresFullscreen { Text("playkitAuthor.presentation.focusedRequired").cyText(.bodyCompact).foregroundStyle(CYColor.dangerText) }
             }
             Section("creatorRoot.rules") {
                 NavigationLink("creatorRoot.rules") { TemplateRootAuthoringView(model: model) }
@@ -277,7 +277,7 @@ import SwiftUI
                     TemplateTimerOutcomeEntryLabel()
                 }.accessibilityIdentifier("templateTimerOutcome.open")
             }
-            if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(CYColor.dangerText) } } }
+            if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).cyText(.meta).foregroundStyle(CYColor.dangerText) } } }
         }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced")
     }
     private func field(_ section: String, _ key: String) -> some View {

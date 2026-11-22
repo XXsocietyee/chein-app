@@ -30,7 +30,7 @@ struct ClubOpsNotifyContentFields: View {
                 .lineLimit(3...8)
                 .accessibilityIdentifier("club.gov.input.content")
             if !(title.isEmpty && content.isEmpty), let issue = ClubOpsNotifyPresentation.draftIssue(title: title, content: content) {
-                ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).font(.footnote).foregroundStyle(CYColor.dangerText)
+                ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("clubOpsJN.notify.issue")
             }
         }
@@ -41,8 +41,8 @@ struct ClubOpsNotifyContentFields: View {
             Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
             Spacer()
             Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count)/\(limit)")
-                .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-        }.font(CYTypography.bodyCompact)
+                .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+        }.cyText(.bodyCompact)
     }
 }
 
@@ -54,7 +54,7 @@ struct ClubOpsNotifyPreviewSummary: View {
         if let count = recipient.literal {
             LabeledContent { ClubOpsJoinNotifyCopy.people(count).monospacedDigit() } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.title") }
                 .accessibilityIdentifier("clubOpsJN.notify.preview")
-            if count == 0 { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.empty").font(.footnote).foregroundStyle(.secondary) }
+            if count == 0 { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.empty").cyText(.bodyCompact).foregroundStyle(.secondary) }
         } else {
             LabeledContent { Text(verbatim: recipient.displayText).monospacedDigit() } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.preview.title") }
                 .accessibilityIdentifier("clubOpsJN.notify.preview")
@@ -70,7 +70,7 @@ struct ClubOpsNotifyCampaignRows: View {
     /// Page projection. A nil count is an em dash. The older campaign still treats null as 0.
     var delivery: ClubNotifyDeliveryPage? = nil
     var body: some View {
-        if let key = outcomeKey { ClubOpsJoinNotifyCopy.text(key).font(.subheadline.weight(.semibold)).accessibilityIdentifier("clubOpsJN.notify.outcome") }
+        if let key = outcomeKey { ClubOpsJoinNotifyCopy.text(key).cyText(.bodyMedium).accessibilityIdentifier("clubOpsJN.notify.outcome") }
         LabeledContent { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.phase." + campaign.phase.rawValue) } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.label") }
             .accessibilityIdentifier("clubOpsJN.notify.phase")
         row("clubOpsJN.notify.total", campaign.totalCount, projected: delivery?.total)
@@ -84,7 +84,7 @@ struct ClubOpsNotifyCampaignRows: View {
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.pending")
-                if campaign.processing { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.processing").font(.caption).foregroundStyle(.secondary) }
+                if campaign.processing { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.processing").cyText(.meta).foregroundStyle(.secondary) }
             }
         }.accessibilityIdentifier("clubOpsJN.notify.pending")
         row("clubOpsJN.notify.failed", campaign.failedCount, projected: delivery?.failed, tint: CYColor.dangerText)

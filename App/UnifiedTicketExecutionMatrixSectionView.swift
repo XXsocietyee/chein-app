@@ -412,7 +412,7 @@ public struct UnifiedTicketExecutionMatrixProjection: Equatable, Sendable {
                         Text(verbatim: row.title)
                             .font(.subheadline)
                         Text(verbatim: "\(row.sourceDocument) • \(row.completedCount)/\(row.totalCount) items")
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
@@ -440,7 +440,7 @@ public struct UnifiedTicketExecutionMatrixProjection: Equatable, Sendable {
                             .font(.caption.monospaced())
                     }
                     Text(verbatim: group.statusSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)
@@ -463,7 +463,7 @@ public struct UnifiedTicketExecutionMatrixProjection: Equatable, Sendable {
                             .font(.caption.monospaced())
                     }
                     Text(verbatim: decision.contractSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)
@@ -486,7 +486,7 @@ public struct UnifiedTicketExecutionMatrixProjection: Equatable, Sendable {
                             .font(.caption.monospaced())
                     }
                     Text(verbatim: "Owner Domain: \(pkg.domainOwner)")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

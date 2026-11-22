@@ -48,12 +48,12 @@ private struct E4CelebrationLab: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Text(verbatim: "Offline example · celebration lab").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: "Offline example · celebration lab").cyText(.meta).foregroundStyle(palette.textSecondary)
             CYPillButton(verbatim: "Replay", style: .secondary, fullWidth: false) { Task { await play() } }
                 .accessibilityIdentifier("e4.celebration.replay")
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 ForEach(Array(log.enumerated()), id: \.offset) { _, line in
-                    Text(verbatim: line).font(CYTypography.meta).monospacedDigit().foregroundStyle(palette.textSecondary)
+                    Text(verbatim: line).cyText(.meta).monospacedDigit().foregroundStyle(palette.textSecondary)
                 }
             }
             Spacer()
@@ -140,7 +140,7 @@ private struct E4StateLab: View {
     var body: some View {
         ScrollView {
             VStack(spacing: CYSpacing.lg) {
-                Text(verbatim: "Offline example · state lab · retry taps \(taps)").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: "Offline example · state lab · retry taps \(taps)").cyText(.meta).foregroundStyle(palette.textSecondary)
                 state
                 if mode == .emptyCompact {
                     // The rest of the screen stays alive around an inline state.

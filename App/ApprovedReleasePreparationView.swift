@@ -117,7 +117,7 @@ import SwiftUI
 
     private func identifiedText(_ key: LocalizedStringKey, identifier: String?) -> some View {
         Text(key)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -144,7 +144,7 @@ import SwiftUI
             }
             if let captured, let record = captured.current {
                 Text(verbatim: cloud02Known(record.command.requestID))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
@@ -175,19 +175,19 @@ import SwiftUI
     private func knownReceipt(_ receipt: ApprovedTopicReleasePublicationReceipt) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(verbatim: String(receipt.releaseID))
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("approvedRelease.publication.releaseID")
             Text(verbatim: cloud02Known(receipt.manifestHash))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("approvedRelease.publication.manifestHash")
             Text("approvedRelease.allocated")
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
@@ -197,7 +197,7 @@ import SwiftUI
                 Text(verbatim: receipt.currentlyApproved
                     ? String(localized: LocalizedStringResource("approvedRelease.receiptApproved", defaultValue: "Approved at the last server check", locale: locale))
                     : String(localized: LocalizedStringResource("approvedRelease.receiptChanged", defaultValue: "The last server check did not confirm current approval", locale: locale)))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("approvedRelease.publication.approval")
@@ -270,7 +270,7 @@ struct Cloud02Note: View {
 
     var body: some View {
         Text(key, tableName: tableName)
-            .font(CYTypography.bodyCompact)
+            .cyText(.bodyCompact)
             .foregroundStyle(palette.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)

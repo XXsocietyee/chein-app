@@ -26,7 +26,7 @@ struct ClubFixtureRootView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 6) {
-                Text("club.fixtureNotice").font(.caption.bold()).accessibilityIdentifier("club.fixture.notice")
+                Text("club.fixtureNotice").cyText(.meta, weight: .bold).accessibilityIdentifier("club.fixture.notice")
                 HStack {
                     Button("club.fixtureSwitchAccount") { reader.switchAccount() }.accessibilityIdentifier("club.fixture.switchAccount")
                     Button("club.fixtureSignOut") { reader.signOut() }.accessibilityIdentifier("club.fixture.signOut")
@@ -40,7 +40,7 @@ struct ClubFixtureRootView: View {
                         Button("Restore fixture role") { governanceAccess.readFailure = nil; viewerRevision &+= 1 }
                             .accessibilityIdentifier("club.fixture.restoreRole")
                     }
-                }.font(.caption)
+                }.cyText(.meta)
                 if scenario == .merchantLocalityDelayed {
                     HStack {
                         Text(verbatim: String(reader.pendingLocalityCount)).accessibilityIdentifier("club.fixture.locality.pending")
@@ -48,7 +48,7 @@ struct ClubFixtureRootView: View {
                             .accessibilityIdentifier("club.fixture.locality.release")
                         Button("Fail oldest locality") { reader.releaseLocality(failing: true) }.disabled(reader.pendingLocalityCount == 0)
                             .accessibilityIdentifier("club.fixture.locality.fail")
-                    }.font(.caption)
+                    }.cyText(.meta)
                 }
             }.padding(8).frame(maxWidth: .infinity).background(.yellow.opacity(0.15))
             NavigationStack {

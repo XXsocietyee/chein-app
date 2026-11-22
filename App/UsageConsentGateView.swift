@@ -56,18 +56,18 @@ struct UsageConsentGateView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     Text("authEntry.gate.title", tableName: "AuthEntry")
-                        .font(CYTypography.pageTitle)
+                        .cyText(.pageTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                     Text("authEntry.gate.lead", tableName: "AuthEntry")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("authEntry.gate.lead")
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text("authEntry.gate.continueMeans", tableName: "AuthEntry")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                         documentRow("authEntry.gate.openAgreement", id: "authEntry.gate.agreement", type: .userAgreement)
                         documentRow("authEntry.gate.openPrivacyGuide", id: "authEntry.gate.privacyGuide", type: .privacyPolicy)
@@ -89,7 +89,7 @@ struct UsageConsentGateView: View {
                         .accessibilityValue(Text("authEntry.gate.lead", tableName: "AuthEntry"))
                         .accessibilityHint(Text("authEntry.gate.continueMeans", tableName: "AuthEntry"))
                     Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("authEntry.gate.decline")
                         .accessibilityLabel(Text("authEntry.gate.decline", tableName: "AuthEntry"))
@@ -128,7 +128,7 @@ struct UsageConsentGateView: View {
         Button { document = AuthEntryLegalSheet(type: type) } label: {
             HStack(spacing: CYSpacing.md) {
                 Text(title, tableName: "AuthEntry")
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.leading)
                 Spacer(minLength: 0)

@@ -165,7 +165,7 @@ struct ClubBadgeTile: View {
             }
             .frame(width: 72, height: 72)
             Text(verbatim: clubR1Value(name))
-                .font(CYTypography.label.weight(.semibold))
+                .cyText(.label, weight: .semibold)
                 .foregroundStyle(state == .earned ? palette.textPrimary : palette.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -174,13 +174,13 @@ struct ClubBadgeTile: View {
                 EmptyView()
             case .locked:
                 Text(verbatim: clubR1Value(condition))
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textTertiary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             case .inProgress(let current, let target):
                 Text(verbatim: "\(current) / \(target)")
-                    .font(CYTypography.caption.monospacedDigit())
+                    .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(palette.textSecondary)
             }
         }

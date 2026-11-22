@@ -167,7 +167,7 @@ struct CYShareReadyRow: View {
                 .accessibilityIdentifier(identifier)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 CYStatusChip(title, tone: .success, systemImage: "checkmark.seal")
-                Text(hint).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(hint).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)

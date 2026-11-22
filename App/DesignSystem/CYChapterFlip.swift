@@ -30,14 +30,14 @@ struct CYChapterGate: View {
                     if number == 0 { Text("chapterFlip.prologue") }
                     else { Text("chapterFlip.meta \(number) \(max(total, 1))") }
                 }
-                .font(CYTypography.caption).tracking(0.8).textCase(.uppercase)
+                .cyText(.caption).tracking(0.8).textCase(.uppercase)
                 .foregroundStyle(.white.opacity(0.6))
                 if let title, !title.isEmpty {
-                    Text(verbatim: title).font(CYTypography.pageTitle).foregroundStyle(.white)
+                    Text(verbatim: title).cyText(.pageTitle).foregroundStyle(.white)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let subtitle, !subtitle.isEmpty {
-                    Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(.white.opacity(0.72))
+                    Text(verbatim: subtitle).cyText(.body).foregroundStyle(.white.opacity(0.72))
                         .lineLimit(4).fixedSize(horizontal: false, vertical: true)
                 }
                 if number > 0, total > 1 {
@@ -50,7 +50,7 @@ struct CYChapterGate: View {
                     }.frame(maxWidth: 280).accessibilityHidden(true)
                 }
                 Spacer(minLength: 0)
-                Text("chapterFlip.tapToContinue").font(CYTypography.meta).foregroundStyle(.white.opacity(0.5))
+                Text("chapterFlip.tapToContinue").cyText(.meta).foregroundStyle(.white.opacity(0.5))
                     .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, CYSpacing.xxl).padding(.bottom, CYSpacing.xxl)
@@ -112,10 +112,10 @@ struct CYChapterEndCard: View {
             .scaleEffect(shown || reduceMotion ? 1 : 0.6)
             .accessibilityHidden(true)
             VStack(spacing: CYSpacing.xs) {
-                Text("chapterFlip.complete \(number)").font(CYTypography.caption).tracking(0.8).textCase(.uppercase)
+                Text("chapterFlip.complete \(number)").cyText(.caption).tracking(0.8).textCase(.uppercase)
                     .foregroundStyle(.white.opacity(0.66))
                 if let title, !title.isEmpty {
-                    Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(.white)
+                    Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(.white)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -123,9 +123,9 @@ struct CYChapterEndCard: View {
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(stats.prefix(3)) { stat in
                         VStack(spacing: CYSpacing.xxs) {
-                            Text(verbatim: stat.value ?? "—").font(CYTypography.dataXL).monospacedDigit()
+                            Text(verbatim: stat.value ?? "—").cyText(.dataXL).monospacedDigit()
                                 .foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.6)
-                            Text(LocalizedStringKey(stat.key)).font(CYTypography.micro).foregroundStyle(.white.opacity(0.6))
+                            Text(LocalizedStringKey(stat.key)).cyText(.micro).foregroundStyle(.white.opacity(0.6))
                                 .lineLimit(2).multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.md)

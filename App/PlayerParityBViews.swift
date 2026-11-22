@@ -94,8 +94,8 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                         RoamPassportHistoryView(reader: reader, localReader: nil, owner: owner)
                     } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text("parityB.passport.history").font(CYTypography.cardTitle)
-                            Text("parityB.passport.historyValue \(Int(summary.trips))").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            Text("parityB.passport.history").cyText(.cardTitle)
+                            Text("parityB.passport.historyValue \(Int(summary.trips))").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }
                     }.accessibilityIdentifier("parityB.passport.history")
                 }
@@ -154,8 +154,8 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                             Text(Date(timeIntervalSince1970: TimeInterval(at) / 1000), format: .dateTime.month().day().hour().minute())
                         }
                     }
-                    if let serverMessage { Text(verbatim: serverMessage).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    if let message { Text(message).font(CYTypography.meta).foregroundStyle(unknown ? CYColor.dangerText : CYColor.textSecondary) }
+                    if let serverMessage { Text(verbatim: serverMessage).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    if let message { Text(message).cyText(.meta).foregroundStyle(unknown ? CYColor.dangerText : CYColor.textSecondary) }
                     if unknown {
                         CYPillButton("parityB.shared.reconcile", style: .secondary) { Task { await reconcile() } }
                             .disabled(writing).listRowBackground(Color.clear)
@@ -169,8 +169,8 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 Section("parityB.shared.ledger") {
                     if let export {
                         LabeledContent("parityB.shared.session") { Text(verbatim: String(export.sessionID)) }
-                        LabeledContent("parityB.shared.configHash") { Text(verbatim: String(export.configHash.prefix(12))).font(CYTypography.meta) }
-                        LabeledContent("parityB.shared.highWater") { Text(verbatim: String(export.highWaterHash.prefix(12))).font(CYTypography.meta) }
+                        LabeledContent("parityB.shared.configHash") { Text(verbatim: String(export.configHash.prefix(12))).cyText(.meta) }
+                        LabeledContent("parityB.shared.highWater") { Text(verbatim: String(export.highWaterHash.prefix(12))).cyText(.meta) }
                         if let next = export.manualNextSequence { LabeledContent("parityB.shared.nextSequence") { Text(next, format: .number) } }
                         if export.manualNeedsReview { Text("parityB.shared.needsReview").foregroundStyle(CYColor.dangerText) }
                         if export.revision != control.revision || export.authorityEpoch != control.authorityEpoch {
@@ -283,8 +283,8 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 CYPillButton("parityB.lead.scan", style: .secondary, systemImage: "qrcode.viewfinder") { scanning = true }
                     .disabled(busy).accessibilityIdentifier("parityB.lead.scan")
-                if let serverNote { Text(verbatim: serverNote).font(CYTypography.meta).foregroundStyle(color) }
-                else if let note { Text(note).font(CYTypography.meta).foregroundStyle(color) }
+                if let serverNote { Text(verbatim: serverNote).cyText(.meta).foregroundStyle(color) }
+                else if let note { Text(note).cyText(.meta).foregroundStyle(color) }
             }
             .sheet(isPresented: $scanning) {
                 NativeQRScanner { raw in scanning = false; Task { await verify(raw) } }
@@ -352,14 +352,14 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
             Section {
                 if let rows {
                     ForEach(rows.indices, id: \.self) { index in row(index, rows[index]) }
-                    if let serverIssue { Text(verbatim: serverIssue).font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
-                    else if let issue { Text(issue).font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
-                    if saved && dirty.isEmpty { Text("parityB.alt.saved").font(CYTypography.meta).foregroundStyle(CYColor.successText) }
+                    if let serverIssue { Text(verbatim: serverIssue).cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                    else if let issue { Text(issue).cyText(.meta).foregroundStyle(CYColor.dangerText) }
+                    if saved && dirty.isEmpty { Text("parityB.alt.saved").cyText(.meta).foregroundStyle(CYColor.successText) }
                     CYPillButton("parityB.alt.save", style: .secondary) { Task { await save() } }
                         .disabled(saving || dirty.isEmpty).listRowBackground(Color.clear)
                         .accessibilityIdentifier("parityB.alt.save")
                 } else if let issue {
-                    Text(issue).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(issue).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     Button("parityB.alt.reload") { Task { await load() } }
                 } else { ProgressView() }
             } header: { Text("parityB.alt.title") } footer: { Text("parityB.alt.footer") }
@@ -379,7 +379,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 .disabled(saving)
         }
         if value.on && value.type == .scan && !value.answerConfigured {
-            Text("parityB.alt.scanMissing").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("parityB.alt.scanMissing").cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
     }
 
@@ -445,10 +445,10 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 ProgressView().frame(maxWidth: .infinity)
             } else if let topic {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("parityB.circle.review").font(CYTypography.cardTitle)
-                    if let day = topic.reviewedOn { Text("parityB.circle.reviewedOn \(day)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    else { Text("parityB.circle.notReviewed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    Text("parityB.circle.reviewHint").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    Text("parityB.circle.review").cyText(.cardTitle)
+                    if let day = topic.reviewedOn { Text("parityB.circle.reviewedOn \(day)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    else { Text("parityB.circle.notReviewed").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    Text("parityB.circle.reviewHint").cyText(.caption).foregroundStyle(CYColor.textTertiary)
                     CYPillButton("parityB.circle.pick", style: .secondary) { picking = true }
                         .accessibilityIdentifier("parityB.circle.pick")
                 }
@@ -480,16 +480,16 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
     var body: some View {
         NavigationStack {
             List {
-                Section { Text("parityB.circle.subtitle").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                Section { Text("parityB.circle.subtitle").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 if let candidates = CircleThemeCatalog.theme(themeCode) {
                     Section {
                         ForEach(candidates) { candidate in
                             Button { toggle(candidate.code) } label: {
                                 HStack {
                                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                        Text(verbatim: candidate.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                        Text(verbatim: candidate.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                         (Text(LocalizedStringKey("parityB.circle.role." + candidate.role.rawValue)) + Text(verbatim: " · " + candidate.merchant))
-                                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                     }
                                     Spacer()
                                     CYStatusChip(picked.contains(candidate.code) ? "parityB.circle.picked" : "parityB.circle.unpicked",
@@ -502,11 +502,11 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                         }
                     }
                 } else { Text("parityB.circle.unsupported").foregroundStyle(CYColor.textSecondary) }
-                if let hint { hint.font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
+                if let hint { hint.cyText(.meta).foregroundStyle(CYColor.dangerText) }
                 if let errorTitle {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(errorTitle).font(CYTypography.label).foregroundStyle(CYColor.dangerText)
-                        if let errorText { Text(verbatim: errorText).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        Text(errorTitle).cyText(.label).foregroundStyle(CYColor.dangerText)
+                        if let errorText { Text(verbatim: errorText).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     }
                 }
             }

@@ -103,7 +103,7 @@ import SwiftUI
                     } else {
                         Text(verbatim: page.summaryCountText)
                     }
-                }.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
+                }.cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
                 if page.phase == .empty {
                     CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))
                         .listRowBackground(Color.clear)

@@ -13,9 +13,9 @@ public struct UnifiedOPT090To092AndEXT01To11SectionView: View {
             ForEach(UnifiedOPT090To092AndEXT01To11ReleaseSignoffContract.releasePackages) { pkg in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(pkg.optID) · \(pkg.title)")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text("7层签收: \(pkg.sevenLayerSignoff.joined(separator: " -> "))")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)
@@ -25,7 +25,7 @@ public struct UnifiedOPT090To092AndEXT01To11SectionView: View {
             }
             ForEach(UnifiedOPT090To092AndEXT01To11ReleaseSignoffContract.conditionalExtensions) { ext in
                 LabeledContent("\(ext.extID) \(ext.title)", value: ext.disposition)
-                    .font(.caption)
+                    .cyText(.meta)
             }
         }
     }

@@ -126,7 +126,7 @@ import QuestifyCore
             } else {
                 CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
                     Text("orientScore.readOnly")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -137,17 +137,17 @@ import QuestifyCore
     private var totalCard: some View {
         CYCard(variant: .elevated) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(summary.phase).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(summary.phase).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: facts?.totalText ?? summary.total)
-                    .font(CYTypography.data2XL)
+                    .cyText(.data2XL)
                     .contentTransition(.numericText())
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityLabel(summary.totalAccessibility)
                 // Source: 对局 {{score.sessionId}}.
                 Text("orientScore.session \(String(facts?.sessionID ?? summary.sessionID))")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 Text("orientScore.precision")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
         .accessibilityIdentifier("orientScore.total")
@@ -156,12 +156,12 @@ import QuestifyCore
     private var dimensionsCard: some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("orientScore.breakdown").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("orientScore.breakdown").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 ForEach(summary.dimensions) { row in
                     HStack {
-                        Text(row.label).font(CYTypography.bodyMedium)
+                        Text(row.label).cyText(.bodyMedium)
                         Spacer(minLength: CYSpacing.md)
-                        Text(row.value).font(CYTypography.bodyMedium.monospacedDigit())
+                        Text(row.value).cyText(.bodyMedium, monospacedDigit: true)
                     }
                     .foregroundStyle(CYColor.textPrimary)
                     .frame(minHeight: 44)
@@ -174,22 +174,22 @@ import QuestifyCore
     private var settlementCard: some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("orientScore.settlement").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("orientScore.settlement").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 switch facts?.settlement {
                 case .settled(let total, let points, let xp)?:
-                    Text("orientScore.settled \(total)").font(CYTypography.bodyMedium)
-                    Text("orientScore.rewards \(points) \(xp)").font(CYTypography.bodyCompact)
+                    Text("orientScore.settled \(total)").cyText(.bodyMedium)
+                    Text("orientScore.rewards \(points) \(xp)").cyText(.bodyCompact)
                 case .unknown?:
-                    Text(verbatim: OrientScorePage.unknownDisplay).font(CYTypography.bodyMedium)
+                    Text(verbatim: OrientScorePage.unknownDisplay).cyText(.bodyMedium)
                 case .absent?:
                     EmptyView()
                 case nil:
                     if let settlement = summary.settlement {
-                        Text("orientScore.settled \(settlement.total)").font(CYTypography.bodyMedium)
-                        Text("orientScore.rewards \(String(settlement.points)) \(String(settlement.xp))").font(CYTypography.bodyCompact)
+                        Text("orientScore.settled \(settlement.total)").cyText(.bodyMedium)
+                        Text("orientScore.rewards \(String(settlement.points)) \(String(settlement.xp))").cyText(.bodyCompact)
                     }
                 }
-                Text(summary.settlementNotice).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(summary.settlementNotice).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(CYColor.textPrimary)
@@ -199,24 +199,24 @@ import QuestifyCore
     private var timelineCard: some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("orientScore.timeline").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("orientScore.timeline").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 if summary.timeline.isEmpty {
-                    Text("orientScore.timeline.empty").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("orientScore.timeline.empty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }
                 ForEach(summary.timeline) { row in
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         HStack {
-                            Text(row.dimension).font(CYTypography.bodyMedium)
+                            Text(row.dimension).cyText(.bodyMedium)
                             Spacer(minLength: CYSpacing.md)
-                            Text(row.delta).font(CYTypography.bodyMedium.monospacedDigit())
+                            Text(row.delta).cyText(.bodyMedium, monospacedDigit: true)
                         }
-                        Text("orientScore.running \(runningText(row))").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        if !row.reason.isEmpty { Text(row.reason).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        Text("orientScore.running \(runningText(row))").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        if !row.reason.isEmpty { Text(row.reason).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                         if let reversed = row.reversesEntryID {
-                            Text("orientScore.reverses \(String(reversed))").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            Text("orientScore.reverses \(String(reversed))").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         }
                         if row.appealPending {
-                            Text("orientScore.appealPending").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                            Text("orientScore.appealPending").cyText(.meta).foregroundStyle(CYColor.warningText)
                         }
                     }
                     .foregroundStyle(CYColor.textPrimary)
@@ -237,16 +237,16 @@ import QuestifyCore
     private func reviewsCard(title: LocalizedStringKey, emptyText: LocalizedStringKey, rows: [OrientScoreReviewRow]) -> some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 if rows.isEmpty {
-                    Text(emptyText).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text(emptyText).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }
                 ForEach(rows) { row in
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text(row.statusText).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                        Text(row.reason).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        Text(row.statusText).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        Text(row.reason).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         if let note = row.note {
-                            Text("orientScore.resolution \(note)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            Text("orientScore.resolution \(note)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         }
                     }
                     .accessibilityElement(children: .combine)

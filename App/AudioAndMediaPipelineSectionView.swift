@@ -141,11 +141,11 @@ public struct AudioAndMediaPipelineSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Audio Lifecycle & Publish Media Pipeline")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("audioMediaPipeline.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllHealthyAndFailClosed ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("audioMediaPipeline.statusBadge")
             }
@@ -170,7 +170,7 @@ public struct AudioAndMediaPipelineSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.code)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
@@ -181,7 +181,7 @@ public struct AudioAndMediaPipelineSectionView: View {
                                 )
                         }
                         Text(verbatim: row.detail)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

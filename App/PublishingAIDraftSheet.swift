@@ -30,20 +30,20 @@ import SwiftUI
                     // Design hand-off r1 CF-59: the prompt leads; suggestions and preference tags follow it.
                     TextField("contextPublish.ai.prompt", text: Binding(get: { model.flow.idea }, set: { model.flow.idea = $0; model.revision += 1 }), axis: .vertical)
                         .lineLimit(3...8)
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .disabled(model.flow.busy)
                         .accessibilityIdentifier("contextPublish.ai.prompt")
                         .focused($ideaFocused)
                     PublishingAIPromptControls(controller:inspiration,flow:model.flow,applied:{ ideaFocused = true })
                     if let key = model.flow.messageKey {
                         Text(LocalizedStringKey(key))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if let message = model.flow.serverMessage {
                         Text(verbatim: message)
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.danger)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -71,11 +71,11 @@ import SwiftUI
                     .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.md, bottom: CYSpacing.sm, trailing: CYSpacing.md))
                     if !model.flow.canGenerate && !model.flow.busy && model.flow.quotaReadState != .loading && model.flow.quota?.exhausted != true {
                         Text("contextPublish.ai.unavailable")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                     }
                     Text("contextPublish.ai.notice")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -84,7 +84,7 @@ import SwiftUI
                     Section {
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
                             ProgressView("contextPublish.ai.generating")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)
                             CYSkeleton(variant: .card)
                         }
@@ -105,10 +105,10 @@ import SwiftUI
                         if let sourceIdea = model.flow.candidateSourceIdea {
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text("publishingAICandidate.sourceIdea")
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(palette.textTertiary)
                                 Text(verbatim: sourceIdea)
-                                    .font(CYTypography.bodyCompact)
+                                    .cyText(.bodyCompact)
                                     .foregroundStyle(palette.textPrimary)
                                     .textSelection(.enabled)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -118,19 +118,19 @@ import SwiftUI
                         // at 0 / 40 / 70 / 90 ms); a new generation retargets. Reduce Motion: cross-fade.
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text(verbatim: result.draft.title)
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(palette.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .modifier(PublishingAIRewrite(generation: candidateGeneration, order: 0))
                             if let subtitle = result.draft.subtitle {
                                 Text(verbatim: subtitle)
-                                    .font(CYTypography.label)
+                                    .cyText(.label)
                                     .foregroundStyle(palette.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .modifier(PublishingAIRewrite(generation: candidateGeneration, order: 1))
                             }
                             Text(verbatim: result.draft.description)
-                                .font(CYTypography.bodyCompact)
+                                .cyText(.bodyCompact)
                                 .foregroundStyle(palette.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .modifier(PublishingAIRewrite(generation: candidateGeneration, order: 2))
@@ -139,18 +139,18 @@ import SwiftUI
                         ForEach(Array(result.draft.nodes.enumerated()), id: \.element.id) { index, node in
                             HStack(alignment: .top, spacing: CYSpacing.sm) {
                                 Text(verbatim: "\(index + 1)")
-                                    .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                                    .cyText(.micro, monospacedDigit: true)
                                     .foregroundStyle(palette.actionPrimaryFg)
                                     .frame(width: 22, height: 22)
                                     .background(Circle().fill(palette.actionPrimaryBg))
                                     .accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: node.name)
-                                        .font(CYTypography.label)
+                                        .cyText(.label)
                                         .foregroundStyle(palette.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                     Text(verbatim: node.description)
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(palette.textSecondary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }

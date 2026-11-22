@@ -100,8 +100,8 @@ struct CYHeroBanner: View {
     @ViewBuilder private func caption(_ item: CYHeroBannerItem) -> some View {
         if let title = item.title {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                title.font(.system(.title2, design: .rounded).weight(.heavy)).lineLimit(3).minimumScaleFactor(0.7)
-                if let subtitle = item.subtitle { subtitle.font(CYTypography.bodyCompact).opacity(0.9).lineLimit(2) }
+                title.cyText(.dataXL).lineLimit(3).minimumScaleFactor(0.7)
+                if let subtitle = item.subtitle { subtitle.cyText(.bodyCompact).opacity(0.9).lineLimit(2) }
             }
             .foregroundStyle(.white)
             .padding(CYSpacing.lg)

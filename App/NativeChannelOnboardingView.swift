@@ -110,7 +110,7 @@ import SwiftUI
                         }
                         if snapshot.answerState == "SOURCE_CHANGED" {
                             Text("d7.channelOnboarding.changed")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -177,7 +177,7 @@ import SwiftUI
     private func promptHeader(_ prompt: NativeOnboardingSnapshot.Prompt) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: prompt.title.isEmpty ? "—" : prompt.title)
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
@@ -196,7 +196,7 @@ import SwiftUI
                 }
                 ForEach(prompt.options.filter { answer.optionIDs.contains($0.id) }) { option in
                     Text(verbatim: option.label.isEmpty ? "—" : option.label)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -213,7 +213,7 @@ import SwiftUI
         return HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: symbol).foregroundStyle(tone).accessibilityHidden(true)
             Text(verbatim: shown)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)

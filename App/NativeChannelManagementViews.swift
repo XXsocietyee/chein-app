@@ -13,7 +13,7 @@ private func ncmString(_ key: String, locale: Locale, table: String) -> String {
 
 private func ncmHeader(_ key: String) -> some View {
     Text(LocalizedStringKey(key), tableName: "NativeChannelManagement")
-        .font(CYTypography.sectionTitle)
+        .cyText(.sectionTitle)
         .foregroundStyle(CYColor.textPrimary)
         .textCase(nil)
         .fixedSize(horizontal: false, vertical: true)
@@ -23,7 +23,7 @@ private func ncmHeader(_ key: String) -> some View {
 private func ncmServerHeader(_ name: String) -> some View {
     let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
     return Text(verbatim: trimmed.isEmpty ? "—" : trimmed)
-        .font(CYTypography.sectionTitle)
+        .cyText(.sectionTitle)
         .foregroundStyle(CYColor.textPrimary)
         .textCase(nil)
         .fixedSize(horizontal: false, vertical: true)
@@ -150,7 +150,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     }
                 }
                 .listStyle(.insetGrouped)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .refreshable { await model.loadDirectory() }
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -227,7 +227,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                 let trimmed = spaceName.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
                     Text(verbatim: trimmed)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -311,7 +311,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     if let row = model.detail, row.id == channelID {
                         Section {
                             if let topic = row.topic, !topic.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                Text(verbatim: topic).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: topic).cyText(.body).foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                             }
                             statusFact(row)
@@ -444,7 +444,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     }
                 }
                 .formStyle(.grouped)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .refreshable { await model.loadDetail(channelID) }
             } else {
                 ScrollView {
@@ -494,7 +494,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
     private func statusFact(_ row: NativeChannelManagementChannel) -> some View {
         let key = row.status == 1 ? "d7.channelManage.archivedShort" : "active"
         return HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            ncmText("status").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            ncmText("status").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             CYStatusChip(verbatim: ncmString(key, locale: locale), tone: row.status == 1 ? .warning : .success, systemImage: row.status == 1 ? "archivebox" : "checkmark")
         }
@@ -549,7 +549,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                         LabeledContent {
                             TextField(value: $draft.slowmodeSeconds, format: .number, prompt: Text(verbatim: "0")) { ncmText("d7.channelManage.slowmodeSeconds") }
                                 .keyboardType(.numberPad).multilineTextAlignment(.trailing)
-                                .font(CYTypography.numericBody)
+                                .cyText(.numericBody)
                         } label: { ncmText("d7.channelManage.slowmodeSeconds") }
                         Picker(selection: $draft.visibility) { ncmText("public").tag(1); ncmText("private").tag(2) } label: { ncmText("visibility") }
                         if channel == nil {
@@ -563,7 +563,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                         }
                     }.disabled(channel.map({ $0.status != 0 }) ?? false)
                     if let channel, let purge = channel.purgeAt {
-                        Section { LabeledContent { Text(verbatim: shown(purge)).font(CYTypography.body) } label: { ncmText("purgeAt") } }
+                        Section { LabeledContent { Text(verbatim: shown(purge)).cyText(.body) } label: { ncmText("purgeAt") } }
                     }
                     Section { TextField(text: $reason, prompt: ncmText("reason"), axis: .vertical) { ncmText("reason") }.lineLimit(2...4) }
                     if channel == nil || channel?.status == 0 {
@@ -588,7 +588,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     }
                 }
                 .formStyle(.grouped)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .disabled(model.busy)
             } else {
                 ScrollView {
@@ -673,7 +673,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
             NativeChannelManagementIssueView(issue: model.issue)
             if model.isCurrent, let intent = model.prepared {
                 Section {
-                    ncmText("operation.\(intent.operation.rawValue)").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    ncmText("operation.\(intent.operation.rawValue)").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let type = intent.targetType, let target = intent.targetID {
                         CYFactRow(label: ncmText("permissionTarget"), value: type == 1 ? ncmString("everyone", locale: locale) : roleName(target))
@@ -684,7 +684,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     CYFactRow(label: ncmText("d7.channelManage.reasonLabel"), value: shown(intent.reason))
                 }
                 if intent.isPermissionChange && !model.permissionWritesAvailable {
-                    Section { ncmText("permissionSubmissionUnavailable").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+                    Section { ncmText("permissionSubmissionUnavailable").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
                 }
                 Section {
                     if intent.operation == .delete {
@@ -712,7 +712,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
             }
         }
         .formStyle(.grouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .nativeChannelFlowPage()
         .cyGroupedSurface()
         .tint(CYColor.textPrimary)
@@ -769,7 +769,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                         .listRowBackground(Color.clear)
                 }
             }
-            .font(CYTypography.body)
+            .cyText(.body)
         }
     }
 }
@@ -784,7 +784,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                     CYNoteBanner(text: ncmText("applied"), symbol: "checkmark.circle", tone: .success)
                     if let name = result.name {
                         Text(verbatim: shown(name))
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -793,7 +793,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
                 case .notFound: CYNoteBanner(text: ncmText("notFoundUnknown"), symbol: "questionmark.circle", tone: .neutral)
                 }
             }
-            .font(CYTypography.body)
+            .cyText(.body)
         }
     }
     private func shown(_ value: String) -> String {
@@ -807,7 +807,7 @@ private func ncmClearRow<Content: View>(@ViewBuilder _ content: () -> Content) -
         VStack(spacing: CYSpacing.sm) {
             CYEmptyState(systemImage: "lock.shield", "unavailable", tableName: "NativeChannelManagement")
             Text("entryUnavailable", tableName: "NativeChannelManagement")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)

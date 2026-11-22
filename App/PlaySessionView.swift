@@ -78,17 +78,17 @@ struct PlaySessionView: View {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     if let name = snapshot.result.topicName, !name.isEmpty {
-                        Text(verbatim: name).font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.topicName")
+                        Text(verbatim: name).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.topicName")
                     }
                     Label(LocalizedStringKey(snapshot.availability.titleKey), systemImage: statusSymbol(snapshot.availability))
-                        .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.status")
+                        .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.status")
                     if let total = snapshot.result.total, let done = snapshot.displayedDoneCount, total > 0 {
                         ProgressView(value: Double(min(done, total)), total: Double(total))
-                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").font(CYTypography.numericBody).monospacedDigit() }
+                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").cyText(.numericBody).monospacedDigit() }
                     } else {
                         // UNKNOWN progress is the em dash (PlayIndexPageReadiness.unknownMark), not a sentence or 0/0.
                         LabeledContent("play.progress") {
-                            Text(verbatim: PlayIndexPageReadiness.unknownMark).font(CYTypography.numericBody)
+                            Text(verbatim: PlayIndexPageReadiness.unknownMark).cyText(.numericBody)
                                 .accessibilityLabel(Text("play.progress.unknown"))
                         }.foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("play.progress.unknown")
                     }
@@ -117,18 +117,18 @@ struct PlaySessionView: View {
                                 Image(systemName: snapshot.isDone(node) ? "checkmark.circle.fill" : snapshot.isLocked(node) ? (node.weatherLocked == true ? "cloud.rain.circle" : "lock.circle") : "circle")
                                     .font(.title3).foregroundStyle(snapshot.isDone(node) ? CYColor.successText : (snapshot.isLocked(node) && node.weatherLocked == true) ? CYColor.warningText : CYColor.textTertiary)
                                 VStack(alignment: .leading, spacing: 5) {
-                                    if let name = node.name, !name.isEmpty { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
-                                    else { Text("play.node.untitled").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
+                                    if let name = node.name, !name.isEmpty { Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary) }
+                                    else { Text("play.node.untitled").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary) }
                                     if let chapterID = node.chapterID, let chapter = snapshot.result.chapters.first(where: { $0.id == chapterID }),
                                        let name = chapter.name, !name.isEmpty {
-                                        Text(verbatim: name).font(.caption).foregroundStyle(.secondary)
+                                        Text(verbatim: name).cyText(.meta).foregroundStyle(.secondary)
                                     }
                                     if let hook = node.hookText, !hook.isEmpty { Text(verbatim: hook).font(.subheadline).foregroundStyle(.secondary) }
                                     Text(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"))
-                                        .font(.caption).foregroundStyle(.secondary)
+                                        .cyText(.meta).foregroundStyle(.secondary)
                                     if !snapshot.isDone(node), snapshot.isLocked(node), node.weatherLocked == true {
                                         Text(verbatim: snapshot.lockReason(node) ?? CoreLoopCopy(locale: locale).t("等待对应天气或时段触发", "Waiting for weather condition"))
-                                            .font(.caption)
+                                            .cyText(.meta)
                                             .foregroundStyle(CYColor.warningText)
                                             .accessibilityIdentifier("play.node.weatherLock.\(node.id)")
                                     }
@@ -159,7 +159,7 @@ struct PlayReceiptView: View {
     let receipt: PlayAnswerReceipt
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("play.answer.accepted", systemImage: "checkmark.circle").font(CYTypography.bodyMedium).foregroundStyle(CYColor.successText)
+            Label("play.answer.accepted", systemImage: "checkmark.circle").cyText(.bodyMedium).foregroundStyle(CYColor.successText)
             if let xp = receipt.xp { LabeledContent("play.xp") { Text(verbatim: String(xp)) } }
             if let score = receipt.puzzleScore { LabeledContent("play.puzzleScore") { Text(verbatim: String(score)) } }
             if receipt.completed == true { Text("play.answer.routeCompleted") }

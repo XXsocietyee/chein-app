@@ -22,7 +22,7 @@ import SwiftUI
                 if let error {
                     if RoamHistoryErrorPresentation.resolve(error: error) == .denied {
                         Label("roam.history.denied", systemImage: "lock")
-                            .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.body).foregroundStyle(CYColor.textSecondary)
                             .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
                             .cyNightGlass(cornerRadius: CYRadius.md)
                             .accessibilityIdentifier("roam.experience.history.denied")
@@ -62,10 +62,10 @@ import SwiftUI
                                     Text(distance, format: .number.precision(.fractionLength(2)))
                                 } else { Text(verbatim: "—") }
                             }
-                            .font(.system(.largeTitle, design: .rounded).weight(.heavy)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                             .contentTransition(.numericText())
                             .cyWrapText()
-                            Text("roam.history.km").font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
+                            Text("roam.history.km").cyText(.cardTitle).foregroundStyle(CYColor.textSecondary)
                         }
                         .accessibilityElement(children: .combine)
                         // 次漫游 · 家店 · 用时 columns under the total, as in the mini-program.
@@ -292,12 +292,12 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     RoamExperienceCard {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack(alignment: .firstTextBaseline) {
-                                Text("roamSub.w208.session.routeEyebrow").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                Text("roamSub.w208.session.routeEyebrow").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                     .accessibilityAddTraits(.isHeader)
                                 Spacer(minLength: 8)
                                 if let date = record.recordedAt {
                                     Text(date, format: .dateTime.year().month().day().weekday(.abbreviated))
-                                        .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                        .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                                 }
                             }
                             RoamSavedRouteReplayView(reader: reader, record: record)
@@ -305,7 +305,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     }
                     RoamRecordedStats(record: record)
                     let medals = RoamMedalShareSelection.selections(for: record)
-                    Text("roam.experience.rewards").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                    Text("roam.experience.rewards").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     if medals.isEmpty {
                         Text("roam.experience.rewardsEmpty").foregroundStyle(CYColor.textSecondary)
                     }
@@ -317,8 +317,8 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                                     .background(CYNight.lantern, in: RoamHexagon())
                                     .accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(verbatim: medal.card.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                    Text("roamSub.w208.session.medalCategory").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                    Text(verbatim: medal.card.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                    Text("roamSub.w208.session.medalCategory").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                                 }
                                 Spacer(minLength: 0)
                                 Image(systemName: "square.and.arrow.up").foregroundStyle(CYColor.textTertiary)
@@ -329,7 +329,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                         .accessibilityLabel(Text("roam.medalShare.open") + Text(verbatim: ": " + medal.card.name))
                         .accessibilityIdentifier("roam.medalShare.open." + medal.card.kind.rawValue)
                     }
-                    Text("roam.experience.recordedPlaces").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                    Text("roam.experience.recordedPlaces").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     if record.pois.isEmpty {
                         Text("roam.experience.recordedPlacesEmpty").foregroundStyle(CYColor.textSecondary)
                     }

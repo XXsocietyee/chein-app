@@ -29,7 +29,7 @@ import SwiftUI
     private func homeReturnCard(_ homeReturn: HomeReturnRestoreCoordinator) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "私人据点返家恢复（W19）")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("homeReturn.section.title")
 
             labeledRow(
@@ -80,7 +80,7 @@ import SwiftUI
             }
 
             Text(verbatim: "说明：仅支持手动触发返家核验，不后台采样位置，私人据点位置已脱敏。")
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("homeReturn.section.privacyNote")
@@ -227,7 +227,7 @@ import SwiftUI
     private func cityDeltaCard(_ city: CityActionAndDeltaCoordinator?) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "常驻城市经营与增量同步（W20）")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("cityDelta.section.title")
 
             if let city {
@@ -239,7 +239,7 @@ import SwiftUI
                 }
             } else {
                 Text(verbatim: "当前未配置常驻城市棋盘实例")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("cityDelta.section.unconfigured")
             }
@@ -361,7 +361,7 @@ import SwiftUI
     private func cityChallengesSummary(_ city: CityActionAndDeltaCoordinator) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: "异步挑战状态")
-                .font(.subheadline.bold())
+                .cyText(.bodyMedium)
             ForEach(city.challengeStates.keys.sorted(), id: \.self) { challengeId in
                 if let state = city.challengeStates[challengeId] {
                     labeledRow(
@@ -446,11 +446,11 @@ import SwiftUI
     private func labeledRow(label: String, value: String, identifier: String) -> some View {
         LabeledContent {
             Text(verbatim: value)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .multilineTextAlignment(.trailing)
         } label: {
             Text(verbatim: label)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(.secondary)
         }
         .accessibilityIdentifier(identifier)

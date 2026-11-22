@@ -178,15 +178,15 @@ public struct MiniProgram99PageParitySectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: "Mini-Program 99-Page Parity & Wave-2 Alignment")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: totalCoveredPages == 99 && integratedWave2Count == 21 ? "ALIGNED (99/99)" : "PARTIAL")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(totalCoveredPages == 99 && integratedWave2Count == 21 ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("miniProgramParity.statusBadge")
             }
             Text(verbatim: overallHeaderBadgeText)
-                .font(.caption.monospacedDigit())
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("miniProgramParity.overallSummary")
         }
@@ -195,16 +195,16 @@ public struct MiniProgram99PageParitySectionView: View {
     private var domainsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "Alignment Domains (4)")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
 
             ForEach(domainRows) { row in
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.domainTitle)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: "\(row.coveredPageCount)/\(row.totalPageCount) pages")
-                            .font(.caption.monospacedDigit())
+                            .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(row.isFullyAligned ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.coverageSummaryText)
@@ -232,7 +232,7 @@ public struct MiniProgram99PageParitySectionView: View {
     private var wave2ScopesSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "Wave-2 Scopes (\(integratedWave2Count)/\(wave2Badges.count))")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
 
             Text(verbatim: wave2ScopeIDsSummaryText)
                 .font(.caption2.monospaced())

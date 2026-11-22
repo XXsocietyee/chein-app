@@ -22,7 +22,7 @@ import CryptoKit
             }
             Section {
                 Text("nativeEnrollment.boundary")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYListRow("nativeEnrollment.app", trailing: .value(shown(model.scope.appID))) { CYRowIcon(systemImage: "app") }
@@ -52,7 +52,7 @@ import CryptoKit
                 }
                 if model.canSubmit {
                     Text("nativeEnrollment.proofLocal")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     pill("nativeEnrollment.enroll", .enroll, systemImage: "checkmark.circle") { review = .enroll }
@@ -60,7 +60,7 @@ import CryptoKit
                 }
                 if model.canRetryEnrollment {
                     Text("nativeEnrollment.recoveryProof")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     pill("nativeEnrollment.retryEnroll", .retryEnroll, systemImage: "arrow.clockwise") { Task { await model.retryExactEnrollment() } }
@@ -72,7 +72,7 @@ import CryptoKit
                 }
                 if model.canRetryRevocation {
                     Text("nativeEnrollment.recoveryRevoke")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Button("nativeEnrollment.retryRevoke", role: .destructive) { review = .revoke }
@@ -82,13 +82,13 @@ import CryptoKit
                     CYSkeleton()
                         .accessibilityLabel(Text("nativePlatform.working"))
                     Text("nativePlatform.working")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .privacySensitive()
@@ -105,21 +105,21 @@ import CryptoKit
                     }
                     Section {
                         Text(LocalizedStringKey("nativeEnrollment.review." + action.rawValue))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .fixedSize(horizontal: false, vertical: true)
                         Text("nativeEnrollment.noHardwareProof")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         if action == .create {
                             Text("nativeEnrollment.keyDurability")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         if action == .revoke {
                             Text("nativeEnrollment.revokeConsequence")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -135,7 +135,7 @@ import CryptoKit
                         }
                     }
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .cyGroupedSurface()
                 .cyHeroScreen()
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativePlatform.cancel") { review = nil } } }

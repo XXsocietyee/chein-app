@@ -58,12 +58,12 @@ import SwiftUI
                             .overlay { CYOrbitDots(fire: arrived, radius: 70, spread: 22) }
                             .padding(.top, CYSpacing.lg)
                         Text("welcome.title", tableName: "ClubMemberWelcome")
-                            .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                            .cyText(.dataXL)
                             .foregroundStyle(CYColor.textPrimary)
                             .multilineTextAlignment(.center)
                             .accessibilityAddTraits(.isHeader)
                         if !value.club.name.isEmpty {
-                            Text(verbatim: value.club.name).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: value.club.name).cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
                                 .multilineTextAlignment(.center)
                         }
                     }
@@ -71,8 +71,8 @@ import SwiftUI
                     .cyHaptic(.success, trigger: arrived)
                     if let note = value.club.welcomeNote, !note.isEmpty {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("welcome.note", tableName: "ClubMemberWelcome").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: note).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).textSelection(.enabled)
+                            Text("welcome.note", tableName: "ClubMemberWelcome").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: note).cyText(.body).foregroundStyle(CYColor.textPrimary).textSelection(.enabled)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(CYSpacing.lg)
@@ -96,7 +96,7 @@ import SwiftUI
                         .buttonStyle(.cyPrimary)
                         .accessibilityIdentifier("club.welcome.events")
                     Button(action: close) { Text("welcome.gotIt", tableName: "ClubMemberWelcome").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
-                        .font(CYTypography.bodyCompact.weight(.semibold))
+                        .cyText(.bodyMedium)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("club.welcome.close")
                 }
@@ -113,7 +113,7 @@ import SwiftUI
     private func step(_ symbol: String, _ text: Text) -> some View {
         HStack(spacing: CYSpacing.md) {
             Image(systemName: symbol).foregroundStyle(CYColor.textPrimary).frame(width: 24)
-            text.font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            text.cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
         }
             .padding(CYSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)

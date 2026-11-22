@@ -51,10 +51,10 @@ struct WorkshopPurchasedAccountLink: View {
                 ForEach(browser.rows) { item in
                     Button { navigation.select(licenseId: item.id, presentation: rendered) } label: {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(verbatim: item.moduleId).font(.headline)
-                            Text(verbatim: item.purchasedVersionId).font(.caption)
+                            Text(verbatim: item.moduleId).cyText(.cardTitle)
+                            Text(verbatim: item.purchasedVersionId).cyText(.meta)
                             purchasedText("status." + item.status.rawValue)
-                            purchasedText("perpetual").font(.caption)
+                            purchasedText("perpetual").cyText(.meta)
                         }.fixedSize(horizontal: false, vertical: true)
                     }.accessibilityIdentifier("workshopPurchased.row." + item.id)
                 }
@@ -110,7 +110,7 @@ struct WorkshopPurchasedAccountLink: View {
                     PurchasedFact("version", item.purchasedVersionId)
                     purchasedText("status." + item.status.rawValue).accessibilityIdentifier("workshopPurchased.status")
                     PurchasedFact("acquiredAt", item.acquiredAt); PurchasedFact("checkedAt", detail.checkedAt)
-                    purchasedText("perpetual").font(.headline)
+                    purchasedText("perpetual").cyText(.cardTitle)
                     purchasedText("durationScope").fixedSize(horizontal: false, vertical: true)
                 } header: { purchasedText("record") }
                 Section {

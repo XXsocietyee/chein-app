@@ -16,15 +16,15 @@ struct DiscoveryTemplateDetailParitySections: View {
             if showsPublisherRow { publisherRow }
             if let feedback = presentation.reviewFeedback {
                 Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                    .font(CYTypography.bodyCompact).foregroundStyle(palette.warning)
+                    .cyText(.bodyCompact).foregroundStyle(palette.warning)
                     .accessibilityIdentifier("discovery.templateDetail.reviewFeedback")
             }
             if !stats.isEmpty {
                 HStack(alignment: .top) {
                     ForEach(stats, id: \.kind) { stat in
                         VStack(spacing: 2) {
-                            statValue(stat).font(CYTypography.numericBody).foregroundStyle(palette.textPrimary)
-                            Text(statLabel(stat.kind)).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+                            statValue(stat).cyText(.numericBody).foregroundStyle(palette.textPrimary)
+                            Text(statLabel(stat.kind)).cyText(.caption).foregroundStyle(palette.textTertiary)
                         }
                         .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .combine)
@@ -54,7 +54,7 @@ struct DiscoveryTemplateDetailParitySections: View {
         if let rating = presentation.rating {
             Section {
                 HStack {
-                    Text(verbatim: rating).font(CYTypography.dataXL).monospacedDigit()
+                    Text(verbatim: rating).cyText(.dataXL).monospacedDigit()
                     if let count = presentation.commentCount, count > 0 {
                         Text("discovery.templateDetail.reviewCount \(count)")
                     } else {
@@ -94,12 +94,12 @@ struct DiscoveryTemplateDetailParitySections: View {
                 officialBadge
             }
         }
-        .font(CYTypography.label)
+        .cyText(.label)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("discovery.templateDetail.publisher")
     }
     private var officialBadge: some View {
-        Text("discovery.templateDetail.publisher.official").font(.caption2.bold())
+        Text("discovery.templateDetail.publisher.official").cyText(.caption, weight: .bold)
             .padding(.horizontal, 6).padding(.vertical, 2)
             .background(.tint.opacity(0.15), in: Capsule())
     }
@@ -107,7 +107,7 @@ struct DiscoveryTemplateDetailParitySections: View {
         if !chips.isEmpty {
             Section {
                 Text(verbatim: chips.joined(separator: " · "))
-                    .font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                    .cyText(.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier(id)
             } header: { DiscoverySectionHeader(title) }.discoveryCardRow()
         }
@@ -137,8 +137,8 @@ struct DiscoveryTemplateNoticeSection: View {
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
-                Text("discovery.templateDetail.notice.title").font(CYTypography.label)
-                Text("discovery.templateDetail.notice.body").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                Text("discovery.templateDetail.notice.title").cyText(.label)
+                Text("discovery.templateDetail.notice.body").cyText(.meta).foregroundStyle(palette.textTertiary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("discovery.templateDetail.notice")
@@ -162,12 +162,12 @@ struct TemplateNodePreviewSheet: View {
             Form {
                 switch state.preview {
                 case .text(let question):
-                    if let question { Text(verbatim: question).font(.headline) }
+                    if let question { Text(verbatim: question).cyText(.cardTitle) }
                     TextField("discovery.templateDetail.preview.answerPlaceholder", text: Binding(get: { state.answer }, set: { state.type($0) }))
                         .accessibilityIdentifier("discovery.templateDetail.preview.answer")
                     completeButton
                 case .choice(let question, let options):
-                    if let question { Text(verbatim: question).font(.headline) }
+                    if let question { Text(verbatim: question).cyText(.cardTitle) }
                     ForEach(options, id: \.key) { option in
                         Button { state.select(option.key) } label: {
                             HStack {
@@ -187,7 +187,7 @@ struct TemplateNodePreviewSheet: View {
                     }
                 }
                 if hint {
-                    Text("discovery.templateDetail.preview.answerFirst").font(.footnote).foregroundStyle(.secondary)
+                    Text("discovery.templateDetail.preview.answerFirst").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .accessibilityIdentifier("discovery.templateDetail.preview.answerFirst")
                 }
             }

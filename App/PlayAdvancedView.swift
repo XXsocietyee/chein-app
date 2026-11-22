@@ -88,7 +88,7 @@ import SwiftUI
                         else { Text(verbatim: state.status.isEmpty ? "—" : state.status) }
                         if let score = state.score { Text("playx.advanced.scoreLine \(score)").monospacedDigit() }
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("playx.advanced.summary")
                     if state.deadlineAt != nil {
@@ -109,7 +109,7 @@ import SwiftUI
                             .accessibilityIdentifier("playx.advanced.continue")
                         if let continueReason {
                             Text(verbatim: continueReason)
-                                .font(.footnote)
+                                .cyText(.bodyCompact)
                                 .accessibilityIdentifier("playx.advanced.continue.reason")
                         }
                     }
@@ -129,9 +129,9 @@ import SwiftUI
                 // Existing non-screen kits remain explicitly distinct from this migration.
                 ForEach((state.playKit.object ?? [:]).keys.filter { PlayKitScreenKind(rawValue: $0) == nil && !PlayAdvancedKitSheet.ownKeys.contains($0) }.sorted(), id: \.self) { kind in
                     Section {
-                        Text(verbatim: state.playKit[kind]["title"].text ?? kind).font(.headline)
+                        Text(verbatim: state.playKit[kind]["title"].text ?? kind).cyText(.cardTitle)
                         if let description = state.playKit[kind]["description"].text { Text(verbatim: description) }
-                        Text("playx.advanced.specialGate").font(.footnote)
+                        Text("playx.advanced.specialGate").cyText(.bodyCompact)
                     }
                 }
                 if state.isMultiplayer {
@@ -176,9 +176,9 @@ extension PlayAdvancedView {
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(LocalizedStringKey("playkit.kind." + sheet.key)).font(.headline)
+                    Text(LocalizedStringKey("playkit.kind." + sheet.key)).cyText(.cardTitle)
                     if let title, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
-                    if recorded { Text("playkit.result.recorded").font(.caption) }
+                    if recorded { Text("playkit.result.recorded").cyText(.meta) }
                 }
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
@@ -246,7 +246,7 @@ extension PlayAdvancedView {
         if model.phase == "unknown", let pending = model.pending, pending.action == PlayKitPublishedWrites.albumAction {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text("playkit.pendingBoundary")
-                Text(verbatim: pending.key).font(CYTypography.meta).textSelection(.enabled)
+                Text(verbatim: pending.key).cyText(.meta).textSelection(.enabled)
                     .accessibilityIdentifier("playkit.album.requestId")
                 Button("playkit.reconcile") {
                     Task {

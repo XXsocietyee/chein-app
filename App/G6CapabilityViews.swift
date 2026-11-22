@@ -222,16 +222,16 @@ struct G6RevenueAllocationsView: View {
 
     var body: some View {
         List {
-            Section { Text("g6.revenue.note").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            Section { Text("g6.revenue.note").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             ForEach(rows) { row in
                 Section {
                     HStack {
-                        Text(G6Copy.revenueOrder(row.orderType)).font(CYTypography.bodyMedium)
+                        Text(G6Copy.revenueOrder(row.orderType)).cyText(.bodyMedium)
                         Spacer(minLength: CYSpacing.sm)
-                        Text(G6Copy.revenueStatus(row.status)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(G6Copy.revenueStatus(row.status)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     if let day = row.settleableDay {
-                        Text("g6.revenue.settleableFrom \(day)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("g6.revenue.settleableFrom \(day)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     ForEach(row.lines) { line in
                         LabeledContent {
@@ -296,9 +296,9 @@ struct G6TopicCharactersSection: View {
                     HStack(spacing: CYSpacing.md) {
                         G6Avatar(url: character.avatar)
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: character.name).font(CYTypography.bodyMedium)
+                            Text(verbatim: character.name).cyText(.bodyMedium)
                             if let place = character.place {
-                                Text(verbatim: place).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: place).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                         }
                     }
@@ -444,7 +444,7 @@ private struct G6PromptBubble: View {
     let line: String
     var body: some View {
         Text(verbatim: line)
-            .font(CYTypography.bodyMedium)
+            .cyText(.bodyMedium)
             .foregroundStyle(CYColor.textPrimary)
             .padding(.horizontal, CYSpacing.lg)
             .padding(.vertical, CYSpacing.md)
@@ -475,9 +475,9 @@ struct G6AIThemeDraftRecoverySection: View {
                     if page.items.isEmpty { Text("g6.ai.history.empty").foregroundStyle(CYColor.textSecondary) }
                     ForEach(page.items) { item in
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(G6Copy.aiState(item.state)).font(CYTypography.bodyMedium)
+                            Text(G6Copy.aiState(item.state)).cyText(.bodyMedium)
                             Text(verbatim: item.requestID + " · " + item.createdAtText)
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
                         }
                         .accessibilityElement(children: .combine)
                     }

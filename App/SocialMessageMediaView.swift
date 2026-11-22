@@ -24,10 +24,10 @@ import ImageIO
                             .accessibilityLabel("social.media.image").accessibilityIdentifier("social.media.loaded")
                     } else {
                         CYHeroHeader("social.media.title")
-                        Label("social.media.image", systemImage: "photo").font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                        Label("social.media.image", systemImage: "photo").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                         if !reader.isConfigured { Text("social.media.disabled").modifier(SquareFlowNoticeStyle()) }
                         else {
-                            Text("social.media.purpose").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                            Text("social.media.purpose").cyText(.meta).foregroundStyle(palette.textSecondary)
                             // Display only origin, never leak signed query parameters.
                             Text(verbatim: SocialMessageMediaService.origin(media.url) ?? "").font(CYTypography.caption.monospaced()).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
                             CYPillButton(LocalizedStringKey(requested ? "action.retry" : "social.media.load"), systemImage: "arrow.down.circle") { Task { await load(media) } }

@@ -70,7 +70,7 @@ enum Cur4Fixtures {
             VStack(alignment: .leading, spacing: 0) {
                 view
                 Text(verbatim: "DEBUG fixture · " + title)
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
                     .padding(CYSpacing.md)
             }

@@ -33,7 +33,7 @@ import SwiftUI
             }.padding(.horizontal).frame(minHeight: 44)
             NavigationStack {
                 MerchantMarketingView(model: store.model, initialSurface: initialSurface)
-                    .safeAreaInset(edge: .top) { Text("merchantMarketing.synthetic").font(.caption).accessibilityIdentifier("merchantMarketing.synthetic")
+                    .safeAreaInset(edge: .top) { Text("merchantMarketing.synthetic").cyText(.meta).accessibilityIdentifier("merchantMarketing.synthetic")
                         .modifier(AccessibilityFixtureEnvironmentValue()) }
             }
         }.modifier(AccessibilityFixtureOptions())

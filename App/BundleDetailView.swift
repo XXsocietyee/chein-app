@@ -60,7 +60,7 @@ import SwiftUI
         Color.clear
             .overlay { E1CoverArt(seed: name, symbol: "shippingbox") }
             .overlay(alignment: .bottomLeading) {
-                Text(verbatim: name).font(.system(.largeTitle).weight(.bold)).foregroundStyle(.white)
+                Text(verbatim: name).cyText(.pageTitle).foregroundStyle(.white)
                     .lineLimit(4).minimumScaleFactor(0.6).accessibilityAddTraits(.isHeader)
                     .padding(CYSpacing.lg).padding(.top, 64).frame(maxWidth: .infinity, alignment: .leading)
                     .background(LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom))
@@ -74,7 +74,7 @@ import SwiftUI
         if priceText != nil || content.extras?.validityDays != nil {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if let priceText {
-                    Text(verbatim: copy.t("套餐价", "Bundle price")).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: copy.t("套餐价", "Bundle price")).cyText(.meta).foregroundStyle(palette.textTertiary)
                     CYAnimatedPrice(text: priceText)
                 }
                 if let days = content.extras?.validityDays {
@@ -118,9 +118,9 @@ import SwiftUI
                         HStack(alignment: .top, spacing: CYSpacing.md) {
                             CYRowIcon(systemImage: "storefront")
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: merchant.merchantName ?? "—").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                                Text(verbatim: merchant.merchantName ?? "—").cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                                 if let summary = merchant.qualificationSummary {
-                                    Text(verbatim: summary).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                                    Text(verbatim: summary).cyText(.meta).foregroundStyle(palette.textSecondary)
                                 }
                             }
                             Spacer(minLength: 0)
@@ -140,17 +140,17 @@ import SwiftUI
             DisclosureGroup(isExpanded: $noticesOpen) {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     ForEach(Array(content.complianceDeclarations.enumerated()), id: \.offset) { _, line in
-                        Text(verbatim: line).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        Text(verbatim: line).cyText(.meta).foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if let url = content.agreementURL {
-                        Link(destination: url) { text("detail.agreement").font(CYTypography.meta.weight(.semibold)) }
+                        Link(destination: url) { text("detail.agreement").cyText(.meta, weight: .semibold) }
                             .frame(minHeight: 44, alignment: .leading)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading).padding(.top, CYSpacing.sm)
             } label: {
-                Label { text("detail.compliance").font(CYTypography.cardTitle) } icon: { Image(systemName: "doc.text.magnifyingglass") }
+                Label { text("detail.compliance").cyText(.cardTitle) } icon: { Image(systemName: "doc.text.magnifyingglass") }
                     .foregroundStyle(palette.textPrimary)
             }
             .tint(palette.textSecondary)
@@ -164,7 +164,7 @@ import SwiftUI
 
     @ViewBuilder private var bottomBar: some View {
         if content.showsNotOnSale {
-            text("detail.notOnSale").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            text("detail.notOnSale").cyText(.meta).foregroundStyle(palette.textSecondary)
                 .frame(maxWidth: .infinity).padding(CYSpacing.lg).background(.bar)
                 .accessibilityIdentifier("bundle.detail.notOnSale")
         } else if onPurchase != nil {
@@ -205,13 +205,13 @@ struct BundleIncludedRow: View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             CYRowIcon(systemImage: "ticket")
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: item.name ?? "—").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: item.name ?? "—").cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 let stores = item.stores.compactMap(\.merchantName).filter { !$0.isEmpty }
                 if !stores.isEmpty {
-                    Text(verbatim: stores.joined(separator: " · ")).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: stores.joined(separator: " · ")).cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
                 if let terms = item.termsMode, !terms.isEmpty {
-                    Text(verbatim: terms).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: terms).cyText(.meta).foregroundStyle(palette.textTertiary)
                 }
             }
             Spacer(minLength: 0)

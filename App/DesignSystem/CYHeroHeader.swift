@@ -41,14 +41,14 @@ struct CYHeroHeader<Illustration: View>: View {
             illustration
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 title
-                    .font(.system(.largeTitle, design: .default).weight(.heavy))
+                    .cyText(.pageTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .modifier(CYOptionalAccessibilityIdentifier(identifier: titleIdentifier))
                 if let subtitle {
                     subtitle
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

@@ -221,13 +221,13 @@ struct ClubOwnerFundsSection: View {
     var body: some View {
         let offered = parent.ticket(current: currentSource(), active: current, otherPresented: otherPresented())
         Section("club.ownerFunds.title") {
-            Text("club.ownerFunds.accountScope").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("club.ownerFunds.accountScope").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             if workflow.loading {
                 CYSkeletonLocal()
-                Text("wallet.loading").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("wallet.loading").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             if current, let value = workflow.funds, workflow.loadedScope == context.reader?.scope {
-                if !value.amountsKnown { Text("wallet.amountsUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if !value.amountsKnown { Text("wallet.amountsUnknown").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 CYBalanceHeroLocal(
                     label: "wallet.available",
                     amount: value.amountsKnown ? amount(value.withdrawable, currency: value.currency) : "—",
@@ -246,9 +246,9 @@ struct ClubOwnerFundsSection: View {
             if let key = workflow.failure { Text(LocalizedStringKey(key)).accessibilityIdentifier("club.ownerFunds.error") }
             if target.hasSettlementRows {
             if let hint = ClubOpsWithdrawHint(isOwner: true, availability: workflow.availability) {
-                Text(LocalizedStringKey(hint.localizationKey), tableName: "ClubOpsCustomer").font(CYTypography.meta)
+                Text(LocalizedStringKey(hint.localizationKey), tableName: "ClubOpsCustomer").cyText(.meta)
                     .accessibilityIdentifier("clubOps.settlement.withdraw." + hint.rawValue)
-            } else { Text("club.ownerFunds.manual").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            } else { Text("club.ownerFunds.manual").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             // HANDOFF-R1 MC-29 (owner Q-C): withdrawal stays a support hand-off, named and explained.
             ClubWithdrawalHandOffNote()
             Button {
@@ -282,13 +282,13 @@ private struct CYBalanceHeroLocal: View {
     let delta: String
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
+            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
             Text(verbatim: amount)
-                .font(CYTypography.data2XL)
+                .cyText(.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
                 .cyWrapText()
             Text(verbatim: delta)
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textSecondary)
                 .cyWrapText()
                 .padding(.horizontal, CYSpacing.sm)
@@ -308,14 +308,14 @@ private struct CYMoneyRowLocal: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
                 if !detail.isEmpty {
-                    Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
+                    Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()
                 }
             }
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: amount)
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(incoming ? CYColor.successText : CYColor.textPrimary)
                 .cyWrapText(alignment: .trailing)
         }
@@ -350,8 +350,8 @@ private struct CYConfirmSheetLocal: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                Text(title).font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
-                Text(message).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text(title).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                Text(message).cyText(.body).foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: CYSpacing.lg)
                 Button(confirmTitle) { onConfirm(); dismiss() }
                     .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))

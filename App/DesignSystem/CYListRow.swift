@@ -166,16 +166,16 @@ struct CYListRow<Leading: View>: View {
                 .foregroundStyle(tokens.leadingForeground)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 titleText
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(tokens.title)
                     .cyWrapText()
                 if let verbatimMeta {
                     Text(verbatim: verbatimMeta)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(tokens.meta)
                 } else if let meta {
                     Text(meta)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(tokens.meta)
                 }
                 // Accessibility sizes: the value moves under the text so the title keeps the full row width.
@@ -223,7 +223,7 @@ struct CYListRow<Leading: View>: View {
     }
     private func valueText(_ value: String) -> some View {
         Text(verbatim: value)
-            .font(CYTypography.numericBody)
+            .cyText(.numericBody)
             .foregroundStyle(resolvedTokens.value)
             .cyWrapText(alignment: .trailing)
     }

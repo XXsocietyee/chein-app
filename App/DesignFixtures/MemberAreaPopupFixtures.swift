@@ -78,7 +78,7 @@ enum MemberAreaPopupFixtures {
                 onClose: {}
             ) {
                 Text(verbatim: "欢迎来到星光探案馆，今天想了解哪条主题路线？")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
             })

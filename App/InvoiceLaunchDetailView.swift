@@ -12,8 +12,8 @@ import SwiftUI
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
-                        invoiceText(row.status.noticeKey).font(CYTypography.sectionTitle)
-                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).font(CYTypography.dataXL).monospacedDigit()
+                        invoiceText(row.status.noticeKey).cyText(.sectionTitle)
+                        Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale)).cyText(.dataXL).monospacedDigit()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, CYSpacing.xs)

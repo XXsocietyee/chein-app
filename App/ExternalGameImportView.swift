@@ -46,7 +46,7 @@ import WebKit
             // (提交审核 / 我的提交) as 44 pt circles in the app's own neutral tint; no blue text actions.
             HStack(alignment: .center, spacing: CYSpacing.sm) {
                 ConfigR4Text.text("config.games.title")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: CYSpacing.sm)
@@ -86,18 +86,18 @@ import WebKit
                 session: offlineWriteSession.session
             )
             if !review.notice.isEmpty {
-                Text(review.notice).font(CYTypography.bodyCompact).foregroundStyle(CYColor.dangerText)
+                Text(review.notice).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("externalGame.notice")
             }
             if let requestID = review.unconfirmedRequestID {
                 Text(W8Text.t("结果未知，仍保留请求 \(requestID)。", "The result is unknown. Request \(requestID) is still saved."))
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("externalGame.unconfirmed")
             }
 
             if let importError, !importError.isEmpty {
                 Label(importError, systemImage: "exclamationmark.triangle.fill")
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("externalGameImportError")
             }
@@ -226,11 +226,11 @@ import WebKit
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: game.manifest.name)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("config.games.meta \(game.manifest.version) \(game.manifest.contentRating)", tableName: ConfigR4Text.table)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textTertiary)
             }
             Spacer(minLength: CYSpacing.sm)
@@ -332,7 +332,7 @@ import WebKit
                     ? String(localized: LocalizedStringResource("playx.externalGame.urlSection", defaultValue: "Package HTTPS Address", locale: locale))
                     : String(localized: LocalizedStringResource("playx.externalGame.qrSection", defaultValue: "Secure Link Found in QR Code", locale: locale))) {
                     TextField("https://example.com/game.json", text: $linkInput)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -415,7 +415,7 @@ import WebKit
                                     .frame(width: 24)
                                     .accessibilityHidden(true)
                                 Text(verbatim: perm.displayName)
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(palette.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Spacer(minLength: CYSpacing.sm)
@@ -442,7 +442,7 @@ import WebKit
 
                 Section {
                     Text(String(localized: LocalizedStringResource("playx.externalGame.securityNotice", defaultValue: "Security commitment: this content runs only inside an isolated WKWebView sandbox, shares no sign-in credentials, allows no in-app purchases or external payments, and exposes only versioned read-only and save bridge interfaces.", locale: locale)))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                 }
             }
@@ -509,11 +509,11 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
             VStack(spacing: 0) {
                 HStack {
                     Label("\(game.manifest.name) (v\(game.manifest.version))", systemImage: "lock.shield")
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .foregroundStyle(CYColor.textPrimary)
                     Spacer()
                     Text(W8Text.t("分级 \(game.manifest.contentRating) · 沙盒隔离", "Rated \(game.manifest.contentRating) · sandboxed"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                 }
                 .padding(.horizontal, CYSpacing.md)
@@ -549,7 +549,7 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                             let medalText = outcome.medalRank.map { W8Text.t(" · 勋章第\($0)名", " · Medal #\($0)") } ?? ""
                             let nodeText = outcome.nodeCompleted ? W8Text.t(" · 节点已通关", " · Node done") : ""
                             Text(verbatim: W8Text.t("结果已签名上报：+\(outcome.xpAwarded) 探索值\(medalText)\(nodeText)", "Signed result: +\(outcome.xpAwarded) XP\(medalText)\(nodeText)"))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .accessibilityIdentifier("externalGame.signedResult")
                         } else if sessionTicket != nil {
@@ -558,7 +558,7 @@ struct ExternalGameNodePlayContext: Equatable, Sendable {
                                     await reportSignedResult(passed: true, score: nil, digest: nil)
                                 }
                             }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .disabled(isSubmittingResult)
                             .accessibilityLabel(W8Text.t("完成并签名上报结果", "Submit signed result"))
                             .accessibilityHint(W8Text.t("把本次外部游戏成绩签名提交给服务器结算", "Submit the signed external game result to the server"))

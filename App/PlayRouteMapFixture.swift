@@ -34,7 +34,7 @@ import SwiftUI
                 Button("Synthetic refresh") { reload(switchOwner: false) }.accessibilityIdentifier("playRoute.fixture.read")
                 Button("Synthetic account switch") { reload(switchOwner: true) }.accessibilityIdentifier("playRoute.fixture.account")
             } label: { Label("Synthetic route controls", systemImage: "ellipsis.circle").frame(minHeight: 44) }
-                .font(.caption).dynamicTypeSize(.large)
+                .cyText(.meta).dynamicTypeSize(.large)
                 .accessibilityIdentifier("playRoute.fixture.controls")
                 .padding(.bottom, 8)
         }

@@ -122,7 +122,7 @@ final class MerchantCoopCenterFixtureTransport: MerchantContentOfflineTransport 
                     now: { MerchantCoopCenterFixtureData.now },
                     inboxDestination: { close in AnyView(CooperationBrowserView(reader: CooperationFixtureReader(), onClose: close)) })
             }
-            Text(mcc("merchantCoopCenter.fixture.banner", locale)).font(.footnote).padding(6)
+            Text(mcc("merchantCoopCenter.fixture.banner", locale)).cyText(.bodyCompact).padding(6)
                 .frame(maxWidth: .infinity).background(.regularMaterial)
                 .accessibilityIdentifier("merchantCoopCenter.fixture.banner")
         }

@@ -14,7 +14,7 @@ import SwiftUI
         Section {
             HStack {
                 Text("d7.friendPicker.selected \(flow.selected.count)")
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .foregroundStyle(palette.textSecondary)
                     .monospacedDigit()
                 Spacer(minLength: CYSpacing.sm)
@@ -30,7 +30,7 @@ import SwiftUI
             HStack(spacing: CYSpacing.sm) {
                 Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
                 TextField("d7.friendPicker.search", text: $search)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .disabled(flow.busy)
             }
             .frame(minHeight: CYSpacing.minTouchTarget)
@@ -44,12 +44,12 @@ import SwiftUI
                         personArt(name)
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text(verbatim: name)
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(palette.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                             if row.alreadyMember {
                                 Text("d7.friendPicker.unavailable")
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(palette.textTertiary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -73,7 +73,7 @@ import SwiftUI
         } header: {
             CYSectionHeader("d7.friendPicker.title")
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .onChange(of: flow.isCurrent) { _, valid in if !valid { search = "" } }
         .onDisappear { search = "" }
         .privacySensitive()

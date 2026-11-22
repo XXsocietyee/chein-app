@@ -53,8 +53,8 @@ struct ProfileParticipantsView: View {
                     Section {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Label("participant.list.deletedTitle", systemImage: "checkmark.circle.fill")
-                                .font(CYTypography.cardTitle).foregroundStyle(CYColor.successText)
-                            Text("participant.list.deletedDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.cardTitle).foregroundStyle(CYColor.successText)
+                            Text("participant.list.deletedDetail").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("participant.list.deleted")
@@ -67,19 +67,19 @@ struct ProfileParticipantsView: View {
                         let name = card.fullName.trimmingCharacters(in: .whitespaces)
                         let rowLabel = HStack(spacing: CYSpacing.md) {
                             Text(verbatim: String(name.prefix(1)).uppercased())
-                                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                 .frame(width: 44, height: 44)
                                 .background(Circle().fill(CYColor.bgRaised))
                                 .overlay { if name.isEmpty { Image(systemName: "person.fill").foregroundStyle(CYColor.textTertiary) } }
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 4) {
-                                if card.fullName.isEmpty { Text("profile.participants.unnamed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                                else { Text(verbatim: card.fullName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                                if card.fullName.isEmpty { Text("profile.participants.unnamed").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                                else { Text(verbatim: card.fullName).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                                 // Blank phone shows the model's em dash, never an empty line.
-                                Text(verbatim: card.phoneText).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: card.phoneText).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                                     .accessibilityLabel(PageTemplateVoiceOver.spoken(card.phoneText, locale: locale))
                                 // Mini-program pages/address row caption: 用于报名联系和到场核验.
-                                Text("profile.participants.rowPurpose").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                Text("profile.participants.rowPurpose").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                             }
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -99,7 +99,7 @@ struct ProfileParticipantsView: View {
                             // Mini-program pages/address row: 编辑 and × stay visible beside each participant.
                             if onSelect == nil, let coordinator, coordinator.canPrepare, reader.identity != nil {
                                 Button { editing = ParticipantRowTarget(id: card.id) } label: {
-                                    Text("participant.list.editShort").font(CYTypography.meta).underline().foregroundStyle(CYColor.textSecondary)
+                                    Text("participant.list.editShort").cyText(.meta).underline().foregroundStyle(CYColor.textSecondary)
                                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                                 }
                                 .buttonStyle(.borderless)
@@ -127,7 +127,7 @@ struct ProfileParticipantsView: View {
                 } footer: {
                     // Table total only when the reader exposes it; the row count is never shown in its place.
                     if reader is ProfileParticipantListFactsReading {
-                        Text("profile.participants.total \(page.totalText)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("profile.participants.total \(page.totalText)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("profile.participants.total")
                     }
                 }

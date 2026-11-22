@@ -173,19 +173,19 @@ public struct CYSectionHeader: View {
                     Text(title)
                 }
             }
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .cyWrapText()
             .accessibilityAddTraits(.isHeader)
 
             if let verbatimSubtitle {
                 Text(verbatim: verbatimSubtitle)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .cyWrapText()
             } else if let subtitle {
                 Text(subtitle)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .cyWrapText()
             }
@@ -197,7 +197,7 @@ public struct CYSectionHeader: View {
             Button(action: action) {
                 HStack(spacing: CYSpacing.xs) {
                     Text(actionTitle)
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .cyWrapText()
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.semibold))
@@ -770,7 +770,7 @@ public struct CYUnreadBadge: View {
             } else if let count, count > 0 {
                 let text = Self.formattedCount(count)
                 Text(verbatim: text)
-                    .font(CYTypography.micro.monospacedDigit())
+                    .cyText(.micro, monospacedDigit: true)
                     .foregroundStyle(foregroundColor)
                     .padding(.horizontal, count > 9 ? CYSpacing.xs + CYSpacing.xxs : CYSpacing.xs)
                     .frame(minWidth: badgeMinHeight, minHeight: badgeMinHeight)

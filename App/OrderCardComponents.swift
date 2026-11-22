@@ -70,7 +70,7 @@ struct OrderPillLabel: View {
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
             title.cyWrapText(alignment: .center)
         }
-        .font(CYTypography.label)
+        .cyText(.label)
         .foregroundStyle(CYColor.textOnAccent)
         .padding(.horizontal, CYSpacing.xl)
         .padding(.vertical, CYSpacing.xs)
@@ -87,7 +87,7 @@ struct OrderFilterPill: View {
     var body: some View {
         Button(action: choose) {
             Text(title)
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(isSelected ? CYColor.textOnAccent : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg)
                 .frame(minHeight: CYSpacing.minTouchTarget)
@@ -114,7 +114,7 @@ struct OrderAmountHero: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Text(verbatim: figure)
                 .font(CYTypography.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
@@ -122,7 +122,7 @@ struct OrderAmountHero: View {
                 .privacySensitive()
             if amount != nil, showsCurrencyCaveat {
                 Text(verbatim: appLocalized("activity.currencyUnconfirmed", locale: locale))
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.caption).foregroundStyle(CYColor.textTertiary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -139,9 +139,9 @@ struct OrderValueRow: View {
         let layout = size.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
                                               : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.md))
         layout {
-            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             if size.isAccessibilitySize == false { Spacer(minLength: CYSpacing.sm) }
-            Text(verbatim: value).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                 .multilineTextAlignment(size.isAccessibilitySize ? .leading : .trailing)
                 .fixedSize(horizontal: false, vertical: true)
         }

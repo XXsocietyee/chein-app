@@ -15,7 +15,7 @@ import SwiftUI
                         .accessibilityIdentifier("notification.permission.busy")
                 }
                 Label(NativeNotificationPermissionStatusPresentation.project(authorization: model.snapshot?.authorization, busy: model.busy, hasIssue: model.issue != nil).title(locale: locale), systemImage: "bell.badge")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityAddTraits(.isHeader)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("notification.permission.status")

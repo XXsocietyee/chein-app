@@ -223,8 +223,8 @@ struct PassMarketView: View {
     @ViewBuilder private func balanceCard(_ balance: Int) -> some View {
         let label = HStack {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("mp.pass.points").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: String(balance)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text("mp.pass.points").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: String(balance)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     .contentTransition(.numericText())
             }
             Spacer()
@@ -288,11 +288,11 @@ struct PassMarketView: View {
                 .background { Circle().fill(CYNight.glow(radius: 22)) }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("mp.pass.member").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("mp.pass.member").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 switch side {
-                case .activeUntil(let until): Text("mp.pass.member.until \(until)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                case .plans(let plans): Text(verbatim: plans).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                case .themeCount(let count): Text("mp.pass.member.count \(count)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                case .activeUntil(let until): Text("mp.pass.member.until \(until)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                case .plans(let plans): Text(verbatim: plans).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                case .themeCount(let count): Text("mp.pass.member.count \(count)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 case .none: EmptyView()
                 }
             }
@@ -311,13 +311,13 @@ struct PassMarketView: View {
             MPRows(items: rows) { row in
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        (row.name.map { Text(verbatim: $0) } ?? Text("mp.pass.order.fallbackName")).font(CYTypography.bodyMedium)
-                        row.state.text.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        (row.name.map { Text(verbatim: $0) } ?? Text("mp.pass.order.fallbackName")).cyText(.bodyMedium)
+                        row.state.text.cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     Spacer()
                     VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
-                        if let amount = row.amountText { Text(verbatim: amount).font(CYTypography.bodyMedium).monospacedDigit() }
-                        if let time = row.timeText { Text(verbatim: time).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        if let amount = row.amountText { Text(verbatim: amount).cyText(.bodyMedium).monospacedDigit() }
+                        if let time = row.timeText { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     }
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
@@ -360,16 +360,16 @@ struct PassProductCardView: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.sm) {
                 if let kind = product.kind {
-                    Text(kind.label).font(CYTypography.caption).foregroundStyle(CYNight.lanternHot)
+                    Text(kind.label).cyText(.caption).foregroundStyle(CYNight.lanternHot)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYNight.lantern.opacity(0.14), in: Capsule())
                 }
-                if let city = product.city { Text(verbatim: city).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                if let city = product.city { Text(verbatim: city).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                 Spacer()
             }
-            Text(verbatim: product.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: product.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 .multilineTextAlignment(.leading)
-            if let validity = product.validity { validity.text.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let validity = product.validity { validity.text.cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .firstTextBaseline) {
                     if product.coverCount > 0 {
@@ -380,7 +380,7 @@ struct PassProductCardView: View {
                         }
                     }
                     Spacer()
-                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(CYTypography.cardTitle)
+                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).cyText(.cardTitle)
                 }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if product.coverCount > 0 {
@@ -390,10 +390,10 @@ struct PassProductCardView: View {
                             Text("mp.pass.cover \(product.coverCount)")
                         }
                     }
-                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).font(CYTypography.cardTitle)
+                    PassPriceText(cash: product.cashPriceText, points: product.pointsPrice).cyText(.cardTitle)
                 }
             }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
@@ -618,7 +618,7 @@ struct PassDetailView: View {
                 ProgressView().frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("passDetail.quoteLoading")
             case .unavailable(let reason):
                 (reason.map { Text(verbatim: $0) } ?? Text("mp.pass.buy.unavailable"))
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("passDetail.unavailable")
             case .checkout(let activityID, let ticketID):
@@ -626,25 +626,25 @@ struct PassDetailView: View {
                     CYPillButton("mp.pass.buy.checkout") { onOpenCheckout(activityID, ticketID) }
                         .accessibilityIdentifier("passDetail.checkout")
                 } else {
-                    Text("mp.pass.buy.useCheckout").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("mp.pass.buy.useCheckout").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                 }
             case .buyable(let modes, let cashReason):
                 if let cashReason, state.checkout.isEmpty {
-                    Text(verbatim: cashReason).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: cashReason).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 // Gate OFF: the pay modes are shown as facts, not buttons.
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: CYSpacing.sm) {
                         ForEach(modes) { mode in
-                            Text(verbatim: mode.amountText).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: mode.amountText).cyText(.label).foregroundStyle(CYColor.textSecondary)
                                 .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
                                 .background(CYColor.bgElevated, in: Capsule())
                         }
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         ForEach(modes) { mode in
-                            Text(verbatim: mode.amountText).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: mode.amountText).cyText(.label).foregroundStyle(CYColor.textSecondary)
                                 .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
                                 .background(CYColor.bgElevated, in: Capsule())
                         }
@@ -671,10 +671,10 @@ struct PassUnlockStepsView: View {
             VStack(spacing: CYSpacing.xl) {
                 PassTicketHero(face: face)
                 VStack(spacing: CYSpacing.sm) {
-                    Text(verbatim: step.eyebrow).font(CYTypography.caption).tracking(0.6).foregroundStyle(CYNight.lanternHot)
-                    Text(verbatim: step.title).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
-                    if let line = step.line { Text(verbatim: line).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                    ForEach(step.rows, id: \.self) { Text(verbatim: $0).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                    Text(verbatim: step.eyebrow).cyText(.caption).tracking(0.6).foregroundStyle(CYNight.lanternHot)
+                    Text(verbatim: step.title).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                    if let line = step.line { Text(verbatim: line).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                    ForEach(step.rows, id: \.self) { Text(verbatim: $0).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 }
                 .id(step.id)
                 .transition(reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
@@ -710,8 +710,8 @@ struct PassGiftReadySheet: View {
             Image(systemName: "gift.fill").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
                 .padding(CYSpacing.lg).background { Circle().fill(CYNight.glow(radius: 40)) }
                 .accessibilityHidden(true)
-            Text("mp.pass.giftReady.title").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
-            Text("mp.pass.giftReady.note").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            Text("mp.pass.giftReady.title").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
+            Text("mp.pass.giftReady.note").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             ShareLink(item: share.url, message: Text("mp.pass.giftReady.shareTitle \(productName)")) {
                 Text("mp.pass.giftReady.send")
             }
@@ -755,7 +755,7 @@ struct PassTicketHero: View {
                 }
                 VStack(spacing: CYSpacing.xs) {
                     Image(systemName: "key.fill").font(CYTypography.sectionTitle)
-                    Text(verbatim: face).font(CYTypography.cardTitle).lineLimit(2).multilineTextAlignment(.center)
+                    Text(verbatim: face).cyText(.cardTitle).lineLimit(2).multilineTextAlignment(.center)
                 }
                 .foregroundStyle(CYNight.ink0)
                 .padding(.horizontal, CYSpacing.lg)
@@ -846,14 +846,14 @@ struct PassGiftClaimView: View {
                 else if let failedReason { Text(verbatim: failedReason) }
                 else { Text("mp.gift.title") }
             }
-            .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+            .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
             .padding(.horizontal, CYSpacing.xxl)
             .accessibilityAddTraits(.updatesFrequently)
             .accessibilityIdentifier("passGift.status")
             Spacer()
             if failedReason == nil {
                 MPBottomBar {
-                    if state.phase == .unknown { Text("mp.gift.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if state.phase == .unknown { Text("mp.gift.unknown").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     if claimed {
                         CYPillButton("mp.gift.view", action: onOpenGifts).accessibilityIdentifier("passGift.view")
                     } else if MPCommerceGate.claimsEnabled {

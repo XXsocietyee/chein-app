@@ -75,17 +75,17 @@ import SwiftUI
                 }
             } label: { Text(verbatim: W8Text.t("评分", "Rating")) }
             .pickerStyle(.menu)
-            .font(CYTypography.body)
+            .cyText(.body)
             .frame(minHeight: CYSpacing.minTouchTarget)
             TextEditor(text: $content)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .frame(minHeight: editorMin)
                 .scrollContentBackground(.hidden)
                 .padding(CYSpacing.sm)
                 .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityLabel(Text(verbatim: W8Text.t("评价内容", "Review text")))
             Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .monospacedDigit()
                 .foregroundStyle(palette.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -96,7 +96,7 @@ import SwiftUI
                 CYNoteBanner(text: Text(verbatim: W8Text.t("评价未被接受", "Your review wasn't accepted")), symbol: "exclamationmark.triangle", tone: .danger)
                 if let code, !code.isEmpty {
                     Text(verbatim: code)
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -120,7 +120,7 @@ import SwiftUI
     @ViewBuilder private var outcomeUnknown: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(verbatim: W8Text.t("评价是否提交成功尚未确认", "We couldn't confirm whether your review was submitted"))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             CYPillButton(verbatim: W8Text.t("查询提交结果", "Check status")) { Task { await model.recover() } }
@@ -135,12 +135,12 @@ import SwiftUI
     @ViewBuilder private func blocked(_ reason: String?) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: W8Text.t("当前订单暂不可评价", "This order can't be reviewed right now"))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if let reason, !reason.isEmpty {
                 Text(verbatim: reason)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -153,18 +153,18 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: W8Text.t("评分", "Rating"))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: String(review.rating))
-                    .font(CYTypography.dataXL)
+                    .cyText(.dataXL)
                     .monospacedDigit()
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityElement(children: .combine)
             Text(verbatim: review.content)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             CYStatusChip(verbatim: review.statusKind.label, tone: reviewTone(review.statusKind), systemImage: reviewSymbol(review.statusKind))

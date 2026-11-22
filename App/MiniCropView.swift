@@ -41,7 +41,7 @@ import UIKit
                 .padding(.top, CYSpacing.sm)
             if images.count > 1 {
                 progressLabel
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .monospacedDigit()
                     .foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center)
@@ -104,12 +104,12 @@ import UIKit
 
     @ViewBuilder private var controlButtons: some View {
         Button("publishParity.crop.cancel", role: .cancel, action: onCancel)
-            .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             .accessibilityIdentifier("miniCrop.cancel")
         if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
         Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }
-            .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+            .cyText(.label).foregroundStyle(CYColor.textSecondary)
             .frame(minHeight: CYSpacing.minTouchTarget)
             .disabled(!page.canUseOriginal)
             .accessibilityIdentifier("miniCrop.useOriginal")

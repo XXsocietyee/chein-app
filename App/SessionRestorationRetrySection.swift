@@ -25,7 +25,7 @@ import SwiftUI
                     .disabled(!session.canRetrySessionRestoration)
                     .accessibilityIdentifier("auth.restore.retry")
                     Text("auth.restore.explanation", tableName: "SessionRestorationRetry")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .cyText(.bodyCompact).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

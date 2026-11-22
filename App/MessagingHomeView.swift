@@ -88,7 +88,7 @@ private struct MessagingConversationListView: View {
                             Section {
                                 ForEach(section.rows) { conversation in conversationRow(conversation) }
                             } header: {
-                                Text(verbatim: section.title).font(CYTypography.meta.weight(.semibold)).textCase(nil)
+                                Text(verbatim: section.title).cyText(.meta, weight: .semibold).textCase(nil)
                                     .accessibilityAddTraits(.isHeader)
                             }
                         }

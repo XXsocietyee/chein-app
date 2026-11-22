@@ -22,7 +22,7 @@ struct CityOddsBar: View {
         let copy = CityCopy(locale: locale)
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: copy("需要掷出 ≥ \(max(2, min(20, needFace)))", "Roll ≥ \(max(2, min(20, needFace)))"))
-                .font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
+                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
             HStack(spacing: 3) {
                 ForEach(1...20, id: \.self) { face in
                     let wins = face >= 21 - winFaces
@@ -33,7 +33,7 @@ struct CityOddsBar: View {
                 }
             }
             Text(verbatim: copy("20 面骰 · \(winFaces) 个面能赢（\(percent)%）", "d20 · \(winFaces) winning faces (\(percent)%)"))
-                .font(CYTypography.caption.monospacedDigit()).foregroundStyle(palette.textSecondary)
+                .cyText(.caption, monospacedDigit: true).foregroundStyle(palette.textSecondary)
             if !modifiers.isEmpty {
                 HStack(spacing: CYSpacing.sm) { ForEach(modifiers, id: \.self) { CityInfoChip(text: $0) } }
             }
@@ -62,7 +62,7 @@ struct CityD20Art: View {
             hexagon.stroke(Color.white.opacity(0.35), lineWidth: max(1, size / 70))
             if let face {
                 Text(verbatim: String(face))
-                    .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                    .cyText(.dataXL)
                     .lineLimit(1)
                     .minimumScaleFactor(0.3)
                     .foregroundStyle(Color.black.opacity(0.78))

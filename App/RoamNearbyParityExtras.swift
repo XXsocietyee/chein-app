@@ -124,7 +124,7 @@ struct RoamPlaceExtrasSection: View {
             }
             if let credit = extras.photoCredit, !credit.isEmpty { creditRow(credit) }
             if let copiedNotice {
-                Text(verbatim: copiedNotice).font(CYTypography.meta).foregroundStyle(CYColor.successText)
+                Text(verbatim: copiedNotice).cyText(.meta).foregroundStyle(CYColor.successText)
                     .accessibilityAddTraits(.updatesFrequently)
             }
         }
@@ -161,14 +161,14 @@ struct RoamPlaceExtrasSection: View {
     private func gameCard(_ game: RoamPlaceGame) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack {
-                Text(verbatim: c.t("地点玩法", "Place play")).font(CYTypography.caption).tracking(0.6).foregroundStyle(CYNight.lantern)
+                Text(verbatim: c.t("地点玩法", "Place play")).cyText(.caption).tracking(0.6).foregroundStyle(CYNight.lantern)
                 Spacer()
                 if game.completed { CYStatusChip(verbatim: c.t("已完成", "Completed"), tone: .success, systemImage: "checkmark") }
             }
-            Text(verbatim: game.title ?? c.t("地点挑战", "Place challenge")).font(CYTypography.cardTitle)
-            if let detail = game.detail { Text(verbatim: detail).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+            Text(verbatim: game.title ?? c.t("地点挑战", "Place challenge")).cyText(.cardTitle)
+            if let detail = game.detail { Text(verbatim: detail).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
             ForEach(Array(game.steps.enumerated()), id: \.offset) { index, step in
-                Text(verbatim: "\(index + 1)  \(step)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: "\(index + 1)  \(step)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
         .padding(.vertical, CYSpacing.xs)
@@ -194,7 +194,7 @@ struct RoamPlaceExtrasSection: View {
 
     private var quotes: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: c.t("网上怎么说", "What people say online")).font(CYTypography.label).accessibilityAddTraits(.isHeader)
+            Text(verbatim: c.t("网上怎么说", "What people say online")).cyText(.label).accessibilityAddTraits(.isHeader)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     ForEach(extras.quotes) { quote in
@@ -203,8 +203,8 @@ struct RoamPlaceExtrasSection: View {
                             copiedNotice = c.t("已复制原文链接", "Source link copied")
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: "「\(quote.text)」").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary).lineLimit(4)
-                                Text(verbatim: "\(quote.sourceLabel) · " + c.t("复制原文链接", "Copy source link")).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: "「\(quote.text)」").cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).lineLimit(4)
+                                Text(verbatim: "\(quote.sourceLabel) · " + c.t("复制原文链接", "Copy source link")).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                             }
                             .frame(width: 240, alignment: .leading)
                             .padding(CYSpacing.md)
@@ -222,14 +222,14 @@ struct RoamPlaceExtrasSection: View {
     private var reviews: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.xs) {
-                Text(verbatim: c.t("玩家评价", "Player reviews")).font(CYTypography.label)
-                if !extras.reviews.isEmpty { Text(verbatim: String(extras.reviews.count)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary) }
+                Text(verbatim: c.t("玩家评价", "Player reviews")).cyText(.label)
+                if !extras.reviews.isEmpty { Text(verbatim: String(extras.reviews.count)).cyText(.label).foregroundStyle(CYColor.textSecondary) }
             }
             .accessibilityAddTraits(.isHeader)
             if extras.reviews.isEmpty {
                 if extras.reviewsLoaded {
                     Text(verbatim: c.t("还没有评价。完成挑战后来写第一条。", "No reviews yet. Finish the challenge and write the first one."))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("roam.place.reviewsEmpty")
                 }
             } else {
@@ -238,16 +238,16 @@ struct RoamPlaceExtrasSection: View {
                         ForEach(extras.reviews) { review in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 HStack {
-                                    Text(verbatim: review.name ?? c.t("玩家", "Player")).font(CYTypography.label)
+                                    Text(verbatim: review.name ?? c.t("玩家", "Player")).cyText(.label)
                                     Spacer()
-                                    if let time = review.timeText { Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+                                    if let time = review.timeText { Text(verbatim: time).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
                                 }
                                 if let stars = review.stars {
                                     Label { Text(verbatim: String(stars)) } icon: { Image(systemName: "star.fill") }
                                         .font(CYTypography.caption).foregroundStyle(CYNight.lantern)
                                         .accessibilityLabel(Text(verbatim: c.t("\(stars) 星", "\(stars) stars")))
                                 }
-                                Text(verbatim: review.text).font(CYTypography.bodyCompact).lineLimit(4)
+                                Text(verbatim: review.text).cyText(.bodyCompact).lineLimit(4)
                             }
                             .frame(width: 220, alignment: .leading)
                             .padding(CYSpacing.md)
@@ -282,7 +282,7 @@ struct RoamPlaceExtrasSection: View {
                 .onChange(of: myText) { _, value in if value.count > 200 { myText = String(value.prefix(200)) } }
                 .accessibilityLabel(Text(verbatim: c.t("写评价", "Write a review")))
                 .accessibilityIdentifier("roam.place.reviewText")
-            if let error = extras.reviewError { Text(verbatim: error).font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
+            if let error = extras.reviewError { Text(verbatim: error).cyText(.meta).foregroundStyle(CYColor.dangerText) }
             CYPillButton(verbatim: extras.reviewBusy ? c.t("发布中…", "Publishing…") : c.t("发布评价", "Publish review"), style: .secondary) {
                 confirmPublishReview = true
             }
@@ -293,9 +293,9 @@ struct RoamPlaceExtrasSection: View {
 
     private func creditRow(_ credit: String) -> some View {
         DisclosureGroup(isExpanded: $creditOpen) {
-            Text(verbatim: credit).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+            Text(verbatim: credit).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
         } label: {
-            Text(verbatim: c.t("照片来源与许可", "Photo sources and licences")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: c.t("照片来源与许可", "Photo sources and licences")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityIdentifier("roam.place.photoCredit")
     }

@@ -50,7 +50,7 @@ enum CarouselFixtures {
                 }
                 .questifyCardListRow()
             } header: {
-                Text(verbatim: "Upcoming").font(.title2.weight(.bold)).foregroundStyle(CYColor.textPrimary).textCase(nil)
+                Text(verbatim: "Upcoming").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
             }
         }
         .listStyle(.insetGrouped)
@@ -61,7 +61,7 @@ enum CarouselFixtures {
         AnyView(
             VStack(spacing: 0) {
                 Text(verbatim: "DEBUG fixture · synthetic data")
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.caption).foregroundStyle(CYColor.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 4).background(CYColor.bgRaised)
                 view
             }

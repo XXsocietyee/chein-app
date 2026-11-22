@@ -13,7 +13,7 @@ import UIKit
                 .accessibilityIdentifier("image.galleryBatch.select")
             if batch.selecting { ProgressView("image.retained.loading") }
             if batch.active && batch.current {
-                Text("image.galleryBatch.remaining \(batch.remainingCount)").font(.caption)
+                Text("image.galleryBatch.remaining \(batch.remainingCount)").cyText(.meta)
                 if let draft = batch.cropDraft {
                     MerchantImageCropView(draft: draft, confirm: batch.confirmCrop, cancel: batch.skip).id(draft.id)
                 }
@@ -24,7 +24,7 @@ import UIKit
                             Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel("image.retained.preview")
                         }
                         Text(verbatim: review.scope.realm)
-                        Text("image.retained.byteCount \(review.selection.jpeg.count)").font(.caption)
+                        Text("image.retained.byteCount \(review.selection.jpeg.count)").cyText(.meta)
                         Button("image.retained.confirmUpload") { Task { await batch.confirmUpload(review) } }
                             .disabled(!batch.current || batch.selecting)
                             .accessibilityIdentifier("image.galleryBatch.confirmUpload")
@@ -47,7 +47,7 @@ import UIKit
                 Button("image.galleryBatch.cancelAll", role: .cancel) { batch.cancel() }
                     .accessibilityIdentifier("image.galleryBatch.cancelAll")
             }
-            if batch.appliedCount > 0 { Text("image.galleryBatch.applied \(batch.appliedCount)").font(.caption) }
+            if batch.appliedCount > 0 { Text("image.galleryBatch.applied \(batch.appliedCount)").cyText(.meta) }
             if batch.blocked { Text("image.galleryBatch.blocked").accessibilityIdentifier("image.galleryBatch.blocked") }
             if batch.failed { Text("image.retained.failed") }
         }

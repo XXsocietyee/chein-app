@@ -126,7 +126,7 @@ import SwiftUI
             if let snapshot = model.snapshot {
                 if let error = model.error {
                     Section {
-                        Text("roam.tasks.stale").font(.caption).foregroundStyle(.secondary)
+                        Text("roam.tasks.stale").cyText(.meta).foregroundStyle(.secondary)
                         OfficialIssueView(issue: .init(error), retry: retry)
                     }.accessibilityIdentifier("roam.tasks.stale")
                 }

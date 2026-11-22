@@ -79,7 +79,7 @@ import Combine
                 }
                 ForEach(controller.visibleIDs, id: \.self) { id in
                     HStack {
-                        Text(verbatim: "#" + String(id)).font(CYTypography.numericBody)
+                        Text(verbatim: "#" + String(id)).cyText(.numericBody)
                         Spacer()
                         Button(action: controller.removeAction(id)) {
                             Text("templateLocalCategories.remove", tableName: "TemplateLocalCategoryRemoval")

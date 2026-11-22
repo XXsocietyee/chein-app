@@ -136,10 +136,10 @@ public struct FinalTwentyBatchMasterCompletionView: View {
         Section {
             HStack {
                 Text(verbatim: "21 批次 241 通道主控收官总账")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isMasterLedgerComplete ? "21/21 封板就绪 (MASTER_OK)" : "存在未完成批次")
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isMasterLedgerComplete ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
@@ -149,7 +149,7 @@ public struct FinalTwentyBatchMasterCompletionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "主控总账汇总")
             }
@@ -170,14 +170,14 @@ public struct FinalTwentyBatchMasterCompletionView: View {
                             .font(.subheadline.monospaced().weight(.semibold))
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.status).opacity(0.15), in: Capsule())
                             .foregroundStyle(badgeColor(for: row.status))
                     }
                     Text(verbatim: row.focusSummary)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

@@ -49,7 +49,7 @@ private func usageEvidenceButton(_ key: String, action: @escaping () -> Void) ->
                             VStack(alignment: .leading) {
                                 Text(verbatim: "\(record.docType) · \(record.docVersion)")
                                 usageEvidenceText("usageEvidence.event.\(record.eventType)")
-                                Text(verbatim: record.requestId).font(.caption)
+                                Text(verbatim: record.requestId).cyText(.meta)
                             }
                         }.disabled(coordinator.busy)
                     }
@@ -115,10 +115,10 @@ private struct UsageConsentOriginalSection: View {
             usageEvidenceText(detail.latestRecordId == detail.record.id ? "usageEvidence.latest" : "usageEvidence.historical")
             usageEvidenceText("usageEvidence.source.\(detail.document.availability)")
             if let title = detail.document.title, let content = detail.document.content {
-                Text(verbatim: title).font(.headline)
+                Text(verbatim: title).cyText(.cardTitle)
                 Text(verbatim: content).textSelection(.enabled)
             }
-            usageEvidenceText("usageEvidence.nativeBindingUnavailable").font(.footnote).foregroundStyle(.secondary)
+            usageEvidenceText("usageEvidence.nativeBindingUnavailable").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
     }
 }

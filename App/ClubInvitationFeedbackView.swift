@@ -417,7 +417,7 @@ private struct ClubInvitationFeedbackRowLabel: View {
                 LabeledContent("club.inviteFeedback.serverTime") { Text(verbatim: date).monospacedDigit() }
             }
             Label("club.inviteFeedback.detail", systemImage: "info.circle")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         }
     }
@@ -455,7 +455,7 @@ private struct ClubInvitationFeedbackTermsView: View {
                 if let fee = terms.fixedFee {
                     LabeledContent("cooperation.fixedFee") { Text(verbatim: number(fee)).monospacedDigit() }
                         .accessibilityIdentifier("club.inviteFeedback.fixedFee")
-                    Text("cooperation.currencyUnknown").font(CYTypography.meta)
+                    Text("cooperation.currencyUnknown").cyText(.meta)
                 } else { unknownAmount }
             default: Text("cooperation.termsUnknown")
             }

@@ -36,7 +36,7 @@ struct TemplateAuthoringCoverHeader: View {
                         Text("templateAuthor.field.title")
                     }
                     .lineLimit(1...3)
-                    .font(.title3.weight(.bold))
+                    .cyText(.sectionTitle)
                     .foregroundStyle(Color.white)
                     .tint(Color.white)
                     .submitLabel(.done)

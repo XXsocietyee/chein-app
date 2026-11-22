@@ -25,7 +25,7 @@ import SwiftUI
                             .listRowInsets(EdgeInsets())
                             .accessibilityHidden(true)
                     }
-                    Text(verbatim: model.flow.topic.name).font(.title3.weight(.semibold))
+                    Text(verbatim: model.flow.topic.name).cyText(.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true)
                     if let place = model.flow.topic.addressName, !place.isEmpty {
                         Label { Text(verbatim: place) } icon: { Image(systemName: "mappin.and.ellipse") }
@@ -37,11 +37,11 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: 4) {
                             HStack {
                                 Image(systemName: "largecircle.fill.circle").foregroundStyle(.primary).accessibilityHidden(true)
-                                Text("mp.pass.checkout.single").font(.body.weight(.semibold))
+                                Text("mp.pass.checkout.single").cyText(.cardTitle)
                                 Spacer()
                                 TopicPrice(value: model.flow.topic.selfPlayPrice, label: "topic.selfPlayPrice").labelsHidden()
                             }
-                            Text("contextSelfPlay.validity").font(.footnote).foregroundStyle(.secondary)
+                            Text("contextSelfPlay.validity").cyText(.bodyCompact).foregroundStyle(.secondary)
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityAddTraits(.isSelected)
@@ -57,7 +57,7 @@ import SwiftUI
                     billSection
                     Section {
                         if let document = model.flow.document { Link("contextSelfPlay.noticeLink", destination: document.officialURL) }
-                        else { Text("contextSelfPlay.documentUnavailable").font(.caption) }
+                        else { Text("contextSelfPlay.documentUnavailable").cyText(.meta) }
                     }
                 }
                 if model.flow.pending != nil { billSection }
@@ -106,7 +106,7 @@ import SwiftUI
             .sheet(item: Binding(get: { model.flow.review }, set: { if $0 == nil { model.flow.cancelReview() } })) { review in
                 NavigationStack {
                     Form {
-                        Text(verbatim: model.flow.topic.name).font(.title3.weight(.semibold))
+                        Text(verbatim: model.flow.topic.name).cyText(.sectionTitle)
                             .fixedSize(horizontal: false, vertical: true)
                         TopicPrice(value: review.price, label: "topic.selfPlayPrice")
                         Text(verbatim: review.intent.realName); Text(verbatim: review.intent.phone)
@@ -134,7 +134,7 @@ import SwiftUI
                 if let price = model.flow.topic.selfPlayPrice { Text(verbatim: NSDecimalNumber(decimal: price).stringValue).fontWeight(.semibold) }
                 else { Text("topic.priceUnknown") }
             } label: { Text("mp.pass.checkout.total").fontWeight(.semibold) }
-            Text("contextSelfPlay.paymentNotice").font(.caption)
+            Text("contextSelfPlay.paymentNotice").cyText(.meta)
         } header: { Text("mp.pass.checkout.bill") }
     }
 }
@@ -144,7 +144,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                Text(verbatim: topic.name).font(.title3.weight(.semibold))
+                Text(verbatim: topic.name).cyText(.sectionTitle)
                     .fixedSize(horizontal: false, vertical: true)
                 TopicPrice(value: topic.selfPlayPrice, label: "topic.selfPlayPrice")
                 Text("contextSelfPlay.validity")

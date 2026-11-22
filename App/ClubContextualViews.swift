@@ -28,11 +28,11 @@ struct ClubOperatingRulesView: View {
                         ForEach(section.1, id: \.self) { row in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".title"))
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(palette.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".body"))
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(palette.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -77,11 +77,11 @@ struct ClubOperatingRulesView: View {
                 CYHeroHeader("context.ops.title")
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     Text("context.ops.policy")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text("context.ops.timezone")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     DatePicker("context.ops.time", selection: $date, displayedComponents: [.date, .hourAndMinute])

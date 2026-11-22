@@ -120,7 +120,7 @@ import Combine
         Form {
             Section {
                 if editor.needsReload {
-                    Text("templateScan.changed").font(.caption)
+                    Text("templateScan.changed").cyText(.meta)
                     Button("templateScan.reload") { editor.reload() }.disabled(!editor.canReload)
                 } else if !editor.isSupported { Text("templateScan.unsupported") }
             }
@@ -133,7 +133,7 @@ import Combine
             if editor.isSupported && editor.kind == .overlay {
                 Section("templateScan.overlay") {
                     Slider(value: editor.scaleInput(), in: 20...100, step: 5).accessibilityLabel("creator.field.overlayScale").accessibilityIdentifier("templateScan.scale")
-                    Text("templateScan.width \(Int(editor.widthPercent))").font(.caption)
+                    Text("templateScan.width \(Int(editor.widthPercent))").cyText(.meta)
                     arPicker
                     ForEach(editor.currentFields.filter { [.markerUrl, .modelUrl].contains($0) }) { field in textField(field) }
                 }.disabled(!editor.canEdit)
@@ -181,7 +181,7 @@ import Combine
     }
     @ViewBuilder private func textField(_ field: TemplateScanResponseConfiguration.TextField) -> some View {
         VStack(alignment: .leading) {
-            Text(LocalizedStringKey(field.labelKey)).font(.headline)
+            Text(LocalizedStringKey(field.labelKey)).cyText(.cardTitle)
             TextField(LocalizedStringKey(field.labelKey), text: editor.textInput(field), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier("templateScan.field." + field.rawValue)
             if field == .modelUrl {

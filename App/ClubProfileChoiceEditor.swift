@@ -106,7 +106,7 @@ import SwiftUI
     }
     var body: some View {
         List {
-            Text("club.profileChoice.applyHint").font(.footnote)
+            Text("club.profileChoice.applyHint").cyText(.bodyCompact)
             if draft.kind == .type {
                 ForEach(ClubOperationsCatalog.types, id: \.self) { value in
                     Button { guard isCurrent() else { return }; _ = draft.selectType(value); failed = false } label: {
@@ -115,7 +115,7 @@ import SwiftUI
                 }
                 if !draft.type.isEmpty, !ClubOperationsCatalog.types.contains(draft.type) { Text(verbatim: draft.type).fixedSize(horizontal: false, vertical: true) }
             } else {
-                Text("club.ops.directionsHint").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                Text("club.ops.directionsHint").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                 ForEach(ClubOperationsCatalog.directions, id: \.self) { value in
                     Toggle(LocalizedStringKey("club.ops.value." + value), isOn: Binding(get: { draft.directions.contains(value) }, set: { enabled in
                         guard isCurrent(), enabled != draft.directions.contains(value) else { return }

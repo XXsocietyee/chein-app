@@ -40,13 +40,13 @@ private struct ClubGapSurfaceRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: surface.title(chinese: chinese))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             Text(verbatim: surface.method + " /" + surface.path)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -79,7 +79,7 @@ private struct ClubGapMerchantRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: chinese ? "商家合作邀请" : "Merchant cooperation invite")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)

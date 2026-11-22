@@ -53,7 +53,7 @@ import SwiftUI
                 Button("team.fixture.guest") { environment.becomeGuest() }.accessibilityIdentifier("team.fixture.guest")
                 Button("team.fixture.account") { environment.reauthenticate() }.accessibilityIdentifier("team.fixture.account")
                 Button("team.fixture.otherAccount") { environment.switchAccount() }.accessibilityIdentifier("team.fixture.otherAccount")
-            }.font(.caption).buttonStyle(.bordered).frame(minHeight: 44)
+            }.cyText(.meta).buttonStyle(.bordered).frame(minHeight: 44)
             NavigationStack {
                 switch destination {
                 case "detail": TeamDetailView(lookup: .id(4101), coordinator: environment.makeCoordinator(), makeCoordinator: { environment.makeCoordinator() })

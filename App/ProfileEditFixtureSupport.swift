@@ -37,7 +37,7 @@ struct ProfileEditFixtureHost: View {
                 ProfileEditView(coordinator: coordinator, sessionRevision: 1, onSaved: {})
                     .safeAreaInset(edge: .top) {
                         Text("Synthetic profile fixture • no network")
-                            .font(.caption).accessibilityIdentifier("profile.edit.fixture.notice")
+                            .cyText(.meta).accessibilityIdentifier("profile.edit.fixture.notice")
                     }
             }
         }
@@ -99,7 +99,7 @@ struct ProfileEditFixtureHost: View {
         }
         .safeAreaInset(edge: .bottom) {
             Text(verbatim: "Visits: \(data.parentVisits) Writes: \(data.writes)")
-                .font(.caption).accessibilityIdentifier("profile.savedReturnFixture.counts")
+                .cyText(.meta).accessibilityIdentifier("profile.savedReturnFixture.counts")
         }
     }
 }

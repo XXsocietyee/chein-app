@@ -73,17 +73,17 @@ public struct RunAuthorityHostSectionView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Authoritative Run & CAS Host")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: capabilityBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(coordinator.isEnabled ? CYColor.successText : CYColor.textSecondary)
                     .accessibilityIdentifier("runAuthorityHost.capabilityBadge")
             }
 
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 Text(verbatim: casVersionText)
-                    .font(.subheadline.monospacedDigit())
+                    .cyText(.numericBody)
                     .accessibilityIdentifier("runAuthorityHost.casVersion")
                 Spacer()
                 Text(verbatim: runStatusText)
@@ -93,7 +93,7 @@ public struct RunAuthorityHostSectionView: View {
             }
 
             Text(verbatim: conflictRecoveryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(conflictRecoveryTint)
                 .accessibilityIdentifier("runAuthorityHost.conflictRecovery")
 

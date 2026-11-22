@@ -30,7 +30,7 @@ private struct E4LoadingLab: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: "Offline example · loading lab · \(step)").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: "Offline example · loading lab · \(step)").cyText(.meta).foregroundStyle(palette.textSecondary)
                 CYStatNumber(text: total.formatted(), rollsOnAppear: true)
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -57,8 +57,8 @@ private struct E4LoadingLab: View {
     private func row(_ item: E4LoadingItem) -> some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: item.title).font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary)
-                Text(verbatim: item.detail).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: item.title).cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
+                Text(verbatim: item.detail).cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

@@ -60,13 +60,13 @@ import SwiftUI
                 ForEach(Array(value.log.enumerated()), id: \.offset) { _, item in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: item.text)
-                        if let at = item.at { Text(Date(timeIntervalSince1970: Double(at) / 1000), style: .date).font(.caption) }
+                        if let at = item.at { Text(Date(timeIntervalSince1970: Double(at) / 1000), style: .date).cyText(.meta) }
                         LabeledContent("journey.hp", value: String(item.hpDelta)); LabeledContent("journey.luck", value: String(item.luckDelta))
                     }
                 }
             }
         case .backpack(let items):
-            Text("journey.record.rewardAuthority").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("journey.record.rewardAuthority").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             if items.isEmpty { Text("journey.record.empty") }
             ForEach(items) { item in
                 Section {
@@ -88,7 +88,7 @@ import SwiftUI
             if value.questions.isEmpty { Text("journey.record.empty") }
             ForEach(value.questions) { question in
                 Section {
-                    Text(verbatim: question.question).font(CYTypography.cardTitle)
+                    Text(verbatim: question.question).cyText(.cardTitle)
                     if question.asked {
                         if let answer = question.answer { Text(verbatim: answer) }
                     } else {
@@ -97,18 +97,18 @@ import SwiftUI
                     }
                 }
             }
-            if !model.canAsk { Text("journey.record.actionGate").font(.footnote) }
+            if !model.canAsk { Text("journey.record.actionGate").cyText(.bodyCompact) }
         }
     }
     private func progress(found: Int, total: Int) -> some View {
         HStack(spacing: CYSpacing.lg) {
             CYProgressRing(progress: total > 0 ? Double(found) / Double(total) : nil, lineWidth: 9) {
-                Text(verbatim: "\(found)").font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: "\(found)").cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
             }.frame(width: 88, height: 88)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: "\(found) / \(total)").font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: "\(found) / \(total)").cyText(.data2XL).foregroundStyle(CYColor.textPrimary)
                     .minimumScaleFactor(0.6).lineLimit(1)
-                Text("journey.record.discoveries").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("journey.record.discoveries").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
         }.accessibilityElement(children: .combine)
             .sensoryFeedback(.success, trigger: total > 0 && found == total)
@@ -127,7 +127,7 @@ import SwiftUI
     private func relationRow(_ item: JourneyRecordRelation) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(spacing: CYSpacing.sm) {
-                if let name = item.name { Text(verbatim: name).font(.headline) }
+                if let name = item.name { Text(verbatim: name).cyText(.cardTitle) }
                 Spacer(minLength: CYSpacing.xs)
                 CYStatusChip(
                     LocalizedStringKey("journey.record.relation." + item.state),
@@ -149,7 +149,7 @@ import SwiftUI
                 )
                 .accessibilityIdentifier("journeyEffectReceipt.\(effect.key)")
                 if let label = effect.label, !label.isEmpty {
-                    Text(verbatim: label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         }
@@ -183,13 +183,13 @@ import SwiftUI
     }
     @ViewBuilder private func ending(_ value: JourneyEndingDocument) -> some View {
         if let title = value.title { CYHeroHeader(verbatim: title) }
-        if let summary = value.summary { Text(verbatim: summary).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+        if let summary = value.summary { Text(verbatim: summary).cyText(.body).foregroundStyle(CYColor.textSecondary) }
         if let badge = value.badgeTitle { Section("journey.record.badge") { Text(verbatim: badge) } }
         progress(found: value.found, total: value.total)
         relations(value.epilogues); lines("journey.record.exhibits", value.exhibits); lines("journey.record.costs", value.costs)
         Section("journey.record.archive") {
             ForEach(Array(value.identity.enumerated()), id: \.offset) { _, item in LabeledContent { Text(verbatim: item.text ?? "") } label: { Text(verbatim: item.title) } }
-            ForEach(Array(value.notes.enumerated()), id: \.offset) { _, item in VStack(alignment: .leading) { Text(verbatim: item.title).font(.headline); Text(verbatim: item.text ?? "") } }
+            ForEach(Array(value.notes.enumerated()), id: \.offset) { _, item in VStack(alignment: .leading) { Text(verbatim: item.title).cyText(.cardTitle); Text(verbatim: item.text ?? "") } }
             ForEach(Array(value.photos.enumerated()), id: \.offset) { _, item in
                 if let url = item.text { photo(url, title: item.title) }
             }
@@ -213,16 +213,16 @@ import SwiftUI
     @State private var audioURL: String?
     var body: some View {
         Section("journey.record.endingChapter") {
-            if let title = raw["name"].text { Text(verbatim: title).font(.headline) }
+            if let title = raw["name"].text { Text(verbatim: title).cyText(.cardTitle) }
             ForEach(Array((raw["blocks"].array ?? []).enumerated()), id: \.offset) { _, block in
                 switch block["type"].text {
                 case "text", "voice", "reveal":
-                    if let who = block["who"].text { Text(verbatim: who).font(.caption) }
+                    if let who = block["who"].text { Text(verbatim: who).cyText(.meta) }
                     if let content = block["content"].text { Text(verbatim: content) }
                 case "image": if let url = block["url"].text { image(url) }
                 case "audio": if let url = block["url"].text { Button("chapterStory.listen") { audioURL = url } }
                 case "dream":
-                    if let title = block["title"].text { Text(verbatim: title).font(.headline) }
+                    if let title = block["title"].text { Text(verbatim: title).cyText(.cardTitle) }
                     ForEach(Array((block["images"].array ?? []).enumerated()), id: \.offset) { _, item in
                         if let url = item["url"].text { image(url) }; if let line = item["line"].text { Text(verbatim: line) }
                     }

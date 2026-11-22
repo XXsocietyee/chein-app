@@ -47,7 +47,7 @@ import Observation
                                 .accessibilityIdentifier("walking.unavailable")
                             if restoringDestination != nil {
                                 let offered = restoreReadGate.ticket
-                                Text("walking.saved.restoreUnavailable").font(.footnote)
+                                Text("walking.saved.restoreUnavailable").cyText(.bodyCompact)
                                     .fixedSize(horizontal: false, vertical: true)
                                 CYPillButton("walking.saved.retryRead", style: .secondary) { restoreSavedDestination(offered) }
                                     .disabled(offered == nil || !factory.available)
@@ -238,7 +238,7 @@ import Observation
         if checkpointFailed {
             CYStatusChip("walking.saved.failed", tone: .warning, systemImage: "exclamationmark.triangle").accessibilityIdentifier("walking.saved.failed")
         } else if let savedDestination, factory.savedDestinationIsCurrent(savedDestination) {
-            Text("walking.saved.notice").font(.footnote).accessibilityIdentifier("walking.saved.notice")
+            Text("walking.saved.notice").cyText(.meta).accessibilityIdentifier("walking.saved.notice")
         }
         CYPillButton("walking.cancel", style: .tertiary) {
             model.cancel()
@@ -264,7 +264,7 @@ import Observation
             if let route = model.route {
                 Section("walking.destinationDetails") {
                     if let target = model.target {
-                        Text(verbatim: target.title).font(.headline)
+                        Text(verbatim: target.title).cyText(.cardTitle)
                         if let address = target.address { Text(verbatim: address) }
                         if let businessTime = target.businessTime { LabeledContent("walking.businessTime", value: businessTime) }
                     }
@@ -275,7 +275,7 @@ import Observation
                 Section("walking.steps") {
                     ForEach(Array(route.steps.enumerated()), id: \.offset) { index, step in
                         VStack(alignment: .leading, spacing: 6) {
-                            if model.progress?.stepIndex == index { Label("walking.nextStep", systemImage: "arrow.turn.up.right").font(.caption) }
+                            if model.progress?.stepIndex == index { Label("walking.nextStep", systemImage: "arrow.turn.up.right").cyText(.meta) }
                             Text(verbatim: step.instruction).fixedSize(horizontal: false, vertical: true)
                             WalkingDistanceText(meters: step.distanceMeters).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine)
@@ -294,7 +294,7 @@ import Observation
                     .accessibilityIdentifier("walking.steps.unavailable")
             }
             // One safety line; arrival and foreground rules are not repeated here.
-            Section { Label("walking.safety", systemImage: "exclamationmark.triangle") }.font(.footnote)
+            Section { Label("walking.safety", systemImage: "exclamationmark.triangle") }.cyText(.bodyCompact)
         }.accessibilityIdentifier("walking.steps.list")
             #if DEBUG
             .accessibilityValue(Text(verbatim: typeSize == .accessibility5 ? "dynamicTypeSize=accessibility5" : "dynamicTypeSize=other"))
@@ -328,7 +328,7 @@ import Observation
     var body: some View {
         if presentation.isLowPowerMode {
             Label("walking.power.notice", systemImage: "battery.25percent")
-                .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                .cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("walking.power.notice")
         }
     }

@@ -83,7 +83,7 @@ struct CitySheetTitle: View {
     var body: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: title).font(CYTypography.sheetTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: title).cyText(.sheetTitle).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                 if !tags.isEmpty || district != nil {
                     HStack(spacing: CYSpacing.xs) {
@@ -129,7 +129,7 @@ struct CityFactTable: View {
                         value(row)
                     }
                 }
-                .font(Font.body)
+                .cyText(.body)
                 .padding(.horizontal, CYSpacing.md).frame(minHeight: 44)
                 .accessibilityElement(children: .combine)
                 if index < rows.count - 1 { Divider().overlay(palette.borderSubtle).padding(.leading, CYSpacing.md) }
@@ -144,7 +144,7 @@ struct CityFactTable: View {
         } else {
             HStack(spacing: 4) {
                 if row.coin { CityCoin() }
-                Text(verbatim: row.value).font(Font.body.weight(.medium).monospacedDigit()).foregroundStyle(palette.textPrimary)
+                Text(verbatim: row.value).cyText(.numericBody).foregroundStyle(palette.textPrimary)
             }
         }
     }
@@ -158,7 +158,7 @@ struct CityBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: symbol).foregroundStyle(tint).accessibilityHidden(true)
-            Text(verbatim: text).font(Font.subheadline).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: text).cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.md)
@@ -269,7 +269,7 @@ struct CityPropertySheet: View {
             }
         case .fogged:
             Text(verbatim: copy("走近这片迷雾，才能看到这里是谁的、什么等级。", "Walk into this fog to see who holds it and at what level."))
-                .font(Font.body).foregroundStyle(palette.textSecondary)
+                .cyText(.body).foregroundStyle(palette.textSecondary)
         }
     }
 
@@ -315,7 +315,7 @@ struct CityPropertySheet: View {
                     .accessibilityIdentifier("city.property.claim")
                 if let holdings = store.holdings {
                     Text(verbatim: copy("持有 \(holdings.count) / \(holdings.limit)", "Holding \(holdings.count) / \(holdings.limit)"))
-                        .font(CYTypography.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
+                        .cyText(.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                 }
             case .other:
                 if let until = display.protectedUntil, until > Date() {

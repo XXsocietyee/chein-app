@@ -12,13 +12,13 @@ struct ParticipationSupportView: View {
                     Link(destination: configuration.url) {
                         Label { Text(verbatim: configuration.name) } icon: { Image(systemName: "arrow.up.right.square") }
                     }.accessibilityIdentifier("participationSupport.open")
-                        .font(.headline).fixedSize(horizontal: false, vertical: true)
-                    Text("participationSupport.privacy").font(.footnote).foregroundStyle(.secondary)
+                        .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                    Text("participationSupport.privacy").cyText(.bodyCompact).foregroundStyle(.secondary)
                 } else {
                     Label("participationSupport.notConfigured", systemImage: "message.badge.filled.fill")
-                        .font(.headline).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("participationSupport.notConfigured")
-                    Text("participationSupport.configurationBoundary").font(.footnote).foregroundStyle(.secondary)
+                    Text("participationSupport.configurationBoundary").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
         }.cyHeroScreen()

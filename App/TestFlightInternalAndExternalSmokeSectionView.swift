@@ -133,11 +133,11 @@ public struct TestFlightInternalAndExternalSmokeSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "TestFlight Internal & External Smoke Matrix (Day 5)")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("testFlightSmokeMatrix.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllSmokePassed ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("testFlightSmokeMatrix.statusBadge")
             }
@@ -148,7 +148,7 @@ public struct TestFlightInternalAndExternalSmokeSectionView: View {
                 .accessibilityIdentifier("testFlightSmokeMatrix.trackSummary")
 
             Text(verbatim: deviceCoverageBannerText)
-                .font(.footnote.weight(.semibold))
+                .cyText(.bodyMedium)
                 .foregroundStyle(snapshot.isAllSmokePassed ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("testFlightSmokeMatrix.deviceCoverageBanner")
 
@@ -157,14 +157,14 @@ public struct TestFlightInternalAndExternalSmokeSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.journeyCode)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle((row.isSmokePassed && row.isFailClosedVerified) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.verificationSteps)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

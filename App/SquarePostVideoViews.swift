@@ -159,7 +159,7 @@ struct SquarePostVideoComposerSection: View {
             // Upload is disabled until a reviewed video transport exists (uploadOSS is JPEG/PNG only).
             CYPillButton("square.video.upload", style: .secondary) {}.disabled(true).accessibilityIdentifier("square.video.upload")
             if case .unavailable(let blocker) = model.upload {
-                Text(LocalizedStringKey("square.video.uploadBlocked." + blocker.rawValue)).font(.footnote).foregroundStyle(.secondary)
+                Text(LocalizedStringKey("square.video.uploadBlocked." + blocker.rawValue)).cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("square.video.uploadBlocked")
             }
         }
@@ -170,8 +170,8 @@ struct SquarePostVideoComposerSection: View {
             else { Image(systemName: "film").font(.largeTitle).frame(width: 96, height: 72).accessibilityHidden(true) }
             VStack(alignment: .leading, spacing: 2) {
                 if let ms = item.durationMilliseconds { Text("square.video.duration \(Int(ms / 1000))") }
-                Text(verbatim: "\(item.width)×\(item.height)").font(.caption)
-                Text(verbatim: ByteCountFormatter.string(fromByteCount: item.byteCount, countStyle: .file)).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: "\(item.width)×\(item.height)").cyText(.meta)
+                Text(verbatim: ByteCountFormatter.string(fromByteCount: item.byteCount, countStyle: .file)).cyText(.meta).foregroundStyle(.secondary)
             }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("square.video.preview")
     }
@@ -209,10 +209,10 @@ struct SquarePostVideoPlayerRow: View {
             case .pending: Label("square.video.review.pending", systemImage: "hourglass")
             case .rejected(let reason):
                 Label("square.video.review.rejected", systemImage: "xmark.octagon")
-                if let reason { Text(verbatim: reason).font(.caption) }
+                if let reason { Text(verbatim: reason).cyText(.meta) }
             case .unavailable, .unknown: Label("square.video.sourceUnavailable", systemImage: "video.slash")
             }
-            if let ms = video.durationMilliseconds { Text("square.video.duration \(ms / 1000)").font(.caption).foregroundStyle(.secondary) }
+            if let ms = video.durationMilliseconds { Text("square.video.duration \(ms / 1000)").cyText(.meta).foregroundStyle(.secondary) }
         }
         .onDisappear { player?.pause(); player = nil }
     }

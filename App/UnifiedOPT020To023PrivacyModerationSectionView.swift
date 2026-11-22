@@ -13,9 +13,9 @@ public struct UnifiedOPT020To023PrivacyModerationSectionView: View {
             ForEach(UnifiedOPT020To023PrivacyModerationTrustAndChainContract.packages) { pkg in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(pkg.optID) · \(pkg.title)")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text("旧52单映射: \(pkg.mappedLegacy52Tickets.count) 项 · 切片: \(pkg.reusedSliceIDs.joined(separator: ", "))")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
             }

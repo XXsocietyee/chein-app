@@ -52,7 +52,7 @@ import SwiftUI
                         .accessibilityIdentifier("profile.contactQR.remove")
                 }
             } footer: { Text("profile.contactQR.hint") }
-            Text("profile.contactQR.noUpload").font(.footnote).foregroundStyle(.secondary)
+            Text("profile.contactQR.noUpload").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
         .appNavigationTitle("profile.contactQR.title")
         .toolbar {

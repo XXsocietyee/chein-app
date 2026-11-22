@@ -12,9 +12,9 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         HStack(spacing: CYSpacing.sm) {
                             Image(systemName: "dice.fill").font(.title3).foregroundStyle(CYColor.textSecondary)
-                            Text("journey.check.title").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            Text("journey.check.title").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         }.accessibilityHidden(true)
-                        Text(verbatim: problem.skill).font(CYTypography.display).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: problem.skill).cyText(.display).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("journey.check.stage")
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: CYSpacing.sm) { checkChips(problem) }
@@ -43,9 +43,9 @@ import SwiftUI
                             }
                             resultCard(receipt)
                             modifiers(receipt.mods)
-                            if receipt.exhausted { Text("journey.exhausted").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                            if receipt.exhausted { Text("journey.exhausted").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                             if receipt.settled {
-                                if !receipt.text.isEmpty { Text(verbatim: receipt.text).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                                if !receipt.text.isEmpty { Text(verbatim: receipt.text).cyText(.body).foregroundStyle(CYColor.textSecondary) }
                                 if !receipt.failCostLabel.isEmpty { LabeledContent("journey.cost") { Text(verbatim: receipt.failCostLabel) } }
                             }
                         }
@@ -74,7 +74,7 @@ import SwiftUI
                         }
                         if model.acting { ProgressView("journey.working") }
                         if !model.available { Text("journey.disabled") }
-                        Button("journey.close") { model.close() }.font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                        Button("journey.close") { model.close() }.cyText(.label).foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("journey.check.close")
                     }
                     .padding(CYSpacing.xl)
@@ -95,16 +95,16 @@ import SwiftUI
         return VStack(spacing: CYSpacing.xs) {
             if let success = receipt.success {
                 Label(success ? "journey.success" : "journey.failure", systemImage: success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                    .font(CYTypography.cardTitle).foregroundStyle(tone)
+                    .cyText(.cardTitle).foregroundStyle(tone)
             }
-            Text(verbatim: receipt.total.map(String.init) ?? "—").font(CYTypography.data2XL)
+            Text(verbatim: receipt.total.map(String.init) ?? "—").cyText(.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
             HStack(spacing: CYSpacing.md) {
                 number("journey.kept", receipt.kept); number("journey.dc", receipt.dc)
-            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            if !receipt.nat.isEmpty { Text(verbatim: receipt.nat).font(CYTypography.meta) }
+            }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            if !receipt.nat.isEmpty { Text(verbatim: receipt.nat).cyText(.meta) }
             HStack(spacing: CYSpacing.md) { number("journey.hp", receipt.hp); number("journey.luck", receipt.luck) }
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }.frame(maxWidth: .infinity).padding(CYSpacing.lg)
             .background(CYColor.bgPage, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(tone.opacity(0.5), lineWidth: 1))
@@ -123,7 +123,7 @@ import SwiftUI
             HStack(spacing: CYSpacing.xxs) {
                 ForEach(JourneyCheckTier.allCases, id: \.self) { tier in
                     Text(LocalizedStringKey("journey.tier." + tier.rawValue))
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .padding(.horizontal, CYSpacing.md).frame(minHeight: 32)
                         .foregroundStyle(tier == lit ? CYColor.bgPage : CYColor.textSecondary)
                         .background(tier == lit ? CYColor.textPrimary : CYColor.textTertiary.opacity(0.15), in: Capsule())
@@ -142,11 +142,11 @@ import SwiftUI
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 Image(systemName: mod.active ? "checkmark.circle.fill" : "circle").foregroundStyle(mod.active ? CYColor.successText : CYColor.textTertiary)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: mod.label).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
-                    Text(mod.active ? "journey.active" : "journey.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: mod.label).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                    Text(mod.active ? "journey.active" : "journey.inactive").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 Spacer(minLength: 0)
-                if let value = mod.value { Text(verbatim: value >= 0 ? "+\(value)" : "\(value)").font(CYTypography.label).monospacedDigit() }
+                if let value = mod.value { Text(verbatim: value >= 0 ? "+\(value)" : "\(value)").cyText(.label).monospacedDigit() }
             }.accessibilityElement(children: .combine)
         }
     }
@@ -187,7 +187,7 @@ struct JourneyCheckDCTrack: View {
             .frame(height: 10)
             HStack {
                 ForEach([1, 5, 10, 15, 20], id: \.self) { tick in
-                    Text(verbatim: String(tick)).font(CYTypography.micro).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: String(tick)).cyText(.micro).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                     if tick != 20 { Spacer(minLength: 0) }
                 }
             }

@@ -117,7 +117,7 @@ import SwiftUI
                 Button("templateAuthor.fixture.signOut") { context.signOut() }.accessibilityIdentifier("templateAuthor.fixture.signOut")
                 Button("templateAuthor.fixture.switch") { context.switchAccount() }.accessibilityIdentifier("templateAuthor.fixture.switch")
                 Button("templateAuthor.fixture.reopen") { context.reopen() }.accessibilityIdentifier("templateAuthor.fixture.reopen")
-            }.buttonStyle(.bordered).font(.caption)
+            }.buttonStyle(.bordered).cyText(.meta)
                 // Harness controls must not consume the content viewport in XXXL scenarios.
                 // The authored screen below still receives the requested accessibility size.
                 .dynamicTypeSize(.large)
@@ -125,7 +125,7 @@ import SwiftUI
                 Button("Inspect synthetic local draft") { context.inspectLocalDraft() }
                     .accessibilityIdentifier("templateAuthor.fixture.localSnapshot")
                     .accessibilityValue(context.localSnapshot)
-                    .font(.caption).dynamicTypeSize(.large)
+                    .cyText(.meta).dynamicTypeSize(.large)
             }
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--template-author-shelf") {

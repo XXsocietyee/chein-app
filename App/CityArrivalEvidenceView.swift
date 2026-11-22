@@ -35,15 +35,15 @@ enum CityArrivalCopy {
             }
             if live, let state = controller.merchant {
                 CYInfoCard(title: CityArrivalCopy.text("role." + state.role), symbol: "storefront.fill") {
-                    row("merchant", String(state.merchantId)); CityArrivalCopy.text("staffBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    row("merchant", String(state.merchantId)); CityArrivalCopy.text("staffBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 if state.pending.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("cityArrival.noPending"), tableName: "CityArrivalEvidence") }
                 ForEach(state.pending) { challenge in CityArrivalStaffClaimRow(controller: controller, challenge: challenge) }
             }
             if live, let proof = controller.proof {
                 CYInfoCard(title: CityArrivalCopy.text("originalEvidence"), symbol: "checkmark.seal.fill") {
-                    CityArrivalCopy.text("evidence." + proof.timeStatus).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
-                    CityArrivalCopy.text("evidenceBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    CityArrivalCopy.text("evidence." + proof.timeStatus).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    CityArrivalCopy.text("evidenceBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     CYDetailsDisclosure(title: CityArrivalCopy.text("evidenceId")) {
                         row("evidenceId", proof.id); row("requestId", proof.requestId); row("challengeId", proof.challengeId)
                         row("subject", String(proof.memberId)); row("point", proof.pointId); row("merchant", String(proof.merchantId)); row("place", String(proof.placeId))
@@ -125,23 +125,23 @@ struct CityArrivalPointCard: View {
     private var step: Int { point.evidence != nil ? 2 : point.challenge?.state == "ISSUED" ? 1 : 0 }
     var body: some View {
         CYInfoCard {
-            Text(verbatim: point.title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: point.title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             CYStepIndicator(titles: [ChannelCopy.text("申请到场码", "Request code", locale: locale),
                                      ChannelCopy.text("当面出示", "Show in person", locale: locale),
                                      ChannelCopy.text("已确认", "Confirmed", locale: locale)], current: step)
             if let code {
                 VStack(spacing: CYSpacing.xs) {
-                    Text(verbatim: code).font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: code).cyText(.data2XL).foregroundStyle(CYColor.textPrimary)
                         .minimumScaleFactor(0.6).lineLimit(1)
-                    CityArrivalCopy.text("showOnlyInPerson").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    CityArrivalCopy.text("showOnlyInPerson").cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity).padding(CYSpacing.lg)
                 .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 .accessibilityElement(children: .combine)
             }
-            if !point.canIssue { CityArrivalCopy.text("sourceUnavailableHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            CityArrivalCopy.text("singlePerson").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            if !point.canIssue { CityArrivalCopy.text("sourceUnavailableHint").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            CityArrivalCopy.text("singlePerson").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             switch step {
             case 0: CYPillButton(LocalizedStringKey("cityArrival.issue"), systemImage: "qrcode", tableName: "CityArrivalEvidence", action: issue).disabled(!canWrite || !point.canIssue)
             case 1: CYPillButton(LocalizedStringKey("cityArrival.submitSelf"), systemImage: "checkmark.circle", tableName: "CityArrivalEvidence", action: submit).disabled(!canWrite || code == nil)

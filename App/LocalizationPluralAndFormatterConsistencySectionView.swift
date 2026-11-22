@@ -181,7 +181,7 @@ public struct FormatterConsistencySnapshot: Sendable, Equatable {
                     Text(verbatim: row.sampleOutput)
                         .font(.caption.monospaced())
                     Text(verbatim: row.detail)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

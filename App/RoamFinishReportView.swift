@@ -58,8 +58,8 @@ struct RoamFinishReport: Equatable {
                 grid.padding(.top, CYSpacing.xl)
                 if let story = report.story {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text("u10.roamFinish.story").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: story).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                        Text("u10.roamFinish.story").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: story).cyText(.body).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.top, CYSpacing.xl)
@@ -88,10 +88,10 @@ struct RoamFinishReport: Equatable {
 
     private var head: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            dateLine.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textTertiary)
+            dateLine.cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                 titleText
-                    .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
@@ -128,7 +128,7 @@ struct RoamFinishReport: Equatable {
                 .dynamicTypeSize(.accessibility3)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
-            Text("u10.roamFinish.shops").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+            Text("u10.roamFinish.shops").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
         }
         .padding(.top, CYSpacing.xl)
         .accessibilityElement(children: .combine)
@@ -146,7 +146,7 @@ struct RoamFinishReport: Equatable {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: value ?? "—").font(CYTypography.dataXL.italic()).foregroundStyle(CYColor.textPrimary)
                 .lineLimit(1).minimumScaleFactor(0.6)
-            Text(label).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textTertiary)
+            Text(label).cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -159,7 +159,7 @@ struct RoamFinishReport: Equatable {
                 RoamRouteSketchView(record: record).padding(CYSpacing.lg)
             } else {
                 Label("u10.roamFinish.noTrack", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                     .overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
                     .accessibilityIdentifier("roam.finishReport.noTrack")
@@ -168,7 +168,7 @@ struct RoamFinishReport: Equatable {
         .frame(minHeight: 300)
         .overlay(alignment: .topLeading) {
             if let address = report.currentAddress {
-                Text(verbatim: address).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: address).cyText(.label).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
                     .background(CYNight.ink0, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
@@ -181,7 +181,7 @@ struct RoamFinishReport: Equatable {
                     RoamHistoryDetailView(reader: history, timestamp: report.timestamp)
                 } label: {
                     Label("u10.roamFinish.data", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                        .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.label).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                         .background(CYNight.ink0, in: Capsule())
                         .overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
@@ -200,7 +200,7 @@ struct RoamFinishReport: Equatable {
                 .accessibilityIdentifier("roam.finishReport.share")
             if history.identity != nil {
                 NavigationLink { RoamHistoryView(reader: history) } label: {
-                    Text("u10.roamFinish.history").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textSecondary)
+                    Text("u10.roamFinish.history").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
                         .frame(minHeight: 44)
                 }
                 .buttonStyle(.plain)

@@ -532,7 +532,7 @@ extension EnvironmentValues {
                     TemplateBasicFieldClearButton(model: model, field: .description)
                 }
                 if model.draft.publishIssues.contains("templateAuthor.validation.descriptionLength") {
-                    Text("templateAuthor.validation.descriptionLength").font(CYTypography.meta).foregroundStyle(palette.danger)
+                    Text("templateAuthor.validation.descriptionLength").cyText(.meta).foregroundStyle(palette.danger)
                 }
                 TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
                 TemplateAuthoringVenueField(model: model)
@@ -574,14 +574,14 @@ extension EnvironmentValues {
                 Section("templateAuthor.validationTitle") {
                     ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) {
                         Label(LocalizedStringKey($0), systemImage: "exclamationmark.circle")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.danger)
                     }
                 }
             }
             if model.draft.validationMethod.isLocalConfigurationOnly {
                 Section {
-                    Text("templateAuthor.localConfigurationOnly").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Text("templateAuthor.localConfigurationOnly").cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
             }
             Section {
@@ -624,15 +624,15 @@ struct TemplateAuthoringField: View {
     private func numberBody(_ unit: EditorUnit) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(LocalizedStringKey("templateAuthor.field." + key))
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(palette.textSecondary)
             HStack(spacing: CYSpacing.s1_5) {
                 TextField(LocalizedStringKey("templateAuthor.field." + key), text: $text)
                     .lineLimit(1...1).accessibilityIdentifier(accessibilityID ?? "templateAuthor.field." + key)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .keyboardType(.numbersAndPunctuation)
                     .multilineTextAlignment(.trailing)
-                EditorKitText.text(unit.key).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                EditorKitText.text(unit.key).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
             }
         }.padding(.vertical, 3)
     }
@@ -651,9 +651,9 @@ struct TemplateAuthoringReviewView: View {
         Form {
             Section { CYHeroHeader("templateAuthor.reviewTitle") }.e1HeroRow()
             Section {
-                Text(verbatim: review.title).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: review.title).cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                 Text(review.request.path.hasSuffix("publish") ? "templateAuthor.publishReview" : "templateAuthor.draftReview")
-                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 if !canSubmit && !canSimulate { Text("templateAuthor.unavailable").foregroundStyle(palette.textSecondary) }
             }
             if let draft = review.draft, !draft.advanced.enabledConfigurationLabelKeys.isEmpty {

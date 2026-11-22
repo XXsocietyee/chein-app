@@ -104,35 +104,35 @@ public struct ReformWorldHostWorkbenchView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(verbatim: "Wave 1–5 Unified Master Parity Inventory")
-                    .font(.headline).accessibilityAddTraits(.isHeader)
+                    .cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 Spacer()
                 Text(verbatim: readinessVerdictBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(readinessReport.isReleaseReady ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("reformWorldWorkbench.verdictBadge")
             }
 
             Text(verbatim: parityCountsSummaryText)
-                .font(.subheadline.monospacedDigit())
+                .cyText(.numericBody)
                 .accessibilityIdentifier("reformWorldWorkbench.parityCountsSummary")
 
             Text(verbatim: wave2SummaryText)
-                .font(.caption.monospacedDigit())
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("reformWorldWorkbench.wave2Summary")
 
             Text(verbatim: wave3SummaryText)
-                .font(.caption.monospacedDigit())
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("reformWorldWorkbench.wave3Summary")
 
             Text(verbatim: reformPackagesSummaryText)
-                .font(.caption.monospacedDigit())
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("reformWorldWorkbench.reformPackagesSummary")
 
             Text(verbatim: unifiedDecisionsSummaryText)
-                .font(.caption.monospacedDigit())
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("reformWorldWorkbench.unifiedDecisionsSummary")
         }
@@ -149,7 +149,7 @@ public struct ReformWorldHostWorkbenchView: View {
     private var highRiskSwitchesCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "Fail-Closed Switch Evaluation")
-                .font(.headline).accessibilityAddTraits(.isHeader)
+                .cyText(.cardTitle).accessibilityAddTraits(.isHeader)
 
             Text(verbatim: failClosedSwitchesSummaryText)
                 .font(.footnote.monospaced())
@@ -182,7 +182,7 @@ public struct ReformWorldHostWorkbenchView: View {
     private var embeddedRunAuthorityCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "Embedded Run Authority & CAS Section")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
             runAuthoritySectionView
         }
         .accessibilityElement(children: .contain)
@@ -192,7 +192,7 @@ public struct ReformWorldHostWorkbenchView: View {
     private var embeddedNPCAISceneGuardCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "Embedded NPC AI Scene Guard Section")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
             npcAISceneGuardSectionView
         }
         .accessibilityElement(children: .contain)
@@ -202,7 +202,7 @@ public struct ReformWorldHostWorkbenchView: View {
     private var embeddedReleasePreflightCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "Embedded Release Preflight & UI Readiness Diagnostics")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
             preflightDiagnosticsView
                 .frame(minHeight: 360)
         }

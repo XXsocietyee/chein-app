@@ -123,10 +123,10 @@ public struct MiniProgramPathTranslatorSnapshot: Sendable, Equatable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("mpPathTranslator.statusHeadline")
                 Text(verbatim: "已映射路由：\(snapshot.rows.count) · 参数丢失数：\(snapshot.droppedQueryParameterCount) · 未知源拦截：\(snapshot.rejectsUnknownSchemeOrHost ? "已开启" : "未开启")")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("mpPathTranslator.summary")
             }
@@ -137,14 +137,14 @@ public struct MiniProgramPathTranslatorSnapshot: Sendable, Equatable {
                         .foregroundStyle(row.isCompliant ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(row.miniProgramPath) ⇄ \(row.universalLinkPath)")
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: "参数无损保留：\(row.preservesQueryParametersLosslessly ? "是" : "否") · 双向回环：\(row.supportsBidirectionalRoundtrip ? "是" : "否")")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: row.isCompliant ? "无损" : "异常")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(row.isCompliant ? .green : .red)
                 }
                 .accessibilityIdentifier("mpPathTranslator.row." + row.routeID)

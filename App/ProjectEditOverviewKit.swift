@@ -69,7 +69,7 @@ struct ProjectEditTopicCard: View {
                             Text(verbatim: name)
                         }
                     }
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .lineLimit(2)
                     HStack(spacing: 6) {
@@ -81,7 +81,7 @@ struct ProjectEditTopicCard: View {
                             OpsR3Text.text("editor.topic.complete").foregroundStyle(palette.textTertiary)
                         }
                     }
-                    .font(.footnote)
+                    .cyText(.meta)
                 }
                 Spacer(minLength: CYSpacing.xs)
                 Image(systemName: "chevron.right")
@@ -168,8 +168,8 @@ struct ProjectEditNodeMap<Destination: View>: View {
                     if pins.isEmpty {
                         VStack(spacing: CYSpacing.xs) {
                             Image(systemName: "mappin.slash").font(.title3).accessibilityHidden(true)
-                            OpsR3Text.text("editor.map.empty.title").font(.headline)
-                            OpsR3Text.text("editor.map.empty.message").font(.footnote).multilineTextAlignment(.center)
+                            OpsR3Text.text("editor.map.empty.title").cyText(.cardTitle)
+                            OpsR3Text.text("editor.map.empty.message").cyText(.bodyCompact).multilineTextAlignment(.center)
                         }
                         .foregroundStyle(palette.textSecondary)
                         .padding(CYSpacing.lg)
@@ -204,7 +204,7 @@ struct ProjectEditNodeMap<Destination: View>: View {
             .sensoryFeedback(.selection, trigger: selection)
             if unplaced > 0 {
                 Text("editor.map.unplaced \(unplaced)", tableName: OpsR3Text.table)
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(palette.textSecondary)
                     .padding(.horizontal, fullBleed ? CYSpacing.lg : 0)
             }
@@ -233,7 +233,7 @@ struct ProjectEditNodeMap<Destination: View>: View {
 
     private func pinView(_ pin: Pin, selected: Bool) -> some View {
         Text(verbatim: "\(pin.ordinal)")
-            .font(.footnote.weight(.bold).monospacedDigit())
+            .cyText(.numericBody)
             .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textPrimary)
             .frame(width: 30, height: 30)
             .background(Circle().fill(selected ? palette.actionPrimaryBg : palette.bgElevated))
@@ -250,9 +250,9 @@ struct ProjectEditNodeMap<Destination: View>: View {
         HStack(spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: 2) {
                 ProjectEditName(value: pin.name, fallback: "projectEdit.untitledNode")
-                    .font(.headline).foregroundStyle(palette.textPrimary)
+                    .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 if !pin.address.isEmpty {
-                    Text(verbatim: pin.address).font(.footnote).foregroundStyle(palette.textSecondary).lineLimit(1)
+                    Text(verbatim: pin.address).cyText(.bodyCompact).foregroundStyle(palette.textSecondary).lineLimit(1)
                 }
             }
             Spacer(minLength: CYSpacing.xs)

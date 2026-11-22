@@ -149,7 +149,7 @@ import Combine
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("title", tableName: "ProjectEditExitGuard").font(.headline)
+            Text("title", tableName: "ProjectEditExitGuard").cyText(.cardTitle)
                 .fixedSize(horizontal: false, vertical: true)
             Text(LocalizedStringKey(original.reason.rawValue), tableName: "ProjectEditExitGuard")
                 .fixedSize(horizontal: false, vertical: true)

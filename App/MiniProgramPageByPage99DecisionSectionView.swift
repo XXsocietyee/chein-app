@@ -150,10 +150,10 @@ public struct MiniProgram99DecisionLedgerSnapshot: Sendable, Equatable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("mp99DecisionLedger.statusHeadline")
                 Text(verbatim: "总页数：\(snapshot.totalPages)/99 · 1:1 对齐：\(snapshot.totalStrictOneToOnePages) · 原生超集：\(snapshot.totalNativeSupersetPages) · 未裁决：\(snapshot.totalUndecidedPages)")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("mp99DecisionLedger.summary")
             }
@@ -164,14 +164,14 @@ public struct MiniProgram99DecisionLedgerSnapshot: Sendable, Equatable {
                         .foregroundStyle(row.isCompliant ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(row.title)（共 \(row.totalPageCount) 页）")
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: "1:1 小程序对齐 \(row.strictOneToOnePageCount) 页 · iOS 原生超集保留 \(row.nativeSupersetPageCount) 页")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: row.isCompliant ? "已锁定" : "待裁决")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(row.isCompliant ? .green : .red)
                 }
                 .accessibilityIdentifier("mp99DecisionLedger.row." + row.groupID)

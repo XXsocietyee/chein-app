@@ -129,15 +129,15 @@ struct PlayHUDNextStopCard: View {
     var body: some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("playHUD.next").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("playHUD.next").cyText(.meta).foregroundStyle(palette.textSecondary)
                 Text(verbatim: stop.name)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .lineLimit(2)
                     .accessibilityAddTraits(.isHeader)
                 if let caption {
                     Text(verbatim: caption)
-                        .font(CYTypography.meta.monospacedDigit())
+                        .cyText(.meta, monospacedDigit: true)
                         .foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("playHUD.caption")
                 }
@@ -157,7 +157,7 @@ struct PlayHUDNextStopCard: View {
                     if let distance = stop.distanceText {
                         // A live counter: plain tabular digits, no roll (xrefs-1 §3 row 14).
                         Text(verbatim: distance)
-                            .font(CYTypography.sheetTitle.monospacedDigit())
+                            .cyText(.sheetTitle, monospacedDigit: true)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityIdentifier("playHUD.distance")
                     }
@@ -214,7 +214,7 @@ struct PlayHUDCircleButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(CYTypography.bodyMedium)
+            .cyText(.bodyMedium)
             .foregroundStyle(Color.white)
             .frame(width: min(side, 56), height: min(side, 56))
             .background(reduceTransparency ? AnyShapeStyle(Color.black) : AnyShapeStyle(.ultraThinMaterial), in: Circle())

@@ -123,7 +123,7 @@ public struct ReceivedStampsAndPassportToolsSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "已获印章簿与私人随身工具审计 (I00+I11 / w2-09)")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("receivedStampsPassport.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -132,26 +132,26 @@ public struct ReceivedStampsAndPassportToolsSectionView: View {
                     .accessibilityIdentifier("receivedStampsPassport.overallStatus")
 
                 Text(verbatim: Self.sessionAdmissionStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("receivedStampsPassport.sessionAdmissionStatus")
 
                 Text(verbatim: Self.receivedStampsStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("receivedStampsPassport.receivedStampsStatus")
 
                 Text(verbatim: Self.privateToolsStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("receivedStampsPassport.privateToolsStatus")
 
                 Text(verbatim: Self.nonCashHonorStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("receivedStampsPassport.nonCashHonorStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无印章簿与随身工具检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("receivedStampsPassport.empty")
             } else {
@@ -202,19 +202,19 @@ private struct PassportToolAuditRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.title)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isVerified ? "已核验" : "待修复")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isVerified ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "核验说明：\(row.verificationNote)")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

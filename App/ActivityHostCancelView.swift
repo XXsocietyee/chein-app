@@ -151,7 +151,7 @@ import SwiftUI
                             CYSkeleton()
                                 .accessibilityHidden(true)
                             Text(verbatim: c.t("正在核对已付款人数…", "Checking paid attendee count…"))
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -165,7 +165,7 @@ import SwiftUI
                             : c.t("当前无法取消", "Cannot cancel right now")
                         Label {
                             Text(verbatim: shown)
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .fixedSize(horizontal: false, vertical: true)
                         } icon: {
                             Image(systemName: "exclamationmark.triangle.fill")
@@ -188,12 +188,12 @@ import SwiftUI
                                 .accessibilityHidden(true)
                             Text(verbatim: c.t("无法确认已付款人数，请稍后再试",
                                                 "Could not verify paid attendee count. Please try again later."))
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true)
                             Text(verbatim: c.t("请检查网络后重新检查", "Check your connection and try again."))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -214,7 +214,7 @@ import SwiftUI
                         Text(verbatim: ActivityHostCancelRules.completionNotice(serverMessage: serverMsg).map { c.tr($0) }
                                 ?? c.t("已提交全额退款，到账时间以微信通知为准",
                                        "Full refund submitted; arrival depends on payment provider notification"))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("activity.hostCancel.notice")
@@ -260,13 +260,13 @@ import SwiftUI
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: detail.summary.name.isEmpty ? c.t("未命名活动", "Untitled event") : detail.summary.name)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: PlayAreaPopupCopy.paymentsOpen
                     ? c.tr("将给 \(paidCount) 位已付款玩家全额退款,不可撤销。活动同时下架。")
                     : "—")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(PlayAreaPopupCopy.paymentsOpen ? CYColor.dangerText : CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -314,12 +314,12 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Text(verbatim: "\(trimmed.count)/\(ActivityHostCancelRules.reasonLimit)")
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .monospacedDigit()
                     .foregroundStyle(trimmed.count > ActivityHostCancelRules.reasonLimit ? CYColor.dangerText : CYColor.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            .font(CYTypography.meta)
+            .cyText(.meta)
 
             if let err = model.submitError {
                 Label {
@@ -327,7 +327,7 @@ import SwiftUI
                 } icon: {
                     Image(systemName: "exclamationmark.circle")
                 }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("activity.hostCancel.submitError")
             }

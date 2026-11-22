@@ -206,15 +206,15 @@ private struct UGCSafetyFixtureScreen: View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 Text(verbatim: model.spec.title)
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("ugc.fixture.title")
                 Text(verbatim: model.shownAuthor)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("ugc.fixture.author")
                 Text(verbatim: String(model.spec.authorID))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("ugc.fixture.memberID")
                 UGCBlockedFilterContainer(
@@ -222,7 +222,7 @@ private struct UGCSafetyFixtureScreen: View {
                     authorName: model.spec.authorName
                 ) {
                     Text(verbatim: model.spec.body)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("ugc.fixture.content")
@@ -242,13 +242,13 @@ private struct UGCSafetyFixtureScreen: View {
                     SettingsSupportSafetyView()
                 } label: {
                     Text("ugc.safety.action.contactSupport", tableName: "UGCSafety")
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .foregroundStyle(CYColor.textPrimary)
                 }
                 .accessibilityLabel(Text("ugc.safety.action.contactSupport", tableName: "UGCSafety"))
                 .accessibilityIdentifier("ugc.fixture.support")
                 Text(verbatim: "DEBUG fixture · synthetic · no network")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
             }
             .padding(CYSpacing.lg)
@@ -290,11 +290,11 @@ private struct UGCSafetyFixtureScreen: View {
     private var precheckNotice: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text("ugc.safety.moderation.footer", tableName: "UGCSafety")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textTertiary)
                 .accessibilityIdentifier("ugc.safety.moderation.notice")
             Text(verbatim: precheckLine)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("ugc.fixture.precheck.line")
         }
@@ -319,7 +319,7 @@ private struct UGCSafetyFixtureScreen: View {
         let open = ReviewedAreaSwitch.moneyPayments(apiHost: model.moneyHost)
         let shown = open ? "12.00" : "—"
         return Text(verbatim: shown)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textPrimary)
             .accessibilityLabel(Text(verbatim: shown))
             .accessibilityIdentifier("ugc.fixture.money")

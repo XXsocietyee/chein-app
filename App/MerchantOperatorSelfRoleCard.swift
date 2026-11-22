@@ -10,11 +10,11 @@ struct MerchantOperatorSelfRoleCard: View {
     var body: some View {
         Section("merchant.operatorSelf.title") {
             Text(LocalizedStringKey("merchant.business.role." + access.role))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityIdentifier("merchant.operatorSelf.role")
             Text("merchant.operatorSelf.copy")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYPillButton("merchant.operatorSelf.openWorkbench", style: .primary) { dismiss() }

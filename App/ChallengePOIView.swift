@@ -31,7 +31,7 @@ import QuestifyCore
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     CYSkeleton()
                     Text("playx.poi.loading")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -93,7 +93,7 @@ import QuestifyCore
                         if coordinator.withinRange { Text("playx.poi.inRange \(dist)") }
                         else { Text("playx.poi.distance \(dist)") }
                     }
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(coordinator.withinRange ? palette.success : palette.warning)
                     .fixedSize(horizontal: false, vertical: true)
                     if !coordinator.withinRange, let url = Self.navigationURL(for: node) {
@@ -102,7 +102,7 @@ import QuestifyCore
                             openURL(url)
                         } label: {
                             Label("playx.poi.navigate", systemImage: "arrow.triangle.turn.up.right.diamond")
-                                .font(CYTypography.caption.weight(.semibold))
+                                .cyText(.caption, weight: .semibold)
                                 .foregroundStyle(palette.brand)
                         }
                         .buttonStyle(.plain)
@@ -138,12 +138,12 @@ import QuestifyCore
     private var photoCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("playx.poi.photoStep")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .fixedSize(horizontal: false, vertical: true)
             TextField(LocalizedStringKey("playx.poi.photoUrlPlaceholder"), text: $coordinator.uploadedPhotoUrl)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .textContentType(.URL)
                 .keyboardType(.URL)
                 .textInputAutocapitalization(.never)
@@ -168,7 +168,7 @@ import QuestifyCore
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if !node.question.isEmpty {
                     Text(verbatim: readable(node.question))
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -177,7 +177,7 @@ import QuestifyCore
                         showingChoiceSheet = true
                     } label: {
                         Text(verbatim: PlayCloseCopy.text("选择答案", "Choose answer", locale))
-                            .font(CYTypography.caption.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .foregroundStyle(palette.actionPrimaryBg)
                     }
                     .sheet(isPresented: $showingChoiceSheet) {
@@ -205,7 +205,7 @@ import QuestifyCore
                     }
                 } else {
                     TextField(LocalizedStringKey("playx.poi.answerPlaceholder"), text: $coordinator.textAnswer)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .cyField()
                         .accessibilityLabel(Text("playx.poi.answerPlaceholder"))
                         .accessibilityValue(Text(verbatim: coordinator.textAnswer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.textAnswer))
@@ -311,7 +311,7 @@ import QuestifyCore
         return HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: symbol).accessibilityHidden(true)
             Text(verbatim: text)
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(foreground)

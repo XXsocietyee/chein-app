@@ -25,9 +25,9 @@ struct MerchantTopicStatBarView: View {
                     ForEach(Array(cells.enumerated()), id: \.offset) { index, cell in
                         if index > 0 { Divider().frame(height: 36).padding(.horizontal, 14) }
                         VStack(spacing: 2) {
-                            Text(label(cell.kind)).font(.caption).foregroundStyle(.secondary)
-                            Text(verbatim: cell.value).font(.title3.weight(.semibold).monospacedDigit())
-                            if let sub = sub(cell.kind) { Text(sub).font(.caption).foregroundStyle(.secondary) }
+                            Text(label(cell.kind)).cyText(.meta).foregroundStyle(.secondary)
+                            Text(verbatim: cell.value).cyText(.sectionTitle, monospacedDigit: true)
+                            if let sub = sub(cell.kind) { Text(sub).cyText(.meta).foregroundStyle(.secondary) }
                         }
                         .accessibilityElement(children: .combine)
                     }
@@ -44,18 +44,18 @@ struct MerchantTopicTemplateShelfView: View {
     var body: some View {
         if !templates.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                Text("merchant.wire2.templates.title").font(.headline)
+                Text("merchant.wire2.templates.title").cyText(.cardTitle)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: 12) {
                         ForEach(Array(templates.enumerated()), id: \.offset) { _, template in
                             VStack(alignment: .leading, spacing: 6) {
                                 MerchantTopicRemoteImage(url: template.imageURL)
                                     .frame(width: 140, height: 100).clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                Text(verbatim: template.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                                Text(verbatim: template.title).cyText(.bodyMedium).lineLimit(1)
                                 HStack(spacing: 8) {
                                     if let players = template.players { Text(verbatim: players) }
                                     if let minutes = template.durationMinutes { Text("merchant.wire2.template.minutes \(minutes)") }
-                                }.font(.caption).foregroundStyle(.secondary)
+                                }.cyText(.meta).foregroundStyle(.secondary)
                             }.frame(width: 140, alignment: .leading)
                             .accessibilityElement(children: .combine)
                         }
@@ -95,16 +95,16 @@ struct MerchantTopicGuideChaptersView: View {
     var body: some View {
         if !chapters.isEmpty {
             VStack(alignment: .leading, spacing: 16) {
-                Text("merchant.wire2.guide.title").font(.headline)
+                Text("merchant.wire2.guide.title").cyText(.cardTitle)
                 ForEach(Array(chapters.enumerated()), id: \.offset) { _, chapter in
                     VStack(alignment: .leading, spacing: 8) {
-                        if let name = chapter.name { Text(verbatim: name).font(.subheadline.weight(.semibold)) }
+                        if let name = chapter.name { Text(verbatim: name).cyText(.bodyMedium) }
                         if chapter.hasMeta {
                             HStack(spacing: 12) {
                                 if let seconds = chapter.totalSeconds { Label { timeText(seconds) } icon: { Image(systemName: "clock") } }
                                 if chapter.nodeCount > 0 { Label { Text("merchant.wire2.meta.nodes \(chapter.nodeCount)") } icon: { Image(systemName: "mappin.and.ellipse") } }
                                 if chapter.playCount > 0 { Label { Text("merchant.wire2.meta.plays \(chapter.playCount)") } icon: { Image(systemName: "person.2") } }
-                            }.font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("merchant.wire2.chapterMeta")
+                            }.cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("merchant.wire2.chapterMeta")
                         }
                         ForEach(Array(chapter.nodes.enumerated()), id: \.offset) { _, node in
                             VStack(alignment: .leading, spacing: 6) {
@@ -119,7 +119,7 @@ struct MerchantTopicGuideChaptersView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                                     .accessibilityIdentifier("merchant.wire2.gallery")
                                 }
-                                if !node.description.isEmpty { Text(verbatim: node.description).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
+                                if !node.description.isEmpty { Text(verbatim: node.description).cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
                             }
                         }
                     }

@@ -193,7 +193,7 @@ public struct UnifiedReleaseAuditHubView: View {
         VStack(alignment: .leading, spacing: 4) {
             rowLayout {
                 Text(verbatim: "Unified Release Audit Hub (Batches 1–12)")
-                    .font(.headline).accessibilityAddTraits(.isHeader)
+                    .cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 Spacer()
                 CYStatusChip(verbatim: headerBadgeText, tone: snapshot.isAllGreen ? .success : .warning,
                              systemImage: snapshot.isAllGreen ? "checkmark.circle" : "exclamationmark.triangle")
@@ -201,7 +201,7 @@ public struct UnifiedReleaseAuditHubView: View {
             }
 
             Text(verbatim: overallSummaryText)
-                .font(.caption.monospacedDigit())
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("unifiedReleaseAuditHub.overallSummary")
 
@@ -218,7 +218,7 @@ public struct UnifiedReleaseAuditHubView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     rowLayout {
                         Text(verbatim: card.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         CYStatusChip(verbatim: card.statusBadgeText, tone: card.isVerified ? .success : .warning,
                                      systemImage: card.isVerified ? "checkmark.circle" : "exclamationmark.triangle")
@@ -231,7 +231,7 @@ public struct UnifiedReleaseAuditHubView: View {
                         .accessibilityIdentifier("unifiedReleaseAuditHub.cardMetrics.\(card.id)")
 
                     Text(verbatim: card.invariantSummary)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(10)

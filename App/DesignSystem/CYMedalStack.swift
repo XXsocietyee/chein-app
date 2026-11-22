@@ -91,17 +91,17 @@ struct CYMedalDeck: View {
     var body: some View {
         if !items.isEmpty {
             VStack(spacing: CYSpacing.md) {
-                Text("medalDeck.earned \(items.count)").font(CYTypography.caption).tracking(0.6).textCase(.uppercase)
+                Text("medalDeck.earned \(items.count)").cyText(.caption).tracking(0.6).textCase(.uppercase)
                     .foregroundStyle(CYColor.textSecondary)
                 ZStack {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         let depth = order.depth(of: index)
                         VStack(spacing: CYSpacing.xs) {
                             CYMedalFace(item: item, side: side, tone: index)
-                            Text(verbatim: item.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                 .lineLimit(2).multilineTextAlignment(.center)
                             if let sub = item.subtitle, !sub.isEmpty {
-                                Text(verbatim: sub).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                                Text(verbatim: sub).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
                             }
                         }
                         .opacity(depth == 0 ? 1 : 0)
@@ -189,20 +189,20 @@ struct CYMedalScreen: View {
                     medalStack.padding(.top, 72)
                     if let front = order.front, items.indices.contains(front) {
                         VStack(spacing: CYSpacing.xs) {
-                            Text(verbatim: items[front].name).font(CYTypography.sectionTitle).foregroundStyle(.white)
+                            Text(verbatim: items[front].name).cyText(.sectionTitle).foregroundStyle(.white)
                                 .multilineTextAlignment(.center)
                             HStack(spacing: CYSpacing.xs) {
                                 if let sub = items[front].subtitle, !sub.isEmpty { Text(verbatim: sub) }
                                 if items.count > 1 { Text(verbatim: "\(front + 1)/\(items.count)").monospacedDigit() }
-                            }.font(CYTypography.meta).foregroundStyle(.white.opacity(0.6))
+                            }.cyText(.meta).foregroundStyle(.white.opacity(0.6))
                             if items.count > 1 { CYMedalDots(count: items.count, current: front, onDark: true).padding(.top, CYSpacing.xs) }
                         }.accessibilityElement(children: .combine)
                     }
                     VStack(spacing: CYSpacing.xs) {
-                        Text(verbatim: title).font(CYTypography.pageTitle).foregroundStyle(.white).multilineTextAlignment(.center)
+                        Text(verbatim: title).cyText(.pageTitle).foregroundStyle(.white).multilineTextAlignment(.center)
                             .accessibilityAddTraits(.isHeader)
                         if let subtitle, !subtitle.isEmpty {
-                            Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(.white.opacity(0.72)).multilineTextAlignment(.center)
+                            Text(verbatim: subtitle).cyText(.body).foregroundStyle(.white.opacity(0.72)).multilineTextAlignment(.center)
                         }
                     }.opacity(on ? 1 : 0)
                     if !stats.isEmpty {
@@ -298,8 +298,8 @@ struct CYMedalScreen: View {
                 Image(systemName: image).font(.title3).foregroundStyle(CYNight.lantern).frame(width: 28).accessibilityHidden(true)
             }
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(LocalizedStringKey(stat.key)).font(CYTypography.micro).foregroundStyle(.white.opacity(0.6))
-                Text(verbatim: CYMedalCountUp.frame(stat.value, progress: counted)).font(CYTypography.dataXL).monospacedDigit()
+                Text(LocalizedStringKey(stat.key)).cyText(.micro).foregroundStyle(.white.opacity(0.6))
+                Text(verbatim: CYMedalCountUp.frame(stat.value, progress: counted)).cyText(.dataXL).monospacedDigit()
                     .foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.6)
                     .contentTransition(.numericText())
             }
@@ -314,9 +314,9 @@ struct CYMedalScreen: View {
 
     private func recordCard(_ record: Record) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Label("medalScreen.newRecord", systemImage: "trophy.fill").font(CYTypography.label).foregroundStyle(CYNight.lantern)
-            Text(verbatim: record.label).font(CYTypography.meta).foregroundStyle(.white.opacity(0.66))
-            Text(verbatim: record.text).font(CYTypography.sectionTitle).foregroundStyle(.white)
+            Label("medalScreen.newRecord", systemImage: "trophy.fill").cyText(.label).foregroundStyle(CYNight.lantern)
+            Text(verbatim: record.label).cyText(.meta).foregroundStyle(.white.opacity(0.66))
+            Text(verbatim: record.text).cyText(.sectionTitle).foregroundStyle(.white)
             if !record.tag.isEmpty { CYStatusChip(verbatim: record.tag) }
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.lg)
@@ -331,7 +331,7 @@ struct CYMedalScreen: View {
             if let shareText {
                 ShareLink(item: shareText) {
                     Label("medalScreen.share", systemImage: "square.and.arrow.up")
-                        .font(CYTypography.bodyMedium).frame(maxWidth: .infinity, minHeight: 56)
+                        .cyText(.bodyMedium).frame(maxWidth: .infinity, minHeight: 56)
                         .foregroundStyle(CYNight.ink0)
                         .background(Color.white, in: Capsule())
                 }

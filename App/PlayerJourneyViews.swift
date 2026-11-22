@@ -101,7 +101,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
             else if let rows, rowsScope == reader.scope {
                 let visible = rows.filter { filter.matches($0) }
                 if loading {
-                    Text("playerJourney.parity.refreshing").font(.footnote).foregroundStyle(.secondary)
+                    Text("playerJourney.parity.refreshing").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .accessibilityIdentifier("playerJourney.refreshing")
                 }
                 if visible.isEmpty {
@@ -182,7 +182,7 @@ private struct ParticipationRow: View {
             .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : 150)
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 ParticipationStatusBadge(status: record.participationStatus(), detail: false)
-                if let name = record.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.sourceUntitled").font(.headline) }
+                if let name = record.name { Text(verbatim: name).cyText(.cardTitle) } else { Text("playerJourney.sourceUntitled").cyText(.cardTitle) }
                 Label {
                     if let range = ParticipationDateText.range(start: record.order.ownerStartDate, end: record.order.ownerEndDate) { Text(verbatim: range).monospacedDigit() }
                     else { Text("playerJourney.timeTBD") }
@@ -327,7 +327,7 @@ private struct ParticipationCoverPlaceholder: View {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     Button { if let destination = row.destination { open(destination) } } label: {
                         VStack(alignment: .leading, spacing: 8) {
-                            if let name = row.name { Text(verbatim: name).font(.headline) } else { Text("playerJourney.untitled") }
+                            if let name = row.name { Text(verbatim: name).cyText(.cardTitle) } else { Text("playerJourney.untitled") }
                             if let total = row.total, total > 0 {
                                 let done = row.doneCount
                                 if row.completed == true || (done.map { $0 >= total } ?? false) { Label("playerJourney.finished", systemImage: "checkmark.circle") }
@@ -341,7 +341,7 @@ private struct ParticipationCoverPlaceholder: View {
                         }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
                     }.buttonStyle(.plain).disabled(row.destination == nil)
                 }
-                if let issue { Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(.secondary) }
+                if let issue { Text(LocalizedStringKey(issue)).cyText(.bodyCompact).foregroundStyle(.secondary) }
             } else if let issue { PlayerJourneyIssue(key: issue, retry: { Task { await load() } }) }
         }.cyGroupedSurface().navigationTitle("playerJourney.completed").navigationBarTitleDisplayMode(.inline)
         .task(id: reader.scope) { rows = nil; await load() }.refreshable { await load() }

@@ -144,10 +144,10 @@ public struct UITestFlowReadinessAnchorSectionView: View {
         Section {
             HStack {
                 Text(verbatim: "离线 UI 测试入口锚点总览")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isFullyAnchored ? "5/5 全部锚定" : "\(snapshot.anchoredCount)/5 待修复")
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isFullyAnchored ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
@@ -157,7 +157,7 @@ public struct UITestFlowReadinessAnchorSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "锚点统计")
             }
@@ -167,10 +167,10 @@ public struct UITestFlowReadinessAnchorSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.state).opacity(0.15), in: Capsule())

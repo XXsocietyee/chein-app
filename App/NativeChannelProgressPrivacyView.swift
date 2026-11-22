@@ -128,7 +128,7 @@ import SwiftUI
                     Text("d7.channelProgress.originalPending", tableName: "NativeChannelProgress")
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: command.requestId)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .monospaced()
                         .foregroundStyle(CYColor.textSecondary)
                         .textSelection(.enabled)

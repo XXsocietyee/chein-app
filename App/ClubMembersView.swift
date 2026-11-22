@@ -57,13 +57,13 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYHeroHeader("club.members")
                         ClubName(value: directory.club.name)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         // verify-r1 2.6 / N-14: the role counts are the subtitle; the roster card moved to 报名名册.
                         if !directory.members.isEmpty {
                             Text(verbatim: ClubRosterCardModel.roleSummary(directory, locale: locale))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .monospacedDigit()
                                 .accessibilityIdentifier("club.members.roleSummary")
@@ -253,12 +253,12 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 if let nickname = member.trimmedNickname {
                     Text(verbatim: nickname)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("club.memberNumber \(member.memberId)")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -266,7 +266,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                 else if member.isAdmin { CYStatusChip("club.role.administrator", tone: .neutral, systemImage: "shield") }
                 if let level = member.displayedLevel {
                     Text("club.memberLevel \(level)")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
@@ -275,7 +275,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                 // verify-r1 1.5 / MC-02: 11月16日, not the server's raw wall-clock text.
                 if let joined = member.displayedJoinTime.map({ ClubJoinDateDisplay.text($0, locale: locale) }) {
                     Text("club.memberJoined \(joined)")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.member.joined.\(member.memberId)")
@@ -321,7 +321,7 @@ struct ClubMemberInviteRow: View {
                     .background(Circle().fill(palette.bgElevated))
                     .accessibilityHidden(true)
                 OpsR3Text.text("r3club.invite.title")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                 Spacer(minLength: 0)
             }

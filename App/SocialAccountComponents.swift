@@ -27,7 +27,7 @@ struct SocialIssueView: View {
                     Label(message, systemImage: "exclamationmark.circle")
                         .fixedSize(horizontal: false, vertical: true)
                     if case SocialAccountFailure.rejected(_, let text) = error, let text {
-                        Text(verbatim: text).font(.footnote).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: text).cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                     }
                     if let retry { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry) }
                 }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")

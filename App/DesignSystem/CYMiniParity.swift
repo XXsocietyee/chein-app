@@ -41,7 +41,7 @@ public struct CYMiniBadge: View {
     public var body: some View {
         HStack(spacing: CYSpacing.xs) {
             if let systemImage { Image(systemName: systemImage).imageScale(.small).accessibilityHidden(true) }
-            title.font(CYTypography.label)
+            title.cyText(.label)
         }
         .foregroundStyle(tone.foreground)
         .padding(.horizontal, CYSpacing.md)
@@ -57,7 +57,7 @@ public struct CYMiniDueStrip<Content: View>: View {
     public init(@ViewBuilder content: () -> Content) { self.content = content() }
     public var body: some View {
         content
-            .font(CYTypography.label.weight(.semibold))
+            .cyText(.label, weight: .semibold)
             .foregroundStyle(CYColor.dangerText)
             .padding(.horizontal, CYSpacing.md)
             .padding(.vertical, CYSpacing.sm)

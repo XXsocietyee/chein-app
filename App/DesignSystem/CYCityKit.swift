@@ -15,7 +15,7 @@ struct CYInfoCard<Content: View>: View {
             if let title {
                 HStack(spacing: CYSpacing.sm) {
                     if let symbol { Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(tint ?? palette.textSecondary).accessibilityHidden(true) }
-                    title.font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+                    title.cyText(.cardTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
                 }
             }
             content()
@@ -34,13 +34,13 @@ struct CYFactRow: View {
     var body: some View {
         ViewThatFits(in: .horizontal) {
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                label.font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                label.cyText(.meta).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
-                Text(verbatim: value).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary).multilineTextAlignment(.trailing).textSelection(.enabled)
+                Text(verbatim: value).cyText(.bodyCompact).foregroundStyle(palette.textPrimary).multilineTextAlignment(.trailing).textSelection(.enabled)
             }
             VStack(alignment: .leading, spacing: 2) {
-                label.font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                Text(verbatim: value).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary).textSelection(.enabled)
+                label.cyText(.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: value).cyText(.bodyCompact).foregroundStyle(palette.textPrimary).textSelection(.enabled)
             }
         }
         .accessibilityElement(children: .combine)
@@ -57,7 +57,7 @@ struct CYDetailsDisclosure<Content: View>: View {
         DisclosureGroup(isExpanded: $open) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) { content() }.padding(.top, CYSpacing.sm)
         } label: {
-            title.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
+            title.cyText(.meta, weight: .semibold).foregroundStyle(palette.textSecondary)
         }
         .tint(palette.textSecondary)
         .frame(minHeight: 44)
@@ -79,10 +79,10 @@ struct CYStepIndicator: View {
             }
             HStack {
                 Text(verbatim: ChannelCopy.text("第 \(current + 1) 步 / 共 \(titles.count) 步", "Step \(current + 1) of \(titles.count)", locale: locale))
-                    .font(CYTypography.meta.monospacedDigit()).foregroundStyle(palette.textSecondary)
+                    .cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 if titles.indices.contains(current) {
-                    Text(verbatim: titles[current]).font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: titles[current]).cyText(.meta, weight: .semibold).foregroundStyle(palette.textPrimary)
                 }
             }
         }
@@ -99,7 +99,7 @@ struct CYNoteBanner: View {
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: symbol).font(.body.weight(.semibold)).accessibilityHidden(true)
-            text.font(CYTypography.bodyCompact).fixedSize(horizontal: false, vertical: true)
+            text.cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
         }
         .foregroundStyle(palette.textPrimary)
@@ -144,8 +144,8 @@ struct CYCollectedLockedSummary: View {
         HStack(spacing: CYSpacing.md) {
             Image(systemName: symbol).font(.title3).foregroundStyle(on ? palette.textPrimary : palette.textTertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 0) {
-                Text(verbatim: String(n)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(palette.textPrimary)
-                Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+                Text(verbatim: String(n)).cyText(.dataXL).monospacedDigit().foregroundStyle(palette.textPrimary)
+                Text(verbatim: label).cyText(.caption).foregroundStyle(palette.textSecondary)
             }
             Spacer(minLength: 0)
         }
@@ -172,10 +172,10 @@ struct CYChoiceRow: View {
                     .foregroundStyle(selected ? palette.textPrimary : palette.textTertiary)
                     .symbolEffect(.bounce, value: reduceMotion ? false : selected)
                 if let marker, !marker.isEmpty {
-                    Text(verbatim: marker).font(CYTypography.label).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: marker).cyText(.label).foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                 }
-                Text(verbatim: label).font(CYTypography.body).foregroundStyle(palette.textPrimary).multilineTextAlignment(.leading)
+                Text(verbatim: label).cyText(.body).foregroundStyle(palette.textPrimary).multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
             }
@@ -235,7 +235,7 @@ struct CYCollapsibleCard<Content: View>: View {
                         .frame(width: tile, height: tile)
                         .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .accessibilityHidden(true)
-                    title.font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).multilineTextAlignment(.leading)
+                    title.cyText(.cardTitle).foregroundStyle(palette.textPrimary).multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: CYSpacing.sm)
                     Image(systemName: "chevron.down").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary)

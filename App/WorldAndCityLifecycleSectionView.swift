@@ -191,7 +191,7 @@ public struct WorldAndCityLifecycleSnapshot: Equatable, CustomStringConvertible,
                             .accessibilityIdentifier("worldCityLifecycle.pillar.badge.\(row.id)")
                     }
                     Text(verbatim: row.summary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

@@ -31,7 +31,7 @@ struct ProjectEditScheduleSpan: View {
                     .accessibilityIdentifier("projectSchedule.span")
             } else if let startDate, let endDate, endDate < startDate {
                 Label("projectSchedule.endBeforeStart", systemImage: "exclamationmark.circle")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                    .cyText(.meta).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("projectSchedule.endBeforeStart")
             }
         }
@@ -41,8 +41,8 @@ struct ProjectEditScheduleSpan: View {
     }
     private func column(_ title: LocalizedStringKey, _ date: Date?) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(title).font(CYTypography.micro).textCase(.uppercase).foregroundStyle(CYColor.textTertiary)
-            Text(verbatim: date.map(format) ?? "—").font(CYTypography.bodyMedium).monospacedDigit()
+            Text(title).cyText(.micro).textCase(.uppercase).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: date.map(format) ?? "—").cyText(.bodyMedium).monospacedDigit()
                 .foregroundStyle(date == nil ? CYColor.textTertiary : CYColor.textPrimary)
                 .lineLimit(1).minimumScaleFactor(0.7)
         }
@@ -136,7 +136,7 @@ extension EnvironmentValues {
         Form {
             Section {
                 Text(verbatim: nodeName.isEmpty ? appLocalized("projectEdit.untitledNode", locale: locale) : nodeName)
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             switch phase {
             case .loading:

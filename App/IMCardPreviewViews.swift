@@ -43,7 +43,7 @@ import MapKit
             } else {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     Text("im.card.routeLoading")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     CYSkeleton().accessibilityHidden(true)
@@ -124,7 +124,7 @@ struct IMLocationCardMap: View {
                 .accessibilityLabel(Text("im.card.locationMap"))
                 .accessibilityIdentifier("im.card.locationMap")
             Text(verbatim: trimmed.isEmpty ? "—" : trimmed)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }

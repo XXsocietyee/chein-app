@@ -49,12 +49,12 @@ struct RouteActionPageReadRequest {
             if !model.unresolved, let context, let snapshot = model.snapshot,
                let presentation = PlayRouteMapPresentation(snapshot: snapshot) {
                 Section {
-                    Text("playRoute.explanation").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                    Text("playRoute.explanation").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("playRoute.explanation")
                     if let id = presentation.currentNodeID,
                        let current = presentation.stops.first(where: { $0.id == id }) {
-                        Label("playRoute.current", systemImage: "flag.fill").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
-                        stopName(current).font(CYTypography.cardTitle)
+                        Label("playRoute.current", systemImage: "flag.fill").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
+                        stopName(current).cyText(.cardTitle)
                         CYPillButton("playRoute.openCurrent") { choose(id, snapshot: snapshot, context: context) }
                             .accessibilityIdentifier("playRoute.openCurrent").e1ActionRow()
                     } else { Text("playRoute.noCurrent").accessibilityIdentifier("playRoute.noCurrent") }
@@ -390,7 +390,7 @@ struct RouteActionPageReadRequest {
                         Button { if let request { focus(request) } } label: {
                             VStack(spacing: 3) {
                                 Image(systemName: stop.state.symbol).font(.title2)
-                                Text(verbatim: String(stop.order)).font(.caption.bold())
+                                Text(verbatim: String(stop.order)).cyText(.meta, weight: .bold)
                             }.foregroundStyle(stop.state == .current ? CYColor.textOnAccent : Color.primary)
                                 .frame(minWidth: 44, minHeight: 44)
                                 .padding(4).background(stop.state == .current ? CYColor.actionPrimaryBg : Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 12))
@@ -431,11 +431,11 @@ struct RouteActionPageReadRequest {
     }
     private func stopLabel(_ stop: PlayRouteMapPresentation.Stop) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            stopName(stop).font(CYTypography.cardTitle)
-            Label(LocalizedStringKey(stop.state.labelKey), systemImage: stop.state.symbol).font(CYTypography.label)
-            if let address = stop.address, !address.isEmpty { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-            if stop.state != .locked && stop.coordinate == nil { Text("playRoute.noStopCoordinate").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-            if stop.state == .available || stop.state == .unknown { Text("playRoute.useJourney").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            stopName(stop).cyText(.cardTitle)
+            Label(LocalizedStringKey(stop.state.labelKey), systemImage: stop.state.symbol).cyText(.label)
+            if let address = stop.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            if stop.state != .locked && stop.coordinate == nil { Text("playRoute.noStopCoordinate").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            if stop.state == .available || stop.state == .unknown { Text("playRoute.useJourney").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }.fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 4)
     }

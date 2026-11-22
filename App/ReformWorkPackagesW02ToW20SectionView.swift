@@ -133,10 +133,10 @@ public struct ReformWorkPackagesW02ToW20SectionView: View {
         Section {
             HStack {
                 Text(verbatim: "Reform Plan v9 工作包覆盖率")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isFullyReady ? "19/19 全部就绪" : "\(snapshot.totalCoveredCount)/19 待补齐")
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isFullyReady ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
@@ -146,7 +146,7 @@ public struct ReformWorkPackagesW02ToW20SectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "工作包统计")
             }
@@ -156,10 +156,10 @@ public struct ReformWorkPackagesW02ToW20SectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.state).opacity(0.15), in: Capsule())
@@ -168,7 +168,7 @@ public struct ReformWorkPackagesW02ToW20SectionView: View {
                     Text(verbatim: "包含工作包 (\(row.packageCount))：\(row.packageListText)")
                         .font(.caption.monospaced())
                     Text(verbatim: row.detail)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

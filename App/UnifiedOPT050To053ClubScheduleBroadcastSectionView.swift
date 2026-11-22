@@ -13,9 +13,9 @@ public struct UnifiedOPT050To053ClubScheduleBroadcastSectionView: View {
             ForEach(UnifiedOPT050To053ClubMembershipScheduleLeadAndBroadcastContract.packages) { pkg in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(pkg.optID) · \(pkg.title)")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text("旧52单: \(pkg.mappedLegacy52Tickets.count) 项 · 决策: \(pkg.decisionDependencies.joined(separator: ", "))")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
             }

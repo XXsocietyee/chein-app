@@ -44,7 +44,7 @@ import SwiftUI
                         PackageLimitRow(key: "themeLimit", limit: info.themeLimit)
                         PackageLimitRow(key: "merchantLimit", limit: info.merchantLimit)
                         PackageLimitRow(key: "runLimit", limit: info.runLimit)
-                        packageText("limitNotice").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        packageText("limitNotice").cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     } header: { packageText("limits") }
                     Section {
                         PackageValueRow(key: "bindingCount", value: String(info.requiredBindingCount))

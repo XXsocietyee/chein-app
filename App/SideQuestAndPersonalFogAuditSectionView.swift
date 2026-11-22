@@ -185,7 +185,7 @@ public struct SideQuestAndPersonalFogAuditSnapshot: Equatable, Sendable {
                             .accessibilityIdentifier("sideQuestFogAudit.row.badge.\(row.id)")
                     }
                     Text(verbatim: row.detail)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

@@ -235,7 +235,7 @@ public struct MasterReleaseSignoffDashboardView: View {
                 )
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(verbatim: "\(snapshot.verifiedPillarCount)")
-                        .font(CYTypography.dataXL)
+                        .cyText(.dataXL)
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityHidden(true)
                     CYStatusChip(

@@ -22,7 +22,7 @@ struct WaveTodayFixture: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HomeTodayCard(choice: choice, onTicket: {}, onClubEvent: {}, onStartRoam: {}, waveModel: wave)
-            Text(verbatim: "Synthetic tap × \(taps)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: "Synthetic tap × \(taps)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.pageHorizontal)

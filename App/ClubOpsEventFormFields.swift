@@ -8,27 +8,27 @@ import SwiftUI
     var body: some View {
         if operation == .updateSeries {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").font(CYTypography.meta)
+                Text("clubOpsEvent.edit.locked", tableName: "ClubOpsEvent").cyText(.meta)
                     .accessibilityIdentifier("clubOpsEvent.edit.locked")
-                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         } else if operation == .createSeries {
             VStack(alignment: .leading, spacing: 6) {
-                Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("clubOpsEvent.refundAnchor", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             VStack(alignment: .leading, spacing: 6) {
-                Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent").font(.headline)
-                Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                Text("clubOpsEvent.section.capacity", tableName: "ClubOpsEvent").cyText(.cardTitle)
+                Text("clubOpsEvent.capacity.note", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Text("club.gov.field.capacity")
                 TextField(text: $capacity, prompt: Text("clubOpsEvent.capacity.placeholder", tableName: "ClubOpsEvent")) { Text("club.gov.field.capacity") }
                     .keyboardType(.numberPad).accessibilityIdentifier("club.gov.input.capacity")
                 if ClubOpsEventInput.capacityInvalid(capacity) {
-                    Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(CYColor.dangerText)
+                    Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("clubOpsEvent.capacity.invalid")
                 }
-                Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.secondary)
+                Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
             }
             Toggle("club.gov.field.waitlistEnabled", isOn: $waitlist).accessibilityIdentifier("club.gov.input.waitlistEnabled")
         }
@@ -41,11 +41,11 @@ import SwiftUI
     let visible: Bool
     var body: some View {
         if visible {
-            Text("clubOpsEvent.offer.placeholder", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.secondary)
-            Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.secondary)
+            Text("clubOpsEvent.offer.placeholder", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
+            Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(.secondary)
         }
         if ClubOpsEventInput.offerInvalid(minutes) {
-            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(CYColor.dangerText)
+            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").cyText(.meta).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("clubOpsEvent.offer.invalid")
         }
     }
@@ -64,10 +64,10 @@ import SwiftUI
             .accessibilityIdentifier("club.gov.input.reason")
             if !reason.isEmpty, cancel ? ClubOpsEventInput.cancelReasonInvalid(reason) : ClubOpsEventInput.correctionReasonInvalid(reason) {
                 Text(cancel ? "clubOpsEvent.cancel.reasonInvalid" : "clubOpsEvent.correct.reasonInvalid", tableName: "ClubOpsEvent")
-                    .font(.caption).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("clubOpsEvent.reason.invalid")
+                    .cyText(.meta).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("clubOpsEvent.reason.invalid")
             }
             if cancel {
-                Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
         }
     }

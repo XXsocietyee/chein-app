@@ -180,11 +180,11 @@ public struct MiniProgramVsNativeSupersetClassifierSectionView: View {
             Image(systemName: "square.stack.3d.up.badge.a.fill")
                 .foregroundStyle(.teal)
             Text(verbatim: "Mini-Program vs Native Superset Classifier")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("mpVsNativeClassifier.header")
             Spacer()
             Text(verbatim: headerBadgeText)
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
@@ -215,10 +215,10 @@ public struct MiniProgramVsNativeSupersetClassifierSectionView: View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
                 Text(verbatim: "[\(row.scopeRange)] \(row.title)")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isCompliant ? "PRESERVED" : "DOWNGRADE WARNING")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(
@@ -230,11 +230,11 @@ public struct MiniProgramVsNativeSupersetClassifierSectionView: View {
             }
 
             Text(verbatim: row.bucket.rawValue)
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 .foregroundStyle(row.bucket == .strictAPIAndCopyAlignment ? .blue : .teal)
 
             Text(verbatim: row.detail)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
         }
         .padding(10)
@@ -253,7 +253,7 @@ public struct MiniProgramVsNativeSupersetClassifierSectionView: View {
 
     private func pill(text: String, tint: Color) -> some View {
         Text(verbatim: text)
-            .font(.caption2.weight(.medium))
+            .cyText(.caption, weight: .medium)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(

@@ -13,8 +13,8 @@ struct RequestReferenceRow: View {
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("requestReference.label").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: reference).font(CYTypography.meta).monospaced().foregroundStyle(CYColor.textPrimary)
+                Text("requestReference.label").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: reference).cyText(.meta).monospaced().foregroundStyle(CYColor.textPrimary)
                     .textSelection(.enabled).lineLimit(1).minimumScaleFactor(0.7)
             }
             Spacer(minLength: 0)
@@ -23,7 +23,7 @@ struct RequestReferenceRow: View {
                 copied = true
             } label: {
                 Label(LocalizedStringKey(copied ? "requestReference.copied" : "requestReference.copy"), systemImage: copied ? "checkmark" : "doc.on.doc")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
             }
             .buttonStyle(.borderless)
             .frame(minHeight: CYSpacing.minTouchTarget)

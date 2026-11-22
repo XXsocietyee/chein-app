@@ -89,7 +89,7 @@ import UIKit
                                 nextButton
                             }
                         }
-                    }.padding().font(.body)
+                    }.padding().cyText(.body)
                 }
             }.background(CYColor.bgPage)
                 .appNavigationTitle(key: titleKey).navigationBarTitleDisplayMode(.inline)

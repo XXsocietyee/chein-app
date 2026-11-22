@@ -17,14 +17,14 @@ struct EditorFieldLabel: View {
     @Environment(\.cyPalette) private var palette
     var body: some View {
         HStack(spacing: 2) {
-            label.font(.footnote.weight(.medium)).foregroundStyle(palette.textSecondary)
+            label.cyText(.bodyMedium).foregroundStyle(palette.textSecondary)
             if required {
-                Text(verbatim: "*").font(.footnote.weight(.medium)).foregroundStyle(palette.danger).accessibilityHidden(true)
+                Text(verbatim: "*").cyText(.bodyMedium).foregroundStyle(palette.danger).accessibilityHidden(true)
             }
             Spacer(minLength: CYSpacing.sm)
             if let counter {
                 Text(verbatim: counter.text)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.meta, monospacedDigit: true)
                     .foregroundStyle(counter.isAtLimit ? palette.danger : palette.textTertiary)
                     .contentTransition(.numericText())
                     .accessibilityHidden(true)
@@ -47,7 +47,7 @@ struct EditorFieldFootnote: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .transition(.opacity)
         } else if let help {
-            help.font(.footnote).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+            help.cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -78,7 +78,7 @@ struct EditorField: View {
             }
             TextField(text: limitedText, prompt: prompt, axis: kind == .area ? .vertical : .horizontal) { label }
                 .lineLimit(kind == .area ? 3...10 : 1...3)
-                .font(.body)
+                .cyText(.body)
                 .foregroundStyle(isEnabled ? palette.textPrimary : palette.textDisabled)
                 .focused($focused)
                 .submitLabel(kind == .area ? .return : .next)
@@ -126,11 +126,11 @@ struct EditorNumberField: View {
             TextField(text: digits) { accessibilityLabel ?? Text(verbatim: "") }
                 .keyboardType(.numberPad)
                 .multilineTextAlignment(.trailing)
-                .font(.body.monospacedDigit())
+                .cyText(.numericBody)
                 .foregroundStyle(palette.textPrimary)
                 .modifier(EditorOptionalIdentifier(identifier: accessibilityID))
             if let unit {
-                EditorKitText.text(unit.key).font(.body).foregroundStyle(palette.textTertiary)
+                EditorKitText.text(unit.key).cyText(.body).foregroundStyle(palette.textTertiary)
             }
         }
         .padding(.horizontal, EditorKitMetric.fieldPaddingX)
@@ -181,7 +181,7 @@ struct EditorNumberRow: View {
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
                 : AnyLayout(HStackLayout(spacing: CYSpacing.md))
             layout {
-                label.font(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                label.cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
                 if useStepper, let range {
                     EditorStepper(value: Binding(get: { value ?? range.lowerBound }, set: { value = $0 }), range: range, unit: unit)
@@ -206,9 +206,9 @@ struct EditorStepper: View {
         HStack(spacing: CYSpacing.sm) {
             HStack(spacing: 2) {
                 Text(verbatim: String(value))
-                    .font(.body.weight(.semibold).monospacedDigit())
+                    .cyText(.cardTitle, monospacedDigit: true)
                     .contentTransition(.numericText())
-                if let unit { EditorKitText.text(unit.key).font(.body).foregroundStyle(palette.textTertiary) }
+                if let unit { EditorKitText.text(unit.key).cyText(.body).foregroundStyle(palette.textTertiary) }
             }
             Stepper(value: $value, in: range) { Text(verbatim: String(value)) }
                 .labelsHidden()
@@ -241,7 +241,7 @@ struct EditorPopUp<Value: Hashable>: View {
                 .pickerStyle(.inline)
             } label: {
                 HStack(spacing: CYSpacing.s1_5) {
-                    title(selection).font(.body).foregroundStyle(palette.textPrimary)
+                    title(selection).cyText(.body).foregroundStyle(palette.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     Image(systemName: "chevron.up.chevron.down").font(.footnote.weight(.semibold))
                         .foregroundStyle(palette.textTertiary).accessibilityHidden(true)
@@ -274,9 +274,9 @@ struct EditorSwitchRow: View {
     var body: some View {
         Toggle(isOn: $isOn) {
             VStack(alignment: .leading, spacing: 2) {
-                label.font(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                label.cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                 if let footnote {
-                    footnote.font(.footnote).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+                    footnote.cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
@@ -311,14 +311,14 @@ struct EditorRow: View {
                 Image(systemName: systemImage).font(.body).foregroundStyle(palette.textSecondary)
                     .frame(width: 24).accessibilityHidden(true)
             }
-            label.font(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            label.cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             if showsDot {
                 Circle().fill(palette.danger).frame(width: 6, height: 6)
                     .accessibilityLabel(EditorKitText.text("editorKit.row.required"))
             }
             Spacer(minLength: CYSpacing.sm)
             if let value {
-                value.font(.body).foregroundStyle(palette.textTertiary).multilineTextAlignment(.trailing)
+                value.cyText(.body).foregroundStyle(palette.textTertiary).multilineTextAlignment(.trailing)
             }
             if isLocked {
                 Image(systemName: "lock.fill").font(.footnote).foregroundStyle(palette.textTertiary)
@@ -357,10 +357,10 @@ struct EditorOptionRow: View {
         Button(action: action) {
             HStack(spacing: CYSpacing.md) {
                 VStack(alignment: .leading, spacing: 2) {
-                    label.font(.body.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                    label.cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let detail {
-                        detail.font(.footnote).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        detail.cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

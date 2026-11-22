@@ -83,7 +83,7 @@ import Combine
         Form {
             Section {
                 if editor.needsReload {
-                    Text("templatePrediction.changed").font(.caption)
+                    Text("templatePrediction.changed").cyText(.meta)
                     Button("templatePrediction.reload") { editor.reload() }.disabled(!editor.canReload)
                 } else if !editor.isSupported { Text("templatePrediction.unsupported") }
             }
@@ -96,13 +96,13 @@ import Combine
                     VStack(alignment: .leading) {
                         TextField("creator.field.label", text: editor.labelInput(row.id), axis: .vertical).accessibilityIdentifier("templatePrediction.option.\(row.id).label")
                         HStack {
-                            Text(verbatim: row.key).font(.caption).lineLimit(1).textSelection(.enabled)
+                            Text(verbatim: row.key).cyText(.meta).lineLimit(1).textSelection(.enabled)
                             Spacer(); Button("creator.remove", role: .destructive, action: editor.removeAction(row.id)).buttonStyle(.borderless)
                                 .accessibilityIdentifier("templatePrediction.option.\(row.id).remove")
                         }
                     }
                 }
-                Text("templatePrediction.count \(editor.rows.count)").font(.caption)
+                Text("templatePrediction.count \(editor.rows.count)").cyText(.meta)
                 Button("creator.add", systemImage: "plus", action: editor.addAction()).disabled(!editor.canAdd).accessibilityIdentifier("templatePrediction.add")
             }.disabled(!editor.canEdit)
             Section("templatePrediction.schedule") {

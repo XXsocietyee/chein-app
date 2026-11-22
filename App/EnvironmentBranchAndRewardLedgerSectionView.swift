@@ -38,7 +38,7 @@ public struct EnvironmentBranchHostSectionView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text(verbatim: presentation.statusHeadline)
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: modeBadgeText)
                         .font(.caption.monospaced())
@@ -47,14 +47,14 @@ public struct EnvironmentBranchHostSectionView: View {
                 .accessibilityIdentifier("environmentBranch.host.headline")
 
                 Text(verbatim: presentation.statusDetail)
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("environmentBranch.host.detail")
 
                 if let activeBranchID = presentation.activeBranchID {
                     HStack {
                         Text(verbatim: "生效分支")
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                         Spacer()
                         Text(verbatim: activeBranchID)
@@ -66,7 +66,7 @@ public struct EnvironmentBranchHostSectionView: View {
                 if let snapshotID = presentation.snapshotID {
                     HStack {
                         Text(verbatim: "环境快照")
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                         Spacer()
                         Text(verbatim: snapshotID)
@@ -77,17 +77,17 @@ public struct EnvironmentBranchHostSectionView: View {
 
                 HStack {
                     Text(verbatim: "时间窗口")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                     Spacer()
                     Text(verbatim: presentation.windowDisplayText)
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("environmentBranch.host.window")
 
                 if presentation.requiresSafeExitAction {
                     Text(verbatim: "安全保护已开启：暂停户外节点推进，请按引导撤离至安全室内点位。")
-                        .font(.caption.weight(.medium))
+                        .cyText(.label)
                         .foregroundStyle(.red)
                         .accessibilityIdentifier("environmentBranch.host.safeExitNotice")
                 }
@@ -182,10 +182,10 @@ public struct RewardLedgerHostSectionView: View {
             case .invalid(let error):
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "奖励账本校验未通过")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                         .foregroundStyle(.red)
                     Text(verbatim: describeError(error))
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityIdentifier("rewardLedger.host.error")
@@ -193,7 +193,7 @@ public struct RewardLedgerHostSectionView: View {
 
             HStack {
                 Text(verbatim: "非现金账本约束 (W17.4)")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(
@@ -224,7 +224,7 @@ public struct RewardLedgerHostSectionView: View {
         if let seasonID = snapshot.activeSeasonID, let seasonBalance = snapshot.activeSeasonBalance {
             HStack {
                 Text(verbatim: "当前赛季投影 (\(seasonID))")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(verbatim: "\(seasonBalance)")
@@ -240,11 +240,11 @@ public struct RewardLedgerHostSectionView: View {
                         .font(.caption.monospaced())
                     if let revOf = row.reversalOf {
                         Text(verbatim: "冲正原记录: \(revOf)")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.orange)
                     } else if let pairedRev = row.pairedReversalEntryID {
                         Text(verbatim: "已被追加冲正: \(pairedRev)")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }

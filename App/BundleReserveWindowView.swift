@@ -21,7 +21,7 @@ struct BundleReserveWindowView: View {
                 DatePicker(selection: Binding(get: { selection ?? range.lowerBound },
                                               set: { selection = $0 }),
                            in: range) { text("window.pick") }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .tint(palette.textPrimary)
                     .listRowInsets(rowInsets)
                 CYPillButton("window.choose", systemImage: "calendar.badge.checkmark", tableName: table) {

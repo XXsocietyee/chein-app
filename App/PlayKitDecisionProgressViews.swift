@@ -4,16 +4,16 @@ extension PlayKitScreen {
     @ViewBuilder var coinFace: some View {
         let side = (raw["side"].text ?? "").uppercased()
         let key = ["HEADS", "H", "正面"].contains(side) ? "heads" : ["TAILS", "T", "反面"].contains(side) ? "tails" : ""
-        Text("playkit.coin.kicker").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+        Text("playkit.coin.kicker").cyText(.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
         Image(systemName: key.isEmpty ? "circle.dashed" : "circle.inset.filled").resizable().scaledToFit().frame(width: 100, height: 100).frame(maxWidth: .infinity).accessibilityHidden(true)
         if !key.isEmpty {
-            Text(verbatim: raw[key]["label"].text ?? side).font(.largeTitle.bold()).frame(maxWidth: .infinity)
+            Text(verbatim: raw[key]["label"].text ?? side).cyText(.pageTitle).frame(maxWidth: .infinity)
             if let action = raw[key]["action"].text, !action.isEmpty { Text(verbatim: action) }
         } else { Text("playkit.coin.waiting") }
         HStack(alignment: .top) {
             ForEach(["heads", "tails"], id: \.self) { face in
                 VStack(alignment: .leading) {
-                    Text(verbatim: raw[face]["label"].text ?? "").font(.headline)
+                    Text(verbatim: raw[face]["label"].text ?? "").cyText(.cardTitle)
                     if let action = raw[face]["action"].text { Text(verbatim: action) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -35,11 +35,11 @@ extension PlayKitScreen {
     @ViewBuilder var diceFaces: some View {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
         let d20 = raw["mode"].text == "d20"
-        if !d20 { Text("playkit.dice.kicker").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
+        if !d20 { Text("playkit.dice.kicker").cyText(.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
         HStack {
             ForEach(Array(values.enumerated()), id: \.offset) { _, value in
                 if !d20 && (1...6).contains(value) { Image(systemName: "die.face.\(value).fill").resizable().scaledToFit().frame(width: 72, height: 72).accessibilityLabel(Text(verbatim: String(value))) }
-                else { Text(verbatim: String(value)).font(.system(.largeTitle, design: .rounded).bold()).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
+                else { Text(verbatim: String(value)).cyText(.dataXL).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
             }
         }.frame(maxWidth: .infinity)
         if values.isEmpty { Text("playkit.dice.waiting") }
@@ -47,11 +47,11 @@ extension PlayKitScreen {
         if let total = projection.diceTotal {
             // Big total, then "5 + 4" under it, as the mini-program shows after a roll.
             VStack(spacing: CYSpacing.xs) {
-                Text(verbatim: String(total)).font(CYTypography.display).monospacedDigit()
+                Text(verbatim: String(total)).cyText(.display).monospacedDigit()
                     .accessibilityLabel(Text("playkit.dice.total")).accessibilityValue(Text(verbatim: String(total)))
                     .accessibilityIdentifier("playkit.dice.total")
                 if values.count > 1 {
-                    Text("playkit.dice.sumLine \(values.map(String.init).joined(separator: " + "))").font(CYTypography.meta).foregroundStyle(.secondary)
+                    Text("playkit.dice.sumLine \(values.map(String.init).joined(separator: " + "))").cyText(.meta).foregroundStyle(.secondary)
                 }
             }.frame(maxWidth: .infinity)
         }
@@ -73,16 +73,16 @@ extension PlayKitScreen {
         if enabled { shakeHint("playkit.coin.shakeHint") }
     }
     func shakeHint(_ key: LocalizedStringKey) -> some View {
-        Label(key, systemImage: "iphone.gen3.radiowaves.left.and.right").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+        Label(key, systemImage: "iphone.gen3.radiowaves.left.and.right").cyText(.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
     }
     @ViewBuilder var randomDeck: some View {
-        if let name = raw["deckName"].text { Text(verbatim: name).font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
+        if let name = raw["deckName"].text { Text(verbatim: name).cyText(.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
         let drawn = raw["drawn"].array ?? [], count = raw["drawCount"].integer ?? 0
         ForEach(Array(drawn.enumerated()), id: \.offset) { index, card in
             VStack(alignment: .leading, spacing: 12) {
                 if index == drawn.count - 1 { CYStatusChip("playkit.random.thisRound", tone: .neutral).singleLine() }
-                else { Text(verbatim: "\(index + 1)").font(.caption) }
-                if let label = card["label"].text { Text(verbatim: label).font(.title2.bold()) }
+                else { Text(verbatim: "\(index + 1)").cyText(.meta) }
+                if let label = card["label"].text { Text(verbatim: label).cyText(.sheetTitle) }
                 if let content = card["content"].text { Text(verbatim: content) }
             }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
         }
@@ -97,7 +97,7 @@ extension PlayKitScreen {
         artwork(raw["photoUrl"].text)
         let limit = PlayKitShortMessageLimit.resolve(raw["textMax"])
         TextField("playkit.daily.message", text: textBinding(limit: limit), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
-        Text("playkit.daily.audience").font(.footnote)
+        Text("playkit.daily.audience").cyText(.bodyCompact)
         submitButton("CLAIM_DAILY_SIGN", payload: ["text": .string(text), "photoUrl": .string(avatarURL)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
     @ViewBuilder var walkProgress: some View {
@@ -106,16 +106,16 @@ extension PlayKitScreen {
             // Mini-program walk screen: a lantern "还差 N 步" hero, the bar with "a / b · p%", then stat tiles.
             VStack(spacing: CYSpacing.sm) {
                 if let goal {
-                    Text("playkit.walk.remainingLabel").font(CYTypography.meta)
-                    Text(verbatim: max(0, goal - steps).formatted()).font(CYTypography.display).monospacedDigit()
+                    Text("playkit.walk.remainingLabel").cyText(.meta)
+                    Text(verbatim: max(0, goal - steps).formatted()).cyText(.display).monospacedDigit()
                         .accessibilityIdentifier("playkit.walk.remaining")
-                    Text("playkit.walk.stepsUnit").font(CYTypography.meta)
+                    Text("playkit.walk.stepsUnit").cyText(.meta)
                     ProgressView(value: Double(min(steps, goal)), total: Double(goal)).tint(CYNight.lantern)
                         .accessibilityLabel(Text("playkit.walk.progress"))
                     Text(verbatim: "\(steps.formatted()) / \(goal.formatted()) · \(min(100, steps * 100 / goal))%")
-                        .font(CYTypography.caption).monospacedDigit()
+                        .cyText(.caption).monospacedDigit()
                 } else {
-                    Text(verbatim: steps.formatted()).font(CYTypography.display).monospacedDigit()
+                    Text(verbatim: steps.formatted()).cyText(.display).monospacedDigit()
                 }
             }
             .foregroundStyle(CYNight.lantern)
@@ -137,8 +137,8 @@ extension PlayKitScreen {
     }
     func walkTile(_ title: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(title).font(CYTypography.caption).foregroundStyle(.secondary)
-            Text(verbatim: value).font(CYTypography.numericBody).monospacedDigit()
+            Text(title).cyText(.caption).foregroundStyle(.secondary)
+            Text(verbatim: value).cyText(.numericBody).monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.md)
         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
@@ -148,7 +148,7 @@ extension PlayKitScreen {
         let board = PlayKitBingoBoard(raw)
         // Reward banner above the board: "连成一条线 · <lineReward>".
         if let line = raw["lineReward"].text, !line.isEmpty {
-            Text("playkit.bingo.lineBanner \(line)").font(CYTypography.cardTitle)
+            Text("playkit.bingo.lineBanner \(line)").cyText(.cardTitle)
                 .frame(maxWidth: .infinity).padding(CYSpacing.md)
                 .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYNight.tilePink))
                 .accessibilityIdentifier("playkit.bingo.lineBanner")
@@ -157,22 +157,22 @@ extension PlayKitScreen {
             ForEach(0..<9, id: \.self) { index in
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text(verbatim: String(index + 1)).font(.caption)
+                        Text(verbatim: String(index + 1)).cyText(.meta)
                         Spacer()
                         Image(systemName: board.filled.contains(index) ? "checkmark.circle.fill" : "circle")
                     }
-                    Text(verbatim: board.title(at: index)).font(.headline).fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: board.instruction(at: index)).font(.caption).fixedSize(horizontal: false, vertical: true)
-                    if board.linePositions.contains(index) { Text("playkit.bingo.inLine").font(.caption) }
+                    Text(verbatim: board.title(at: index)).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: board.instruction(at: index)).cyText(.meta).fixedSize(horizontal: false, vertical: true)
+                    if board.linePositions.contains(index) { Text("playkit.bingo.inLine").cyText(.meta) }
                 }.padding(10).frame(maxWidth: .infinity, minHeight: 130, alignment: .topLeading)
                     .background(board.filled.contains(index) ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
                     .accessibilityElement(children: .combine)
                     .accessibilityValue(Text(board.filled.contains(index) ? "playkit.bingo.filled" : "playkit.bingo.empty"))
             }
         }
-        Text("playkit.bingo.filledCount \(board.filled.count)").font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
+        Text("playkit.bingo.filledCount \(board.filled.count)").cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
             .frame(maxWidth: .infinity).accessibilityIdentifier("playkit.bingo.filledCount")
-        Text("playkit.bingo.footnote").font(CYTypography.body).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+        Text("playkit.bingo.footnote").cyText(.body).foregroundStyle(.secondary).frame(maxWidth: .infinity)
         LabeledContent("playkit.bingo.lines") { Text(verbatim: String(board.completedLines.count)) }
         if let full = raw["fullReward"].text, !full.isEmpty { LabeledContent("playkit.bingo.fullReward") { Text(verbatim: full) } }
     }
@@ -195,36 +195,36 @@ extension PlayKitScreen {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text("playkit.daily.ticketTitle").font(CYTypography.cardTitle)
+                Text("playkit.daily.ticketTitle").cyText(.cardTitle)
                 Spacer()
-                Text(verbatim: value("dateLabel")).font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
+                Text(verbatim: value("dateLabel")).cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
             }
             divider
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("playkit.daily.departure").font(CYTypography.caption).foregroundStyle(.secondary)
-                    Text(verbatim: value("address")).font(CYTypography.bodyMedium)
+                    Text("playkit.daily.departure").cyText(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("address")).cyText(.bodyMedium)
                 }
                 Spacer(minLength: CYSpacing.md)
                 VStack(alignment: .trailing, spacing: CYSpacing.xs) {
-                    Text("playkit.daily.serial").font(CYTypography.caption).foregroundStyle(.secondary)
-                    Text(verbatim: value("serialLabel")).font(CYTypography.dataXL).monospacedDigit()
-                    Text("playkit.daily.serialHint").font(CYTypography.caption).foregroundStyle(.secondary)
+                    Text("playkit.daily.serial").cyText(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("serialLabel")).cyText(.dataXL).monospacedDigit()
+                    Text("playkit.daily.serialHint").cyText(.caption).foregroundStyle(.secondary)
                 }
             }
             divider
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("playkit.daily.signer").font(CYTypography.caption).foregroundStyle(.secondary)
-                    Text(verbatim: value("signer")).font(CYTypography.bodyMedium)
+                    Text("playkit.daily.signer").cyText(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("signer")).cyText(.bodyMedium)
                 }.frame(maxWidth: .infinity, alignment: .leading)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("playkit.daily.leftAt").font(CYTypography.caption).foregroundStyle(.secondary)
-                    Text(verbatim: value("leftAt")).font(CYTypography.bodyMedium).monospacedDigit()
+                    Text("playkit.daily.leftAt").cyText(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: value("leftAt")).cyText(.bodyMedium).monospacedDigit()
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
             divider
-            Text("playkit.daily.lineForYou").font(CYTypography.caption).foregroundStyle(.secondary)
+            Text("playkit.daily.lineForYou").cyText(.caption).foregroundStyle(.secondary)
             let lines = (segment["lines"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
             CYScratchCard(
                 coverLabel: appLocalized("playkit.daily.lineForYou", locale: locale),
@@ -234,7 +234,7 @@ extension PlayKitScreen {
             ) {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if lines.isEmpty { Text(verbatim: "—") }
-                    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).font(CYTypography.bodyMedium) }
+                    ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).cyText(.bodyMedium) }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

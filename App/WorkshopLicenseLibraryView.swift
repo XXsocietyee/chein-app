@@ -25,7 +25,7 @@ enum WorkshopLicenseLibraryPresentation {
             if scenePhase == .active {
                 Section {
                     licenseLibraryText("library.boundary")
-                        .font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let controller, controller.isCurrent {
                     ForEach(controller.licenses, id: \.licenseId) { item in
@@ -34,7 +34,7 @@ enum WorkshopLicenseLibraryPresentation {
                                 WorkshopCommerceLicenseDetailView(controller: controller, licenseId: item.licenseId)
                             } label: {
                                 VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                                    Text(verbatim: item.moduleId).font(Theme.Font.sectionTitle)
+                                    Text(verbatim: item.moduleId).cyText(.sectionTitle)
                                     Text(verbatim: item.purchasedVersionId).font(Theme.Font.body).foregroundStyle(.secondary)
                                     if let key = WorkshopLicenseLibraryPresentation.statusKey(item.status) {
                                         WorkshopCommerceLibraryState(label: Text(LocalizedStringKey(key), tableName: "WorkshopCommerce"), raw: item.status)

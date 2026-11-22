@@ -29,7 +29,7 @@ import SwiftUI
         if flow.candidate == nil {
             VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text("creatorAIPrompts.title",tableName:"CreatorAIPrompts")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
@@ -53,7 +53,7 @@ import SwiftUI
             Button(action:controller.action(suggestion,languageCode:locale.identifier,flow:flow,applied:applied)) {
                 Label {
                     Text(LocalizedStringKey(suggestion.titleKey),tableName:"CreatorAIPrompts")
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName:"sparkles")

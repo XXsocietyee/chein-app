@@ -14,7 +14,7 @@ struct SearchMapIssue: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(LocalizedStringKey(key), systemImage: key.contains("unauthorized") ? "lock" : "exclamationmark.circle")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .fixedSize(horizontal: false, vertical: true)
             if let retry {
                 Button(action: retry) { Text("searchMap.retry").frame(minHeight: 44) }
@@ -46,23 +46,23 @@ struct SearchMapCard: View {
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
                 Label(row.kind.titleKey, systemImage: row.kind.symbol)
-                    .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.caption, weight: .semibold).foregroundStyle(CYColor.textSecondary)
                     .padding(.horizontal, CYSpacing.sm + 2).padding(.vertical, 3)
                     .searchNightPill()
                 Group {
                     if row.title.isEmpty { Text("searchMap.untitled") } else { Text(verbatim: row.title) }
                 }
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 if let detail = row.detail, !detail.isEmpty {
-                    Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if !row.tags.isEmpty {
                     // Mini-program result card: tags are small filled chips, at most three, and they wrap.
                     HStack(spacing: CYSpacing.xs) {
                         ForEach(Array(row.tags.prefix(3).enumerated()), id: \.offset) { _, tag in
-                            Text(verbatim: tag).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).cyWrapText()
+                            Text(verbatim: tag).cyText(.caption).foregroundStyle(CYColor.textSecondary).cyWrapText()
                                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
                                 .background(Capsule(style: .continuous).fill(CYColor.bgSurfaceSubtle))
                         }

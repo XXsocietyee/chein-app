@@ -38,7 +38,7 @@ import CoreImage.CIFilterBuiltins
             }.e1HeroRow()
             Section {
                 Text(t("地点所有权、隐私同意与本次模组运营同意不是同一授权。必须由场地有权方明确同意，并经原审核后才能运行。", "Place ownership and privacy consent do not authorize this module operation. Explicit venue authority consent and the original review are required."))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: cyShownValue(model.installation.requestId))
@@ -58,7 +58,7 @@ import CoreImage.CIFilterBuiltins
                     } icon: {
                         Image(systemName: "exclamationmark.triangle.fill")
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.warningText)
                 }
                 if !model.isCurrent {
@@ -68,7 +68,7 @@ import CoreImage.CIFilterBuiltins
                     } icon: {
                         Image(systemName: "exclamationmark.circle")
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                 }
             }
@@ -80,12 +80,12 @@ import CoreImage.CIFilterBuiltins
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: cyShownValue(p.command.event))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if model.originalUnknown {
                         Text(t("本次原请求回读未确认；下方已知回执仅为历史，不能以当前同意替代。", "The original reread is unconfirmed. Any saved receipt below is historical; current consent cannot replace it."))
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -100,17 +100,17 @@ import CoreImage.CIFilterBuiltins
                         }
                         if let reason = r.reason {
                             Text(verbatim: cyShownValue(reason))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Text(t("回执不代表发布、启用或现场通关。", "A receipt does not publish, enable, or complete venue play."))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(t("UNKNOWN：原请求已持久保留，不会自动重发或删除。", "UNKNOWN: the exact request is durably retained, never automatically resent or deleted."))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         CYPillButton(verbatim: t("明确重试同一请求", "Retry the exact original request"), style: reviewShown ? .secondary : .primary, systemImage: "arrow.clockwise") {
@@ -125,7 +125,7 @@ import CoreImage.CIFilterBuiltins
                 Section {
                     if !model.workspaceFresh {
                         Text(t("仅保留上次读取；当前同意尚未确认，不能提交新版本或签发动态码。", "Last-read snapshot only. Current consent is unconfirmed; new versions and live codes are disabled."))
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -133,12 +133,12 @@ import CoreImage.CIFilterBuiltins
                         CYStatusChip(verbatim: "AGREE", tone: .success, systemImage: "checkmark.circle")
                     } else if let event = w.event {
                         Text(verbatim: cyShownValue(event))
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(verbatim: t("尚无运营同意", "No operation consent"))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -166,7 +166,7 @@ import CoreImage.CIFilterBuiltins
                 ForEach($places) { $place in
                     Section {
                         Text(verbatim: "POI \(place.binding.resourceId)")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: cyShownValue(place.binding.fingerprint))
                             .font(CYTypography.meta.monospaced())
@@ -176,7 +176,7 @@ import CoreImage.CIFilterBuiltins
                         TextField(t("有权方同意依据引用", "Authority consent evidence reference"), text: $place.consent)
                         TextField(t("安全评估依据引用", "Safety review reference"), text: $place.safety)
                         Text(t("仅填写明确获准的营业时段；ISO 8601 时间必须包含时区，例如 2026-10-26T15:00:00Z。", "Enter explicitly approved operating windows only. ISO 8601 values must include a timezone, e.g. 2026-10-26T15:00:00Z."))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         ForEach($place.windows) { $window in
@@ -197,7 +197,7 @@ import CoreImage.CIFilterBuiltins
                 }
                 Section {
                     TextField(t("证据有效期（毫秒，由本次规则明确确定）", "Proof validity in milliseconds, explicitly agreed for this rule"), text: $validity)
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                     if editIssue {
                         Label {
                             Text(t("请完整填写同意依据、安全依据、有效期和互不重叠的时段。", "Complete the evidence references, validity, and non-overlapping windows."))
@@ -205,7 +205,7 @@ import CoreImage.CIFilterBuiltins
                         } icon: {
                             Image(systemName: "exclamationmark.triangle.fill")
                         }
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.warningText)
                     }
                     CYPillButton(verbatim: t("审阅新运营同意版本", "Review new operation consent version"), systemImage: "checkmark.circle") {
@@ -221,7 +221,7 @@ import CoreImage.CIFilterBuiltins
                 if w.event == "AGREE" {
                     Section {
                         Text(t("仅在真实现场确认参与者到场后出示。签发身份、签发时刻、一次性和过期校验由原服务决定。", "Present only after confirming the participant is physically present. The original service determines issuer, time, one-use consumption, and expiry."))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         ForEach(w.nodes) { node in
@@ -246,16 +246,16 @@ import CoreImage.CIFilterBuiltins
                                             .accessibilityAddTraits(.isImage)
                                     }
                                     Text(verbatim: code.nodeName.map(cyShownValue) ?? "#\(code.nodeId)")
-                                        .font(CYTypography.cardTitle)
+                                        .cyText(.cardTitle)
                                         .foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                     Text(t("仅现场展示；本地倒计时不是验证结果。", "Show on site only; this local timer is not a verification result."))
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(CYColor.textSecondary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 } else {
                                     Text(t("已隐藏；请按需重新明确签发。", "Hidden. Explicitly issue another code when needed."))
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(CYColor.textSecondary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
@@ -296,17 +296,17 @@ import CoreImage.CIFilterBuiltins
                         Text(verbatim: cyShownValue(d.installationRequestId)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: cyShownValue(d.bindingHash)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: "\(d.proofValidityMillis) ms · \(cyShownValue(d.purpose))")
-                            .font(CYTypography.numericBody)
+                            .cyText(.numericBody)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         ForEach(d.places, id: \.slotId) { p in
                             Section {
-                                Text(verbatim: "POI \(p.poiId)").font(CYTypography.meta)
-                                Text(verbatim: cyShownValue(p.consentEvidenceRef)).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
-                                Text(verbatim: cyShownValue(p.safetyReviewRef)).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: "POI \(p.poiId)").cyText(.meta)
+                                Text(verbatim: cyShownValue(p.consentEvidenceRef)).cyText(.body).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: cyShownValue(p.safetyReviewRef)).cyText(.body).fixedSize(horizontal: false, vertical: true)
                                 ForEach(Array(p.operatingWindows.enumerated()), id: \.offset) { _, window in
                                     Text(verbatim: Date(timeIntervalSince1970: Double(window.from)/1000).formatted() + " → " + Date(timeIntervalSince1970: Double(window.until)/1000).formatted())
-                                        .font(CYTypography.numericBody)
+                                        .cyText(.numericBody)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             } header: { venueHeader(cyShownValue(p.slotId)) }
@@ -335,7 +335,7 @@ import CoreImage.CIFilterBuiltins
             CYStatusChip(verbatim: shown, systemImage: "doc.text")
         } else {
             Text(verbatim: shown)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -388,7 +388,7 @@ import CoreImage.CIFilterBuiltins
 
 private func venueHeader(_ title: String) -> some View {
     Text(verbatim: title)
-        .font(CYTypography.sectionTitle)
+        .cyText(.sectionTitle)
         .foregroundStyle(CYColor.textPrimary)
         .textCase(nil)
         .accessibilityAddTraits(.isHeader)

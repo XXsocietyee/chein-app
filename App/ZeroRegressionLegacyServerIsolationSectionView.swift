@@ -163,7 +163,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "存量小程序生产服零冲击与物理隔离面板")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("legacyServerIsolation.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
@@ -172,7 +172,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
                 }
                 Spacer()
                 Text(verbatim: snapshot.isFullyIsolated ? "零污染已锁定" : "隔离告警")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -199,7 +199,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.layer.rawValue)
@@ -207,7 +207,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).layer")
                 Text(verbatim: row.statusBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.isIsolated ? .green : .red)
                     .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).status")
             }
@@ -218,14 +218,14 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
                 .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).rule")
 
             Text(verbatim: row.verificationDetailText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).detail")
 
             if let onSelectRow {
                 Button(action: { onSelectRow(row) }) {
                     Text(verbatim: "查看隔离层详情")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).action")
             }

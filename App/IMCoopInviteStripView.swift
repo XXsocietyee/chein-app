@@ -36,7 +36,7 @@ import SwiftUI
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
             Text(verbatim: copy("合作邀请", "Cooperation invites"))
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
@@ -128,25 +128,25 @@ import SwiftUI
         return VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYStatusChip(verbatim: card.statusText(chinese: chinese), tone: chipTone(card.tone), systemImage: chipSymbol(card.tone))
             Text(verbatim: topic)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: partner)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textTertiary)
                 .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
             if let line = card.message ?? card.termsLine(chinese: chinese) {
                 Text(verbatim: line)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if card.awaitsMyAnswer {
                 Label(copy("点开处理", "Open to respond"), systemImage: "arrow.right.circle")
-                    .font(CYTypography.caption.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(palette.textPrimary)
                     .labelStyle(.titleAndIcon)
                     .fixedSize(horizontal: false, vertical: true)

@@ -115,7 +115,7 @@ import SwiftUI
                 // Source marketing/index.wxml denied inline error; the owner always has marketing read.
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.title"))
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.body")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.body")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.denied")
                 CYPillButton(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.retry"), style: .secondary) { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }
                     .accessibilityIdentifier("merchantOps.marketing.denied.retry")
@@ -151,9 +151,9 @@ import SwiftUI
             if insight.facts["lowSample"].isTrue { Text("merchantMarketing.lowSample") }
             CYListRow("merchantMarketing.checkins", trailing: .value(value(insight.facts["checkin"]["total"].integer)))
             CYListRow("merchantMarketing.redemptionRate", trailing: .value(percent(insight.facts["checkin"]["redeemRate"].decimal)))
-            Text("merchant.insightAttribution.redemptionScope").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("merchant.insightAttribution.redemptionScope").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             CYListRow("merchantMarketing.repeatRate", trailing: .value(percent(insight.facts["checkin"]["repeatRate"].decimal)))
-            Text("merchant.insightAttribution.repeatScope").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("merchant.insightAttribution.repeatScope").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             CYListRow("merchantMarketing.wait", trailing: .value(value(insight.facts["checkin"]["avgWaitMinutes"].integer)))
             CYListRow("merchantMarketing.members", trailing: .value(value(insight.facts["crowd"]["members"].integer)))
             CYListRow("merchantMarketing.offers", trailing: .value(value(insight.facts["supply"]["activeOffers"].integer)))

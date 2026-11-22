@@ -150,23 +150,23 @@ public struct AppClipAndQRCodeHandshakeSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(verbatim: "App Clip & QR Handshake Security")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("qrHandshakeSecurity.headerTitle")
                 Spacer()
                 Text(verbatim: snapshot.overallStatusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("qrHandshakeSecurity.statusBadge")
             }
 
             Text(verbatim: snapshot.headerSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("qrHandshakeSecurity.summaryLine")
 
             if !snapshot.isAllCompliant {
                 Text(verbatim: "Warning: Expired (> 300s TTL) or unverified QR/NFC payload detected. Fail-closed replay protection active.")
-                    .font(.caption2.weight(.medium))
+                    .cyText(.caption, weight: .medium)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("qrHandshakeSecurity.warningBanner")
             }
@@ -175,14 +175,14 @@ public struct AppClipAndQRCodeHandshakeSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
-                            .font(.caption2.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.detailSummaryText)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)

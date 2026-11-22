@@ -28,7 +28,7 @@ import SwiftUI
     private var coordinator: OrderLifecycleCoordinator { model.coordinator }
     var body: some View {
         List {
-            if coordinator.isOfflineExample { Text("orderLifecycle.offline").font(CYTypography.meta).accessibilityIdentifier("orderLifecycle.offline") }
+            if coordinator.isOfflineExample { Text("orderLifecycle.offline").cyText(.meta).accessibilityIdentifier("orderLifecycle.offline") }
             if let issue = coordinator.issue {
                 Section {
                     Label {
@@ -50,7 +50,7 @@ import SwiftUI
                 acceptedDetail(detail)
             } else if coordinator.issue == nil {
                 // No accepted detail and no issue: unknown, never an empty order or a zero amount.
-                Text(verbatim: OrderInfoPageModel.unknownMark).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: OrderInfoPageModel.unknownMark).cyText(.sectionTitle).foregroundStyle(CYColor.textTertiary)
                     .accessibilityLabel(Text("orderLifecycle.amount"))
                     .accessibilityIdentifier(OrderInfoPageModel.unknownIdentifier)
             }
@@ -62,7 +62,7 @@ import SwiftUI
                                            channels: coordinator.detail?.id == id ? coordinator.detail?.paymentChannels : nil)
                 OrderPartialRefundSection(settlement: coordinator.detail?.id == id ? coordinator.detail?.settlement : nil)
             }
-            Section { Text("orderLifecycle.production.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            Section { Text("orderLifecycle.production.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
@@ -166,17 +166,17 @@ import SwiftUI
                         if let title = detail.title, !title.isEmpty { Text(verbatim: title) }
                         else { Text("orderLifecycle.untitled") }
                     }
-                    .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 }
                 Group {
                     if let reason = state.serverReason { Text(verbatim: reason) }
                     else { Text(LocalizedStringKey(state.explanationKey)) }
                 }
-                .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 if let notice = fulfillment.fulfillmentNotice {
-                    Text(verbatim: c.tr(notice)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: c.tr(notice)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 // Revolut hero: unknown amount is an em dash, never 0.
@@ -196,7 +196,7 @@ import SwiftUI
             if let explanation = UnknownPaymentState.explanation(payment: detail.paymentStatus, registration: detail.registrationStatus) {
                 Text(verbatim: explanation).accessibilityIdentifier("orderLifecycle.payment.unknown")
             }
-            Text("orderLifecycle.payment.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("orderLifecycle.payment.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             OrderLifecycleField(label: "orderLifecycle.payment.deadline", value: detail.payExpireTime)
         }
     }
@@ -215,10 +215,10 @@ import SwiftUI
                             }
                         }
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(LocalizedStringKey(row.labelKey)).font(CYTypography.bodyCompact)
+                            Text(LocalizedStringKey(row.labelKey)).cyText(.bodyCompact)
                                 .foregroundStyle(row.done ? CYColor.textPrimary : CYColor.textSecondary)
                             // A completed step with no server time is an em dash (OrderInfoPageModel.snapshot rule).
-                            if row.done || row.time != nil { Text(verbatim: row.time ?? OrderInfoPageModel.unknownMark).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+                            if row.done || row.time != nil { Text(verbatim: row.time ?? OrderInfoPageModel.unknownMark).cyText(.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
                         }
                         .padding(.bottom, index < rows.count - 1 ? CYSpacing.lg : 0)
                         .fixedSize(horizontal: false, vertical: true)
@@ -228,7 +228,7 @@ import SwiftUI
                     .accessibilityIdentifier("orderLifecycle.timeline." + row.id)
                 }
             }.padding(.vertical, CYSpacing.xs)
-            Text("orderLifecycle.timeline.zone").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text("orderLifecycle.timeline.zone").cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
     @ViewBuilder private func refund(_ detail: OrderLifecycleDetail) -> some View {
@@ -243,12 +243,12 @@ import SwiftUI
                     LabeledContent(c.t("退款进度", "Refund status")) {
                         Text(verbatim: c.tr(payout.label))
                     }
-                    Text(verbatim: c.tr(payout.hint)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: c.tr(payout.hint)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 OrderLifecycleField(label: "orderLifecycle.refund.reason", value: detail.refundReason)
                 OrderLifecycleField(label: "orderLifecycle.refund.deadline", value: detail.refundDeadline)
                 if let amount = detail.refundApplication?.amount { LabeledContent("orderLifecycle.refund.amount") { AmountLabel(amount: amount) } }
-                Text("orderLifecycle.refund.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("orderLifecycle.refund.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
     }
@@ -315,10 +315,10 @@ struct OrderLifecycleField: View {
                             .font(CYTypography.display.weight(.regular)).foregroundStyle(CYColor.textPrimary)
                             .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
                         Text(LocalizedStringKey("orderLifecycle.question." + review.action.rawValue))
-                            .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                         if review.action != .payment {
-                            Text("orderLifecycle.refund.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            Text("orderLifecycle.refund.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -375,14 +375,14 @@ private struct CYOrderActionButtonStyle: ButtonStyle {
 }
 private struct CYOrderActionPrimaryLabel: ViewModifier {
     func body(content: Content) -> some View {
-        content.font(CYTypography.label).foregroundStyle(CYColor.textOnAccent)
+        content.cyText(.label).foregroundStyle(CYColor.textOnAccent)
             .frame(maxWidth: .infinity, minHeight: 50)
             .background(CYColor.actionPrimaryBg, in: Capsule(style: .continuous))
     }
 }
 private struct CYOrderActionSecondaryLabel: ViewModifier {
     func body(content: Content) -> some View {
-        content.font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+        content.cyText(.label).foregroundStyle(CYColor.textSecondary)
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             .background(CYColor.actionSecondary, in: Capsule(style: .continuous))
             .contentShape(Capsule(style: .continuous))

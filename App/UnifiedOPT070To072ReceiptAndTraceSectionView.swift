@@ -13,9 +13,9 @@ public struct UnifiedOPT070To072ReceiptAndTraceSectionView: View {
             ForEach(UnifiedOPT070To072ReceiptCapabilitiesMigrationAndTraceContract.packages) { pkg in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(pkg.optID) · \(pkg.title)")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text("切片: \(pkg.reusedSliceIDs.joined(separator: ", ")) · 视图: \(pkg.iosViewImplementation)")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
             }

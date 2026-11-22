@@ -38,9 +38,9 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                 List {
                     Section {
                         if filter.status != nil || filter.aftersaleStatus != nil { filterSummary }
-                        if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
+                        if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
                         if let error = model.errorKey {
-                            Text("merchant.stale").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                            Text("merchant.stale").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                             MerchantInlineFailure(errorKey: error, retry: { scheduleReload() })
                         }
                     }
@@ -172,18 +172,18 @@ private struct MerchantOrderRow: View {
     let order: MerchantOrder
     private var orderNumber: some View {
         Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale))
-            .font(CYTypography.cardTitle)
+            .cyText(.cardTitle)
             .foregroundStyle(CYColor.textPrimary)
     }
     private var amount: some View {
         Text(MerchantMoney.display(order.payAmount))
-            .font(CYTypography.cardTitle.monospacedDigit())
+            .cyText(.cardTitle, monospacedDigit: true)
             .foregroundStyle(CYColor.textPrimary)
     }
     @ViewBuilder private var orderTime: some View {
         if let time = order.createTime, !time.isEmpty {
             Text(time)
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textSecondary)
         }
@@ -199,9 +199,9 @@ private struct MerchantOrderRow: View {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) { MerchantOrderStatusLabel(value: order.status); Spacer(minLength: 0); orderTime }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) { MerchantOrderStatusLabel(value: order.status); orderTime }
             }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             if let raw = order.aftersaleStatus, raw >= 2 {
-                MerchantAftersaleLabel(value: raw).font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                MerchantAftersaleLabel(value: raw).cyText(.meta).foregroundStyle(CYColor.warningText)
             }
         }
         .padding(.vertical, CYSpacing.xs)

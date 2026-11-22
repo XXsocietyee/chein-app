@@ -79,7 +79,7 @@ import Combine
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("templateBlindOptions.title").font(.headline)
+            Text("templateBlindOptions.title").cyText(.cardTitle)
             if editor.isSupported {
                 ForEach(editor.rows) { row in
                     VStack(alignment: .leading, spacing: 8) {
@@ -112,9 +112,9 @@ import Combine
                 Button("templateBlindOptions.add", systemImage: "plus", action: editor.addAction())
                     .disabled(!editor.canAdd).accessibilityIdentifier("creator.blindOptions.add")
                 if !editor.rows.contains(where: \.isAnswer) {
-                    Text("templateBlindOptions.noAnswer").font(.caption).foregroundStyle(.secondary)
+                    Text("templateBlindOptions.noAnswer").cyText(.meta).foregroundStyle(.secondary)
                 }
-            } else { Text("templateBlindOptions.unsupported").font(.caption).accessibilityIdentifier("creator.blindOptions.unsupported") }
+            } else { Text("templateBlindOptions.unsupported").cyText(.meta).accessibilityIdentifier("creator.blindOptions.unsupported") }
         }.disabled(!editor.canEdit)
             .onAppear { editor.reload() }
             .onDisappear { editor.retire() }

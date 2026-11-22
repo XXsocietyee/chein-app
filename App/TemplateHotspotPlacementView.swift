@@ -124,13 +124,13 @@ import Combine
             Section {
                 CYPillButton("templateHotspots.loadScene", style: .secondary, systemImage: "photo", action: editor.loadSceneAction())
                     .disabled(!editor.canLoadScene).accessibilityIdentifier("creator.hotspots.load").e1ActionRow()
-                if !editor.canLoadScene { Text("templateHotspots.sceneUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if !editor.canLoadScene { Text("templateHotspots.sceneUnavailable").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 if let request = editor.scene { canvas(request).id(request.id) }
             }
             Section("creator.field.hotspots") {
                 ForEach(Array(editor.targets.enumerated()), id: \.element.id) { index, target in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("templateHotspots.targetNumber \(index + 1)").font(CYTypography.cardTitle).monospacedDigit()
+                        Text("templateHotspots.targetNumber \(index + 1)").cyText(.cardTitle).monospacedDigit()
                         TextField("creator.field.label", text: editor.label(target.id), axis: .vertical)
                             .accessibilityIdentifier("creator.hotspots.label." + target.id)
                         HStack {
@@ -138,7 +138,7 @@ import Combine
                                 Label(LocalizedStringKey(editor.armedID == target.id ? "templateHotspots.cancel" : "templateHotspots.mark"), systemImage: editor.armedID == target.id ? "xmark.circle" : "scope")
                             }.disabled(!editor.isSceneReady).accessibilityIdentifier("creator.hotspots.arm." + target.id)
                             Spacer()
-                            Text(LocalizedStringKey(target.point == nil ? "templateHotspots.unplaced" : "templateHotspots.placed")).font(.caption)
+                            Text(LocalizedStringKey(target.point == nil ? "templateHotspots.unplaced" : "templateHotspots.placed")).cyText(.meta)
                             Button("creator.remove", role: .destructive, action: editor.removeAction(target.id)).disabled(!editor.canRemove)
                         }.buttonStyle(.borderless)
                         HStack {
@@ -173,7 +173,7 @@ import Combine
                                 })
                             ForEach(Array(editor.targets.enumerated()), id: \.element.id) { index, target in
                                 if let point = target.point {
-                                    Text(verbatim: String(index + 1)).font(.caption.bold()).padding(6)
+                                    Text(verbatim: String(index + 1)).cyText(.meta, weight: .bold).padding(6)
                                         .background(editor.armedID == target.id ? Color.orange : Color.accentColor, in: Circle())
                                         .foregroundStyle(.white).position(x: geometry.size.width * CGFloat(point.x), y: geometry.size.height * CGFloat(point.y))
                                         .allowsHitTesting(false).accessibilityHidden(true)

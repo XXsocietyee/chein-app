@@ -47,7 +47,7 @@ struct IMStaticLocationCardView: View {
             ZStack(alignment: .bottomTrailing) {
                 CYCoverArt(seed: placeTitle, symbol: "mappin.and.ellipse")
                 Text("d7.imLocationCard.showMap")
-                    .font(CYTypography.caption.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(Color.white)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.md)
@@ -65,12 +65,12 @@ struct IMStaticLocationCardView: View {
     private var details: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: placeTitle)
-                .font(CYTypography.bodyMedium)
+                .cyText(.bodyMedium)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if !place.address.isEmpty {
                 Text(verbatim: place.address)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

@@ -61,12 +61,12 @@ private struct WorkshopOwnedUnavailableView: View {
                     CYPillButton("action.retry", style: .secondary) { navigation.scheduleList(presentation) }.accessibilityIdentifier("workshopOwned.retry")
                 }
             case .ready:
-                if browser.hasMore { workshopText("hasMore").font(.footnote).fixedSize(horizontal: false, vertical: true) }
+                if browser.hasMore { workshopText("hasMore").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true) }
                 ForEach(browser.rows) { item in
                     Button { navigation.select(claimId: item.id, presentation: presentation) } label: {
                         VStack(alignment: .leading, spacing: 6) {
-                            workshopText("freeClaim").font(.headline)
-                            Text(verbatim: item.claimId).font(.caption).foregroundStyle(.secondary)
+                            workshopText("freeClaim").cyText(.cardTitle)
+                            Text(verbatim: item.claimId).cyText(.meta).foregroundStyle(.secondary)
                             workshopText("status." + item.status.rawValue)
                         }.frame(maxWidth: .infinity, alignment: .leading)
                     }.accessibilityIdentifier("workshopOwned.row.\(item.id)")

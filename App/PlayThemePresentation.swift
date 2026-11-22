@@ -78,17 +78,17 @@ enum PlayThemeIntro {
                         Text("mpd.aigc.label").accessibilityIdentifier("play.titleCard.aigc")
                     }
                 }
-                .font(CYTypography.caption).tracking(2)
+                .cyText(.caption).tracking(2)
                 .foregroundStyle(colors.mute.swiftUIColor)
                 .offset(y: shown || reduceMotion ? 0 : 12).opacity(shown ? 1 : 0)
                 Text(verbatim: title)
-                    .font(CYTypography.display).lineLimit(2).minimumScaleFactor(0.8)
+                    .cyText(.display).lineLimit(2).minimumScaleFactor(0.8)
                     .cyLookTitle()
                     .foregroundStyle(look == nil ? colors.ink.swiftUIColor : (look?.style == .cyber ? colors.a.swiftUIColor : colors.ink.swiftUIColor))
                     .accessibilityAddTraits(.isHeader)
                     .offset(y: shown || reduceMotion ? 0 : 18).opacity(shown ? 1 : 0)
                 if !line.isEmpty {
-                    Text(verbatim: line).font(CYTypography.body).lineSpacing(6)
+                    Text(verbatim: line).cyText(.body).lineSpacing(6)
                         .foregroundStyle(colors.mute.swiftUIColor)
                         .offset(y: shown || reduceMotion ? 0 : 18).opacity(shown ? 1 : 0)
                 }
@@ -171,7 +171,7 @@ extension EnvironmentValues {
                 .accessibilityIdentifier("playx.themeRecords.replay")
                 if unconfirmed {
                     Text("mpd.replay.unknown")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.warningText)
                         .accessibilityLabel(Text("mpd.replay.unconfirmed"))
                 }

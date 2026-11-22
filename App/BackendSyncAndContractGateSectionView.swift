@@ -151,10 +151,10 @@ public struct BackendSyncAndContractGateSectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: "Backend Sync & Contract Gate Verification")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: headerBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(snapshot.allGatesPassing ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("backendContractGate.statusBadge")
             }
@@ -172,7 +172,7 @@ public struct BackendSyncAndContractGateSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: pillar.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
                             .font(.caption2.monospaced())
@@ -181,7 +181,7 @@ public struct BackendSyncAndContractGateSectionView: View {
                     }
 
                     Text(verbatim: pillar.contractRuleSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.evidenceSummary)

@@ -14,11 +14,11 @@ import SwiftUI
             .disabled(isBusy)
             .accessibilityIdentifier("roam.shareChannels.picker")
             Text("roam.shareChannels.boundary")
-                .font(.footnote).foregroundStyle(.secondary)
+                .cyText(.bodyCompact).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.shareChannels.boundary")
             Text(LocalizedStringKey("roam.shareChannels.hint." + mode.rawValue))
-                .font(.footnote).foregroundStyle(.secondary)
+                .cyText(.bodyCompact).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.shareChannels.selected." + mode.rawValue)
         }

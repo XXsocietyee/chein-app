@@ -19,12 +19,12 @@ struct OpsGateNoticeView: View {
                 .accessibilityElement(children: .combine).accessibilityIdentifier("opsSafety.notice.unverified")
         case let .blocked(_, incident):
             VStack(alignment: .leading, spacing: 8) {
-                Label { opsText("opsSafety.notice.title").font(.headline) } icon: { Image(systemName: "pause.circle") }
+                Label { opsText("opsSafety.notice.title").cyText(.cardTitle) } icon: { Image(systemName: "pause.circle") }
                 opsText(incident.copyKey).accessibilityIdentifier("opsSafety.incident." + incident.rawValue)
-                opsText("opsSafety.notice.preserved").font(.footnote).foregroundStyle(.secondary)
+                opsText("opsSafety.notice.preserved").cyText(.bodyCompact).foregroundStyle(.secondary)
                 ForEach(incident.preservedActions, id: \.self) { action in
                     if action == .doNotPayAgain {
-                        opsText(action.copyKey).font(.subheadline.weight(.semibold))
+                        opsText(action.copyKey).cyText(.bodyMedium)
                     } else {
                         Button { perform(action) } label: { opsText(action.copyKey) }
                             .buttonStyle(.bordered).frame(minHeight: 44)
@@ -46,10 +46,10 @@ struct AIIdentityDisclosureView: View {
     var body: some View {
         DisclosureGroup(isExpanded: $expanded) {
             VStack(alignment: .leading, spacing: 4) {
-                ForEach(disclosure.boundaryKeys, id: \.self) { key in opsText(key).font(.footnote) }
+                ForEach(disclosure.boundaryKeys, id: \.self) { key in opsText(key).cyText(.bodyCompact) }
             }.padding(.top, 4)
         } label: {
-            Label { opsText(disclosure.titleKey).font(.footnote.weight(.semibold)) } icon: { Image(systemName: "sparkles") }
+            Label { opsText(disclosure.titleKey).cyText(.bodyMedium) } icon: { Image(systemName: "sparkles") }
         }
         .accessibilityIdentifier("opsSafety.ai.disclosure." + disclosure.surface.rawValue)
     }
@@ -65,21 +65,21 @@ struct OfflineNodeSafetyView: View {
         switch state {
         case .open: EmptyView()
         case .unknown:
-            opsText("opsSafety.offline.unknown").font(.footnote).foregroundStyle(.secondary)
+            opsText("opsSafety.offline.unknown").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .accessibilityIdentifier("opsSafety.offline.unknown")
         case let .stopped(categories, _):
             VStack(alignment: .leading, spacing: 8) {
-                Label { opsText("opsSafety.offline.title").font(.headline) } icon: { Image(systemName: "exclamationmark.triangle") }
+                Label { opsText("opsSafety.offline.title").cyText(.cardTitle) } icon: { Image(systemName: "exclamationmark.triangle") }
                 ForEach(Array(categories.enumerated()), id: \.offset) { _, category in opsText(category.copyKey) }
                 if let alternative = state.noPurchaseAlternative {
                     Button { openAlternative(alternative) } label: {
                         VStack(alignment: .leading) {
                             opsText("opsSafety.action.viewAlternativeIfProvided")
-                            Text(verbatim: alternative.title).font(.footnote)
+                            Text(verbatim: alternative.title).cyText(.bodyCompact)
                         }
                     }.buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("opsSafety.offline.alternative")
                 } else {
-                    opsText("opsSafety.offline.noAlternative").font(.footnote).foregroundStyle(.secondary)
+                    opsText("opsSafety.offline.noAlternative").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .accessibilityIdentifier("opsSafety.offline.noAlternative")
                 }
                 CYPillButton("opsSafety.action.contactSupport", style: .secondary, tableName: "OpsSafety", action: contactSupport)

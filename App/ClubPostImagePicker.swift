@@ -363,7 +363,7 @@ struct ClubPostImageSectionView: View {
                 }
                 #endif
                 Text("\(candidate.width)×\(candidate.height)")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 if bridge.canSelectImage {
@@ -391,7 +391,7 @@ struct ClubPostImageSectionView: View {
 
         if let statusKey = bridge.draft.statusKey {
             Text(LocalizedStringKey(statusKey))
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("club.community.imageStatus")
         }
@@ -455,7 +455,7 @@ private struct ClubPostImagePreviewSheet: View {
                 }
                 #endif
                 Text("\(candidate.width)×\(candidate.height)")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
             }
             .padding()

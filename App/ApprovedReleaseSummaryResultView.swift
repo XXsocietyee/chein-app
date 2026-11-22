@@ -16,7 +16,7 @@ import SwiftUI
                     Cloud02Note(key: "approvedRelease.history.scope", tableName: "ApprovedReleaseHistory", identifier: "approvedRelease.history.scope")
                         .cloud02GutterRow()
                     Text(verbatim: cloud02Known(original.record.command.requestID))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -49,13 +49,13 @@ import SwiftUI
     private func savedReceipt(_ receipt: ApprovedTopicReleasePublicationReceipt) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(verbatim: String(receipt.releaseID))
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("approvedRelease.history.releaseID")
             Text(verbatim: cloud02Known(receipt.manifestHash))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
@@ -67,7 +67,7 @@ import SwiftUI
                 Text(verbatim: receipt.currentlyApproved
                     ? String(localized: LocalizedStringResource("approvedRelease.receiptApproved", defaultValue: "Approved at the last server check", locale: locale))
                     : String(localized: LocalizedStringResource("approvedRelease.receiptChanged", defaultValue: "The last server check did not confirm current approval", locale: locale)))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }

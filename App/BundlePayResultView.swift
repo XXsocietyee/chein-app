@@ -86,13 +86,13 @@ enum BundlePayResultPresentation: Equatable {
                         .accessibilityIdentifier("bundle.pay.mark")
                     VStack(spacing: CYSpacing.sm) {
                         Text(verbatim: title)
-                            .font(.system(.largeTitle, design: .default).weight(.heavy))
+                            .cyText(.pageTitle)
                             .foregroundStyle(palette.textPrimary)
                             .multilineTextAlignment(.center)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("bundle.pay.title")
                         Text(verbatim: message)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center)
                     }
@@ -148,7 +148,7 @@ enum BundlePayResultPresentation: Equatable {
     private func detailRow(_ title: String, value: String, icon: String, numeric: Bool = false) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
             CYRowIcon(systemImage: icon)
-            Text(verbatim: title).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+            Text(verbatim: title).cyText(.body).foregroundStyle(palette.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: value)
                 .font(numeric ? CYTypography.numericBody : CYTypography.bodyMedium)

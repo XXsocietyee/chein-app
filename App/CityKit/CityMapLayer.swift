@@ -228,7 +228,7 @@ struct CityPin: View {
                 Image(systemName: "plus").font(.caption.weight(.bold)).foregroundStyle(.white)
             case .fogged:
                 Circle().strokeBorder(Color.white.opacity(0.5), lineWidth: 1.5).frame(width: 26, height: 26)
-                Text(verbatim: "?").font(.caption.weight(.bold)).foregroundStyle(Color.white.opacity(0.7))
+                Text(verbatim: "?").cyText(.meta, weight: .bold).foregroundStyle(Color.white.opacity(0.7))
             }
         }
         .overlay(alignment: .topTrailing) { badge }
@@ -274,7 +274,7 @@ struct CityPinCluster: View {
     var body: some View {
         Button(action: action) {
             Text(verbatim: "\(count)")
-                .font(.footnote.weight(.bold).monospacedDigit())
+                .cyText(.numericBody)
                 .foregroundStyle(hasMine ? CityTokens.bandInk : .white)
                 .frame(minWidth: 34, minHeight: 34)
                 .padding(.horizontal, count > 9 ? 4 : 0)
@@ -301,7 +301,7 @@ struct CityMapLegend: View {
             item(AnyView(Circle().strokeBorder(Color.white, style: StrokeStyle(lineWidth: 1.5, dash: [2, 2])).frame(width: 12, height: 12)), copy("可圈", "Open"))
             item(AnyView(Circle().strokeBorder(Color.white.opacity(0.5), lineWidth: 1.5).frame(width: 12, height: 12)), copy("未点亮", "Unlit"))
         }
-        .font(CYTypography.caption)
+        .cyText(.caption)
         .foregroundStyle(palette.textSecondary)
         .padding(.horizontal, CYSpacing.md).frame(minHeight: 32)
         .background {

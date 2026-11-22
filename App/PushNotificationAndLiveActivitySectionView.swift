@@ -197,11 +197,11 @@ public struct PushNotificationAndLiveActivitySectionView: View {
             Image(systemName: "bell.badge.fill")
                 .foregroundStyle(.teal)
             Text(verbatim: "Push Notification & Live Activity Parity")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("pushNotificationParity.header")
             Spacer()
             Text(verbatim: headerBadgeText)
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
@@ -236,10 +236,10 @@ public struct PushNotificationAndLiveActivitySectionView: View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
                 Text(verbatim: row.title)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isCompliant ? "READY" : "UNSANITIZED WARNING")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(
@@ -284,7 +284,7 @@ public struct PushNotificationAndLiveActivitySectionView: View {
 
     private func statusPill(text: String, tint: Color) -> some View {
         Text(verbatim: text)
-            .font(.caption2.weight(.medium))
+            .cyText(.caption, weight: .medium)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(

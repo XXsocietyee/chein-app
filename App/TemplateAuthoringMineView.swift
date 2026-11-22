@@ -52,7 +52,7 @@ import SwiftUI
                     if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
                         Button { selectedMember = id } label: {
                             HStack {
-                                Text(verbatim: row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                 Spacer()
                                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                             }
@@ -60,7 +60,7 @@ import SwiftUI
                         .accessibilityLabel(Text(verbatim: row.title))
                         .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
                     } else {
-                        Text(verbatim: row.title).font(CYTypography.cardTitle)
+                        Text(verbatim: row.title).cyText(.cardTitle)
                     }
                     if let id = MemberPlayTemplateID(rawValue: row.id), ownerConfiguration != nil {
                         Button { selectedConfiguration = id } label: {
@@ -140,7 +140,7 @@ import SwiftUI
                         Section {
                             if value.action == .remove {
                                 Text("templateOwnShelf.delete.title \(value.title)")
-                                    .font(CYTypography.sectionTitle)
+                                    .cyText(.sectionTitle)
                                     .accessibilityIdentifier("templateOwnShelf.delete.title")
                                 Text("templateOwnShelf.delete.irreversible")
                             } else if value.desiredPublishStatus == 1 {
@@ -280,11 +280,11 @@ private struct TemplateOwnShelfReadCopy: View {
     var perform: (() -> Void)? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(title).font(CYTypography.cardTitle)
-            if let subtitle { Text(subtitle).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            Text(title).cyText(.cardTitle)
+            if let subtitle { Text(subtitle).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             if let action {
                 if let perform { CYPillButton(action, style: .secondary, action: perform).accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action").padding(.top, CYSpacing.xs) }
-                else { Text(action).font(CYTypography.meta) }
+                else { Text(action).cyText(.meta) }
             }
         }
     }

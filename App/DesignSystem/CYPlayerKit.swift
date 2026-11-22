@@ -160,7 +160,7 @@ struct CYRootSubtitle: View {
 
     var body: some View {
         text
-            .font(.footnote)
+            .cyText(.bodyCompact)
             .foregroundStyle(palette.textSecondary)
             .lineLimit(2)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -374,7 +374,7 @@ struct CYSheetHeader: View {
                 // Merchant: centred title, ✕ at the trailing edge (and 完成 when the sheet confirms).
                 ZStack {
                     VStack(spacing: 2) {
-                        if let eyebrow { eyebrow.font(.footnote).foregroundStyle(palette.textTertiary) }
+                        if let eyebrow { eyebrow.cyText(.meta).foregroundStyle(palette.textTertiary) }
                         if let title {
                             title
                                 .cyText(.sheetTitle)
@@ -404,7 +404,7 @@ struct CYSheetHeader: View {
                 .padding(.horizontal, CYSpacing.lg)
                 VStack(spacing: 2) {
                     if let eyebrow {
-                        eyebrow.font(.footnote).foregroundStyle(palette.textTertiary)
+                        eyebrow.cyText(.meta).foregroundStyle(palette.textTertiary)
                     }
                     if let title {
                         title
@@ -461,7 +461,7 @@ struct CYSheetHeader: View {
         if let onDone {
             Button(action: onDone) {
                 Text(doneTitle, tableName: doneTableName)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(isDoneEnabled ? palette.actionPrimaryFg : palette.textPlaceholder)
                     .padding(.horizontal, 18)
                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -755,7 +755,7 @@ struct CYHoldToStartButton: View {
         VStack(spacing: CYSpacing.sm) {
             pill
             Text(showsTapNudge ? "mp.hold.tapNudge" : caption)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -871,11 +871,11 @@ struct CYLevelUpMoment: View {
                 .opacity(shown ? 1 : 0)
                 .accessibilityHidden(true)
             Text(verbatim: "Lv\(level)")
-                .font(.system(.largeTitle, design: .rounded).weight(.bold).monospacedDigit())
+                .cyText(.dataXL)
                 .foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText(value: Double(level)))
             Text("levelUp.title", tableName: "DesignR1")
-                .font(.title2.weight(.bold))
+                .cyText(.sheetTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             Text("levelUp.change \(payload.from) \(payload.to)", tableName: "DesignR1")

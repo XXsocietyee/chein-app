@@ -47,7 +47,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
     private func started(_ snapshot: ModInstallationSavedRehearsalSnapshot) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(verbatim: text("boundary"))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -97,15 +97,15 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
             }
             Section {
                 Text(verbatim: text("savedOnly"))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: text("licenseChecked"))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: text("boundary"))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -122,7 +122,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
                 ForEach(snapshot.installation.bindings) { binding in
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         Text(verbatim: "\(binding.kind.rawValue) · \(binding.key) · \(binding.label) (#\(binding.resourceId))")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: shown(binding.fingerprint))
@@ -139,11 +139,11 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
             Section {
                 ForEach(snapshot.saved.fields.keys.sorted(), id: \.self) { key in
                     Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: shown(snapshot.saved.fields[key] ?? ""))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -174,11 +174,11 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
     private func fact(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: title)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: value)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)

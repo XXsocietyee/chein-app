@@ -209,7 +209,7 @@ struct RoamAnniversaryReadIntent {
                 .sensoryFeedback(.success, trigger: isVisible) { _, new in new }
             Section {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(verbatim: dateLabel).font(.largeTitle.bold()).monospacedDigit()
+                    Text(verbatim: dateLabel).cyText(.pageTitle).monospacedDigit()
                         .accessibilityIdentifier("roam.tools.anniversary.date")
                     Spacer()
                     DatePicker("roam.tools.anniversary.change", selection: $pickerDate, displayedComponents: .date)
@@ -237,8 +237,8 @@ struct RoamAnniversaryReadIntent {
             ForEach(unavailableError == nil ? state.rows : []) { item in
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("roam.tools.anniversary.yearsAgo \(item.yearsAgo)").font(.headline).foregroundStyle(.tint)
-                        Text(verbatim: anniversaryTitle(item.title)).font(.title3.bold())
+                        Text("roam.tools.anniversary.yearsAgo \(item.yearsAgo)").cyText(.cardTitle).foregroundStyle(.tint)
+                        Text(verbatim: anniversaryTitle(item.title)).cyText(.sectionTitle)
                         Text("roam.tools.anniversary.completed \(item.completedMinuteText)").font(.subheadline).foregroundStyle(.secondary)
                     }.accessibilityElement(children: .combine)
                         .accessibilityIdentifier("roam.tools.anniversary.row")
@@ -642,7 +642,7 @@ struct RoamAnniversaryReadIntent {
                         .accessibilityLabel(Text("roam.tools.recap.previous"))
                         .accessibilityIdentifier("roam.tools.recap.previous")
                     Spacer()
-                    Text(monthDate, format: .dateTime.year().month(.wide)).font(.headline)
+                    Text(monthDate, format: .dateTime.year().month(.wide)).cyText(.cardTitle)
                         .accessibilityIdentifier("roam.tools.recap.month")
                     Spacer()
                     Button { lifetime.run(reader) { await $0.shiftMonth(by: 1) } } label: { Image(systemName: "chevron.right") }
@@ -687,7 +687,7 @@ struct RoamAnniversaryReadIntent {
                             } label: {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: item.title)
-                                    (Text(verbatim: item.dateText + " · ") + Text(kindKey(kind))).font(.caption).foregroundStyle(.secondary)
+                                    (Text(verbatim: item.dateText + " · ") + Text(kindKey(kind))).cyText(.meta).foregroundStyle(.secondary)
                                 }
                             }.accessibilityElement(children: .combine)
                                 .accessibilityIdentifier("roam.tools.recap.row")
@@ -779,12 +779,12 @@ private struct RoamRecapWeekChart: View {
             ForEach(weeks) { week in
                 Button { picked = week.index } label: {
                     VStack(spacing: 6) {
-                        Text(week.count, format: .number).font(.caption.bold())
+                        Text(week.count, format: .number).cyText(.meta, weight: .bold)
                             .opacity(week.isMax || picked == week.index ? 1 : 0)
                         RoundedRectangle(cornerRadius: 4)
                             .fill(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
                             .frame(width: 14, height: max(4, CGFloat(week.count) / CGFloat(top) * 110))
-                        Text("roam.tools.recap.week \(week.index)").font(.caption2).foregroundStyle(.secondary)
+                        Text("roam.tools.recap.week \(week.index)").cyText(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity)
                 }.buttonStyle(.plain)
                     .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
@@ -830,10 +830,10 @@ struct RoamRecapShareFace: View {
     @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(month, format: .dateTime.year().month(.wide)).font(CYTypography.meta.weight(.semibold)).foregroundStyle(.white.opacity(0.85)).textCase(.uppercase)
-            Text(routes, format: .number).font(CYTypography.data2XL).foregroundStyle(.white)
+            Text(month, format: .dateTime.year().month(.wide)).cyText(.meta, weight: .semibold).foregroundStyle(.white.opacity(0.85)).textCase(.uppercase)
+            Text(routes, format: .number).cyText(.data2XL).foregroundStyle(.white)
                 .cyWrapText()
-            Text("roam.tools.recap.routesDone").font(CYTypography.body.weight(.semibold)).foregroundStyle(.white.opacity(0.9))
+            Text("roam.tools.recap.routesDone").cyText(.bodyMedium).foregroundStyle(.white.opacity(0.9))
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: CYSpacing.sm) { tiles }
                 VStack(spacing: CYSpacing.sm) { tiles }
@@ -858,8 +858,8 @@ struct RoamRecapShareFace: View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(.white).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 0) {
-                Text(n, format: .number).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(.white)
-                Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(.white.opacity(0.85))
+                Text(n, format: .number).cyText(.dataXL).monospacedDigit().foregroundStyle(.white)
+                Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(.white.opacity(0.85))
             }
             Spacer(minLength: 0)
         }

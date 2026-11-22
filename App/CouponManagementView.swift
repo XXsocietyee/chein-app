@@ -37,7 +37,7 @@ import SwiftUI
                         Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }
                             .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
                     }
-                    Text("couponManagement.chinaTime").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("couponManagement.chinaTime").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     if model.working || model.core.loading { CYSkeleton(variant: .row) }
                     // A failed read is an error notice above, not an empty list.
                     else if model.core.rows.isEmpty, model.core.issue == nil {
@@ -50,25 +50,25 @@ import SwiftUI
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
                                 Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale))
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                 Text(LocalizedStringKey(row.typeKey))
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.textSecondary)
                                 // Mini-program coupon list row: description (fallback copy) and remaining stock.
                                 if let text = row.description, !text.isEmpty {
-                                    Text(verbatim: text).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                                    Text(verbatim: text).cyText(.caption).foregroundStyle(CYColor.textPrimary)
                                 } else {
-                                    Text("couponManagement.noDescription").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                    Text("couponManagement.noDescription").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                                 }
                                 // Unknown remaining stock is an em dash; a literal 0 stays 0.
                                 LabeledContent("couponManagement.remaining", value: CouponInfoCount.display(row.remaining))
-                                    .font(CYTypography.caption.monospacedDigit())
+                                    .cyText(.caption, monospacedDigit: true)
                                 if row.state != .active {
                                     CYStatusChip(LocalizedStringKey(row.state.key), tone: .neutral)
                                 }
                                 Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")")
-                                    .font(CYTypography.caption)
+                                    .cyText(.caption)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textSecondary)
                             }.padding(.vertical, CYSpacing.xs)
@@ -111,7 +111,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     let surface: CouponManagementNoticeSurface
     var body: some View {
         Section {
-            if model.core.canSimulate { Text("couponManagement.synthetic").font(.footnote).foregroundStyle(.secondary) }
+            if model.core.canSimulate { Text("couponManagement.synthetic").cyText(.bodyCompact).foregroundStyle(.secondary) }
             if model.core.recoveryFinished { Text("couponManagement.recoveryFinished") }
             if let issue = model.core.issue { Text(LocalizedStringKey(issue.messageKey)).accessibilityIdentifier("couponManagement.notice.\(surface.rawValue).issue") }
             if let issue = model.core.issue, case .server(let message) = issue { Text(message) }
@@ -133,13 +133,13 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             CouponManagementNotice(model: model, surface: .detail)
             if let row = model.core.rows.first(where: { $0.id == id }) {
                 Section {
-                    Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).font(.title2)
+                    Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale)).cyText(.sheetTitle)
                     Text(row.description?.isEmpty == false ? row.description! : appLocalized("couponManagement.noDescription", locale: locale))
                     LabeledContent("couponManagement.status") { Text(LocalizedStringKey(row.state.key)) }
                     LabeledContent("couponManagement.type") { Text(LocalizedStringKey(row.typeKey)) }
                     LabeledContent("couponManagement.start", value: CouponValidityTime.display(row.startTime) ?? "—")
                     LabeledContent("couponManagement.end", value: CouponValidityTime.display(row.endTime) ?? "—")
-                    Text("couponManagement.chinaTime").font(.footnote)
+                    Text("couponManagement.chinaTime").cyText(.meta)
                 }
                 if let code = row.publishedBatchCode {
                     Section("couponManagement.batchCode.title") {
@@ -157,7 +157,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     LabeledContent("couponManagement.currency", value: row.currency ?? "—")
                 }
                 Section {
-                    Text("couponManagement.stopPolicy").font(.footnote)
+                    Text("couponManagement.stopPolicy").cyText(.bodyCompact)
                     if row.state.canStop {
                         Button("couponManagement.reviewStop", role: .destructive) { model.run { await model.core.prepareStop(id) } }
                             .disabled(model.working || !model.core.canReviewStop).accessibilityIdentifier("couponManagement.stop.review")
@@ -309,24 +309,24 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         // Mini-program couponInfo order: Name -> Date range -> Quantity + Type -> Description.
         Section("couponManagement.details") {
             TextField("couponManagement.name", text: binding(\.name))
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .accessibilityIdentifier("couponManagement.name")
         }.disabled(model.working)
         Section("couponManagement.dates") {
             Text("couponManagement.chinaTime")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
             if let start = model.core.draft.startTime {
                 LabeledContent("couponManagement.start") {
                     Text(verbatim: CouponValidityTime.display(start))
-                        .font(CYTypography.bodyCompact.monospacedDigit())
+                        .cyText(.bodyCompact, monospacedDigit: true)
                         .foregroundStyle(palette.textPrimary)
                 }
             }
             if let end = model.core.draft.endTime {
                 LabeledContent("couponManagement.end") {
                     Text(verbatim: CouponValidityTime.display(end))
-                        .font(CYTypography.bodyCompact.monospacedDigit())
+                        .cyText(.bodyCompact, monospacedDigit: true)
                         .foregroundStyle(palette.textPrimary)
                 }
             }
@@ -336,7 +336,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             }
             if rangeCompleted {
                 Label("couponManagement.range.completed", systemImage: "checkmark.circle.fill")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.success)
                     .transition(.opacity)
                     .accessibilityIdentifier("couponManagement.range.completed")
@@ -349,7 +349,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         Section {
             TextField("couponManagement.quantity", text: binding(\.quantity))
                 .keyboardType(.numberPad)
-                .font(CYTypography.bodyCompact.monospacedDigit())
+                .cyText(.bodyCompact, monospacedDigit: true)
                 .accessibilityIdentifier("couponManagement.quantity")
             Picker("couponManagement.type", selection: binding(\.couponType)) {
                 Text("couponManagement.chooseType").tag(Int?.none)
@@ -357,12 +357,12 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             }.accessibilityIdentifier("couponManagement.type")
             TextField("couponManagement.description", text: binding(\.description), axis: .vertical)
                 .lineLimit(2...6)
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
         }.disabled(model.working)
         if let blocker = model.core.draft.blocker {
             Section {
                 Label(LocalizedStringKey(blocker), systemImage: "exclamationmark.circle")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.danger)
             }
         }
@@ -381,7 +381,7 @@ private struct CouponInfoSettingsStateSection: View {
                         .accessibilityLabel(Text(LocalizedStringKey(key)))
                 } else {
                     Text(LocalizedStringKey(key))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -442,7 +442,7 @@ private struct CouponInfoSettingsReadOnlySection: View {
                     .listRowBackground(Color.clear)
                     .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             case .stop(let row):
-                Text("couponManagement.stopQuestion \(row.name ?? appLocalized("couponManagement.coupon", locale: locale))").font(.headline)
+                Text("couponManagement.stopQuestion \(row.name ?? appLocalized("couponManagement.coupon", locale: locale))").cyText(.cardTitle)
                 Button(LocalizedStringKey(model.core.canSimulate ? "couponManagement.simulate" : "couponManagement.stopConfirm"), role: .destructive) { model.run { await model.core.confirm(review) } }
                     .disabled(model.working || !model.core.canConfirm(review)).accessibilityIdentifier("couponManagement.confirm")
             }

@@ -129,7 +129,7 @@ struct InvoiceLaunchApplyIntent {
                     } label: {
                         HStack {
                             Text(verbatim: candidate.titleName)
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: CYSpacing.sm)

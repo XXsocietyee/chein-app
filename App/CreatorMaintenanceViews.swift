@@ -131,7 +131,7 @@ import QuestifyCore
                     Text("creatorStudio.maintenance.tab.feedback").tag(CreatorMaintenanceModel.Tab.feedback)
                     Text("creatorStudio.maintenance.tab.tickets").tag(CreatorMaintenanceModel.Tab.tickets)
                 }.pickerStyle(.segmented).accessibilityIdentifier("creatorStudio.maintenance.tab")
-                Text("creatorStudio.maintenance.flow").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("creatorStudio.maintenance.flow").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             if tab == .feedback { feedbackSections } else { ticketSections }
         }
@@ -192,12 +192,12 @@ import QuestifyCore
                     NavigationLink { CreatorTicketDetailView(model: model, ticketID: ticket.ticketId) } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack(alignment: .firstTextBaseline) {
-                                Text(verbatim: ticket.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                                Text(verbatim: ticket.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
                                 Spacer(minLength: CYSpacing.sm)
                                 CreatorTicketStageChip(stage: ticket.knownStage)
                             }
-                            if let name = ticket.topicName { Text(verbatim: name).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                            Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            if let name = ticket.topicName { Text(verbatim: name).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                            Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         }
                     }.accessibilityIdentifier("creatorStudio.ticket.\(ticket.ticketId)")
                 }
@@ -219,12 +219,12 @@ struct CreatorFeedbackRow: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(spacing: CYSpacing.sm) {
                     CYStatusChip(CreatorFeedbackRow.category(item.category), tone: .info)
-                    if let version = item.configVersion { Text("creatorStudio.version \(version)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    if let ticket = item.ticketId { Text("creatorStudio.feedback.inTicket \(ticket)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    if let version = item.configVersion { Text("creatorStudio.version \(version)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    if let ticket = item.ticketId { Text("creatorStudio.feedback.inTicket \(ticket)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
-                if let content = item.content { Text(verbatim: content).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                if let content = item.content { Text(verbatim: content).cyText(.body).foregroundStyle(CYColor.textPrimary) }
                 if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                if let date = item.createdAt { Text(verbatim: String(date.prefix(16)).replacingOccurrences(of: "T", with: " ")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if let date = item.createdAt { Text(verbatim: String(date.prefix(16)).replacingOccurrences(of: "T", with: " ")).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }
         }.padding(.vertical, CYSpacing.xs).contentShape(Rectangle())
     }
@@ -265,7 +265,7 @@ struct CreatorTicketStageChip: View {
                 if let pending = model.pendingOpen {
                     Section {
                         CYStatusChip("creatorStudio.write.unknown", tone: .warning, systemImage: "questionmark.circle")
-                        Text(verbatim: pending.request.title).font(CYTypography.cardTitle)
+                        Text(verbatim: pending.request.title).cyText(.cardTitle)
                     }
                 } else {
                     Section("creatorStudio.ticket.titleField") {
@@ -274,7 +274,7 @@ struct CreatorTicketStageChip: View {
                     Section("creatorStudio.ticket.noteField") {
                         TextField("creatorStudio.ticket.notePlaceholder", text: $note, axis: .vertical).lineLimit(3...6)
                     }
-                    Section { Text("creatorStudio.ticket.selected \(model.selected.count)").font(CYTypography.meta) }
+                    Section { Text("creatorStudio.ticket.selected \(model.selected.count)").cyText(.meta) }
                 }
                 if let issue = model.writeIssue { Section { CreatorStudioWriteIssueText(failure: issue) } }
                 Section {
@@ -283,7 +283,7 @@ struct CreatorTicketStageChip: View {
                     }
                     .disabled(model.writing || (model.pendingOpen == nil && (title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || title.count > 80 || note.count > 500)))
                     .accessibilityIdentifier("creatorStudio.ticket.confirmOpen")
-                    Text("creatorStudio.ticket.baselineNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("creatorStudio.ticket.baselineNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
             .cyGroupedSurface()
@@ -344,12 +344,12 @@ struct CreatorStudioWriteIssueText: View {
     @ViewBuilder private func content(_ ticket: CreatorMaintenanceTicket) -> some View {
         Section {
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: ticket.title).font(CYTypography.sectionTitle)
+                Text(verbatim: ticket.title).cyText(.sectionTitle)
                 Spacer(minLength: CYSpacing.sm)
                 CreatorTicketStageChip(stage: ticket.knownStage)
             }
-            if let name = ticket.topicName { Text(verbatim: name).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            if let note = ticket.note { Text(verbatim: note).font(CYTypography.body) }
+            if let name = ticket.topicName { Text(verbatim: name).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let note = ticket.note { Text(verbatim: note).cyText(.body) }
         }
         Section {
             stageRow("creatorStudio.flow.problem", done: true, detail: Text("creatorStudio.ticket.feedbackCount \(ticket.feedback.count)"))
@@ -369,7 +369,7 @@ struct CreatorStudioWriteIssueText: View {
             Section {
                 CYPillButton("creatorStudio.close.fixed", systemImage: "checkmark.seal") { closing = .init(resolution: .fixed) }
                     .disabled(!ticket.canCloseFixed).accessibilityIdentifier("creatorStudio.close.fixed")
-                if !ticket.canCloseFixed { Text("creatorStudio.close.fixedNeedsVersion").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if !ticket.canCloseFixed { Text("creatorStudio.close.fixedNeedsVersion").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 CYPillButton("creatorStudio.close.noChange", style: .secondary) { closing = .init(resolution: .noChange) }
                     .accessibilityIdentifier("creatorStudio.close.noChange")
             }
@@ -380,9 +380,9 @@ struct CreatorStudioWriteIssueText: View {
         HStack(spacing: CYSpacing.md) {
             Image(systemName: done ? "checkmark.circle.fill" : "circle.dashed")
                 .foregroundStyle(done ? CYColor.successText : CYColor.textTertiary).accessibilityHidden(true)
-            Text(title).font(CYTypography.body)
+            Text(title).cyText(.body)
             Spacer(minLength: CYSpacing.sm)
-            if let detail { detail.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+            if let detail { detail.cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
         }.accessibilityElement(children: .combine)
     }
 }

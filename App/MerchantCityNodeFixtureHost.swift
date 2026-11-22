@@ -140,7 +140,7 @@ final class MerchantCityNodeFixtureTransport: MerchantContentOfflineTransport {
 
 struct MerchantCityNodeFixtureBanner: View {
     var body: some View {
-        MerchantCityNodeCopy.text("merchantCityNode.fixture.banner").font(.footnote).padding(6).frame(maxWidth: .infinity).background(.regularMaterial)
+        MerchantCityNodeCopy.text("merchantCityNode.fixture.banner").cyText(.bodyCompact).padding(6).frame(maxWidth: .infinity).background(.regularMaterial)
             .accessibilityIdentifier("cityNodeFixture.banner")
     }
 }

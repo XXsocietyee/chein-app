@@ -50,7 +50,7 @@ struct E5bBadgeWallFixture: View {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     HStack(spacing: CYSpacing.lg) {
                         CYCountRing(value: 3, total: 6)
-                        Text(verbatim: tt("3 of 6 collected", "已收集 3 / 6")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: tt("3 of 6 collected", "已收集 3 / 6")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     }
                     LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                         ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
@@ -100,13 +100,13 @@ struct A11yRoamAX5Fixture: View {
     var body: some View {
         CYMapScaffold(detent: .compact, peek: AnyView(
             HStack(spacing: CYSpacing.sm) {
-                Text(verbatim: tt("Nearby activities", "附近活动")).font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: tt("Nearby activities", "附近活动")).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 Spacer(minLength: 0)
                 Text(verbatim: "—").accessibilityLabel(Text(verbatim: tt("Count unknown", "数量未知"))).foregroundStyle(CYColor.textSecondary)
             }.padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
         ), map: { CYMapPlaceholder() }, controls: {
             HStack(alignment: .center) {
-                Text(verbatim: tt("Roam", "漫游")).font(.system(.largeTitle).weight(.heavy)).foregroundStyle(.white)
+                Text(verbatim: tt("Roam", "漫游")).cyText(.pageTitle).foregroundStyle(.white)
                     .lineLimit(2).minimumScaleFactor(0.6).layoutPriority(1).accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 0)
                 CYGlassLabel(systemImage: "ellipsis")

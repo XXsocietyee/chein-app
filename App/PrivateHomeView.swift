@@ -42,7 +42,7 @@ import SwiftUI
                 Text(LocalizedStringKey("privateHome.phase." + model.phase.rawValue)).accessibilityIdentifier("privateHome.phase")
                 if let home = model.home {
                     Text(LocalizedStringKey(home.status == .active ? "privateHome.active" : "privateHome.empty"))
-                    if let label = home.label { Text(verbatim: label).font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true).privacySensitive() }
+                    if let label = home.label { Text(verbatim: label).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true).privacySensitive() }
                 }
                 if let decision = model.decision { Text(LocalizedStringKey("privateHome.decision." + decision.rawValue)) }
                 if model.issue != nil { Text("privateHome.issue").accessibilityIdentifier("privateHome.issue") }
@@ -58,8 +58,8 @@ import SwiftUI
                     TextField("privateHome.label", text: $label).accessibilityIdentifier("privateHome.label")
                     TextField("privateHome.latitude", text: $latitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("privateHome.latitude")
                     TextField("privateHome.longitude", text: $longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("privateHome.longitude")
-                    Text("privateHome.datum").font(.footnote)
-                    Text("privateHome.gamePoint").font(.footnote)
+                    Text("privateHome.datum").cyText(.bodyCompact)
+                    Text("privateHome.gamePoint").cyText(.bodyCompact)
                     CYPillButton("privateHome.map.open", style: .secondary, systemImage: "map") { picker.open() }.accessibilityIdentifier("privateHome.map.open").e1ActionRow()
                     CYPillButton("privateHome.reviewSet") { prepare() }.accessibilityIdentifier("privateHome.reviewSet").e1ActionRow()
                     if invalidInput { Text("privateHome.invalid") }

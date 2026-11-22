@@ -150,7 +150,7 @@ import SwiftUI
                         layout {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text(verbatim: review.message)
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 CYStatusChip(verbatim: localized("friend.review." + review.state.rawValue), tone: reviewTone(review.state), systemImage: "clock")
@@ -197,7 +197,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .cyAnimation(value: flow.phase)
@@ -273,14 +273,14 @@ import SwiftUI
                                     .accessibilityIdentifier("friend.confirmPeer")
                             } else {
                                 Text(verbatim: review.displayName)
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("friend.confirmPeer")
                             }
                             if !review.message.isEmpty {
                                 Text(verbatim: review.message)
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("friend.confirmMessage")

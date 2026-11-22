@@ -171,7 +171,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "崩溃韧性与 MetricKit 性能诊断面板")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("crashResilienceMetricKit.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
@@ -180,7 +180,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
                 }
                 Spacer()
                 Text(verbatim: snapshot.isAllReady ? "<= 250ms 达标" : "预算告警")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -207,7 +207,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.category.rawValue)
@@ -215,7 +215,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).category")
                 Text(verbatim: row.statusBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.isReady ? .green : .red)
                     .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).status")
             }
@@ -226,14 +226,14 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
                 .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).budgetRule")
 
             Text(verbatim: row.observedSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).observedSummary")
 
             if let onSelectRow {
                 Button(action: { onSelectRow(row) }) {
                     Text(verbatim: "查看诊断指标详情")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).action")
             }

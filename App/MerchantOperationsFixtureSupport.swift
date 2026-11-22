@@ -22,7 +22,7 @@ struct MerchantOperationsFixtureHostView: View {
             HStack {
                 Button("merchant.operations.fixture.signOut") { reader.signOut(); revision += 1 }.accessibilityIdentifier("merchant.operations.fixture.signOut")
                 Button("merchant.operations.fixture.recover") { reader.failure = nil; revision += 1 }.accessibilityIdentifier("merchant.operations.fixture.recover")
-            }.font(.caption).padding(8)
+            }.cyText(.meta).padding(8)
             NavigationStack {
                 if ProcessInfo.processInfo.arguments.contains("--merchant-template-assist-fixture") {
                     MerchantOperationsHomeView(reader: reader, destinationFactory: { destination, _ in

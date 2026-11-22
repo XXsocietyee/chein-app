@@ -10,7 +10,7 @@ struct PlayPlayerLeaderboardView: View {
             case .hidden: EmptyView()
             case .unconfirmed:
                 Section("playerLeaderboard.title") {
-                    Text("playerLeaderboard.unconfirmed").font(.footnote).foregroundStyle(.secondary)
+                    Text("playerLeaderboard.unconfirmed").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .accessibilityIdentifier("playerLeaderboard.unconfirmed")
                 }
             case .empty:
@@ -23,8 +23,8 @@ struct PlayPlayerLeaderboardView: View {
                     ForEach(entries) { entry in
                         VStack(alignment: .leading, spacing: 6) {
                             LabeledContent("playerLeaderboard.rank") { Text(verbatim: String(entry.rank)) }
-                            if let name = entry.displayName { Text(verbatim: name).font(.headline) }
-                            else { Text("playerLeaderboard.team").font(.headline) }
+                            if let name = entry.displayName { Text(verbatim: name).cyText(.cardTitle) }
+                            else { Text("playerLeaderboard.team").cyText(.cardTitle) }
                             LabeledContent("playerLeaderboard.score") { Text(verbatim: String(entry.score)) }
                         }.fixedSize(horizontal: false, vertical: true)
                             .accessibilityElement(children: .combine)

@@ -44,7 +44,7 @@ struct OwnerDraftBrowserView: View {
     var body: some View {
         List {
             Section {
-                Text("ownerDraft.readOnly").font(.footnote).foregroundStyle(.secondary)
+                Text("ownerDraft.readOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             switch browser.phase {
@@ -61,7 +61,7 @@ struct OwnerDraftBrowserView: View {
                 ForEach(browser.rows) { row in
                     Button { route = Route(id: row.id) } label: {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(LocalizedStringKey(row.businessType == .activity ? "ownerDraft.activity" : "ownerDraft.topic")).font(.headline)
+                            Text(LocalizedStringKey(row.businessType == .activity ? "ownerDraft.activity" : "ownerDraft.topic")).cyText(.cardTitle)
                             Text(verbatim: "#\(row.id)").font(.subheadline)
                             OwnerDraftMetadata(summary: row)
                         }.frame(maxWidth: .infinity, alignment: .leading)
@@ -92,7 +92,7 @@ private struct OwnerDraftMetadata: View {
         VStack(alignment: .leading, spacing: 4) {
             LabeledContent("ownerDraft.version", value: String(summary.version))
             VStack(alignment: .leading, spacing: 2) {
-                Text("ownerDraft.savedTime").font(.caption).foregroundStyle(.secondary)
+                Text("ownerDraft.savedTime").cyText(.meta).foregroundStyle(.secondary)
                 if let value = summary.savedTime { Text(verbatim: value) }
                 else { Text("ownerDraft.timeUnavailable") }
             }
@@ -155,14 +155,14 @@ struct OwnerDraftReceiptSummaryView: View {
     let summary: OwnerDraftInstalledReceipts
     var body: some View {
         Section("ownerDraft.receipts.title") {
-            Text("ownerDraft.receipts.policy").font(.footnote).foregroundStyle(.secondary)
+            Text("ownerDraft.receipts.policy").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(LocalizedStringKey("ownerDraft.receipts.state." + summary.state.rawValue))
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("ownerDraft.receipts.state")
             if summary.state == .historical {
                 if summary.hasMore {
-                    Text("ownerDraft.receipts.hasMore").font(.footnote)
+                    Text("ownerDraft.receipts.hasMore").cyText(.bodyCompact)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("ownerDraft.receipts.hasMore")
                 }
@@ -176,7 +176,7 @@ struct OwnerDraftReceiptSummaryView: View {
                             LabeledContent("ownerDraft.receipts.draftVersion", value: String(row.draftVersion))
                             Text(verbatim: row.installedTime)
                             Text(LocalizedStringKey(bindingKey(row.binding)))
-                                .font(.footnote).foregroundStyle(.secondary)
+                                .cyText(.meta).foregroundStyle(.secondary)
                         }.fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("ownerDraft.receipts.row.\(row.id)")
                     }

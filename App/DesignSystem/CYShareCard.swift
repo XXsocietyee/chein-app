@@ -290,12 +290,12 @@ private struct CYShareEyebrowRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: eyebrow.uppercased())
-                .font(.system(size: 11, weight: .bold)).tracking(2.2)
+                .cyText(.caption, weight: .bold).tracking(2.2)
                 .foregroundStyle(tint)
                 .lineLimit(1)
             Spacer(minLength: 8)
             Text(verbatim: brand)
-                .font(.system(size: 12, weight: .semibold))
+                .cyText(.meta, weight: .semibold)
                 .foregroundStyle(onLight ? Color.black.opacity(0.55) : Color.white.opacity(0.7))
                 .lineLimit(1)
         }
@@ -314,7 +314,7 @@ private struct CYShareMetaLine: View {
                 Label { Text(verbatim: content.placeDisplay) } icon: { Image(systemName: "mappin.and.ellipse") }
             }
         }
-        .font(.system(size: 13, weight: .medium))
+        .cyText(.label)
         .foregroundStyle(color)
         .lineLimit(1)
         .labelStyle(CYShareTightLabelStyle())
@@ -341,7 +341,7 @@ private struct CYShareStatsRow: View {
                         .foregroundStyle(valueColor)
                         .lineLimit(1).minimumScaleFactor(0.6)
                     Text(verbatim: stat.label.uppercased())
-                        .font(.system(size: 10, weight: .semibold)).tracking(1)
+                        .cyText(.micro).tracking(1)
                         .foregroundStyle(labelColor)
                         .lineLimit(2)
                 }
@@ -357,7 +357,7 @@ private struct CYShareCaption: View {
     var body: some View {
         if !caption.isEmpty {
             Text(verbatim: "“" + caption + "”")
-                .font(.system(size: 15, weight: .regular, design: .serif)).italic()
+                .cyText(.body).italic()
                 .foregroundStyle(color)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
@@ -533,7 +533,7 @@ private struct CYShareCardMinimal: View {
                     VStack(spacing: 0) {
                         ForEach(content.stats.prefix(4)) { stat in
                             HStack(alignment: .firstTextBaseline) {
-                                Text(verbatim: stat.label).font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.7))
+                                Text(verbatim: stat.label).cyText(.label).foregroundStyle(.white.opacity(0.7))
                                 Spacer(minLength: 8)
                                 Text(verbatim: stat.display).font(.system(size: ratio.metric(20, 17), weight: .semibold, design: .rounded)).monospacedDigit()
                             }

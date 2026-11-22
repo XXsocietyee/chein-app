@@ -49,10 +49,10 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             .merchantRootHeaderRow()
                     }
                     Section {
-                        if page.hasUnloadedRows { Text("merchant.projects.partial").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                        if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
+                        if page.hasUnloadedRows { Text("merchant.projects.partial").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                        if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
                         if let error = model.errorKey {
-                            Text("merchant.stale").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                            Text("merchant.stale").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                             MerchantInlineFailure(errorKey: error, retry: { Task { await reload() } })
                         }
                     }
@@ -65,7 +65,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             .listRowBackground(Color.clear)
                     } else if browser.rows.isEmpty {
                         Text("merchant.projectBrowser.emptyTab")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("merchant.projectBrowser.emptyTab")
                         ForEach(browser.alternatives, id: \.rawValue) { alternative in
@@ -92,18 +92,18 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title)
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                 if let text = project.projectTypeText, !text.isEmpty {
-                                    Text(text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    Text(text).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                                 if let text = project.stateText, !text.isEmpty {
-                                    Text(text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    Text(text).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                                 MerchantProjectCardContext(project: project)
                                 if let text = project.startTime, !text.isEmpty {
                                     Label(text, systemImage: "calendar")
-                                        .font(CYTypography.caption)
+                                        .cyText(.caption)
                                         .monospacedDigit()
                                         .foregroundStyle(CYColor.textSecondary)
                                 }
@@ -175,7 +175,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                                         return sourceFresh && presentation.selectionIsCurrent(selected, snapshot: current, context: context)
                                     })
                                     .cyPushedChrome(domain: .merchant)
-                            } label: { Label("merchant.projectEvents.open", systemImage: "bell").font(CYTypography.button).foregroundStyle(CYColor.textPrimary) }
+                            } label: { Label("merchant.projectEvents.open", systemImage: "bell").cyText(.button).foregroundStyle(CYColor.textPrimary) }
                             .padding(CYSpacing.md)
                             .frame(maxWidth: .infinity)
                             .background(CYColor.bgSurface)
@@ -311,10 +311,10 @@ private struct MerchantProjectSummary: View {
         Form {
             Section {
                 Text(project.title.isEmpty ? appLocalized("merchant.project.untitled",locale:locale) : project.title)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                 Text("merchant.summarySnapshot")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
                 MerchantProjectCardContext(project: project)
                 MerchantCountRow("merchant.recordID", value: project.projectID)
@@ -329,7 +329,7 @@ private struct MerchantProjectSummary: View {
                     CYPillButton("merchant.projectWorkspace.open", style: .primary, action: openWorkspace)
                         .accessibilityIdentifier("merchant.projectWorkspace.open")
                     Text("merchant.projectWorkspace.explanation")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                 }
             }

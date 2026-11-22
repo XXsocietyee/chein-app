@@ -43,7 +43,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                Section { Text("settingsNative.fixture.notice").font(.footnote) }
+                Section { Text("settingsNative.fixture.notice").cyText(.bodyCompact) }
                 SettingsSupportSections(
                     market: scenario == "missingMarket" ? nil : RegionalLaunchConfiguration.market,
                     soundStore: store, legalReader: reader,

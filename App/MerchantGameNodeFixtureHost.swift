@@ -199,7 +199,7 @@ struct MerchantGameNodeFixtureHost: View {
                                          nodeID: environment.scenario == "multi" ? 9 : nil, focusPause: environment.scenario == "focusPause")
                 }
             }
-            MerchantGameNodeCopy.text("merchantGameNode.fixture.banner").font(.footnote).padding(6).frame(maxWidth: .infinity).background(.regularMaterial)
+            MerchantGameNodeCopy.text("merchantGameNode.fixture.banner").cyText(.bodyCompact).padding(6).frame(maxWidth: .infinity).background(.regularMaterial)
         }
     }
 }

@@ -164,7 +164,7 @@ extension ProfileLocalCoverOwner {
     private var editor: some View {
         NavigationStack {
             Form {
-                Section { Text("profile.localCover.deviceOnly").font(.footnote) }
+                Section { Text("profile.localCover.deviceOnly").cyText(.bodyCompact) }
                 if let crop = model.crop {
                     Section {
                         ProfileLocalCoverCropView(draft: crop, hasError: model.selectionError, confirm: model.acceptCrop, cancel: { model.cancelCrop(id: crop.id) },

@@ -80,7 +80,7 @@ struct RegistrationSheetView: View {
         NavigationStack {
             Form {
                 if flow.creationPolicy.isOfflineFixture {
-                    Section { Label("registration.form.fixtureNotice", systemImage: "testtube.2").font(.callout) }
+                    Section { Label("registration.form.fixtureNotice", systemImage: "testtube.2").cyText(.body) }
                 }
                 if !flow.hasCurrentSession {
                     Section { Label("registration.form.sessionChanged", systemImage: "person.crop.circle.badge.exclamationmark") }
@@ -255,7 +255,7 @@ struct RegistrationSheetView: View {
                         showingPaymentPending = true
                     } label: {
                         Text(verbatim: PlayCloseCopy.text("支付结果待确认", "Payment status pending", locale))
-                            .font(CYTypography.caption.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .foregroundStyle(CYColor.brandStrong)
                     }
                     .accessibilityIdentifier("registration.result.paymentPendingModal")
@@ -267,7 +267,7 @@ struct RegistrationSheetView: View {
         if RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket).viewerAlreadyRegistered {
             Section {
                 Label("registrationParity.alreadyRegistered", systemImage: "checkmark.seal")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("registration.alreadyRegistered")
                 // Source goMySignups: an entry only, never an automatic redirect.
                 if let mySignupsDestination {
@@ -292,8 +292,8 @@ struct RegistrationSheetView: View {
                         .overlay { E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false) }
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        if name.isEmpty { Text("registrationParity.activityNamePending").font(CYTypography.cardTitle) }
-                        else { Text(verbatim: name).font(CYTypography.cardTitle).lineLimit(2) }
+                        if name.isEmpty { Text("registrationParity.activityNamePending").cyText(.cardTitle) }
+                        else { Text(verbatim: name).cyText(.cardTitle).lineLimit(2) }
                         if let dateText {
                             Label { Text(verbatim: dateText) } icon: { Image(systemName: "calendar") }
                                 .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
@@ -317,17 +317,17 @@ struct RegistrationSheetView: View {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                            Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                            Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
                         }
                         Spacer(minLength: CYSpacing.sm)
-                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: ticketPriceText(copy)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                             .cyWrapText().layoutPriority(1)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
-                        Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary).cyWrapText()
+                        Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                        Text(verbatim: ticketPriceText(copy)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary).cyWrapText()
                     }
                 }
                 .padding(CYSpacing.lg)
@@ -455,8 +455,8 @@ struct RegistrationSheetView: View {
             VStack(spacing: CYSpacing.sm) {
                 CurA11yActions {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: copy.t("合计", "Total")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: summaryTotalText).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                             .cyWrapText().layoutPriority(1)
                             .accessibilityLabel(PageTemplateVoiceOver.spoken(summaryTotalText, locale: locale))
                             .pageTemplateReadingOrder(2)
@@ -533,7 +533,7 @@ struct RegistrationSheetView: View {
                     showingParticipantSheet = true
                 } label: {
                     Text(verbatim: PlayCloseCopy.text("选择参与人信息", "Select participant sheet", locale))
-                        .font(CYTypography.caption.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .foregroundStyle(CYColor.brandStrong)
                 }
                 .disabled(!flow.canEdit)
@@ -560,7 +560,7 @@ struct RegistrationSheetView: View {
                 .focused($focusedField, equals: .phone)
                 .accessibilityIdentifier("registration.form.phone")
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
-                Text("registration.form.phoneHint").font(.caption).foregroundStyle(CYColor.dangerText)
+                Text("registration.form.phoneHint").cyText(.meta).foregroundStyle(CYColor.dangerText)
             }
         } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人信息", "Participant")) }
         .disabled(!flow.canEdit)
@@ -583,7 +583,7 @@ struct RegistrationSheetView: View {
                     showingTicketSheet = true
                 } label: {
                     Text(verbatim: PlayCloseCopy.text("选择票种", "Choose ticket sheet", locale))
-                        .font(CYTypography.caption.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .foregroundStyle(CYColor.brandStrong)
                 }
                 .disabled(!flow.canEdit)
@@ -730,14 +730,14 @@ struct RegistrationSheetView: View {
                     }
                     // OWN-D-01.b: the server quoted no deduction, so the toggle went off. Say which of the two reasons applies.
                     if let refusal = flow.pointsRefusal {
-                        Text(LocalizedStringKey(refusal.localizationKey)).font(.caption).foregroundStyle(CYColor.textSecondary)
+                        Text(LocalizedStringKey(refusal.localizationKey)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("registration.form.pointsRefusal")
                     }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
-                        .font(CYTypography.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
+                        .cyText(.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
                         Text(verbatim: CoreLoopCopy(locale: locale).tr(refundNotice))
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(quote.requiresNonRefundableConfirmation ? CYColor.warningText : CYColor.textTertiary)
                             .accessibilityIdentifier("registration.fees.refundPolicy")
                     }
@@ -808,7 +808,7 @@ struct RegistrationSheetView: View {
             } else {
                 Label("registration.form.creationDisabled", systemImage: "lock")
                     .accessibilityIdentifier("registration.form.creationDisabled")
-                Text("registration.form.creationDisabledHint").font(.callout).foregroundStyle(.secondary)
+                Text("registration.form.creationDisabledHint").cyText(.body).foregroundStyle(.secondary)
                 if let complianceSignupDestination {
                     NavigationLink { complianceSignupDestination() } label: { Text("compliance.title") }
                         .accessibilityIdentifier("compliance.signup.reviewSource")
@@ -833,7 +833,7 @@ private struct RegistrationAmountRow: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: deduction && amount != .zero ? "−\(text)" : text)
                         .monospacedDigit().foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
-                    if currencyCode == nil { Text("registration.form.currencyUnknown").font(.caption).foregroundStyle(.primary) }
+                    if currencyCode == nil { Text("registration.form.currencyUnknown").cyText(.meta).foregroundStyle(.primary) }
                 }
             } else { Text(verbatim: "—").foregroundStyle(Color.primary).accessibilityIdentifier(key + ".amount") }
         } label: { Text(LocalizedStringKey(key)) }
@@ -848,7 +848,7 @@ private struct RegistrationIssueText: View {
     private var message: String? { issue.serverMessage }
     var body: some View {
         if let message {
-            Text(verbatim: CoreLoopCopy(locale: locale).tr(message)).font(.callout).foregroundStyle(.secondary)
+            Text(verbatim: CoreLoopCopy(locale: locale).tr(message)).cyText(.body).foregroundStyle(.secondary)
         }
     }
 }
@@ -872,7 +872,7 @@ private struct RegistrationOperationSections: View {
                 Text("registration.form.outcomeUnknownHint")
                     .accessibilityIdentifier("registration.form.outcomeUnknown")
                 if let row = RequestReferenceRow(pathFragment: "/api/registration/create") { row }
-                Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
+                Text("registration.form.retainedIntentHint").cyText(.meta).foregroundStyle(.secondary)
                 if let orderReader { RegistrationUncertainOrdersCheck(flow: flow, reader: orderReader) }
             }
         case .responseReceived(_, let result):
@@ -886,7 +886,7 @@ private struct RegistrationOperationSections: View {
                     .foregroundStyle(.secondary)
                 CYPillButton("registration.form.readStatus", style: .secondary) { Task { await flow.readKnownStatus() } }
                     .disabled(!flow.canReadStatus).accessibilityIdentifier("registration.form.readStatus")
-                Text("registration.form.retainedIntentHint").font(.caption).foregroundStyle(.secondary)
+                Text("registration.form.retainedIntentHint").cyText(.meta).foregroundStyle(.secondary)
             }
             .onAppear {
                 guard !result.hasPaymentParameters else { return }
@@ -980,7 +980,7 @@ private struct RegistrationUncertainOrdersCheck: View {
             ForEach(ids, id: \.self) { id in
                 LabeledContent("registration.form.registrationID", value: String(id))
             }
-            Text("registration.w206.matchNotProof").font(.caption).foregroundStyle(.secondary)
+            Text("registration.w206.matchNotProof").cyText(.meta).foregroundStyle(.secondary)
         case .notApplicable?, nil: EmptyView()
         }
     }
@@ -1117,7 +1117,7 @@ private struct RegistrationPlayerSheetHeader: ViewModifier {
 
     private var title: some View {
         Text("registration.form.title")
-            .font(.title3.weight(.bold))
+            .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .accessibilityAddTraits(.isHeader)
             .fixedSize()
@@ -1129,7 +1129,7 @@ private struct RegistrationRoundCloseStyle: ButtonStyle {
     @Environment(\.cyPalette) private var palette
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.subheadline.weight(.bold))
+            .cyText(.bodyMedium)
             .foregroundStyle(palette.textSecondary)
             .frame(width: 32, height: 32)
             .background(Circle().fill(palette.bgElevated))

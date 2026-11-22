@@ -48,7 +48,7 @@ import SwiftUI
 
     @ViewBuilder private var form: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text("mp.feedback.category").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+            Text("mp.feedback.category").cyText(.label).foregroundStyle(CYColor.textSecondary)
             Picker(selection: $category) {
                 Text("mp.feedback.category.place").tag(PostGameFeedbackCategory.place)
                 Text("mp.feedback.category.question").tag(PostGameFeedbackCategory.question)
@@ -60,7 +60,7 @@ import SwiftUI
         }
         if !nodes.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("mp.feedback.node").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                Text("mp.feedback.node").cyText(.label).foregroundStyle(CYColor.textSecondary)
                 Picker(selection: $nodeID) {
                     Text("mp.feedback.node.none").tag(String?.none)
                     ForEach(nodes) { node in
@@ -89,7 +89,7 @@ import SwiftUI
                 .accessibilityLabel(Text("mp.feedback.text"))
                 .accessibilityIdentifier("journeyFeedback.text")
             Text("mp.feedback.count \(text.unicodeScalars.count) \(PostGameFeedbackDraft.maxContent)")
-                .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
         }
         status
         CYScreenOfflineWriteBanner(
@@ -118,7 +118,7 @@ import SwiftUI
         case .sending:
             HStack(spacing: CYSpacing.sm) {
                 ProgressView()
-                Text("mp.feedback.sending").font(CYTypography.label)
+                Text("mp.feedback.sending").cyText(.label)
             }
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             .accessibilityElement(children: .combine)
@@ -136,7 +136,7 @@ import SwiftUI
         VStack(spacing: CYSpacing.lg) {
             Image(systemName: "checkmark.circle").font(CYTypography.dataXL).foregroundStyle(CYNight.lantern)
                 .accessibilityHidden(true)
-            Text("mp.feedback.received").font(CYTypography.bodyMedium).multilineTextAlignment(.center)
+            Text("mp.feedback.received").cyText(.bodyMedium).multilineTextAlignment(.center)
                 .accessibilityIdentifier("journeyFeedback.received")
             HStack(spacing: CYSpacing.md) {
                 CYPillButton("mp.feedback.another", style: .secondary) {

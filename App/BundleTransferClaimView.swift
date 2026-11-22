@@ -57,7 +57,7 @@ import SwiftUI
             TextField(text: $code) { text("transfer.claim.code") }
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
-                .font(CYTypography.body)
+                .cyText(.body)
                 .padding(CYSpacing.md)
                 .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityLabel(text("transfer.claim.code"))
@@ -79,7 +79,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYSkeleton().accessibilityHidden(true)
                 text("transfer.claiming")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

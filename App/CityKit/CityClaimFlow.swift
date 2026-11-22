@@ -76,11 +76,11 @@ struct CityCheckRow: View {
                 case .failed: Image(systemName: "xmark.circle.fill").foregroundStyle(palette.danger).transition(swap)
                 }
             }
-            .font(.title3).frame(width: 28, height: 28).accessibilityHidden(true)
+            .cyText(.sectionTitle).frame(width: 28, height: 28).accessibilityHidden(true)
             .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: state)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
-                Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: detail).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }
@@ -171,7 +171,7 @@ struct CityClaimSheet: View {
                 ])
                 primary
                 Text(verbatim: copy("报价 5 分钟内有效 · 确认前不扣积分", "Quote valid 5 minutes · nothing is charged before you confirm"))
-                    .font(CYTypography.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
+                    .cyText(.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                 if let issue = store.issueCode {
                     CityBanner(text: CityReasonCopy.text(issue, chinese: copy.chinese), symbol: "exclamationmark.circle", tone: .error)
                 }
@@ -244,7 +244,7 @@ struct CityClaimSheet: View {
             VStack(spacing: CYSpacing.sm) {
                 if let reason = blockingReason, phase == .idle {
                     // The reason sits directly above the disabled button (xrefs-1 B.1).
-                    Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: reason).cyText(.meta).foregroundStyle(palette.textSecondary)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity)
                         .transition(.opacity)
                 }
@@ -288,9 +288,9 @@ struct CityClaimSheet: View {
                 .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { thumbFrame = $0 }
                 .accessibilityLabel(Text(verbatim: copy("现场照片", "On-site photo")))
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: copy("现场照片", "On-site photo")).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: copy("现场照片", "On-site photo")).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 Text(verbatim: copy("圈下后它就是这张地契的封面", "Once claimed, it becomes this deed's cover"))
-                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }

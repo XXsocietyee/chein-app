@@ -21,7 +21,7 @@ public struct CYDocumentHeading: View {
     public init(verbatim text: String) { self.text = text }
     public var body: some View {
         Text(verbatim: text)
-            .font(CYTypography.cardTitle)
+            .cyText(.cardTitle)
             .foregroundStyle(CYColor.textPrimary)
             .accessibilityAddTraits(.isHeader)
     }

@@ -76,17 +76,17 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
             Text(verbatim: row.titleName.isEmpty ? "—" : row.titleName)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .cyWrapText()
-            Text(verbatim: invoiceTime(row.createTime, locale: locale)).font(CYTypography.meta)
+            Text(verbatim: invoiceTime(row.createTime, locale: locale)).cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .cyWrapText()
             Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale))
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textSecondary)
             if let tax = row.taxNoMasked, !tax.isEmpty {
-                Text(verbatim: tax).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: tax).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

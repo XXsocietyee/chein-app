@@ -182,7 +182,7 @@ struct CYShareComposer<Controls: View, Actions: View>: View {
                 Text(verbatim: captionPlaceholder)
             }
             .lineLimit(1...3)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(palette.textPrimary)
             .focused($captionFocused)
             .submitLabel(.done)
@@ -199,7 +199,7 @@ struct CYShareComposer<Controls: View, Actions: View>: View {
             }
             .accessibilityIdentifier(accessibilityPrefix + ".caption")
             Text(verbatim: "\(caption.count)/\(captionLimit)")
-                .font(CYTypography.micro).monospacedDigit()
+                .cyText(.micro).monospacedDigit()
                 .foregroundStyle(palette.textTertiary)
                 .accessibilityHidden(true)
         }

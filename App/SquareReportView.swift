@@ -43,9 +43,9 @@ extension EnvironmentValues {
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Text(LocalizedStringKey(context?.coordinator.service.synthetic == true ? "squareReport.synthetic" : "squareReport.boundary"))
-                    .font(.footnote).accessibilityIdentifier("squareReport.boundary")
+                    .cyText(.bodyCompact).accessibilityIdentifier("squareReport.boundary")
                 LabeledContent(target.type == "CONTENT" ? "social.targetPost" : "social.targetComment", value: String(target.id))
-                Text("squareReport.noRemoval").font(.footnote)
+                Text("squareReport.noRemoval").cyText(.bodyCompact)
             }
             if busy { CYSkeleton().accessibilityIdentifier("squareReport.loading") }
             if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("squareReport.message") }
@@ -65,7 +65,7 @@ extension EnvironmentValues {
                         }.frame(minHeight: 44)
                     }.disabled(busy).accessibilityIdentifier("squareReport.chooseReason")
                     LabeledContent("squareReport.policyVersion", value: snapshot.policy.version)
-                    Text("squareReport.sourceLabels").font(.footnote).foregroundStyle(.secondary)
+                    Text("squareReport.sourceLabels").cyText(.bodyCompact).foregroundStyle(.secondary)
                     if selectedReason?.emergency == true, snapshot.policy.emergencyGuidanceCode == "CONTACT_LOCAL_EMERGENCY_SERVICES" {
                         Text("squareReport.emergency").foregroundStyle(.secondary)
                     }
@@ -74,7 +74,7 @@ extension EnvironmentValues {
                     TextEditor(text: $description).frame(minHeight: 140).focused($descriptionFocused)
                         .accessibilityLabel("squareReport.description").accessibilityIdentifier("squareReport.description")
                     Text("\(description.utf16.count)/2000").foregroundStyle(description.utf16.count > 2000 ? CYColor.dangerText : CYColor.textSecondary)
-                    Text("squareReport.noAttachments").font(.footnote)
+                    Text("squareReport.noAttachments").cyText(.bodyCompact)
                 }
                 Section {
                     CYPillButton("social.review") { prepare(snapshot) }
@@ -137,7 +137,7 @@ extension EnvironmentValues {
                             } label: {
                                 HStack(spacing: CYSpacing.md) {
                                     reasonLabel(reason)
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .multilineTextAlignment(.leading)
@@ -213,7 +213,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: 4) {
             if locale.language.languageCode?.identifier != "zh", known.contains(reason.id) {
                 Text(LocalizedStringKey("squareReport.reasonLabel." + reason.id))
-                Text(verbatim: reason.label).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: reason.label).cyText(.meta).foregroundStyle(.secondary)
             } else { Text(verbatim: reason.label) }
         }
     }

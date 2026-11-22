@@ -93,7 +93,7 @@ import Combine
             Section { CYHeroHeader("templateCoin.rehearse", subtitle: controller.mode == .sourceExample ? "templateCoin.exampleOnly" : nil) }.e1HeroRow()
             if let state = controller.visibleState {
                 Section {
-                    Text(verbatim: state.kicker).font(CYTypography.sectionTitle).accessibilityIdentifier("templateCoin.kicker")
+                    Text(verbatim: state.kicker).cyText(.sectionTitle).accessibilityIdentifier("templateCoin.kicker")
                     side(state.heads, key: "templateCoin.heads")
                     side(state.tails, key: "templateCoin.tails")
                 }
@@ -109,8 +109,8 @@ import Combine
                 }
                 if let result = state.result {
                     Section("templateCoin.result") {
-                        Text(LocalizedStringKey(result.face.labelKey)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: result.side.label).font(CYTypography.dataXL).accessibilityIdentifier("templateCoin.result.label")
+                        Text(LocalizedStringKey(result.face.labelKey)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: result.side.label).cyText(.dataXL).accessibilityIdentifier("templateCoin.result.label")
                         if result.side.action.isEmpty { Text("templateCoin.emptyAction") }
                         else { Text(verbatim: result.side.action).accessibilityIdentifier("templateCoin.result.action") }
                     }
@@ -133,8 +133,8 @@ import Combine
     }
     private func side(_ side: TemplateCoinFlipRehearsal.Side, key: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-            Text(verbatim: side.label).font(CYTypography.cardTitle)
+            Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: side.label).cyText(.cardTitle)
             if side.action.isEmpty { Text("templateCoin.emptyAction").foregroundStyle(.secondary) }
             else { Text(verbatim: side.action) }
         }

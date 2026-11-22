@@ -39,7 +39,7 @@ struct CollectionAlbumHead: View {
                 ForEach(segments, id: \.self) { segment in
                     let on = segment == active
                     Button { select(segment) } label: {
-                        Text(segment.title).font(CYTypography.label)
+                        Text(segment.title).cyText(.label)
                             .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
                             .lineLimit(1)
                             .padding(.horizontal, CYSpacing.xl).frame(minHeight: CYSpacing.minTouchTarget)

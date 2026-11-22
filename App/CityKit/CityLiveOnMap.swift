@@ -155,7 +155,7 @@ struct CityLiveMapControls: View {
                 else { ProgressView().tint(palette.actionPrimaryFg) }
                 Text(verbatim: title).lineLimit(1)
             }
-            .font(CYTypography.button)
+            .cyText(.button)
             .foregroundStyle(palette.actionPrimaryFg)
             .frame(maxWidth: .infinity, minHeight: 52)
             .background(palette.actionPrimaryBg, in: Capsule())
@@ -193,10 +193,10 @@ struct CityLiveMapControls: View {
 
     private func reading(_ value: String, label: String) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value).font(CYTypography.cardTitle.monospacedDigit()).foregroundStyle(palette.textPrimary)
+            Text(verbatim: value).cyText(.cardTitle, monospacedDigit: true).foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText())
                 .animation(reduceMotion ? nil : CYMotion.numericRoll, value: value)
-            Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+            Text(verbatim: label).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
     }

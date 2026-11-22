@@ -128,13 +128,13 @@ import SwiftUI
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     Text(verbatim: copy("Continue your last draft", "继续上次的草稿"))
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                     Text(verbatim: name.isEmpty ? copy("Untitled draft", "未命名草稿") : name)
-                        .font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                        .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                     if stops > 0 {
                         Text(verbatim: copy("\(stops) places", "\(stops) 个地点"))
-                            .font(CYTypography.meta).monospacedDigit().foregroundStyle(palette.textSecondary)
+                            .cyText(.meta).monospacedDigit().foregroundStyle(palette.textSecondary)
                     }
                 }
                 Spacer(minLength: CYSpacing.sm)
@@ -176,8 +176,8 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Image(systemName: symbol).font(.title2).foregroundStyle(palette.textPrimary).accessibilityHidden(true)
             Spacer(minLength: CYSpacing.lg)
-            Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).cyWrapText()
-            Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(palette.textSecondary).cyWrapText()
+            Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).cyWrapText()
+            Text(verbatim: detail).cyText(.meta).foregroundStyle(palette.textSecondary).cyWrapText()
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)

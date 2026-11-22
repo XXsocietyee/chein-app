@@ -37,7 +37,7 @@ import SwiftUI
                 CYHeroHeader("club.chat.title", subtitle: "club.chat.explanation")
                 if !model.owner.service.isConfigured {
                     Text("club.chat.disabled")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.chat.disabled")
@@ -80,18 +80,18 @@ import SwiftUI
             CYSkeleton().accessibilityLabel(Text("club.chat.loading"))
         case .unknown:
             Text("club.chat.unknown")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("club.chat.unknown")
         case .rejected:
             Text("club.chat.rejected")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         case .stale:
             Text("poll.stale")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         default:

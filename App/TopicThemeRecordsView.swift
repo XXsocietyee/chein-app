@@ -25,15 +25,15 @@ import SwiftUI
                 NavigationLink { TopicThemeCardView(sessionID: row.sessionID, reader: reader) } label: {
                     VStack(alignment: .leading, spacing: 3) {
                         switch row.title {
-                        case .server(let text): Text(verbatim: text).font(.headline)
-                        case .completed: Text("topicXcx.records.completed").font(.headline)
-                        case .ended: Text("topicXcx.records.ended").font(.headline)
-                        case .playing: Text("topicXcx.records.playing").font(.headline)
+                        case .server(let text): Text(verbatim: text).cyText(.cardTitle)
+                        case .completed: Text("topicXcx.records.completed").cyText(.cardTitle)
+                        case .ended: Text("topicXcx.records.ended").cyText(.cardTitle)
+                        case .playing: Text("topicXcx.records.playing").cyText(.cardTitle)
                         }
-                        if let scene = row.sceneName { Text(verbatim: scene).font(.caption) }
-                        if let ended = row.endedAt { Text(verbatim: ended).font(.caption).foregroundStyle(.secondary) }
-                        else { Text("topicXcx.records.playing").font(.caption).foregroundStyle(.secondary) }
-                        if let summary = row.summary { Text(verbatim: summary).font(.footnote).lineLimit(2) }
+                        if let scene = row.sceneName { Text(verbatim: scene).cyText(.meta) }
+                        if let ended = row.endedAt { Text(verbatim: ended).cyText(.meta).foregroundStyle(.secondary) }
+                        else { Text("topicXcx.records.playing").cyText(.meta).foregroundStyle(.secondary) }
+                        if let summary = row.summary { Text(verbatim: summary).cyText(.bodyCompact).lineLimit(2) }
                     }
                 }.accessibilityIdentifier("topic.records.row.\(row.sessionID)")
             }
@@ -72,7 +72,7 @@ import SwiftUI
         List {
             if let card {
                 Section {
-                    if let title = card.title { Text(verbatim: title).font(.title3.bold()) } else { Text("topicXcx.records.cardTitle").font(.title3.bold()) }
+                    if let title = card.title { Text(verbatim: title).cyText(.sectionTitle) } else { Text("topicXcx.records.cardTitle").cyText(.sectionTitle) }
                     if let scene = card.scene { LabeledContent { Text(verbatim: scene) } label: { Text("topicXcx.records.scene") } }
                     if let summary = card.summary { Text(verbatim: summary) }
                 }
@@ -92,7 +92,7 @@ import SwiftUI
                 if !card.epilogues.isEmpty {
                     Section("topicXcx.records.epilogues") {
                         ForEach(Array(card.epilogues.enumerated()), id: \.offset) { _, row in
-                            VStack(alignment: .leading) { Text(verbatim: row.name).font(.headline); if let line = row.line { Text(verbatim: line) } }
+                            VStack(alignment: .leading) { Text(verbatim: row.name).cyText(.cardTitle); if let line = row.line { Text(verbatim: line) } }
                         }
                     }
                 }

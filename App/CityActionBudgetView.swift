@@ -134,7 +134,7 @@ import SwiftUI
             CYFactRow(label: Text(verbatim: copy("消耗", "Spent")), value: String(result.costUnits))
             CYFactRow(label: Text(verbatim: copy("剩余", "Remaining")), value: String(result.afterUnits))
             Text(verbatim: cloud06Shown(result.resultId))
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(palette.textTertiary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
@@ -144,7 +144,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYSectionHeader(LocalizedStringKey(copy("确认本次掷骰", "Confirm this roll")))
             Text(verbatim: copy("消耗 \(prepared.cost) 行动额度，仅记录服务器结果。", "Spends \(prepared.cost) action units and only records the server result."))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             CYPillButton(verbatim: copy("确认提交", "Confirm and submit"), style: lead == .submit ? .primary : .secondary, systemImage: "checkmark") {
@@ -157,7 +157,7 @@ import SwiftUI
                 .accessibilityLabel(Text(verbatim: copy("取消", "Cancel")))
             if !model.canSubmit {
                 Text(verbatim: copy("尚未取得本次原请求授权。", "This original request is not authorized yet."))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -165,7 +165,7 @@ import SwiftUI
     }
     private func focal(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(verbatim: label).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             Text(verbatim: value).font(typeSize.isAccessibilitySize ? CYTypography.sectionTitle : CYTypography.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(palette.textPrimary)

@@ -47,7 +47,7 @@ import SwiftUI
                 tone: receipt.succeeded ? .success : .danger
             )
             Text(verbatim: shown(receipt.message))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         } else {
@@ -55,7 +55,7 @@ import SwiftUI
             case .loading:
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text("cityOriginalRecovery.loading")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     CYSkeleton().accessibilityHidden(true)

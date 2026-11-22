@@ -147,10 +147,10 @@ public struct UITestFixtureShortCircuitRow: Identifiable, Equatable, Sendable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("uiTestShardDiagnostics.statusHeadline")
                 Text(verbatim: "总计分配 \(totalAssignedMethodCount) 个 UI 测试方法 · 零网络隔离：\(zeroNetworkVerified ? "已验证" : "未验证")")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("uiTestShardDiagnostics.isolationSummary")
             }
@@ -161,15 +161,15 @@ public struct UITestFixtureShortCircuitRow: Identifiable, Equatable, Sendable {
                         .foregroundStyle(shard.isHealthy ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "分片 \(shard.shardID) · 通过 \(shard.passedCount)/\(shard.methodCount)")
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: shard.usesTestWithoutBuilding ? "复用单次构建产物 (test-without-building)" : "缺少预构建产物复用")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     if shard.failedCount > 0 {
                         Text(verbatim: "失败 \(shard.failedCount)")
-                            .font(.caption.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .foregroundStyle(.red)
                     }
                 }
@@ -182,9 +182,9 @@ public struct UITestFixtureShortCircuitRow: Identifiable, Equatable, Sendable {
                         .foregroundStyle(fixture.isIsolated ? .blue : .orange)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(fixture.surfaceTitle) (\(fixture.launchFlag))")
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: "session = nil 短路：\(fixture.bypassesSessionBootstrap ? "是" : "否") · 零网络请求：\(fixture.enforcesZeroNetwork ? "是" : "否")")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }

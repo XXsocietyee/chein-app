@@ -84,13 +84,13 @@ import Combine
         Form {
             Section {
                 if editor.needsReload {
-                    Text("templateTeam.changed").font(.caption)
+                    Text("templateTeam.changed").cyText(.meta)
                     Button("templateTeam.reload") { editor.reload() }.disabled(!editor.canReload)
-                } else if !editor.isSupported { Text("templateTeam.unsupported").font(.caption) }
+                } else if !editor.isSupported { Text("templateTeam.unsupported").cyText(.meta) }
             }
             ForEach(Array(editor.roles.enumerated()), id: \.element.id) { index, role in
                 Section {
-                    Text("templateTeam.roleNumber \(index + 1)").font(.headline)
+                    Text("templateTeam.roleNumber \(index + 1)").cyText(.cardTitle)
                     TextField("creator.field.id", text: editor.text(role.id, field: .identifier)).textInputAutocapitalization(.never).autocorrectionDisabled()
                     TextField("creator.field.label", text: editor.text(role.id, field: .label), axis: .vertical)
                     TextField("creator.field.min", text: editor.text(role.id, field: .minimum)).keyboardType(.numbersAndPunctuation)
@@ -104,20 +104,20 @@ import Combine
             }
             Section {
                 Button("templateTeam.add", systemImage: "plus", action: editor.addAction()).disabled(!editor.canAdd)
-                Text("templateTeam.roleCount \(editor.roles.count)").font(.caption)
+                Text("templateTeam.roleCount \(editor.roles.count)").cyText(.meta)
             }
             Section("templateTeam.order") {
                 TextEditor(text: editor.orderInput()).frame(minHeight: 92).textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityLabel("templateTeam.order").accessibilityIdentifier("creator.team.order")
             }.disabled(!editor.canEdit)
             Section("templateTeam.preview") {
-                if editor.turns.isEmpty { Text("templateTeam.emptyOrder").font(.caption) }
+                if editor.turns.isEmpty { Text("templateTeam.emptyOrder").cyText(.meta) }
                 ForEach(editor.turns) { turn in
                     HStack(alignment: .top) {
                         Text(verbatim: "\(turn.id + 1). \(turn.roleID)")
                         Spacer()
                         if turn.resolvesUniquely { Text(verbatim: turn.labels[0]) }
-                        else { Label("templateTeam.unresolved", systemImage: "exclamationmark.triangle").font(.caption) }
+                        else { Label("templateTeam.unresolved", systemImage: "exclamationmark.triangle").cyText(.meta) }
                     }
                 }
             }

@@ -29,9 +29,9 @@ import PhotosUI
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Button("playkitCamera.openOverlay") { purpose = true }.disabled(!cameraEnabled || !active || authorizing)
-            Text("playkitCamera.screenSpaceOnly").font(.footnote).foregroundStyle(.secondary)
-            if !cameraEnabled { Text("playkitCamera.configGate").font(.footnote) }
-            if failed { Text("playkitCamera.failedFallback").font(.footnote) }
+            Text("playkitCamera.screenSpaceOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
+            if !cameraEnabled { Text("playkitCamera.configGate").cyText(.bodyCompact) }
+            if failed { Text("playkitCamera.failedFallback").cyText(.bodyCompact) }
             if denied {
                 Button(action: openCameraSettings) { Text("scanner.openSettings") }
                     .accessibilityIdentifier("playkit.camera.openSettings")

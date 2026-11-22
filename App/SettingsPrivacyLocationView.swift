@@ -52,7 +52,7 @@ import SwiftUI
             // Mini-program privacy sheet: the location sentence, the guide, then home city, presence, roam and own media.
             Section {
                 Text("member.privacy.sheetBody", tableName: "MemberProfile")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("member.privacy.sheetBody")
             }
@@ -65,7 +65,7 @@ import SwiftUI
                 SettingsHomeCityLocationControls(compliance: compliance)
             } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
             Section {
-                Text("member.privacy.presence.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                Text("member.privacy.presence.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Button {
                     guard let disablePresence, !disablingPresence else { return }
                     disablingPresence = true
@@ -102,7 +102,7 @@ import SwiftUI
                 }
             }
             Section {
-                Text("member.privacy.roam.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                Text("member.privacy.roam.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
                 if compliance != nil {
                     CYPillButton("member.privacy.roam.withdraw", style: .secondary, tableName: "MemberProfile") { showsRoam = true }
                         .accessibilityIdentifier("member.privacy.roam.withdraw")
@@ -238,11 +238,11 @@ struct OwnMediaRow: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 type
-                Text(verbatim: "#\(asset.id)").foregroundStyle(.secondary).font(.footnote.monospacedDigit())
+                Text(verbatim: "#\(asset.id)").foregroundStyle(.secondary).cyText(.numericBody)
                 Spacer()
-                state.font(.subheadline.weight(.semibold))
+                state.cyText(.bodyMedium)
             }
-            if !asset.reviewReason.isEmpty { Text(verbatim: asset.reviewReason).font(.footnote).foregroundStyle(.secondary) }
+            if !asset.reviewReason.isEmpty { Text(verbatim: asset.reviewReason).cyText(.bodyCompact).foregroundStyle(.secondary) }
         }.accessibilityElement(children: .combine)
     }
     @ViewBuilder private var type: some View {
@@ -302,7 +302,7 @@ struct OwnMediaRow: View {
         .accessibilityHint(Text("member.privacy.sheetBody", tableName: "MemberProfile"))
         if let shown = messageKey {
             Text(LocalizedStringKey(shown), tableName: "MemberProfile")
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("member.privacy.homeCity.status")
         }

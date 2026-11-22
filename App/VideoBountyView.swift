@@ -215,7 +215,7 @@ struct VideoBountyView: View {
 
     private var campaignAttribution: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text("mp.vb.attribution.campaign").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+            Text("mp.vb.attribution.campaign").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
             TextField("mp.vb.attribution.campaignId", text: $campaignID)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -248,29 +248,29 @@ struct VideoBountyView: View {
             HStack(spacing: CYSpacing.xs) {
                 if let platform = row.platform { Text(verbatim: platform.label) } else { Text("mp.vb.video") }
             }
-            .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             if let url = row.sourceURL, !url.isEmpty {
-                Text(verbatim: url).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).truncationMode(.middle)
+                Text(verbatim: url).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).truncationMode(.middle)
             }
-            if let end = row.windowEndText { Text("mp.vb.windowEnd \(end)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            if let note = row.reviewNote, !note.isEmpty { Text(verbatim: note).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let end = row.windowEndText { Text("mp.vb.windowEnd \(end)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if let note = row.reviewNote, !note.isEmpty { Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             Button("mp.vb.attribution") {
                 attributionID = row.id
                 onSubmissionAttribution(row.id)
             }
-            .font(CYTypography.label).frame(minHeight: CYSpacing.minTouchTarget)
+            .cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
             .accessibilityIdentifier("videoBounty.attribution.\(row.id)")
             if row.canAppeal || row.canCancel {
                 HStack(spacing: CYSpacing.lg) {
                     if row.canAppeal {
                         Button("mp.vb.appeal") { appealTarget = row }
-                            .font(CYTypography.label).frame(minHeight: CYSpacing.minTouchTarget)
+                            .cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("videoBounty.appeal.\(row.id)")
                     }
                     if row.canCancel {
                         Button("mp.vb.cancel.confirm", role: .destructive) { cancelTarget = row }
-                            .font(CYTypography.label).foregroundStyle(CYColor.dangerText).frame(minHeight: CYSpacing.minTouchTarget)
+                            .cyText(.label).foregroundStyle(CYColor.dangerText).frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("videoBounty.cancel.\(row.id)")
                     }
                 }
@@ -343,15 +343,15 @@ private struct VideoBountyAttributionSheet: View {
                     Text(verbatim: fact.status)
                 }
             }
-            .font(CYTypography.bodyMedium)
+            .cyText(.bodyMedium)
             .accessibilityIdentifier("videoBounty.attribution.status")
             count("mp.vb.attribution.orders", fact.attributedOrders, "attributed")
             count("mp.vb.attribution.paid", fact.paidOrders, "paidOrders")
             count("mp.vb.attribution.amount", fact.paidAmount, "paidAmount")
             count("mp.vb.attribution.refunded", fact.refundedOrders, "refundedOrders")
             count("mp.vb.attribution.refundAmount", fact.refundedAmount, "refundedAmount")
-            Text("mp.vb.attribution.currencyNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            Text(verbatim: fact.amountCurrency).font(CYTypography.meta).accessibilityIdentifier("videoBounty.attribution.currency")
+            Text("mp.vb.attribution.currencyNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: fact.amountCurrency).cyText(.meta).accessibilityIdentifier("videoBounty.attribution.currency")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -362,7 +362,7 @@ private struct VideoBountyAttributionSheet: View {
             Spacer()
             Text(verbatim: value).accessibilityIdentifier("videoBounty.attribution." + id)
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .frame(minHeight: CYSpacing.minTouchTarget)
     }
 }

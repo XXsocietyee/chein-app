@@ -43,7 +43,7 @@ private struct DiscoveryCoverUnavailable: View {
                 .font(CYTypography.label)
                 .accessibilityHidden(true)
             Text("discovery.coverUnavailable")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -69,7 +69,7 @@ struct DiscoveryTemplateSyncingRow: View {
     var body: some View {
         if TemplateBrowserPort.showsSyncingLine(isLoading: true, hasLoadedRows: hasLoadedRows) {
             Text("discovery.syncing")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.updatesFrequently)

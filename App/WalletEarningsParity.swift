@@ -20,8 +20,8 @@ struct WalletIncomeDayText: View {
 struct WalletEarningsEmptyNote: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("member.wallet.noEarnings", tableName: "MemberProfile").font(.headline)
-            Text("member.wallet.noEarningsHint", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+            Text("member.wallet.noEarnings", tableName: "MemberProfile").cyText(.cardTitle)
+            Text("member.wallet.noEarningsHint", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
         }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.earnings.empty")
     }
 }

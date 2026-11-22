@@ -45,7 +45,7 @@ enum MerchantAreaPopupCloseFixtures {
                 onClose: {}
             ) {
                 Text("按章节招募的线下节点支持承接点配置与暂停降级。")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
             })
         default:

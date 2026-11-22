@@ -39,7 +39,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYSkeleton().accessibilityHidden(true)
                 Text(verbatim: catalog("bundle.redeem.loading"))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -71,7 +71,7 @@ import SwiftUI
                 }
                 if let reason = result.reason, !reason.isEmpty, presentation == .rejected || presentation == .review {
                     Text(verbatim: Cloud03Copy.shown(reason))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

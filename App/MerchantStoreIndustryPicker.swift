@@ -34,11 +34,11 @@ import SwiftUI
                 if value.categorySourceUnavailable { Text("merchant.industry.sourceUnreadable").fixedSize(horizontal: false, vertical: true) }
                 else if !value.selectedCategoryIDs.isEmpty {
                     Text(value.industryNames.joined(separator: " · ")).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("merchant.industry.currentID")
-                    Text("merchant.industry.currentID \(value.selectedCategoryIDs[0])").font(.caption).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                    Text("merchant.industry.currentID \(value.selectedCategoryIDs[0])").cyText(.meta).monospacedDigit().fixedSize(horizontal: false, vertical: true)
                 } else { Text("merchant.industry.none") }
                 Button("merchant.industry.choose") { picker = .init(document: document) }
                     .disabled(!editable).accessibilityIdentifier("merchant.industry.open")
-                Text("merchant.industry.orderedHint").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text("merchant.industry.orderedHint").cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             .sheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value
@@ -101,7 +101,7 @@ import SwiftUI
                             }
                         }
                         if model.selection.limitReached { Text("merchant.industry.limit").foregroundStyle(CYColor.warningText).fixedSize(horizontal: false, vertical: true) }
-                        Text("merchant.industry.selectionInvalid").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                        Text("merchant.industry.selectionInvalid").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                     }
                     Button("merchant.industry.reload") { Task { await model.reload() } }.accessibilityIdentifier("merchant.industry.reload")
                 }
@@ -133,7 +133,7 @@ struct MerchantStoreIndustryReview: View {
                     .monospacedDigit().fixedSize(horizontal: false, vertical: true)
             }
                 .accessibilityIdentifier("merchant.industry.review.new")
-            Text("merchant.industry.reviewOrdered").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text("merchant.industry.reviewOrdered").cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

@@ -126,7 +126,7 @@ public struct WebViewAndExternalSafariSandboxSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "网页容器与外部链接沙箱安全审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("webViewSandbox.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -135,22 +135,22 @@ public struct WebViewAndExternalSafariSandboxSectionView: View {
                     .accessibilityIdentifier("webViewSandbox.overallStatus")
 
                 Text(verbatim: Self.atsStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("webViewSandbox.atsStatus")
 
                 Text(verbatim: Self.jsBridgeStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("webViewSandbox.jsBridgeStatus")
 
                 Text(verbatim: Self.tokenRedactionStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("webViewSandbox.tokenRedactionStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无网页容器与外部链接沙箱检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("webViewSandbox.empty")
             } else {
@@ -195,19 +195,19 @@ private struct WebContainerPolicyRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.containerTitle)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isContainerSafe ? "安全" : "告警")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isContainerSafe ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "HTTPS：\(row.enforcesHTTPSOnly ? "强制" : "未强制") · JS Bridge：\(row.untrustedJSBridgeDisabled ? "已禁用" : "未禁用") · Token 脱敏：\(row.redactsQueryAuthTokens ? "已开启" : "未开启")")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

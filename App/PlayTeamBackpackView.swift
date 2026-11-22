@@ -66,15 +66,15 @@ import SwiftUI
     @ViewBuilder private func content(_ snapshot: PlayTeamBackpackSnapshot) -> some View {
         let bag = snapshot.backpack
         Section {
-            LabeledContent { Text("playx.backpack.slots \(bag.used) \(bag.capacity)").font(CYTypography.numericBody) } label: { Text("playTeam.load") }
+            LabeledContent { Text("playx.backpack.slots \(bag.used) \(bag.capacity)").cyText(.numericBody) } label: { Text("playTeam.load") }
             ForEach(bag.values, id: \.key) { row in
                 LabeledContent {
-                    Text(verbatim: row.max.map { "\(row.value) / \($0)" } ?? row.value).font(CYTypography.numericBody)
+                    Text(verbatim: row.max.map { "\(row.value) / \($0)" } ?? row.value).cyText(.numericBody)
                 } label: {
                     HStack { valueName(row.name); if row.zero { Text("playx.backpack.zero").foregroundStyle(CYColor.dangerText) } }
                 }
             }
-            if bag.claimOnly { Text("playx.backpack.claimOnly").font(.footnote) }
+            if bag.claimOnly { Text("playx.backpack.claimOnly").cyText(.bodyCompact) }
         } header: { Text("playTeam.title") }
         .accessibilityIdentifier("playTeam.summary")
         if !bag.pending.isEmpty {
@@ -85,7 +85,7 @@ import SwiftUI
                         HStack(spacing: 4) {
                             if let q = row.quantity { Text(verbatim: "×\(q)") }
                             if let slots = row.slots { Text("playx.backpack.takesSlots \(slots)") }
-                        }.font(.caption)
+                        }.cyText(.meta)
                     }
                 }
             }
@@ -96,7 +96,7 @@ import SwiftUI
                     HStack {
                         valueName(item.name)
                         Spacer()
-                        if let q = item.quantity { Text(verbatim: "×\(q)").font(CYTypography.numericBody) }
+                        if let q = item.quantity { Text(verbatim: "×\(q)").cyText(.numericBody) }
                     }
                     .accessibilityElement(children: .combine)
                 }
@@ -109,7 +109,7 @@ import SwiftUI
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: row.title)
-                            if !row.statusText.isEmpty { Text(verbatim: row.statusText).font(.caption).foregroundStyle(CYColor.textSecondary) }
+                            if !row.statusText.isEmpty { Text(verbatim: row.statusText).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         }
                         Spacer()
                         Button("playTeam.hint") { openHelp(snapshot, questKey: row.contentId) }
@@ -126,15 +126,15 @@ import SwiftUI
             Section("playx.backpack.tab.clues") {
                 ForEach(bag.clues) { clue in
                     VStack(alignment: .leading, spacing: 4) {
-                        if let n = clue.name { Text(verbatim: n).font(.headline) } else { Text("playx.backpack.clue").font(.headline) }
+                        if let n = clue.name { Text(verbatim: n).cyText(.cardTitle) } else { Text("playx.backpack.clue").cyText(.cardTitle) }
                         switch clue.scope {
-                        case .publicAll: Text("playx.backpack.scope.public").font(.caption)
-                        case .team: Text("playx.backpack.scope.team").font(.caption)
+                        case .publicAll: Text("playx.backpack.scope.public").cyText(.meta)
+                        case .team: Text("playx.backpack.scope.team").cyText(.meta)
                         case .none: EmptyView()
                         }
                         if let content = clue.content { Text(verbatim: content).textSelection(.enabled) }
                         ForEach(Array(clue.blocks.enumerated()), id: \.offset) { _, block in
-                            if let source = block.source { Text(verbatim: source).font(.caption).foregroundStyle(.secondary) }
+                            if let source = block.source { Text(verbatim: source).cyText(.meta).foregroundStyle(.secondary) }
                             if let text = block.text { Text(verbatim: text).textSelection(.enabled) }
                         }
                     }
@@ -152,9 +152,9 @@ import SwiftUI
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("playTeam.trade.team \(target.teamId)")
-                            if target.completed { Text("playTeam.trade.completed").font(.caption) }
-                            if !target.stationName.isEmpty { Text("playTeam.trade.station \(target.stationName)").font(.caption) }
-                            if !target.reason.isEmpty { Text(verbatim: target.reason).font(.caption).foregroundStyle(CYColor.textSecondary) }
+                            if target.completed { Text("playTeam.trade.completed").cyText(.meta) }
+                            if !target.stationName.isEmpty { Text("playTeam.trade.station \(target.stationName)").cyText(.meta) }
+                            if !target.reason.isEmpty { Text(verbatim: target.reason).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         }
                         Spacer()
                         Button("playTeam.trade.select") { tradeForm = PlayTeamTradePreview.form(target: target, snapshot: snapshot) }
@@ -166,10 +166,10 @@ import SwiftUI
                 ForEach(trade.tradeRows) { row in
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.statusText).font(.subheadline)
-                        if !row.stationName.isEmpty { Text("playTeam.trade.station \(row.stationName)").font(.caption) }
-                        LabeledContent("playTeam.trade.give") { Text(verbatim: row.giveText) }.font(.caption)
-                        LabeledContent("playTeam.trade.take") { Text(verbatim: row.takeText) }.font(.caption)
-                        if row.confirmed && row.status == "OPEN" { Text("playTeam.trade.confirmedWaiting").font(.caption) }
+                        if !row.stationName.isEmpty { Text("playTeam.trade.station \(row.stationName)").cyText(.meta) }
+                        LabeledContent("playTeam.trade.give") { Text(verbatim: row.giveText) }.cyText(.meta)
+                        LabeledContent("playTeam.trade.take") { Text(verbatim: row.takeText) }.cyText(.meta)
+                        if row.confirmed && row.status == "OPEN" { Text("playTeam.trade.confirmedWaiting").cyText(.meta) }
                     }
                 }
             }
@@ -205,7 +205,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             List {
-                if !flow.freeText.isEmpty { Text(verbatim: flow.freeText).font(.footnote).foregroundStyle(CYColor.textSecondary) }
+                if !flow.freeText.isEmpty { Text(verbatim: flow.freeText).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 ForEach(flow.rows) { row in
                     HStack {
                         Text(verbatim: row.title)
@@ -230,7 +230,7 @@ import SwiftUI
                 if !flow.content.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: flow.content).textSelection(.enabled)
-                        if let points = flow.chargedPoints { Text("playTeam.help.charged \(points)").font(.caption).foregroundStyle(CYColor.textSecondary) }
+                        if let points = flow.chargedPoints { Text("playTeam.help.charged \(points)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     }.accessibilityIdentifier("playTeam.help.content")
                 }
                 if let skip = flow.skip {
@@ -314,8 +314,8 @@ import SwiftUI
         NavigationStack {
             Form {
                 Section {
-                    Text("playTeam.trade.with \(form.toTeamId)").font(.headline)
-                    Text("playTeam.trade.hint").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                    Text("playTeam.trade.with \(form.toTeamId)").cyText(.cardTitle)
+                    Text("playTeam.trade.hint").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }
                 ForEach($form.items) { $item in
                     Section(item.name) {
@@ -520,7 +520,7 @@ import SwiftUI
 
     private func outcome(_ key: LocalizedStringKey, _ identifier: String) -> some View {
         Text(key)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textPrimary)
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -544,7 +544,7 @@ import SwiftUI
     private func receiptLine(_ title: LocalizedStringKey, _ shown: String) -> some View {
         CurA11yPair(
             leading: Text(title)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true),

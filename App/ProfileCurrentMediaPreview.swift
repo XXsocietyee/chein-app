@@ -40,7 +40,7 @@ import UIKit
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             (kind == .caseImage ? Text("profile.currentMedia.savedWork", tableName: "ProfileCurrentMediaUI") : Text("profile.currentMedia.savedQR", tableName: "ProfileCurrentMediaUI"))
-                .font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                .cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true)
             if let context {
                 ScrollView(.horizontal) {
                     LazyHStack(alignment: .top, spacing: 12) {
@@ -65,7 +65,7 @@ import UIKit
                     .accessibilityIdentifier("profile.currentMedia.unavailable.\(kind.rawValue)")
             }
             Text("profile.currentMedia.savedOnly", tableName: "ProfileCurrentMediaUI")
-                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
         .privacySensitive()
         .onChange(of: context?.keys) { _, keys in
@@ -99,9 +99,9 @@ import UIKit
                     .id(context.keys[index])
                 // Keep the action and actual loading/failure/unavailable text in
                 // the combined button label rather than hiding it behind a generic image label.
-                Text("media.destination.openImage").font(.caption)
+                Text("media.destination.openImage").cyText(.meta)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("\(index + 1) / \(context.sources.count)").monospacedDigit().font(.caption)
+                Text("\(index + 1) / \(context.sources.count)").monospacedDigit().cyText(.meta)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(width: stacked ? nil : ProfileCurrentMediaPreviewLayout.thumbnailSide)

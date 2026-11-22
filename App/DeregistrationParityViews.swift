@@ -26,7 +26,7 @@ struct DeregistrationExecuteAfterRow: View {
                     Text("authEntry.deregister.beijingTime", tableName: "AuthEntry")
                     Text(verbatim: beijing).monospacedDigit()
                 }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
@@ -37,7 +37,7 @@ struct DeregistrationExecuteAfterRow: View {
             } icon: {
                 Image(systemName: "clock.badge.checkmark").accessibilityHidden(true)
             }
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -50,7 +50,7 @@ struct DeregistrationExecuteAfterRow: View {
 
     private var label: some View {
         Text(executeAfterTitle, tableName: "AuthEntry")
-            .font(CYTypography.cardTitle)
+            .cyText(.cardTitle)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -58,7 +58,7 @@ struct DeregistrationExecuteAfterRow: View {
     @ViewBuilder private var value: some View {
         if let display = BeijingServerTime(raw).display(phoneTimeZone: phoneTimeZone) {
             Text(verbatim: display.phone + (display.phoneZoneAbbreviation.map { " (" + $0 + ")" } ?? ""))
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(typeSize.isAccessibilitySize ? .leading : .trailing)
                 .fixedSize(horizontal: false, vertical: true)
@@ -68,7 +68,7 @@ struct DeregistrationExecuteAfterRow: View {
                 .accessibilityHint(Text("authEntry.deregister.serverDecides", tableName: "AuthEntry"))
         } else {
             Text(verbatim: "—")
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("authEntry.deregister.timePending")
                 .accessibilityLabel(Text(executeAfterTitle, tableName: "AuthEntry"))
@@ -97,7 +97,7 @@ struct DeregistrationVerificationUnavailableSection: View {
                             .accessibilityIdentifier("authEntry.deregister.verificationUnavailable")
                     }
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             }

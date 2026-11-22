@@ -47,7 +47,7 @@ struct RoamDistanceLabel: View {
             Text(Measurement(value: meters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
                 .monospacedDigit()
         }
-        .font(.caption).foregroundStyle(.secondary)
+        .cyText(.meta).foregroundStyle(.secondary)
     }
 }
 enum RoamScreenIssue {
@@ -88,7 +88,7 @@ struct RoamStatusView: View {
         // Kit state: icon, one line, one quiet action. Same copy and identifier as before.
         VStack(spacing: CYSpacing.sm) {
             CYEmptyState(systemImage: "map", issue.title, actionTitle: canRetry ? "action.retry" : nil, action: retry)
-            Text(issue.message).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            Text(issue.message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center).padding(.horizontal, CYSpacing.xxl)
             if case .unauthorized = issue, let onSignIn {
                 CYPillButton("auth.signIn", style: .primary, fullWidth: false, action: onSignIn)

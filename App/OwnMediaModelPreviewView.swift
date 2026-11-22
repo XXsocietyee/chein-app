@@ -177,7 +177,7 @@ private struct OwnMediaModelPreviewViewIdentity: Hashable {
             Button { model.open() } label: { Text("open", tableName: "OwnMediaModelPreview") }
                 .disabled(!model.available || model.presentation != nil).frame(minHeight: 44)
                 .accessibilityIdentifier("member.media.modelPreview.\(model.asset.id)")
-            if !model.available { Text("unavailable", tableName: "OwnMediaModelPreview").font(.footnote).foregroundStyle(.secondary) }
+            if !model.available { Text("unavailable", tableName: "OwnMediaModelPreview").cyText(.bodyCompact).foregroundStyle(.secondary) }
         }
         .onAppear { model.appear(foreground: scenePhase == .active) }
         .onDisappear { model.disappear() }
@@ -208,11 +208,11 @@ private struct OwnMediaModelPreviewViewIdentity: Hashable {
                 CYHeroHeader("title", tableName: "OwnMediaModelPreview")
                     .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Text("privateOnly", tableName: "OwnMediaModelPreview")
-                Text("staticOnly", tableName: "OwnMediaModelPreview").font(.footnote).foregroundStyle(.secondary)
+                Text("staticOnly", tableName: "OwnMediaModelPreview").cyText(.bodyCompact).foregroundStyle(.secondary)
                 if model.available, model.presentation == offered {
                     OwnMediaModelPreviewControls(model: model, offered: offered, operation: model.controlRevision)
                 } else { Text("unavailable", tableName: "OwnMediaModelPreview") }
-                Text("limits", tableName: "OwnMediaModelPreview").font(.footnote).foregroundStyle(.secondary)
+                Text("limits", tableName: "OwnMediaModelPreview").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {

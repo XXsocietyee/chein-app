@@ -84,13 +84,13 @@ import Combine
     var body: some View {
         Section {
             if owner.canConfirm(offered) {
-                Text(verbatim: localized(actionKey)).font(.headline)
+                Text(verbatim: localized(actionKey)).cyText(.cardTitle)
                 if let title = offered.value.title { Text(verbatim: title) }
                 if let question = offered.value.question { Text(verbatim: question) }
                 if let detail = offered.value.detail { Text(verbatim: detail).textSelection(.enabled).accessibilityIdentifier("playx.player.review.detail") }
                 if let level = offered.value.hintLevel { LabeledContent { Text(level, format: .number) } label: { Text(verbatim: localized("level")) } }
                 if let impact = offered.value.consequence { Text(verbatim: impact).accessibilityIdentifier("playx.player.review.consequence") }
-                Text(verbatim: localized("authority")).font(.footnote)
+                Text(verbatim: localized("authority")).cyText(.bodyCompact)
                 Button {
                     guard let claim = owner.claim(offered) else { return }
                     Task { await owner.execute(claim) }

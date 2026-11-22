@@ -98,8 +98,8 @@ struct ProjectStoryVariableHostIdentity: Hashable {
                                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
                                 : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
                             rowLayout {
-                                Text(verbatim: variable.token).font(.body.weight(.semibold)).foregroundStyle(.primary)
-                                Text(verbatim: variable.label).font(.body).foregroundStyle(.secondary)
+                                Text(verbatim: variable.token).cyText(.cardTitle).foregroundStyle(.primary)
+                                Text(verbatim: variable.label).cyText(.body).foregroundStyle(.secondary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 if controller.selectedKey?.utf8.elementsEqual(variable.key.utf8) == true { Image(systemName: "checkmark").accessibilityHidden(true) }
                             }.frame(minHeight: 44).padding(.vertical, 6)

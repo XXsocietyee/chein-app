@@ -161,7 +161,7 @@ import UIKit
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
                             Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textTertiary)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
@@ -274,13 +274,13 @@ import UIKit
                         // polish-d-r1: the footnote is the rail's subtitle, above the carousel, so it never sits under the tab bar.
                         if let items, !items.isEmpty {
                             Text("homeFeed.editorsPicksFootnote")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textTertiary)
                                 .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
                             if model.loading, !failed {
                                 // Also above the carousel, so it never lands under the tab bar.
                                 Text("homeFeed.updating.recommended")
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.textTertiary)
                                     .accessibilityIdentifier("homeFeed.updating.recommended")
                             }
@@ -324,7 +324,7 @@ import UIKit
                         case .upcoming: Text("homeFeed.updating.upcoming")
                         }
                     }
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
                 }
@@ -366,7 +366,7 @@ import UIKit
     /// Large, plain section title (mini-program `sec-title`): no small-caps grouped-list header.
     private func sectionHeader(_ title: Text) -> some View {
         title
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .padding(.top, CYSpacing.xs)
@@ -543,7 +543,7 @@ struct HomeFeedCard: View {
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
         let name = Text(label)
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
         return Group {
@@ -684,12 +684,12 @@ struct HomeTodayCard: View {
                 .cyEyebrow(isChinese: isChinese)
                 .foregroundStyle(.white.opacity(0.78))
             Text(verbatim: c.title)
-                .font(CYTypography.pageTitle)
+                .cyText(.pageTitle)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if let meta = c.meta {
-                Text(verbatim: meta).font(CYTypography.bodyCompact).monospacedDigit().foregroundStyle(.white.opacity(0.82))
+                Text(verbatim: meta).cyText(.bodyCompact).monospacedDigit().foregroundStyle(.white.opacity(0.82))
             }
             if let action = c.action {
                 CYPillButton(verbatim: c.pill, style: .primary, fullWidth: false) {

@@ -102,8 +102,8 @@ struct PlayNodeDetailView: View {
         let offeredAnswer = reviewOwner.capture(nodeID: nodeID)
         return Form {
             Section {
-                if let name = node.name, !name.isEmpty { Text(verbatim: name).font(.system(.title, design: .default).weight(.heavy)).foregroundStyle(CYColor.textPrimary) }
-                else { Text("play.node.untitled").font(.system(.title, design: .default).weight(.heavy)).foregroundStyle(CYColor.textPrimary) }
+                if let name = node.name, !name.isEmpty { Text(verbatim: name).cyText(.display).foregroundStyle(CYColor.textPrimary) }
+                else { Text("play.node.untitled").cyText(.display).foregroundStyle(CYColor.textPrimary) }
                 if let address = node.address, !address.isEmpty {
                     Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
@@ -129,7 +129,7 @@ struct PlayNodeDetailView: View {
                 if let description = node.description, !description.isEmpty { Section("play.description") { Text(verbatim: description) } }
                 if let title = node.gameTitle, !title.isEmpty {
                     Section("play.task") {
-                        Text(verbatim: title).font(.headline)
+                        Text(verbatim: title).cyText(.cardTitle)
                         if let rules = node.ruleInstructions, !rules.isEmpty { Text(verbatim: rules) }
                         if let materials = node.requiredMaterials, !materials.isEmpty { LabeledContent("play.materials") { Text(verbatim: materials) } }
                         if let duration = node.durationMinutes { LabeledContent("play.duration") { Text(verbatim: String(duration)) } }
@@ -139,14 +139,14 @@ struct PlayNodeDetailView: View {
                 }
                 if let ext = node.externalGame {
                     Section(W8Text.t("节点挑战小游戏", "Node External Game")) {
-                        Text(verbatim: ext.gameName ?? ext.gameID).font(.headline)
+                        Text(verbatim: ext.gameName ?? ext.gameID).cyText(.cardTitle)
                             .accessibilityIdentifier("play.node.externalGame.title")
                         if let minScore = ext.minScore, minScore > 0 {
                             Text(verbatim: W8Text.t("通关要求：得分 ≥ \(minScore)", "Min score: \(minScore)"))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                         }
                         if let extGameIssue {
-                            Text(verbatim: extGameIssue).font(CYTypography.meta).foregroundStyle(.red)
+                            Text(verbatim: extGameIssue).cyText(.meta).foregroundStyle(.red)
                         }
                         Button(isLaunchingExtGame ? W8Text.t("正在准备小游戏...", "Loading game...") : W8Text.t("启动外部小游戏", "Launch External Game")) {
                             Task { await launchBoundExternalGame(ext.gameID) }
@@ -204,7 +204,7 @@ struct PlayNodeDetailView: View {
                         .accessibilityIdentifier("play.answer.refreshProgress")
                 } else if availability.canAnswer {
                     if model.reader.supportsAnswerSubmission {
-                        Text("play.answer.instructions").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("play.answer.instructions").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         CYPillButton(verbatim: reviewLocalized("review")) {
                             do {
                                 try reviewOwner.prepare(answer: answer, offered: offeredAnswer)

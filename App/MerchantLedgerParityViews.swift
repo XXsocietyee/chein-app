@@ -32,21 +32,21 @@ struct MerchantLedgerRowLabel: View {
             Circle().fill(chipColor).frame(width: 8, height: 8).padding(.top, 7).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let title = copy(line.title, line.titleKey) {
-                    Text(verbatim: title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 }
                 let detail = [copy(line.subtitle, line.subtitleKey), line.timeText].compactMap { $0 }.joined(separator: " · ")
-                if !detail.isEmpty { Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if !detail.isEmpty { Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 HStack(spacing: CYSpacing.sm) {
                     switch line.state {
                     case .key(let key): Text(verbatim: MerchantOpsCopy.text(key))
                     case .server(let text): Text(verbatim: text)
                     }
                     if let extra = line.extraKey { Text(verbatim: MerchantOpsCopy.text(extra)).foregroundStyle(CYColor.textTertiary) }
-                }.font(CYTypography.caption).foregroundStyle(chipColor)
+                }.cyText(.caption).foregroundStyle(chipColor)
             }
             Spacer(minLength: CYSpacing.sm)
             if let amount = copy(line.amount, line.amountKey) {
-                Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(amountColor)
+                Text(verbatim: amount).cyText(.numericBody).monospacedDigit().foregroundStyle(amountColor)
             }
         }
     }
@@ -54,9 +54,9 @@ struct MerchantLedgerRowLabel: View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Circle().fill(chipColor).frame(width: 8, height: 8).padding(.top, 7).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: copy(line.title, line.titleKey) ?? "—").font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary)
+                Text(verbatim: copy(line.title, line.titleKey) ?? "—").cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
                 let detail = [copy(line.subtitle, line.subtitleKey), line.timeText].compactMap { $0 }.joined(separator: " · ")
-                if !detail.isEmpty { Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
+                if !detail.isEmpty { Text(verbatim: detail).cyText(.meta).foregroundStyle(palette.textTertiary) }
                 HStack(spacing: CYSpacing.sm) {
                     switch line.state {
                     case .key(let key): CYStatusChip(verbatim: MerchantOpsCopy.text(key), tone: chipTone)
@@ -67,7 +67,7 @@ struct MerchantLedgerRowLabel: View {
             }
             Spacer(minLength: CYSpacing.sm)
             if let amount = copy(line.amount, line.amountKey) {
-                Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(kitAmountColor)
+                Text(verbatim: amount).cyText(.numericBody).monospacedDigit().foregroundStyle(kitAmountColor)
             }
         }
     }
@@ -108,8 +108,8 @@ struct MerchantLedgerSummaryStrip: View {
     }
     private func cell(_ key: String, _ value: String, _ tone: Color) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: MerchantOpsCopy.text(key)).font(CYTypography.caption).foregroundStyle(usesKit ? palette.textTertiary : CYColor.textTertiary)
-            Text(verbatim: value).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(tone)
+            Text(verbatim: MerchantOpsCopy.text(key)).cyText(.caption).foregroundStyle(usesKit ? palette.textTertiary : CYColor.textTertiary)
+            Text(verbatim: value).cyText(.numericBody).monospacedDigit().foregroundStyle(tone)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
@@ -120,13 +120,13 @@ struct MerchantLedgerRedemptionHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             let title = hero.title ?? hero.titleKey.map { MerchantOpsCopy.text($0) } ?? ""
-            Text(verbatim: hero.showsIncome ? MerchantOpsCopy.text("merchantOps.ledger.detail.income %@", title) : title).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: hero.showsIncome ? MerchantOpsCopy.text("merchantOps.ledger.detail.income %@", title) : title).cyText(.label).foregroundStyle(CYColor.textTertiary)
             if hero.showsIncome, let amount = hero.amount ?? hero.amountKey.map({ MerchantOpsCopy.text($0) }) {
-                Text(verbatim: amount).font(CYTypography.data2XL).monospacedDigit().foregroundStyle(hero.amount == nil ? CYColor.textTertiary : CYColor.textPrimary)
+                Text(verbatim: amount).cyText(.data2XL).monospacedDigit().foregroundStyle(hero.amount == nil ? CYColor.textTertiary : CYColor.textPrimary)
             }
             switch hero.state {
-            case .key(let key): Text(verbatim: MerchantOpsCopy.text(key)).font(CYTypography.caption.bold()).foregroundStyle(CYColor.textSecondary)
-            case .server(let text): Text(verbatim: text).font(CYTypography.caption.bold()).foregroundStyle(CYColor.textSecondary)
+            case .key(let key): Text(verbatim: MerchantOpsCopy.text(key)).cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
+            case .server(let text): Text(verbatim: text).cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
             }
             LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.store"), value: hero.store ?? MerchantOpsCopy.text("merchantOps.ledger.detail.storeMissing"))
             if let accrual = hero.accrual { LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.accrual"), value: accrual) }
@@ -140,12 +140,12 @@ struct MerchantLedgerBatchHero: View {
     let hero: MerchantLedgerParity.BatchHero
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: MerchantOpsCopy.text("merchantOps.ledger.batch.net %@", hero.period ?? "")).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
-            Text(verbatim: hero.amount ?? MerchantOpsCopy.text("merchantOps.ledger.amount.pending")).font(CYTypography.data2XL).monospacedDigit()
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.ledger.batch.net %@", hero.period ?? "")).cyText(.label).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: hero.amount ?? MerchantOpsCopy.text("merchantOps.ledger.amount.pending")).cyText(.data2XL).monospacedDigit()
                 .foregroundStyle(hero.amount == nil ? CYColor.textTertiary : CYColor.textPrimary)
             HStack {
-                Text(verbatim: MerchantOpsCopy.text(hero.stateKey)).font(CYTypography.caption.bold()).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: MerchantOpsCopy.text(hero.invoiceKey)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: MerchantOpsCopy.text(hero.stateKey)).cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: MerchantOpsCopy.text(hero.invoiceKey)).cyText(.caption).foregroundStyle(CYColor.textTertiary)
             }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.batchHero")
     }
@@ -156,22 +156,22 @@ struct MerchantLedgerBatchStatementCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
             Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             if let total = statement.totalText {
                 LabeledContent {
-                    Text(verbatim: total).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: total).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 } label: {
                     Text("merchant.settlementOverview.serverTotal", tableName: "MerchantSettlementOverview")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                 }
             } else if statement.emptyText != nil {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
             ForEach(Array(statement.stepTimestamps.enumerated()), id: \.offset) { _, stamp in
-                Text(verbatim: stamp).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: stamp).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
             }
         }
         .accessibilityElement(children: .combine)
@@ -187,28 +187,28 @@ struct MerchantSettlementStatementCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
             Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             LabeledContent {
                 if let total = statement.serverTotalDisplay {
-                    Text(verbatim: total).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: total).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 } else {
                     Text("merchant.settlementOverview.totalUnknown", tableName: "MerchantSettlementOverview")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
             } label: {
                 Text("merchant.settlementOverview.serverTotal", tableName: "MerchantSettlementOverview")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
             }
             if statement.returnedDetailCount == 0 {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
             if !statement.hasCompleteDetailContract {
                 Text("merchant.settlementOverview.detailIncomplete", tableName: "MerchantSettlementOverview")
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
         }
         .accessibilityElement(children: .contain)
@@ -238,7 +238,7 @@ struct MerchantSettlementStatementCard: View {
             if let failureKey {
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text(LocalizedStringKey(failureKey)).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        Text(LocalizedStringKey(failureKey)).cyText(.body).foregroundStyle(CYColor.textSecondary)
                         CYPillButton("action.retry", style: .secondary) { Task { await load() } }
                             .disabled(loading)
                             .accessibilityIdentifier("merchant.settlementOverview.batchDetail.retry")
@@ -250,7 +250,7 @@ struct MerchantSettlementStatementCard: View {
                 if let batch = document.sections.first(where: { $0.id == "batch" })?.rows.first {
                     Section("merchant.business.section.batch") {
                         VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
-                            Text(batch.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(batch.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             MerchantBusinessRecordFields(row: batch, access: snapshot.access, compact: false,
                                                          settlementReader: reader, settlementSnapshot: { self.snapshot })
                         }
@@ -289,7 +289,7 @@ struct MerchantSettlementStatementCard: View {
             Section {
                 ForEach(rows) { row in
                     VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
-                        Text(row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         MerchantBusinessRecordFields(row: row, access: access, compact: false, settlementEntries: true)
                     }
                 }

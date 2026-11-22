@@ -260,7 +260,7 @@ import UIKit
                     .accessibilityHint(Text(LocalizedStringKey(expanded ? "club.occurrences.collapse" : "club.occurrences.expand")))
             }.accessibilityIdentifier("club.occurrences.toggle.\(scope.seriesID ?? 0)")
             if expanded {
-                Text("club.occurrences.scopeNote").font(.footnote).foregroundStyle(.secondary)
+                Text("club.occurrences.scopeNote").cyText(.bodyCompact).foregroundStyle(.secondary)
                 if model.loading { ProgressView("club.loading").accessibilityIdentifier("club.occurrences.loading") }
                 if let failure = model.failure { Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("club.occurrences.error") }
                 if let value = model.accepted(expected, access: access), sourceIsCurrent() {
@@ -269,12 +269,12 @@ import UIKit
                         VStack(alignment: .leading, spacing: 6) {
                             // Mini occurrenceRow: Shanghai "M月d日 周X HH:mm", one badge and one meta line.
                             if let date = row.dateText {
-                                Text(verbatim: row.dateIsParsed ? (ClubOpsEventClock.occurrenceText(.string(date), locale: locale) ?? date) : date).font(.headline)
-                            } else { Text("clubOpsEvent.occurrences.datePending", tableName: "ClubOpsEvent").font(.headline) }
-                            if !row.dateIsParsed, row.dateText != nil { Text("club.occurrences.dateUnparsed").font(.caption) }
+                                Text(verbatim: row.dateIsParsed ? (ClubOpsEventClock.occurrenceText(.string(date), locale: locale) ?? date) : date).cyText(.cardTitle)
+                            } else { Text("clubOpsEvent.occurrences.datePending", tableName: "ClubOpsEvent").cyText(.cardTitle) }
+                            if !row.dateIsParsed, row.dateText != nil { Text("club.occurrences.dateUnparsed").cyText(.meta) }
                             let copy = ClubOpsEventOccurrenceCopy(row: row)
                             ClubOpsEventOccurrenceBadgeText(badge: copy.badge)
-                            ClubOpsEventOccurrenceMetaText(meta: copy.meta).font(.footnote).foregroundStyle(.secondary)
+                            ClubOpsEventOccurrenceMetaText(meta: copy.meta).cyText(.bodyCompact).foregroundStyle(.secondary)
                             if let route = value.route(rowID: row.id, context: expected.read, snapshotID: model.snapshotID) {
                                 Button("club.occurrences.openEvent") { host.open(route, source: source, current: currentSource(), access: access, active: active()) }
                                     .accessibilityIdentifier("club.occurrences.event.\(row.activityID ?? 0)")

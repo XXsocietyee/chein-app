@@ -63,11 +63,11 @@ import Combine
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Toggle("creator.field.terminal", isOn: editor.terminalBinding()).accessibilityIdentifier("creator.branch.terminal")
-            Text("templateBranch.terminalHint").font(.caption).foregroundStyle(.secondary)
+            Text("templateBranch.terminalHint").cyText(.meta).foregroundStyle(.secondary)
             if editor.terminal {
                 Button("templateBranch.continueWithChoice", systemImage: "arrow.triangle.branch", action: editor.addAction())
                     .disabled(!editor.canAdd).accessibilityIdentifier("creator.branch.continue")
-            } else { Text("templateBranch.choiceHint").font(.caption).foregroundStyle(.secondary) }
+            } else { Text("templateBranch.choiceHint").cyText(.meta).foregroundStyle(.secondary) }
         }.disabled(!editor.canEdit)
             .onAppear { editor.reload() }.onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }

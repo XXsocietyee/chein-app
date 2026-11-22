@@ -29,7 +29,7 @@ struct CurA11yTextButton: View {
     var body: some View {
         Button(action: action) {
             title
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -52,7 +52,7 @@ struct CurA11yLink<Destination: View>: View {
     var body: some View {
         NavigationLink(destination: destination()) {
             title
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -73,7 +73,7 @@ struct CurA11yField: View {
 
     var body: some View {
         TextField("", text: $text)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textPrimary)
             .frame(minHeight: CurA11y.hit)
             .accessibilityLabel(title)
@@ -167,7 +167,7 @@ struct CurA11yLabeled: View {
 
     private var titleLine: some View {
         title
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textPrimary)
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -175,7 +175,7 @@ struct CurA11yLabeled: View {
 
     private var valueLine: some View {
         value
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textSecondary)
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)

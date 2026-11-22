@@ -80,7 +80,7 @@ import Combine
                 Section("templateD6.configuration") {
                     if !configuration.kicker.isEmpty { Text(verbatim: configuration.kicker) }
                     Text(LocalizedStringKey(configuration.diceCount == 1 ? "templateD6.oneDie" : "templateD6.twoDice"))
-                    if configuration.diceCount == 2 { Text("templateD6.sumOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    if configuration.diceCount == 2 { Text("templateD6.sumOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
                 Section("templateD6.exampleValues") {
                     ForEach(0..<configuration.diceCount, id: \.self) { index in
@@ -102,7 +102,7 @@ import Combine
                         }
                         LabeledContent("playkit.dice.total", value: String(sample.total)).monospacedDigit().accessibilityIdentifier("templateD6.total")
                         if let action = sample.action { Text(verbatim: action).accessibilityIdentifier("templateD6.action") }
-                        else { Text("templateD6.sumOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        else { Text("templateD6.sumOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                     }
                 }
                 CYPillButton("creator.reset", style: .tertiary, action: controller.resetAction()).accessibilityIdentifier("templateD6.reset").e1ActionRow()

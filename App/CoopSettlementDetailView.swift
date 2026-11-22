@@ -109,14 +109,14 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: title(detail)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: title(detail)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     }
                     Spacer(minLength: CYSpacing.sm)
                     CoopSettlementToneBadge(status: detail.status, tone: detail.tone)
                 }
-                Text("cooperation.settlement.line.income").font(CYTypography.label).foregroundStyle(CYColor.textSecondary).padding(.top, CYSpacing.md)
-                Text(verbatim: detail.amount.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—").font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text("cooperation.settlement.line.income").cyText(.label).foregroundStyle(CYColor.textSecondary).padding(.top, CYSpacing.md)
+                Text(verbatim: detail.amount.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—").cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     .cyWrapText()
                     .accessibilityLabel(detail.amount.map { Text(verbatim: "¥" + CoopFinanceProfit.plainText($0)) } ?? Text("coopflow.amount.unknown"))
                     .accessibilityIdentifier("cooperation.settlement.amount")
@@ -125,13 +125,13 @@ import SwiftUI
         Section("cooperation.settlement.breakdown") {
             ForEach(Array(detail.lines.enumerated()), id: \.offset) { _, line in
                 LabeledContent { Text(verbatim: valueText(line.value)).monospacedDigit().font(line.strong ? CYTypography.bodyMedium : CYTypography.label).foregroundStyle(CYColor.textPrimary) } label: {
-                    Text(LocalizedStringKey("cooperation.settlement.line." + line.key)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                    Text(LocalizedStringKey("cooperation.settlement.line." + line.key)).cyText(.label).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityIdentifier("cooperation.settlement.line.\(line.key)")
             }
         }
         Section("cooperation.settlement.progress") {
             ForEach(Array(detail.timeline.enumerated()), id: \.offset) { _, step in
-                LabeledContent { Text(verbatim: valueText(step.value)).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary) } label: {
+                LabeledContent { Text(verbatim: valueText(step.value)).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary) } label: {
                     // Mini `.sd__timeline`: dot + label (600) with the time beneath on the trailing side.
                     HStack(spacing: CYSpacing.sm) {
                         Circle()
@@ -139,7 +139,7 @@ import SwiftUI
                             .frame(width: 7, height: 7)
                             .accessibilityHidden(true)
                         Text(LocalizedStringKey("cooperation.settlement.step." + step.key))
-                            .font(CYTypography.label.weight(.semibold))
+                            .cyText(.label, weight: .semibold)
                             .foregroundStyle(CYColor.textPrimary)
                     }
                 }.accessibilityIdentifier("cooperation.settlement.step.\(step.key)")
@@ -170,9 +170,9 @@ import SwiftUI
     }
     private func notice(_ title: String, _ detail: String?, verbatim: String? = nil, id: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey(title)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-            if let verbatim { Text(verbatim: verbatim).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            else if let detail { Text(LocalizedStringKey(detail)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            Text(LocalizedStringKey(title)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            if let verbatim { Text(verbatim: verbatim).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            else if let detail { Text(LocalizedStringKey(detail)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.settlement.state.\(id)")
     }
     private func title(_ detail: CoopSettlementDetailModel) -> String {

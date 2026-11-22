@@ -169,7 +169,7 @@ import SwiftUI
                 Text(verbatim: phrase(
                     "客户端 \(value.clientVersion)，最低版本 \(value.minimumClientVersion)；运行时 \(value.runtimeVersion)",
                     "Client \(value.clientVersion), minimum \(value.minimumClientVersion); runtime \(value.runtimeVersion)"))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.body).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if controller.compatibilityReadFailed {
@@ -395,7 +395,7 @@ import SwiftUI
             showCancellation = true
         } label: {
             installationText("cancelRequest")
-                .font(CYTypography.body.weight(.semibold))
+                .cyText(.bodyMedium)
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
         }
         .buttonStyle(.bordered)
@@ -410,10 +410,10 @@ import SwiftUI
         return resolved == "modInstallation.state." + raw ? Cloud25Copy.value(raw) : resolved
     }
     private func installNote(_ key: String) -> some View {
-        installationText(key).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+        installationText(key).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
     }
     private func installPlain(_ text: String) -> some View {
-        Text(verbatim: text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+        Text(verbatim: text).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
     }
 
     /// A request ID is stable across PREPARED/installed/cancelled; it is not a permanent read cache key.
@@ -477,7 +477,7 @@ import SwiftUI
                 }
                 if let preview { previewCard(preview) }
                 CYInfoCard {
-                    installationText("confirmBoundary").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    installationText("confirmBoundary").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     Cloud25Pill(title: installationString("confirmInstall", locale: locale), key: "confirmInstall", primary: true, systemImage: "checkmark", enabled: canConfirm, action: confirm)
                 }
             }
@@ -489,8 +489,8 @@ import SwiftUI
             Cloud25Header(title: installationString("previewContent", locale: locale))
             ForEach(preview.fields.keys.filter { $0 != "advancedConfigJson" && $0 != "qmodTopicGraphJson" && $0 != "compositionReceiptJson" }.sorted(), id: \.self) { field in
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    installationText("field." + field).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    Text(verbatim: preview.fields[field] ?? "").textSelection(.enabled).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    installationText("field." + field).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: preview.fields[field] ?? "").textSelection(.enabled).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 }
             }
             if let json = preview.fields["advancedConfigJson"], let graph = try? ModInstallationNativeGraph(json: json) {
@@ -522,13 +522,13 @@ import SwiftUI
                 }
                 CYInfoCard {
                     Cloud25Header(title: installationString("facts.currentContent", locale: locale))
-                    Text(verbatim: facts.title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: facts.rules).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: facts.title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: facts.rules).cyText(.body).foregroundStyle(CYColor.textPrimary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if let json = facts.advancedConfigJson, !json.isEmpty {
                         if let graph = try? ModInstallationNativeGraph(json: json) {
                             InstallationNativeGraphContent(graph: graph)
                         } else {
-                            installationText("graph.currentConfiguration").font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            installationText("graph.currentConfiguration").cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                             Text(verbatim: json).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
@@ -537,15 +537,15 @@ import SwiftUI
                     Cloud25Header(title: installationString("bindings", locale: locale))
                     ForEach(facts.bindings) { binding in
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            installationText("kind." + binding.kind.rawValue).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            Text(verbatim: binding.key + ": " + binding.label).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
-                            Text(verbatim: String(binding.resourceId)).font(CYTypography.numericBody)
+                            installationText("kind." + binding.kind.rawValue).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: binding.key + ": " + binding.label).cyText(.body).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: String(binding.resourceId)).cyText(.numericBody)
                             Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
                 CYInfoCard {
-                    installationText("facts.boundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    installationText("facts.boundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     if facts.confirmed {
                         CYStatusChip(verbatim: installationString("facts.confirmed", locale: locale), tone: .success, systemImage: "checkmark")
                             .accessibilityLabel(installationText("facts.confirmed"))
@@ -574,14 +574,14 @@ private struct InstallationReceiptFacts: View {
         if let composition = receipt.composition { ModCompositionInstallationReceiptView(value: composition) }
         ForEach(receipt.bindings) { binding in
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                installationText("kind." + binding.kind.rawValue).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: binding.key + ": " + binding.label).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                Text(verbatim: String(binding.resourceId)).font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
+                installationText("kind." + binding.kind.rawValue).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: binding.key + ": " + binding.label).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: String(binding.resourceId)).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
                 Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             }
         }
         ForEach(receipt.requiredGates, id: \.self) { gate in
-            installationText("gate." + gate).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            installationText("gate." + gate).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
     private var stateLabel: String {
@@ -599,17 +599,17 @@ private struct InstallationNativeGraphContent: View {
             InstallationFact("graph.start", graph.startStepId)
             ForEach(graph.steps) { step in
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    Text(verbatim: step.id + " · " + step.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: step.body).font(CYTypography.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: step.id + " · " + step.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: step.body).cyText(.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if step.terminal {
                         InstallationFact("graph.end", Cloud25Copy.joined(step.outcomeCode, step.outcomeLabel))
                     }
                     ForEach(step.options) { option in
-                        Text(verbatim: option.id + " · " + option.label + " → " + option.nextStepId).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: option.id + " · " + option.label + " → " + option.nextStepId).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
-            installationText("graph.boundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            installationText("graph.boundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -709,7 +709,7 @@ private func receiptSymbol(_ state: ModInstallationReceipt.State) -> String {
                 InstallationFact("license", controller.identity.licenseId)
                 InstallationFact("module", controller.identity.moduleId)
                 InstallationFact("release", controller.identity.releaseId)
-                installationText("originalRecovery.boundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                installationText("originalRecovery.boundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             CYInfoCard {
                 Cloud25Header(title: installationString("originalRecovery.localSection", locale: locale))
@@ -736,7 +736,7 @@ private func receiptSymbol(_ state: ModInstallationReceipt.State) -> String {
                 CYInfoCard {
                     Cloud25Header(title: installationString("originalRecovery.resultSection", locale: locale))
                     ModInstallationOriginalReceiptSummary(receipt: receipt)
-                    installationText("originalRecovery.resultBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    installationText("originalRecovery.resultBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     if receipt.memberTemplateID != nil {
                         ModInstalledTextReadEntry(makeReader: { controller.installedTextReader(receipt) })
                     }

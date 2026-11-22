@@ -6,7 +6,7 @@ struct MerchantRedemptionProgressView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
             Text("merchant.redemptionProgress.title")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             ForEach(progress.steps) { step in
                 HStack(alignment: .top, spacing: CYSpacing.s2_5) {
@@ -15,14 +15,14 @@ struct MerchantRedemptionProgressView: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(LocalizedStringKey("merchant.redemptionProgress.step." + step.id))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                         Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue))
-                            .font(CYTypography.caption)
+                            .cyText(.caption)
                             .foregroundStyle(CYColor.textSecondary)
                         if let raw = step.timestamp {
                             MerchantSettlementTimestampText(raw: raw)
-                                .font(CYTypography.caption)
+                                .cyText(.caption)
                                 .monospacedDigit()
                                 .foregroundStyle(CYColor.textSecondary)
                         }

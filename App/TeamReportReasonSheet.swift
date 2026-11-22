@@ -10,7 +10,7 @@ import SwiftUI
         if teamID > 0, let access, access.enabled {
             Button { presented = true } label: {
                 Text("mpfresh.teamReport.entry", tableName: "MpFresh")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .underline()
                     .frame(minHeight: 44)
@@ -86,7 +86,7 @@ import SwiftUI
                         } label: {
                             HStack(spacing: CYSpacing.sm) {
                                 Text(LocalizedStringKey(Self.reasonKeys[index]), tableName: "MpFresh")
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Spacer()
@@ -129,12 +129,12 @@ import SwiftUI
         VStack(spacing: CYSpacing.md) {
             Image(systemName: icon).font(.largeTitle).imageScale(.large).foregroundStyle(tint).accessibilityHidden(true)
             Text(LocalizedStringKey(title), tableName: "MpFresh")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             Text(LocalizedStringKey(detail), tableName: "MpFresh")
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)

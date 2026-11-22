@@ -41,12 +41,12 @@ import SwiftUI
             Section { CYHeroHeader("officialAction.review") }.e1HeroRow()
             Section {
                 Label("officialAction.reviewNotice", systemImage: "lock.shield")
-                Text(LocalizedStringKey(command.titleKey)).font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+                Text(LocalizedStringKey(command.titleKey)).cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                 Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
             }
             if noticeTitleKey != nil || noticeBodyKey != nil {
                 Section {
-                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline).accessibilityAddTraits(.isHeader) }
+                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).cyText(.cardTitle).accessibilityAddTraits(.isHeader) }
                     if let noticeBodyKey { Text(LocalizedStringKey(noticeBodyKey)).foregroundStyle(.secondary) }
                 }.accessibilityIdentifier("official.inbox.confirmation.\(command.scope)")
             }
@@ -174,7 +174,7 @@ import SwiftUI
                 Toggle("officialAction.split", isOn: $draft.split)
                 if draft.split {
                     ForEach(OfficialAudience.allCases.filter { draft.audience.contains($0) }, id: \.self) { role in
-                        Text(LocalizedStringKey("officialAction.role." + role.rawValue)).font(.headline).accessibilityAddTraits(.isHeader)
+                        Text(LocalizedStringKey("officialAction.role." + role.rawValue)).cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                         TextField("officialAction.title", text: roleBinding(role, title: true))
                         TextField("officialAction.subtitle", text: roleBinding(role, title: false), axis: .vertical)
                     }
@@ -219,12 +219,12 @@ import SwiftUI
             if let window {
                 LabeledContent("official.privateParity.inbox.window") {
                     Text(verbatim: window.sourceText)
-                }.font(.footnote).accessibilityIdentifier("official.inbox.actionWindow.\(invite.id)")
+                }.cyText(.bodyCompact).accessibilityIdentifier("official.inbox.actionWindow.\(invite.id)")
             }
             if OfficialInboxPresentation.showsOrganizerTransferNotice(invite) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("official.privateParity.inbox.organizerTransferHint").font(.subheadline)
-                    Text("official.privateParity.inbox.organizerTransferDetail").font(.footnote).foregroundStyle(.secondary)
+                    Text("official.privateParity.inbox.organizerTransferDetail").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }.fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("official.inbox.organizerTransfer.\(invite.id)")
             }
@@ -241,7 +241,7 @@ import SwiftUI
                     .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)").e1ActionRow()
             }
             if transferHint {
-                Text("official.privateParity.inbox.organizerTransferHint").font(.footnote).foregroundStyle(.secondary)
+                Text("official.privateParity.inbox.organizerTransferHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("official.inbox.transferHint.\(invite.id)")
             }
         }

@@ -72,12 +72,12 @@ import QuestifyCore
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(card.heading)
-                        .font(CYTypography.sheetTitle)
+                        .cyText(.sheetTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Spacer(minLength: CYSpacing.sm)
                     Text(card.statusText)
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(card.running ? CYColor.successText : CYColor.textSecondary)
                         .accessibilityLabel(Text(verbatim: card.heading))
                         .accessibilityValue(Text(verbatim: card.statusText.isEmpty ? "—" : card.statusText))
@@ -87,7 +87,7 @@ import QuestifyCore
                         .background(card.running ? CYColor.successSoft : CYColor.bgRaised, in: Capsule())
                 }
                 Text(card.definitionNote(for: definitionSource))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -215,11 +215,11 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack {
                 label
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(CYColor.textPrimary)
                 Spacer()
                 Text(valueText)
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .foregroundStyle(CYColor.textSecondary)
             }
             ProgressView(value: Double(percent), total: 100)
@@ -236,16 +236,16 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack {
                 Text(trait.label)
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(CYColor.textPrimary)
                 Spacer()
                 Text(trait.tag)
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textTertiary)
             }
             if !trait.desc.isEmpty {
                 Text(trait.desc)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -284,19 +284,19 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.sm) {
                 Text(attribute.label)
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(CYColor.textPrimary)
                 Spacer(minLength: CYSpacing.sm)
                 if !levelText.isEmpty {
                     Text(levelText)
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.brand)
                         .padding(.horizontal, CYSpacing.sm)
                         .padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.brandSoft, in: Capsule())
                 }
                 Text(String(attribute.value))
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .foregroundStyle(CYColor.textPrimary)
             }
 
@@ -320,7 +320,7 @@ import QuestifyCore
                 Spacer()
                 Text(attribute.rangeText)
             }
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textTertiary)
         }
         .accessibilityElement(children: .ignore)

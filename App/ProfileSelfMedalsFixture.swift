@@ -63,7 +63,7 @@ import Observation
                             social.identity = .init(accountID:82,epoch:2);social.presentationRevision += 1
                             reader.identity = .init(accountID:82,epoch:2)
                         }.accessibilityIdentifier("profile.selfMedalsFixture.retire")
-                    }.font(.caption)
+                    }.cyText(.meta)
                 }
         }
     }

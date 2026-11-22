@@ -190,7 +190,7 @@ struct JourneyRankBoardView: View {
                             if scopeInMore, let scope = state.scope { Text(scope.label) } else { Text("mp.rank.more") }
                             Image(systemName: "chevron.down")
                         }
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .padding(.horizontal, CYSpacing.md).frame(minHeight: CYSpacing.minTouchTarget)
                         .background(scopeInMore ? CYColor.selection.opacity(0.2) : CYNight.ink2, in: Capsule())
                     }
@@ -245,7 +245,7 @@ struct JourneyRankBoardView: View {
             HStack(spacing: CYSpacing.sm) {
                 Image(systemName: "laurel.leading").font(CYTypography.data2XL)
                 Text(verbatim: String(heroOn ? rank : 0))
-                    .font(CYTypography.data2XL).monospacedDigit()
+                    .cyText(.data2XL).monospacedDigit()
                     .contentTransition(.numericText(value: Double(heroOn ? rank : 0)))
                 Image(systemName: "laurel.trailing").font(CYTypography.data2XL)
             }
@@ -255,15 +255,15 @@ struct JourneyRankBoardView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text("mp.report.rank \(rank)"))
             if let pct = board.topPercent {
-                Text("mp.rank.top \(pct)").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textSecondary)
+                Text("mp.rank.top \(pct)").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
                     .opacity(heroOn ? 1 : 0).offset(y: heroOn ? 0 : 8)
             }
             if !board.stats.isEmpty {
                 HStack(spacing: CYSpacing.xl) {
                     ForEach(board.stats) { stat in
                         VStack(spacing: CYSpacing.xxs) {
-                            (stat.kind == .teamDone ? Text("mp.rank.stat.teamDone") : Text("mp.rank.stat.active")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: stat.value).font(CYTypography.cardTitle).monospacedDigit()
+                            (stat.kind == .teamDone ? Text("mp.rank.stat.teamDone") : Text("mp.rank.stat.active")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: stat.value).cyText(.cardTitle).monospacedDigit()
                         }
                         .accessibilityElement(children: .combine)
                     }
@@ -282,9 +282,9 @@ struct JourneyRankBoardView: View {
         MPCard {
             if board.basis != nil || board.windowText != nil {
                 HStack {
-                    if let basis = board.basis { Text(basis.label).font(CYTypography.label) }
+                    if let basis = board.basis { Text(basis.label).cyText(.label) }
                     Spacer()
-                    if let window = board.windowText { Text(verbatim: window).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if let window = board.windowText { Text(verbatim: window).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                 MPDivider()
@@ -293,13 +293,13 @@ struct JourneyRankBoardView: View {
                 if index > 0 { MPDivider() }
                 HStack(spacing: CYSpacing.md) {
                     Text(verbatim: entry.rank.map(String.init) ?? MPText.unknown)
-                        .font(CYTypography.cardTitle).monospacedDigit()
+                        .cyText(.cardTitle).monospacedDigit()
                         .foregroundStyle((entry.rank ?? 99) <= 3 ? CYNight.lantern : CYColor.textSecondary)
                         .frame(width: 32)
                     MPAvatar(url: entry.avatarURL, initial: String((entry.name ?? "").prefix(1)), size: 32)
-                    (entry.name.map { Text(verbatim: $0) } ?? Text("mp.rank.player")).font(CYTypography.bodyMedium).cyWrapText()
+                    (entry.name.map { Text(verbatim: $0) } ?? Text("mp.rank.player")).cyText(.bodyMedium).cyWrapText()
                     Spacer()
-                    Text(verbatim: entry.scoreText).font(CYTypography.bodyMedium).monospacedDigit()
+                    Text(verbatim: entry.scoreText).cyText(.bodyMedium).monospacedDigit()
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                 .background(entry.mine ? CYColor.selection.opacity(0.16) : .clear)
@@ -308,12 +308,12 @@ struct JourneyRankBoardView: View {
             }
             if let runs = board.unattributedRuns {
                 MPDivider()
-                Text("mp.rank.unattributed \(runs)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("mp.rank.unattributed \(runs)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
             }
             if let runs = board.unverifiedRuns {
                 MPDivider()
-                Text("mp.rank.unverified \(runs)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("mp.rank.unverified \(runs)").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                     .accessibilityIdentifier("rankBoard.unverified")
             }
@@ -483,16 +483,16 @@ struct JourneyReportView: View {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 VStack(spacing: CYSpacing.sm) {
                     let eyebrow = [report.dateLabel, topicName].compactMap { $0 }.joined(separator: " · ")
-                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).font(CYTypography.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
+                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
                     if let result = report.result {
-                        Text(result.label).font(CYTypography.label)
+                        Text(result.label).cyText(.label)
                             .foregroundStyle(result.win ? CYNight.ink0 : CYColor.textPrimary)
                             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                             .background(result.win ? AnyShapeStyle(CYNight.lantern) : AnyShapeStyle(CYNight.ink2), in: Capsule())
                     }
                     // 战报 (204:15044, skill-r2 SR2-07): 本局不计分 is said once, as the subtitle, never again as a tile.
                     if report.score == nil {
-                        Text("mp.report.notScored").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("mp.report.notScored").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("journeyReport.notScored")
                     }
                 }
@@ -585,9 +585,9 @@ struct JourneyReportView: View {
 
     private func stat(_ value: Text, _ label: LocalizedStringKey) -> some View {
         VStack(spacing: CYSpacing.xxs) {
-            value.font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            value.cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 .cyWrapText(alignment: .center)
-            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -611,20 +611,20 @@ struct JourneyMemoryTimeline: View {
         case .ready(let memory):
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let count = memory.participants, count > 1 {
-                    Text("mp.report.memory.together \(count)").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                    Text("mp.report.memory.together \(count)").cyText(.label).foregroundStyle(CYColor.textSecondary)
                 }
                 if memory.hasPhotos {
                     Label("mp.report.memory.private", systemImage: "lock")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("journeyMemory.private")
                 }
                 if memory.peerPhotosHidden, (memory.participants ?? 0) > 1 {
-                    Text("mp.report.memory.peerHidden").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("mp.report.memory.peerHidden").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("journeyMemory.peerHidden")
                 }
                 ForEach(memory.moments) { moment in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        if let day = moment.dayText { Text(verbatim: day).font(CYTypography.label).foregroundStyle(CYNight.lantern).padding(.top, CYSpacing.sm) }
+                        if let day = moment.dayText { Text(verbatim: day).cyText(.label).foregroundStyle(CYNight.lantern).padding(.top, CYSpacing.sm) }
                         HStack(alignment: .top, spacing: CYSpacing.md) {
                             VStack(spacing: 0) {
                                 Circle().fill(CYNight.lantern).frame(width: 10, height: 10).padding(.top, 5)
@@ -633,11 +633,11 @@ struct JourneyMemoryTimeline: View {
                             .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 HStack {
-                                    (moment.name.map { Text(verbatim: $0) } ?? Text("mp.report.node")).font(CYTypography.bodyMedium)
+                                    (moment.name.map { Text(verbatim: $0) } ?? Text("mp.report.node")).cyText(.bodyMedium)
                                     Spacer()
-                                    if let time = moment.timeText { Text(verbatim: time).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                                    if let time = moment.timeText { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                                 }
-                                if let text = moment.text { Text(verbatim: text).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                                if let text = moment.text { Text(verbatim: text).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                                 if let url = moment.pictureURL {
                                     AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
                                         .frame(height: 180).frame(maxWidth: .infinity)
@@ -792,7 +792,7 @@ struct JourneySettleView: View {
                 case .rank:
                     ScrollView {
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisStage")).font(CYTypography.sectionTitle)
+                            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisStage")).cyText(.sectionTitle)
                             JourneyRankBoardView(state: rank, onScope: onRankScope, onPeriod: onRankPeriod, onRetry: onLoadRank)
                         }
                         .padding(CYSpacing.lg)
@@ -835,21 +835,21 @@ struct JourneySettleView: View {
                 .frame(height: 160)
                 .accessibilityHidden(true)
             if let result = report.result {
-                Text(result.label).font(CYTypography.label).tracking(0.6).foregroundStyle(CYNight.lanternHot)
+                Text(result.label).cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot)
                     .settleRise(overviewOn, 0, skipped: skipped, reduceMotion: reduceMotion)
             }
-            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).font(CYTypography.display).multilineTextAlignment(.center)
+            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.display).multilineTextAlignment(.center)
                 .settleRise(overviewOn, 1, skipped: skipped, reduceMotion: reduceMotion)
             if let rank = report.rank, report.rankBasisCount != nil {
-                Text("mp.settle.rank \(rank)").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary)
+                Text("mp.settle.rank \(rank)").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
                     .settleRise(overviewOn, 2, skipped: skipped, reduceMotion: reduceMotion)
             }
             HStack(spacing: CYSpacing.xxxl) {
                 if let score = report.score {
                     VStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: String(shownScore)).font(CYTypography.data2XL)
+                        Text(verbatim: String(shownScore)).cyText(.data2XL)
                             .cyNumericRoll(Double(shownScore))
-                        Text("mp.report.stat.score").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("mp.report.stat.score").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("mp.report.stat.score") + Text(verbatim: " \(score)"))
@@ -858,8 +858,8 @@ struct JourneySettleView: View {
                 }
                 // The stop count under the seal (6 / 6); unknown is a dash, never 0.
                 VStack(spacing: CYSpacing.xxs) {
-                    Text(verbatim: MPText.orDash(report.nodesText)).font(CYTypography.data2XL).monospacedDigit()
-                    Text("mp.settle.nodes").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: MPText.orDash(report.nodesText)).cyText(.data2XL).monospacedDigit()
+                    Text("mp.settle.nodes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
             }
@@ -897,7 +897,7 @@ struct JourneySettleView: View {
     private var rateStep: some View {
         ScrollView {
             VStack(spacing: CYSpacing.lg) {
-                Text("mp.settle.rate.title").font(CYTypography.pageTitle).padding(.top, CYSpacing.xl)
+                Text("mp.settle.rate.title").cyText(.pageTitle).padding(.top, CYSpacing.xl)
                 HStack(spacing: CYSpacing.md) {
                     ForEach(1...5, id: \.self) { value in
                         Button {
@@ -924,7 +924,7 @@ struct JourneySettleView: View {
                             if on { tags.remove(index) } else { tags.insert(index) }
                             localError = nil
                         } label: {
-                            Text(Self.tagKeys[index]).font(CYTypography.label)
+                            Text(Self.tagKeys[index]).cyText(.label)
                                 .foregroundStyle(on ? CYColor.textOnAccent : CYColor.textSecondary)
                                 .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)
                                 .background(on ? AnyShapeStyle(CYColor.selection) : AnyShapeStyle(CYColor.bgRaised), in: Capsule())
@@ -946,7 +946,7 @@ struct JourneySettleView: View {
                             localError = nil
                         }
                         .accessibilityIdentifier("journeySettle.review")
-                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                 }
                 if let localError { MPInlineError(text: Text(localError)) }
                 else if case .error(let message) = rate { MPInlineError(text: Text(verbatim: message)) }
@@ -989,7 +989,7 @@ struct JourneySettleView: View {
                 CYResultButton("mp.settle.rate.submit", loading: "mp.settle.rate.submitting", done: "mp.settle.rate.submitted",
                                phase: ratePhase, action: submit)
                     .identifier("journeySettle.submitRate")
-                Button("mp.settle.skip") { go(.share) }.font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                Button("mp.settle.skip") { go(.share) }.cyText(.label).foregroundStyle(CYColor.textSecondary)
                     .frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("journeySettle.skip")
             case .share:
                 HStack(spacing: CYSpacing.md) {
@@ -1078,17 +1078,17 @@ struct JourneyShareCard: View {
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "rosette").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
                     .background { Circle().fill(CYNight.glow(radius: 40)).frame(width: 140, height: 140) }
-                if report.result?.win == true { Text("mp.report.result.legit").font(CYTypography.label).tracking(0.6).foregroundStyle(CYNight.lanternHot) }
-                (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).font(CYTypography.sectionTitle).multilineTextAlignment(.center)
+                if report.result?.win == true { Text("mp.report.result.legit").cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot) }
+                (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.sectionTitle).multilineTextAlignment(.center)
                 HStack(spacing: CYSpacing.xs) {
                     Text("mp.settle.share.nodes \(MPText.orDash(report.nodesText))")
                     if let score = report.score { Text(verbatim: "·"); Text("mp.settle.share.score \(score)") }
                     if let rank = report.rank { Text(verbatim: "·"); Text("mp.report.rank \(rank)") }
                 }
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             .padding(CYSpacing.xl)
-            VStack { Spacer(); Text("mp.brand").font(CYTypography.label).foregroundStyle(CYColor.textTertiary).padding(.bottom, CYSpacing.md) }
+            VStack { Spacer(); Text("mp.brand").cyText(.label).foregroundStyle(CYColor.textTertiary).padding(.bottom, CYSpacing.md) }
         }
         .aspectRatio(story ? 9.0 / 16.0 : 4.0 / 5.0, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))

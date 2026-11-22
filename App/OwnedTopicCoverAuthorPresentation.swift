@@ -92,7 +92,7 @@ import SwiftUI
                 }.buttonStyle(.borderless).disabled(opening == nil).accessibilityIdentifier("ownedCover.open")
                 if opening == nil {
                     Text(String(localized:LocalizedStringResource("ownedCover.unconfigured",defaultValue:"Author cover selection is not configured for this account or saved submission.",locale:locale)))
-                        .font(.footnote).accessibilityIdentifier("ownedCover.unconfigured")
+                        .cyText(.bodyCompact).accessibilityIdentifier("ownedCover.unconfigured")
                 }
             }
         }

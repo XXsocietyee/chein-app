@@ -52,7 +52,7 @@ struct TicketWalletTeamContext: Hashable {
                     CYPillButton("ticketTeam.open", style: .secondary, systemImage: "person.3") {
                         entry.activate(context: context, reader: reader, presentationID: presentation)
                     }.accessibilityIdentifier("ticketTeam.open")
-                    Text("ticketTeam.lookupHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("ticketTeam.lookupHint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         }
@@ -188,8 +188,8 @@ struct TicketWalletTeamContext: Hashable {
                             Button { model.scheduleDetail(team, presentation: offeredPresentation) } label: {
                                 HStack(spacing: CYSpacing.md) {
                                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                        if team.title.isEmpty { Text("team.untitled").font(CYTypography.cardTitle) }
-                                        else { Text(verbatim: team.title).font(CYTypography.cardTitle) }
+                                        if team.title.isEmpty { Text("team.untitled").cyText(.cardTitle) }
+                                        else { Text(verbatim: team.title).cyText(.cardTitle) }
                                         CYStatusChip(LocalizedStringKey(team.status.key), tone: .neutral)
                                     }.foregroundStyle(palette.textPrimary)
                                     Spacer(minLength: 0)
@@ -203,7 +203,7 @@ struct TicketWalletTeamContext: Hashable {
                 if let detail = model.detail {
                     Section("ticketTeam.detail") {
                         TeamCard(team: detail.team)
-                        Text("team.ticketSeparation").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                        Text("team.ticketSeparation").cyText(.meta).foregroundStyle(palette.textTertiary)
                         if let expiry = detail.team.expireTime, !expiry.isEmpty {
                             LabeledContent("team.invitationExpiry", value: expiry)
                         } else { Text("team.invitationExpiryUnknown") }
@@ -214,7 +214,7 @@ struct TicketWalletTeamContext: Hashable {
                     }
                 }
             }
-            Section { Text("ticketTeam.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            Section { Text("ticketTeam.readOnly").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .cyHeroScreen()
         .privacySensitive()

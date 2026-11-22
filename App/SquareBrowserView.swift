@@ -52,7 +52,7 @@ import SwiftUI
                 // 我的草稿 and 举报进度 are demoted into the toolbar menu; governance keeps its own entry.
                 if let context = governanceContext(postID: nil) { SquareGovernanceEntryView(context: context) }
                 Section {
-                    if reader.isOfflineExample { Text("square.offlineExample").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                    if reader.isOfflineExample { Text("square.offlineExample").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                     Picker("square.feed", selection: $query.mode) {
                         ForEach(SquareFeedMode.visible, id: \.self) { mode in Text(mode.labelKey).tag(mode) }
                     }.accessibilityIdentifier("square.feed")

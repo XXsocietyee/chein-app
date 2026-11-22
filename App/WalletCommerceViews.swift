@@ -243,7 +243,7 @@ enum WalletPayoutCapability {
             if monthModel.pager.hasLoadedPage, monthModel.pager.loadedScope == reader.scope {
                 if monthRows.isEmpty {
                     Text(verbatim: t("这个月还没有收入", "No income this month"))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 96)
                         .orderCardSurface()
                         .accessibilityIdentifier("wallet.month.empty")
@@ -254,14 +254,14 @@ enum WalletPayoutCapability {
                             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
-                                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
                                     if let day = WalletIncomeDay.make(row.createTime) {
-                                        WalletIncomeDayText(day: day).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                        WalletIncomeDayText(day: day).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                     }
                                 }
                                 Spacer(minLength: CYSpacing.sm)
                                 Text(verbatim: format.signed(row, points: false, income: true) + " " + (row.currency.flatMap { WalletCurrencySymbol.symbol($0) } ?? ""))
-                                    .font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary).privacySensitive()
+                                    .cyText(.numericBody).foregroundStyle(CYColor.textPrimary).privacySensitive()
                             }.padding(.vertical, CYSpacing.sm)
                         }
                     }.orderCardSurface().accessibilityIdentifier("wallet.month.rows")
@@ -273,14 +273,14 @@ enum WalletPayoutCapability {
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: t("本月收入明细", "Income this month")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: t("本月收入明细", "Income this month")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 NavigationLink { incomeDestination } label: {
                     HStack(spacing: CYSpacing.xxs) {
                         Text(verbatim: monthTitle + " " + t("全部", "All"))
                         Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
             }.textCase(nil)
         }.listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -304,7 +304,7 @@ enum WalletPayoutCapability {
                 WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
             }
         } header: {
-            Text(verbatim: t("我的资产", "My assets")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: t("我的资产", "My assets")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader).textCase(nil)
         }.accessibilityIdentifier("wallet.earnings.stages.home")
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -316,9 +316,9 @@ enum WalletPayoutCapability {
     private func assetRow(_ icon: String, _ title: String, _ value: String?) -> some View {
         HStack(spacing: CYSpacing.md) {
             CYRowIcon(systemImage: icon)
-            Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: value ?? WalletIncomeDetailPageModel.unknownMoney).font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value ?? WalletIncomeDetailPageModel.unknownMoney).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
                 .cyWrapText().privacySensitive()
         }.padding(.vertical, CYSpacing.sm).frame(minHeight: CYSpacing.minTouchTarget)
     }
@@ -386,7 +386,7 @@ enum WalletPayoutCapability {
                     } else {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text(verbatim: appLocalized("wallet.assets.availableBalanceLabel", locale: locale))
-                                .font(CYTypography.caption.weight(.semibold))
+                                .cyText(.caption, weight: .semibold)
                                 .foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
                                 .font(CYTypography.data2XL)
@@ -496,7 +496,7 @@ extension EnvironmentValues {
                 if points || kind == .balance {
                     ForEach(WalletPointsMonthGroup.group(filtered)) { group in
                         Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
-                            .font(CYTypography.caption.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("wallet.ledger.monthGroup.\(group.id)")
@@ -505,14 +505,14 @@ extension EnvironmentValues {
                 } else {
                     ForEach(WalletIncomeDay.group(filtered)) { group in
                         Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
-                            .font(CYTypography.caption.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("wallet.ledger.dateGroup.\(group.id)")
                         ForEach(group.rows) { row in ledgerRowButton(row) }
                     }
                 }
                 if points && !filtered.isEmpty && !model.pager.hasMore && !model.pager.isLoading && !model.pager.failed {
-                    Text("wallet.points.endOfList").font(.footnote).foregroundStyle(.secondary)
+                    Text("wallet.points.endOfList").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("wallet.ledger.endOfList")
                 }
             }
@@ -591,13 +591,13 @@ extension EnvironmentValues {
             let unit = points ? format.pointsUnit(for: value) : (first?.currency ?? "")
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(points ? "wallet.pointsBalance" : "wallet.balanceLedger")
-                    .font(.subheadline.weight(.medium)).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
                         .font(CYTypography.data2XL).monospacedDigit()
                         .cyWrapText()
                         .foregroundStyle(CYColor.textPrimary)
-                    if value != nil { Text(verbatim: unit).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textSecondary) }
+                    if value != nil { Text(verbatim: unit).cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
                 }
                 .accessibilityElement(children: .combine)
             }
@@ -640,7 +640,7 @@ extension EnvironmentValues {
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
                         Text(verbatim: badge)
-                            .font(CYTypography.micro.weight(.bold))
+                            .cyText(.micro, weight: .bold)
                             .foregroundStyle(CYColor.textSecondary)
                             .padding(.horizontal, CYSpacing.xxs + 1)
                             .padding(.vertical, 2)
@@ -649,10 +649,10 @@ extension EnvironmentValues {
                     }
                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
                 }
-                if income { Text(LocalizedStringKey(row.incomeEventKey)).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                else if let date = row.createTime { Text(verbatim: date).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                if income { Text(LocalizedStringKey(row.incomeEventKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                else if let date = row.createTime { Text(verbatim: date).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             }
             Spacer(minLength: 8)
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
@@ -661,10 +661,10 @@ extension EnvironmentValues {
                     if points, row.changePoints != nil { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                     else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
-                .font(CYTypography.body.weight(.semibold)).monospacedDigit()
+                .cyText(.bodyMedium).monospacedDigit()
                 .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
-                    Text(verbatim: format.amount(balance, currency: row.currency)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+                    Text(verbatim: format.amount(balance, currency: row.currency)).cyText(.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit()
                 }
             }
         }
@@ -855,7 +855,7 @@ private struct WalletIncomeListCard: ViewModifier {
         List {
             if model.loading { CYSkeleton() }
             else if let item = model.value, model.loadedScope == reader.scope {
-                Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).font(.title2)
+                Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).cyText(.sheetTitle)
                 LabeledContent("wallet.price", value: format.points(item.price))
                 LabeledContent("wallet.stock", value: format.count(item.stock))
                 ForEach(item.skuList ?? []) { sku in
@@ -956,7 +956,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 if page.rows.isEmpty { Text("wallet.withdrawals.emptyTitle").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("wallet.withdrawal.rowTitle").font(.headline)
+                        Text("wallet.withdrawal.rowTitle").cyText(.cardTitle)
                         Text(format.amount(item.amount, currency: item.currency))
                         Text(LocalizedStringKey(item.statusKey))
                         if let received = item.receivedAmount {
@@ -1078,7 +1078,7 @@ private struct WalletQuickAction: View {
                 .foregroundStyle(isPrimary ? CYColor.textOnAccent : CYColor.textPrimary)
                 .frame(width: 56, height: 56)
                 .background(isPrimary ? CYColor.actionPrimaryBg : CYColor.bgElevated, in: Circle()).accessibilityHidden(true)
-            Text(title).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
+            Text(title).cyText(.caption).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
                 .multilineTextAlignment(.center)
         }.frame(maxWidth: .infinity)
     }
@@ -1114,12 +1114,12 @@ private struct WalletEarningsHero: View {
     let symbol: String?
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
-            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
+            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 if let symbol {
-                    Text(symbol).font(CYTypography.dataXL)
+                    Text(symbol).cyText(.dataXL)
                 } else {
-                    Text("—").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
+                    Text("—").cyText(.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
                         .accessibilityLabel(Text(verbatim: ""))
                 }
                 Text(number).font(CYTypography.data2XL).monospacedDigit()

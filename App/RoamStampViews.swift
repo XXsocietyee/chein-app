@@ -177,7 +177,7 @@ struct RoamAlbumReadOwner: Hashable {
                 }
                 if page.phase == .unknown && pager.stamps.isEmpty && pager.error == nil {
                     Label("stampAlbum.unknownDetail", systemImage: "questionmark.circle")
-                        .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                        .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("roam.experience.album.unknown")
                 } else if pager.loaded && pager.stamps.isEmpty {
                     // B63: mini-program cy-empty 还没有邮票 + 打开集邮相机, no extra line.
@@ -296,11 +296,11 @@ private struct RoamStampAlbumCover: View {
             CYAlbumProgressRing(value: total ?? 0, total: total, size: 88, accessibilityLabel: Text(verbatim: sentence))
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("roam.experience.album")
-                    .font(CYTypography.display).foregroundStyle(palette.textPrimary)
+                    .cyText(.display).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 Text(verbatim: sentence)
-                    .font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
@@ -320,7 +320,7 @@ private struct RoamStampAlbumPages: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: ChannelCopy.text("最近集到", "Recently collected", locale: locale))
-                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             CYAlbumPager(items: stamps, height: 300, pageLabel: { page, count in
                 Text(verbatim: ChannelCopy.text("第 \(page) 页，共 \(count) 页", "Page \(page) of \(count)", locale: locale))
@@ -355,7 +355,7 @@ private struct RoamStampAlbumPage: View {
             Group {
                 if offline { CYCoverArt(seed: String(stamp.id), symbol: "seal.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg) }
                 else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
-                else { Label("roam.experience.imageUnavailable", systemImage: "photo").font(CYTypography.meta).foregroundStyle(palette.textSecondary) }
+                else { Label("roam.experience.imageUnavailable", systemImage: "photo").cyText(.meta).foregroundStyle(palette.textSecondary) }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(palette.bgElevated)
@@ -366,7 +366,7 @@ private struct RoamStampAlbumPage: View {
                 .allowsHitTesting(false)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 if let caption = stamp.caption, !caption.isEmpty {
-                    Text(verbatim: caption).font(CYTypography.cardTitle).foregroundStyle(.white).lineLimit(2).multilineTextAlignment(.leading)
+                    Text(verbatim: caption).cyText(.cardTitle).foregroundStyle(.white).lineLimit(2).multilineTextAlignment(.leading)
                 }
                 Text(verbatim: number).font(CYTypography.caption.monospaced()).foregroundStyle(.white.opacity(0.82))
             }
@@ -387,11 +387,11 @@ private struct RoamStampAlbumPage: View {
             if let day { CYFactRow(label: Text(verbatim: ChannelCopy.text("盖章日期", "Collected on", locale: locale)), value: day) }
             CYFactRow(label: Text(verbatim: ChannelCopy.text("编号", "Number", locale: locale)), value: number)
             if let caption = stamp.caption, !caption.isEmpty {
-                Text(verbatim: caption).font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: caption).cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
             Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+                .cyText(.caption).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .cyAlbumCard(padding: CYSpacing.lg)
@@ -415,13 +415,13 @@ struct RoamStampCard: View {
             Group {
                 if offline { CYCoverArt(seed: String(stamp.id), symbol: "building.2.crop.circle.fill", cornerRadius: CYRadius.md).frame(height: 112) }
                 else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl).frame(maxHeight: 112).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)) }
-                else { Label("roam.experience.imageUnavailable", systemImage: "photo").font(CYTypography.meta) }
+                else { Label("roam.experience.imageUnavailable", systemImage: "photo").cyText(.meta) }
             }.accessibilityLabel(Text("roam.experience.sampleArt"))
             if let caption = stamp.caption, !caption.isEmpty {
-                Text(verbatim: caption).font(CYTypography.bodyCompact.weight(.semibold)).foregroundStyle(palette.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading)
+                Text(verbatim: caption).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading)
             }
             Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).font(CYTypography.caption.monospaced()).foregroundStyle(palette.textTertiary)
-            if let date = stamp.createTime { Text(verbatim: String(date.prefix(10))).font(CYTypography.meta).foregroundStyle(palette.textSecondary) }
+            if let date = stamp.createTime { Text(verbatim: String(date.prefix(10))).cyText(.meta).foregroundStyle(palette.textSecondary) }
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.md)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
@@ -435,7 +435,7 @@ struct RoamStampCard: View {
                         CYStatusChip("roam.experience.cityStamp", systemImage: "envelope.badge")
                     } else {
                         Image(systemName: "envelope.badge").accessibilityHidden(true)
-                        Text("roam.experience.cityStamp").font(.caption).bold()
+                        Text("roam.experience.cityStamp").cyText(.meta).bold()
                     }
                     Spacer()
                     Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).font(.caption.monospaced())
@@ -450,8 +450,8 @@ struct RoamStampCard: View {
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))
                 } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
-                if let caption = stamp.caption, !caption.isEmpty { Text(verbatim: caption).font(.title3).multilineTextAlignment(.leading) }
-                if let date = stamp.createTime { Text(verbatim: date.replacingOccurrences(of: "T", with: " ")).font(.caption).foregroundStyle(.secondary) }
+                if let caption = stamp.caption, !caption.isEmpty { Text(verbatim: caption).cyText(.sectionTitle).multilineTextAlignment(.leading) }
+                if let date = stamp.createTime { Text(verbatim: date.replacingOccurrences(of: "T", with: " ")).cyText(.meta).foregroundStyle(.secondary) }
             }
         }
     }
@@ -497,22 +497,22 @@ struct RoamCityStampDraftView: View {
                 RoamExperienceNotice(offline: offline)
                 RoamExperienceCard {
                     VStack(alignment: .leading, spacing: 18) {
-                        Label("roam.experience.draftOnly", systemImage: "pencil.and.outline").font(.caption).foregroundStyle(.secondary)
+                        Label("roam.experience.draftOnly", systemImage: "pencil.and.outline").cyText(.meta).foregroundStyle(.secondary)
                         Image(systemName: "camera.metering.none").font(.largeTitle).imageScale(.large).foregroundStyle(.tint).frame(maxWidth: .infinity).padding()
                             .accessibilityHidden(true)
                         TextField("roam.experience.caption", text: $draft.caption, axis: .vertical)
                             .lineLimit(2...5).textFieldStyle(.roundedBorder)
                             .accessibilityIdentifier("roam.experience.stamp.caption")
-                        LabeledContent("roam.experience.remaining", value: String(draft.remaining)).font(.caption).monospacedDigit()
+                        LabeledContent("roam.experience.remaining", value: String(draft.remaining)).cyText(.meta).monospacedDigit()
                         if !draft.canReview { Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
                         Button("roam.experience.previewDraft") { withAnimation(reduceMotion ? nil : QuestifyMotion.content) { review = true } }
                             .buttonStyle(.questifyPrimary).disabled(!draft.canReview)
                             .accessibilityIdentifier("roam.experience.stamp.preview")
                         if review {
                             Divider()
-                            Text("roam.experience.localPreview").font(.caption).bold()
+                            Text("roam.experience.localPreview").cyText(.meta).bold()
                             if draft.caption.isEmpty { Text("roam.experience.captionEmpty").foregroundStyle(.secondary) }
-                            else { Text(verbatim: draft.caption).font(.title3) }
+                            else { Text(verbatim: draft.caption).cyText(.sectionTitle) }
                         }
                     }
                 }

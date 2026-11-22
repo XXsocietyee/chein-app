@@ -37,7 +37,7 @@ struct ActivityFixtureRootView: View {
     var body: some View {
         VStack(spacing:0) {
             Text("activity.fixtureNotice")
-                .font(.caption.bold())
+                .cyText(.meta, weight: .bold)
                 .padding(8)
                 .frame(maxWidth:.infinity)
                 .background(.yellow.opacity(0.2))

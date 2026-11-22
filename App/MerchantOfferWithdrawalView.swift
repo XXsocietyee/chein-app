@@ -83,7 +83,7 @@ import SwiftUI
                         .lineLimit(3...6)
                         .accessibilityIdentifier("merchant.offerWithdrawal.reason")
                     Text(verbatim: "\(reasonLength)/\(MerchantOfferWithdrawalReason.maximumLength)")
-                        .font(.caption).foregroundStyle(reasonValid || reason.isEmpty ? Color.secondary : CYColor.dangerText)
+                        .cyText(.meta).foregroundStyle(reasonValid || reason.isEmpty ? Color.secondary : CYColor.dangerText)
                 } header: { Text("merchant.offerWithdrawal.reason") }
             }
 
@@ -168,27 +168,27 @@ import SwiftUI
                 Label("merchant.offerWithdrawal.state.withdrawn", systemImage: "checkmark.circle.fill")
                 LabeledContent("merchant.offerWithdrawal.field.serverReason", value: serverReason)
                 if !matches {
-                    Text("merchant.offerWithdrawal.result.reasonDiffers").font(.footnote)
+                    Text("merchant.offerWithdrawal.result.reasonDiffers").cyText(.bodyCompact)
                 }
                 if let hint {
                     Text(LocalizedStringKey(hint
                         ? "merchant.offerWithdrawal.result.enrollmentPausedHint"
-                        : "merchant.offerWithdrawal.result.enrollmentNotPausedHint")).font(.footnote)
+                        : "merchant.offerWithdrawal.result.enrollmentNotPausedHint")).cyText(.bodyCompact)
                 }
-                Text("merchant.offerWithdrawal.result.hintBoundary").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.offerWithdrawal.result.hintBoundary").cyText(.bodyCompact).foregroundStyle(.secondary)
             case .unknown(let readback):
                 Label("merchant.offerWithdrawal.state.unknown", systemImage: "questionmark.circle")
-                if let readback { Text(verbatim: String(describing: readback)).font(.footnote) }
+                if let readback { Text(verbatim: String(describing: readback)).cyText(.bodyCompact) }
                 Button("merchant.offerWithdrawal.action.readbackOnly") {
                     if let offerID = subject.offerID {
                         Task { await model.reconcileUnknown(offerID: offerID, requestedReason: reason); handleConfirmed() }
                     }
                 }
                 .accessibilityIdentifier("merchant.offerWithdrawal.readbackOnly")
-                Text("merchant.offerWithdrawal.unknown.noResend").font(.footnote).foregroundStyle(.secondary)
+                Text("merchant.offerWithdrawal.unknown.noResend").cyText(.bodyCompact).foregroundStyle(.secondary)
             case .rejected(let message):
                 Label("merchant.offerWithdrawal.state.rejected", systemImage: "xmark.circle")
-                if let message { Text(verbatim: message).font(.footnote) }
+                if let message { Text(verbatim: message).cyText(.bodyCompact) }
             default:
                 if subject.isEligible {
                     Button("merchant.offerWithdrawal.action.review", role: .destructive) {
@@ -198,7 +198,7 @@ import SwiftUI
                     .disabled(!reasonValid || model.busy || !model.permitsSubmission)
                     .accessibilityIdentifier("merchant.offerWithdrawal.review")
                     if !model.permitsSubmission {
-                        Text("merchant.offerWithdrawal.disabled").font(.footnote).foregroundStyle(.secondary)
+                        Text("merchant.offerWithdrawal.disabled").cyText(.bodyCompact).foregroundStyle(.secondary)
                     }
                 }
             }

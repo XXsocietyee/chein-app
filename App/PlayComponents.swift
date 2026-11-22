@@ -24,7 +24,7 @@ struct G01JourneyNotice: View {
         Label { message.fixedSize(horizontal: false, vertical: true) } icon: {
             Image(systemName: symbol).accessibilityHidden(true)
         }
-        .font(.footnote)
+        .cyText(.bodyCompact)
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, Theme.Space.s1)
@@ -73,7 +73,7 @@ struct PlayIssueView: View {
                 if let message = issue.message, !message.isEmpty { Text(verbatim: message) }
                 else { Text(LocalizedStringKey(issue.detailKey)) }
             }
-            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, CYSpacing.xxl)
             if issue.retryable, let retry {

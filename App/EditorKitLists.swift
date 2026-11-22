@@ -85,10 +85,10 @@ struct EditorListItemHeader: View {
 
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
-            title.font(.body.weight(.semibold)).foregroundStyle(palette.textPrimary)
+            title.cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: CYSpacing.sm)
-            if let meta { meta.font(.footnote).foregroundStyle(palette.textTertiary) }
+            if let meta { meta.cyText(.meta).foregroundStyle(palette.textTertiary) }
             EditorRowActionsMenu(index: index, count: count, actions: actions, onAction: onAction)
             if showsHandle { EditorDragHandle() }
         }
@@ -130,9 +130,9 @@ struct EditorAddRow: View {
         Button(action: action) {
             HStack(spacing: CYSpacing.s1_5) {
                 Image(systemName: "plus").font(.body.weight(.semibold)).accessibilityHidden(true)
-                title.font(.body.weight(.semibold))
+                title.cyText(.cardTitle)
                 if let count, let limit {
-                    Text(verbatim: "\(count)/\(limit)").font(.footnote.monospacedDigit()).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: "\(count)/\(limit)").cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textTertiary)
                 }
             }
             .foregroundStyle(atLimit ? palette.textDisabled : palette.textSecondary)
@@ -275,7 +275,7 @@ struct EditorAnswerOptionRow<Expanded: View>: View {
             HStack(spacing: CYSpacing.xs) {
                 if kind != .survey { correctControl }
                 TextField(text: $text) { Text(verbatim: letter) }
-                    .font(.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .submitLabel(.next)
                     .onTapGesture { onExpand() }

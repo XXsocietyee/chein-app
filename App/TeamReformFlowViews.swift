@@ -119,9 +119,9 @@ struct TeamReformSheetHost: View {
             if flow.issue == .overLimit { CYStatusChip("teamReform.invite.overLimit", tone: .warning, systemImage: "exclamationmark.circle") }
             if let reviewed = flow.reviewed {
                 Section("teamReform.invite.review") {
-                    Text(verbatim: "\(reviewed.count)").font(CYTypography.numericBody).monospacedDigit().accessibilityIdentifier("teamReform.invite.reviewCount")
+                    Text(verbatim: "\(reviewed.count)").cyText(.numericBody).monospacedDigit().accessibilityIdentifier("teamReform.invite.reviewCount")
                     ForEach(reviewed.names, id: \.self) { Text(verbatim: $0) }
-                    Text("teamReform.invite.reviewNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("teamReform.invite.reviewNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
             }
             Section {
@@ -147,7 +147,7 @@ struct TeamReformSheetHost: View {
             LabeledContent("teamReform.invite.unknown") { Text(verbatim: "\(summary.unknown)") }.accessibilityIdentifier("teamReform.invite.summary.unknown")
             LabeledContent("teamReform.invite.revoked") { Text(verbatim: "\(summary.revoked)") }.accessibilityIdentifier("teamReform.invite.summary.revoked")
             if summary.unknown > 0 {
-                Text("teamReform.invite.unknownNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("teamReform.invite.unknownNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 CYPillButton("teamReform.invite.checkUnknown", style: .secondary) { Task { await box.run { await $0.readBackUnknown() } } }
                     .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.checkUnknown")
             }
@@ -222,21 +222,21 @@ struct TeamReformSheetHost: View {
             case .confirmationPending:
                 Text("teamReform.meeting.pending").accessibilityIdentifier("teamReform.meeting.pending")
                 if flow.cancelCase == .sentUnknown {
-                    Text(verbatim: "确认已发出但结果未知，不能重发。请查原请求。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.sentUnknown")
+                    Text(verbatim: "确认已发出但结果未知，不能重发。请查原请求。").cyText(.bodyCompact).accessibilityIdentifier("teamReform.meeting.cancel.sentUnknown")
                 }
                 CYPillButton("teamReform.meeting.checkResult", style: .secondary) { Task { await box.run { await $0.readBackConfirmation() } } }
                     .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")
             case .met:
                 CYStatusChip("teamReform.meeting.met", tone: .success, systemImage: "checkmark.seal").accessibilityIdentifier("teamReform.meeting.met")
                 if flow.cancelCase == .confirmed {
-                    Text(verbatim: "会面已确认，取消不会再次确认。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.confirmed")
+                    Text(verbatim: "会面已确认，取消不会再次确认。").cyText(.bodyCompact).accessibilityIdentifier("teamReform.meeting.cancel.confirmed")
                 }
             case .cancelled:
                 CYStatusChip("teamReform.meeting.cancelled", tone: .neutral, systemImage: "xmark.octagon").accessibilityIdentifier("teamReform.meeting.cancelled")
                 if flow.cancelCase == .notSent {
-                    Text(verbatim: "确认尚未发送，已在本地取消。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.notSent")
+                    Text(verbatim: "确认尚未发送，已在本地取消。").cyText(.bodyCompact).accessibilityIdentifier("teamReform.meeting.cancel.notSent")
                 }
-                if flow.cancelUnknown { Text("teamReform.meeting.cancelUnknown").font(.footnote) }
+                if flow.cancelUnknown { Text("teamReform.meeting.cancelUnknown").cyText(.bodyCompact) }
             case .expired: CYStatusChip("teamReform.meeting.expired", tone: .warning, systemImage: "clock.badge.xmark")
             }
             if let issue = flow.scanIssue { CYStatusChip(LocalizedStringKey(scanIssueKey(issue)), tone: .warning, systemImage: "exclamationmark.triangle").accessibilityIdentifier("teamReform.meeting.issue") }
@@ -245,7 +245,7 @@ struct TeamReformSheetHost: View {
             Section {
                 Button("teamReform.meeting.cancel", role: .destructive) { Task { await box.run { await $0.cancel() } } }
                     .frame(minHeight: CYSpacing.minTouchTarget).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.cancel")
-                Text("teamReform.meeting.cancelNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("teamReform.meeting.cancelNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
         }
     }
@@ -258,9 +258,9 @@ struct TeamReformSheetHost: View {
         CYPillButton("teamReform.meeting.refreshCode", style: .secondary, systemImage: "arrow.clockwise") { Task { await box.run { await $0.refreshMyCode() } } }
             .disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.refreshCode")
         ForEach(flow.handshakes, id: \.self) { method in
-            Text(LocalizedStringKey(method == .dynamicQR ? "teamReform.meeting.methodQR" : "teamReform.meeting.methodNFC")).font(.footnote)
+            Text(LocalizedStringKey(method == .dynamicQR ? "teamReform.meeting.methodQR" : "teamReform.meeting.methodNFC")).cyText(.bodyCompact)
         }
-        Text("teamReform.meeting.scannerNotWired").font(.footnote).foregroundStyle(.secondary)
+        Text("teamReform.meeting.scannerNotWired").cyText(.bodyCompact).foregroundStyle(.secondary)
         if flow.blocksResend {
             CYPillButton("teamReform.meeting.checkResult", style: .secondary) { Task { await box.run { await $0.readBackConfirmation() } } }
                 .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")

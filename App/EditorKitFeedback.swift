@@ -28,10 +28,10 @@ struct EditorToast: View {
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
             if let symbol = icon.symbol { Image(systemName: symbol).accessibilityHidden(true) }
-            Text(verbatim: message).font(.subheadline.weight(.semibold)).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: message).cyText(.bodyMedium).lineLimit(2).fixedSize(horizontal: false, vertical: true)
             if let onUndo {
                 Button(action: onUndo) { undoTitle ?? EditorKitText.text("editorKit.undo") }
-                    .font(.subheadline.weight(.bold))
+                    .cyText(.bodyMedium)
                     .buttonStyle(.plain)
                     .editorHitTarget()
                     .accessibilityIdentifier("editorKit.toast.undo")
@@ -180,9 +180,9 @@ struct EditorPopoverContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            title.font(.subheadline.weight(.semibold)).foregroundStyle(palette.textPrimary)
-            if let message { message.font(.footnote).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true) }
-            if let action { action.font(.footnote.weight(.semibold)).foregroundStyle(palette.textPrimary) }
+            title.cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
+            if let message { message.cyText(.bodyCompact).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true) }
+            if let action { action.cyText(.bodyMedium).foregroundStyle(palette.textPrimary) }
         }
         .padding(CYSpacing.md)
         .frame(maxWidth: 280, alignment: .leading)

@@ -43,7 +43,7 @@ struct HomeHeroHeaderSectionView: View {
                                 Image(systemName: "magnifyingglass")
                                     .foregroundStyle(CYColor.textSecondary)
                                 Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
-                                    .font(CYTypography.bodyCompact)
+                                    .cyText(.bodyCompact)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .cyWrapText()
                                 Spacer(minLength: 0)
@@ -131,7 +131,7 @@ struct HomeHeroHeaderSectionView: View {
                                 }
                             }
                         }
-                        .font(.subheadline.weight(.medium))
+                        .cyText(.bodyMedium)
                     }
                     Spacer(minLength: 0)
                     HomeHeroAvatar(source: avatarSource)
@@ -158,7 +158,7 @@ struct HomeHeroHeaderSectionView: View {
                             .cyWrapText()
                         Image(systemName: "chevron.down").font(.caption2.weight(.bold))
                     }
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .foregroundStyle(CYColor.textSecondary)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                 }
@@ -260,7 +260,7 @@ struct PlayContinuationBannerView: View {
                         .font(CYTypography.caption)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(LocalizedStringKey(messageKey))
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("homeIndex.continuation.availability.\(readAvailability.rawValue)")
                     Spacer()
@@ -286,7 +286,7 @@ struct PlayContinuationBannerView: View {
                         HStack(alignment: .bottom, spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(verbatim: card.kind.badgeTitle(locale: locale))
-                                    .font(.caption.weight(.bold))
+                                    .cyText(.meta, weight: .bold)
                                     .foregroundStyle(.white.opacity(0.85))
                                 Text(verbatim: card.localizedTitle(locale: locale))
                                     .font(.system(.title3, design: .rounded).weight(.heavy))
@@ -294,7 +294,7 @@ struct PlayContinuationBannerView: View {
                                     .fixedSize(horizontal: false, vertical: true)
                                 if let subtitle = card.localizedSubtitle(locale: locale) {
                                     Text(verbatim: subtitle)
-                                        .font(CYTypography.caption)
+                                        .cyText(.caption)
                                         .foregroundStyle(.white.opacity(0.85))
                                 }
                             }
@@ -341,7 +341,7 @@ struct HomeIndexShelfHeaderView: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: shelf.title(locale: locale))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("homeIndex.shelfHeader.\(shelf.rawValue)")
             Spacer()
             if let onAction {
@@ -350,7 +350,7 @@ struct HomeIndexShelfHeaderView: View {
                         Text(verbatim: shelf.actionHint(locale: locale))
                         Image(systemName: "chevron.right")
                     }
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                 }
                 .buttonStyle(.plain)
@@ -416,7 +416,7 @@ struct HomeIndexEmptyStateView: View {
                     .accessibilityHidden(true)
                 Text(verbatim: HomeIndexParityPresentation.loadingCopy(locale: locale))
                     .accessibilityAddTraits(.updatesFrequently)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("homeIndex.state.loading")
             case .empty:
@@ -425,9 +425,9 @@ struct HomeIndexEmptyStateView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityHidden(true)
                 Text(verbatim: HomeIndexParityPresentation.emptyStateTitle(locale: locale))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                 Text(verbatim: HomeIndexParityPresentation.emptyStateHint(locale: locale))
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("homeIndex.state.empty")
             case .error:
@@ -436,7 +436,7 @@ struct HomeIndexEmptyStateView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityHidden(true)
                 Text(verbatim: HomeIndexParityPresentation.errorCopy(locale: locale))
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("homeIndex.state.error")
                 if let onRetry {
@@ -469,7 +469,7 @@ struct MerchantRootModeSwitchBannerView: View {
                     onSelectMode?(.consumer)
                 } label: {
                     Text("rootMode.consumer")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                 }
@@ -482,7 +482,7 @@ struct MerchantRootModeSwitchBannerView: View {
                         onSelectMode?(.merchant)
                     } label: {
                         Text("rootMode.merchant")
-                            .font(.caption.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                     }
@@ -1206,13 +1206,13 @@ struct MerchantAccountModeSwitchRow: View {
 
             if modeSwitch.isVerifying {
                 ProgressView("merchant.checkingAccess")
-                    .font(.caption)
+                    .cyText(.meta)
                     .accessibilityIdentifier("merchant.rootMode.verifying")
             }
 
             if let errorKey = modeSwitch.errorKey {
                 Text(LocalizedStringKey(errorKey))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchant.rootMode.error")
             }
@@ -1445,7 +1445,7 @@ struct PublishTabFloatingButton: View {
         Button(action: action) {
             Label {
                 Text(verbatim: CoreLoopCopy(locale: locale).tr(title))
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
             } icon: {
                 Image(systemName: "plus.circle.fill")
                     .font(.title3)
@@ -1488,14 +1488,14 @@ struct PublishTabFloatingSheetView: View {
                                 CYRowIcon(systemImage: item.systemImage)
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                     Text(verbatim: copy.tr(item.title))
-                                        .font(CYTypography.cardTitle)
+                                        .cyText(.cardTitle)
                                         .foregroundStyle(item.isEnabled ? CYColor.textPrimary : CYColor.textSecondary)
                                     Text(verbatim: copy.tr(item.subtitle))
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(CYColor.textTertiary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
-                                            .font(CYTypography.micro)
+                                            .cyText(.micro)
                                             .foregroundStyle(CYColor.warningText)
                                             .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
                                     }

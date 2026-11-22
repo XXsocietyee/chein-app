@@ -86,11 +86,11 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             if !model.draft.choiceOptionMedia.isSupported {
-                Text("templateAuthor.optionMedia.unsupported").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("templateAuthor.optionMedia.unsupported").cyText(.meta).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }
             if !editor.rows.supportsReordering {
-                Text("templateChoiceRows.reorderUnavailable").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("templateChoiceRows.reorderUnavailable").cyText(.meta).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("templateChoiceRows.reorderUnavailable")
             }
             if let issue = model.optionMediaIssue {
@@ -144,7 +144,7 @@ import SwiftUI
                 TextField(text: editor.text(letter), prompt: Text("config.option.placeholder \(letter.rawValue)", tableName: ConfigR4Text.table)) {
                     Text("config.option.name \(letter.rawValue)", tableName: ConfigR4Text.table)
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .focused($focused, equals: letter)
                 .submitLabel(index == count - 1 && editor.rows.canAdd ? .return : .next)

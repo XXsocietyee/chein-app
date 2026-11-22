@@ -17,7 +17,7 @@ import SwiftUI
             case .idle, .checking: ProgressView("contextSelfPlay.checking")
             case .paid, .accepted:
                 Image(systemName: "checkmark.circle").font(.largeTitle).accessibilityHidden(true)
-                Text(model.flow.phase == .paid ? "contextSelfPlay.paymentConfirmed" : "orderLifecycle.payment.registrationAccepted").font(.title2)
+                Text(model.flow.phase == .paid ? "contextSelfPlay.paymentConfirmed" : "orderLifecycle.payment.registrationAccepted").cyText(.sheetTitle)
             case .failed:
                 Image(systemName: "info.circle").font(.largeTitle).accessibilityHidden(true)
                 Text("contextSelfPlay.failed")

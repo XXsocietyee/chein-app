@@ -119,7 +119,7 @@ import QuestifyCore
             let baseSize = max(Theme.length("--cy-type-body"), 1)
             let scale = max(12, radius * 0.36) / baseSize
             let text = Text("\(frontVal)")
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(labelColor.opacity(item.alpha))
             context.drawLayer { layer in
                 layer.translateBy(x: cx, y: cy)
@@ -147,13 +147,13 @@ import QuestifyCore
                 }
                 if !margin.isEmpty {
                     Text(verbatim: margin)
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .foregroundStyle(receipt.success == true ? CYColor.successText : CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let dc = receipt.dc, !receipt.detailsHidden {
                     Text(verbatim: "DC \(dc)")
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

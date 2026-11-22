@@ -68,7 +68,7 @@ public struct CYFilterChip: View {
                 }
                 if let count {
                     Text(verbatim: "\(count)")
-                        .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                        .cyText(.micro, monospacedDigit: true)
                         .foregroundStyle(resolved.countForeground)
                 }
             }

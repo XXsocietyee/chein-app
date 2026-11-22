@@ -74,7 +74,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         .padding(.horizontal, CYSpacing.pageHorizontal)
                         .padding(.bottom, CYSpacing.sm)
                 } else {
-                    Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: "—").cyText(.body).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -107,7 +107,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 if !discoveryScope.isMerchantViewer, let operations = management?.operations, !Self.atCreationLimit(page) {
                     Section {
                         let prompt = Text("club.tab.createPrompt")
-                            .font(CYTypography.bodyMedium)
+                            .cyText(.bodyMedium)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         let create = ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
@@ -263,7 +263,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         } header: {
             if locality.phase(in: discoveryScope) == .ready {
                 Text("club.locality.ready")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .accessibilityIdentifier("club.home.locality.ready")
             }
         }
@@ -316,9 +316,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                         .cyHeroSource(club.id, in: hero)
                 }
                 if inline == .working {
-                    ProgressView("club.action.working").font(CYTypography.meta).accessibilityIdentifier("club.home.join.working.\(club.id)")
+                    ProgressView("club.action.working").cyText(.meta).accessibilityIdentifier("club.home.join.working.\(club.id)")
                 } else if case .notice(let key)? = inline {
-                    Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("club.home.join.notice.\(club.id)")
                 }
                 CYScreenOfflineWriteBanner(
@@ -389,7 +389,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             .accessibilityElement(children: .combine)
             if let signups {
                 Text("club.tab.eventSignups \(signups.text)")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("club.event.signups.\(event.id)")
             }
         }

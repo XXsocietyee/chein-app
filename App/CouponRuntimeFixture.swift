@@ -149,7 +149,7 @@ import SwiftUI
     @Environment(\.locale) private var locale
     var body: some View {
         Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "合成优惠券运行记录" : "Synthetic coupon runtime")
-            .font(.caption2).frame(maxWidth: .infinity).background(.regularMaterial)
+            .cyText(.caption).frame(maxWidth: .infinity).background(.regularMaterial)
             .accessibilityIdentifier("couponRuntime.evidence")
             .accessibilityValue(Text(verbatim: fixture.evidence))
     }

@@ -135,7 +135,7 @@ public struct ProductionTelemetryAndPrivacyRedactionSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "生产遥测与日志隐私脱敏审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("telemetryPrivacyRedaction.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -144,26 +144,26 @@ public struct ProductionTelemetryAndPrivacyRedactionSectionView: View {
                     .accessibilityIdentifier("telemetryPrivacyRedaction.overallStatus")
 
                 Text(verbatim: Self.tokenMaskingStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("telemetryPrivacyRedaction.tokenMaskingStatus")
 
                 Text(verbatim: Self.piiRedactionStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("telemetryPrivacyRedaction.piiRedactionStatus")
 
                 Text(verbatim: Self.gpsQuantizationStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("telemetryPrivacyRedaction.gpsQuantizationStatus")
 
                 Text(verbatim: Self.payloadStrippingStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("telemetryPrivacyRedaction.payloadStrippingStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无生产遥测与日志脱敏管线检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("telemetryPrivacyRedaction.empty")
             } else {
@@ -214,19 +214,19 @@ private struct TelemetryRedactionPipelineRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.pipelineTitle)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isRedacted ? "已脱敏" : "告警")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isRedacted ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "Token：\(row.masksBearerAndAuthTokens ? "掩码" : "未掩码") · 手机/ID：\(row.redactsPhoneAndIdentityNumbers ? "脱敏" : "未脱敏") · GPS：\(row.quantizesOrStripsGPSCoordinates ? "量化" : "明文") · 正文：\(row.stripsChatAndDraftPayloads ? "剥离" : "保留")")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

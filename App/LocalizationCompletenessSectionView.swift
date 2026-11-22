@@ -105,7 +105,7 @@ public struct LocalizationCompletenessSectionView: View {
             Section {
                 HStack {
                     Text(verbatim: snapshot.statusHeadline)
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isAllComplete ? "PASS" : "CHECK")
                         .font(.caption2.monospaced().weight(.bold))
@@ -131,7 +131,7 @@ public struct LocalizationCompletenessSectionView: View {
                         .foregroundStyle(snapshot.verbatimViewsCompliant ? CYColor.successText : CYColor.warningText)
                         .accessibilityHidden(true)
                     Text(verbatim: snapshot.verbatimComplianceNotice)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityIdentifier("localizationCompleteness.verbatimCompliance")
@@ -147,7 +147,7 @@ public struct LocalizationCompletenessSectionView: View {
                             Text(verbatim: row.catalogName)
                                 .font(.subheadline.monospaced().weight(.medium))
                             Text(verbatim: row.summaryText)
-                                .font(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(.secondary)
                         }
 
@@ -158,7 +158,7 @@ public struct LocalizationCompletenessSectionView: View {
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(.secondary)
                             Text(verbatim: row.isBilingualComplete ? "0 缺失" : "缺失 \(row.missingKeyCount)")
-                                .font(.caption2.weight(.semibold))
+                                .cyText(.caption, weight: .semibold)
                                 .foregroundStyle(row.isBilingualComplete ? CYColor.successText : CYColor.dangerText)
                         }
                     }

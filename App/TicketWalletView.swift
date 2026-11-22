@@ -71,7 +71,7 @@ import SwiftUI
                     if !snapshot.tickets.isEmpty && shown.isEmpty {
                         // Source filter 即将开始 / 已通关 with no match: say so instead of an empty wallet.
                         Text(LocalizedStringKey(walletFilter.emptyKey), tableName: "MpFresh")
-                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.lg)
                             .listRowBackground(Color.clear)
                             .accessibilityIdentifier("ticketWallet.filterEmpty")
@@ -123,7 +123,7 @@ import SwiftUI
                 }
                 // Payment, refunds and completion rewards are not in the app; shown in every state so the wallet never implies otherwise.
                 Section {
-                    Text("ticketWallet.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("ticketWallet.readOnly").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("ticketWallet.readOnly")
                 }
@@ -332,7 +332,7 @@ private struct TicketWalletRow: View {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     TicketWalletStatusBadge(status: ticket.status)
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                        .font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
+                        .cyText(.sectionTitle).foregroundStyle(.white)
                         .fixedSize(horizontal: false, vertical: true)
                     completionCaption
                 }
@@ -366,7 +366,7 @@ private struct TicketWalletRow: View {
                             .accessibilityIdentifier("ticketWallet.sourceNotice.\(ticket.id)")
                     }
                     if let hint = ticket.statusHintKey, ticket.action == .detail {
-                        Text(LocalizedStringKey(hint)).font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                        Text(LocalizedStringKey(hint)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                             .accessibilityIdentifier("ticketWallet.statusHint.\(ticket.id)")
                     }
                     if showsPendingOrderAction {
@@ -395,11 +395,11 @@ private struct TicketWalletRow: View {
     @ViewBuilder private var completionCaption: some View {
         if let completionReader, completionReader.topicCompleted(ticket) == true {
             Text("mpfresh.ticketWallet.filter.completed", tableName: "MpFresh")
-                .font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.92))
+                .cyText(.bodyMedium).foregroundStyle(.white.opacity(0.92))
                 .accessibilityIdentifier("ticketWallet.topicCompleted.\(ticket.id)")
         } else if let completionReader, completionReader.topicCompleted(ticket) == nil, ticket.topicCompletion == .unknown {
             Text("mpfresh.ticketWallet.completion.unknown", tableName: "MpFresh")
-                .font(.footnote.weight(.semibold)).foregroundStyle(.white.opacity(0.92))
+                .cyText(.bodyMedium).foregroundStyle(.white.opacity(0.92))
                 .accessibilityLabel(Text("mpfresh.ticketWallet.completion.unknownLabel", tableName: "MpFresh"))
                 .accessibilityIdentifier("ticketWallet.topicCompleted.unknown.\(ticket.id)")
         }

@@ -178,13 +178,13 @@ struct CYStateLayout: View {
             CYStateArt(kind: kind, size: artSize)
                 .padding(.bottom, CYSpacing.xs)
             title
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             if let detail {
                 detail
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
@@ -263,7 +263,7 @@ struct CYOfflineStrip: View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: "wifi.slash").font(.footnote.weight(.semibold))
             Text(verbatim: appLocalized("cy.kit.offline.saved", locale: t.resourceLocale))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -273,7 +273,7 @@ struct CYOfflineStrip: View {
         if let onRetry {
             Button(action: onRetry) {
                 Text(verbatim: appLocalized("cy.kit.offline.retry", locale: t.resourceLocale))
-                    .font(CYTypography.meta.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(minHeight: 44)
@@ -353,13 +353,13 @@ struct CYPermissionPriming: View {
                     Spacer(minLength: CYSpacing.xxl)
                     CYStateArt(kind: kind.artKind, size: typeSize.isAccessibilitySize ? 88 : 168)
                     Text(verbatim: kind.title(t))
-                        .font(CYTypography.pageTitle)
+                        .cyText(.pageTitle)
                         .foregroundStyle(palette.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                     Text(verbatim: kind.benefit(t))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
@@ -395,12 +395,12 @@ struct CYPermissionDeniedCard: View {
         VStack(spacing: CYSpacing.md) {
             CYStateArt(kind: kind.artKind, size: 96)
             Text(verbatim: kind == .location ? t("Location is off", "定位没开") : t("Camera is off", "相机没开"))
-                .font(CYTypography.cardTitle.weight(.semibold))
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
             Text(verbatim: kind == .location
                  ? t("Turn it on in Settings to roam and collect nearby stamps.", "在“设置”中开启后，即可漫游并收集附近的印章。")
                  : t("Turn it on in Settings to take stamp photos.", "在“设置”中开启后，即可拍摄印章照片。"))
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
             CYPillButton(verbatim: t("Open Settings", "打开设置"), style: .secondary, fullWidth: false, action: onOpenSettings)

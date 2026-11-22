@@ -141,17 +141,17 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Member Subscription, 5-State Order & Refund Readback")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("memberSubscriptionOrder.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("memberSubscriptionOrder.statusBadge")
             }
 
             Text(verbatim: subscriptionSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.storeKit2GateFailClosed ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("memberSubscriptionOrder.subscriptionSummary")
 
@@ -165,7 +165,7 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                 .accessibilityIdentifier("memberSubscriptionOrder.lifecycleStatesSummary")
 
             Text(verbatim: refundReceiptSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.refundReceiptReadbackRequired ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("memberSubscriptionOrder.refundReceiptSummary")
 
@@ -174,14 +174,14 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.scopeCode)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle((row.isCompliant && !row.liveChargeEnabled) ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.policyDetail)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

@@ -45,7 +45,7 @@ struct E1ActivityHero: View {
                         } icon: {
                             Image(systemName: "mappin.and.ellipse").accessibilityHidden(true)
                         }
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.onCoverFgDim)
                     }
                 }
@@ -123,17 +123,17 @@ struct E1ActivityStatsRow: View {
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         Text(verbatim: item.label)
-                            .font(CYTypography.micro)
+                            .cyText(.micro)
                             .foregroundStyle(palette.textTertiary)
                         Text(verbatim: item.value)
-                            .font(CYTypography.numericBody)
+                            .cyText(.numericBody)
                             .monospacedDigit()
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityLabel(PageTemplateVoiceOver.spoken(item.value, locale: locale))
                         if let sub = item.sub {
                             Text(verbatim: sub)
-                                .font(CYTypography.micro)
+                                .cyText(.micro)
                                 .foregroundStyle(palette.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -254,9 +254,9 @@ struct E1ActivityInfoCard: View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             CYRowIcon(systemImage: icon)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: label).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textTertiary)
                 Text(verbatim: value)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityLabel(PageTemplateVoiceOver.spoken(value, locale: locale))

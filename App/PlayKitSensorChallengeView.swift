@@ -34,10 +34,10 @@ import UIKit
         VStack(spacing: 20) {
             kicker
             Text(LocalizedStringKey("playkit.sensor.purpose." + kind.rawValue))
-                .font(.callout).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("playkit.sensor.purpose")
-            if kind == .quietHold || kind == .shout { Text("playkit.sensor.audioPrivacy").font(.footnote).foregroundStyle(.secondary) }
-            if kind == .compass { Text("playkit.compass.caution").font(.footnote).foregroundStyle(.secondary) }
+            if kind == .quietHold || kind == .shout { Text("playkit.sensor.audioPrivacy").cyText(.bodyCompact).foregroundStyle(.secondary) }
+            if kind == .compass { Text("playkit.compass.caution").cyText(.bodyCompact).foregroundStyle(.secondary) }
             if let error = stage.issue {
                 CYStatusChip(LocalizedStringKey("playkit.sensor.error." + error.rawValue), tone: .danger, systemImage: "exclamationmark.triangle")
                     .accessibilityIdentifier("playkit.sensor.issue")
@@ -48,7 +48,7 @@ import UIKit
             }
             sensorBoard
             Text(LocalizedStringKey("playkit.sensor.phase." + stage.phase.rawValue))
-                .font(.headline).accessibilityIdentifier("playkit.sensor.phase")
+                .cyText(.cardTitle).accessibilityIdentifier("playkit.sensor.phase")
             if stage.phase == .calibrating {
                 CYSkeleton().accessibilityLabel(Text("playkit.sensor.calibrating"))
                 Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
@@ -79,7 +79,7 @@ import UIKit
                 Button("playkit.sensor.stop", role: .cancel) { stage.interrupt(.interrupted) }
                     .accessibilityIdentifier("playkit.sensor.stop")
             }
-            if !stage.supported { Text("playkit.sensor.error.configurationUnavailable").font(.footnote) }
+            if !stage.supported { Text("playkit.sensor.error.configurationUnavailable").cyText(.bodyCompact) }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical)
@@ -120,14 +120,14 @@ import UIKit
             switch kind {
             case .ballShake:
                 Text("playkit.ball.kicker \(stage.ball.goal)")
-                if stage.ball.limitSeconds > 0 { Text("playkit.ball.limitLine \(decimal(stage.ball.limitSeconds))").font(CYTypography.body) }
+                if stage.ball.limitSeconds > 0 { Text("playkit.ball.limitLine \(decimal(stage.ball.limitSeconds))").cyText(.body) }
             case .quietHold: Text("playkit.quiet.kicker")
             case .shout: Text("playkit.shout.kicker")
             case .compass: Text("playkit.compass.kicker")
             default: EmptyView()
             }
         }
-        .font(CYTypography.meta).foregroundStyle(.secondary)
+        .cyText(.meta).foregroundStyle(.secondary)
         .accessibilityIdentifier("playkit.sensor.kicker")
     }
 
@@ -150,7 +150,7 @@ import UIKit
                     }.clipped()
                 }.aspectRatio(300.0 / 420.0, contentMode: .fit)
                     .accessibilityElement(children: .ignore).accessibilityLabel(Text("playkit.ball.board"))
-                Text("playkit.ball.instruction").font(.footnote)
+                Text("playkit.ball.instruction").cyText(.bodyCompact)
             }
         case .quietHold, .shout:
             let level = kind == .quietHold ? stage.quiet.level : stage.shout.level
@@ -160,7 +160,7 @@ import UIKit
             let total = kind == .quietHold ? stage.quiet.targetSeconds : stage.shout.targetSeconds
             let color: Color = level > threshold ? .red : level > warning ? .orange : .green
             VStack(spacing: 12) {
-                Text(verbatim: decimal(max(0, total - held))).font(.system(.largeTitle, design: .rounded, weight: .bold)).monospacedDigit()
+                Text(verbatim: decimal(max(0, total - held))).cyText(.dataXL).monospacedDigit()
                     .accessibilityLabel(Text("playkit.sensor.secondsLeft"))
                     .accessibilityValue(Text(verbatim: decimal(max(0, total - held))))
                 Gauge(value: level, in: 0...1) { Text("playkit.audio.livePeak") }.tint(color)
@@ -168,9 +168,9 @@ import UIKit
                       systemImage: level > threshold ? "waveform" : "waveform.path")
                     .foregroundStyle(color)
                 ProgressView(value: held, total: total).accessibilityLabel(Text("playkit.sensor.holdProgress"))
-                if kind == .quietHold { Text("playkit.quiet.relative").font(.footnote).foregroundStyle(.secondary) }
+                if kind == .quietHold { Text("playkit.quiet.relative").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 if kind == .quietHold, stage.quiet.exceeded { Text("playkit.quiet.limitReached") }
-                if kind == .shout { Text("playkit.shout.continuous").font(.footnote) }
+                if kind == .shout { Text("playkit.shout.continuous").cyText(.bodyCompact) }
             }
         case .compass:
             VStack(spacing: 12) {

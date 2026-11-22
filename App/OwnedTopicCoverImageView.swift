@@ -66,7 +66,7 @@ import UIKit
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     CYHeroHeader(verbatim: String(localized: LocalizedStringResource("ownedCover.imageTitle", defaultValue: "Selected cover image", locale: locale)))
                     Text(String(localized: LocalizedStringResource("ownedCover.authorImageScope", defaultValue: "Only this account can read this selected asset. This image is not a player grant or a publication receipt.", locale: locale)))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("ownedCover.image.scope")
                     if original.flow.isCurrent, let image = model.image {
                         Image(uiImage: image).resizable().scaledToFit()

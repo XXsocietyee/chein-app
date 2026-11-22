@@ -32,11 +32,11 @@ import SwiftUI
                 CYHeroHeader("admission.title")
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     Text("admission.space")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .accessibilityHidden(true)
                     Text(verbatim: String(spaceID))
-                        .font(CYTypography.dataXL)
+                        .cyText(.dataXL)
                         .foregroundStyle(palette.textPrimary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
@@ -73,7 +73,7 @@ import SwiftUI
                 } label: {
                     HStack(spacing: CYSpacing.sm) {
                         Text(verbatim: moreTitle)
-                            .font(CYTypography.body.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Image(systemName: "chevron.up.chevron.down")
                             .font(.footnote.weight(.semibold))
                             .accessibilityHidden(true)
@@ -94,13 +94,13 @@ import SwiftUI
                 }
                 if !message.isEmpty {
                     Text(LocalizedStringKey(message))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 ForEach([submitID, cancelID, approveID, rejectID, leaveID, lastPauseID, revokeID].compactMap { $0 }, id: \.self) { id in
                     Text(verbatim: shownID(id))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
@@ -131,7 +131,7 @@ import SwiftUI
 
     private func field(_ key: LocalizedStringKey, text: Binding<String>) -> some View {
         TextField(key, text: text)
-            .font(CYTypography.body)
+            .cyText(.body)
             .cyField()
     }
 

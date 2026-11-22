@@ -31,7 +31,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                 unavailable = false; selection = Selection(controller: controller)
             } label: { Label { installText("entry") } icon: { Image(systemName: "square.and.arrow.down") } }
                 .accessibilityIdentifier("workshopPaidInstall.entry")
-            installText(unavailable ? "notConfigured" : "entryScope").font(.footnote).fixedSize(horizontal: false, vertical: true)
+            installText(unavailable ? "notConfigured" : "entryScope").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
         }
         .sheet(item: presented) { captured in
             WorkshopPaidInstallView(controller: captured.controller, appearance: captured.appearance, makeProfessional: makeProfessional, makeText: makeText) {
@@ -107,7 +107,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     }
                     if let outcome = controller.outcome, outcome.state == .installed {
                         Section {
-                            installText("installed").font(.headline)
+                            installText("installed").cyText(.cardTitle)
                             if let id = outcome.ownedDraftId { InstallFact("ownedDraft", String(id)) }
                             if let at = outcome.installedAt { InstallFact("installedAt", at) }
                             installText("materializationRequired").fixedSize(horizontal: false, vertical: true)
@@ -119,7 +119,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                         if controller.history.isEmpty { installText("noHistory") }
                         ForEach(controller.history) { receipt in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: receipt.requestId).font(.caption)
+                                Text(verbatim: receipt.requestId).cyText(.meta)
                                 installText("state." + receipt.state.rawValue)
                                 if let command = receipt.command {
                                     Text(verbatim: command.purchasedVersionId)

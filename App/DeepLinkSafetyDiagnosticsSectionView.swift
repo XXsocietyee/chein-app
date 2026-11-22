@@ -293,7 +293,7 @@ public struct DeepLinkSafetySnapshot: Equatable, Sendable {
                         .font(.caption.monospaced())
                 }
                 Text(verbatim: snapshot.lastEvaluatedSummary)
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
             }
             .accessibilityElement(children: .combine)
@@ -319,7 +319,7 @@ public struct DeepLinkSafetySnapshot: Equatable, Sendable {
                             .accessibilityIdentifier("deepLinkSafety.rule.badge.\(rule.id)")
                     }
                     Text(verbatim: rule.detail)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

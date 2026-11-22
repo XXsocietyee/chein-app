@@ -68,17 +68,17 @@ enum PublishClarityText {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             TopicPublicationHeadlineChip(headline: headline)
             Text("result.nextStep", tableName: PublishClarityText.table)
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Group {
                 if let text = next.serverText { Text(verbatim: text) }
                 else if let key = next.fallbackKey { Text(LocalizedStringKey(key), tableName: PublishClarityText.table) }
             }
-            .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+            .cyText(.body).foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("publishClarity.result.nextStep")
             if let revision = acknowledgment.contentRevisionNo {
                 Text(verbatim: PublishClarityText.format("result.revision", locale: locale, revision))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("publishClarity.result.revision")
             }
         }
@@ -103,11 +103,11 @@ enum PublishClarityText {
             switch phase {
             case .idle, .loading:
                 Text("status.reading", tableName: PublishClarityText.table)
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("publishClarity.status.loading")
             case .failed:
                 Text("status.failed", tableName: PublishClarityText.table)
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishClarity.status.failed")
             case .loaded(let status):
@@ -116,7 +116,7 @@ enum PublishClarityText {
                     TopicPublicationFactRowView(row: row)
                 }
                 Text("status.gate", tableName: PublishClarityText.table)
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Button { Task { await read() } } label: {
@@ -161,7 +161,7 @@ enum PublishClarityText {
                 line("fact.reviewPassed", value: passed, id: "reviewPassed")
                 if let auditTaskID {
                     Text(verbatim: PublishClarityText.format("fact.auditTask", locale: locale, auditTaskID))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit()
                 }
                 if let detail, !detail.isEmpty { reasonText(detail, fallback: nil) }
             case .visible(let value, let reason):
@@ -171,12 +171,12 @@ enum PublishClarityText {
                 line("fact.onSale", value: value, id: "onSale")
                 if awaitingReview == .yes {
                     Text("fact.commercialReview", tableName: PublishClarityText.table)
-                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.warningText)
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.warningText)
                 }
                 if value == .no { reasonText(blockReason, fallback: nil) }
                 if let nextStep, !nextStep.isEmpty {
                     Text(verbatim: PublishClarityText.format("fact.nextStep", locale: locale, nextStep))
-                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishClarity.fact.saleNextStep")
                 }
@@ -185,9 +185,9 @@ enum PublishClarityText {
                 if value == .no { reasonText(reason, fallback: nil) }
                 if let version {
                     Text(verbatim: PublishClarityText.format("fact.publishedVersion", locale: locale, version))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit()
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit()
                 }
-                if beta { Text("fact.beta", tableName: PublishClarityText.table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if beta { Text("fact.beta", tableName: PublishClarityText.table).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
         }
     }
@@ -203,11 +203,11 @@ enum PublishClarityText {
     }
     @ViewBuilder private func reasonText(_ text: String?, fallback: String?) -> some View {
         if let text = text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
-            Text(verbatim: text).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: text).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         } else if let fallback {
             Text(LocalizedStringKey(fallback), tableName: PublishClarityText.table)
-                .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
         }
     }
     private func reviewText(state: String?, label: String?) -> String {
@@ -285,20 +285,20 @@ enum PublishClarityText {
                 }
                 switch controller.phase {
                 case .idle:
-                    Text("check.hint", tableName: PublishClarityText.table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("check.hint", tableName: PublishClarityText.table).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 case .loading:
-                    Text("check.loading", tableName: PublishClarityText.table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("check.loading", tableName: PublishClarityText.table).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("publishClarity.check.loading")
                 case .unavailable:
-                    Text("check.unavailable", tableName: PublishClarityText.table).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("check.unavailable", tableName: PublishClarityText.table).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("publishClarity.check.unavailable")
                 case .failed:
-                    Text("check.failed", tableName: PublishClarityText.table).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("check.failed", tableName: PublishClarityText.table).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishClarity.check.failed")
                 case .loaded:
                     if let report { loaded(report) }
-                    else { Text("check.stale", tableName: PublishClarityText.table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    else { Text("check.stale", tableName: PublishClarityText.table).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 }
                 Button { Task { await controller.run(model) } } label: {
                     Text(LocalizedStringKey(report == nil ? "check.run" : "check.rerun"), tableName: PublishClarityText.table)
@@ -318,7 +318,7 @@ enum PublishClarityText {
         case .localOnlyBlocks: notice("check.agreement.localOnly")
         }
         if report.issues.isEmpty {
-            Text("check.clean", tableName: PublishClarityText.table).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+            Text("check.clean", tableName: PublishClarityText.table).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                 .accessibilityIdentifier("publishClarity.check.clean")
         }
         ForEach(report.blocking + report.advisory) { issue in issueRow(issue) }
@@ -352,13 +352,13 @@ enum PublishClarityText {
     private func issueLabel(_ issue: TopicPublishCheckIssue) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             if let place = PublishClarityText.whereText(.of(issue), locale: locale) {
-                Text(verbatim: place).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: place).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             Label { Text(verbatim: issue.message).fixedSize(horizontal: false, vertical: true) }
                 icon: { Image(systemName: issue.blocks ? "exclamationmark.circle" : "info.circle") }
                 .foregroundStyle(issue.blocks ? CYColor.dangerText : CYColor.textPrimary)
             Text(LocalizedStringKey(issue.blocks ? "check.level.error" : "check.level.warn"), tableName: PublishClarityText.table)
-                .font(CYTypography.micro).foregroundStyle(CYColor.textSecondary)
+                .cyText(.micro).foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
     }
@@ -374,11 +374,11 @@ enum PublishClarityText {
                 TopicPublicationHeadlineChip(headline: fact.headline)
                 if fact.headline == .listedPublic || fact.headline == .listedOffline {
                     Text("list.reviewOnStatusPage", tableName: PublishClarityText.table)
-                        .font(CYTypography.micro).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.micro).foregroundStyle(CYColor.textSecondary)
                 }
                 if let key = fact.editScopeNoticeKey {
                     Text(LocalizedStringKey(key), tableName: PublishClarityText.table)
-                        .font(CYTypography.micro).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.micro).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishClarity.list.editScope.\(project.sourceID)")
                 }

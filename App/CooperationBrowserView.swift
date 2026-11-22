@@ -156,7 +156,7 @@ import SwiftUI
                                         HStack(spacing: CYSpacing.xs) {
                                             Text(LocalizedStringKey(direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
                                             CooperationName(name: row.partner?.name).lineLimit(2).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
-                                        }.font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                                        }.cyText(.label).foregroundStyle(CYColor.textTertiary)
                                     }
                                     CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))
                                 }
@@ -204,7 +204,7 @@ import SwiftUI
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 CooperationStatus(key: replied?.statusKey ?? row.statusKey)
                                 CooperationName(name: row.topicName, fallback: "cooperation.unnamedTopic")
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -246,7 +246,7 @@ import SwiftUI
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 CooperationStatus(key: row.statusKey)
                                 CooperationName(name: row.merchantName, fallback: "cooperation.unnamedMerchant")
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }

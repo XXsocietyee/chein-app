@@ -100,9 +100,9 @@ import SwiftUI
                 else if browser.isCurrent {
                     if let issue = browser.issue {
                         MerchantOperationsIssueView(issue: issue)
-                        if browser.loaded { Text("merchant.templateBrowser.retained").font(.footnote) }
+                        if browser.loaded { Text("merchant.templateBrowser.retained").cyText(.bodyCompact) }
                         Button { Task { await model.refresh(permit) } } label: {
-                            Text("merchant.templateBrowser.retryRefresh").font(Theme.Font.button)
+                            Text("merchant.templateBrowser.retryRefresh").cyText(.button)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .contentShape(Rectangle())
                         }.buttonStyle(.bordered)
@@ -111,14 +111,14 @@ import SwiftUI
                     if browser.loaded {
                         Button { model.open(nil, permit: permit) } label: {
                             Label("merchant.operations.newTemplate", systemImage: "plus")
-                                .font(Theme.Font.button).frame(maxWidth: .infinity, minHeight: 44)
+                                .cyText(.button).frame(maxWidth: .infinity, minHeight: 44)
                         }.buttonStyle(.questifyPrimary).disabled(!browser.canOpen).accessibilityIdentifier("merchant.operations.newTemplate")
                         if let total = browser.total {
                             Text("merchant.templateBrowser.count \(browser.rows.count) \(total)")
-                                .font(Theme.Font.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")
+                                .cyText(.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")
                         } else {
                             Text("merchant.templateBrowser.loadedCount \(browser.rows.count)")
-                                .font(Theme.Font.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")
+                                .cyText(.label).foregroundStyle(.secondary).accessibilityIdentifier("merchant.templateBrowser.count")
                         }
                         if browser.rows.isEmpty {
                             ContentUnavailableView("merchant.operations.empty", systemImage: "square.grid.2x2", description: Text("merchant.templateBrowser.emptyHint"))
@@ -167,22 +167,22 @@ import SwiftUI
             ProgressView("merchant.templateBrowser.loadingMore").accessibilityIdentifier("merchant.templateBrowser.loadingMore")
         } else if let issue = browser.loadMoreIssue {
             MerchantOperationsIssueView(issue: issue)
-            Text("merchant.templateBrowser.moreFailed").font(.footnote)
+            Text("merchant.templateBrowser.moreFailed").cyText(.bodyCompact)
             Button { Task { await model.more(permit) } } label: {
-                Text("merchant.templateBrowser.retryMore").font(Theme.Font.button)
+                Text("merchant.templateBrowser.retryMore").cyText(.button)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .contentShape(Rectangle())
             }.buttonStyle(.bordered)
                 .disabled(!browser.canLoadMore).accessibilityIdentifier("merchant.templateBrowser.retryMore")
         } else if browser.hasMore {
             Button { Task { await model.more(permit) } } label: {
-                Text("merchant.templateBrowser.more").font(Theme.Font.button)
+                Text("merchant.templateBrowser.more").cyText(.button)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .contentShape(Rectangle())
             }.buttonStyle(.bordered)
                 .disabled(!browser.canLoadMore).accessibilityIdentifier("merchant.templateBrowser.more")
         } else if !browser.rows.isEmpty {
-            Text("merchant.templateBrowser.end").font(.footnote).foregroundStyle(.secondary)
+            Text("merchant.templateBrowser.end").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .accessibilityIdentifier("merchant.templateBrowser.end")
         }
     }
@@ -217,20 +217,20 @@ private struct MerchantTemplateBrowserCard: View {
             VStack(alignment: .leading, spacing: Theme.Space.s3) {
                 HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
                     if row.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text("merchant.operations.untitled").font(Theme.Font.sectionTitle)
-                    } else { Text(verbatim: row.title).font(Theme.Font.sectionTitle) }
+                        Text("merchant.operations.untitled").cyText(.sectionTitle)
+                    } else { Text(verbatim: row.title).cyText(.sectionTitle) }
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.forward").font(Theme.Font.label).foregroundStyle(.secondary).accessibilityHidden(true)
+                    Image(systemName: "chevron.forward").cyText(.label).foregroundStyle(.secondary).accessibilityHidden(true)
                 }
                 if let description = row.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text(verbatim: description).font(Theme.Font.body).foregroundStyle(.secondary)
                 }
                 Divider()
-                Text(LocalizedStringKey(statusKey)).font(Theme.Font.label).fontWeight(.semibold)
+                Text(LocalizedStringKey(statusKey)).cyText(.label).fontWeight(.semibold)
                     .padding(.horizontal, Theme.Space.s2).padding(.vertical, Theme.Space.s1)
                     .background(Theme.Color.bgRaised(in: .merchant), in: RoundedRectangle(cornerRadius: Theme.Radius.sm))
                 if let method = row.validationMethod.flatMap(MerchantTemplateMethod.init(rawValue:)) {
-                    Text(LocalizedStringKey(method.titleKey)).font(Theme.Font.label).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(method.titleKey)).cyText(.label).foregroundStyle(.secondary)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
@@ -245,8 +245,8 @@ private struct MerchantTemplateBrowserCard: View {
     private var coverPlaceholder: some View {
         Group {
             if let initial = row.title.trimmingCharacters(in: .whitespacesAndNewlines).first {
-                Text(verbatim: String(initial)).font(Theme.Font.pageTitle)
-            } else { Image(systemName: "photo").font(Theme.Font.pageTitle) }
+                Text(verbatim: String(initial)).cyText(.pageTitle)
+            } else { Image(systemName: "photo").cyText(.pageTitle) }
         }.foregroundStyle(Theme.Color.textSecondary(in: .merchant))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Theme.Color.bgRaised(in: .merchant))

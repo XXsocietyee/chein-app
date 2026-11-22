@@ -42,7 +42,7 @@ import UIKit
                     }.frame(minHeight: 44).accessibilityIdentifier("profile.orderNumberCopy.open")
                     if let result = model.result {
                         Text(LocalizedStringKey(result == .copied ? "localCopy.copied" : "localCopy.failed"))
-                            .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                            .cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier(result == .copied ? "profile.orderNumberCopy.copied" : "profile.orderNumberCopy.failed")
                     }
                 }

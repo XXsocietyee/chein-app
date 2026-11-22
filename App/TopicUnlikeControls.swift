@@ -98,7 +98,7 @@ private struct TopicUnlikeStatus: View {
                 EmptyView()
             }
         }
-        .font(.footnote).frame(maxWidth: .infinity).padding(.vertical, 8)
+        .cyText(.bodyCompact).frame(maxWidth: .infinity).padding(.vertical, 8)
         .background(.bar)
     }
 }

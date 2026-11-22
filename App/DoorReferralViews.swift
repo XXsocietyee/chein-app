@@ -19,7 +19,7 @@ import SwiftUI
                 Section { CYHeroHeader("door.inviter.title") }.e1HeroRow()
                 Section {
                     Text("door.inviter.once")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     TextField("door.inviter.placeholder", text: $input)
@@ -78,7 +78,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             CYSkeleton()
             Text("door.resolving")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -114,16 +114,16 @@ import SwiftUI
                 Section { CYHeroHeader("door.fixture.title") }.e1HeroRow()
                 Section {
                     Text("door.fixture.offline")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     TextField("door.fixture.scene", text: $text).accessibilityIdentifier("door.fixture.scene")
                     Text(DoorParsing.scene(text) ?? "invalid")
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("door.fixture.normalized")
                     Text(String(describing: DoorScanResult(action: "play", topicID: 42).destination))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

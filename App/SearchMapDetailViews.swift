@@ -100,7 +100,7 @@ import SwiftUI
                     let value = detail.merchant
                     Section {
                         if let name = value.name { CYHeroHeader(verbatim: name).e1HeroRow() }
-                        if let role = value.cityRole { Text(verbatim: role).font(CYTypography.cardTitle) }
+                        if let role = value.cityRole { Text(verbatim: role).cyText(.cardTitle) }
                         if let title = value.storyTitle { Text(verbatim: title) }
                         if let text = value.description { Text(verbatim: text).textSelection(.enabled) }
                     }

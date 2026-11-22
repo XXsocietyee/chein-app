@@ -80,7 +80,7 @@ struct DiscoveryTemplateBrowserView: View {
                         } else if templateTabScope == .merchant(canManageProjects: false) {
                             HStack(alignment: .top, spacing: CYSpacing.sm) {
                                 Image(systemName: "lock.fill").foregroundStyle(palette.warning).accessibilityHidden(true)
-                                Text("discovery.templateTab.staffReadOnly").font(CYTypography.meta)
+                                Text("discovery.templateTab.staffReadOnly").cyText(.meta)
                                     .foregroundStyle(palette.textSecondary)
                                     .accessibilityIdentifier("discovery.templateTab.staffReadOnly")
                             }
@@ -188,7 +188,7 @@ struct DiscoveryTemplateBrowserView: View {
                 .accessibilityValue(Text(verbatim: text.wrappedValue.isEmpty ? "—" : text.wrappedValue))
                 .accessibilityHint(Text("discovery.searchAction"))
             Button("discovery.searchAction", action: submit)
-                .font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                .cyText(.meta, weight: .semibold).foregroundStyle(palette.textSecondary)
                 .pageTemplateControl(label: Text("discovery.searchAction"), traits: .isButton)
                 .accessibilityIdentifier(submitID ?? "\(field).submit")
                 .accessibilityLabel(Text("discovery.searchAction"))
@@ -202,7 +202,7 @@ struct DiscoveryTemplateBrowserView: View {
 
     private func filterChip(_ title: Text, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            title.font(CYTypography.meta.weight(.semibold)).cyWrapText(alignment: .center)
+            title.cyText(.meta, weight: .semibold).cyWrapText(alignment: .center)
                 .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textSecondary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: CYSpacing.minTouchTarget)
                 .background(selected ? palette.actionPrimaryBg : Color.clear, in: Capsule(style: .continuous))
@@ -220,13 +220,13 @@ struct DiscoveryTemplateBrowserView: View {
             if appliedTopicSearch.isActive {
                 HStack {
                     Text("discovery.searchingFor \(appliedTopicSearch.keyword)")
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("discovery.topicNameSearch.applied")
                     Spacer(minLength: CYSpacing.sm)
                     Button("discovery.clearTopicNameSearch") {
                         topicKeyword = ""; appliedTopicSearch = DiscoveryTopicTemplateNameSearch("")
                         topicSearchFocused = false
-                    }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                    }.cyText(.meta, weight: .semibold).foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("discovery.topicNameSearch.clear")
                         .accessibilityLabel(Text("discovery.clearTopicNameSearch"))
                         .accessibilityValue(Text(verbatim: appliedTopicSearch.keyword.isEmpty ? "—" : appliedTopicSearch.keyword))
@@ -279,7 +279,7 @@ struct DiscoveryTemplateBrowserView: View {
             if hasGameKeyword || gameTag != nil {
                 Button("discovery.clearFilters") {
                     keyword = ""; appliedKeyword = ""; gameTag = nil
-                }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                }.cyText(.meta, weight: .semibold).foregroundStyle(palette.textSecondary)
                     .accessibilityLabel(Text("discovery.clearFilters"))
                     .accessibilityValue(Text(verbatim: clearFilterSpoken))
                     .accessibilityHint(Text("discovery.clearFilters"))
@@ -326,7 +326,7 @@ struct DiscoveryTemplateBrowserView: View {
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let shownTitle = verbatimTitle {
-                    Text(verbatim: shownTitle).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: shownTitle).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 } else {
                     CYSectionHeader(title, subtitle: hint)
                 }
@@ -344,10 +344,10 @@ struct DiscoveryTemplateBrowserView: View {
                             HStack(alignment: .top, spacing: CYSpacing.md) {
                                 DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name)
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle)
+                                    DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").cyText(.cardTitle)
                                         .foregroundStyle(palette.textPrimary)
                                     if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        Text(item.subtitle).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                                        Text(item.subtitle).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
                                     DiscoveryTopicMetadata(item: item)
@@ -366,7 +366,7 @@ struct DiscoveryTemplateBrowserView: View {
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let shownTitle = verbatimTitle {
-                    Text(verbatim: shownTitle).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: shownTitle).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 } else {
                     CYSectionHeader(title)
                 }
@@ -530,7 +530,7 @@ struct DiscoveryTemplateBrowserView: View {
                     ForEach(groups) { group in
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Text(verbatim: locale.pick(group.zh, group.en))
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                             ForEach(group.tags) { tag in
                                 Button(action: { choose(tag.key) }) {
                                     Text(verbatim: locale.pick(tag.zh, tag.en))

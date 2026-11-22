@@ -22,7 +22,7 @@ import SwiftUI
                 if flow.hasPending {
                     Section {
                         Label { Text("recovery.pending", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "clock.arrow.circlepath") }
-                        Text("recovery.explanation", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                        Text("recovery.explanation", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                         if let requestID = flow.requestID {
                             LabeledContent { Text(verbatim: requestID).textSelection(.enabled) } label: { Text("recovery.requestID", tableName: "NativeChannelAppealDetails") }
                         }
@@ -35,7 +35,7 @@ import SwiftUI
                     } header: { Text("recovery.title", tableName: "NativeChannelAppealDetails") }
                 } else if flow.state == .reviewing {
                     Section {
-                        Text(LocalizedStringKey(NativeChannelAppealPresentation.operationTitleKey(flow.reviewedOperation)), tableName: "NativeChannelAppealDetails").font(.headline)
+                        Text(LocalizedStringKey(NativeChannelAppealPresentation.operationTitleKey(flow.reviewedOperation)), tableName: "NativeChannelAppealDetails").cyText(.cardTitle)
                         Text(verbatim: flow.reviewedText).textSelection(.enabled)
                     } header: { Text("review.title", tableName: "NativeChannelAppealDetails") }
                     Section {
@@ -55,10 +55,10 @@ import SwiftUI
                             Spacer(minLength: 8)
                             Text("input.limit", tableName: "NativeChannelAppealDetails").foregroundStyle(.secondary)
                             Text(verbatim: "\(explanationCount)/500").monospacedDigit().foregroundStyle(explanationCount > 500 ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))
-                        }.font(.footnote)
-                        Text("input.explanation", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                        }.cyText(.bodyCompact)
+                        Text("input.explanation", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                         if explanationCount == 0 {
-                            Text("input.required", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                            Text("input.required", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                         }
                     } header: { Text("input.title", tableName: "NativeChannelAppealDetails") }
                     Section {
@@ -83,7 +83,7 @@ import SwiftUI
             }
         }
         .formStyle(.grouped)
-        .font(.body)
+        .cyText(.body)
         .foregroundStyle(.primary)
         .cyGroupedSurface()
         .navigationTitle(Text("entry.title", tableName: "NativeChannelAppealDetails"))
@@ -107,7 +107,7 @@ import SwiftUI
         Section {
             if !flow.appealStatus.isEmpty {
                 Text(LocalizedStringKey(NativeChannelAppealPresentation.statusTitleKey(flow.appealStatus)), tableName: "NativeChannelAppealDetails")
-                    .font(.headline).accessibilityAddTraits(.isHeader)
+                    .cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("channel.appeal.currentStatus")
                 LabeledContent { Text(verbatim: flow.appealStatus).textSelection(.enabled) } label: { Text("progress.serverStatus", tableName: "NativeChannelAppealDetails") }
             }
@@ -123,22 +123,22 @@ import SwiftUI
             if !flow.decisionReason.isEmpty { Text(verbatim: flow.decisionReason).textSelection(.enabled) }
             if flow.state == .applied {
                 Label { Text("result.confirmed", tableName: "NativeChannelAppealDetails") } icon: { Image(systemName: "checkmark.circle") }
-                Text("result.acceptedNotReversed", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
-                Text("result.currentSeparate", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                Text("result.acceptedNotReversed", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("result.currentSeparate", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             if flow.currentReadFailed {
                 Text("progress.currentReadFailed", tableName: "NativeChannelAppealDetails")
             }
             if flow.locatorUnavailable {
-                Text("locator.unavailable", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                Text("locator.unavailable", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             if flow.state == .unavailable {
                 Text("source.unavailable", tableName: "NativeChannelAppealDetails")
             }
             if ["UPHELD", "REVERSED", "WITHDRAWN"].contains(flow.appealStatus) {
-                Text("status.closed", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                Text("status.closed", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
-            Text("refresh.readOnly", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+            Text("refresh.readOnly", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
         } header: { Text("progress.title", tableName: "NativeChannelAppealDetails") }
     }
     @ViewBuilder private var appealDetailsSection: some View {
@@ -151,7 +151,7 @@ import SwiftUI
                 originalFact("dueAt", details.dueAt)
                 originalFact("slaDueAt", details.slaDueAt)
                 if [details.reason, details.submittedAt, details.decidedAt, details.withdrawnAt, details.dueAt, details.slaDueAt].contains(where: { $0 == nil }) {
-                    Text("unknown", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                    Text("unknown", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             } header: { Text("facts", tableName: "NativeChannelAppealDetails") }
             Section {
@@ -169,11 +169,11 @@ import SwiftUI
                             LabeledContent { Text(verbatim: String(count)) } label: { Text("attachmentReferences", tableName: "NativeChannelAppealDetails") }
                         }
                         if !item.messageIDs.isEmpty || item.attachmentCount != nil {
-                            Text("attachmentsNotOpened", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                            Text("attachmentsNotOpened", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                         }
                         if item.text == nil && item.messageIDs.isEmpty && item.attachmentCount == nil {
                             Text(verbatim: "—")
-                            Text("unsupportedEvidence", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                            Text("unsupportedEvidence", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -185,7 +185,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: Theme.Space.s1) {
                         if let event = item.event { Text(verbatim: event).font(.subheadline) }
                         LabeledContent { Text(verbatim: item.at ?? "—") } label: { Text("eventAt", tableName: "NativeChannelAppealDetails") }
-                            .font(.footnote).foregroundStyle(.secondary)
+                            .cyText(.bodyCompact).foregroundStyle(.secondary)
                         if let reason = item.reason { Text(verbatim: reason) }
                     }
                 }
@@ -210,9 +210,9 @@ import SwiftUI
                 fact("channel.actionFacts.startsAt", facts.startsAt)
                 fact("channel.actionFacts.expiresAt", facts.expiresAt)
                 fact("channel.actionFacts.durationSeconds", facts.durationSeconds.map { String($0) })
-                Text("channel.actionFacts.noTrustedCountdown", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                Text("channel.actionFacts.noTrustedCountdown", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                 if [facts.type, facts.status, facts.reasonCode, facts.scopeType, facts.scopeID, facts.startsAt, facts.expiresAt].contains(where: { $0 == nil }) || facts.durationSeconds == nil {
-                    Text("channel.actionFacts.unknown", tableName: "NativeChannelAppealDetails").font(.footnote).foregroundStyle(.secondary)
+                    Text("channel.actionFacts.unknown", tableName: "NativeChannelAppealDetails").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             } header: {
                 Text("channel.actionFacts.title", tableName: "NativeChannelAppealDetails")

@@ -172,12 +172,12 @@ public struct AppStoreReviewDemoSnapshot: Sendable, Equatable {
                             .accessibilityIdentifier("appStoreReviewDemo.scenario.badge.\(row.id)")
                     }
                     Text(verbatim: row.walkthroughSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                     Text(verbatim: row.supportsOutOfCityLBSFallback
                         ? "Out-of-City LBS Preview Fallback: Supported"
                         : "Out-of-City LBS Preview Fallback: Missing")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

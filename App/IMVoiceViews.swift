@@ -74,7 +74,7 @@ import SwiftUI
                 .accessibilityLabel(Text(recording ? "d7.imVoice.stopRecording" : "d7.imVoice.record"))
                 if case .draft(let clip) = owner.visibleState {
                     LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: clip.durationMS) }
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                     pill("d7.imVoice.play", image: "play", primary: false) {
                         do { try device?.play(clip.bytes, interrupted: {}) } catch { self.error = true }
@@ -104,7 +104,7 @@ import SwiftUI
         case .ready(let reference):
             CYStatusChip("d7.imCompose.approved", tone: .success, systemImage: "checkmark.seal")
             LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: reference.durationMS) }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
             if owner.expanded.writer.canSendVoice && owner.canRecoverOriginalSend {
                 pill("d7.imCompose.continue", image: "arrow.right.circle", primary: commit == .continueSend) {
@@ -142,7 +142,7 @@ import SwiftUI
                     Task { if available { await owner.expanded.confirm() } }
                 }
                 Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .frame(minHeight: CYSpacing.minTouchTarget)
             }
         case .submitting:
@@ -194,12 +194,12 @@ import SwiftUI
     }
     private func destructive(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(title, role: .destructive, action: action)
-            .font(CYTypography.label)
+            .cyText(.label)
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
     }
     private func status(_ key: LocalizedStringKey, symbol: String, color: Color) -> some View {
         Label(key, systemImage: symbol)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(color)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
@@ -228,7 +228,7 @@ import SwiftUI
                     LabeledContent {
                         IMDurationText(milliseconds: voice.durationMS)
                     } label: { Label("d7.imVoice.message", systemImage: "waveform") }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     if loading {
                         Image(systemName: "waveform")
@@ -266,14 +266,14 @@ import SwiftUI
             }
             if loading {
                 Text("d7.imCompose.loading")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYSkeleton().accessibilityElement(children: .ignore).accessibilityLabel(Text("d7.imCompose.loading"))
             }
             if failed {
                 Label("d7.imVoice.playFailed", systemImage: "exclamationmark.circle")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
             }

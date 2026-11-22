@@ -97,14 +97,14 @@ public struct CYConfirmSheet: View {
         ScrollView {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(title)
-                .font(CYTypography.sheetTitle)
+                .cyText(.sheetTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
                 .cyOptionalAccessibilityIdentifier(titleIdentifier)
             if !message.isEmpty {
                 Text(message)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -118,7 +118,7 @@ public struct CYConfirmSheet: View {
                                 .frame(width: iconWidth)
                                 .accessibilityHidden(true)
                             Text(item.text)
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }

@@ -19,7 +19,7 @@ import SwiftUI
                 // metadata is ready; keep the ORIGINAL failed-read recovery controls reachable.
                 if !coordinator.historyReady {
                     ProgressView { Text("source.required", tableName: "NativeChannelMessage") }
-                        .font(.footnote).padding(.horizontal, Theme.Space.pageX)
+                        .cyText(.bodyCompact).padding(.horizontal, Theme.Space.pageX)
                 }
                 originalContent()
             }
@@ -101,8 +101,8 @@ import SwiftUI
                 Button { Task { await coordinator.recover() } } label: { Text("request.lookup", tableName: "NativeChannelMessage") }
             case .rejected(let code):
                 Text("request.rejected", tableName: "NativeChannelMessage")
-                if let message = coordinator.lastFailure?.message, !message.isEmpty { Text(verbatim: message).font(.footnote).foregroundStyle(.secondary) }
-                if code == "MESSAGE_VERSION_CONFLICT" { Text("message.changed", tableName: "NativeChannelMessage").font(.footnote).foregroundStyle(.secondary) }
+                if let message = coordinator.lastFailure?.message, !message.isEmpty { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(.secondary) }
+                if code == "MESSAGE_VERSION_CONFLICT" { Text("message.changed", tableName: "NativeChannelMessage").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 Button { coordinator.acknowledgeRejected() } label: { Text("request.keepDraft", tableName: "NativeChannelMessage") }
             case .persistenceFailed: Text("request.storage", tableName: "NativeChannelMessage")
             case .applied: Text("d7.channelChat.changeSaved")
@@ -124,7 +124,7 @@ import SwiftUI
                         case .differs: Text(copy.text("p23.current.differs"))
                         case .failed: Text(copy.text("p23.current.failed"))
                         }
-                    }.font(.footnote).foregroundStyle(.secondary)
+                    }.cyText(.bodyCompact).foregroundStyle(.secondary)
                     Button(copy.text("p23.current.refresh")) { Task { await coordinator.pins.refreshAppliedReadback() } }
                         .disabled(coordinator.busy || readback.state == .reading)
                 }.accessibilityIdentifier("ncm47.pin.receiptAndCurrentList")
@@ -134,7 +134,7 @@ import SwiftUI
                 Button { Task { await coordinator.refreshHistory() } } label: { Text("history.retry", tableName: "NativeChannelMessage") }
             }
         }.padding(.horizontal, Theme.Space.pageX)
-            .font(.footnote)
+            .cyText(.bodyCompact)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityIdentifier("ncm47.recovery")
     }

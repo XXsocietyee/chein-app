@@ -134,7 +134,7 @@ import SwiftUI
             else if !wallet.isConfigured { Text("wallet.unavailable") }
             else if let restricted = owner.wallet, restricted.scope != nil {
                 VStack(spacing: 8) {
-                    Text("merchant.personalIncome.boundary").font(.footnote).foregroundStyle(.secondary).padding(.horizontal)
+                    Text("merchant.personalIncome.boundary").cyText(.bodyCompact).foregroundStyle(.secondary).padding(.horizontal)
                     WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true })
                         .id(ObjectIdentifier(restricted))
                 }

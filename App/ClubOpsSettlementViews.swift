@@ -7,11 +7,11 @@ struct ClubOpsSettlementSummaryCard: View {
         // Mini-program .settled-card: caption, then one large tabular amount; unknown stays 「金额待核验」, never 0.
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").cyText(.label).foregroundStyle(CYColor.textSecondary)
                 Group {
-                    if let amount = summary.settledAmountText { Text(verbatim: amount).font(CYTypography.data2XL).monospacedDigit() }
+                    if let amount = summary.settledAmountText { Text(verbatim: amount).cyText(.data2XL).monospacedDigit() }
                     else {
-                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(CYTypography.data2XL).monospacedDigit()
+                        Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).cyText(.data2XL).monospacedDigit()
                             .accessibilityLabel(Text("clubOps.settlement.amountUnverified", tableName: "ClubOpsCustomer"))
                     }
                 }
@@ -46,7 +46,7 @@ struct ClubOpsSettlementOwnerOnlyWithdraw: View {
 
 struct ClubOpsSettlementFootnote: View {
     var body: some View {
-        Text("clubOps.settlement.footnote", tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+        Text("clubOps.settlement.footnote", tableName: "ClubOpsCustomer").cyText(.caption).foregroundStyle(CYColor.textTertiary)
             .accessibilityIdentifier("clubOps.settlement.footnote")
     }
 }

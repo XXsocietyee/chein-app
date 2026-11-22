@@ -24,9 +24,9 @@ import simd
         VStack(alignment: .leading, spacing: 10) {
             CYPillButton("playkitSpatial.open") { purpose = true }
                 .disabled(configuration == nil || !active || working || failedThisVisit || !ARWorldTrackingConfiguration.isSupported)
-            if configuration == nil { Text(LocalizedStringKey("playkitSpatial.error." + configurationError.rawValue)).font(.footnote) }
-            if !ARWorldTrackingConfiguration.isSupported { Text("playkitSpatial.error.deviceUnavailable").font(.footnote) }
-            if let issue { Text(LocalizedStringKey("playkitSpatial.error." + issue.rawValue)).font(.footnote) }
+            if configuration == nil { Text(LocalizedStringKey("playkitSpatial.error." + configurationError.rawValue)).cyText(.bodyCompact) }
+            if !ARWorldTrackingConfiguration.isSupported { Text("playkitSpatial.error.deviceUnavailable").cyText(.bodyCompact) }
+            if let issue { Text(LocalizedStringKey("playkitSpatial.error." + issue.rawValue)).cyText(.bodyCompact) }
             if issue == .permissionDenied {
                 Button(action: openCameraSettings) { Text("scanner.openSettings") }
                     .accessibilityIdentifier("playkit.spatial.openSettings")

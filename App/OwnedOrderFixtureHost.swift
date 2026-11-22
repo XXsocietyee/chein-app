@@ -34,7 +34,7 @@ import SwiftUI
                 if wire.paused {Button{wire.release401()}label:{Text(verbatim:"Release")}.accessibilityIdentifier("orders.fixture.release")}
                 OwnedOrderFixtureGrantControls(grants: grants, issuer: wire.issuer)
                 Button{Task{await session.logout()}}label:{Text(verbatim:"Sign out")}.accessibilityIdentifier("orders.fixture.signOut")
-            }.font(.caption)
+            }.cyText(.meta)
         }
         .task {if !guest{await session.authChannels.loginWithPhone(phone:"10000000000",code:"123456")};ready=true}
     }

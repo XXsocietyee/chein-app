@@ -85,7 +85,7 @@ import Combine
             Picker("creator.field.kind", selection: editor.kindBinding()) {
                 Text("creator.choice.text").tag("text"); Text("creator.choice.pick").tag("pick")
             }.accessibilityIdentifier("creator.profile.kind")
-            Text("templateProfile.kindHint").font(.caption).foregroundStyle(.secondary)
+            Text("templateProfile.kindHint").cyText(.meta).foregroundStyle(.secondary)
         }.disabled(!editor.canEdit)
             .onAppear { editor.reload() }.onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }
@@ -104,18 +104,18 @@ import Combine
     }
     var body: some View {
         List {
-            Text(LocalizedStringKey(questionIndex == nil ? "templateProfile.questionsHint" : "templateProfile.optionsHint")).font(.caption)
+            Text(LocalizedStringKey(questionIndex == nil ? "templateProfile.questionsHint" : "templateProfile.optionsHint")).cyText(.meta)
             ForEach(Array(editor.entries.enumerated()), id: \.element.key) { index, entry in
                 NavigationLink { rowContent(index) } label: {
                     VStack(alignment: .leading) {
                         Text(verbatim: entry.label.isEmpty ? entry.key : entry.label)
-                        Text(verbatim: entry.key).font(.caption).foregroundStyle(.secondary)
+                        Text(verbatim: entry.key).cyText(.meta).foregroundStyle(.secondary)
                     }
                 }.deleteDisabled(!editor.canRemove).moveDisabled(!editor.canEditList)
             }.onDelete(perform: editor.removeAction()).onMove(perform: editor.moveAction())
             Button(LocalizedStringKey(questionIndex == nil ? "templateProfile.addQuestion" : "templateProfile.addOption"), systemImage: "plus", action: editor.addAction())
                 .disabled(!editor.canAdd).accessibilityIdentifier(questionIndex == nil ? "creator.profile.addQuestion" : "creator.profile.addOption")
-            if !editor.canEditList { Text("templateProfile.reopen").font(.caption) }
+            if !editor.canEditList { Text("templateProfile.reopen").cyText(.meta) }
         }.disabled(!editor.canEditList).toolbar { EditButton() }
             .navigationTitle(LocalizedStringKey(questionIndex == nil ? "creator.field.questions" : "creator.field.options"))
             .onAppear { editor.reload() }.onDisappear { editor.retire() }

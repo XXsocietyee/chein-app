@@ -118,12 +118,12 @@ struct MessageComposerSubmission: Equatable {
             case .sending: EmptyView()
             case .outcomeUnknown,.rejected:
                 Text(LocalizedStringKey(model.state == .outcomeUnknown ? "message.send.unknown" : "message.send.rejected"))
-                    .font(.footnote).accessibilityIdentifier("message.send.issue")
+                    .cyText(.bodyCompact).accessibilityIdentifier("message.send.issue")
                 if let row = RequestReferenceRow(pathFragment: "/api/im/") { row }
-                if let text=model.coordinator.pendingText { Text(verbatim:text).font(.footnote).lineLimit(3) }
+                if let text=model.coordinator.pendingText { Text(verbatim:text).cyText(.bodyCompact).lineLimit(3) }
                 Button("message.send.retry") { confirmsRetry=true }.disabled(!ready)
                     .accessibilityIdentifier("message.send.retry")
-            case .closed: Text("message.send.closed").font(.footnote)
+            case .closed: Text("message.send.closed").cyText(.bodyCompact)
             case .acknowledged: EmptyView()
             case .idle: EmptyView()
             }
@@ -132,7 +132,7 @@ struct MessageComposerSubmission: Equatable {
                 if let createPoll {
                     Button(action: createPoll) {
                         Label("poll.create",systemImage:"plus").labelStyle(.iconOnly)
-                            .font(.title3.weight(.medium)).frame(minWidth:44,minHeight:44).contentShape(Rectangle())
+                            .cyText(.sectionTitle, weight: .medium).frame(minWidth:44,minHeight:44).contentShape(Rectangle())
                     }
                     .buttonStyle(.borderless)
                     .accessibilityIdentifier("poll.createEntry")
@@ -164,7 +164,7 @@ struct MessageComposerSubmission: Equatable {
                         let filled = live || sending
                         ZStack {
                             Label("message.send.button",systemImage:"arrow.up").labelStyle(.iconOnly)
-                                .font(.subheadline.weight(.bold))
+                                .cyText(.bodyMedium)
                                 .opacity(sending ? 0 : 1)
                                 .scaleEffect(sending && !reduceMotion ? 0.25 : 1)
                                 .blur(radius: sending && !reduceMotion ? 4 : 0)
@@ -193,7 +193,7 @@ struct MessageComposerSubmission: Equatable {
                 .frame(minHeight:44)
                 .background(Theme.Color.bgRaised(in:domain),in:RoundedRectangle(cornerRadius:22,style:.continuous))
             }
-            if !conversationReady { Text("message.send.historyRequired").font(.caption).foregroundStyle(.secondary) }
+            if !conversationReady { Text("message.send.historyRequired").cyText(.meta).foregroundStyle(.secondary) }
         }
         // Same surface as the page, so the composer doesn't read as a separate band.
         .padding(.horizontal,Theme.Space.pageX).padding(.vertical,Theme.Space.s2).background(.background).privacySensitive()
@@ -250,7 +250,7 @@ private struct MessageComposerFieldSlot: View {
             IMSendGhost(text: ghost, key: flight.ghostKey, namespace: flight.namespace)
         } else if showsReceipt, fieldIsEmpty {
             // Server receipt, not a read receipt. Same words and identifier as the former status row.
-            Text("message.send.accepted").font(.footnote).foregroundStyle(.secondary)
+            Text("message.send.accepted").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.vertical, 11).padding(.leading, 16).padding(.trailing, 4)
                 .frame(maxWidth: .infinity, alignment: .leading)

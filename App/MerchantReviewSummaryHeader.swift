@@ -6,9 +6,9 @@ struct MerchantReviewSummaryHeader: View {
     let presentation: MerchantReviewSummaryPresentation
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("merchant.reviewSummary.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("merchant.reviewSummary.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(presentation.averageText ?? "—").font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary).monospacedDigit()
+                Text(presentation.averageText ?? "—").cyText(.data2XL).foregroundStyle(CYColor.textPrimary).monospacedDigit()
                     .accessibilityIdentifier("merchant.reviewSummary.average")
                 HStack(spacing: 2) {
                     ForEach(1...5, id: \.self) { star in
@@ -20,7 +20,7 @@ struct MerchantReviewSummaryHeader: View {
                 .accessibilityLabel(Text("merchant.reviewSummary.stars \(presentation.filledStars)"))
             }
             Text("merchant.reviewSummary.total \(presentation.total)")
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchant.reviewSummary.total")
         }
         .padding(.vertical, 4)
@@ -34,9 +34,9 @@ struct MerchantReviewSummaryHeader: View {
     }
     private func metric(_ value: Text, _ title: LocalizedStringKey, note: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            value.font(CYTypography.cardTitle.monospacedDigit()).foregroundStyle(CYColor.textPrimary).monospacedDigit()
-            Text(title).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-            Text(note).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            value.cyText(.cardTitle, monospacedDigit: true).foregroundStyle(CYColor.textPrimary).monospacedDigit()
+            Text(title).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            Text(note).cyText(.caption).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)

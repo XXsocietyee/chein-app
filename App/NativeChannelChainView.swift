@@ -101,15 +101,15 @@ import SwiftUI
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
             LabeledContent("d7.chain.status") { chainStatusChip(page) }
-                .font(CYTypography.body)
+                .cyText(.body)
             LabeledContent("d7.chain.joined") {
                 if page.chain.maxSlots == 0 { Text("d7.chain.joined.unlimited \(page.chain.activeCount)").monospacedDigit() }
                 else { Text("d7.chain.joined.limited \(page.chain.activeCount) \(page.chain.maxSlots)").monospacedDigit() }
             }
-            .font(CYTypography.body)
+            .cyText(.body)
             if let end = page.chain.deadlineAt {
                 LabeledContent("d7.chain.deadline") { Text(Date(timeIntervalSince1970: Double(end) / 1000), format: .dateTime.month().day().hour().minute()) }
-                    .font(CYTypography.body)
+                    .cyText(.body)
             }
             CYPillButton("d7.channelActivity.refresh", style: .secondary) { run { _ in await flow.refresh() } }
                 .disabled(flow.busy || flow.review != nil)
@@ -118,7 +118,7 @@ import SwiftUI
         Section {
             if flow.entries.isEmpty {
                 Label("d7.chain.entries.empty", systemImage: "tray")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
@@ -182,7 +182,7 @@ import SwiftUI
                 }
             } else {
                 Text("d7.chain.mine.cannotJoin")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -235,7 +235,7 @@ import SwiftUI
             ProgressView("d7.channelActivity.sending")
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
         case .unknown: Text("d7.chain.notice.unknown").nativeChannelNotice(systemImage: "clock")
-        case .applied: Text("d7.chain.notice.applied").font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
+        case .applied: Text("d7.chain.notice.applied").cyText(.body).fixedSize(horizontal: false, vertical: true)
         case .appliedRedacted: Text("d7.chain.notice.redacted").nativeChannelNotice(systemImage: "checkmark.circle")
         case .rejected(let code):
             if code == "SCREENING_PENDING" { Text("d7.channelActivity.rulesPending").nativeChannelNotice(systemImage: "exclamationmark.circle") }
@@ -246,8 +246,8 @@ import SwiftUI
     }
     @ViewBuilder private func reviewSection(_ command: NativeChannelChainCommand) -> some View {
         Section {
-            Text(label(command.operation)).font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true)
-            if let title = command.title { Text(verbatim: title).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+            Text(label(command.operation)).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
+            if let title = command.title { Text(verbatim: title).cyText(.body).fixedSize(horizontal: false, vertical: true) }
             if let slots = command.maxSlots {
                 LabeledContent("d7.chain.review.maxSlots") {
                     if slots == 0 { Text("d7.chain.review.unlimited") } else { Text("d7.chain.review.people \(slots)").monospacedDigit() }
@@ -256,14 +256,14 @@ import SwiftUI
             if let end = command.deadlineAt {
                 LabeledContent("d7.chain.deadline") { Text(Date(timeIntervalSince1970: Double(end) / 1000), format: .dateTime.month().day().hour().minute()) }
             }
-            if let text = command.content { Text(verbatim: text).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+            if let text = command.content { Text(verbatim: text).cyText(.body).fixedSize(horizontal: false, vertical: true) }
             CYPillButton("d7.chain.review.confirm") {
                 run { current in await flow.confirm(); guard current() else { return }; await refreshAfterSettlement() }
             }
             .disabled(flow.busy)
             .listRowBackground(Color.clear)
             Button("d7.channelActivity.cancel", role: .cancel) { flow.cancelReview() }
-                .font(CYTypography.label)
+                .cyText(.label)
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                 .disabled(flow.busy)
         } header: { CYSectionHeader("d7.chain.review.title").textCase(nil) }
@@ -271,9 +271,9 @@ import SwiftUI
     @ViewBuilder private func recoverySection(_ command: NativeChannelChainCommand) -> some View {
         Section {
             if flow.ownsPending {
-                Text(label(command.operation)).font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true)
-                if let title = command.title { Text(verbatim: title).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
-                if let text = command.content { Text(verbatim: text).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                Text(label(command.operation)).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                if let title = command.title { Text(verbatim: title).cyText(.body).fixedSize(horizontal: false, vertical: true) }
+                if let text = command.content { Text(verbatim: text).cyText(.body).fixedSize(horizontal: false, vertical: true) }
                 CYPillButton("d7.chain.pending.check", style: .secondary) {
                     run { current in await flow.recover(); guard current() else { return }; await refreshAfterSettlement() }
                 }
@@ -283,7 +283,7 @@ import SwiftUI
                     .disabled(flow.busy || !flow.service.canRecover || !flow.service.allows(command.operation))
                     .listRowBackground(Color.clear)
             } else {
-                Text("d7.chain.pending.other").font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
+                Text("d7.chain.pending.other").cyText(.body).fixedSize(horizontal: false, vertical: true)
             }
         } header: { CYSectionHeader("d7.chain.pending.title").textCase(nil) }
     }

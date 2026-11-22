@@ -11,7 +11,7 @@ struct WithdrawalApplyParitySection: View {
         Section("withdrawal.apply.title") {
             if theme == .merchant {
                 Text(verbatim: theme.badgeTitle)
-                    .font(.caption.weight(.medium))
+                    .cyText(.label)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("withdrawal.apply.themeBadge")
             }
@@ -19,13 +19,13 @@ struct WithdrawalApplyParitySection: View {
                 .accessibilityIdentifier("withdrawal.apply.method")
             if let notice = roleGate.noticeText {
                 Text(verbatim: notice)
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("withdrawal.apply.roleNotice")
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("withdrawal.apply.note.title").font(.subheadline.weight(.semibold))
-                Text("withdrawal.apply.note.detail").font(.footnote).foregroundStyle(.secondary)
+                Text("withdrawal.apply.note.title").cyText(.bodyMedium)
+                Text("withdrawal.apply.note.detail").cyText(.bodyCompact).foregroundStyle(.secondary)
             }.accessibilityElement(children: .combine).accessibilityIdentifier("withdrawal.apply.note")
             Button("withdrawal.apply.contact") { showContact = true }
                 .buttonStyle(.questifyPrimary)

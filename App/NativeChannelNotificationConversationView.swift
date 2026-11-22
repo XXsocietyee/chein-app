@@ -250,7 +250,7 @@ enum NativeChannelNotificationCopy {
                 .disabled(!model.canMute)
                 .accessibilityIdentifier("notification.mute.choose")
                 if preference.effective.permanentMuted == true && !preference.permanentMuted {
-                    Text(verbatim: c("editor.parentPermanent")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: c("editor.parentPermanent")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
@@ -325,7 +325,7 @@ private struct ChannelNotifyHeading: View {
     let title: String
     var body: some View {
         Text(verbatim: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : title)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)

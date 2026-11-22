@@ -46,16 +46,16 @@ import SwiftUI
                 .disabled(!model.canPrepare(current: current()))
                 .accessibilityIdentifier("profile.orderMap.open")
             if !model.matches(current()) {
-                Text("profile.orderMap.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("profile.orderMap.unavailable").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             } else if model.isOpening {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     CYSkeletonBlock(height: 12).frame(maxWidth: 140)
-                    Text("profile.orderMap.opening").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("profile.orderMap.opening").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
                 .accessibilityElement(children: .combine).accessibilityIdentifier("profile.orderMap.opening")
             } else if let outcome = model.outcome {
                 Text(LocalizedStringKey(outcome == .opened ? "profile.orderMap.opened" : "profile.orderMap.failed"))
-                    .font(CYTypography.meta).foregroundStyle(outcome == .opened ? CYColor.successText : CYColor.warningText)
+                    .cyText(.meta).foregroundStyle(outcome == .opened ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("profile.orderMap.result")
             }
         }

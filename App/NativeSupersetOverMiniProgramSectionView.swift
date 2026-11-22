@@ -165,10 +165,10 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
         Section {
             HStack {
                 Text(verbatim: "iOS 原生超集与小程序契约对齐策略")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isSupersetIntact ? "6/6 超集完整 (SUPERSET_OK)" : "存在降级告警")
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(snapshot.isSupersetIntact ? CYColor.successSoft : CYColor.warningSoft, in: Capsule())
@@ -178,7 +178,7 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "超集能力统计")
             }
@@ -188,10 +188,10 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeSoftColor(for: row.status), in: Capsule())
@@ -201,7 +201,7 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: "原生超集：\(row.nativeSupersetCapability)")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

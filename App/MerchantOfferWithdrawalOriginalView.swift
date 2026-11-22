@@ -25,7 +25,7 @@ import SwiftUI
                 Text("原供给 #\(flow.offerID)")
                 Text("退出沿原商家权限与原章节生命周期，不混圈层暂停；锁价本身不禁止原退出，结算/关闭或未知生命周期仍由原 writer 拒绝。")
                 Text("已售订单、履约应收、核销事实不因退出删除。原规则会处理申请退休、原审核/批准失效及提交后通知安排；安排通知不等于送达。")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                 Button("只回读原退出结果与当前供给"){clearLocal();model.recover()}.disabled(flow.busy || !flow.isCurrent)
             }
             if let issue=flow.issue{Section{Text(issue).foregroundStyle(CYColor.warningText)}}
@@ -48,7 +48,7 @@ import SwiftUI
                 if s.canWithdraw{Section("填写原退出原因"){
                     TextField("原要求 1–500 字原因",text:$reason,axis:.vertical).lineLimit(3...8)
                     Text("按原服务端 UTF-16 长度计数，拒绝超长而不截断；原因进入原供给记录，本机仅持久摘要。")
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                     Button("冻结原因及原影响，核对退出"){
                         do{try flow.prepare(reason:reason);localIssue=nil}catch{localIssue="原因未满足原 1–500 字要求，或当前原状态/权限未满足；未提交。"}
                     }
@@ -91,9 +91,9 @@ import SwiftUI
     }
     @ViewBuilder private func review(_ r:MerchantOfferWithdrawalOriginalReview)->some View {
         Section("不可变核对 · 明确退出一次"){
-            Text(r.id.uuidString.lowercased()).font(.caption).textSelection(.enabled)
+            Text(r.id.uuidString.lowercased()).cyText(.meta).textSelection(.enabled)
             Text("原供给 #\(r.source.offerId) / 原章 #\(r.source.chapterId.map(String.init) ?? "未知")")
-            Text("本次原退出原因：").font(.headline);Text(r.reason)
+            Text("本次原退出原因：").cyText(.cardTitle);Text(r.reason)
             impact(r.source)
             Text("发送前先原子保存此 UUID。结果未知只回读；当前供给消失、status 0、原因相同或通知出现均不能替代回执。")
             Button("确认以上原因与影响，退出一次",role:.destructive){model.confirm(r)}.disabled(flow.busy || !flow.isCurrent)
@@ -102,7 +102,7 @@ import SwiftUI
     }
     @ViewBuilder private func receipt(_ r:MerchantOfferWithdrawalOriginalReceipt)->some View {
         Section("同 UUID 历史原结果"){
-            Text(r.requestId).font(.caption).textSelection(.enabled)
+            Text(r.requestId).cyText(.meta).textSelection(.enabled)
             switch r.outcome{
             case "WITHDRAWN":
                 Text("本请求已退出原供给 #\(r.offerId)，写入时 status 0；原行更新时间："+time(r.offerUpdatedAt))

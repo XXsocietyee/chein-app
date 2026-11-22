@@ -129,7 +129,7 @@ public struct NetworkReachabilityAndRetryBackoffSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "网络可达性与退避重试安全审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("networkReachabilityRetry.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -138,22 +138,22 @@ public struct NetworkReachabilityAndRetryBackoffSectionView: View {
                     .accessibilityIdentifier("networkReachabilityRetry.overallStatus")
 
                 Text(verbatim: Self.reachabilityStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("networkReachabilityRetry.reachabilityStatus")
 
                 Text(verbatim: Self.retrySafetyStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("networkReachabilityRetry.retrySafetyStatus")
 
                 Text(verbatim: Self.retryAfterStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("networkReachabilityRetry.retryAfterStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无网络退避与重试策略检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("networkReachabilityRetry.empty")
             } else {
@@ -198,19 +198,19 @@ private struct NetworkRetryPolicyRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.categoryTitle)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isPolicySafe ? "安全" : "告警")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isPolicySafe ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "最大尝试：\(row.maxAttempts) 次 · 自动重试：\(row.automaticRetryAllowed ? "允许" : "禁止") · Retry-After：\(row.honorsServerRetryAfterHeader ? "遵守" : "忽略")")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

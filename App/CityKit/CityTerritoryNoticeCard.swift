@@ -54,14 +54,14 @@ struct CityTerritoryNoticeCard: View {
                 .frame(width: 36, height: 36).background(Circle().fill(CYColor.bgElevated)).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text(verbatim: headline).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: headline).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     Spacer(minLength: 4)
-                    if let stamp { Text(verbatim: stamp).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+                    if let stamp { Text(verbatim: stamp).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
                 }
-                Text(verbatim: sentence(for: notice)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: sentence(for: notice)).cyText(.body).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let points = pointsLine {
-                    Text(verbatim: points).font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: points).cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textSecondary)
                 }
             }
             if chevron {

@@ -154,7 +154,7 @@ struct IMSafetyCopy {
             CYCard {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     Text(LocalizedStringKey(copy.titleKey))
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("im.safety.reviewTitle")
@@ -162,7 +162,7 @@ struct IMSafetyCopy {
                     ForEach(copy.consequenceKeys, id: \.self) { key in
                         Label {
                             Text(LocalizedStringKey(key))
-                                .font(CYTypography.bodyCompact)
+                                .cyText(.bodyCompact)
                                 .fixedSize(horizontal: false, vertical: true)
                         } icon: {
                             Image(systemName: "info.circle").accessibilityHidden(true)
@@ -232,14 +232,14 @@ struct IMSafetyCopy {
     }
     private func bodyText(_ key: LocalizedStringKey) -> some View {
         Text(key)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
     private func serverMessage(_ message: String) -> some View {
         Text(verbatim: message)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -247,7 +247,7 @@ struct IMSafetyCopy {
     private func loadingBlock(_ key: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYSkeleton().accessibilityHidden(true)

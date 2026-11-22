@@ -20,14 +20,14 @@ import SwiftUI
             Section {
                 QuestifyStatusBadge(title: "templateAuthor.prefab.badge", systemImage: "book.pages")
                 Text("templateAuthor.prefab.notice").foregroundStyle(.secondary)
-                Text(LocalizedStringKey("templateAuthor.prefab.scene." + state.scene.rawValue)).font(.title2)
+                Text(LocalizedStringKey("templateAuthor.prefab.scene." + state.scene.rawValue)).cyText(.sheetTitle)
             }
             if state.scene == .register {
                 Section("templateAuthor.prefab.profile") {
                     TemplateAuthoringField("profileName", text: $profile.name)
                     TemplateAuthoringField("profilePlace", text: $profile.place)
                     TemplateAuthoringField("profileDream", text: $profile.dream)
-                    Text("templateAuthor.prefab.profileScope").font(.caption).foregroundStyle(.secondary)
+                    Text("templateAuthor.prefab.profileScope").cyText(.meta).foregroundStyle(.secondary)
                 }
             }
             Section("templateAuthor.prefab.state") {

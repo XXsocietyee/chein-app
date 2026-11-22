@@ -153,11 +153,11 @@ public struct ProductionCanaryRolloutAndPhasedReleaseSectionView: View {
             Image(systemName: "chart.line.uptrend.xyaxis")
                 .foregroundStyle(.teal)
             Text(verbatim: "Production Canary & 7-Day Phased Release")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("canaryPhasedRelease.header")
             Spacer()
             Text(verbatim: headerBadgeText)
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
@@ -191,13 +191,13 @@ public struct ProductionCanaryRolloutAndPhasedReleaseSectionView: View {
     private func stageCard(_ stage: PhasedReleaseStageRow) -> some View {
         HStack(spacing: 10) {
             Text(verbatim: "Day \(stage.dayNumber) · \(stage.rolloutPercentage)%")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
             Spacer()
             Text(verbatim: String(format: "Crash-Free %.2f%%", stage.observedCrashFreePercentage))
-                .font(.caption.monospacedDigit())
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(.secondary)
             Text(verbatim: stage.isCompliant ? "SLA PASS" : "PAUSE / ROLLBACK")
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 .padding(.horizontal, 7)
                 .padding(.vertical, 2)
                 .background(
@@ -223,7 +223,7 @@ public struct ProductionCanaryRolloutAndPhasedReleaseSectionView: View {
 
     private func pill(text: String, tint: Color) -> some View {
         Text(verbatim: text)
-            .font(.caption2.weight(.medium))
+            .cyText(.caption, weight: .medium)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(

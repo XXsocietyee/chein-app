@@ -54,7 +54,7 @@ struct OfficialSignupCommandSection: View {
             case .busy:
                 ProgressView()
             case .unknown:
-                Text("playerGap.signup.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("playerGap.signup.unknown").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 HStack {
                     Button("playerGap.signup.query") { run { await flow.query() } }
                     Button("playerGap.signup.retry") { run { await flow.retry() } }
@@ -63,9 +63,9 @@ struct OfficialSignupCommandSection: View {
                 .buttonStyle(CYPillButtonStyle(style: .secondary))
             case .settled(let state, let message):
                 settled(state, message: message)
-                if flow.safetyBlocked { Text("playerGap.signup.safetyBlocked").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if flow.safetyBlocked { Text("playerGap.signup.safetyBlocked").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             case .storageError:
-                Text("playerGap.signup.storageError").font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                Text("playerGap.signup.storageError").cyText(.meta).foregroundStyle(CYColor.dangerText)
             }
         }
     }
@@ -109,9 +109,9 @@ struct OfficialRoamActiveCardView: View {
 
     private func label(_ card: OfficialRoamActiveCard) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("playerGap.roamEvents.title").font(CYTypography.cardTitle)
-            if card.count > 1 { Text("playerGap.roamEvents.many \(card.firstTitle) \(card.count)").font(CYTypography.meta) }
-            else { Text("playerGap.roamEvents.one \(card.firstTitle)").font(CYTypography.meta) }
+            Text("playerGap.roamEvents.title").cyText(.cardTitle)
+            if card.count > 1 { Text("playerGap.roamEvents.many \(card.firstTitle) \(card.count)").cyText(.meta) }
+            else { Text("playerGap.roamEvents.one \(card.firstTitle)").cyText(.meta) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -156,8 +156,8 @@ struct TeamInviteQRSection: View {
                 case .code(let code)?:
                     codeLine(code)
                 case .error(let message)?:
-                    if let message, !message.isEmpty { Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    else { Text("playerGap.teamQR.failed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if let message, !message.isEmpty { Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    else { Text("playerGap.teamQR.failed").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 case nil:
                     EmptyView()
                 }
@@ -174,7 +174,7 @@ struct TeamInviteQRSection: View {
     }
 
     private func codeLine(_ code: String) -> some View {
-        LabeledContent("playerGap.teamQR.code") { Text(verbatim: code).font(CYTypography.numericBody).textSelection(.enabled) }
+        LabeledContent("playerGap.teamQR.code") { Text(verbatim: code).cyText(.numericBody).textSelection(.enabled) }
     }
 }
 
@@ -204,14 +204,14 @@ struct TeamTrailSection: View {
                             .accessibilityIdentifier("gap.trail.confirm")
                     } else if model.state.share {
                         if !TeamTrailForegroundRecorder.isAuthorized {
-                            Text("playerGap.trail.needsLocation").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            Text("playerGap.trail.needsLocation").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }
                         ForEach(model.teams) { team in
                             HStack {
-                                Text(verbatim: team.initial.isEmpty ? team.name : team.initial).font(CYTypography.label)
-                                Text(verbatim: team.name).font(CYTypography.meta)
+                                Text(verbatim: team.initial.isEmpty ? team.name : team.initial).cyText(.label)
+                                Text(verbatim: team.name).cyText(.meta)
                                 Spacer()
-                                if team.done > 0 { Text("playerGap.trail.done \(team.done)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                                if team.done > 0 { Text("playerGap.trail.done \(team.done)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                             }
                         }
                         Button("playerGap.trail.stop") { Task { await model.consent(false) } }
@@ -271,7 +271,7 @@ struct LeadMemberActionsSection: View {
                 Button("playerGap.lead.broadcast") { broadcast() }
                     .disabled(busy || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-                if let message { Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let message { Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
             .confirmationDialog("playerGap.lead.arriveTitle", isPresented: $askLocation, titleVisibility: .visible) {
                 Button("playerGap.lead.arriveConfirm") { arrive() }
@@ -361,7 +361,7 @@ struct CityFavoriteNodesSection: View {
                     ForEach(nodes) { node in
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: node.name)
-                            if let address = node.address, !address.isEmpty { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                            if let address = node.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                         }
                     }
                 } else if failed {
@@ -402,7 +402,7 @@ struct MerchantCityNodeFavoriteRow: View {
                     .disabled(busy)
                     .accessibilityLabel(Text(favorited ? "playerGap.node.unfavorite" : "playerGap.node.favorite"))
                 }
-                if failed { Text("playerGap.node.failed").font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
+                if failed { Text("playerGap.node.failed").cyText(.meta).foregroundStyle(CYColor.dangerText) }
             }
         }
         .task(id: merchantID) {
@@ -431,7 +431,7 @@ struct AssetCreditText: View {
 
     var body: some View {
         Group {
-            if let credit { Text(verbatim: credit).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+            if let credit { Text(verbatim: credit).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
         }
         .task(id: reference) { credit = await service?.assetCredit(reference: reference) }
     }
@@ -540,7 +540,7 @@ struct ClubPostLikeStateButton: View {
                 }
                 .disabled(busy)
                 .accessibilityIdentifier("gap.like.check")
-                if let message { Text(message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let message { Text(message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
         }
     }
@@ -571,7 +571,7 @@ struct ClubHostRequestButton: View {
                 .disabled(busy)
                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
                 .accessibilityIdentifier("gap.host.request")
-                if let message { Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let message { Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
         }
     }

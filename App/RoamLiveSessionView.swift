@@ -157,8 +157,8 @@ import QuestifyCore
                         if !purposeAccepted { consentCard }
                         if owner.phase == .locationDenied {
                             VStack(alignment: .leading, spacing: 6) {
-                                Label("roam.poi.location.denied.title", systemImage: "location.slash").font(.subheadline.weight(.semibold))
-                                Text("roam.poi.location.denied.message2").font(.footnote).foregroundStyle(.secondary)
+                                Label("roam.poi.location.denied.title", systemImage: "location.slash").cyText(.bodyMedium)
+                                Text("roam.poi.location.denied.message2").cyText(.bodyCompact).foregroundStyle(.secondary)
                                 Button("roam.poi.location.openSettings") {
                                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                                 }.frame(minHeight: 44).accessibilityIdentifier("roam.live.openSettings")
@@ -180,8 +180,8 @@ import QuestifyCore
                         // OWN-D-07: say plainly that location keeps running after Home, and how to stop it.
                         Section {
                             Label("roam.live.backgroundLocationOn", systemImage: "location.fill")
-                                .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                            Text("roam.live.backgroundLocationHint").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                            Text("roam.live.backgroundLocationHint").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         }
                         .accessibilityElement(children: .combine)
                         .accessibilityIdentifier("roam.live.backgroundLocation")
@@ -268,8 +268,8 @@ import QuestifyCore
     /// starts the roam through the same path as the Go button (location priming still comes first when undecided).
     private var consentCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Label("roam.live.consentCard.title", systemImage: "location.fill").font(.subheadline.weight(.semibold))
-            Text("roam.live.consentCard.body").font(.footnote).foregroundStyle(.secondary)
+            Label("roam.live.consentCard.title", systemImage: "location.fill").cyText(.bodyMedium)
+            Text("roam.live.consentCard.body").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             // PL-20 / PL-25 (HIG Privacy): one button that leads to the system location prompt.
             CYPillButton("primer.location.allow", fullWidth: true, tableName: "DesignR1") {
@@ -438,7 +438,7 @@ import QuestifyCore
         return VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(active ? "roam.live.goal" : phaseText)
-                    .font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 0)
                 // PL-14: a labelled status tag, never a dot alone.
@@ -619,13 +619,13 @@ import QuestifyCore
             ForEach(owner.registeredShops) { shop in
                 if nearbyExpanded || owner.busy || owner.error != nil || owner.registeredShopUnresolved(shop) || owner.registeredShopConfirmed(shop) {
                     VStack(alignment: .leading, spacing: 8) {
-                        if shop.addressName.isEmpty { Text("roam.unnamed").font(.headline) } else { Text(verbatim: shop.addressName).font(.headline) }
-                        if owner.registeredShopUnresolved(shop) { Text("roam.live.unknownVisit").font(.caption) }
+                        if shop.addressName.isEmpty { Text("roam.unnamed").cyText(.cardTitle) } else { Text(verbatim: shop.addressName).cyText(.cardTitle) }
+                        if owner.registeredShopUnresolved(shop) { Text("roam.live.unknownVisit").cyText(.meta) }
                         else if owner.registeredShopConfirmed(shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
                         else {
                             Button("roam.live.visitShop") { Task { await owner.visitRegisteredShop(shop) } }
                                 .disabled(owner.busy || owner.registeredShopGap(shop) != 0)
-                            if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser \(gap)").font(.caption).foregroundStyle(.secondary) }
+                            if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser \(gap)").cyText(.meta).foregroundStyle(.secondary) }
                         }
                     }.padding(.vertical, 4)
                 }
@@ -634,7 +634,7 @@ import QuestifyCore
                 if nearbyExpanded || owner.busy || owner.error != nil || owner.actionUnresolved(place, shop: false) || owner.actionUnresolved(place, shop: true)
                     || owner.actionConfirmed(place, shop: false) || owner.actionConfirmed(place, shop: true) {
                     VStack(alignment: .leading, spacing: 8) {
-                        RoamTitle(place.name).font(.headline)
+                        RoamTitle(place.name).cyText(.cardTitle)
                         if let text = owner.merchantDescription(for: place) {
                             RoamLiveMerchantDescriptionRow(text: text)
                         }
@@ -647,7 +647,7 @@ import QuestifyCore
     }
     private func arrivalButton(_ place: RoamPlace, shop: Bool) -> some View {
         VStack(alignment: .leading) {
-            if owner.actionUnresolved(place, shop: shop) { Text("roam.live.unknownVisit").font(.caption) }
+            if owner.actionUnresolved(place, shop: shop) { Text("roam.live.unknownVisit").cyText(.meta) }
             else if owner.actionConfirmed(place, shop: shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
             else {
                 Button(shop ? "roam.live.visitShop" : "roam.live.discover") {
@@ -662,7 +662,7 @@ import QuestifyCore
                 }
                     .disabled(owner.busy || owner.gapMeters(place, shop: shop) != 0)
                 if let gap = owner.gapMeters(place, shop: shop), gap > 0 {
-                    Text("roam.live.walkCloser \(gap)").font(.caption).foregroundStyle(.secondary)
+                    Text("roam.live.walkCloser \(gap)").cyText(.meta).foregroundStyle(.secondary)
                 }
             }
         }
@@ -737,12 +737,12 @@ struct RoamLiveStatTile: View {
     let label: LocalizedStringKey
     var body: some View {
         VStack(spacing: 2) {
-            Text(verbatim: value).font(.title2.weight(.bold)).monospacedDigit()
+            Text(verbatim: value).cyText(.sheetTitle).monospacedDigit()
                 .cyWrapText(alignment: .center)
                 // PL-20 / PL-48: live numbers roll instead of jumping.
                 .contentTransition(.numericText())
                 .animation(.snappy, value: value)
-            Text(label).font(.caption).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
+            Text(label).cyText(.meta).foregroundStyle(.secondary).lineLimit(2).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -855,7 +855,7 @@ struct RoamPlaceMemorySection: View {
     var body: some View {
         Section {
             if !placeName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(verbatim: placeName).font(.headline)
+                Text(verbatim: placeName).cyText(.cardTitle)
             }
             Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.live.placeMemory.text")
@@ -916,7 +916,7 @@ struct RoamLiveMerchantDescriptionRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("roam.live.merchant.about")
-                .font(.caption).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: text).fixedSize(horizontal: false, vertical: true)
         }.accessibilityIdentifier("roam.live.merchantDescription")
     }

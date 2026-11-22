@@ -133,7 +133,7 @@ import UIKit
             if record.meaningfulZone != nil {
                 Toggle("roam.share.includePlace", isOn: $includePlace)
                     .accessibilityIdentifier("roam.share.includePlace")
-                Text("roam.share.includePlaceHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("roam.share.includePlaceHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !record.track.isEmpty {
@@ -230,7 +230,7 @@ import UIKit
     private func albumGuideControls(_ image: UIImage) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             CYSectionHeader("roam.albumGuide.choose")
-            Text("roam.albumGuide.beforeSave").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("roam.albumGuide.beforeSave").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             ForEach(allowedAlbumDestinations) { destination in
                 CYPillButton(LocalizedStringKey(destination == .moments ? "roam.albumGuide.momentsAction" : "roam.albumGuide.xiaohongshuAction"),
                              style: .secondary, systemImage: "photo.on.rectangle") {
@@ -287,7 +287,7 @@ import UIKit
         if photoSave.inFlight {
             CYSkeleton().accessibilityLabel(Text("roam.share.savingPhotos")).accessibilityIdentifier("roam.share.savingPhotos")
         } else if let key = saveStatusKey {
-            Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("roam.share.photoSaveStatus")
         }
         if phase == .permissionDenied, !photoSave.inFlight {

@@ -16,22 +16,22 @@ import SwiftUI
     var body: some View {
         VStack(spacing: CYSpacing.lg) {
             Group { if projection.title.isEmpty { Text("playkit.album.title") } else { Text(verbatim: projection.title) } }
-                .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                .cyText(.label).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("playkit.album.title")
             ring
             let index = current ?? 0
             Text(verbatim: projection.photos.indices.contains(index) ? projection.photos[index].line : " ")
-                .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .multilineTextAlignment(.center)
                 .accessibilityIdentifier("playkit.album.line")
             if !projection.photos.isEmpty {
                 Text(verbatim: "\(min(index, projection.photos.count - 1) + 1) / \(projection.photos.count)")
-                    .font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
                     .accessibilityIdentifier("playkit.album.count")
             }
             if projection.completionEnabled && projection.done {
-                Text("playkit.album.locked").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("playkit.album.locked").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center).accessibilityIdentifier("playkit.album.locked")
             }
             if projection.completionEnabled && !projection.done, let complete {

@@ -165,7 +165,7 @@ public struct AuthAndSessionAdmissionSectionView: View {
                         ? "认证与会话准入审计：3/3 支柱符合 Fail-Closed 规范"
                         : "认证与会话准入审计：存在未闭合门禁风险"
                 )
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.allPillarsCompliant ? "PASS" : "BLOCKED")
                     .font(.caption.monospaced())
@@ -177,7 +177,7 @@ public struct AuthAndSessionAdmissionSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.badgeText)
                             .font(.caption.monospaced())
@@ -185,7 +185,7 @@ public struct AuthAndSessionAdmissionSectionView: View {
                             .accessibilityIdentifier("authAdmissionAudit.pillar.\(row.id).status")
                     }
                     Text(verbatim: row.detail)
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 2)
@@ -194,7 +194,7 @@ public struct AuthAndSessionAdmissionSectionView: View {
 
             HStack {
                 Text(verbatim: "服务端角色准入状态")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(
@@ -208,7 +208,7 @@ public struct AuthAndSessionAdmissionSectionView: View {
 
             HStack {
                 Text(verbatim: "公共发现页 404/410 状态")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(

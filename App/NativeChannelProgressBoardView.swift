@@ -96,7 +96,7 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
                 }
                 if section == "detail" && board.filterSchemaJson["team_id"] == "int" && teamOptions == nil {
                     Text("teamIndexUnavailable", tableName: "NativeChannelProgress")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(Text("teamIndexUnavailable", tableName: "NativeChannelProgress"))
@@ -126,7 +126,7 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
                 } footer: {
                     if let asOf = page.asOf {
                         Text("d7.channelProgress.updated \(NativeChannelProgressDateText.text(asOf))", tableName: "NativeChannelProgress")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -311,26 +311,26 @@ private struct NativeChannelProgressMeterSection: View {
             if meter.visible, let done = meter.done, let required = meter.required {
                 LabeledContent {
                     Text(verbatim: "\(done)/\(required)")
-                        .font(CYTypography.dataXL)
+                        .cyText(.dataXL)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 } label: {
                     Text("completed", tableName: "NativeChannelProgress")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let percent = meter.percent {
                     LabeledContent {
                         Text(verbatim: "\(percent)%")
-                            .font(CYTypography.numericBody)
+                            .cyText(.numericBody)
                             .monospacedDigit()
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     } label: {
                         Text("d7.channelProgress.percent", tableName: "NativeChannelProgress")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

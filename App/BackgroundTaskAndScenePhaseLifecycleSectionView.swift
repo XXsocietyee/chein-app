@@ -129,10 +129,10 @@ public struct ScenePhaseLifecycleSnapshot: Sendable, Equatable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("scenePhaseLifecycle.statusHeadline")
                 Text(verbatim: "后台残留轮询：\(snapshot.activePollingCountInBackground) · 待落盘草稿：\(snapshot.pendingUnflushedDraftCount) · BGTask 回调：\(snapshot.bgTaskExpirationHandlerRegistered ? "已注册" : "未注册")")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("scenePhaseLifecycle.summary")
             }
@@ -143,14 +143,14 @@ public struct ScenePhaseLifecycleSnapshot: Sendable, Equatable {
                         .foregroundStyle(row.isCompliant ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: row.detail)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: row.isCompliant ? "就绪" : "告警")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(row.isCompliant ? .green : .red)
                 }
                 .accessibilityIdentifier("scenePhaseLifecycle.row." + row.subsystemID)

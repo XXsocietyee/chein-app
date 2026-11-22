@@ -88,7 +88,7 @@ enum Cloud21Copy {
             if let detail = caller.detail {
                 Section {
                     Text(verbatim: shown(detail.text))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("mapPublic.detailText")
@@ -115,7 +115,7 @@ enum Cloud21Copy {
                     .accessibilityHidden(true)
             }
             MapCoreEntryText.state(item.state)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if MapPublicLayerCaller.detail(for: item) != nil {
@@ -130,7 +130,7 @@ enum Cloud21Copy {
     private func field(_ id: String, _ key: String, _ en: String, _ zh: String, _ value: Binding<String>, digits: Bool) -> some View {
         let title = phrase(key, en, zh)
         return TextField(text: value) { Text(verbatim: title) }
-            .font(CYTypography.body)
+            .cyText(.body)
             .modifier(Cloud21DigitStyle(enabled: digits))
             .textFieldStyle(.plain)
             .frame(minHeight: CYSpacing.minTouchTarget)

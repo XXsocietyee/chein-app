@@ -20,16 +20,16 @@ struct PlayAdvancedTurnBlock: View {
                 LabeledContent("advancedTeam.turn.next") { nextText }.accessibilityIdentifier("advancedTeam.turn.next")
                 HStack(spacing: CYSpacing.sm) {
                     mineChip
-                    Text("advancedTeam.turn.round \(turn.round)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+                    Text("advancedTeam.turn.round \(turn.round)").cyText(.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
                 }
             }
             if isLeader && !turn.order.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("advancedTeam.turn.order").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("advancedTeam.turn.order").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     ForEach(turn.order) { slot in
                         HStack(spacing: CYSpacing.sm) {
-                            Text(verbatim: String(slot.position + 1)).font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
-                            Text(verbatim: slot.display).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: String(slot.position + 1)).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: slot.display).cyText(.body).foregroundStyle(CYColor.textPrimary)
                             Spacer(minLength: CYSpacing.sm)
                             if !turn.finished && slot.position == turn.position { CYStatusChip("advancedTeam.turn.now", tone: .info) }
                             else if slot.position == turn.nextPosition { CYStatusChip("advancedTeam.turn.upNext", tone: .neutral) }

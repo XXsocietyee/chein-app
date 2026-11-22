@@ -12,7 +12,7 @@ import SwiftUI
     var body: some View {
         if home.isAllZero {
             Section {
-                Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.empty.title")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.empty.title")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("merchantOps.marketing.empty")
                 if access.canManageProjects {
                     Button(MerchantOpsCopy.text("merchantOps.marketing.empty.cta")) { onRoute(.content) }
@@ -54,10 +54,10 @@ import SwiftUI
         Section("merchantMarketing.coupons") {
             if home.hasCouponDeck {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.live %lld", home.coupons.couponCount)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.counts %lld %lld", home.coupons.received, home.coupons.verified)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.live %lld", home.coupons.couponCount)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.counts %lld %lld", home.coupons.received, home.coupons.verified)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     if let rate = home.verifiedAfterReceivePercent {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.rate %lld", rate)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.rate %lld", rate)).cyText(.caption).foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("merchantOps.marketing.coupon.rate")
                     }
                 }
@@ -69,8 +69,8 @@ import SwiftUI
                 LabeledContent("merchantMarketing.redeemed", value: String(home.coupons.verified))
             } else {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.title")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.body")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.title")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.body")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.coupon.empty")
             }
         }
@@ -79,12 +79,12 @@ import SwiftUI
                 LabeledContent {
                     if home.recruiting.count > 0 {
                         Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count))
-                            .font(CYTypography.numericBody)
+                            .cyText(.numericBody)
                             .monospacedDigit()
                             .foregroundStyle(CYColor.textPrimary)
                     }
                 } label: {
-                    Text("merchant.marketing.enterCoop").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    Text("merchant.marketing.enterCoop").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 }
             }.accessibilityIdentifier("merchantOps.marketing.coop")
         }
@@ -94,11 +94,11 @@ import SwiftUI
     private func mineTile(_ key: String, _ count: Int) -> some View {
         VStack(spacing: CYSpacing.xs) {
             Text(verbatim: String(count))
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
                 .cyWrapText(alignment: .center)
-            Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
@@ -114,9 +114,9 @@ import SwiftUI
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.label %lld", MerchantMarketingHome.windowDays))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.body).foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: heroDisplay)
-                    .font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.data2XL).foregroundStyle(CYColor.textPrimary)
                     .cyWrapText(alignment: .center)
                     .accessibilityIdentifier("merchantOps.marketing.hero.value")
                 Group {
@@ -130,7 +130,7 @@ import SwiftUI
                         }
                     }
                 }
-                .font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                .cyText(.label).foregroundStyle(CYColor.textTertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, CYSpacing.sm)
@@ -152,10 +152,10 @@ struct MerchantInsightParityRows: View {
     var body: some View {
         if let delta = MerchantInsightParity.visitorDelta(facts) {
             Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.delta %@", (delta > 0 ? "+" : "") + String(delta)))
-                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchantOps.insight.delta")
+                .cyText(.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchantOps.insight.delta")
         }
         if isEmpty {
-            Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.empty.body")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.empty.body")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 .accessibilityIdentifier("merchantOps.insight.empty")
             if let onCoopCenter,
                let cta = MerchantInsightParity.emptyCTATitle(isEmpty: isEmpty, canOpenCoopCenter: true) {

@@ -13,7 +13,7 @@ extension View {
     /// The native control keeps its original accessibility label and binding.
     func merchantCreationFieldLabel(_ title: Text) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            title.font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: .merchant))
+            title.cyText(.label).foregroundStyle(Theme.Color.textSecondary(in: .merchant))
                 .fixedSize(horizontal: false, vertical: true).accessibilityHidden(true)
             self
         }
@@ -35,7 +35,7 @@ func merchantCreationNotice(_ text: Text, systemImage: String = "info.circle", a
     HStack(alignment: .top, spacing: Theme.Space.s3) {
         Image(systemName: systemImage).accessibilityHidden(true)
             .foregroundStyle(attention ? Theme.Color.danger(in: .merchant) : Theme.Color.accent(in: .merchant))
-        text.font(.footnote).foregroundStyle(Theme.Color.textSecondary(in: .merchant))
+        text.cyText(.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: .merchant))
             .fixedSize(horizontal: false, vertical: true)
     }
     .padding(.vertical, Theme.Space.s2)
@@ -43,7 +43,7 @@ func merchantCreationNotice(_ text: Text, systemImage: String = "info.circle", a
 
 func merchantCreationLabeled(_ key: String, value: String) -> some View {
     VStack(alignment: .leading, spacing: Theme.Space.s1_5) {
-        merchantAuthoringText(key).font(Theme.Font.label)
+        merchantAuthoringText(key).cyText(.label)
             .foregroundStyle(Theme.Color.textSecondary(in: .merchant))
         Text(verbatim: value).font(Theme.Font.body).textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)

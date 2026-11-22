@@ -68,7 +68,7 @@ import Observation
                     Button("Revoke") { orders.isConfigured = false }
                         .accessibilityIdentifier("profile.selfOrdersFixture.revoke")
                 }
-            }.font(.caption)
+            }.cyText(.meta)
         }
     }
 }

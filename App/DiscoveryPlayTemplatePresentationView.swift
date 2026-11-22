@@ -13,7 +13,7 @@ import SwiftUI
         if showsPublisher, let publisher = presentation.publisher {
             Section {
                 Text(verbatim: publisher)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
@@ -27,7 +27,7 @@ import SwiftUI
         if presentation.useCount != nil {
             Section {
                 LabeledContent("discovery.template.useCount", value: presentation.useCountText)
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .monospacedDigit()
                     .accessibilityIdentifier("discovery.template.useCount")
                     .discoveryPresentationRow()
@@ -48,7 +48,7 @@ import SwiftUI
             Section {
                 if let text = presentation.storyText {
                     Text(verbatim: text)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -57,7 +57,7 @@ import SwiftUI
                 }
                 if presentation.storyImage != nil {
                     Text("discovery.template.storyImageInGallery")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("discovery.template.storyImage")

@@ -98,7 +98,7 @@ import SwiftUI
                 .disabled(capture == nil || makePlayer == nil)
                 .accessibilityIdentifier("templateNarration.preview")
             if capture == nil || makePlayer == nil {
-                Text("templateNarration.previewUnavailable").font(.caption).foregroundStyle(.secondary)
+                Text("templateNarration.previewUnavailable").cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("templateNarration.previewUnavailable")
             }
             if let selected = controller.selection, controller.isCurrent(selected.capture) {

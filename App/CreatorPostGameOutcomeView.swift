@@ -76,7 +76,7 @@ import QuestifyCore
                 else { CYStatusChip("creatorStudio.outcome.notMature", tone: .warning, systemImage: "hourglass") }
                 Spacer()
             }.accessibilityIdentifier("creatorStudio.outcome.maturity")
-            if !report.mature { Text("creatorStudio.outcome.notMatureBody").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if !report.mature { Text("creatorStudio.outcome.notMatureBody").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             row("creatorStudio.outcome.windowStart", text: report.windowStart)
             row("creatorStudio.outcome.windowEnd", text: report.windowEnd)
             row("creatorStudio.outcome.scopeTopics", value: .value(String(outcome.scope.topicIds.count)))
@@ -104,7 +104,7 @@ import QuestifyCore
             Section {
                 if signup.available == false {
                     row("creatorStudio.outcome.repeatSignup", value: .dash)
-                    if let reason = signup.unknownReason { Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if let reason = signup.unknownReason { Text(verbatim: reason).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 } else {
                     segment("creatorStudio.outcome.paid", signup.paid)
                     segment("creatorStudio.outcome.all", signup.all)
@@ -116,18 +116,18 @@ import QuestifyCore
             ForEach(CreatorOutcomePresentation.shownMetrics(outcome), id: \.metricCode) { metric in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     HStack {
-                        Text(Self.metricName(metric.metricCode)).font(CYTypography.cardTitle)
+                        Text(Self.metricName(metric.metricCode)).cyText(.cardTitle)
                         Spacer()
                         valueText(CreatorOutcomePresentation.count(metric.members))
                     }
                     HStack(spacing: CYSpacing.md) {
                         Text("creatorStudio.outcome.memberDays") + Text(verbatim: " ") + valueString(CreatorOutcomePresentation.count(metric.memberDays))
                         Text("creatorStudio.outcome.facts") + Text(verbatim: " ") + valueString(CreatorOutcomePresentation.count(metric.facts))
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     HStack(spacing: CYSpacing.xs) {
                         Text("creatorStudio.outcome.watermark")
                         valueString(metric.watermarkAt.map { .value($0) } ?? .dash)
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("creatorStudio.outcome.metric.\(metric.metricCode)")
             }
         } header: { Text("creatorStudio.outcome.metrics") } footer: { Text("creatorStudio.outcome.metricsFooter") }
@@ -140,7 +140,7 @@ import QuestifyCore
             ForEach((report.unavailableSources ?? [:]).sorted(by: { $0.key < $1.key }), id: \.key) { source in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     LabeledContent { Text("creatorStudio.outcome.notAvailable").foregroundStyle(CYColor.textTertiary) } label: { Text(verbatim: source.key) }
-                    Text(verbatim: source.value).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: source.value).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         } header: { Text("creatorStudio.outcome.omitted") } footer: { Text("creatorStudio.outcome.omittedFooter") }
@@ -149,10 +149,10 @@ import QuestifyCore
             row("creatorStudio.outcome.basisVersion", text: report.basisVersion)
             row("creatorStudio.outcome.computedAt", text: report.computedAt)
             ForEach(CreatorOutcomePresentation.watermarks(report), id: \.source) { mark in
-                LabeledContent { valueText(mark.value).font(CYTypography.meta) } label: { Text(verbatim: mark.source).font(CYTypography.meta) }
+                LabeledContent { valueText(mark.value).cyText(.meta) } label: { Text(verbatim: mark.source).cyText(.meta) }
             }
-            if report.historicalReplayable != true { Text("creatorStudio.outcome.computedNow").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            if report.testExclusionBasis == "NO_SERVER_MARKER" { Text("creatorStudio.outcome.testNotExcluded").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if report.historicalReplayable != true { Text("creatorStudio.outcome.computedNow").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            if report.testExclusionBasis == "NO_SERVER_MARKER" { Text("creatorStudio.outcome.testNotExcluded").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
         } header: { Text("creatorStudio.outcome.basis") }
     }
 
@@ -160,7 +160,7 @@ import QuestifyCore
         if let segment {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack {
-                    Text(title).font(CYTypography.cardTitle)
+                    Text(title).cyText(.cardTitle)
                     Spacer()
                     // A segment rate is only shown for mature members; with none mature it is "not mature", not 0%.
                     valueText((segment.matureMembers ?? 0) > 0 ? CreatorOutcomePresentation.rate(segment.retentionRate, mature: true, locale: locale) : .notMature)
@@ -169,7 +169,7 @@ import QuestifyCore
                     Text("creatorStudio.outcome.eligible") + Text(verbatim: " ") + valueString(CreatorOutcomePresentation.count(segment.eligibleMembers))
                     Text("creatorStudio.outcome.matureMembers") + Text(verbatim: " ") + valueString(CreatorOutcomePresentation.count(segment.matureMembers))
                     Text("creatorStudio.outcome.retained") + Text(verbatim: " ") + valueString(CreatorOutcomePresentation.retained(segment.retainedMembers, mature: (segment.matureMembers ?? 0) > 0))
-                }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
     }
@@ -183,7 +183,7 @@ import QuestifyCore
     }
 
     private func valueText(_ value: CreatorOutcomeValue) -> some View {
-        valueString(value).font(CYTypography.numericBody).monospacedDigit()
+        valueString(value).cyText(.numericBody).monospacedDigit()
     }
 
     private func valueString(_ value: CreatorOutcomeValue) -> Text {

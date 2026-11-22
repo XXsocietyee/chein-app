@@ -382,7 +382,7 @@ struct MerchantContentPopupCompanionModifier: ViewModifier {
                     onClose: { showRouteModeSheet = false }
                 ) {
                     Text(MerchantCloseCopy.text("路线模式下玩家按顺序完成各据点任务，可分章节配置开放报名与承接节点。", "In route mode, players complete stop tasks in sequence across configured chapters and venue nodes.", locale))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .padding(.vertical, CYSpacing.sm)
                 }
@@ -509,7 +509,7 @@ struct MerchantOperationsPopupCompanionModifier: ViewModifier {
                     onClose: { showInfoPopSheet = false }
                 ) {
                     Text(MerchantCloseCopy.text("修改门店配置或合作规则前，请核对生效时间与承接范围。", "Review effective dates and scope before saving store configuration.", locale))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .padding(.vertical, CYSpacing.sm)
                 }
@@ -568,7 +568,7 @@ struct MerchantQuickPublishingPopupCompanionModifier: ViewModifier {
                 ) {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text(MerchantCloseCopy.text("配置到达奖励与优惠券信息。", "Configure stop rewards and coupon details.", locale))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                         Button(MerchantCloseCopy.text("放弃创建", "Discard Creation", locale), role: .destructive) {
                             showRewardCreateSheet = false

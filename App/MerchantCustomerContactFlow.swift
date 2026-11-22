@@ -73,7 +73,7 @@ import SwiftUI
         NavigationStack {
             List {
                 Section {
-                    Text(verbatim: flow.selection.record.title).font(.headline)
+                    Text(verbatim: flow.selection.record.title).cyText(.cardTitle)
                     Text(LocalizedStringKey("merchant.engagement.contact." + flow.selection.purpose.rawValue))
                 }
                 if !flow.isCurrent { Text("merchant.contactFlow.stale") }

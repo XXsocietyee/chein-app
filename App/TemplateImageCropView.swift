@@ -24,7 +24,7 @@ import SwiftUI
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("template.imageCrop.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("template.imageCrop.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let rect, let preview = try? TemplateImageCropRenderer.preview(draft.source, rect: rect) {
                 Image(uiImage: preview).resizable()
                     .aspectRatio(CGFloat(draft.source.width) / CGFloat(draft.source.height), contentMode: .fit)
@@ -33,15 +33,15 @@ import SwiftUI
                     .overlay(Rectangle().stroke(CYColor.borderStrong, lineWidth: 1))
                     .frame(maxWidth: .infinity).padding(CYSpacing.sm).background(CYColor.bgPage)
                     .accessibilityLabel("image.crop.preview")
-                Text("image.crop.horizontal").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("image.crop.horizontal").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Slider(value: $horizontal, in: 0...1).disabled(zoom == 1)
                     .accessibilityLabel("image.crop.horizontal")
                     .accessibilityIdentifier("template.imageCrop.horizontal")
-                Text("image.crop.vertical").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("image.crop.vertical").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Slider(value: $vertical, in: 0...1).disabled(zoom == 1)
                     .accessibilityLabel("image.crop.vertical")
                     .accessibilityIdentifier("template.imageCrop.vertical")
-                Text("image.crop.zoom").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("image.crop.zoom").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Slider(value: $zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
                     .accessibilityIdentifier("template.imageCrop.zoom")
                 // One solid action (mini 选取); reset / use-original / cancel stay quiet.
@@ -60,7 +60,7 @@ import SwiftUI
                 let page = CropPageModel.facts(hasOpener: true, paths: [draft.id.uuidString],
                                                width: Double(draft.source.width), height: Double(draft.source.height),
                                                failed: true)
-                Text(LocalizedStringKey(page.copyKey)).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text(LocalizedStringKey(page.copyKey)).cyText(.body).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("template.imageCrop.failed")
             }

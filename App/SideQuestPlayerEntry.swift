@@ -8,15 +8,15 @@ struct SideQuestPlayerEntry: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text("mapCore.entry.merchantSideQuests", tableName: "MapCoreEntry")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             Text("mapCore.availability.pendingBackend", tableName: "MapCoreEntry")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: snapshot.totalText)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("sideQuestPlayer.total")
             ForEach(snapshot.rows) { row in
@@ -31,14 +31,14 @@ struct SideQuestPlayerEntry: View {
     private func rowBody(_ row: SideQuestPlayerFlow.RowPresentation) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: row.titleText)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: row.capacityText)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             Text(verbatim: row.rewardText)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)

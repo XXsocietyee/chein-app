@@ -71,7 +71,7 @@ struct DesignKitFixture: View {
     private func domainShowcase(_ domain: ThemeDomain, heading: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             Text(verbatim: heading)
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYDomainPalette(domain).textPrimary)
                 .padding(.horizontal, CYSpacing.pageHorizontal)
 
@@ -308,10 +308,10 @@ private struct DesignKitCanvas: View {
             CYCard {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: "语义卡片容器 (16pt 圆角 · 无外边框)")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                     Text(verbatim: "Dark 使用 0.5pt 顶部高光线；Light 使用中性软阴影。")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

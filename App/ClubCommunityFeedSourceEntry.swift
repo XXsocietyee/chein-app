@@ -15,6 +15,6 @@ struct ClubCommunityFeedSourceEntry: View {
         Label {
             if name.isEmpty { Text("club.detail") } else { Text(verbatim: name) }
         } icon: { Image(systemName: "person.3") }
-        .font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
+        .cyText(.label).fixedSize(horizontal: false, vertical: true)
     }
 }

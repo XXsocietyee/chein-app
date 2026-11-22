@@ -28,7 +28,7 @@ struct NativeChannelFlowNotice: View {
         HStack(alignment: .top, spacing: Theme.Space.s3) {
             Image(systemName: symbol).foregroundStyle(.secondary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                title.font(Theme.Font.sectionTitle)
+                title.cyText(.sectionTitle)
                 if let message { message.font(.subheadline).foregroundStyle(.secondary) }
             }.fixedSize(horizontal: false, vertical: true)
         }

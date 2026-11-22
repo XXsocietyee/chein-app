@@ -16,13 +16,13 @@ public struct Wave2AllPartialAndMissingRowsClosureView: View {
             ForEach(Wave2AllPartialAndMissingRowsClosureCoordinator.laneClosures) { lane in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(lane.laneID) · \(lane.title) (\(lane.currentAlignedOrSupersetCount)/\(lane.totalRows))")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     CYStatusChip(verbatim: "\(lane.currentAlignedOrSupersetCount)/\(lane.totalRows)",
                                  tone: lane.currentAlignedOrSupersetCount >= lane.totalRows ? .success : .warning,
                                  systemImage: lane.currentAlignedOrSupersetCount >= lane.totalRows ? "checkmark.circle" : "clock")
                     ForEach(lane.keyUpgradesDelivered, id: \.self) { item in
                         Text("• \(item)")
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                 }

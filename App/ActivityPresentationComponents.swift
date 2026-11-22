@@ -54,7 +54,7 @@ struct ActivityListCard: View {
 
     private var text: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            title.font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
+            title.cyText(.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
             if let metaLine {
                 Label { Text(verbatim: metaLine).lineLimit(2) } icon: { Image(systemName: "calendar") }
                     .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
@@ -92,7 +92,7 @@ struct ActivityDetailHeader: View {
                     .accessibilityHidden(true)
             }
             ActivityName(name:summary.name)
-                .font(.title.weight(.bold))
+                .cyText(.display)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("activity.detail.name")
             ActivitySummaryMetadata(summary:summary)
@@ -164,11 +164,11 @@ struct ActivityTicketCard: View {
         .accessibilityElement(children: .combine)
     }
     private var name: some View {
-        Text(verbatim:ticket.name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal:false,vertical:true)
+        Text(verbatim:ticket.name).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal:false,vertical:true)
     }
     private var price: some View {
         Text(verbatim: ticket.price == 0 ? copy.t("免费", "Free") : (E1Money.yuan(ticket.price, locale: locale) ?? "—"))
-            .font(CYTypography.dataXL.weight(.semibold)).monospacedDigit().foregroundStyle(palette.textPrimary)
+            .cyText(.dataXL, weight: .semibold).monospacedDigit().foregroundStyle(palette.textPrimary)
             .accessibilityIdentifier("activity.ticket.price.\(ticket.id)")
     }
 }

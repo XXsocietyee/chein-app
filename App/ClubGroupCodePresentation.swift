@@ -13,7 +13,7 @@ import UIKit
                     // Mini `club-game-code-sheet` card: code on white inside an ink card. Save stays hidden
                     // here (no onSave): this presentation is display-only by design.
                     VStack(spacing: Theme.Space.s2) {
-                        Text("club.gov.codeAvailable").font(.headline)
+                        Text("club.gov.codeAvailable").cyText(.cardTitle)
                         CYClubGameCodeCard(state: .ready, name: nil) {
                             Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
                                 .accessibilityLabel(Text("groupCode.image", tableName: "ClubGroupCodeDisplay"))
@@ -30,7 +30,7 @@ import UIKit
                     Label("club.gov.expiredCode", systemImage: "clock.badge.exclamationmark")
                         .accessibilityIdentifier("club.gov.expiredCode")
                     // Mini-program re-issues automatically; native keeps issuance behind the reviewed command.
-                    Text("club.gov.expiredCode.hint").font(.footnote).foregroundStyle(.secondary)
+                    Text("club.gov.expiredCode.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
         }

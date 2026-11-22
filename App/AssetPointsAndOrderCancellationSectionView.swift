@@ -182,10 +182,10 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
         Section {
             HStack {
                 Text(verbatim: english ? "Points ledger and refund conservation (I04)" : "积分流水与退单守恒 (I04)")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isConservationCompliant ? (english ? "Conserved (I04_OK)" : "守恒合规 (I04_OK)") : (english ? "Ledger mismatch" : "存在账目偏差"))
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isConservationCompliant ? CYColor.successText : CYColor.dangerText).opacity(0.15), in: Capsule())
@@ -195,7 +195,7 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.balanceDisplay(english: english))
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: english ? "Authoritative points balance" : "当前权威积分余额")
             }
@@ -203,7 +203,7 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summary(english: english))
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: english ? "Refund conservation summary" : "退单守恒统计")
             }
@@ -216,16 +216,16 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
                             .font(.subheadline.monospaced().weight(.semibold))
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.state).opacity(0.15), in: Capsule())
                             .foregroundStyle(badgeColor(for: row.state))
                     }
                     Text(verbatim: row.deltaSummary(english: english))
-                        .font(.caption.monospacedDigit())
+                        .cyText(.meta, monospacedDigit: true)
                     Text(verbatim: row.noteText(english: english))
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

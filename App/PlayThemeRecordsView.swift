@@ -50,13 +50,13 @@ import SwiftUI
                 .foregroundStyle(row.hasCard ? CYColor.successText : CYColor.textTertiary)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                outcomeText(row.outcome).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                if let scene = row.sceneName { Text(verbatim: scene).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                if let summary = row.summary { Text(verbatim: summary).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                outcomeText(row.outcome).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                if let scene = row.sceneName { Text(verbatim: scene).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                if let summary = row.summary { Text(verbatim: summary).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }
             Spacer()
-            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
-            else { Text("playx.themeRecords.inProgress").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+            else { Text("playx.themeRecords.inProgress").cyText(.caption).foregroundStyle(CYColor.textTertiary) }
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)
@@ -84,15 +84,15 @@ import SwiftUI
 
     private var cardContent: some View {
         List {
-            if let title { Text(verbatim: title).font(.caption) }
+            if let title { Text(verbatim: title).cyText(.meta) }
             if let card = model.card {
-                if let cardTitle = card.title { Text(verbatim: cardTitle).font(CYTypography.sheetTitle) } else { Text("playx.themeRecords.cardTitle").font(CYTypography.sheetTitle) }
+                if let cardTitle = card.title { Text(verbatim: cardTitle).cyText(.sheetTitle) } else { Text("playx.themeRecords.cardTitle").cyText(.sheetTitle) }
                 if let summary = card.summary { Text(verbatim: summary) }
                 if card.scene != nil || !card.values.isEmpty {
                     Section {
                         if let scene = card.scene { LabeledContent { Text(verbatim: scene) } label: { Text("playx.themeRecords.scene") } }
                         ForEach(Array(card.values.enumerated()), id: \.offset) { _, row in
-                            LabeledContent { Text(verbatim: row.value).font(CYTypography.numericBody) } label: { valueName(row.name) }
+                            LabeledContent { Text(verbatim: row.value).cyText(.numericBody) } label: { valueName(row.name) }
                         }
                     }
                 }
@@ -100,13 +100,13 @@ import SwiftUI
                     LabeledContent { Text(verbatim: "×\(row.quantity)").monospacedDigit() } label: { Text(verbatim: row.name) }
                 }
                 ForEach(Array(card.epilogues.enumerated()), id: \.offset) { _, row in
-                    VStack(alignment: .leading) { Text(verbatim: row.name).font(.headline); Text(verbatim: row.line) }
+                    VStack(alignment: .leading) { Text(verbatim: row.name).cyText(.cardTitle); Text(verbatim: row.line) }
                 }
                 ForEach(Array(card.exhibits.enumerated()), id: \.offset) { _, line in Text(verbatim: line) }
                 if !card.knownEndings.isEmpty {
                     Section("playx.themeRecords.knownEndings") { ForEach(Array(card.knownEndings.enumerated()), id: \.offset) { _, ending in Text(verbatim: ending) } }
                 }
-                if let next = card.nextScene { Text("playx.themeRecords.nextScene \(next)").font(.caption) }
+                if let next = card.nextScene { Text("playx.themeRecords.nextScene \(next)").cyText(.meta) }
             }
             if model.busy { ProgressView("playx.themeRecords.cardLoading") }
             if let issue = model.issue { issueText(issue) }

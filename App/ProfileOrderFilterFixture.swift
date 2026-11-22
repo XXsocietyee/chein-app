@@ -41,7 +41,7 @@ import SwiftUI
     var body: some View {
         NavigationStack { ProfileOrdersView(reader: reader).id(reader.identity) }
             .safeAreaInset(edge: .top, spacing: 0) {
-                if designClean { Text(verbatim: "Synthetic fixture · debug only").font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.vertical, 2) }
+                if designClean { Text(verbatim: "Synthetic fixture · debug only").cyText(.caption).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.vertical, 2) }
             }
             .safeAreaInset(edge: .bottom) {
                 if !designClean { VStack {
@@ -53,7 +53,7 @@ import SwiftUI
                             .accessibilityValue(reader.isConfigured ? "configured" : "revoked")
                         Button("Switch account") { reader.identity = .init(accountID: 7002, epoch: 2) }.accessibilityIdentifier("profile.orderFilter.fixture.switch")
                     }
-                }.font(.caption) }
+                }.cyText(.meta) }
             }
     }
 }

@@ -36,7 +36,7 @@ struct CYDesignedCover: View {
                     .frame(width: disc, height: disc)
                     .background(palette.borderStrong, in: Circle())
                 if let caption {
-                    Text(verbatim: caption).font(CYTypography.label.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: caption).cyText(.label, weight: .semibold).foregroundStyle(palette.textSecondary)
                 }
             }
             .padding(CYSpacing.lg)

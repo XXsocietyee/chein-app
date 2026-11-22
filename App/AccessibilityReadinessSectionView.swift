@@ -130,7 +130,7 @@ public struct AccessibilityReadinessSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "无障碍与性能就绪审计 (I10)")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("accessibilityReadiness.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -139,19 +139,19 @@ public struct AccessibilityReadinessSectionView: View {
                     .accessibilityIdentifier("accessibilityReadiness.overallStatus")
 
                 Text(verbatim: Self.voiceOverSummaryText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("accessibilityReadiness.voiceOverSummary")
 
                 Text(verbatim: Self.reduceMotionSummaryText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("accessibilityReadiness.reduceMotionStatus")
 
                 Text(verbatim: Self.contrastSummaryText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("accessibilityReadiness.contrastStatus")
 
                 Text(verbatim: Self.signposterSummaryText(for: snapshot))
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("accessibilityReadiness.signposterStatus")
             }
@@ -159,7 +159,7 @@ public struct AccessibilityReadinessSectionView: View {
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无无障碍页面检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("accessibilityReadiness.empty")
             } else {
@@ -205,19 +205,19 @@ private struct AccessibilitySurfaceRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.surfaceName)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isCompliant ? "达标" : "待修复")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isCompliant ? .green : .red)
             }
 
             Text(verbatim: "VoiceOver 锚点：\(row.voiceOverAnchorIdentifier)（\(row.voiceOverMounted ? "已挂载" : "缺失")）")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: String(format: "对比度：%.2f:1（最低 %.1f:1） · Reduce Motion：%@", row.contrastRatio, AccessibilitySurfaceCheckRow.minimumWCAGContrastRatio, row.reduceMotionFallbackVerified ? "已回退" : "未验证"))
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(row.meetsWCAGAA ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
         }
         .padding(.vertical, 4)

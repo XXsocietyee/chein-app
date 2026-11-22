@@ -45,7 +45,7 @@ struct CYSquareRouteMapCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
             HStack(spacing: CYSpacing.sm) {
-                caption().font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                caption().cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 Spacer(minLength: 0)
                 if let onOpenTopic {
                     Button(action: onOpenTopic) {
@@ -53,7 +53,7 @@ struct CYSquareRouteMapCard: View {
                             Text("route.openTopic", tableName: "SocialParity")
                             Image(systemName: "chevron.right")
                         }
-                        .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.label).foregroundStyle(CYColor.textSecondary)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.cyPressable)
@@ -77,7 +77,7 @@ struct CYSquareRouteMapCard: View {
                 Annotation(node.title, coordinate: node.coordinate) {
                     Button { selected = selected == node.id ? nil : node.id } label: {
                         Text(verbatim: "\(index + 1)")
-                            .font(CYTypography.caption.weight(.bold).monospacedDigit())
+                            .cyText(.caption, weight: .bold, monospacedDigit: true)
                             .foregroundStyle(CYNight.ink0)
                             .frame(width: 28, height: 28)
                             .background(Circle().fill(CYNight.lantern))

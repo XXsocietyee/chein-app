@@ -44,7 +44,7 @@ extension EnvironmentValues {
                         .disabled(model.checkingOrder || model.phase == .loading)
                         .accessibilityIdentifier("verificationCode.checkOrder")
                     if model.checkingOrder { CYSkeleton() }
-                    if model.readbackFailed { Text("verificationCode.readbackFailed").font(.footnote) }
+                    if model.readbackFailed { Text("verificationCode.readbackFailed").cyText(.bodyCompact) }
                     if let detail = model.readback {
                         CYStatusChip(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended",
                                      tone: detail.registrationStatus == 2 ? .success : .neutral,
@@ -53,7 +53,7 @@ extension EnvironmentValues {
                     }
                 }
                 Text(model.target.kind == .ticket ? "verificationCode.ticket.authority" : "verificationCode.city.authority")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
             }
     }
     private func lifecycle<V: View>(_ view: V) -> some View {
@@ -87,7 +87,7 @@ extension EnvironmentValues {
             if model.target.kind == .cityVoucher, autoIssue {
                 // Source citynode-code: 「Ns 后自动刷新」 right under the code, then 出示给商家扫码领券; the code refreshes itself.
                 Text("roamSub.w208.voucher.countdown \(model.remainingSeconds)").monospacedDigit()
-                    .font(CYTypography.meta).foregroundStyle(.secondary)
+                    .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roamSub.w208.voucher.countdown")
                 Text("roamSub.w208.voucher.desc").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             } else {

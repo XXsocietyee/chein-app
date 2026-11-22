@@ -31,14 +31,14 @@ import SwiftUI
                                     Text(resultKey(row))
                                 } label: {
                                     VStack(alignment: .leading, spacing: 4) {
-                                        Text(verbatim: row.event ?? "—").font(.headline)
+                                        Text(verbatim: row.event ?? "—").cyText(.cardTitle)
                                         HStack(spacing: 4) {
                                             Text(row.channel == "wx" ? LocalizedStringKey("d7.deliveryLog.channel.wx") : LocalizedStringKey("d7.deliveryLog.channel.push"))
                                             Text(verbatim: "·")
                                             Text(verbatim: String(row.createTime.prefix(16)))
                                         }
-                                        .font(.footnote).foregroundStyle(.secondary)
-                                        if let reason = row.reason { Text(verbatim: reason).font(.footnote).foregroundStyle(.secondary) }
+                                        .cyText(.meta).foregroundStyle(.secondary)
+                                        if let reason = row.reason { Text(verbatim: reason).cyText(.meta).foregroundStyle(.secondary) }
                                     }
                                 }
                                 .privacySensitive()

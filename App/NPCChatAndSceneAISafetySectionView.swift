@@ -163,17 +163,17 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("npcSceneAISafety.statusHeadline")
                 Text(verbatim: summaryLine)
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("npcSceneAISafety.summary")
                 Text(verbatim: bilingualCopy(
                     "3D 低多边形立绘 (\(snapshot.figureRenderer.canonicalBoxFaceCount) 面) · 导出预览上限 \(NPCChatTranscriptExporter.previewLimit) 条 · 节点/门店 NPC 表单与 ChatMessageBubble 复用已对齐",
                     "3D low-poly figure (\(snapshot.figureRenderer.canonicalBoxFaceCount) faces) · export preview limit \(NPCChatTranscriptExporter.previewLimit) messages · node/store NPC forms share ChatMessageBubble",
                     locale: snapshot.locale))
-                    .font(.caption2)
+                    .cyText(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("npcSceneAISafety.paritySummary")
             }
@@ -184,14 +184,14 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
                         .foregroundStyle(row.isEnforced ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: row.detail)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: row.isEnforced ? bilingualCopy("已生效", "Enforced", locale: snapshot.locale) : bilingualCopy("未生效", "Not enforced", locale: snapshot.locale))
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(row.isEnforced ? .green : .red)
                 }
                 .accessibilityIdentifier("npcSceneAISafety.row." + row.guardID)

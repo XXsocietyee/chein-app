@@ -12,7 +12,7 @@ struct ProfileDraftReviewSection: View {
                 if summary.changes.isEmpty { Text("profile.reviewRestore.noChanges") }
                 ForEach(summary.changes) { change in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(LocalizedStringKey(title(change.field))).font(.headline)
+                        Text(LocalizedStringKey(title(change.field))).cyText(.cardTitle)
                         VStack(alignment: .leading, spacing: Theme.Space.s1) {
                             Text("profile.reviewRestore.before").font(.caption).foregroundStyle(.secondary)
                             value(change.before).lineLimit(nil).fixedSize(horizontal: false, vertical: true)

@@ -29,7 +29,7 @@ struct CityHoldButton: View {
                 if done { Image(systemName: "checkmark").accessibilityHidden(true) }
                 Text(verbatim: holding ? holdingTitle : title).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
             }
-            .font(CYTypography.button)
+            .cyText(.button)
             .foregroundStyle(palette.actionPrimaryFg)
             .padding(.horizontal, CYSpacing.lg)
         }

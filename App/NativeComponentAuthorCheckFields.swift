@@ -17,7 +17,7 @@ import SwiftUI
             TextField("成功文案", text: text("successText"), axis: .vertical)
             TextField("失败文案", text: text("failText"), axis: .vertical)
             Text("没有自动 DC、加值或结果。checkId、启用开关及原 passive/team/opposed/empathy 专属字段保持原值；失败/兜底分支继续走原路线编辑与发布校验。")
-                .font(.caption).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
         }.disabled(!model.canEdit)
         Section("原条件修正") {
             let mods = check["mods"]?.array ?? []

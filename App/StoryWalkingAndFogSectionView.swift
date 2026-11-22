@@ -28,7 +28,7 @@ public struct StoryWalkingAndFogSectionView: View {
         Section {
             LabeledContent {
                 Text(verbatim: currentStopSummary)
-                    .font(.subheadline.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "当前导航站点 (W15.1)")
             }
@@ -36,7 +36,7 @@ public struct StoryWalkingAndFogSectionView: View {
 
             LabeledContent {
                 Text(verbatim: verificationStatusSummary)
-                    .font(.footnote.weight(.medium))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(verificationAccentColor)
             } label: {
                 Text(verbatim: "到达核验状态 (W15.6)")
@@ -45,7 +45,7 @@ public struct StoryWalkingAndFogSectionView: View {
 
             LabeledContent {
                 Text(verbatim: entranceSummary)
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
             } label: {
                 Text(verbatim: "可通行入口 (W15.2)")
@@ -54,10 +54,10 @@ public struct StoryWalkingAndFogSectionView: View {
 
             HStack {
                 Text(verbatim: "个人迷雾图层 (W14.6)")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: fogSyncBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(CYColor.textSecondary.opacity(0.15), in: Capsule())
@@ -66,7 +66,7 @@ public struct StoryWalkingAndFogSectionView: View {
 
             LabeledContent {
                 Text(verbatim: "\(fogProjection.confirmedTileCodes.count) 格已确认 / \(fogProjection.pendingPredictedTileCodes.count) 格本地预测")
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "迷雾格统计")
             }
@@ -74,7 +74,7 @@ public struct StoryWalkingAndFogSectionView: View {
 
             if !fogProjection.rolledBackTileCodes.isEmpty {
                 Text(verbatim: "已回退未通过格：\(fogProjection.rolledBackTileCodes.count) 格")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("story.fog.rolledBackCount")
             }

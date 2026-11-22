@@ -46,7 +46,7 @@ import SwiftUI
                 notice
                 if let reminderDate {
                     LabeledContent("d7.checkin.reminderDate", value: shown(reminderDate))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                 }
                 if let pending = flow.pending {
                     Section {
@@ -70,7 +70,7 @@ import SwiftUI
                         .disabled(flow.busy)
                         .listRowBackground(Color.clear)
                         Button("d7.channelActivity.cancel", role: .cancel) { flow.cancelReview() }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             .disabled(flow.busy)
                     } header: { CYSectionHeader("d7.checkin.review.title").textCase(nil) }
@@ -114,11 +114,11 @@ import SwiftUI
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("d7.checkin.streak.caption")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("d7.checkin.streak.value \(status.streak)")
-                    .font(CYTypography.data2XL)
+                    .cyText(.data2XL)
                     .foregroundStyle(palette.textPrimary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -127,7 +127,7 @@ import SwiftUI
             .accessibilityElement(children: .combine)
             if status.checked {
                 Label("d7.checkin.checkedToday", systemImage: "checkmark.seal.fill")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .fixedSize(horizontal: false, vertical: true)
                     // Check-in moment: the seal bounces, success haptic, light confetti (all quiet under Reduce Motion).
                     .symbolEffect(.bounce, options: .nonRepeating, value: reduceMotion ? false : status.checked)
@@ -140,7 +140,7 @@ import SwiftUI
                     }
             } else {
                 Label("d7.checkin.notCheckedToday", systemImage: "calendar")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .fixedSize(horizontal: false, vertical: true)
             }
             LabeledContent("d7.checkin.date", value: shown(status.checkinDate))
@@ -157,12 +157,12 @@ import SwiftUI
                 .listRowBackground(Color.clear)
         }
         if status.makeupPolicy.configured, status.makeupPolicy.enabled, let days = status.makeupPolicy.windowDays, status.makeupPolicy.version != nil {
-            Section { Text("d7.checkin.makeup \(days)").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+            Section { Text("d7.checkin.makeup \(days)").cyText(.body).fixedSize(horizontal: false, vertical: true) }
         }
         Section {
             if status.history.isEmpty {
                 Label("d7.checkin.history.empty", systemImage: "calendar")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
@@ -174,7 +174,7 @@ import SwiftUI
         HStack(alignment: .center, spacing: CYSpacing.md) {
             CheckinCover(seed: day.checkinDate, symbol: day.kind == "MAKEUP" ? "calendar.badge.plus" : "checkmark.seal", side: 40)
             Text(verbatim: shown(day.checkinDate))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
@@ -199,7 +199,7 @@ import SwiftUI
             ProgressView("d7.checkin.submitting")
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
         case .unknown: Text("d7.checkin.notice.unknown").nativeChannelNotice(systemImage: "clock")
-        case .applied: Text("d7.checkin.notice.applied").font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
+        case .applied: Text("d7.checkin.notice.applied").cyText(.body).fixedSize(horizontal: false, vertical: true)
         case .redacted: Text("d7.checkin.notice.redacted").nativeChannelNotice(systemImage: "checkmark.seal")
         case .expiredUnapplied: Text("d7.checkin.notice.expired").nativeChannelNotice(systemImage: "calendar.badge.exclamationmark")
         case .rejected(let code):
@@ -254,7 +254,7 @@ import SwiftUI
                             ForEach(page.list) { row($0) }
                             if page.list.isEmpty {
                                 Label("d7.checkin.history.empty", systemImage: "person.2")
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(palette.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -281,20 +281,20 @@ import SwiftUI
         .onDisappear { stop() }
     }
     private func row(_ row: NativeChannelCheckinRankRow) -> some View {
-        let days = Text("d7.checkinRank.days \(row.days)").font(CYTypography.numericBody).foregroundStyle(palette.textSecondary).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+        let days = Text("d7.checkinRank.days \(row.days)").cyText(.numericBody).foregroundStyle(palette.textSecondary).monospacedDigit().fixedSize(horizontal: false, vertical: true)
         return HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
             Text(verbatim: row.rank.map { String($0) } ?? "—")
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(palette.textSecondary)
                 .frame(minWidth: 28, alignment: .leading)
             CheckinAvatar(seed: row.memberId, avatar: row.avatar)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 rankName(row)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("d7.checkinRank.detail \(row.streak) \(row.makeupDays)")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textTertiary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)

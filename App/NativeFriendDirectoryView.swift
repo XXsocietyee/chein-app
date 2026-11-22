@@ -115,7 +115,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .cyAnimation(value: flow.phase)
@@ -335,7 +335,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .cyAnimation(value: flow.busy)

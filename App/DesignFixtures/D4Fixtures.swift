@@ -77,7 +77,7 @@ private struct D4JoinStage: View {
         ZStack {
             CYNight.ink0.opacity(0.92).ignoresSafeArea()
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text(verbatim: "City Run Club").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: "City Run Club").cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                 CYClubJoinStage(title: "club.action.join", state: state, seed: "club-81", memberCount: 12, identifier: "club.action.join") { state = .working }
             }
             .padding(CYSpacing.pageHorizontal)

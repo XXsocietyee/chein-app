@@ -19,7 +19,7 @@ struct MerchantFixtureRootView: View {
     init(scenario: MerchantFixtureScenario) { _reader = StateObject(wrappedValue: MerchantFixtureReader(scenario: scenario)) }
     var body: some View {
         VStack(spacing: 0) {
-            Text("merchant.fixtureNotice").font(.caption.bold()).padding(8)
+            Text("merchant.fixtureNotice").cyText(.meta, weight: .bold).padding(8)
                 .frame(maxWidth: .infinity).background(.yellow.opacity(0.2))
                 .accessibilityIdentifier("merchant.fixture.notice")
             if reader.projectBrowserDiagnostics {

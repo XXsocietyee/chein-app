@@ -15,7 +15,7 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(verbatim: W8Text.t("玩法预设", "Gameplay presets"))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityIdentifier("preset.gameplay.title")
             phaseBody
@@ -50,9 +50,9 @@ import SwiftUI
                         Task { await model.open(presetKey: row.presetKey) }
                     } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: row.title).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary)
-                            Text(verbatim: row.purpose ?? WP09Copy.unknown).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                            Text(verbatim: row.templateSourceLabel(chinese: W8Text.isChinese)).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                            Text(verbatim: row.title).cyText(.bodyCompact).foregroundStyle(palette.textPrimary)
+                            Text(verbatim: row.purpose ?? WP09Copy.unknown).cyText(.meta).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: row.templateSourceLabel(chinese: W8Text.isChinese)).cyText(.meta).foregroundStyle(palette.textTertiary)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -60,7 +60,7 @@ import SwiftUI
                 }
             }
             if let preset = model.preset, model.inputsEditable || model.editorOpen {
-                Text(verbatim: preset.title).font(CYTypography.bodyCompact)
+                Text(verbatim: preset.title).cyText(.bodyCompact)
                 todoList(preset.authorTodos)
                 ForEach(preset.requiredFields) { field in
                     fieldControl(field)
@@ -91,27 +91,27 @@ import SwiftUI
     }
 
     private func status(_ text: String, id: String) -> some View {
-        Text(verbatim: text).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+        Text(verbatim: text).cyText(.meta).foregroundStyle(palette.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier(id)
     }
 
     private func labeled(_ title: String, _ value: String) -> some View {
         HStack {
-            Text(verbatim: title).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+            Text(verbatim: title).cyText(.meta).foregroundStyle(palette.textTertiary)
             Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: value).font(CYTypography.meta).foregroundStyle(palette.textPrimary)
+            Text(verbatim: value).cyText(.meta).foregroundStyle(palette.textPrimary)
         }
     }
 
     private func todoList(_ todos: [String]) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: W8Text.t("还要自己做", "Still to do")).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+            Text(verbatim: W8Text.t("还要自己做", "Still to do")).cyText(.meta).foregroundStyle(palette.textTertiary)
             if todos.isEmpty {
-                Text(verbatim: WP09Copy.unknown).font(CYTypography.meta)
+                Text(verbatim: WP09Copy.unknown).cyText(.meta)
             } else {
                 ForEach(Array(todos.enumerated()), id: \.offset) { _, item in
-                    Text(verbatim: item).font(CYTypography.bodyCompact).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: item).cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
@@ -120,7 +120,7 @@ import SwiftUI
 
     @ViewBuilder private func fieldControl(_ field: GameplayPresetField) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: field.label).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: field.label).cyText(.meta).foregroundStyle(palette.textSecondary)
             switch field.kind {
             case "choice" where !field.options.isEmpty:
                 Picker(selection: textBinding(field.key)) {

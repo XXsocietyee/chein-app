@@ -29,7 +29,7 @@ import SwiftUI
             if !payoutOpen {
                 Section {
                     Text(verbatim: text("收入读取未开启。页面保留，本次不请求收入。未知项显示为 —。", "Income reads are off. This page stays here and does not request income. Unknown values stay —."))
-                        .font(Theme.Font.label)
+                        .cyText(.label)
                 }
             }
             if model.loading { CYSkeleton().accessibilityLabel(Text("uiCloud24.income.loading")) }
@@ -112,11 +112,11 @@ import SwiftUI
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     Text(verbatim: shown(fact.modReleaseId))
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: shown(fact.orderKey))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -127,11 +127,11 @@ import SwiftUI
                     .accessibilityHidden(true)
             }
             Text(verbatim: fact.currency + " " + String(fact.creatorAmount) + " · " + text("原分配最小币种单位", "allocated minor units"))
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: text("原事实修订 ", "Original revision ") + String(fact.revision))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
@@ -171,7 +171,7 @@ import SwiftUI
             if model.loading { CYSkeleton().accessibilityLabel(Text("uiCloud24.incomeDetail.loading")) }
             if !model.isCurrentScope {
                 Text(verbatim: modSettlementText(ModSettlementIssue.stale.localizationKey, locale: locale))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
@@ -197,7 +197,7 @@ import SwiftUI
                     }
                     Section {
                         Text(verbatim: text("按本次修订固定读取：", "Read through original revision: ") + String(current.revision))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
@@ -228,7 +228,7 @@ import SwiftUI
                             "刷新原单会重新取得当前原事实；历史页面不把旧累计数当作现在状态。",
                             "Refreshing the order obtains its current original fact. History does not treat older totals as current state."
                         ))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     } header: {
@@ -270,7 +270,7 @@ private struct ModCreatorIncomeBoundary: View {
     }
     private func boundary(_ line: String) -> some View {
         Text(verbatim: line)
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -285,11 +285,11 @@ private struct ModCreatorIncomeFactView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(verbatim: text("原作品分配额（最小币种单位）", "Original allocation (minor units)"))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: fact.currency + " " + String(fact.creatorAmount))
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             value(text("原订单键", "Original order key"), fact.orderKey)
@@ -302,7 +302,7 @@ private struct ModCreatorIncomeFactView: View {
                 fact.disputed ? "原事实标记有争议" : "本修订未标记争议；不是渠道无争议证明",
                 fact.disputed ? "Original fact flags a dispute" : "This revision has no dispute flag; it is not proof of no provider dispute"
             ))
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             LabeledContent(text("原交易支付时间（非退款/查询时间）", "Original paid time (not reversal/query time)")) { Text(fact.paidAt, format: .dateTime) }
@@ -312,11 +312,11 @@ private struct ModCreatorIncomeFactView: View {
     private func value(_ title: String, _ content: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: title)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: shown(content))
-                .font(CYTypography.body.monospacedDigit())
+                .cyText(.body, monospacedDigit: true)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }

@@ -103,8 +103,8 @@ import SwiftUI
         let permit = model.permit(in: expected)
         VStack(alignment: .leading, spacing: 12) {
             if let activityID = scope.activityID {
-                Text("club.gov.eventID \(activityID)").font(.footnote).accessibilityIdentifier("club.rolePicker.eventScope")
-            } else { Text("club.rolePicker.clubScope").font(.footnote) }
+                Text("club.gov.eventID \(activityID)").cyText(.bodyCompact).accessibilityIdentifier("club.rolePicker.eventScope")
+            } else { Text("club.rolePicker.clubScope").cyText(.bodyCompact) }
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.rolePicker.loading") }
             if permit != nil, let failure = model.failure {
                 Label { Text(LocalizedStringKey(failure.localizationKey)).fixedSize(horizontal: false, vertical: true) } icon: {
@@ -113,7 +113,7 @@ import SwiftUI
             }
             if let options = model.accepted(expected, access: access), let permit {
                 let readID = model.snapshotID
-                if options.hasUnverifiedMembers { Text("club.rolePicker.unverified").font(.footnote) }
+                if options.hasUnverifiedMembers { Text("club.rolePicker.unverified").cyText(.bodyCompact) }
                 if options.members.isEmpty { Text("club.rolePicker.empty").accessibilityIdentifier("club.rolePicker.empty") }
                 else {
                     DisclosureGroup(isExpanded: Binding(get: { expanded == .member }, set: { expanded = $0 ? .member : nil })) {
@@ -150,11 +150,11 @@ import SwiftUI
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
-                                        Text(verbatim: role.name).font(.headline)
+                                        Text(verbatim: role.name).cyText(.cardTitle)
                                         Spacer()
                                         if roleCode == role.code { Image(systemName: "checkmark").accessibilityLabel("club.rolePicker.selected") }
                                     }
-                                    Text(LocalizedStringKey(role.summaryKey)).font(.footnote).foregroundStyle(CYColor.textSecondary)
+                                    Text(LocalizedStringKey(role.summaryKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                                 }.contentShape(Rectangle())
                             }.accessibilityIdentifier("club.rolePicker.role.\(role.code)")
                         }
@@ -163,7 +163,7 @@ import SwiftUI
                         }.accessibilityIdentifier("club.rolePicker.cancelRole")
                     } label: {
                         LabeledContent("club.rolePicker.role") {
-                            if let selected = options.roles.first(where: { $0.code == roleCode }) { Text(verbatim: selected.name).font(.headline) }
+                            if let selected = options.roles.first(where: { $0.code == roleCode }) { Text(verbatim: selected.name).cyText(.cardTitle) }
                             else { Text("club.rolePicker.unselected") }
                         }
                     }.accessibilityIdentifier("club.rolePicker.openRoles")
@@ -186,7 +186,7 @@ import SwiftUI
     private func memberName(_ member: ClubRoleAssignableMember) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             if let name = member.nickname { Text(verbatim: name) }
-            Text("club.memberNumber \(member.id)").font(.caption).foregroundStyle(.secondary)
+            Text("club.memberNumber \(member.id)").cyText(.meta).foregroundStyle(.secondary)
         }
     }
 }

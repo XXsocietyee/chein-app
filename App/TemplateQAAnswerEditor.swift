@@ -66,12 +66,12 @@ import Combine
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("templateQAAnswers.title").font(.headline)
+            Text("templateQAAnswers.title").cyText(.cardTitle)
             if editor.isSupported {
                 Toggle("creator.field.multi", isOn: editor.multiple())
                     .accessibilityIdentifier("creator.qa.answers.multiple")
                 Text(LocalizedStringKey(editor.isMultiple ? "templateQAAnswers.multipleHint" : "templateQAAnswers.singleHint"))
-                    .font(.caption).foregroundStyle(.secondary)
+                    .cyText(.meta).foregroundStyle(.secondary)
                 ForEach(editor.options) { option in
                     Button(action: editor.chooseAction(option.id)) {
                         HStack(alignment: .top) {
@@ -79,7 +79,7 @@ import Combine
                                 (option.correct ? "largecircle.fill.circle" : "circle"))
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading) {
-                                Text("templateQAAnswers.optionNumber \(option.ordinal + 1)").font(.caption)
+                                Text("templateQAAnswers.optionNumber \(option.ordinal + 1)").cyText(.meta)
                                 if option.label.isEmpty { Text("templateQAAnswers.emptyLabel") }
                                 else { Text(verbatim: option.label) }
                             }
@@ -91,10 +91,10 @@ import Combine
                         .accessibilityAddTraits(option.correct ? [.isSelected] : [])
                 }
                 if !editor.options.contains(where: \.correct) {
-                    Text("templateQAAnswers.noAnswer").font(.caption).foregroundStyle(.secondary)
+                    Text("templateQAAnswers.noAnswer").cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityIdentifier("creator.qa.answers.noAnswer")
                 }
-            } else { Text("templateQAAnswers.unsupported").font(.caption).accessibilityIdentifier("creator.qa.answers.unsupported") }
+            } else { Text("templateQAAnswers.unsupported").cyText(.meta).accessibilityIdentifier("creator.qa.answers.unsupported") }
         }.disabled(!editor.canEdit)
             .onAppear { editor.reload() }
             .onDisappear { editor.retire() }

@@ -13,12 +13,12 @@ struct ActiveDestinationSummary<Actions: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 if phase.isPreparing { ProgressView().accessibilityHidden(true) }
-                Text(LocalizedStringKey(phase.statusKey)).font(.headline)
+                Text(LocalizedStringKey(phase.statusKey)).cyText(.cardTitle)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("walking.status")
             }
             if let target {
-                Text(verbatim: target.title).font(.title2.bold())
+                Text(verbatim: target.title).cyText(.sheetTitle)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("walking.destination")
                 if let address = target.address { Text(verbatim: address).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
@@ -26,9 +26,9 @@ struct ActiveDestinationSummary<Actions: View>: View {
             if let route, let progress {
                 if let stepIndex = progress.stepIndex, route.steps.indices.contains(stepIndex) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("walking.nextStep").font(.caption).foregroundStyle(.secondary)
+                        Text("walking.nextStep").cyText(.meta).foregroundStyle(.secondary)
                         Text(verbatim: route.steps[stepIndex].instruction)
-                            .font(.headline).fixedSize(horizontal: false, vertical: true)
+                            .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("walking.nextInstruction")
                 }
                 LabeledContent("walking.remaining") { WalkingDistanceText(meters: progress.remainingMeters) }
@@ -36,14 +36,14 @@ struct ActiveDestinationSummary<Actions: View>: View {
                     LabeledContent("walking.remainingETA") { WalkingDurationText(seconds: seconds) }
                 }
                 ProgressView(value: progress.fraction).accessibilityLabel(Text("walking.progress"))
-                Text("walking.estimateNotice").font(.caption).foregroundStyle(.secondary)
+                Text("walking.estimateNotice").cyText(.meta).foregroundStyle(.secondary)
             }
             if phase == .nearDestination {
-                Text("walking.arrivalBoundary").font(.footnote)
+                Text("walking.arrivalBoundary").cyText(.bodyCompact)
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("walking.arrivalBoundary")
             }
             actions()
-            Text("walking.foregroundOnly").font(.caption).foregroundStyle(.secondary)
+            Text("walking.foregroundOnly").cyText(.meta).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
     }

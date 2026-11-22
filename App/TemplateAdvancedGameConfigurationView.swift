@@ -25,7 +25,7 @@ import SwiftUI
                     }
                     .accessibilityIdentifier("creatorComposition.probe." + game.rawValue)
                     .accessibilityValue(inputProbeSnapshot.isEmpty ? model.gameInputProbe(game) : inputProbeSnapshot)
-                }.font(.caption).dynamicTypeSize(.large)
+                }.cyText(.meta).dynamicTypeSize(.large)
             }
 #endif
             Section(LocalizedStringKey(game.labelKey)) {

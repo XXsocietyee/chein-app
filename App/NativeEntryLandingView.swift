@@ -128,7 +128,7 @@ import SwiftUI
                     Group {
                         if ["door.disabled", "door.unavailable"].contains(failure) { Text(LocalizedStringKey(failure)) }
                         else { Text(verbatim: failure) }
-                    }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    }.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 }
                 CYPillButton("homeFeed.title", style: .primary, fullWidth: false) { session.dismissNativeEntry(); goHome() }
             }.padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity)

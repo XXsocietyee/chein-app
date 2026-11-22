@@ -10,7 +10,7 @@ struct ParticipantOriginalCreateRetrySection: View {
         if let original = model.originalCreateRetry, model.ownsOriginalCreateRetry {
             Section {
                 Text("participant.recovery.hint", tableName: "ProfileParticipantRecovery")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
                 LabeledContent { Text(verbatim: original.fullName) } label: { Text("participant.recovery.name", tableName: "ProfileParticipantRecovery") }
                 LabeledContent { Text(verbatim: original.maskedPhone) } label: { Text("participant.recovery.phone", tableName: "ProfileParticipantRecovery") }
                 LabeledContent { Text(verbatim: String(original.requestID.uuidString.prefix(8))) } label: { Text("participant.recovery.request", tableName: "ProfileParticipantRecovery") }
@@ -21,7 +21,7 @@ struct ParticipantOriginalCreateRetrySection: View {
                 .disabled(scenePhase != .active || !model.canRetryOriginalCreate)
                 .accessibilityIdentifier("participant.form.retryOriginalCreate")
                 Text("participant.recovery.retention", tableName: "ProfileParticipantRecovery")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
             } header: { Text("participant.recovery.title", tableName: "ProfileParticipantRecovery") }
             .privacySensitive()
         }

@@ -121,11 +121,11 @@ struct ClubWorkbenchNowCard: View {
                     .scaleEffect(pulsing ? 1.6 : 1)
                     .accessibilityHidden(true)
                 ClubR4Text.text("r4club.now.title")
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .foregroundStyle(palette.textSecondary)
             }
             Text(verbatim: headline)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("club.workbench.now.headline")
@@ -173,7 +173,7 @@ struct ClubWorkbenchTile: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 ClubR4Text.text(titleKey)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

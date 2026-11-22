@@ -20,9 +20,9 @@ struct HostTipConfigScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                Text("hostTip.config.share").font(CYTypography.bodyMedium)
-                Text("hostTip.config.shareNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                if channelClosed { Text("hostTip.config.unavailable").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("hostTip.config.unavailable") }
+                Text("hostTip.config.share").cyText(.bodyMedium)
+                Text("hostTip.config.shareNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                if channelClosed { Text("hostTip.config.unavailable").cyText(.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("hostTip.config.unavailable") }
                 if signedOut {
                     CYEmptyState(systemImage: "person.crop.circle", "hostTip.signedOut", messageIdentifier: "hostTip.signedOut")
                 } else {
@@ -168,10 +168,10 @@ struct HostTipPlayerScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                Text("hostTip.config.share").font(CYTypography.bodyMedium)
+                Text("hostTip.config.share").cyText(.bodyMedium)
                 TextField("hostTip.player.host", text: $hostID)
                     .accessibilityIdentifier("hostTip.player.host")
-                Text("hostTip.player.amount").font(CYTypography.label)
+                Text("hostTip.player.amount").cyText(.label)
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(shortcuts, id: \.self) { value in
                         Button(action: { amount = value }) { Text(verbatim: value) }
@@ -229,7 +229,7 @@ struct HostTipPlayerScreen: View {
                 Spacer()
                 Text(verbatim: row.amountText)
             }
-            .font(CYTypography.bodyMedium)
+            .cyText(.bodyMedium)
             .accessibilityIdentifier("hostTip.intent.\(row.id)")
             if row.canCancel {
                 Button("hostTip.player.cancel") { Task { await cancel(row.id) } }

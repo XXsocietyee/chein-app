@@ -41,7 +41,7 @@ import SwiftUI
                 Section {
                     if let message {
                         Text(verbatim: message)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
@@ -71,7 +71,7 @@ import SwiftUI
                     }
                     if let feedback = detail.reviewFeedback {
                         Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.warningText)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("memberTemplate.reviewFeedback")
@@ -90,7 +90,7 @@ import SwiftUI
                 if let verification = item.verification {
                     Section {
                         Text(verification.label)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     } header: {
@@ -106,7 +106,7 @@ import SwiftUI
                                 }
                                 if let text = part.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                     Text(verbatim: text)
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                         .textSelection(.enabled)
@@ -134,7 +134,7 @@ import SwiftUI
         if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Section {
                 Text(verbatim: value)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)

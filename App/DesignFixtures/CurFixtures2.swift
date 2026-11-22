@@ -233,7 +233,7 @@ final class Cur2Transport: HTTPTransport, @unchecked Sendable {
         VStack(spacing: 0) {
             content()
             Text(verbatim: title + " · DEBUG fixture · synthetic")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(CYSpacing.sm)

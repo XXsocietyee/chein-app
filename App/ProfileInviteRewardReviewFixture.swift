@@ -39,7 +39,7 @@ import Observation
                         Button("Retire synthetic account") {
                             reader.identity = .init(accountID:nil,epoch:2);reader.presentationRevision += 1;reader.scope=UUID()
                         }.accessibilityIdentifier("profile.inviteRewardsFixture.retire")
-                    }.font(.caption)
+                    }.cyText(.meta)
                 }
         }
     }

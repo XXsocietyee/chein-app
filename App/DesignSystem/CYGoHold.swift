@@ -30,7 +30,7 @@ struct CYGoHoldPill: View {
         VStack(spacing: CYSpacing.sm) {
             pill
             Text(reduceMotion ? "roam.go.hint.tap" : "roam.go.hint.hold")
-                .font(.footnote.weight(.medium))
+                .cyText(.bodyMedium)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
         }
@@ -47,7 +47,7 @@ struct CYGoHoldPill: View {
 
     private var face: some View {
         Text("GO")
-            .font(.system(.title, design: .rounded).weight(.heavy))
+            .cyText(.dataXL)
             .foregroundStyle(.black)
             .frame(width: Self.size.width, height: Self.size.height)
             .background(Color.white, in: Capsule())

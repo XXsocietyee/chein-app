@@ -14,8 +14,8 @@ struct TemplateRootRehearsalView: View {
     var body: some View {
         Form {
             Section { CYHeroHeader("creatorRoot.rehearse").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section { Text("creator.localOnly").font(.headline); Text("creatorRoot.rehearsalLimit").font(.footnote) }
-            if let tier = draft.value["mistakeTier"]?.string { Section("creatorRoot.mistakeTier") { Text(LocalizedStringKey("creator.choice." + tier)); Text("creatorRoot.damageServer").font(.footnote) } }
+            Section { Text("creator.localOnly").cyText(.cardTitle); Text("creatorRoot.rehearsalLimit").cyText(.bodyCompact) }
+            if let tier = draft.value["mistakeTier"]?.string { Section("creatorRoot.mistakeTier") { Text(LocalizedStringKey("creator.choice." + tier)); Text("creatorRoot.damageServer").cyText(.bodyCompact) } }
             if !draft.rootVariants.isEmpty {
                 Section("creatorRoot.sampleState") {
                     ForEach(variables, id: \.self) { key in
@@ -38,10 +38,10 @@ struct TemplateRootRehearsalView: View {
                     Picker("creatorRoot.roleLabel", selection: $role) { Text(verbatim: "A").tag("A"); Text(verbatim: "B").tag("B") }.pickerStyle(.segmented)
                     let fields = draft.value["roleViews"]?.object ?? [:]
                     if let view = (fields["views"]?.array ?? []).first(where: { $0.object?["roleId"]?.string == role })?.object {
-                        Text(verbatim: view["title"]?.string ?? "").font(.title2)
+                        Text(verbatim: view["title"]?.string ?? "").cyText(.sheetTitle)
                         Text(verbatim: view["body"]?.string ?? "")
                         ForEach(Array((view["items"]?.array ?? []).enumerated()), id: \.offset) { _, item in
-                            VStack(alignment: .leading) { Text(verbatim: item.object?["label"]?.string ?? "").font(.headline); Text(verbatim: item.object?["text"]?.string ?? "") }
+                            VStack(alignment: .leading) { Text(verbatim: item.object?["label"]?.string ?? "").cyText(.cardTitle); Text(verbatim: item.object?["text"]?.string ?? "") }
                         }
                     }
                 }
@@ -65,7 +65,7 @@ struct TemplateD20RehearsalView: View {
     var body: some View {
         Form {
             Section { CYHeroHeader("creatorRoot.d20Preview").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section { Text("creator.localOnly"); Text("creatorRoot.d20RuntimeLimit").font(.footnote) }
+            Section { Text("creator.localOnly"); Text("creatorRoot.d20RuntimeLimit").cyText(.meta) }
             Section("creatorRoot.d20") {
                 LabeledContent("creatorRoot.dc", value: draft.text("diceRoll", "dc"))
                 LabeledContent("creatorRoot.modifier", value: draft.text("diceRoll", "modifier"))

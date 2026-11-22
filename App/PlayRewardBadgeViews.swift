@@ -17,14 +17,14 @@ import SwiftUI
                         .cyStampSlam(trigger: true)
                 }
                 CYSectionHeader("playBadge.receipt")
-                Text("playBadge.readbackHint").font(.footnote).foregroundStyle(.secondary)
+                Text("playBadge.readbackHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                 ForEach(targets) { target in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: target.name ?? target.code).fixedSize(horizontal: false, vertical: true)
                         if let destination {
                             NavigationLink { destination(target) } label: { Label("playBadge.open", systemImage: "medal") }
                                 .accessibilityIdentifier("playBadge.open." + target.code)
-                        } else { Text("playBadge.unavailable").font(.footnote) }
+                        } else { Text("playBadge.unavailable").cyText(.bodyCompact) }
                     }
                 }
                 CYPillButton("playBadge.continue") { continued = true }
@@ -50,9 +50,9 @@ import SwiftUI
             else if !model.isConfigured { CYEmptyState(systemImage: "medal", "playBadge.unavailable") }
             else {
                 Section {
-                    Text(verbatim: model.target.name ?? model.target.code).font(.headline)
+                    Text(verbatim: model.target.name ?? model.target.code).cyText(.cardTitle)
                     LabeledContent("playBadge.code", value: model.target.code)
-                    Text("playBadge.readbackHint").font(.footnote).foregroundStyle(.secondary)
+                    Text("playBadge.readbackHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
                 if model.isLoading { CYSkeleton().accessibilityLabel(Text("profile.loading")) }
                 else if model.failed { Text("playBadge.failed").accessibilityIdentifier("playBadge.failed") }
@@ -85,21 +85,21 @@ import SwiftUI
     let focus: PlayRewardBadgeFocus
     var body: some View {
         Section {
-            Text(LocalizedStringKey(focus.statusKey)).font(.headline)
+            Text(LocalizedStringKey(focus.statusKey)).cyText(.cardTitle)
                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(focus.statusKey)
             switch focus {
             case .identity(let badge):
-                Text("profile.badges.identities").font(.caption)
+                Text("profile.badges.identities").cyText(.meta)
                 if !badge.badgeName.isEmpty { Text(verbatim: badge.badgeName) }
                 ProfileOptionalRow(key: "profile.badges.statement", value: badge.statement)
                 ProfileOptionalRow(key: "profile.badges.unlockHint", value: badge.unlockHint)
                 if badge.unlocked { ProfileOptionalRow(key: "profile.badges.obtained", value: badge.unlockTime) }
             case .achievement(let badge):
-                Text("profile.badges.achievements").font(.caption)
+                Text("profile.badges.achievements").cyText(.meta)
                 if !badge.medalName.isEmpty { Text(verbatim: badge.medalName) }
                 ProfileOptionalRow(key: "profile.badges.obtained", value: badge.getTime)
             case .missingFromWall, .incompleteWall, .ambiguous:
-                Text("playBadge.notIssuanceProof").font(.footnote).foregroundStyle(.secondary)
+                Text("playBadge.notIssuanceProof").cyText(.meta).foregroundStyle(.secondary)
             }
         }
     }

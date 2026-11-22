@@ -78,7 +78,7 @@ enum ActivityPublishingStatusHelper {
             }
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.danger)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
@@ -193,13 +193,13 @@ enum ActivityPublishingStatusHelper {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: summary.heading)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.heading")
 
             if merchantHost {
                 Text(verbatim: copy.merchantFreeTicketOnlyNotice)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("publishModes.activity.reviewSummary.merchantFreeNotice")
             }
@@ -213,7 +213,7 @@ enum ActivityPublishingStatusHelper {
             }
 
             Text(verbatim: summary.visibilityNotice)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.visibility")
@@ -227,8 +227,8 @@ enum ActivityPublishingStatusHelper {
     private func summaryRow(label: String, value: String, id: String) -> some View {
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: label).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                Text(verbatim: value).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: value).cyText(.bodyCompact).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         } else {

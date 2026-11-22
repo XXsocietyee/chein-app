@@ -21,8 +21,8 @@ struct CityTaskHistoryEntry: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 CYHeroHeader("cityHistory.title", tableName: table)
-                Text("cityHistory.boundary", tableName: table).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                Text(LocalizedStringKey(controller.messageKey), tableName: table).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text("cityHistory.boundary", tableName: table).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text(LocalizedStringKey(controller.messageKey), tableName: table).cyText(.body).foregroundStyle(CYColor.textSecondary)
                 if controller.busy { CYSkeleton() }
                 CYPillButton("cityHistory.refresh", style: .secondary, tableName: table) { read(.refresh) }.disabled(controller.busy || !controller.current)
                 if interactive, let detail = controller.detail {
@@ -32,12 +32,12 @@ struct CityTaskHistoryEntry: View {
                         Button { read(.select(item)) } label: {
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack(alignment: .firstTextBaseline) {
-                                    if let title = item.title { Text(verbatim: title).font(CYTypography.cardTitle) } else { Text("cityHistory.titleUnavailable", tableName: table).font(CYTypography.cardTitle) }
+                                    if let title = item.title { Text(verbatim: title).cyText(.cardTitle) } else { Text("cityHistory.titleUnavailable", tableName: table).cyText(.cardTitle) }
                                     Spacer(minLength: 8)
                                     CYStatusChip(status(item.status), tone: item.status == "PASSED" ? .success : item.status == "EXHAUSTED" ? .danger : .info)
                                 }
-                                Text(verbatim: item.boardId + " · " + item.seasonId).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                                Text(verbatim: item.acceptedAt).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+                                Text(verbatim: item.boardId + " · " + item.seasonId).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                Text(verbatim: item.acceptedAt).cyText(.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
                             }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                         }.buttonStyle(.plain).disabled(controller.busy || !controller.current).accessibilityIdentifier("city.history.item.\(item.id)")
@@ -57,9 +57,9 @@ struct CityTaskHistoryEntry: View {
     }
     @ViewBuilder private func detailContent(_ detail: CityTaskHistoryDetail) -> some View {
         Button { read(.returnToList) } label: { Text("cityHistory.back", tableName: table) }.disabled(controller.busy)
-        if let title = detail.instance.title { Text(verbatim: title).font(.title3) }
-        Text(status(detail.instance.status), tableName: table).font(.headline)
-        Text("cityHistory.historicalOnly", tableName: table).font(.footnote)
+        if let title = detail.instance.title { Text(verbatim: title).cyText(.sectionTitle) }
+        Text(status(detail.instance.status), tableName: table).cyText(.cardTitle)
+        Text("cityHistory.historicalOnly", tableName: table).cyText(.bodyCompact)
         field("cityHistory.instance", detail.instance.id)
         field("cityHistory.board", detail.instance.boardId + " / " + detail.instance.seasonId + " / " + detail.instance.roundId)
         field("cityHistory.task", detail.instance.taskId + " / " + detail.instance.pointId)
@@ -69,7 +69,7 @@ struct CityTaskHistoryEntry: View {
         field("cityHistory.acceptedAt", detail.instance.acceptedAt)
         field("cityHistory.attempts", "\(detail.instance.attempts) / \(detail.instance.maxAttempts)")
         Button { read(.receipt(detail.instance.acceptRequestId)) } label: { Text("cityHistory.acceptReceipt", tableName: table) }.disabled(controller.busy || !controller.current)
-        Text("cityHistory.timeline", tableName: table).font(.headline)
+        Text("cityHistory.timeline", tableName: table).cyText(.cardTitle)
         if detail.attempts.isEmpty { Text("cityHistory.noAttempts", tableName: table) }
         ForEach(detail.attempts) { attempt in
             VStack(alignment: .leading, spacing: 4) {
@@ -82,7 +82,7 @@ struct CityTaskHistoryEntry: View {
             }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         }
         if let result = detail.result {
-            Text("cityHistory.originalResult", tableName: table).font(.headline)
+            Text("cityHistory.originalResult", tableName: table).cyText(.cardTitle)
             field("cityHistory.resultID", result.resultId)
             Text(status(result.outcome), tableName: table)
             field("cityHistory.recordedAt", result.createdAt)
@@ -91,7 +91,7 @@ struct CityTaskHistoryEntry: View {
             Text("cityHistory.noEffects", tableName: table)
         }
         if let receipt = controller.receipt {
-            Text("cityHistory.receipt", tableName: table).font(.headline)
+            Text("cityHistory.receipt", tableName: table).cyText(.cardTitle)
             field("cityHistory.resultRequest", receipt.requestID)
             Text(LocalizedStringKey(receipt.status == "UNKNOWN" ? "cityHistory.receiptUnknown" : "cityHistory.receiptComplete"), tableName: table)
             field("cityHistory.httpStatus", String(receipt.httpStatus))
@@ -108,7 +108,7 @@ struct CityTaskHistoryEntry: View {
         }
     }
     private func field(_ key: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) { Text(LocalizedStringKey(key), tableName: table).font(.caption).foregroundStyle(.secondary); Text(verbatim: value).textSelection(.enabled) }
+        VStack(alignment: .leading, spacing: 2) { Text(LocalizedStringKey(key), tableName: table).cyText(.meta).foregroundStyle(.secondary); Text(verbatim: value).textSelection(.enabled) }
     }
     private func status(_ value: String) -> LocalizedStringKey {
         switch value { case "PASSED": "cityHistory.task.passed"; case "EXHAUSTED": "cityHistory.task.exhausted"; default: "cityHistory.task.active" }

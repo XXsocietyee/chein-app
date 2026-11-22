@@ -18,7 +18,7 @@ import SwiftUI
             .accessibilityIdentifier("nativePlatform.steps.host")
             if let goal = segment["goal"].integer {
                 LabeledContent("playkit.walk.goal") {
-                    Text("playkit.steps.goalSteps \(goal)").font(CYTypography.numericBody).monospacedDigit()
+                    Text("playkit.steps.goalSteps \(goal)").cyText(.numericBody).monospacedDigit()
                 }
             }
             ForEach(["co2Label", "remainLabel"], id: \.self) { key in
@@ -34,7 +34,7 @@ import SwiftUI
             if let stage, let runtime { NativeStepsControls(stage: stage, advanced: advanced, privacyURL: runtime.acceptance.privacyNoticeURL) }
             else {
                 Label("nativePlatform.disabled", systemImage: "lock.shield")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("nativePlatform.steps.disabled")
@@ -56,14 +56,14 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             Text(LocalizedStringKey("nativePlatform.steps.phase." + stage.phase))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("nativePlatform.steps.phase")
             if let issue = stage.issue { issueText("nativePlatform.issue." + issue.rawValue, identifier: "nativePlatform.steps.issue") }
             if stage.phase == "review", let sample = stage.reading, let challenge = stage.challenge {
                 Text(verbatim: String(sample.steps))
-                    .font(CYTypography.data2XL)
+                    .cyText(.data2XL)
                     .foregroundStyle(palette.textPrimary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -93,10 +93,10 @@ import SwiftUI
             } else {
                 if let receipt = stage.receipt {
                     if let baseline = receipt["baselineSteps"].integer {
-                        LabeledContent("nativePlatform.steps.baseline") { Text(verbatim: String(baseline)).font(CYTypography.numericBody).monospacedDigit() }
+                        LabeledContent("nativePlatform.steps.baseline") { Text(verbatim: String(baseline)).cyText(.numericBody).monospacedDigit() }
                     }
                     if let delta = receipt["acceptedDelta"].integer {
-                        LabeledContent("nativePlatform.steps.delta") { Text(verbatim: String(delta)).font(CYTypography.numericBody).monospacedDigit() }
+                        LabeledContent("nativePlatform.steps.delta") { Text(verbatim: String(delta)).cyText(.numericBody).monospacedDigit() }
                     }
                 }
                 CYPillButton("nativePlatform.steps.read", systemImage: "figure.walk") { purpose = true }
@@ -128,7 +128,7 @@ import SwiftUI
                     .accessibilityIdentifier("nativePlatform.steps.consent")
                     .listRowBackground(Color.clear)
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .cyGroupedSurface()
                 .navigationTitle("nativePlatform.steps.purposeTitle")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativePlatform.cancel") { purpose = false } } }
@@ -148,7 +148,7 @@ import SwiftUI
     }
     private func issueText(_ key: String, identifier: String) -> some View {
         Text(LocalizedStringKey(key))
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(palette.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier(identifier)
@@ -180,7 +180,7 @@ import SwiftUI
             // Mini-program line: "开放时段 23:00 – 01:00", then a large countdown to the next opening.
             if segment["openFrom"].text != nil || segment["openTo"].text != nil {
                 Text("playkitLegacy.window.range \(clock(segment["openFrom"].text)) \(clock(segment["openTo"].text))")
-                    .font(CYTypography.bodyMedium).monospacedDigit()
+                    .cyText(.bodyMedium).monospacedDigit()
                     .foregroundStyle(CYColor.brand)
                     .accessibilityIdentifier("nativePlatform.reminder.range")
             }
@@ -207,7 +207,7 @@ import SwiftUI
                 }
                 if let scheduled = stage.scheduled {
                     Label("nativePlatform.reminder.scheduled", systemImage: "bell.badge")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativePlatform.reminder.scheduled")
@@ -226,7 +226,7 @@ import SwiftUI
                 }
                 if let issue = readIssue ?? stage.issue {
                     Text(LocalizedStringKey("nativePlatform.issue." + issue.rawValue))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativePlatform.reminder.issue")
@@ -236,7 +236,7 @@ import SwiftUI
                     .accessibilityIdentifier("nativePlatform.reminder.refresh")
             } else {
                 Label("nativePlatform.disabled", systemImage: "lock.shield")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("nativePlatform.reminder.disabled")
@@ -275,7 +275,7 @@ import SwiftUI
                         .accessibilityIdentifier("nativePlatform.reminder.consent")
                         .listRowBackground(Color.clear)
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .cyGroupedSurface()
                     .navigationTitle("nativePlatform.reminder.purposeTitle")
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativePlatform.cancel") { self.reviewed = nil } } }

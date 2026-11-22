@@ -33,7 +33,7 @@ import SwiftUI
             }
             if let submission = model.submission, !submission.needsTiebreak {
                 Section("playx.preference.result") {
-                    if let title = submission.evaluation["title"].text { Text(verbatim: title).font(.headline) }
+                    if let title = submission.evaluation["title"].text { Text(verbatim: title).cyText(.cardTitle) }
                     if let body = submission.evaluation["body"].text { Text(verbatim: body) }
                     if let next = submission.evaluation["nextStep"].text, !next.isEmpty { Text(verbatim: next) }
                     if let days = submission.evaluation["nextStepDays"].tolerantInteger { LabeledContent("playx.preference.days") { Text(verbatim: String(days)) } }
@@ -82,15 +82,15 @@ import SwiftUI
                         Section {
                             // Mini-program calibration header: "装机校准 i / n", question, then option cards.
                             Text("playx.preference.stepCount \(index + 1) \(model.steps.count)")
-                                .font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary)
-                            Text(verbatim: step.title).font(.headline)
-                            if step.type == "discard" { Text("playx.preference.discard").font(CYTypography.meta).foregroundStyle(.secondary) }
+                                .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
+                            Text(verbatim: step.title).cyText(.cardTitle)
+                            if step.type == "discard" { Text("playx.preference.discard").cyText(.meta).foregroundStyle(.secondary) }
                             VStack(spacing: CYSpacing.sm) {
                                 ForEach(step.options) { option in
                                     let on = model.choices[step.id] == option.id
                                     Button { model.select(stepID: step.id, optionID: option.id); pickFirst = false } label: {
                                         HStack {
-                                            Text(verbatim: option.text).font(CYTypography.body).foregroundStyle(Color.primary)
+                                            Text(verbatim: option.text).cyText(.body).foregroundStyle(Color.primary)
                                             Spacer(minLength: CYSpacing.sm)
                                             if on { Image(systemName: "checkmark.circle").accessibilityHidden(true) }
                                         }
@@ -107,7 +107,7 @@ import SwiftUI
                             .disabled(model.phase != "ready")
                             .accessibilityIdentifier("playx.preference.step.\(step.id)")
                             if pickFirst {
-                                Text("playx.preference.pickFirst").font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                                Text("playx.preference.pickFirst").cyText(.meta).foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("playx.preference.pickFirst")
                             }
                         }
@@ -242,7 +242,7 @@ import SwiftUI
     private var currentContent: some View {
         List {
             Section {
-                Text("playx.os.private").font(.footnote).accessibilityIdentifier("playx.os.private")
+                Text("playx.os.private").cyText(.meta).accessibilityIdentifier("playx.os.private")
                 PlayRuntimePhaseText(phase: model.phase)
                 if presentation.loading { CYSkeleton().accessibilityLabel(Text("playx.loading")) }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
@@ -258,7 +258,7 @@ import SwiftUI
                     ForEach(summary.tags) { tag in
                         VStack(alignment: .leading) {
                             Text(verbatim: tag.value).accessibilityIdentifier("playx.os.tag.\(tag.id)")
-                            if tag.revoked { Text("playx.os.revoked").font(.caption) }
+                            if tag.revoked { Text("playx.os.revoked").cyText(.meta) }
                             else { Button("playx.os.revoke", role: .destructive) {
                                     presentation.prepareRevocation(tagID: tag.id, model: model, current: sourceIsCurrent)
                                     confirm = presentation.review != nil
@@ -269,7 +269,7 @@ import SwiftUI
                     }
                 }
                 ForEach(Array(summary.cards.enumerated()), id: \.offset) { _, card in
-                    Section { if !card.title.isEmpty { Text(verbatim: card.title).font(.headline) }; if !card.body.isEmpty { Text(verbatim: card.body) } }
+                    Section { if !card.title.isEmpty { Text(verbatim: card.title).cyText(.cardTitle) }; if !card.body.isEmpty { Text(verbatim: card.body) } }
                 }
                 Section("playx.os.anchors") {
                     if !summary.anchors.isEmpty { PlayPreferenceOriginalAnchorMap(anchors: summary.anchors) }

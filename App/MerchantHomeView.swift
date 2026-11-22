@@ -48,11 +48,11 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 if let name = identity.merchantName, !name.isEmpty {
                                     Text(name)
-                                        .font(CYTypography.cardTitle)
+                                        .cyText(.cardTitle)
                                         .foregroundStyle(CYColor.textPrimary)
                                 }
                                 Text(LocalizedStringKey(identity.application?.titleKey ?? "merchant.access.inactive"))
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityIdentifier("merchant.access.inactive")
                             }
@@ -85,7 +85,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                     CYHeroHeader("merchant.title")
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Text(LocalizedStringKey(error))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("merchant.access.error")
                         if error != "merchant.access.denied" && error != "auth.expired" {
@@ -491,12 +491,12 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     ForEach(Array(value.revenue7d.enumerated()), id: \.offset) { _, point in
                         LabeledContent {
                             Text(MerchantMoney.display(point.amount))
-                                .font(CYTypography.body.weight(.semibold))
+                                .cyText(.bodyMedium)
                                 .monospacedDigit()
                                 .foregroundStyle(CYColor.textPrimary)
                         } label: {
                             Text(point.date)
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                     }
@@ -509,10 +509,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         ForEach(Array(values.enumerated()), id: \.offset) { _, event in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text(event.content)
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(CYColor.textPrimary)
                                 Text(event.time)
-                                    .font(CYTypography.caption)
+                                    .cyText(.caption)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textSecondary)
                             }
@@ -690,11 +690,11 @@ struct MerchantCountRow: View {
     var body: some View {
         LabeledContent {
             Text(value, format: .number)
-                .font(CYTypography.sectionTitle.monospacedDigit())
+                .cyText(.sectionTitle, monospacedDigit: true)
                 .foregroundStyle(CYColor.textPrimary)
         } label: {
             Text(title)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
         }
     }
@@ -717,9 +717,9 @@ struct MerchantSectionState<Value, Content: View>: View {
     }
     var body: some View {
         if let value = model.value {
-            if model.isLoading { ProgressView("merchant.refreshing").font(CYTypography.meta) }
+            if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
             if let error = model.errorKey {
-                Text("merchant.stale").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.stale").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 MerchantInlineFailure(errorKey: error, retry: retry)
             }
             content(value)
@@ -748,7 +748,7 @@ private struct MerchantQuickCircleAction: View {
                     .background(primary ? palette.actionPrimaryBg : palette.bgSurface, in: Circle())
                     .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -766,7 +766,7 @@ struct MerchantInlineFailure: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(LocalizedStringKey(errorKey))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
                 CYPillButton("action.retry", style: .secondary, action: retry)
@@ -786,7 +786,7 @@ struct MerchantFailureView: View {
                 .font(CYTypography.display)
                 .foregroundStyle(CYColor.textSecondary)
             Text(LocalizedStringKey(errorKey))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
                 .accessibilityIdentifier(identifier + ".error")

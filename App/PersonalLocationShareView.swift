@@ -23,12 +23,12 @@ import SwiftUI
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Label(localized("personalLocationShare.overview"), systemImage: "location.circle")
-                    .font(.headline).accessibilityAddTraits(.isHeader)
+                    .cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 Text(statusMessage).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("personalLocationShare.status")
                 journalRecoveryStatus
                 Text("personalLocationShare.disclosure.summary", tableName: "PersonalLocationShare")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
                 if recipientId != nil && !coordinator.providerIsConnected { Text(localized("personalLocationShare.unconfigured")).foregroundStyle(.secondary) }
             }
             if let recipientId {
@@ -53,8 +53,8 @@ import SwiftUI
                             ForEach(policy.durationChoices) { choice in Text(localized("personalLocationShare.seconds", String(choice.seconds))).tag(Optional(choice.id)) }
                         }
                         Text(localized("personalLocationShare.precisionNotice"))
-                            .font(.footnote).foregroundStyle(.secondary)
-                        Text(localized("personalLocationShare.policy", policy.policyId, String(policy.version))).font(.caption)
+                            .cyText(.bodyCompact).foregroundStyle(.secondary)
+                        Text(localized("personalLocationShare.policy", policy.policyId, String(policy.version))).cyText(.meta)
                     }.disabled(!coordinator.pending.isEmpty)
                     Section(localized("personalLocationShare.acknowledgements")) {
                         ForEach(PersonalLocationShareDisclosure.allCases, id: \.self) { disclosure in
@@ -81,7 +81,7 @@ import SwiftUI
                 }
                 ForEach(coordinator.pending) { record in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(localized("personalLocationShare.recipientValue", String(record.request.recipientId))).font(.headline)
+                        Text(localized("personalLocationShare.recipientValue", String(record.request.recipientId))).cyText(.cardTitle)
                         Label(stateTitle(coordinator.requests[record.id]), systemImage: record.stopRequested ? "stop.circle" : "clock")
                             .font(.subheadline).fixedSize(horizontal: false, vertical: true)
                         Text(localized("personalLocationShare.requestValue", record.id)).font(.caption.monospaced())
@@ -120,9 +120,9 @@ import SwiftUI
                 }
                 ForEach(coordinator.ownedGrants) { grant in
                     VStack(alignment: .leading) {
-                        Text(localized("personalLocationShare.recipientGrant", String(grant.recipientId))).font(.headline)
-                        Text(localized("personalLocationShare.expires", date(grant.expiresAtMs))).font(.footnote)
-                        Text(localized("personalLocationShare.grantStatus", grantStateTitle(grant.status.rawValue))).font(.footnote)
+                        Text(localized("personalLocationShare.recipientGrant", String(grant.recipientId))).cyText(.cardTitle)
+                        Text(localized("personalLocationShare.expires", date(grant.expiresAtMs))).cyText(.bodyCompact)
+                        Text(localized("personalLocationShare.grantStatus", grantStateTitle(grant.status.rawValue))).cyText(.bodyCompact)
                         if grant.status == .active {
                             Button(role: .destructive) { Task { await coordinator.stop(requestKey: grant.requestKey) } } label: {
                                 Text(localized("personalLocationShare.stopGrant"))
@@ -143,13 +143,13 @@ import SwiftUI
                 if coordinator.visibleLocations.isEmpty { Text(localized("personalLocationShare.emptyLocations")) }
                 ForEach(coordinator.visibleLocations) { item in
                     VStack(alignment: .leading) {
-                        Text(localized("personalLocationShare.owner", String(item.grant.ownerId))).font(.headline)
+                        Text(localized("personalLocationShare.owner", String(item.grant.ownerId))).cyText(.cardTitle)
                         Text(item.observation.mode == .coarse ? localized("personalLocationShare.coarseObservation") : localized("personalLocationShare.exactObservation"))
                         Text(localized("personalLocationShare.coordinates", String(item.observation.latitude), String(item.observation.longitude)))
-                        Text(localized("personalLocationShare.observed", date(item.observation.observedAtMs))).font(.footnote)
+                        Text(localized("personalLocationShare.observed", date(item.observation.observedAtMs))).cyText(.meta)
                         Text(item.isStale(at: coordinator.clockUptime) ? localized("personalLocationShare.stale") : localized("personalLocationShare.snapshot"))
-                            .font(.footnote).foregroundStyle(.secondary)
-                        Text(localized("personalLocationShare.grantExpires", date(item.grant.expiresAtMs))).font(.footnote)
+                            .cyText(.meta).foregroundStyle(.secondary)
+                        Text(localized("personalLocationShare.grantExpires", date(item.grant.expiresAtMs))).cyText(.meta)
                     }
                 }
             }
@@ -209,7 +209,7 @@ import SwiftUI
         switch state {
         case .notRead: Text(localized("personalLocationShare.read.notRead")).foregroundStyle(.secondary)
         case .loading: ProgressView(localized("personalLocationShare.read.loading"))
-        case .loaded: Text(localized("personalLocationShare.read.loaded")).font(.footnote).foregroundStyle(.secondary)
+        case .loaded: Text(localized("personalLocationShare.read.loaded")).cyText(.bodyCompact).foregroundStyle(.secondary)
         case .unavailable: Label(localized("personalLocationShare.read.unavailable"), systemImage: "exclamationmark.circle")
         }
     }

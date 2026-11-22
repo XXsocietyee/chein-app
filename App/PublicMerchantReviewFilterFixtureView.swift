@@ -16,7 +16,7 @@ import SwiftUI
             ownerMemberID: PublicMerchantOwnerID(state.merchantID + 100)!), reader: reader)
             .safeAreaInset(edge: .bottom) {
                 Text(verbatim: "Reads: \(state.reads); completed: \(state.completed); account: \(state.accountID)")
-                    .font(.caption).accessibilityIdentifier("publicReview.fixture.reads")
+                    .cyText(.meta).accessibilityIdentifier("publicReview.fixture.reads")
             }
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {

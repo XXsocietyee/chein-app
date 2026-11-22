@@ -58,7 +58,7 @@ import SwiftUI
                     Text(verbatim: zh
                          ? "仅本人原生文字/选择题原安装快照，不是当前编辑稿，不授权保存、导出、发布或开局。qmod、组合主题和H5仍使用其原入口。"
                          : "Your original native text/choice snapshot only—not the current edited draft, or permission to save, export, publish or play. qmod, composed topics and H5 keep their existing entries.")
-                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if phase != .active {
                     CYEmptyState(systemImage: "lock", LocalizedStringKey(stringLiteral: zh ? "已隐藏私密正文" : "Private content hidden"))
@@ -135,10 +135,10 @@ import SwiftUI
                 ForEach(ModInstalledTextRead.fieldNames, id: \.self) { name in
                     if let text = fields[name] {
                         DisclosureGroup {
-                            Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                         } label: {
                             Text(LocalizedStringKey("modInstallation.field." + name), tableName: "ModInstallation")
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                         }
                         .frame(minHeight: CYSpacing.minTouchTarget)
                     }
@@ -162,7 +162,7 @@ import SwiftUI
             Text(verbatim: zh
                  ? "当前读取仍需有效许可和原资源使用权限；普通下架不改写这些原条款。"
                  : "Reading still requires a current license and original resource-use rights; ordinary delisting does not rewrite these terms.")
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

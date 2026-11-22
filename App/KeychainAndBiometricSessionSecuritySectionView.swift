@@ -137,11 +137,11 @@ public struct KeychainAndBiometricSessionSecuritySectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Keychain & Session Security Audit")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("keychainSessionSecurity.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllSecure ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("keychainSessionSecurity.statusBadge")
             }
@@ -157,12 +157,12 @@ public struct KeychainAndBiometricSessionSecuritySectionView: View {
                 .accessibilityIdentifier("keychainSessionSecurity.userDefaultsLeakSummary")
 
             Text(verbatim: wipeAndTombstoneSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.logoutWipeAndTombstoneActive ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("keychainSessionSecurity.wipeAndTombstoneSummary")
 
             Text(verbatim: singleFlight401SummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.singleFlight401GuardActive ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("keychainSessionSecurity.singleFlight401Summary")
 
@@ -171,14 +171,14 @@ public struct KeychainAndBiometricSessionSecuritySectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.controlCode)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.enforcementDetail)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

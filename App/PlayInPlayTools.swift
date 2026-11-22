@@ -72,7 +72,7 @@ enum PlayEmergencyHelp {
                         Button { Task { await copyLocation() } } label: {
                             HStack {
                                 Label("mpd.sos.copyLocation", systemImage: "location.fill")
-                                    .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                    .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                                 Spacer()
                                 if copying { ProgressView() }
                             }.frame(minHeight: CYSpacing.minTouchTarget)
@@ -82,10 +82,10 @@ enum PlayEmergencyHelp {
                     }
                 } footer: {
                     if let notice {
-                        Text(notice).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(notice).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("play.sos.notice")
                     } else {
-                        Text("mpd.sos.footer").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("mpd.sos.footer").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 }
             }
@@ -181,8 +181,8 @@ struct PlayChapterPickRow: Identifiable, Equatable {
                 .foregroundStyle(locked ? CYColor.textTertiary : CYColor.textSecondary).frame(width: 24)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                title.font(CYTypography.bodyMedium).foregroundStyle(locked ? CYColor.textTertiary : CYColor.textPrimary)
-                subtitle.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+                title.cyText(.bodyMedium).foregroundStyle(locked ? CYColor.textTertiary : CYColor.textPrimary)
+                subtitle.cyText(.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
             }
             Spacer(minLength: CYSpacing.sm)
             if selected { Image(systemName: "checkmark").font(CYTypography.label).foregroundStyle(CYColor.brand).accessibilityHidden(true) }

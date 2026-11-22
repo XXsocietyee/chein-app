@@ -31,7 +31,7 @@ struct MerchantOperatorRolePermissionSection: View {
     }
 
     @ViewBuilder private func permissionCode(_ code: String) -> some View {
-        if code.isEmpty { Text("merchant.operatorRole.emptyCode").font(.caption) }
+        if code.isEmpty { Text("merchant.operatorRole.emptyCode").cyText(.meta) }
         else { Text(verbatim: code).font(.caption.monospaced()).textSelection(.enabled) }
     }
 }

@@ -98,7 +98,7 @@ struct MerchantNPCPresetArtwork: View {
             }
                 .disabled(!presentation.active || !document.coordinator.isCurrent || document.coordinator.isBusy || document.coordinator.isLocked || document.coordinator.confirmation != nil)
                 .frame(minHeight: 44).accessibilityIdentifier("merchantPreset.open")
-            Text("merchantPreset.localSelection").font(.footnote).foregroundStyle(.secondary)
+            Text("merchantPreset.localSelection").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
     }
 }
@@ -166,7 +166,7 @@ struct MerchantNPCPresetArtwork: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("merchantPreset.localSelection").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchantPreset.localSelection").cyText(.bodyCompact).foregroundStyle(.secondary)
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 128), spacing: 16)], spacing: 16) {
                         ForEach(MerchantNPCPresetAvatar.all) { avatar in
                             Button { model.select(avatar.id) } label: {

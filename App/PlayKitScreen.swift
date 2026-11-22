@@ -134,7 +134,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     private func reviewPanel(_ item: PlayKitActionReview) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text("playkit.submitQuestion").font(CYTypography.cardTitle).accessibilityAddTraits(.isHeader)
+                Text("playkit.submitQuestion").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button("playkit.cancel") { review = nil; reviewedCompletion = nil }
                     .accessibilityIdentifier("playkit.review.cancel")
@@ -173,10 +173,10 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     @ViewBuilder private var header: some View {
         // Mini-program kits open with a small kicker line above the title.
         if let eyebrow = segment["eyebrow"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !eyebrow.isEmpty, eyebrow != projection.title {
-            Text(verbatim: eyebrow).font(CYTypography.meta).foregroundStyle(.secondary)
+            Text(verbatim: eyebrow).cyText(.meta).foregroundStyle(.secondary)
                 .accessibilityIdentifier("playkit.eyebrow." + kind.rawValue)
         }
-        if !projection.title.isEmpty { Text(verbatim: projection.title).font(.largeTitle.bold()).fixedSize(horizontal: false, vertical: true) }
+        if !projection.title.isEmpty { Text(verbatim: projection.title).cyText(.pageTitle).fixedSize(horizontal: false, vertical: true) }
         ForEach(["lead", "prompt", "hint", "sub"], id: \.self) { key in
             if let value = segment[key].text, !value.isEmpty { Text(verbatim: value).foregroundStyle(.secondary) }
         }
@@ -184,7 +184,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
             // No server clock on the play payload, so this does not tick from the phone.
             Label {
                 Text(verbatim: "—")
-                    .font(.system(.title2, design: .rounded).weight(.bold)).monospacedDigit()
+                    .cyText(.dataXL).monospacedDigit()
             } icon: { Image(systemName: "timer") }
             .foregroundStyle(Color.primary)
             .accessibilityElement(children: .ignore)
@@ -261,7 +261,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     }
     @ViewBuilder private var recovery: some View {
         if model.phase == "submitting" || model.phase == "loading" { ProgressView("playkit.sending") }
-        if model.pending != nil { Text("playkit.pendingBoundary").font(.footnote).foregroundStyle(.secondary) }
+        if model.pending != nil { Text("playkit.pendingBoundary").cyText(.bodyCompact).foregroundStyle(.secondary) }
         if model.phase == "unknown" { Button("playkit.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".reconcile") }
         if model.phase == "retryable" { Button("playkit.retryExact") { Task { await model.retryExact() } }.accessibilityIdentifier("playkit." + kind.rawValue + ".retryExact") }
         if model.pending == nil && model.isCurrent && model.phase != "submitting" {

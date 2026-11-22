@@ -57,7 +57,7 @@ import SwiftUI
                         }
                         .disabled(!model.canSaveClubDefault)
                         Text(verbatim: copy("只在成员自己的频道、分类和俱乐部偏好继承时使用；不会取消任何人的静音、免打扰或系统权限。", "Used only when a member inherits channel, category, and club preferences; never overrides personal mutes, DND, or system permissions."))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -68,7 +68,7 @@ import SwiftUI
                         CYSkeleton()
                             .accessibilityLabel(Text(verbatim: copy("正在读取原服务", "Reading service state")))
                         Text(verbatim: copy("正在读取原服务", "Reading service state"))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -78,7 +78,7 @@ import SwiftUI
                         }
                         .textSelection(.enabled)
                         Text(verbatim: copy("结果未确定时只回读原请求，不重发，也不会另建请求覆盖它。", "While the outcome is pending, only the original request is read back; it is not resent or overwritten."))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -100,7 +100,7 @@ import SwiftUI
                         .disabled(reloadDisabled(model))
                     } else {
                         Text(verbatim: status(model.state))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         CYPillButton(verbatim: reloadTitle(model), style: .secondary, systemImage: "arrow.clockwise") {
@@ -120,12 +120,12 @@ import SwiftUI
                 CYSkeleton()
                     .accessibilityLabel(Text(verbatim: copy("正在读取原权限", "Reading permissions")))
                 Text(verbatim: copy("正在读取原权限", "Reading permissions"))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .privacySensitive()
@@ -154,7 +154,7 @@ import SwiftUI
                             systemImage: item.level == .all ? "bell" : "at"
                         )
                         Text(verbatim: copy("基于原版本 \(item.version)，不修改成员自己的偏好。", "Based on version \(item.version); does not modify members' personal preferences."))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         CYPillButton(verbatim: copy("确认保存共同默认", "Confirm saving shared default"), systemImage: "checkmark.circle") {
@@ -166,7 +166,7 @@ import SwiftUI
                         Button(copy("取消", "Cancel"), role: .cancel) { review = nil }
                     }
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .cyGroupedSurface()
                 .cyHeroScreen()
                 .privacySensitive()

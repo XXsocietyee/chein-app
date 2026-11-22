@@ -77,7 +77,7 @@ struct ClubManagementView: View {
                     // The mini page title replaces the generic unavailable line; denial keeps its own copy.
                     if denied || loadIssue == nil {
                         Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -119,7 +119,7 @@ struct ClubManagementView: View {
                     } header: {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text("club.management.requests")
-                                .font(CYTypography.sectionTitle)
+                                .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .accessibilityAddTraits(.isHeader)
                             if !snapshot.requests.isEmpty,
@@ -155,7 +155,7 @@ struct ClubManagementView: View {
                             }
                         } header: {
                             Text("club.management.members")
-                                .font(CYTypography.sectionTitle)
+                                .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .accessibilityAddTraits(.isHeader)
                                 .textCase(nil)
@@ -236,7 +236,7 @@ struct ClubManagementView: View {
             }
             if failed {
                 Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let serverReadMessage { serverMessage(serverReadMessage) }
@@ -292,14 +292,14 @@ struct ClubManagementView: View {
             personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 ClubOpsJoinRequestRowText(request: request)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Group {
                     if let time = request.requestTimeText { Text("club.management.requestedAt \(time)") }
                     else { Text("club.management.timeUnknown") }
                 }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             }
@@ -318,14 +318,14 @@ struct ClubManagementView: View {
                 personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) {
-                        Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify")
-                            .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     }
                     if let time = request.requestTimeText {
                         Text("club.management.requestedAt \(time)")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -334,11 +334,11 @@ struct ClubManagementView: View {
             if let message = request.joinMessage, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("club.application.messageReceived")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: message)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.management.joinMessage")
@@ -351,10 +351,10 @@ struct ClubManagementView: View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             personAvatar(raw: member.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(member.nickname) ?? "\(member.id)")
             if let name = ClubOpsJoinRequestPresentation.displayName(member.nickname) {
-                Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify")
-                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: CYSpacing.sm)
             Image(systemName: "chevron.right")
@@ -409,7 +409,7 @@ struct ClubManagementView: View {
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
             Text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
@@ -419,7 +419,7 @@ struct ClubManagementView: View {
     private func serverMessage(_ message: String) -> some View {
         let shown = message.trimmingCharacters(in: .whitespacesAndNewlines)
         return Text(verbatim: shown.isEmpty ? "—" : shown)
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .textSelection(.enabled)
@@ -497,12 +497,12 @@ struct ClubManagementView: View {
                     .listRowBackground(Color.clear)
                     if pending.action == .remove {
                         Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body"))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else { ClubOpsJoinReviewNotes(action: pending.action) }
-                    LabeledContent("club.management.club") { Text(verbatim: Self.namedID(pending.clubName, pending.clubID)).font(CYTypography.numericBody) }
-                    LabeledContent("club.management.target") { Text(verbatim: Self.namedID(pending.memberName, pending.memberID)).font(CYTypography.numericBody) }
+                    LabeledContent("club.management.club") { Text(verbatim: Self.namedID(pending.clubName, pending.clubID)).cyText(.numericBody) }
+                    LabeledContent("club.management.target") { Text(verbatim: Self.namedID(pending.memberName, pending.memberID)).cyText(.numericBody) }
                     if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft).disabled(state == .submitting || state.preventsNewAction) }
                     confirmControl(pending, item: item)
                         .listRowInsets(Self.gutterInsets)

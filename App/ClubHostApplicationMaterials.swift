@@ -102,9 +102,9 @@ import UIKit
     let changed: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("club.materials.title", tableName: "ClubHostApplicationMaterials").font(.headline)
-            Text("club.materials.optional", tableName: "ClubHostApplicationMaterials").font(.footnote)
-            Text("club.materials.unavailable", tableName: "ClubHostApplicationMaterials").font(.footnote)
+            Text("club.materials.title", tableName: "ClubHostApplicationMaterials").cyText(.cardTitle)
+            Text("club.materials.optional", tableName: "ClubHostApplicationMaterials").cyText(.bodyCompact)
+            Text("club.materials.unavailable", tableName: "ClubHostApplicationMaterials").cyText(.bodyCompact)
             Button { _ = model.open(.picker, context: context, allowed: allowed) } label: {
                 Label { Text("club.materials.select", tableName: "ClubHostApplicationMaterials") } icon: { Image(systemName: "photo.on.rectangle") }
             }.disabled(!model.isCurrent(context, allowed: allowed) || model.remaining == 0 || model.remainingBytes == 0 || model.presentation != nil)

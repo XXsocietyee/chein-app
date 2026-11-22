@@ -13,7 +13,7 @@ import Combine
             Section { CYHeroHeader(LocalizedStringKey(family.labelKey)) }.e1HeroRow()
             Section {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled(family.rawValue) }, set: { model.draft.advanced.setCreatorEnabled(family, $0) }))
-                Text(LocalizedStringKey(family.providerKey)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(LocalizedStringKey(family.providerKey)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
             if model.draft.advanced.enabled(family.rawValue) {
                 if family == .check {
@@ -122,7 +122,7 @@ import Combine
                 Toggle("creator.compare.limitAttempts", isOn: Binding(get: { current != .null }, set: { write($0 ? .number(3) : nil) }))
                     .accessibilityIdentifier("creator.compare.limitAttempts")
                 if current != .null { control.accessibilityIdentifier("creator.field.compare.maxAttempts") }
-                else { Text("creator.compare.unlimited").font(.footnote) }
+                else { Text("creator.compare.unlimited").cyText(.bodyCompact) }
             } else if usesProfileRows {
                 profileRows.accessibilityIdentifier("creator.field.profile." + field.id)
             } else if field.id == "kind", let index = profileQuestionIndex, profileComposition.isSupported {
@@ -141,7 +141,7 @@ import Combine
             } else {
             VStack(alignment: .leading) {
                 TextField(LocalizedStringKey(field.labelKey), text: text, axis: .vertical).textInputAutocapitalization(.never)
-                HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)") }.font(.caption).foregroundStyle(.secondary)
+                HStack { if required { Text("creator.required") }; Spacer(); Text(verbatim: "\(text.wrappedValue.utf16.count)/\(max)") }.cyText(.meta).foregroundStyle(.secondary)
             }
             }
         case .number(let min, let max, let integer):
@@ -150,11 +150,11 @@ import Combine
                     TextField(LocalizedStringKey(field.labelKey), text: text).keyboardType(.numbersAndPunctuation)
                     // Design hand-off r1 CF-47 / CF-48: unit as a suffix; 积分 is the only currency.
                     if let unit = TemplateCreatorFieldView.units[field.id] {
-                        EditorKitText.text(unit.key).font(.body).foregroundStyle(CYColor.textSecondary)
+                        EditorKitText.text(unit.key).cyText(.body).foregroundStyle(CYColor.textSecondary)
                     }
                 }
-                if max < 1e15 { Text(verbatim: "\(min.formatted()) … \(max.formatted())").font(.caption).foregroundStyle(.secondary) }
-                if integer { Text("creator.integer").font(.caption).foregroundStyle(.secondary) }
+                if max < 1e15 { Text(verbatim: "\(min.formatted()) … \(max.formatted())").cyText(.meta).foregroundStyle(.secondary) }
+                if integer { Text("creator.integer").cyText(.meta).foregroundStyle(.secondary) }
                 if family == .hiddenObject && ["x", "y"].contains(field.id) {
                     Slider(value: Binding(get: { current.number ?? 0.5 }, set: { write(.number($0)) }), in: 0...1)
                 }
@@ -198,7 +198,7 @@ import Combine
                         } label: {
                             VStack(alignment: .leading) {
                                 Text(verbatim: rowLabel(index))
-                                Text(verbatim: "\(index + 1)").font(.caption).foregroundStyle(.secondary)
+                                Text(verbatim: "\(index + 1)").cyText(.meta).foregroundStyle(.secondary)
                             }
                         }
                     }.onDelete { indexes in var copy = rows; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write(.array(copy)) }
@@ -210,7 +210,7 @@ import Combine
                     } else {
                         Button("creator.add") { model.draft.advanced.addCreatorRow(family, path: path, field: field) }.disabled(rows.count >= maximum)
                     }
-                    Text(verbatim: "\(rows.count) / \(minimum)…\(maximum)").font(.caption)
+                    Text(verbatim: "\(rows.count) / \(minimum)…\(maximum)").cyText(.meta)
                 }.toolbar { EditButton() }.navigationTitle(LocalizedStringKey(field.labelKey))
                 }
             } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
@@ -272,7 +272,7 @@ import Combine
     }
     private func stringRows(max: Int, length: Int) -> some View {
         VStack(alignment: .leading) {
-            Text(LocalizedStringKey(field.labelKey)).font(.headline)
+            Text(LocalizedStringKey(field.labelKey)).cyText(.cardTitle)
             ForEach(rows.indices, id: \.self) { index in
                 HStack {
                     TextField(LocalizedStringKey(field.labelKey), text: Binding(get: { rows.indices.contains(index) ? rows[index].string ?? "" : "" }, set: { value in var copy = rows; guard copy.indices.contains(index) else { return }; copy[index] = .string(value); write(.array(copy)) }))
@@ -280,7 +280,7 @@ import Combine
                 }
             }
             Button("creator.add") { var copy = rows; copy.append(.string("")); write(.array(copy)) }.disabled(rows.count >= max)
-            Text(verbatim: "≤ \(max) × \(length)").font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: "≤ \(max) × \(length)").cyText(.meta).foregroundStyle(.secondary)
         }
     }
 }
@@ -521,14 +521,14 @@ enum TemplateCheckPresetText {
     var body: some View {
         Form {
             Section { CYHeroHeader(verbatim: text(.title), subtitle: text(.scope)) }.e1HeroRow()
-            Section { Text(verbatim: text(.retained)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            Section { Text(verbatim: text(.retained)).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             if controller.visibleConfiguration?.isSupported == true {
                 Section {
                     Picker(text(.luck), selection: controller.luckBinding) {
                         ForEach(TemplateCheckLuckChoice.allCases) { choice in Text(verbatim: luckText(choice)).tag(choice) }
                     }.accessibilityIdentifier("templateCheckPresets.luck")
                     Toggle(text(.ladder), isOn: controller.hpBinding).accessibilityIdentifier("templateCheckPresets.hp")
-                    Text(verbatim: text(.warning)).font(.footnote)
+                    Text(verbatim: text(.warning)).cyText(.bodyCompact)
                 }
                 if let draft = controller.preview {
                     Section(text(.preview)) {

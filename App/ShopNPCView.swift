@@ -37,7 +37,7 @@ import SwiftUI
                     HStack(spacing: CYSpacing.md) {
                         CYAvatarView(name: name, size: .lg, isOnline: true)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                             HStack(spacing: CYSpacing.xs) {
                                 CYStatusChip(verbatim: ChannelCopy.text("AI 向导", "AI guide", locale: locale), tone: .info, systemImage: "sparkles")
                                 if let relation = coordinator.relation {
@@ -54,7 +54,7 @@ import SwiftUI
                 }
                 else if coordinator.isSuspended { Text("shopNPC.paused") }
                 else { Text("shopNPC.stale") }
-                Text("shopNPC.disclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("shopNPC.disclosure").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
                 SafetyDisclosureBanner(policy: safetyPolicy)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, CYSpacing.lg).padding(.vertical, 8)
@@ -105,7 +105,7 @@ import SwiftUI
                                             }
                                         }
                                         Button { typing = false; attempt { try coordinator.reviewRegeneration(answerID: message.id) } } label: {
-                                            Label("shopNPC.regenerate", systemImage: "arrow.clockwise").font(CYTypography.label).frame(minHeight: 44).contentShape(Rectangle())
+                                            Label("shopNPC.regenerate", systemImage: "arrow.clockwise").cyText(.label).frame(minHeight: 44).contentShape(Rectangle())
                                         }.buttonStyle(.plain).foregroundStyle(CYColor.textSecondary)
                                             .disabled(recording || !coordinator.canRegenerate(answerID: message.id))
                                             .accessibilityIdentifier("shopNPC.regenerate")
@@ -138,7 +138,7 @@ import SwiftUI
                                 else { Text(LocalizedStringKey(error.key)) }
                             }.accessibilityIdentifier("shopNPC.error")
                         }
-                        Text("shopNPC.voiceDisclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("shopNPC.voiceDisclosure").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         if dynamicTypeSize.isAccessibilitySize { composer }
                         Color.clear.frame(height: 1).id("referenceNPC.bottom").accessibilityHidden(true)
                     }.padding()
@@ -187,7 +187,7 @@ import SwiftUI
                 voiceButton
                 TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
                     .lineLimit(1...4).focused($typing)
-                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.body).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, 16).padding(.vertical, 14).frame(minHeight: 52)
                     .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(CYColor.borderSubtle, lineWidth: 1))
@@ -238,7 +238,7 @@ import SwiftUI
             switch review.content {
             case .text(let text): Text(verbatim: text).textSelection(.enabled)
             case .voice(let clip): Label { Text("shopNPC.voiceReview") } icon: { Image(systemName: "waveform") }
-                Text(verbatim: "\(Int(clip.duration)) s").font(.subheadline.monospacedDigit()).foregroundStyle(.secondary)
+                Text(verbatim: "\(Int(clip.duration)) s").cyText(.numericBody).foregroundStyle(.secondary)
             }
             Text("shopNPC.transmissionDisclosure").font(.footnote)
             if coordinator.failure == .unknownOutcome || coordinator.failure == .malformed || coordinator.failure == .replyProcessing || coordinator.failure == .replyRetryable {
@@ -390,7 +390,7 @@ struct NPCChatBubble<Content: View>: View {
             if isOwn { Spacer(minLength: typeSize.isAccessibilitySize ? 0 : 56) }
             else { CYAvatarView(name: name, size: .sm) }
             content()
-                .font(CYTypography.body)
+                .cyText(.body)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(isOwn ? Theme.Color.actionPrimaryForeground(in: domain) : CYColor.textPrimary)

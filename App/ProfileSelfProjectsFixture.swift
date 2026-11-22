@@ -55,7 +55,7 @@ import Observation
                         Button("Retire synthetic account") {
                             social.identity = .init(accountID:82,epoch:2);social.presentationRevision += 1;projects.scope=UUID()
                         }.accessibilityIdentifier("profile.selfProjectsFixture.retire")
-                    }.font(.caption)
+                    }.cyText(.meta)
                 }
         }
     }

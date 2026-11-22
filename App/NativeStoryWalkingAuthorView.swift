@@ -90,7 +90,7 @@ private func storyWalkingAuthorText(_ key: String, locale: Locale) -> String {
                         Section(text("confirmation.title")) {
                             Toggle(text("acknowledge"),isOn:Binding(get: { acknowledged }, set: { value in guard current, editToken == token else { return }; acknowledged = value; editToken = UUID() })).disabled(!current)
                             CYPillButton(verbatim: text("apply")) { apply(token) }.listRowBackground(Color.clear).disabled(!current || !acknowledged || validation?.canApply != true).accessibilityIdentifier("walkingAuthor.apply")
-                            Text(text("saveScope")).font(.footnote).foregroundStyle(.secondary)
+                            Text(text("saveScope")).cyText(.bodyCompact).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -145,7 +145,7 @@ private func storyWalkingAuthorText(_ key: String, locale: Locale) -> String {
                 TextField(text("businessTime"),text:entranceText(node.id,\.businessTime),axis:.vertical)
                 TextField(text("alternative"),text:entranceText(node.id,\.alternative),axis:.vertical)
                 Text(text("entranceScope"))
-                    .font(.footnote)
+                    .cyText(.meta)
                 Button(text("entrance.remove"),role:.destructive) { mutate(node.id, token: token) { $0.entrance = nil } }
             } else {
                 Text(text("entrance.undeclared"))

@@ -35,7 +35,7 @@ import SwiftUI
         if let snapshot = model.snapshot {
             List {
                 Section {
-                    Text(snapshot.board.title).font(.headline)
+                    Text(snapshot.board.title).cyText(.cardTitle)
                     Text("当前读取结果，不提供导航或游戏操作。")
                     Text("坐标系：\(snapshot.datum)")
                 }
@@ -45,7 +45,7 @@ import SwiftUI
                         Button { model.selectPoint(point.pointId) } label: {
                             VStack(alignment: .leading) {
                                 Text(point.title)
-                                Text(point.pointId).font(.caption)
+                                Text(point.pointId).cyText(.meta)
                             }
                         }.accessibilityIdentifier("city.currentSnapshot.point.\(point.pointId)")
                     }

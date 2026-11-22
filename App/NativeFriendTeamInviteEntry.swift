@@ -61,9 +61,9 @@ extension EnvironmentValues {
                     ForEach(flow.offers) { offer in
                         Section {
                             VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                                Text(verbatim: offer.name).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: offer.name).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                                 if let inviter = offer.inviter { Text("d7.teamInvite.invitedBy \(inviter.displayName)").foregroundStyle(.secondary) }
-                                Text(offerStateKey(offer.state)).font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(offerStateKey(offer.state)).cyText(.label).foregroundStyle(.secondary)
                             }
                             if case .offer = mode {
                                 if offer.canAct {

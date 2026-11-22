@@ -19,7 +19,7 @@ import SwiftUI
     }
     var body: some View {
         List {
-            if reader.isOfflineExample { Text("growth.offlineExample").font(CYTypography.caption).foregroundStyle(palette.textSecondary) }
+            if reader.isOfflineExample { Text("growth.offlineExample").cyText(.caption).foregroundStyle(palette.textSecondary) }
             // Mini-program order: 周榜 / 总榜 chips first; 积分榜 / 成长榜 chips sit between the podium and the rows.
             Section {
                 GrowthBoardChips(title: "growth.board.period", selection: $query.period, options: GrowthBoardPeriod.allCases) { "growth.period." + $0.rawValue }
@@ -39,7 +39,7 @@ import SwiftUI
                     VStack(spacing: CYSpacing.md) {
                         CYEmptyState(systemImage: "list.number", "growth.board.empty")
                         Text("growth.board.emptyHint")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center)
                         if let onExploreHome {
@@ -239,18 +239,18 @@ private struct GrowthLeaderboardPodiumView: View {
                     .frame(width: side, height: side)
                     .background(palette.bgRaised, in: Circle())
                     .overlay(Circle().strokeBorder(ring, lineWidth: 3))
-                Text(place, format: .number).font(CYTypography.label.weight(.bold)).foregroundStyle(palette.textInverse)
+                Text(place, format: .number).cyText(.label, weight: .bold).foregroundStyle(palette.textInverse)
                     .frame(width: 28, height: 28).background(palette.textPrimary, in: Circle())
                     .offset(y: 12)
                     .accessibilityHidden(true)
             }
             .padding(.bottom, 12)
-            GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").font(CYTypography.label.weight(.semibold))
+            GrowthCenterName(name: entry.nickname, fallback: "growth.explorer").cyText(.label, weight: .semibold)
                 .foregroundStyle(palette.textPrimary).cyWrapText(alignment: .center)
             HStack(spacing: 4) {
-                GrowthCenterInteger(value: entry.score).font(CYTypography.dataXL)
+                GrowthCenterInteger(value: entry.score).cyText(.dataXL)
                     .foregroundStyle(palette.textPrimary)
-                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).cyText(.caption).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

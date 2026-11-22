@@ -17,11 +17,11 @@ import SwiftUI
     var body: some View {
         Form {
             Section { CYHeroHeader("templateOwnerConfig.title", subtitle: "templateOwnerConfig.readOnly") }.e1HeroRow()
-            Section { Text("templateOwnerConfig.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            Section { Text("templateOwnerConfig.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             if host.loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("memberTemplate.loading")).listRowBackground(Color.clear) }
             if let snapshot = host.snapshot, snapshot.id == id {
                 Section {
-                    Text(verbatim: snapshot.title.value ?? "").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateOwnerConfig.title")
+                    Text(verbatim: snapshot.title.value ?? "").cyText(.sectionTitle).accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateOwnerConfig.title")
                     if snapshot.title == .unsupported { Text("templateOwnerConfig.unsupported") }
                     else if snapshot.title.value == nil { Text("templateOwnerConfig.missing") }
                     LabeledContent("templateAuthor.shelf.identity", value: String(snapshot.id.rawValue))

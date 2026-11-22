@@ -155,10 +155,10 @@ public struct MerchantAndPublishAuthoringSectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: "Merchant & Publish Authoring Audit")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: headerBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(snapshot.isAuditReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("merchantPublishAudit.statusBadge")
             }
@@ -176,7 +176,7 @@ public struct MerchantAndPublishAuthoringSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: pillar.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
                             .font(.caption2.monospaced())
@@ -185,7 +185,7 @@ public struct MerchantAndPublishAuthoringSectionView: View {
                     }
 
                     Text(verbatim: pillar.invariantSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.gateSummary)

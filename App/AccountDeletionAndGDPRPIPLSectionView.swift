@@ -128,7 +128,7 @@ public struct AccountDeletionAndGDPRPIPLSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "账号注销与 GDPR / PIPL 合规审计 (Guideline 5.1.1(v))")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("accountDeletionPIPL.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -137,22 +137,22 @@ public struct AccountDeletionAndGDPRPIPLSectionView: View {
                     .accessibilityIdentifier("accountDeletionPIPL.overallStatus")
 
                 Text(verbatim: Self.entryStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("accountDeletionPIPL.entryStatus")
 
                 Text(verbatim: Self.precheckStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("accountDeletionPIPL.precheckStatus")
 
                 Text(verbatim: Self.localPurgeStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("accountDeletionPIPL.localPurgeStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无账号注销与数据清除检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("accountDeletionPIPL.empty")
             } else {
@@ -197,19 +197,19 @@ private struct AccountDeletionStepRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.stepTitle)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isStepCompliant ? "合规" : "告警")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isStepCompliant ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "App 内直达：\(row.inAppDirectExecution ? "是" : "否") · 订单/钱包预检：\(row.checksUnsettledOrdersAndWallet ? "已开启" : "未开启") · Keychain 抹除：\(row.purgesKeychainAndLocalStoresImmediately ? "即时" : "缺失")")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

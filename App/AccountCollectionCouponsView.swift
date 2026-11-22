@@ -135,13 +135,13 @@ struct AccountCollectionCouponRow: View {
         VStack(alignment: .leading, spacing: 12) {
             AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             if let description = coupon.displayDescription, !description.isEmpty {
-                Text(verbatim: description).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: description).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let day = coupon.futureStartDay(relativeTo: Date()) {
-                Text("accountCollection.coupon.startsLater").font(CYTypography.meta)
+                Text("accountCollection.coupon.startsLater").cyText(.meta)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 // Mini-program date line: {day} 起可用.
                 QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
@@ -166,9 +166,9 @@ struct AccountCollectionCouponShopLine: View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
             Image(systemName: "storefront").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                if let name = coupon.shopName { Text(verbatim: name).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary) }
+                if let name = coupon.shopName { Text(verbatim: name).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary) }
                 if let address = coupon.shopAddress {
-                    Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

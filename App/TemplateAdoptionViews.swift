@@ -44,7 +44,7 @@ struct TemplateAdoptButton: View {
             .accessibilityIdentifier("template.adopt")
             if busy { ProgressView() }
             if let message {
-                Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -102,22 +102,22 @@ struct TemplateLocationTodosSection: View {
                 Section {
                     if let source = todos.sourceTopicText {
                         Text(verbatim: [source, todos.sourceRevisionText, todos.intentText].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · "))
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     ForEach(todos.rows) { row in
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack {
-                                Text(verbatim: row.title).font(CYTypography.cardTitle)
+                                Text(verbatim: row.title).cyText(.cardTitle)
                                 Spacer()
-                                Text(verbatim: row.statusText).font(CYTypography.meta)
+                                Text(verbatim: row.statusText).cyText(.meta)
                                     .foregroundStyle(row.blocking ? CYColor.dangerText : (row.warn ? CYColor.warningText : CYColor.textSecondary))
                             }
                             if !row.what.isEmpty || !row.how.isEmpty {
                                 Text(verbatim: [row.what, row.how].filter { !$0.isEmpty }.joined(separator: " · "))
-                                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
-                            if !row.issueText.isEmpty { Text(verbatim: row.issueText).font(CYTypography.meta).foregroundStyle(CYColor.warningText) }
-                            if let error = rowError[row.slotKey] { Text(verbatim: error).font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
+                            if !row.issueText.isEmpty { Text(verbatim: row.issueText).cyText(.meta).foregroundStyle(CYColor.warningText) }
+                            if let error = rowError[row.slotKey] { Text(verbatim: error).cyText(.meta).foregroundStyle(CYColor.dangerText) }
                             Button(PlayerCapabilityCopy.text("选节点绑定", "Bind a node", locale)) {
                                 if bindableNodes.isEmpty { rowError[row.slotKey] = "先在章节里给节点设置这座城市的地点并保存" }
                                 else { picking = row }
@@ -191,7 +191,7 @@ struct TemplateProjectActions: View {
             }
             .disabled(busy)
             .accessibilityIdentifier(kind == .topic ? "template.saveAs.\(id)" : "template.marketSubmit.\(id)")
-            if let toast { Text(verbatim: toast).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let toast { Text(verbatim: toast).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .sheet(isPresented: $confirming) {
             CYConfirmSheet(

@@ -55,14 +55,14 @@ import Combine
     var body: some View {
         Section("templateMemo.title") {
             Toggle("templateMemo.remember", isOn: editor.enabledInput()).disabled(!editor.canChange).accessibilityIdentifier("creator.memo.toggle")
-            if editor.needsReopen { Text("templateMemo.reopen").font(.caption) }
+            if editor.needsReopen { Text("templateMemo.reopen").cyText(.meta) }
             else {
-                if !editor.isEnabled && editor.otherEffectCount >= 16 { Text("templateMemo.capacity").font(.caption) }
-                if editor.tags.isEmpty { Text("templateMemo.off").font(.caption) }
+                if !editor.isEnabled && editor.otherEffectCount >= 16 { Text("templateMemo.capacity").cyText(.meta) }
+                if editor.tags.isEmpty { Text("templateMemo.off").cyText(.meta) }
                 else {
                     ForEach(Array(editor.tags.enumerated()), id: \.offset) { _, tag in Text(verbatim: tag).font(.caption.monospaced()).textSelection(.enabled) }
                 }
-                Text("templateMemo.otherEffects \(editor.otherEffectCount)").font(.caption).foregroundStyle(.secondary)
+                Text("templateMemo.otherEffects \(editor.otherEffectCount)").cyText(.meta).foregroundStyle(.secondary)
             }
         }.onAppear { editor.activate() }.onDisappear { editor.retire() }
     }

@@ -91,13 +91,13 @@ import SwiftUI
                         ForEach(flow.actions) { action in
                             VStack(alignment:.leading,spacing:Theme.Space.s1) {
                                 HStack(alignment:.firstTextBaseline) {
-                                    typeText(action.type).font(Theme.Font.sectionTitle)
+                                    typeText(action.type).cyText(.sectionTitle)
                                     Spacer(minLength:Theme.Space.s2)
                                     statusText(action.status).font(.subheadline).foregroundStyle(.secondary)
                                 }
                                 Text("d7.channelModeration.memberValue \(action.target)").font(.subheadline).foregroundStyle(.secondary)
                                 if !action.reason.isEmpty { Text(action.reason).fixedSize(horizontal:false,vertical:true) }
-                                if !action.expiresAt.isEmpty { Text("d7.channelModeration.expires \(action.expiresAt)").font(.footnote).foregroundStyle(.secondary) }
+                                if !action.expiresAt.isEmpty { Text("d7.channelModeration.expires \(action.expiresAt)").cyText(.bodyCompact).foregroundStyle(.secondary) }
                             }
                             .padding(.vertical,Theme.Space.s1)
                             .swipeActions(edge:.trailing) {

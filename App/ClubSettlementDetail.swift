@@ -234,12 +234,12 @@ import UIKit
                         // behind the row on the detail page. An unverified amount is "—" with a 待核验 tag, never 0.
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-                                Text(verbatim: row.name).font(CYTypography.cardTitle)
+                                Text(verbatim: row.name).cyText(.cardTitle)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Spacer(minLength: CYSpacing.sm)
-                                if let amount = row.amountText { Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit() }
+                                if let amount = row.amountText { Text(verbatim: amount).cyText(.numericBody).monospacedDigit() }
                                 else {
-                                    Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(CYTypography.numericBody).monospacedDigit()
+                                    Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).cyText(.numericBody).monospacedDigit()
                                         .accessibilityHidden(true)
                                 }
                                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
@@ -251,8 +251,8 @@ import UIKit
                                     CYStatusChip("clubOps.settlement.rowUnverified", tone: .warning, systemImage: "questionmark.circle", tableName: "ClubOpsCustomer")
                                 }
                             }
-                            Text(verbatim: row.arrivedText).font(CYTypography.meta).foregroundStyle(.secondary)
-                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText).font(CYTypography.meta).foregroundStyle(.secondary) }
+                            Text(verbatim: row.arrivedText).cyText(.meta).foregroundStyle(.secondary)
+                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText).cyText(.meta).foregroundStyle(.secondary) }
                         }
                         .frame(minHeight: 52, alignment: .leading)
                         .contentShape(Rectangle())
@@ -286,7 +286,7 @@ import UIKit
             if let failure = model.failure { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.settlementDetail.failure") }
             if sourceIsCurrent(), let row = model.accepted(expected, access: access) {
                 Section {
-                    Text(verbatim: row.name).font(.title2)
+                    Text(verbatim: row.name).cyText(.sheetTitle)
                     Text("club.settlementDetail.perspective").font(.subheadline)
                     Text(LocalizedStringKey(row.status.localizationKey))
                     LabeledContent(LocalizedStringKey(row.amountLabelKey)) {
@@ -309,7 +309,7 @@ import UIKit
                 Section {
                     LabeledContent("club.settlementDetail.recordID", value: String(row.id))
                     LabeledContent("club.gov.field.topicId", value: String(row.topicID))
-                    Text("club.settlementDetail.disclaimer").font(.footnote)
+                    Text("club.settlementDetail.disclaimer").cyText(.bodyCompact)
                 }
             } else if sourceIsCurrent(), model.acceptedMissing(expected, access: access) {
                 Text("club.settlementDetail.missing").accessibilityIdentifier("club.settlementDetail.missing")

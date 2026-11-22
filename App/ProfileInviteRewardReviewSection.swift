@@ -9,19 +9,19 @@ import SwiftUI
             LabeledContent("profile.inviteRewards.total") {
                 if let points = review.cumulativePoints {
                     Text(verbatim: NSDecimalNumber(decimal: points).stringValue)
-                        .font(Theme.Font.sheetTitle).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                        .cyText(.sheetTitle).monospacedDigit().fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("profile.inviteRewards.cumulative")
                 } else {
                     Text("social.invites.synchronizing").accessibilityIdentifier("profile.inviteRewards.pending")
                 }
             }
             if review.ledgerState != .complete {
-                Text("profile.inviteRewards.incomplete").font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
+                Text("profile.inviteRewards.incomplete").cyText(.label).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("profile.inviteRewards.incomplete")
                 Button("profile.inviteRewards.reload", action: reload).disabled(isLoading)
                     .accessibilityIdentifier("profile.inviteRewards.reload")
             }
-            Text("profile.inviteRewards.monthScope").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text("profile.inviteRewards.monthScope").cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -36,7 +36,7 @@ struct ProfileInviteMonthReward: View {
                 Text(verbatim: String(month.loadedMemberCount))
                 Text("profile.inviteRewards.loadedPeople")
             }
-        }.font(Theme.Font.label).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+        }.cyText(.label).monospacedDigit().fixedSize(horizontal: false, vertical: true)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("profile.inviteRewards.month")
     }

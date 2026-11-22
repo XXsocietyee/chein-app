@@ -18,9 +18,9 @@ import SwiftUI
     @State private var work: Task<Void, Never>?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            CityPlayerValueCopy.text("title").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-            CityPlayerValueCopy.text("entryNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-            CityPlayerValueCopy.text("currentPageOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            CityPlayerValueCopy.text("title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            CityPlayerValueCopy.text("entryNotice").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+            CityPlayerValueCopy.text("currentPageOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             if !model.configured { CityPlayerValueCopy.text("disabled") }
             else {
                 if model.busy { CYSkeleton() }
@@ -28,7 +28,7 @@ import SwiftUI
                 ForEach(model.services) { reference in
                     Button { run { await model.select(reference) } } label: {
                         Text(verbatim: model.read.points.first { $0.pointId == reference.pointId }?.title ?? reference.pointId)
-                            .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                             .cyDomainCard(radius: CYRadius.sm, padding: CYSpacing.md)
                     }.buttonStyle(.plain).disabled(model.busy).accessibilityIdentifier("cityValue.select.\(reference.pointId)")
@@ -41,7 +41,7 @@ import SwiftUI
                 if let visit = model.visit {
                     LabeledContent { CityPlayerValueCopy.text(visit.meaningfulAction == "OBSERVED" ? "observed" : "notObserved") } label: { CityPlayerValueCopy.text("meaningful") }
                     LabeledContent { CityPlayerValueCopy.text(visit.serviceSuccess == "OBSERVED" ? "observed" : "notObserved") } label: { CityPlayerValueCopy.text("success") }
-                    CityPlayerValueCopy.text("missingSources").font(.footnote)
+                    CityPlayerValueCopy.text("missingSources").cyText(.bodyCompact)
                     if visit.closed { CityPlayerValueCopy.text("closed") }
                     else if model.canOpenSource {
                         Button {

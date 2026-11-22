@@ -169,23 +169,23 @@ public struct ColdStartLaunchLatencyAndPrewarmSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(verbatim: "Cold-Start Launch Latency & Prewarm")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("coldStartLatency.headerTitle")
                 Spacer()
                 Text(verbatim: snapshot.overallStatusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("coldStartLatency.statusBadge")
             }
 
             Text(verbatim: snapshot.headerSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("coldStartLatency.summaryLine")
 
             if !snapshot.isAllCompliant {
                 Text(verbatim: "Warning: Cold-start latency exceeds <= 400ms budget or performs synchronous @MainActor disk/network I/O.")
-                    .font(.caption2.weight(.medium))
+                    .cyText(.caption, weight: .medium)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("coldStartLatency.warningBanner")
             }
@@ -194,14 +194,14 @@ public struct ColdStartLaunchLatencyAndPrewarmSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
-                            .font(.caption2.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.detailSummaryText)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)

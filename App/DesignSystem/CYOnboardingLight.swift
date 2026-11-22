@@ -314,7 +314,7 @@ struct OBMorphPill: View {
         Button(action: action) {
             ZStack {
                 Text(titleKey)
-                    .font(.system(.body).weight(.bold))
+                    .cyText(.cardTitle)
                     .multilineTextAlignment(.center)
                     .opacity(showCheck ? 0 : 1)
                     .scaleEffect(showCheck ? 0.8 : 1)
@@ -359,7 +359,7 @@ struct OBDragHint: View {
                 .frame(width: 44, height: 24)
             }
             Text(titleKey)
-                .font(.subheadline.weight(.medium))
+                .cyText(.bodyMedium)
                 .foregroundStyle(.white.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
         }

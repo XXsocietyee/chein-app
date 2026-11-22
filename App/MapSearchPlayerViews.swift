@@ -114,9 +114,9 @@ struct UnifiedSearchResultsView: View {
             ForEach(items) { item in
                 Button { open(item) } label: {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: item.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: item.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         Text(verbatim: (MapSearchPlayerService.typeLabels[item.type] ?? item.type) + " · " + item.detail)
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                 }
                 .accessibilityIdentifier("search.unified.\(item.id)")

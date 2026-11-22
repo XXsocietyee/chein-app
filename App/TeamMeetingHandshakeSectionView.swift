@@ -70,35 +70,35 @@ public struct TeamMeetingHandshakeSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(verbatim: "截止时间与时区说明")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(verbatim: banner.showsDualZone ? "双时区显示（以北京时间为准）" : "北京时间")
-                    .font(.caption2.weight(.medium))
+                    .cyText(.caption, weight: .medium)
                     .foregroundStyle(.blue)
                     .accessibilityIdentifier("w16.deadline.zoneBadge")
             }
 
             Text(verbatim: banner.headlineText)
-                .font(.subheadline.weight(.medium))
+                .cyText(.bodyMedium)
                 .accessibilityIdentifier("w16.deadline.headline")
 
             if let beijing = banner.governingBeijingTimeText {
                 Text(verbatim: "设备时区：\(banner.localTimeText) · 判定基准北京时间：\(beijing)")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("w16.deadline.dualZoneDetail")
             }
 
             HStack(spacing: 8) {
                 Text(verbatim: banner.advisoryStatusText)
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(banner.hint == .likelyClosed ? AnyShapeStyle(CYColor.warningText) : AnyShapeStyle(.secondary))
                     .accessibilityIdentifier("w16.deadline.advisory")
                 Spacer()
                 if banner.allowsSubmission {
                     Text(verbatim: "允许提交（由服务端最终裁定）")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("w16.deadline.submissionGate")
                 }
@@ -115,11 +115,11 @@ public struct TeamMeetingHandshakeSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(verbatim: "组队当面核验（\(card.teamId) · \(card.meetingId)）")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(verbatim: card.qrAlwaysOffered && !card.nfcOffered ? "仅动态二维码 · NFC 已禁用" : "核验方式受限")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(CYColor.infoSoft))
@@ -127,7 +127,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             }
 
             Text(verbatim: card.phaseTitle)
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("w16.meeting.phaseTitle")
 
             Text(verbatim: card.phaseSubtitle)
@@ -138,13 +138,13 @@ public struct TeamMeetingHandshakeSectionView: View {
             HStack(spacing: 8) {
                 if card.noInterestMatching {
                     Text(verbatim: "仅限已确认队伍（无兴趣匹配）")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("w16.meeting.confirmedTeamOnlyBadge")
                 }
                 if card.realNameScopedOnlyToStrangerMeeting {
                     Text(verbatim: "实名核验仅限陌生人见面步")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("w16.meeting.realNameScopeBadge")
                 }
@@ -153,7 +153,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             if let payload = card.activeChallengePayload, !card.isChallengeExpired {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "当前动态二维码载荷（有效）")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(CYColor.successText)
                     Text(verbatim: payload)
                         .font(.caption2.monospaced())
@@ -163,7 +163,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                 }
             } else if card.phase == .handshaking && card.isChallengeExpired {
                 Text(verbatim: "动态二维码已过期或未签发，请刷新后再出示")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("w16.meeting.qrExpiredNotice")
             }
@@ -194,28 +194,28 @@ public struct TeamMeetingHandshakeSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(verbatim: "好友多选邀请（\(card.contextId)）")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(verbatim: "已选 \(card.selectionCounterText)")
-                    .font(.caption.monospacedDigit())
+                    .cyText(.meta, monospacedDigit: true)
                     .accessibilityIdentifier("w16.invite.counter")
             }
 
             Text(verbatim: card.isReviewValid ? "名单复核有效，可发送邀请" : "选择变更后需重新复核名单")
-                .font(.subheadline.weight(.medium))
+                .cyText(.bodyMedium)
                 .foregroundStyle(card.isReviewValid ? AnyShapeStyle(.primary) : AnyShapeStyle(CYColor.warningText))
                 .accessibilityIdentifier("w16.invite.reviewStatus")
 
             Text(verbatim: "发送汇总：已发 \(card.summary.sent) · 待重试 \(card.summary.retryable) · 未明 \(card.summary.unknown) · 已撤回 \(card.summary.revoked)")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("w16.invite.summaryText")
 
             if card.requiresUnknownReadbackFirst {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "存在结果未明受邀人（\(card.unknownRecipientIds.joined(separator: ", "))），重试前必须先回读服务端状态。")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("w16.invite.unknownReadbackGate")
                     if let onReadbackUnknownInvites {
@@ -240,7 +240,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                     }
                     Spacer()
                     Text(verbatim: row.statusBadgeText)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(row.isRetryable ? AnyShapeStyle(CYColor.warningText) : AnyShapeStyle(.secondary))
                 }
                 .accessibilityIdentifier("w16.invite.row.\(row.friendId)")
@@ -272,17 +272,17 @@ public struct TeamMeetingHandshakeSectionView: View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: "撤回优先账本（\(badge.subjectId) · v\(badge.version)）")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(.secondary)
                 Text(verbatim: badge.statusText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(badge.isRevokeFinal ? AnyShapeStyle(CYColor.dangerText) : AnyShapeStyle(.primary))
                     .accessibilityIdentifier("w16.revoke.statusText")
             }
             Spacer()
             if badge.isRevokeFinal {
                 Text(verbatim: "撤回终态不可逆")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(CYColor.dangerText.opacity(0.15)))

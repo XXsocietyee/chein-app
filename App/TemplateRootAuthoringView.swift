@@ -27,7 +27,7 @@ import Combine
             }
             Section("creatorRoot.roleViews") {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled("roleViews") }, set: { model.draft.advanced.setRoleViewsEnabled($0) }))
-                Text("creatorRoot.roleViewsLimit").font(.footnote).foregroundStyle(.secondary)
+                Text("creatorRoot.roleViewsLimit").cyText(.bodyCompact).foregroundStyle(.secondary)
                 if model.draft.advanced.enabled("roleViews") {
                     ForEach(["A", "B"], id: \.self) { role in NavigationLink { TemplateRoleViewEditor(model: model, role: role) } label: { HStack { Text("creatorRoot.roleLabel"); Text(verbatim: role) } } }
                 }
@@ -358,7 +358,7 @@ enum TemplateLowHPPresetText: String, CaseIterable {
     private func text(_ key: TemplateLowHPPresetText) -> String { key.value(locale) }
     var body: some View {
         Form {
-            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).font(.footnote) }
+            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).cyText(.bodyCompact) }
             if let config = controller.visibleConfiguration, config.isSupported {
                 Section {
                     Picker(text(.choice), selection: controller.selectionBinding) {

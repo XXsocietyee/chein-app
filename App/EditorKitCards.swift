@@ -23,7 +23,7 @@ struct EditorCard<Content: View>: View {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: CYSpacing.xs) {
-                            title.font(.headline).foregroundStyle(palette.textPrimary)
+                            title.cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                             if showsError {
                                 Circle().fill(palette.danger).frame(width: 6, height: 6)
                                     .accessibilityLabel(EditorKitText.text("editorKit.card.hasError"))
@@ -88,7 +88,7 @@ struct EditorCardFooter: View {
                 )
                 if let count = limitedCount {
                     HStack {
-                        EditorKitText.text("editorKit.cardFooter.limit").font(.body).foregroundStyle(palette.textPrimary)
+                        EditorKitText.text("editorKit.cardFooter.limit").cyText(.body).foregroundStyle(palette.textPrimary)
                         Spacer(minLength: CYSpacing.sm)
                         EditorStepper(
                             value: Binding(get: { count }, set: { limit = .limited(EditorNumber.clamp($0, to: EditorAttemptLimit.range)) }),
@@ -186,7 +186,7 @@ struct EditorSaveChip: View {
                     .font(.caption2.weight(.bold))
                     .contentTransition(.symbolEffect(.replace))
                     .accessibilityHidden(true)
-                EditorKitText.text(state.key).font(.footnote.weight(.semibold))
+                EditorKitText.text(state.key).cyText(.bodyMedium)
             }
             .foregroundStyle(state.usesErrorColour ? palette.danger : palette.textSecondary)
             .padding(.horizontal, CYSpacing.s2_5)
@@ -200,7 +200,7 @@ struct EditorSaveChip: View {
         .accessibilityIdentifier("editorKit.saveChip")
         .popover(isPresented: $showsDetail) {
             (detail ?? Text(verbatim: EditorUnknown.dash))
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .padding(CYSpacing.md)
                 .presentationCompactAdaptation(.popover)
         }

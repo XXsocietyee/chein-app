@@ -75,7 +75,7 @@ struct CityParticipationContent: View {
     var body: some View {
         CYCardPage {
             CYArtCoverHeader(title: Text("城市队伍参与"), symbol: "person.3.fill", seed: "participation") {
-                if let title = display.title { Text(verbatim: title).font(CYTypography.meta).foregroundStyle(.white.opacity(0.85)) }
+                if let title = display.title { Text(verbatim: title).cyText(.meta).foregroundStyle(.white.opacity(0.85)) }
             }
         } content: {
             CYStepIndicator(titles: [ChannelCopy.text("读取队伍", "Read team", locale: locale), ChannelCopy.text("选择操作", "Choose action", locale: locale),
@@ -91,14 +91,14 @@ struct CityParticipationContent: View {
                             CYStatusChip(verbatim: team.present ? "当前在队" : "已退出", tone: team.present ? .success : .neutral)
                             CYStatusChip(verbatim: team.confirmed ? "已确认" : "未确认", tone: team.confirmed ? .success : .warning)
                         }
-                        if !team.present { Text("已退出，可恢复原队伍").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    } else { Text("尚未加入本轮队伍。").font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
-                    if !display.writeOpen { Text("参与提交尚未开放。").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        if !team.present { Text("已退出，可恢复原队伍").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    } else { Text("尚未加入本轮队伍。").cyText(.body).foregroundStyle(CYColor.textPrimary) }
+                    if !display.writeOpen { Text("参与提交尚未开放。").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
             }
             if let prepared = display.prepared {
                 CYInfoCard(title: Text("确认操作：\(CityParticipationDisplay.label(prepared))"), symbol: "checkmark.shield.fill") {
-                    Text("使用刚读取的原队伍与版本；结果不明时只查询原请求。").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text("使用刚读取的原队伍与版本；结果不明时只查询原请求。").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     CYPillButton("确认提交", action: confirm).disabled(!display.canPrepare || display.busy)
                         .accessibilityIdentifier("city.participation.confirmOriginal")
                     CYPillButton("取消", style: .tertiary, action: cancel).disabled(display.busy)
@@ -110,7 +110,7 @@ struct CityParticipationContent: View {
                             .padding(CYSpacing.md).frame(minHeight: 48).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                             .disabled(display.busy).onChange(of: inviteCode) { _, _ in inviteChanged() }
                             .accessibilityIdentifier("city.participation.inviteCode")
-                        if let count = display.invitationMembers { Text("邀请队伍人数：\(count)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        if let count = display.invitationMembers { Text("邀请队伍人数：\(count)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         CYPillButton("读取邀请", style: .secondary, action: readInvite).disabled(display.busy)
                     }
                 }
@@ -125,12 +125,12 @@ struct CityParticipationContent: View {
                 CYInfoCard(title: Text("原请求结果"), symbol: "clock.arrow.circlepath") {
                     switch display.recovery {
                     case .unknown:
-                        Text("结果尚未确认，不会重复提交。").font(CYTypography.bodyCompact)
+                        Text("结果尚未确认，不会重复提交。").cyText(.bodyCompact)
                         CYPillButton("查询原结果", style: .secondary, action: recheck).disabled(display.recoveryBusy || display.busy)
-                    case .done: Text("原请求已完成，请重新读取参与信息。").font(CYTypography.bodyCompact)
-                    case .rejected: Text("原请求未获接受，请重新读取参与信息。").font(CYTypography.bodyCompact)
-                    case .blocked: Text("无法核实原记录，不会发起新请求。").font(CYTypography.bodyCompact)
-                    case .unavailable: Text("原请求读取暂不可用。").font(CYTypography.bodyCompact)
+                    case .done: Text("原请求已完成，请重新读取参与信息。").cyText(.bodyCompact)
+                    case .rejected: Text("原请求未获接受，请重新读取参与信息。").cyText(.bodyCompact)
+                    case .blocked: Text("无法核实原记录，不会发起新请求。").cyText(.bodyCompact)
+                    case .unavailable: Text("原请求读取暂不可用。").cyText(.bodyCompact)
                     case .none: EmptyView()
                     }
                 }

@@ -132,10 +132,10 @@ public struct AppSessionCompositionSnapshot: Equatable, Sendable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("appSessionComposition.statusHeadline")
                 Text(verbatim: "启动模式：\(snapshot.isFixtureLaunchMode ? "离线夹具 (session = \(snapshot.sessionIsNilOnFixtureShortCircuit ? "nil" : "active"))" : "标准运行") · 整体合规：\(snapshot.isAllCompliant ? "是" : "否")")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("appSessionComposition.modeSummary")
             }
@@ -146,14 +146,14 @@ public struct AppSessionCompositionSnapshot: Equatable, Sendable {
                         .foregroundStyle(row.isCompliant ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: row.detail)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: row.isCompliant ? "正常" : "异常")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(row.isCompliant ? .green : .red)
                 }
                 .accessibilityIdentifier("appSessionComposition.row." + row.componentID)

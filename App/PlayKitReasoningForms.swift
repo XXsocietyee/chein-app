@@ -30,7 +30,7 @@ extension PlayKitScreen {
                 if showResult, let resultKey = PlayKitScreenProjection(kind: kind, segment: segment).reasoningResultKey {
                     // Not-passed feedback reads as the mini-program's tinted banner.
                     let passed = resultKey == "playkit.result.passed"
-                    Text(LocalizedStringKey(resultKey)).font(CYTypography.bodyMedium)
+                    Text(LocalizedStringKey(resultKey)).cyText(.bodyMedium)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(CYSpacing.md)
                         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(passed ? CYNight.tileGreen.opacity(0.45) : CYNight.tileRed.opacity(0.45)))
@@ -55,7 +55,7 @@ extension PlayKitScreen {
     }
     private var valid: Bool { (try? PlayKitInputContract.validate(kind: kind.rawValue, action: action, payload: payload, segment: segment)) != nil }
     @ViewBuilder private var sortRows: some View {
-        Text("playkit.sort.instructions").font(.footnote)
+        Text("playkit.sort.instructions").cyText(.bodyCompact)
         ForEach(Array(order.enumerated()), id: \.element) { index, id in
             HStack {
                 Text(verbatim: String(index + 1)).font(CYTypography.cardTitle.italic()).monospacedDigit().foregroundStyle(.secondary)
@@ -69,7 +69,7 @@ extension PlayKitScreen {
         }
     }
     @ViewBuilder private var matchRows: some View {
-        Text("playkit.match.instructions").font(.footnote)
+        Text("playkit.match.instructions").cyText(.bodyCompact)
         ForEach(left) { item in
             Picker(selection: Binding(get: { placement[item.id] ?? "" }, set: { value in
                 guard enabled, value != (placement[item.id] ?? "") else { return }
@@ -86,7 +86,7 @@ extension PlayKitScreen {
         }
     }
     @ViewBuilder private var classifyRows: some View {
-        Text("playkit.classify.instructions").font(.footnote)
+        Text("playkit.classify.instructions").cyText(.bodyCompact)
         ForEach(items) { item in
             Picker(selection: Binding(get: { placement[item.id] ?? "" }, set: { value in
                 guard enabled, value != (placement[item.id] ?? "") else { return }
@@ -96,7 +96,7 @@ extension PlayKitScreen {
                 ForEach(bins) { bin in Text(verbatim: bin.label).tag(bin.id) }
             } label: { Text(verbatim: item.label) }.pickerStyle(.menu).disabled(!enabled)
         }
-        Text("playkit.classify.remainingLine \(max(0, items.count - placement.count))").font(CYTypography.meta).foregroundStyle(.secondary)
+        Text("playkit.classify.remainingLine \(max(0, items.count - placement.count))").cyText(.meta).foregroundStyle(.secondary)
             .frame(maxWidth: .infinity)
             .accessibilityIdentifier("playkit.classify.remaining")
     }

@@ -129,7 +129,7 @@ struct PublicCatalogCardRow: View {
             if !tags.isEmpty {
                 HStack(spacing: CYSpacing.xs) {
                     ForEach(Array(tags.enumerated()), id: \.offset) { _, tag in
-                        Text(tag).font(CYTypography.caption)
+                        Text(tag).cyText(.caption)
                             .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xs)
                             .background(CYColor.bgSurface, in: Capsule())
                             .foregroundStyle(CYColor.textSecondary)
@@ -180,7 +180,7 @@ struct PublicCatalogDetailView: View {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 PublicCatalogCardRow(card: card)
                 if let summary = card.summary, !summary.isEmpty {
-                    Text(verbatim: summary).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: summary).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }
                 seo(card)
                 Button("publicCatalog.seo.open") {
@@ -190,7 +190,7 @@ struct PublicCatalogDetailView: View {
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("publicCatalog.seo.open")
                 if let chapters = card.chapterNames, !chapters.isEmpty {
-                    Text("publicCatalog.detail.chapters").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+                    Text("publicCatalog.detail.chapters").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                     ForEach(Array(chapters.enumerated()), id: \.offset) { _, name in
                         Text(verbatim: name).padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                             .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
@@ -219,7 +219,7 @@ struct PublicCatalogDetailView: View {
 
     private func seo(_ card: PWaveCatalogCard) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text("publicCatalog.seo.notLive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("publicCatalog.seo.notLive").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             labeled("publicCatalog.seo.canonical", card.canonicalPath)
             labeled("publicCatalog.seo.translation", card.translationState)
         }
@@ -232,7 +232,7 @@ struct PublicCatalogDetailView: View {
             Spacer()
             Text(verbatim: MPText.orDash(value))
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .frame(minHeight: CYSpacing.minTouchTarget)
     }
 }
@@ -443,7 +443,7 @@ struct ContentLandingScreen: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                Text("contentLanding.seoNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("contentLanding.seoNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("contentLanding.seoNote")
                 TextField("contentLanding.topic", text: $topic)
                     .accessibilityIdentifier("contentLanding.topic")
@@ -499,7 +499,7 @@ struct ContentLandingScreen: View {
             CYMorphButton("contentLanding.save", state: saving ? .working : .idle) { Task { await save() } }
                 .disabled(saving)
                 .accessibilityIdentifier("contentLanding.save")
-            Text("contentLanding.pending").font(CYTypography.label).accessibilityIdentifier("contentLanding.pending")
+            Text("contentLanding.pending").cyText(.label).accessibilityIdentifier("contentLanding.pending")
             TextField("contentLanding.locale", text: $locale).accessibilityIdentifier("contentLanding.locale")
             TextField("contentLanding.translationTitle", text: $title).accessibilityIdentifier("contentLanding.translationTitle")
             TextField("contentLanding.translationSubtitle", text: $subtitle).accessibilityIdentifier("contentLanding.translationSubtitle")
@@ -529,7 +529,7 @@ struct ContentLandingScreen: View {
             Spacer()
             Text(verbatim: value.isEmpty ? ContentLandingFact.unknownMark : value)
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .frame(minHeight: CYSpacing.minTouchTarget)
     }
 

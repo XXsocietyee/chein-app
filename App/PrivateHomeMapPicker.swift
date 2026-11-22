@@ -91,8 +91,8 @@ import Observation
         NavigationStack {
             Form {
                 Section {
-                    Text("privateHome.gamePoint").font(.footnote)
-                    Text("privateHome.map.noLocation").font(.footnote)
+                    Text("privateHome.gamePoint").cyText(.bodyCompact)
+                    Text("privateHome.map.noLocation").cyText(.bodyCompact)
                     if let issue = picker.selection.issue {
                         Text(LocalizedStringKey("privateHome.map.issue." + issue.rawValue))
                             .accessibilityIdentifier("privateHome.map.issue")
@@ -140,7 +140,7 @@ struct PrivateHomeCoordinateReview: View {
     let point: PrivateHomePoint
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("privateHome.map.exact").font(.footnote).foregroundStyle(.secondary)
+            Text("privateHome.map.exact").cyText(.bodyCompact).foregroundStyle(.secondary)
             Text(verbatim: "\(point.latitude), \(point.longitude) · WGS84")
                 .textSelection(.disabled).privacySensitive().accessibilityIdentifier("privateHome.coordinateReview")
         }

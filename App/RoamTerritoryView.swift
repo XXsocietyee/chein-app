@@ -222,7 +222,7 @@ import SwiftUI
                 let resolvedOwner = item.ownerNickname ?? item.ownerMemberId.map { "#\($0)" }
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(verbatim: item.title ?? item.pointId ?? item.id)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                     HStack(spacing: CYSpacing.sm) {
                         CYStatusChip(verbatim: item.status, tone: item.isProtected ? .warning : (item.claimed ? .info : .success))
@@ -289,7 +289,7 @@ import SwiftUI
             ForEach(myRows) { row in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: row.title ?? row.pointId ?? row.territoryId)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                     CYFactRow(label: Text(verbatim: copy("状态", "Status")), value: row.status ?? "—")
                         .accessibilityLabel(Text(verbatim: copy("状态 \(row.status ?? copy("未知", "Unknown"))", "Status \(row.status ?? "Unknown")")))
@@ -309,7 +309,7 @@ import SwiftUI
             ForEach(board.leaders) { leader in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: leader.ownerNickname ?? "#\(leader.ownerMemberId)")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                     CYFactRow(label: Text(verbatim: copy("领地数", "Territories")), value: "\(leader.territoryCount)")
                     CYFactRow(label: Text(verbatim: copy("打卡人次", "Check-ins")), value: "\(leader.totalCheckins)")
@@ -373,7 +373,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYSectionHeader(LocalizedStringKey(copy("实景占领证明", "Photo + GPS Claim")))
             Text(verbatim: item.title ?? item.pointId ?? item.id)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             if let photoContext {
                 RetainedImageSelectionView(context: photoContext) { uploaded in

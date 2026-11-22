@@ -64,7 +64,7 @@ import SwiftUI
                             .foregroundStyle(result.outcome == "APPLIED" ? palette.success : palette.danger)
                             .accessibilityHidden(true)
                         text(result.outcome == "APPLIED" ? "friendRemoval.applied" : "friendRemoval.rejected")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("friendRemoval.outcome")
@@ -93,7 +93,7 @@ import SwiftUI
             }
         }
         .formStyle(.grouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .accessibilityIdentifier("friendRemoval.home")
@@ -159,7 +159,7 @@ import SwiftUI
                 Image(systemName: symbol).foregroundStyle(palette.warning).accessibilityHidden(true)
             }
             text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)

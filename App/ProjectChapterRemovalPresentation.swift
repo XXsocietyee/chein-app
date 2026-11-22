@@ -127,7 +127,7 @@ import SwiftUI
                     if controller.isCurrent(value) {
                         Section {
                             Text("projectChapterRemoval.warning")
-                            Text("projectChapterRemoval.localOnly").font(.footnote).foregroundStyle(.secondary)
+                            Text("projectChapterRemoval.localOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
                         }
                         Section("projectChapterRemoval.selected") {
                             ForEach(value.chapters) { chapter in

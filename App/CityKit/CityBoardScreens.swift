@@ -79,7 +79,7 @@ struct CityBoardView: View {
                     Text(verbatim: copy("持有 \(holdings.count) / \(holdings.limit)", "Holding \(holdings.count) / \(holdings.limit)"))
                     if let rent = store.todayRent { Text(verbatim: copy("今天 +\(rent) 积分", "Today +\(rent) pts")) }
                 }
-                .font(CYTypography.caption.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                .cyText(.caption, weight: .semibold).foregroundStyle(palette.textPrimary)
                 .padding(.horizontal, 10).padding(.vertical, 6).background(.ultraThinMaterial, in: Capsule()).padding(CYSpacing.md)
             }
         }
@@ -112,7 +112,7 @@ struct CityBoardView: View {
             }
             .disabled(!store.places.contains { $0.ownership == .open })
             Text(verbatim: copy("走到真实地点，拍一张照片，通过定位校验，就能圈下它。", "Walk to a real place, take a photo, pass the location check, and it is yours."))
-                .font(Font.body).foregroundStyle(palette.textSecondary)
+                .cyText(.body).foregroundStyle(palette.textSecondary)
         }
     }
 
@@ -129,7 +129,7 @@ struct CityBoardView: View {
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: title).font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+            Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
             content()
         }
     }
@@ -153,8 +153,8 @@ struct CityBoardView: View {
                     .frame(width: 36, height: 36).background(palette.bgRaised, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
-                    if let detail { Text(verbatim: detail).font(CYTypography.caption).foregroundStyle(palette.textSecondary) }
+                    Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                    if let detail { Text(verbatim: detail).cyText(.caption).foregroundStyle(palette.textSecondary) }
                 }
                 Spacer()
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
@@ -180,7 +180,7 @@ struct CityMyPropertiesView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text(verbatim: subtitle).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: subtitle).cyText(.meta).foregroundStyle(palette.textSecondary)
                 if store.mine.isEmpty {
                     CityEmptyLine(symbol: "flag", text: copy("还没有地盘。在地图上找一个带 + 的地点，走过去圈下它。", "No places yet. Find a + on the map and walk there to claim it."))
                 }
@@ -252,7 +252,7 @@ struct CityRentLedgerView: View {
                 let events = store.revenue?.events ?? []
                 if events.isEmpty {
                     Text(verbatim: copy("今天还没有人来你的地盘打卡。", "Nobody has checked in at your places today."))
-                        .font(Font.body).foregroundStyle(palette.textSecondary).listRowBackground(palette.bgElevated)
+                        .cyText(.body).foregroundStyle(palette.textSecondary).listRowBackground(palette.bgElevated)
                 }
                 ForEach(events) { event in
                     let place = store.place(id: event.propertyId)
@@ -260,13 +260,13 @@ struct CityRentLedgerView: View {
                         CityDeedPhoto(url: place?.photoURL, corner: 10).frame(width: 44, height: 44)
                             .overlay(alignment: .leading) { Rectangle().fill(CityTokens.district(place?.districtIndex ?? 0)).frame(width: 3) }
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: place.map { copy.title($0) } ?? copy("我的地盘", "My place")).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                            Text(verbatim: place.map { copy.title($0) } ?? copy("我的地盘", "My place")).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                             Text(verbatim: [event.visitorMasked, event.createdAt.map { copy.clock($0.date) }].compactMap { $0 }.joined(separator: " · "))
-                                .font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+                                .cyText(.caption).foregroundStyle(palette.textSecondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text(verbatim: "+\(event.granted)").font(CYTypography.cardTitle.monospacedDigit()).foregroundStyle(palette.textPrimary)
+                            Text(verbatim: "+\(event.granted)").cyText(.cardTitle, monospacedDigit: true).foregroundStyle(palette.textPrimary)
                             CityStatusTag(text: stateLabel(event.yieldState), tone: event.yieldState == .void ? .error : .neutral)
                         }
                     }
@@ -290,9 +290,9 @@ struct CityRentLedgerView: View {
 
     private func total(_ value: Int64?, _ label: String) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map { "\($0)" } ?? "—").font(Font.title2.weight(.bold).monospacedDigit()).foregroundStyle(palette.textPrimary)
+            Text(verbatim: value.map { "\($0)" } ?? "—").cyText(.dataXL).foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText(value: Double(value ?? 0)))
-            Text(verbatim: label).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+            Text(verbatim: label).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)

@@ -42,7 +42,7 @@ enum MerchantAreaPopupFixtures {
         NavigationStack {
             VStack(spacing: CYSpacing.md) {
                 Text(verbatim: "商家资料编辑页 (DEBUG)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                 CYPillButton("merchant.coopField.discard") { showModal = true }
             }
@@ -71,7 +71,7 @@ enum MerchantAreaPopupFixtures {
         NavigationStack {
             VStack(spacing: CYSpacing.md) {
                 Text(verbatim: "互动模板编辑器 (DEBUG)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                 CYPillButton("action.leave") { showModal = true }
             }
@@ -125,7 +125,7 @@ enum MerchantAreaPopupFixtures {
         NavigationStack {
             VStack(spacing: CYSpacing.md) {
                 Text(verbatim: "创作者工具 · 状态键管理 (DEBUG)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                 CYPillButton("creatorEditor.keys.rename") { presented = true }
             }
@@ -191,7 +191,7 @@ enum MerchantAreaPopupFixtures {
         NavigationStack {
             VStack(spacing: CYSpacing.md) {
                 Text(verbatim: "合作与城市节点提示 (DEBUG)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                 CYPillButton("coopflow.copyPhone") {
                     toastMessage = "电话号码已复制，请在拨打时核对合作编号"

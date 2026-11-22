@@ -16,12 +16,12 @@ import SwiftUI
             }
             if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
             if let context = model.coordinator.creation {
-                Section("team.create.activity") { Text(verbatim: context.title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                Section("team.create.activity") { Text(verbatim: context.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 Section("team.create.settings") {
                     Picker("team.size", selection: $size) { ForEach(context.sizes, id: \.self) { Text(verbatim: "\($0)").tag($0) } }
                         .accessibilityIdentifier("team.create.size")
                     Toggle("team.invitationOnly", isOn: $inviteOnly).accessibilityIdentifier("team.create.inviteOnly")
-                    Text(inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    Text(inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp").cyText(.meta).foregroundStyle(palette.textTertiary)
                 }.disabled(model.actionLocked)
                 Section {
                     Text("team.create.consequence").fixedSize(horizontal: false, vertical: true)
@@ -70,7 +70,7 @@ import SwiftUI
 
     private var leaseClosedNote: some View {
         Text("team.create.leaseClosed")
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(palette.textTertiary)
             .accessibilityIdentifier("team.create.leaseClosed")
     }

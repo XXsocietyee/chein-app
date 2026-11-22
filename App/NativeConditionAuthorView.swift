@@ -57,13 +57,13 @@ import SwiftUI
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 CYStatusChip(LocalizedStringKey("nativeCondition.issue." + issue.code), tone: .warning, systemImage: "exclamationmark.triangle")
                                 Text(verbatim: issue.path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : issue.path)
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .textSelection(.enabled)
                                     .fixedSize(horizontal: false, vertical: true)
                                 if !issue.detail.isEmpty {
                                     Text(verbatim: issue.detail)
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(CYColor.textTertiary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }

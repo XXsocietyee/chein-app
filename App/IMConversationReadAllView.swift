@@ -124,7 +124,7 @@ struct IMConversationReadAllButtonToken: Equatable {
                 .accessibilityIdentifier("im.readAll.confirmButton")
             } else {
                 Text("d7.readAll.unavailable")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -132,7 +132,7 @@ struct IMConversationReadAllButtonToken: Equatable {
             loadingBlock("d7.readAll.running")
             if model.stopRequested {
                 Text("d7.readAll.stopping")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
@@ -144,7 +144,7 @@ struct IMConversationReadAllButtonToken: Equatable {
             summary
             if model.batch.unknownCount > 0 {
                 Text("d7.readAll.unknownHint")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -158,7 +158,7 @@ struct IMConversationReadAllButtonToken: Equatable {
                 CYRowIcon(systemImage: "bubble.left")
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     MessagingConversationName(conversation: item.conversation)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
@@ -174,7 +174,7 @@ struct IMConversationReadAllButtonToken: Equatable {
     private func loadingBlock(_ key: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYSkeleton().accessibilityHidden(true)

@@ -133,7 +133,7 @@ public struct NPCAISceneGuardSectionView: View {
             Image(systemName: "shield.lefthalf.filled.badge.checkmark")
                 .foregroundStyle(.teal)
             Text(verbatim: "NPC AI Scene Guard & Memory Privacy")
-                .font(.headline)
+                .cyText(.cardTitle)
             Spacer()
             statusPill(
                 label: preflightModeLabel,
@@ -145,7 +145,7 @@ public struct NPCAISceneGuardSectionView: View {
     private var preflightCard: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "1. Preflight Verdict & Scenario Isolation")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
 
             HStack(spacing: 6) {
                 statusPill(label: preflightModeLabel, tint: preflightModeTint)
@@ -161,7 +161,7 @@ public struct NPCAISceneGuardSectionView: View {
                 .accessibilityIdentifier("npc_ai_isolation_key_label")
 
             Text(verbatim: "Rejected Data Classes: \(rejectedDataClassesText)")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(rejectedDataClassesTint)
                 .accessibilityIdentifier("npc_ai_rejected_data_classes_label")
         }
@@ -176,20 +176,20 @@ public struct NPCAISceneGuardSectionView: View {
     private var replyValidationCard: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "2. Reply Narrative Action & Effect Guard")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
 
             Text(verbatim: "Narrative Action Decision: \(narrativeActionDecisionText)")
-                .font(.caption.weight(.medium))
+                .cyText(.label)
                 .accessibilityIdentifier("npc_ai_narrative_decision_label")
 
             Text(verbatim: "Dropped Forbidden Effects: \(droppedForbiddenEffectsText)")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(droppedEffectsTint)
                 .accessibilityIdentifier("npc_ai_dropped_effects_label")
 
             if let safeReplyPreview = safeReplyPreviewText {
                 Text(verbatim: "Validated Reply: \(safeReplyPreview)")
-                    .font(.caption2)
+                    .cyText(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
@@ -205,7 +205,7 @@ public struct NPCAISceneGuardSectionView: View {
     private var memoryPrivacyCard: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "3. Memory Privacy & Deletion/Expiry/Consent Filter")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
 
             HStack(spacing: 8) {
                 statusPill(
@@ -219,7 +219,7 @@ public struct NPCAISceneGuardSectionView: View {
             }
 
             Text(verbatim: memoryReadbackSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("npc_ai_memory_readback_label")
         }
@@ -233,7 +233,7 @@ public struct NPCAISceneGuardSectionView: View {
 
     private func statusPill(label: String, tint: Color) -> some View {
         Text(verbatim: label)
-            .font(.caption2.weight(.semibold))
+            .cyText(.caption, weight: .semibold)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(

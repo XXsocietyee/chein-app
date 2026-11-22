@@ -154,7 +154,7 @@ struct MemberFavoritesRecommendNoteSheet: View {
         ) {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 Text("member.favorites.recommendNote.body", tableName: "MemberProfile")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("member.favorites.recommendNote.dismiss", style: .primary, tableName: "MemberProfile") {
@@ -738,7 +738,7 @@ struct MemberCoopInviteSheet: View {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if !targetName.isEmpty {
                     Text(verbatim: targetName)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                 }
 
@@ -753,7 +753,7 @@ struct MemberCoopInviteSheet: View {
                 } else {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: MemberPopupCopy.text("选择项目主题", "Topic", locale: locale))
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.textSecondary)
                         ForEach(topics, id: \.id) { topic in
                             Button {
@@ -763,7 +763,7 @@ struct MemberCoopInviteSheet: View {
                             } label: {
                                 HStack {
                                     Text(verbatim: topic.title)
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(CYColor.textPrimary)
                                     Spacer()
                                     if selectedTopicID == topic.id {
@@ -782,7 +782,7 @@ struct MemberCoopInviteSheet: View {
                     if !chapters.isEmpty {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text(verbatim: MemberPopupCopy.text("选择邀约章节", "Chapter", locale: locale))
-                                .font(CYTypography.sectionTitle)
+                                .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textSecondary)
                             ForEach(chapters, id: \.id) { chapter in
                                 let numericID = Int(chapter.id) ?? 0
@@ -791,7 +791,7 @@ struct MemberCoopInviteSheet: View {
                                 } label: {
                                     HStack {
                                         Text(verbatim: chapter.name.isEmpty ? "#\(chapter.id)" : chapter.name)
-                                            .font(CYTypography.body)
+                                            .cyText(.body)
                                             .foregroundStyle(CYColor.textPrimary)
                                         Spacer()
                                         if draft.selectedChapterID == numericID {

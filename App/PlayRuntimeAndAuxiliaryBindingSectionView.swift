@@ -137,7 +137,7 @@ public struct PlayRuntimeAndAuxiliaryBindingSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "游玩运行态、传感器边界与权威状态审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("playRuntimeAudit.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -146,30 +146,30 @@ public struct PlayRuntimeAndAuxiliaryBindingSectionView: View {
                     .accessibilityIdentifier("playRuntimeAudit.overallStatus")
 
                 Text(verbatim: Self.lifecycleStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.meta)
                     .accessibilityIdentifier("playRuntimeAudit.lifecycleStatus")
 
                 Text(verbatim: Self.idempotencyStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.meta)
                     .accessibilityIdentifier("playRuntimeAudit.idempotencyStatus")
 
                 Text(verbatim: Self.auxiliaryBindingStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.meta)
                     .accessibilityIdentifier("playRuntimeAudit.auxiliaryBindingStatus")
 
                 Text(verbatim: Self.pauseRecoveryStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.meta)
                     .accessibilityIdentifier("playRuntimeAudit.pauseRecoveryStatus")
 
                 Text(verbatim: Self.runAuthorityStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.meta)
                     .accessibilityIdentifier("playRuntimeAudit.runAuthorityStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无游玩运行态与权威状态检查项")
-                    .font(.footnote)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("playRuntimeAudit.empty")
             } else {
@@ -226,19 +226,19 @@ private struct PlayRuntimeAuditPillarRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.title)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isVerified ? "已核验" : "待修复")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isVerified ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "验证凭据：\(row.verificationEvidence)")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

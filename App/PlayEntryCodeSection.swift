@@ -28,12 +28,12 @@ struct PlayEntryCodeContext {
                             Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")
                         }
                     }
-                } label: { Label("playx.entryCode.open", systemImage: "qrcode").font(.headline).fixedSize(horizontal: false, vertical: true) }
+                } label: { Label("playx.entryCode.open", systemImage: "qrcode").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("playx.entryCode.open")
             } else {
                 Button { explainMissing = true } label: { Label("playx.entryCode.open", systemImage: "qrcode") }
-                    .font(.headline).frame(minHeight: 44)
+                    .cyText(.cardTitle).frame(minHeight: 44)
                     .accessibilityIdentifier("playx.entryCode.open")
             }
         }

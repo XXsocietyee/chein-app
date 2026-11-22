@@ -242,7 +242,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: snapshot.statusHeadline)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Text(verbatim: "证书编号: \(snapshot.certificateID) · SHA: \(snapshot.targetCommitSHA ?? "未绑定")")
                             .font(.caption.monospaced())
                             .foregroundStyle(.secondary)
@@ -271,14 +271,14 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                                 .foregroundStyle(row.isCertified ? CYColor.successText : CYColor.dangerText)
                                 .accessibilityHidden(true)
                             Text(verbatim: row.pillarTitle)
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.isCertified ? row.statusText : "BLOCKED (\(row.statusText))")
                                 .font(.caption2.monospaced().weight(.semibold))
                                 .foregroundStyle(row.isCertified ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.scopeSummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                         if let sha = row.commitSHA, !sha.isEmpty {
                             Text(verbatim: "绑定 SHA: \(sha) · 证据: \(row.evidenceLink ?? "无")")
@@ -287,7 +287,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                         }
                         if let blocker = row.blockerNote, !blocker.isEmpty {
                             Text(verbatim: "未签收原因: \(blocker)")
-                                .font(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.dangerText)
                         }
                     }

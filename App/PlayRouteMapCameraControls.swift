@@ -32,12 +32,12 @@ struct PlayRouteMapCameraControls: View {
                 .accessibilityIdentifier("playRouteCamera.choose")
             if let preview {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("playRouteCamera.preview").font(.caption.bold()).foregroundStyle(.secondary)
-                    name(preview).font(.headline).accessibilityIdentifier("playRouteCamera.preview.name")
+                    Text("playRouteCamera.preview").cyText(.meta, weight: .bold).foregroundStyle(.secondary)
+                    name(preview).cyText(.cardTitle).accessibilityIdentifier("playRouteCamera.preview.name")
                     Label(LocalizedStringKey(preview.state.labelKey), systemImage: preview.state.symbol).font(.subheadline)
-                    if let address = preview.address, !address.isEmpty { Text(verbatim: address).font(.footnote) }
-                    if preview.coordinate == nil { Text("playRoute.noStopCoordinate").font(.footnote) }
-                    if !preview.canOpen { Text("playRoute.useJourney").font(.footnote) }
+                    if let address = preview.address, !address.isEmpty { Text(verbatim: address).cyText(.bodyCompact) }
+                    if preview.coordinate == nil { Text("playRoute.noStopCoordinate").cyText(.bodyCompact) }
+                    if !preview.canOpen { Text("playRoute.useJourney").cyText(.bodyCompact) }
                 }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .contain)
                 if preview.canOpen {
                     Button("playRouteCamera.openTask") { onOpen(preview.id) }
@@ -46,7 +46,7 @@ struct PlayRouteMapCameraControls: View {
                 }
             }
             if let issue {
-                Text(LocalizedStringKey(issue.labelKey)).font(.footnote)
+                Text(LocalizedStringKey(issue.labelKey)).cyText(.bodyCompact)
                     .accessibilityIdentifier("playRouteCamera.issue")
             }
         }.buttonStyle(.borderless)

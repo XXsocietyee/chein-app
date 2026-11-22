@@ -82,7 +82,7 @@ extension AppCompositionRoot {
                      ? W8Text.t("复制成你自己的草稿，先沿用原地点；在编辑器的「地点待办」里逐个替换并确认地址。原模板不变。",
                                 "Copies into your own draft that keeps the original places for now. Replace and confirm each address under Place to-dos in the editor. The template itself is unchanged.")
                      : W8Text.t("复制成你自己的草稿，修改不影响原模板。", "Copies into your own draft. Your edits never change the template."))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("topicTemplate.useIntent")
@@ -112,7 +112,7 @@ extension AppCompositionRoot {
             SourceLineageSection(revisionID: model.copiedReceipt?.sourceContentRevisionId ?? plan.sourceContentRevisionId)
             if let message = TopicTemplateUseModel.message(for: model.state) {
                 Label(message, systemImage: model.copiedReceipt == nil ? "exclamationmark.circle" : "checkmark.circle")
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("topicTemplate.useMessage")
@@ -136,9 +136,9 @@ extension AppCompositionRoot {
             Section {
                 ForEach(rows) { row in
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                        Text(row.label).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                        Text(row.label).cyText(.meta).foregroundStyle(palette.textTertiary)
                             .frame(minWidth: 64, alignment: .leading)
-                        Text(row.value).font(CYTypography.bodyCompact).foregroundStyle(palette.textPrimary)
+                        Text(row.value).cyText(.bodyCompact).foregroundStyle(palette.textPrimary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -163,7 +163,7 @@ extension AppCompositionRoot {
     var body: some View {
         Group {
             if let credit {
-                Text(credit).font(CYTypography.micro).foregroundStyle(palette.textTertiary).lineLimit(1)
+                Text(credit).cyText(.micro).foregroundStyle(palette.textTertiary).lineLimit(1)
                     .accessibilityLabel(Text(W8Text.t("图片署名：\(credit)", "Image credit: \(credit)")))
                     .accessibilityIdentifier("topicTemplate.nodeCredit")
             }

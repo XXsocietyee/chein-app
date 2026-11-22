@@ -227,7 +227,7 @@ struct CityPlayerView: View {
         }
         if let renderedSelection = selection, let point = selected {
             VStack(alignment: .leading, spacing: 8) {
-                Text("city.read.point.selected").font(.headline)
+                Text("city.read.point.selected").cyText(.cardTitle)
                 Label {
                     Text(verbatim: point.title).fixedSize(horizontal: false, vertical: true)
                 } icon: { Image(systemName: symbol(point)) }
@@ -256,8 +256,8 @@ struct CityPlayerView: View {
                 HStack(alignment: .top, spacing: 12) {
                     QuestifyMapPinSymbol(symbol: symbol(point), selected: selected?.pointId == point.pointId)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: point.title).font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
-                        Text(ownStatus(point)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: point.title).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                        Text(ownStatus(point)).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 0)
                 }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
@@ -293,7 +293,7 @@ struct CityEntryRow: View {
     var body: some View {
         HStack(spacing: CYSpacing.md) {
             CYRowIcon(systemImage: icon)
-            title.font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+            title.cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
             Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
         }

@@ -98,7 +98,7 @@ struct CityPlayerValueSourceSelection: Identifiable { let id = UUID(); let visit
                     .accessibilityIdentifier("cityValue.recoverSource")
                     .accessibilityLabel(Text("cityValue.recoverSource", tableName: "CityValue"))
                     Text("cityValue.sourceNoSuccessClaim", tableName: "CityValue")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

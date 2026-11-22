@@ -200,23 +200,23 @@ import SwiftUI
             if ProcessInfo.processInfo.arguments.contains("--project-edit-starter-probe") {
                 Button("projectStarter.inspectFixture") { context.inspect() }
                     .accessibilityIdentifier("projectStarter.fixtureSnapshot").accessibilityValue(context.inspection)
-                    .buttonStyle(.borderless).font(.caption).dynamicTypeSize(.large)
+                    .buttonStyle(.borderless).cyText(.meta).dynamicTypeSize(.large)
             }
             if ProcessInfo.processInfo.arguments.contains("--project-release-receipt-write-failure") || ProcessInfo.processInfo.arguments.contains("--project-review-receipt-write-failure") {
                 Button("approvedRelease.fixture.restoreStorage") { context.restoreStorageAccess() }
-                    .accessibilityIdentifier("approvedRelease.fixture.restoreStorage").buttonStyle(.borderless).font(.caption).dynamicTypeSize(.large)
+                    .accessibilityIdentifier("approvedRelease.fixture.restoreStorage").buttonStyle(.borderless).cyText(.meta).dynamicTypeSize(.large)
             }
             if ProcessInfo.processInfo.arguments.contains("--project-review-current") {
                 Button("Test-only: observed task becomes approved") { context.simulateCurrentReviewApproval() }
-                    .accessibilityIdentifier("topicReview.fixture.simulateApproval").buttonStyle(.borderless).font(.caption).dynamicTypeSize(.large)
+                    .accessibilityIdentifier("topicReview.fixture.simulateApproval").buttonStyle(.borderless).cyText(.meta).dynamicTypeSize(.large)
             }
             if ProcessInfo.processInfo.arguments.contains("--project-owned-cover") {
                 Text("Test-only generated cover and in-memory server; no Photos or network")
-                    .font(.caption).dynamicTypeSize(.large).accessibilityIdentifier("ownedCover.fixture.scope")
+                    .cyText(.meta).dynamicTypeSize(.large).accessibilityIdentifier("ownedCover.fixture.scope")
             }
             if ProcessInfo.processInfo.arguments.contains("--project-story-audio") {
                 Text("Test-only generated audio bytes and in-memory upload; no document, playback or network")
-                    .font(.caption).dynamicTypeSize(.large).accessibilityIdentifier("projectStoryAudio.fixture.scope")
+                    .cyText(.meta).dynamicTypeSize(.large).accessibilityIdentifier("projectStoryAudio.fixture.scope")
             }
             NavigationStack { ProjectEditView(coordinator: context.coordinator, sessionRevision: context.revision, ownedCoverPicker: context.ownedCoverPicker, storyImagePicker: context.storyImagePicker, storyAudioPicker: context.storyAudioPicker) }.id(context.mount)
         }

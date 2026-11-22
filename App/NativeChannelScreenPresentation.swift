@@ -8,7 +8,7 @@ private struct NativeChannelScreenPresentation: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .font(CYTypography.body)
+            .cyText(.body)
             .environment(\.defaultMinListRowHeight, CYSpacing.minTouchTarget)
             .cyGroupedSurface()
             .navigationBarTitleDisplayMode(.inline)
@@ -45,7 +45,7 @@ private struct NativeChannelInlineNotice: ViewModifier {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .foregroundStyle(palette.textPrimary)
         .padding(CYSpacing.pageHorizontal)
         .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
@@ -66,7 +66,7 @@ struct NativeChannelSectionTitle: View {
 
     var body: some View {
         Text(LocalizedStringKey(key), tableName: tableName)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)

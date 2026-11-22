@@ -845,7 +845,7 @@ import SwiftUI
             if model.draft.chapters.isEmpty {
                 // Figma 237:32682: no chapters yet is one quiet line above 创建章节, not an illustration.
                 OpsR3Text.text("editor.chapters.empty")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("projectEdit.chapters.empty")
             }
@@ -922,7 +922,7 @@ import SwiftUI
         return VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 Text("editor.chapter.ordinal \(ordinal)", tableName: OpsR3Text.table)
-                    .font(CYTypography.meta.weight(.semibold).monospacedDigit())
+                    .cyText(.meta, weight: .semibold, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
                 if blocked {
                     Circle().fill(palette.danger).frame(width: 6, height: 6)
@@ -930,7 +930,7 @@ import SwiftUI
                 }
                 Spacer(minLength: CYSpacing.xs)
                 Text("projectEdit.nodeCountValue \(nodeCount)").foregroundStyle(.secondary)
-                    .font(CYTypography.micro.weight(.semibold))
+                    .cyText(.micro)
                     .padding(.horizontal, CYSpacing.sm)
                     .padding(.vertical, 3)
                     .background(Capsule().fill(palette.bgPage))
@@ -948,7 +948,7 @@ import SwiftUI
                     OpsR3Text.text("editor.chapter.empty")
                 }
             }
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(nodeCount == 0 && (chapter.blocks ?? []).isEmpty ? palette.textTertiary : palette.textSecondary)
         }
         .padding(.vertical, CYSpacing.xs)

@@ -362,7 +362,7 @@ struct CYDomainPrimaryButtonStyle: ButtonStyle {
         let tokens = CYDomainButtonTokens.resolve(kind: .primary, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
-            .font(Theme.Font.button.weight(.bold))
+            .cyText(.button)
             .cyWrapText(alignment: .center)
             .foregroundStyle(tokens.foreground)
             .padding(.horizontal, 20)   // --cy-btn-pad-x 40rpx
@@ -384,7 +384,7 @@ struct CYDomainSecondaryButtonStyle: ButtonStyle {
         let tokens = CYDomainButtonTokens.resolve(kind: .secondary, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
-            .font(Theme.Font.button.weight(.bold))
+            .cyText(.button)
             .cyWrapText(alignment: .center)
             .foregroundStyle(tokens.foreground)
             .padding(.horizontal, 20)
@@ -406,7 +406,7 @@ struct CYDomainDestructiveButtonStyle: ButtonStyle {
         let tokens = CYDomainButtonTokens.resolve(kind: .destructive, isEnabled: isEnabled, isPressed: configuration.isPressed, in: palette)
         let shape = RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous)
         configuration.label
-            .font(Theme.Font.button.weight(.bold))
+            .cyText(.button)
             .cyWrapText(alignment: .center)
             .foregroundStyle(tokens.foreground)
             .padding(.horizontal, 20)
@@ -482,10 +482,10 @@ private struct CYDomainPalettePreviewContent: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "Preview card")
-                    .font(Theme.Font.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                 Text(verbatim: "Secondary line 1,234")
-                    .font(Theme.Font.body.monospacedDigit())
+                    .cyText(.body, monospacedDigit: true)
                     .foregroundStyle(palette.textSecondary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

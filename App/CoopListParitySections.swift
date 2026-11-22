@@ -17,22 +17,22 @@ import SwiftUI
         Group {
             if loading || failed || !visible.isEmpty {
                 Section("cooperation.list.chapter.title") {
-                    if loading { Text("cooperation.list.chapter.loading").font(CYTypography.label).foregroundStyle(CYColor.textSecondary) }
+                    if loading { Text("cooperation.list.chapter.loading").cyText(.label).foregroundStyle(CYColor.textSecondary) }
                     if failed {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("cooperation.list.chapter.failed").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.dangerText)
+                            Text("cooperation.list.chapter.failed").cyText(.label, weight: .semibold).foregroundStyle(CYColor.dangerText)
                             Button("cooperation.refresh") { refresh = UUID() }.accessibilityIdentifier("cooperation.list.chapter.retry")
                         }.accessibilityIdentifier("cooperation.list.chapter.failed")
                     }
                     ForEach(visible) { row in
                         // Mini `.inv` (chapter variant): status line, title, "chapter · merchant", secondary action label.
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text(LocalizedStringKey("cooperation.list.chapter.status." + row.status.rawValue)).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
-                            Text(verbatim: row.topicName ?? "#" + String(row.topicID ?? 0)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(LocalizedStringKey("cooperation.list.chapter.status." + row.status.rawValue)).cyText(.label).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: row.topicName ?? "#" + String(row.topicID ?? 0)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             if let chapter = row.chapterName {
-                                Text(verbatim: row.leg == .owner && row.merchantName != nil ? chapter + " · " + (row.merchantName ?? "") : chapter).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: row.leg == .owner && row.merchantName != nil ? chapter + " · " + (row.merchantName ?? "") : chapter).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
-                            Text(LocalizedStringKey("cooperation.list.chapter.action." + row.action.rawValue)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.infoText)
+                            Text(LocalizedStringKey("cooperation.list.chapter.action." + row.action.rawValue)).cyText(.label, weight: .semibold).foregroundStyle(CYColor.infoText)
                         }.padding(.vertical, CYSpacing.xs).accessibilityElement(children: .combine)
                             .accessibilityIdentifier("cooperation.list.chapter.\(row.id)")
                     }
@@ -77,9 +77,9 @@ import SwiftUI
                     }
                     ForEach(rows) { row in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(LocalizedStringKey("cooperation.list.official.stage." + row.stage.rawValue)).font(.caption.weight(.semibold)).foregroundStyle(row.actionable ? CYColor.warningText : CYColor.textSecondary)
-                            Text("cooperation.list.official.from").font(.footnote).foregroundStyle(.secondary)
-                            Text(verbatim: row.title).font(.headline)
+                            Text(LocalizedStringKey("cooperation.list.official.stage." + row.stage.rawValue)).cyText(.meta, weight: .semibold).foregroundStyle(row.actionable ? CYColor.warningText : CYColor.textSecondary)
+                            Text("cooperation.list.official.from").cyText(.bodyCompact).foregroundStyle(.secondary)
+                            Text(verbatim: row.title).cyText(.cardTitle)
                             Text(verbatim: deadline(row.deadline)).font(.subheadline)
                             Text(verbatim: reward(row.reward)).font(.subheadline)
                             if row.actionable {
@@ -128,25 +128,25 @@ struct CooperationInviteCardDetails: View {
         let invite = view.invite
         // Mini `.inv-main` / `.inv-terms` / `.deposit-due`: title, sub line, terms, then the owed strip.
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            if let name = invite.topicName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-            CooperationInvitePartyText(view: view).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            if let name = invite.topicName { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+            CooperationInvitePartyText(view: view).cyText(.meta).foregroundStyle(CYColor.textTertiary)
             if let party = invite.viewerPartyName {
-                Text(verbatim: party).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: party).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .accessibilityLabel(Text(LocalizedStringKey(view.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) + Text(verbatim: " " + party))
             }
-            CooperationInviteTermsText(terms: view.terms).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+            CooperationInviteTermsText(terms: view.terms).cyText(.label).foregroundStyle(CYColor.textSecondary)
             if case .owed = view.deposit {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Image(systemName: "exclamationmark.circle.fill").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
-                    CooperationInviteDepositText(deposit: view.deposit).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                    CooperationInviteDepositText(deposit: view.deposit).cyText(.label).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                 .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.warningSoft))
             }
-            if view.direction == .sent && invite.status == 2 { Text("cooperation.list.sent.declinedHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if view.direction == .sent && invite.status == 2 { Text("cooperation.list.sent.declinedHint").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             if invite.status == 0 && view.direction == .received && !invite.legacyReadonly && !view.decisionReady {
-                Label("cooperation.list.incomplete", systemImage: "exclamationmark.triangle").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                Label("cooperation.list.incomplete", systemImage: "exclamationmark.triangle").cyText(.meta).foregroundStyle(CYColor.warningText)
             }
         }
     }

@@ -130,7 +130,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                         ? bilingualCopy("跨城漫游与切城隔离：3/3 项已启用代际围栏与缓存分区", "Cross-city roaming isolation: 3/3 generation fences and cache partitions active", locale: snapshot.locale)
                         : bilingualCopy("跨城漫游与切城隔离：检测到跨城缓存污染或在途请求串读风险", "Cross-city roaming isolation: cache bleed or stale in-flight request risk detected", locale: snapshot.locale)
                 )
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isCrossCityIsolationSafe ? "ISOLATED" : "BLEED_RISK")
                     .font(.caption.monospaced())
@@ -140,7 +140,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
 
             HStack {
                 Text(verbatim: bilingualCopy("当前生效城市代码 (cityCode)", "Active city code (cityCode)", locale: snapshot.locale))
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(
@@ -159,14 +159,14 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                         "City sandbox loop (DESIGNED): actions \(snapshot.simulationLoopState.actionsRemaining)/\(snapshot.simulationLoopState.actionsPerRound) · holdings \(snapshot.simulationLoopState.activeHoldCount)/\(snapshot.simulationLoopState.holdingLimit) · fairness cohort \(snapshot.simulationLoopState.fairnessCohortState.rawValue)",
                         locale: snapshot.locale)
                 )
-                .font(.caption2.weight(.medium))
+                .cyText(.caption, weight: .medium)
                 Text(
                     verbatim: bilingualCopy(
                         "状态机阶段：\(snapshot.simulationLoopState.phase.rawValue) · 门店积分服务费：\(snapshot.simulationLoopState.memberPointsFee)",
                         "Phase: \(snapshot.simulationLoopState.phase.rawValue) · store points service fee: \(snapshot.simulationLoopState.memberPointsFee)",
                         locale: snapshot.locale)
                 )
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
             }
             .accessibilityIdentifier("citySwitchIsolation.simulationLoop")
@@ -175,7 +175,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
                             .font(.caption.monospaced())
@@ -183,7 +183,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                             .accessibilityIdentifier("citySwitchIsolation.row.\(row.id).status")
                     }
                     Text(verbatim: row.detail)
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 2)
@@ -192,7 +192,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
 
             if !snapshot.isCrossCityIsolationSafe {
                 Text(verbatim: bilingualCopy("告警：检测到切换城市后未取消旧城市在途请求或未重置地图增量流游标，存在跨城数据串读风险。", "Warning: after the city switch the old city's in-flight requests were not cancelled or the map delta cursor was not reset, so cross-city data may bleed.", locale: snapshot.locale))
-                    .font(.caption.weight(.medium))
+                    .cyText(.label)
                     .foregroundStyle(.red)
                     .accessibilityIdentifier("citySwitchIsolation.warningBanner")
             }

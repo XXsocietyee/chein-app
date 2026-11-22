@@ -21,7 +21,7 @@ import SwiftUI
                     ForEach(missing, id: \.id) { chapter in
                         DisclosureGroup {
                             ForEach(Array(chapter.lines.enumerated()), id: \.offset) { _, line in
-                                Text(verbatim: line).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: line).cyText(.body).foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                             }
                         } label: {

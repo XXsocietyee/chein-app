@@ -20,7 +20,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
         Button { presentation.open(makeReference: makeReference, makeController: makeController) } label: {
             Label { professionalText("entry") } icon: { Image(systemName: "doc.badge.gearshape") }
         }.accessibilityIdentifier("workshopPaidProfessional.entry")
-        if presentation.unavailable { professionalText("notConfigured").font(.footnote) }
+        if presentation.unavailable { professionalText("notConfigured").cyText(.bodyCompact) }
         Color.clear.frame(height: 0).sheet(item: presented) { captured in
             WorkshopPaidProfessionalView(controller: captured.controller, appearance: captured.appearance) { presentation.dismiss(captured) }.id(captured.id)
         }
@@ -117,7 +117,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 Button { schedule(controller.offerInspect(record, displayed: displayed)) } label: {
                     VStack(alignment: .leading) {
                         Text(verbatim: record.command.requestId)
-                        Text(verbatim: "#\(record.command.targetTopicId) · \(record.command.purchasedVersionId)").font(.caption)
+                        Text(verbatim: "#\(record.command.targetTopicId) · \(record.command.purchasedVersionId)").cyText(.meta)
                         professionalText("mode." + record.command.confirmedMode.rawValue)
                     }
                 }.accessibilityIdentifier("workshopPaidProfessional.history." + record.command.requestId)
@@ -129,7 +129,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
         Section {
             CYPillButton(LocalizedStringKey("workshopPaidProfessional.startReview"), style: .primary, tableName: "WorkshopPaidProfessional") { schedule(controller.offerNewReview(displayed)) }
                 .accessibilityIdentifier("workshopPaidProfessional.startReview")
-            professionalText("reviewRequirements").font(.footnote)
+            professionalText("reviewRequirements").cyText(.bodyCompact)
         }
     }
     @ViewBuilder private func targets(_ displayed: WorkshopPaidProfessionalAppearance) -> some View {
@@ -139,7 +139,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 Button { schedule(controller.offerSelect(target, displayed: displayed)) } label: {
                     VStack(alignment: .leading) {
                         Text(verbatim: target.name)
-                        Text(verbatim: "#\(target.topicId)").font(.caption)
+                        Text(verbatim: "#\(target.topicId)").cyText(.meta)
                         professionalText("mode." + target.mode.rawValue)
                     }
                 }.disabled(target.mode == .unresolved)

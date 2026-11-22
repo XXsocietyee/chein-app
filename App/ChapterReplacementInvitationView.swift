@@ -122,14 +122,14 @@ struct ChapterReplacementInvitationView: View {
                     candidateSection
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text("chapterReplacement.section.message")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityAddTraits(.isHeader)
                             .fixedSize(horizontal: false, vertical: true)
                         TextField(text: $model.message, prompt: Text("chapterReplacement.message.prompt")) {
                             Text("chapterReplacement.message.label")
                         }
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .cyField()
                         .accessibilityIdentifier("chapterReplacement.message")
                     }
@@ -156,7 +156,7 @@ struct ChapterReplacementInvitationView: View {
     @ViewBuilder private var vacancySection: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("chapterReplacement.section.vacancies")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .fixedSize(horizontal: false, vertical: true)
@@ -173,11 +173,11 @@ struct ChapterReplacementInvitationView: View {
                             CYRowIcon(systemImage: "flag")
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text("chapterReplacement.vacancy.row \(vacancy.chapterID) \(vacancy.offerID)")
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(palette.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Text(verbatim: shown(vacancy.withdrawReason))
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(palette.textTertiary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -200,7 +200,7 @@ struct ChapterReplacementInvitationView: View {
     @ViewBuilder private var candidateSection: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("chapterReplacement.section.candidates")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .fixedSize(horizontal: false, vertical: true)
@@ -222,7 +222,7 @@ struct ChapterReplacementInvitationView: View {
                                     Text("chapterReplacement.candidate.member \(candidate.merchantMemberID)")
                                 }
                             }
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: CYSpacing.sm)
@@ -246,23 +246,23 @@ struct ChapterReplacementInvitationView: View {
         case .reviewing(let plan):
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text("chapterReplacement.section.review")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("chapterReplacement.review.invite \(plan.candidate.merchantMemberID) \(plan.candidate.chapterID) \(plan.candidate.replacementOfOfferID)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("chapterReplacement.review.pendingOnly")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("chapterReplacement.send", systemImage: "paperplane.fill") { Task { await model.confirm() } }
                     .accessibilityIdentifier("chapterReplacement.send")
                     .accessibilityLabel(Text("chapterReplacement.send"))
                 Button("action.cancel", role: .cancel) { model.cancelReview() }
-                    .font(CYTypography.body.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             }
         case .sending:
@@ -275,12 +275,12 @@ struct ChapterReplacementInvitationView: View {
         case .unknown(let plan):
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text("chapterReplacement.section.unknown")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("chapterReplacement.unknown \(shownTuple(plan.targetTuple))")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("chapterReplacement.verify", systemImage: "arrow.clockwise") { Task { await model.verifyUnknown() } }
@@ -290,7 +290,7 @@ struct ChapterReplacementInvitationView: View {
         case .verified(let verified):
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text("chapterReplacement.section.verified")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Group {
@@ -300,7 +300,7 @@ struct ChapterReplacementInvitationView: View {
                         Text("chapterReplacement.verified")
                     }
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("chapterReplacement.verified")
@@ -309,7 +309,7 @@ struct ChapterReplacementInvitationView: View {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYEmptyState(systemImage: "exclamationmark.triangle", "chapterReplacement.section.failed", kind: .failure)
                 Text(verbatim: shown(String(describing: failure)))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("chapterReplacement.failed")

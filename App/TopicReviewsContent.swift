@@ -38,11 +38,11 @@ struct TopicReviewsContent: View {
                     }
                 } else {
                     Text("topic.reviews.previewHint")
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
                 }
             }
-            .font(.body)
+            .cyText(.body)
             .fixedSize(horizontal: false, vertical: true)
             .questifyCardSurface()
             .questifyCardListRow()
@@ -71,11 +71,11 @@ private struct TopicReviewCard: View {
                 if let name = review.authorName { Text(verbatim: name) }
                 else { Text("topic.reviews.authorUnknown") }
             }
-            .font(.headline)
+            .cyText(.cardTitle)
             .accessibilityIdentifier("topic.reviews.author.\(index)")
             if let date = review.createTime {
                 Text(verbatim: date)
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
             }
             LabeledContent("topic.reviews.rating") {

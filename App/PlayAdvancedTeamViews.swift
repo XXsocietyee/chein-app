@@ -26,10 +26,10 @@ import SwiftUI
                     Text(verbatim: W8Text.t("只属于我的线索", "Clues that are only mine"))
                 }
                 .privacySensitive()
-                Text(team.assignment == "AUTO" ? "advancedTeam.auto" : team.isLeader ? "advancedTeam.leader" : "advancedTeam.leaderOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(team.assignment == "AUTO" ? "advancedTeam.auto" : team.isLeader ? "advancedTeam.leader" : "advancedTeam.leaderOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 ForEach(team.members) { member in
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(verbatim: member.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: member.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         if team.isLeader {
                             if let role = member.roleID { Text(verbatim: team.roleLabel(role)) }
                             else { Text("advancedTeam.unassigned") }
@@ -49,7 +49,7 @@ import SwiftUI
                         .disabled(!model.canTeamInteract || !team.canRequestUnit)
                         .accessibilityIdentifier("advancedTeam.complete")
                 }
-                Text("advancedTeam.serverTurn").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("advancedTeam.serverTurn").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 if let state = model.state, state.remainingSeconds(nowMilliseconds: 0) == 0 {
                     CYStatusChip("advancedTeam.expired", tone: .warning, systemImage: "clock.badge.xmark").accessibilityIdentifier("advancedTeam.expired")
                 }
@@ -94,8 +94,8 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let metric = model.leaderboardMetric {
-                Text(metric == .elapsed ? "advancedBoard.elapsed" : metric == .units ? "advancedBoard.units" : "advancedBoard.score").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text("advancedBoard.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(metric == .elapsed ? "advancedBoard.elapsed" : metric == .units ? "advancedBoard.units" : "advancedBoard.score").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("advancedBoard.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 if model.leaderboardPhase == "loading" { CYLoadingStateView(rows: 1).accessibilityLabel(Text("advancedBoard.loading")) }
                 else {
                     switch LeaderboardFetchPresentation.resolve(phase: model.leaderboardPhase, rowCount: model.leaderboard.count) {

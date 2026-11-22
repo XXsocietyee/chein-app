@@ -34,7 +34,7 @@ struct SquareIssueView: View {
             Label(key, systemImage: "exclamationmark.circle").accessibilityIdentifier("square.error")
             if let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
                 // Backend messages remain verbatim, including unavailable/moderation responses.
-                Text(verbatim: message).font(.caption).textSelection(.enabled)
+                Text(verbatim: message).cyText(.meta).textSelection(.enabled)
             }
             if let retry { Button("square.retry", action: retry).accessibilityIdentifier("square.retry") }
         }
@@ -83,14 +83,14 @@ struct SquarePostContent: View {
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
-                        if let name = post.nickname, !name.isEmpty { Text(verbatim: name).font(.headline) }
-                        else { Text("square.unknownAuthor").font(.headline) }
+                        if let name = post.nickname, !name.isEmpty { Text(verbatim: name).cyText(.cardTitle) }
+                        else { Text("square.unknownAuthor").cyText(.cardTitle) }
                         if post.verified {
                             Image(systemName: "checkmark.seal.fill").foregroundStyle(QuestifyPalette.accent)
                                 .accessibilityLabel(Text("square.verified"))
                         }
                     }
-                    if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
+                    if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).cyText(.meta).foregroundStyle(.secondary) }
                 }
                 Spacer(minLength: 0)
             }
@@ -100,7 +100,7 @@ struct SquarePostContent: View {
                     if let badge = post.authorBadge { Text(verbatim: badge) }
                     if let badge = post.noticeBadge { Text(verbatim: badge).bold() }
                 }
-                .font(.caption).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
             }
             if let contents = post.contents, !contents.isEmpty { Text(verbatim: contents).lineLimit(compact ? 3 : nil).textSelection(.enabled) }
             SquareCloudStravaSection(post: post)
@@ -127,7 +127,7 @@ struct SquarePostContent: View {
                 .font(.subheadline).foregroundStyle(.secondary)
             }
             if Self.disclosures.contains(post.disclosureType) {
-                Label(LocalizedStringKey("squareWorkspace.policy." + post.disclosureType), systemImage: "info.circle").font(.caption)
+                Label(LocalizedStringKey("squareWorkspace.policy." + post.disclosureType), systemImage: "info.circle").cyText(.meta)
             }
             ForEach(Array(post.safetyLabels.enumerated()), id: \.offset) { _, label in
                 Label { SquareSafetyLabel(value: label) } icon: { Image(systemName: "exclamationmark.triangle") }

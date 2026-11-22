@@ -19,12 +19,12 @@ import SwiftUI
                 }
                 .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                 memberScoreText("score.kind.\(row.kind.rawValue)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                 Text(verbatim: sessionLine(row))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -34,7 +34,7 @@ import SwiftUI
                         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                     if let note = value.resolutionNote, !note.isEmpty {
                         Text(verbatim: note)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
@@ -42,10 +42,10 @@ import SwiftUI
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         memberScoreText("score.detail.centi")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: String(value.totalCenti))
-                            .font(CYTypography.dataXL)
+                            .cyText(.dataXL)
                             .foregroundStyle(CYColor.textPrimary)
                             .monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
@@ -67,7 +67,7 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
@@ -78,7 +78,7 @@ import SwiftUI
                     .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
             }
             memberScoreText("score.detail.boundary")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
                 .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))

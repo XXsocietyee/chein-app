@@ -11,7 +11,7 @@ struct GroupCheckoutPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("wp07.group.title", tableName: "WP07Commerce")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             switch phase {
             case .loading:
@@ -21,7 +21,7 @@ struct GroupCheckoutPanel: View {
             case .failed:
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text("wp07.group.error", tableName: "WP07Commerce")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                     Button(action: onRetry) {
                         Text("wp07.group.retry", tableName: "WP07Commerce")
@@ -33,7 +33,7 @@ struct GroupCheckoutPanel: View {
             case .ready(let display):
                 if display.isEmpty {
                     Text("wp07.group.empty", tableName: "WP07Commerce")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("wp07.group.empty")
                 } else {
@@ -52,12 +52,12 @@ struct GroupCheckoutPanel: View {
             labeled(Text("wp07.group.total", tableName: "WP07Commerce"), value: Text(verbatim: display.totalText ?? "—"), identifier: "wp07.group.total")
             if display.totalText != nil {
                 Text("registration.form.currencyUnknown")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
             if MPCommerceGate.purchasesEnabled {
                 Text("wp07.group.createClosed", tableName: "WP07Commerce")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             } else {
                 MPGatedNote(text: Text("wp07.group.createClosed", tableName: "WP07Commerce"), identifier: "wp07.group.createOff")
@@ -75,7 +75,7 @@ struct GroupCheckoutPanel: View {
 
     private func labeled(_ title: Text, value: Text, identifier: String) -> some View {
         LabeledContent { value.foregroundStyle(CYColor.textPrimary).monospacedDigit() } label: { title }
-            .font(CYTypography.bodyCompact)
+            .cyText(.bodyCompact)
             .accessibilityIdentifier(identifier)
     }
 }
@@ -86,7 +86,7 @@ struct PassActivatePanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text("wp07.activate.title", tableName: "WP07Commerce")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             if let topicID, !topicID.isEmpty {
                 LabeledContent {
@@ -94,18 +94,18 @@ struct PassActivatePanel: View {
                 } label: {
                     Text("wp07.activate.topic", tableName: "WP07Commerce")
                 }
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .accessibilityIdentifier("wp07.activate.topic")
                 if MPCommerceGate.purchasesEnabled && ReviewedAreaSwitch.moneyPayments {
                     Text("wp07.activate.closed", tableName: "WP07Commerce")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 } else {
                     MPGatedNote(text: Text("wp07.activate.closed", tableName: "WP07Commerce"), identifier: "wp07.activate.off")
                 }
             } else {
                 Text("wp07.activate.empty", tableName: "WP07Commerce")
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("wp07.activate.empty")
             }
@@ -180,7 +180,7 @@ struct CouponUsabilitySection: View {
             }
             .accessibilityIdentifier("wp07.coupon.deduct")
             Text("wp07.coupon.readOnly", tableName: "WP07Commerce")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
         } header: {
             Text("wp07.coupon.title", tableName: "WP07Commerce")

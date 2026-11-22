@@ -31,7 +31,7 @@ import SwiftUI
                 Section { merchantCreationNotice(Text("merchantSuggestionEdit.boundary"), systemImage: "pencil.and.outline") }
                 if let edit = model.edit, model.isCurrent {
                     Section("merchantSuggestionEdit.yourVersion") {
-                        Text(LocalizedStringKey(edit.action.field.titleKey)).font(Theme.Font.cardTitle)
+                        Text(LocalizedStringKey(edit.action.field.titleKey)).cyText(.cardTitle)
                             .accessibilityAddTraits(.isHeader).fixedSize(horizontal: false, vertical: true)
                         TextField("merchantSuggestionEdit.text", text: Binding(get: { model.edit?.text ?? "" }, set: model.update), axis: .vertical)
                             .lineLimit(3...12).accessibilityIdentifier("merchantSuggestionEdit.text")
@@ -47,11 +47,11 @@ import SwiftUI
                             .disabled(!model.canSave).accessibilityIdentifier("merchantSuggestionEdit.save")
                     }
                     Section(LocalizedStringKey(edit.action.field.titleKey)) {
-                        Text("merchantSuggestionEdit.originalDraft").font(Theme.Font.label).foregroundStyle(.secondary)
+                        Text("merchantSuggestionEdit.originalDraft").cyText(.label).foregroundStyle(.secondary)
                         if edit.originalDraft.isEmpty { Text("merchant.assist.diff.empty").foregroundStyle(.secondary) }
                         else { Text(verbatim: edit.originalDraft).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
                         Divider()
-                        Text("merchantSuggestionEdit.generated").font(Theme.Font.label).foregroundStyle(.secondary)
+                        Text("merchantSuggestionEdit.generated").cyText(.label).foregroundStyle(.secondary)
                         Text(verbatim: edit.generatedText).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     }
                 } else { merchantCreationNotice(Text("merchantSuggestionEdit.stale"), systemImage: "lock").accessibilityIdentifier("merchantSuggestionEdit.stale") }

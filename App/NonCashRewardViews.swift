@@ -47,7 +47,7 @@ import SwiftUI
         List {
             CYHeroHeader("rewards.title")
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            if reader.isOfflineExample { Text("rewards.demo").font(.footnote).accessibilityIdentifier("rewards.demo") }
+            if reader.isOfflineExample { Text("rewards.demo").cyText(.bodyCompact).accessibilityIdentifier("rewards.demo") }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured {
                 CYEmptyState(systemImage: "gift", "rewards.unavailable", detail: "rewards.unavailableHint")
@@ -96,8 +96,8 @@ private struct NonCashRewardCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(LocalizedStringKey("rewards.state." + reward.state.rawValue), systemImage: "gift")
-                .font(.caption.weight(.semibold))
-            Text(verbatim: reward.rewardTitle).font(.title3.weight(.semibold))
+                .cyText(.meta, weight: .semibold)
+            Text(verbatim: reward.rewardTitle).cyText(.sectionTitle)
             LabeledContent("rewards.quantity", value: String(reward.quantity))
             LabeledContent("rewards.validUntil") { Text(reward.validUntil, style: .date) }
         }
@@ -164,8 +164,8 @@ private struct NonCashRewardCard: View {
             if presentationAllowed {
                 NavigationStack {
                     VStack(alignment: .leading, spacing: 24) {
-                        Label("rewards.demo", systemImage: "eye.slash").font(.headline)
-                        Text("rewards.presentationHint"); Text("rewards.singleUse"); Text("rewards.noCredential").font(.footnote)
+                        Label("rewards.demo", systemImage: "eye.slash").cyText(.cardTitle)
+                        Text("rewards.presentationHint"); Text("rewards.singleUse"); Text("rewards.noCredential").cyText(.bodyCompact)
                     }.padding().accessibilityIdentifier("rewards.presentation")
                         .appNavigationTitle("rewards.present")
                         .toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -243,14 +243,14 @@ private struct NonCashRewardCard: View {
     let present: () -> Void
     var body: some View {
         Group {
-            if reader.isOfflineExample { Text("rewards.demo").font(.footnote) }
+            if reader.isOfflineExample { Text("rewards.demo").cyText(.bodyCompact) }
             NonCashRewardCard(reward: reward).questifyCardListRow()
             Section("rewards.conditions") {
                 LabeledContent("rewards.reference", value: reward.awardId)
                 LabeledContent("rewards.merchant", value: reward.merchantId)
                 LabeledContent("rewards.store", value: reward.storeId)
                 Text(verbatim: reward.redemptionConditions)
-                Text("rewards.bound").font(.footnote)
+                Text("rewards.bound").cyText(.bodyCompact)
                 Text(LocalizedStringKey("rewards.fulfillment." + reward.fulfillmentStatus.rawValue))
             }
             Section("accountCollection.coupon.validity") {
@@ -258,8 +258,8 @@ private struct NonCashRewardCard: View {
                 LabeledContent("accountCollection.coupon.validUntil") { Text(reward.validUntil, format: .dateTime) }
                 LabeledContent("rewards.asOf") { Text(reward.asOf, format: .dateTime) }
                 Text(LocalizedStringKey("rewards.validity." + reward.validityStatus.rawValue))
-                Text("rewards.expiryHint").font(.footnote)
-                Text("rewards.read.frozenTerms").font(.footnote).accessibilityIdentifier("rewards.read.frozenTerms")
+                Text("rewards.expiryHint").cyText(.meta)
+                Text("rewards.read.frozenTerms").cyText(.meta).accessibilityIdentifier("rewards.read.frozenTerms")
             }
             Section {
                 if reader.isOfflineExample, reward.canPresent(at: NonCashRewardDemo.now) {
@@ -269,7 +269,7 @@ private struct NonCashRewardCard: View {
                 } else {
                     Text("rewards.notPresentable").accessibilityIdentifier("rewards.notPresentable")
                 }
-                Text("rewards.support").font(.footnote)
+                Text("rewards.support").cyText(.bodyCompact)
             }
         }
     }

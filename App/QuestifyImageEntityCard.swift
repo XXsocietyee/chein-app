@@ -39,8 +39,8 @@ struct QuestifyImageEntityCard<Details:View>:View {
             LinearGradient(colors:[.clear,.black.opacity(scrimOpacity)],startPoint:.top,endPoint:.bottom)
                 .frame(height:72).accessibilityHidden(true)
             VStack(alignment:.leading,spacing:10) {
-                if title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { Text(fallbackTitle).font(.title2.weight(.bold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true) }
-                else { Text(verbatim:title).font(.title2.weight(.bold)).lineLimit(nil).fixedSize(horizontal:false,vertical:true) }
+                if title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty { Text(fallbackTitle).cyText(.sheetTitle).lineLimit(nil).fixedSize(horizontal:false,vertical:true) }
+                else { Text(verbatim:title).cyText(.sheetTitle).lineLimit(nil).fixedSize(horizontal:false,vertical:true) }
                 if let subtitle,!subtitle.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty {
                     Text(verbatim:subtitle).font(.subheadline).lineLimit(nil)
                         .fixedSize(horizontal:false,vertical:true)

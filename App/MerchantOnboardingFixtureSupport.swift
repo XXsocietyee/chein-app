@@ -23,7 +23,7 @@ struct MerchantOnboardingFixtureRoot: View {
                         if let diagnostics = MerchantOnboardingFixtureDiagnostics.current {
                             MerchantOnboardingDiagnosticNotice(diagnostics: diagnostics)
                         } else {
-                            Text("merchant.onboarding.fixture.notice").font(.caption)
+                            Text("merchant.onboarding.fixture.notice").cyText(.meta)
                                 .accessibilityIdentifier("merchant.onboarding.fixture.notice")
                         }
                         Text(String(fixture.submissionCount)).accessibilityIdentifier("merchant.onboarding.fixture.writeCount")
@@ -143,7 +143,7 @@ final class MerchantOnboardingFixtureDiagnostics: ObservableObject {
 private struct MerchantOnboardingDiagnosticNotice: View {
     @ObservedObject var diagnostics: MerchantOnboardingFixtureDiagnostics
     var body: some View {
-        Text("merchant.onboarding.fixture.notice").font(.caption)
+        Text("merchant.onboarding.fixture.notice").cyText(.meta)
             .accessibilityIdentifier("merchant.onboarding.fixture.notice")
             .accessibilityValue(diagnostics.evidence)
     }

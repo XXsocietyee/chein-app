@@ -55,7 +55,7 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
                     if model.isLoading || model.loadedScope == nil { ProgressView("profile.loading") }
                     if let issue = model.issue {
                         Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("profile.selfOrders.issue")
-                        if model.rows != nil { Text("profile.selfOrders.stale").font(.caption) }
+                        if model.rows != nil { Text("profile.selfOrders.stale").cyText(.meta) }
                         if issue == .readFailed {
                             Button("action.retry") { Task { await model.load(reader: reader) } }
                                 .disabled(model.isLoading).accessibilityIdentifier("profile.selfOrders.retry")
@@ -100,7 +100,7 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
             if let title = order.title, !title.isEmpty { Text(verbatim: title) }
             else { Text("profile.orders.untitled") }
             if let created = ProfileSelfOrdersPreview.createdLabel(order.createTime) {
-                Text(verbatim: created).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: created).cyText(.meta).foregroundStyle(.secondary)
             }
         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }

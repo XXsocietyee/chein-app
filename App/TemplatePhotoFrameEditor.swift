@@ -99,9 +99,9 @@ import Combine
         Form {
             Section {
                 if editor.needsReload {
-                    Text("templateFrame.changed").font(.caption)
+                    Text("templateFrame.changed").cyText(.meta)
                     Button("templateFrame.reload") { editor.reload() }.disabled(!editor.canReload)
-                } else if !editor.isSupported { Text("templateFrame.unsupported").font(.caption) }
+                } else if !editor.isSupported { Text("templateFrame.unsupported").cyText(.meta) }
             }
             Section("creator.field.frameUrl") {
                 TextField("creator.field.frameUrl", text: editor.referenceInput(), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
@@ -111,12 +111,12 @@ import Combine
             if editor.isSupported && !editor.reference.isEmpty {
                 Section("creator.field.frameOpacity") {
                     Slider(value: editor.opacityInput(), in: 0...100, step: 5).disabled(!editor.canAdjustOpacity).accessibilityLabel("creator.field.frameOpacity").accessibilityIdentifier("creator.frame.opacity")
-                    Text("templateFrame.opacity \(Int(editor.opacity))").font(.caption)
+                    Text("templateFrame.opacity \(Int(editor.opacity))").cyText(.meta)
                 }
             }
             Section("templateFrame.preview") {
                 Button("templateFrame.load", systemImage: "photo", action: editor.loadAction()).disabled(!editor.canLoad).accessibilityIdentifier("creator.frame.load")
-                if !editor.canLoad { Text("templateFrame.previewUnavailable").font(.caption) }
+                if !editor.canLoad { Text("templateFrame.previewUnavailable").cyText(.meta) }
                 if let request = editor.scene { preview(request).id(request.id) }
             }
             if !editor.issues.isEmpty {

@@ -64,10 +64,10 @@ import SwiftUI
                     guard let opening else { return }; controller.open(opening)
                 }.buttonStyle(.borderless).disabled(opening == nil).accessibilityIdentifier("topicReview.open")
                 if model.coordinator.isReadOnly {
-                    Text("projectEdit.lockedFields").font(.footnote)
+                    Text("projectEdit.lockedFields").cyText(.bodyCompact)
                 } else if opening == nil {
                     Text(String(localized: LocalizedStringResource("topicReview.unconfigured", defaultValue: "New review requests are not configured for this account, mode or submission. The original submission receipt is retained.", locale: locale)))
-                        .font(.footnote).accessibilityIdentifier("topicReview.unconfigured")
+                        .cyText(.bodyCompact).accessibilityIdentifier("topicReview.unconfigured")
                 }
             }
         }

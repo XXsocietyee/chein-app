@@ -294,11 +294,11 @@ struct PlayCloseResultSheet: View {
         CYSheetContainer(title: title, closeIdentifier: closeIdentifier, onClose: onClose) {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text(verbatim: message)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                 if let detail, !detail.isEmpty {
                     Text(verbatim: detail)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
                 CurA11yActions {
@@ -397,7 +397,7 @@ struct PlayCloseResultSheet: View {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         if let code = snapshot?.credential, !code.isEmpty {
                             Text(verbatim: PlayCloseCopy.text("当前签到码：\(code)", "Current code: \(code)", locale))
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                         }
                         if organizer {

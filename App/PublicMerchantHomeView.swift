@@ -157,7 +157,7 @@ import SwiftUI
     @ViewBuilder private func profile(_ value: PublicMerchantHome) -> some View {
         if context.reader.isOfflineExample {
             Text("merchant.publicHome.synthetic")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textSecondary)
         }
         Section {

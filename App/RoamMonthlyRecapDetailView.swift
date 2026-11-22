@@ -18,11 +18,11 @@ import SwiftUI
                 else if model.isCurrent(presentation) {
                     List {
                         Section {
-                            Text(verbatim: presentation.record.title).font(Theme.Font.sheetTitle)
+                            Text(verbatim: presentation.record.title).cyText(.sheetTitle)
                             LabeledContent {
                                 Text(verbatim: presentation.record.occurredAt)
                             } label: { Text(verbatim: localized("occurredAt")) }
-                            Text(verbatim: localized("shanghai")).font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: localized("shanghai")).cyText(.meta).foregroundStyle(.secondary)
                         }
                         if let topicID = presentation.topicID, let routeDestination {
                             NavigationLink {

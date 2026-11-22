@@ -102,7 +102,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: CYUnknownValue.string(model.card?.title ?? item?.title))
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                 CYStatusTag("released.claimable", state: .neutral, tableName: "DesignR1")
             }
@@ -162,7 +162,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             CYSectionHeader(LocalizedStringKey(copy("地产卡", "Deed card")))
             Text(verbatim: card?.title ?? item.title ?? item.id)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             HStack(spacing: CYSpacing.sm) {
                 if let tier {

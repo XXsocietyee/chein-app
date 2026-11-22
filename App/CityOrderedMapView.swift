@@ -103,13 +103,13 @@ struct CityOrderedMapContent: View {
         return Button { select(on ? nil : point.pointId) } label: {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 VStack(spacing: 0) {
-                    Text(verbatim: "\(index + 1)").font(CYTypography.meta.weight(.bold)).foregroundStyle(on ? CYColor.textInverse : CYColor.textPrimary)
+                    Text(verbatim: "\(index + 1)").cyText(.meta, weight: .bold).foregroundStyle(on ? CYColor.textInverse : CYColor.textPrimary)
                         .frame(width: 28, height: 28).background(on ? CYColor.textPrimary : CYColor.bgRaised, in: Circle())
                     if !last { Rectangle().fill(CYColor.bgRaised).frame(width: 2).frame(maxHeight: .infinity) }
                 }
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: point.title).font(CYTypography.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.leading)
-                    Text(verbatim: availability(point.availability) + " · " + ownership(point.ownership)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: point.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.leading)
+                    Text(verbatim: availability(point.availability) + " · " + ownership(point.ownership)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.padding(.bottom, last ? 0 : CYSpacing.lg)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)

@@ -21,7 +21,7 @@ extension EnvironmentValues {
     let action: MerchantCityTemplateReturnAction
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("merchant.cityTemplate.savedOnly").font(.caption).fixedSize(horizontal: false, vertical: true)
+            Text("merchant.cityTemplate.savedOnly").cyText(.meta).fixedSize(horizontal: false, vertical: true)
             Button("merchant.cityTemplate.useSaved") { Task { await action.returnSaved(coordinator) } }
                 .buttonStyle(.questifyPrimary).disabled(!action.canReturn(coordinator))
                 .accessibilityIdentifier("merchant.cityTemplate.useSaved")
@@ -45,9 +45,9 @@ extension EnvironmentValues {
             }
                 .disabled(!model.active || factory == nil || !binding.canOpen() || model.busy || model.opening != nil)
                 .accessibilityIdentifier("merchant.cityTemplate.configure")
-            Text("merchant.cityTemplate.scope").font(.caption).fixedSize(horizontal: false, vertical: true)
+            Text("merchant.cityTemplate.scope").cyText(.meta).fixedSize(horizontal: false, vertical: true)
             if model.busy && model.opening == nil { ProgressView("merchant.loading") }
-            if factory == nil { Text("merchant.cityTemplate.unavailable").font(.caption) }
+            if factory == nil { Text("merchant.cityTemplate.unavailable").cyText(.meta) }
             if model.recoveryNeeded, model.opening == nil, binding.snapshot() == nil {
                 Button("merchant.cityTemplate.retryPlacementRead") {
                     let permit = model.generation
@@ -55,8 +55,8 @@ extension EnvironmentValues {
                 }
                     .disabled(!model.active || model.busy || !binding.canReload()).accessibilityIdentifier("merchant.cityTemplate.retryPlacementRead")
             }
-            if model.applied { Text("merchant.cityTemplate.applied").font(.caption).accessibilityIdentifier("merchant.cityTemplate.applied") }
-            if let issue = model.issue, model.opening == nil { Text(LocalizedStringKey(issue.key)).font(.caption) }
+            if model.applied { Text("merchant.cityTemplate.applied").cyText(.meta).accessibilityIdentifier("merchant.cityTemplate.applied") }
+            if let issue = model.issue, model.opening == nil { Text(LocalizedStringKey(issue.key)).cyText(.meta) }
         }
 
     }

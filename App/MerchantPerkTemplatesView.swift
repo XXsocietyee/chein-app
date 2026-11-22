@@ -91,7 +91,7 @@ import SwiftUI
         case .ready:
             List {
                 if model.action != .idle { Section { actionBanner } }
-                if model.refreshing { Section { ProgressView("merchant.perks.refreshing").font(CYTypography.meta) } }
+                if model.refreshing { Section { ProgressView("merchant.perks.refreshing").cyText(.meta) } }
                 if model.rows.isEmpty {
                     Section {
                         CYEmptyStateView(systemImage: "gift", title: "merchant.perks.empty")
@@ -124,9 +124,9 @@ import SwiftUI
 
     private func bannerText(_ key: LocalizedStringKey, tint: Color) -> some View {
         HStack {
-            Text(key).font(CYTypography.bodyCompact).foregroundStyle(tint)
+            Text(key).cyText(.bodyCompact).foregroundStyle(tint)
             Spacer()
-            Button("action.close") { model.dismissAction() }.font(CYTypography.meta).frame(minHeight: CYSpacing.minTouchTarget)
+            Button("action.close") { model.dismissAction() }.cyText(.meta).frame(minHeight: CYSpacing.minTouchTarget)
         }
         .accessibilityElement(children: .combine).accessibilityIdentifier("merchant.perks.banner")
     }
@@ -147,15 +147,15 @@ import SwiftUI
     private func rowView(_ row: MerchantPerkTemplateRow) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(verbatim: row.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: row.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Spacer()
                 if row.usable {
-                    Text(typeKey(row.typeIndex)).font(CYTypography.caption)
+                    Text(typeKey(row.typeIndex)).cyText(.caption)
                         .foregroundStyle(CYColor.brand)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.brandSoft, in: Capsule())
                 } else {
-                    Text("merchant.perks.expired").font(CYTypography.caption)
+                    Text("merchant.perks.expired").cyText(.caption)
                         .foregroundStyle(CYColor.warningText)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.warningSoft, in: Capsule())
@@ -166,7 +166,7 @@ import SwiftUI
                 if let cost = row.unitCost { fact("merchant.perks.cost", NSDecimalNumber(decimal: cost).stringValue) }
                 if let quota = row.quota { fact("merchant.perks.quota", String(quota)) }
                 if let end = row.validEnd { fact("merchant.perks.validUntil", end) }
-            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .swipeActions {
@@ -207,11 +207,11 @@ import SwiftUI
                 }
                 if let field = MerchantPerkTemplateFormPort.firstInvalidField(draft, validEnd: validEndEnabled ? Self.wire(validEndDate) : "", now: Date()),
                    MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled) {
-                    Text(LocalizedStringKey("merchant.perks.form.hint." + field.rawValue)).font(.footnote).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey("merchant.perks.form.hint." + field.rawValue)).cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityIdentifier("merchant.perks.form.hint")
                 }
                 if !model.canWrite(.deleteTemplate(id: 1)) {
-                    Text("merchant.perks.notAvailable").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchant.perks.notAvailable").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
             .appNavigationTitle("merchant.perks.form.title")

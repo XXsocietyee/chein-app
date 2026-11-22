@@ -77,7 +77,7 @@ import SwiftUI
                         Text(saved.actKeys(index).isEmpty ? "原规则：不限定幕" : "原限用幕：" + saved.actKeys(index).joined(separator:", "))
                     }
                     Text(saved.noEffectPolicy == "true" ? "原规则：无效果仍消耗次数。" : "原规则：无效果不消耗次数。")
-                    Text("这是编辑器本次读取的原基线，不是下方尚未保存的编辑副本，也不代表旧局已更新。").font(.caption)
+                    Text("这是编辑器本次读取的原基线，不是下方尚未保存的编辑副本，也不代表旧局已更新。").cyText(.meta)
                 }
             }
             if editor == nil {
@@ -115,7 +115,7 @@ import SwiftUI
     @ViewBuilder private func recoveryRow(_ index: Int, draft: NativeSharedRecoveryAuthorDraft) -> some View {
         let editorID = capture?.id, editRevision = bufferRevision
         VStack(alignment:.leading,spacing:8) {
-            Text("恢复方式 \(index + 1)").font(.headline).accessibilityAddTraits(.isHeader)
+            Text("恢复方式 \(index + 1)").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
             TextField("明确填写原恢复标识",text:binding(index,"recoveryKey")).textInputAutocapitalization(.never).autocorrectionDisabled()
             Picker("原恢复种类",selection:binding(index,"kind")) {
                 Text("请选择，不预设").tag(""); Text("休整 REST").tag("REST"); Text("救助 RESCUE").tag("RESCUE")

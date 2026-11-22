@@ -9,7 +9,7 @@ struct ProfileInviteHistoryIssueView: View {
         let kind = ProfileInviteHistoryIssueKind(error)
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYStatusChip(LocalizedStringKey(kind.titleKey), tone: .warning, systemImage: "exclamationmark.circle")
-            if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             if kind.canRetry, let retry { CYPillButton("action.retry", style: .secondary, fullWidth: false, action: retry) }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("profile.inviteHistory.issue")
     }
@@ -27,7 +27,7 @@ struct ProfileInviteHistorySummaryLine: View {
     let total: Int?
     var body: some View {
         if let total {
-            Text("profile.inviteHistoryP2.summary \(total)").font(.headline)
+            Text("profile.inviteHistoryP2.summary \(total)").cyText(.cardTitle)
                 .accessibilityIdentifier("profile.inviteHistory.summary")
         }
     }

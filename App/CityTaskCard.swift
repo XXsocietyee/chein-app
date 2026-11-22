@@ -24,20 +24,20 @@ struct CityTaskCard: View {
     var body: some View {
         CYInfoCard {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                 HStack(spacing: CYSpacing.sm) {
-                    statusText.font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    statusText.cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary)
                     Text(verbatim: "·").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                     Text(verbatim: ChannelCopy.text("已答 \(attempts) / \(maxAttempts) 次", "\(attempts) of \(maxAttempts) attempts used", locale: locale))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
             }
             CYStepIndicator(titles: [ChannelCopy.text("接受", "Accept", locale: locale),
                                      ChannelCopy.text("作答", "Answer", locale: locale),
                                      ChannelCopy.text("完成", "Done", locale: locale)], current: step)
-            Text(verbatim: question).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-            if let note { note.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+            Text(verbatim: question).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            if let note { note.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
             if status == "ACTIVE" {
                 VStack(spacing: CYSpacing.sm) {
                     ForEach(options) { option in optionRow(option) }

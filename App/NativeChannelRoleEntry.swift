@@ -64,9 +64,9 @@ import SwiftUI
                         if flow.memberReadUnavailable { Text("d7.channelRoles.membersUnavailable").foregroundStyle(.secondary) }
                         ForEach(flow.members) { row in
                             VStack(alignment:.leading,spacing:Theme.Space.s1) {
-                                Text(verbatim:row.nickname).font(Theme.Font.sectionTitle).fixedSize(horizontal:false,vertical:true)
+                                Text(verbatim:row.nickname).cyText(.sectionTitle).fixedSize(horizontal:false,vertical:true)
                                 Text(verbatim:roleNames(row.roleIDs,in:flow)).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true)
-                                if let joined=row.joinTime { Text(verbatim:joined).font(.footnote).foregroundStyle(.secondary) }
+                                if let joined=row.joinTime { Text(verbatim:joined).cyText(.meta).foregroundStyle(.secondary) }
                             }
                             .swipeActions(edge:.trailing) {
                                 if !flow.hasPending {

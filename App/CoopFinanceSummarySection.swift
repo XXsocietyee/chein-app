@@ -9,7 +9,7 @@ struct CoopFinanceSummarySection: View {
             VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 Text("member.finance.credited", tableName: "MemberProfile")
                     .font(.subheadline).foregroundStyle(.secondary)
-                amount(summary.creditedIncome).font(.largeTitle.weight(.semibold))
+                amount(summary.creditedIncome).cyText(.pageTitle)
                     .fixedSize(horizontal: false, vertical: true)
             }.padding(.vertical, Theme.Space.s2)
                 .accessibilityElement(children: .combine)
@@ -25,7 +25,7 @@ struct CoopFinanceSummarySection: View {
                 }.accessibilityIdentifier("coopflow.summary.executed")
             }
             if let reason = summary.pendingReason {
-                Text(verbatim: reason).font(.footnote).foregroundStyle(.secondary)
+                Text(verbatim: reason).cyText(.bodyCompact).foregroundStyle(.secondary)
             }
         } footer: {
             Text("member.finance.explainer", tableName: "MemberProfile")
@@ -48,7 +48,7 @@ struct CoopOperationListPresentation: ViewModifier {
         content.listStyle(.insetGrouped)
             .listSectionSpacing(Theme.Space.s4)
             .environment(\.defaultMinListRowHeight, 52)
-            .font(.body)
+            .cyText(.body)
             .navigationBarTitleDisplayMode(.inline)
     }
 }

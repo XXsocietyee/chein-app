@@ -28,7 +28,7 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
                             HStack(alignment: .firstTextBaseline) {
                                 Label(nativeWebhookInboundText(log.state), systemImage: log.state == .unknown ? "clock.arrow.circlepath" : "arrow.down.doc")
-                                    .font(Theme.Font.sectionTitle)
+                                    .cyText(.sectionTitle)
                                 Spacer(minLength: Theme.Space.s2)
                                 if let time = log.createdAt {
                                     Text(time.date, format: .dateTime.month().day().hour().minute()).font(.subheadline).foregroundStyle(.secondary)

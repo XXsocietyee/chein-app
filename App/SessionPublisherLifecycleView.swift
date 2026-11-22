@@ -34,7 +34,7 @@ import SwiftUI
                 } else if failed { Text("publisher.host.unavailable") }
                 else { CYSkeleton() }
             } else { Text("publisher.host.unavailable") }
-            Text("publisher.host.dormant").font(.footnote)
+            Text("publisher.host.dormant").cyText(.bodyCompact)
         }
         .cyHeroScreen()
         .task(id: session.publishingSession) { await load() }

@@ -130,7 +130,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.favorites.loadMore")
                 } else if !model.state.visibleRows(scope: key.scope).isEmpty {
-                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.favorites.end")
                 }
             }
@@ -304,7 +304,7 @@ private struct AccountCollectionFavoriteCard: View {
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.posts.loadMore")
                 } else if !model.state.visibleRows(scope: key.scope).isEmpty {
-                    Text("member.favorites.postsEnd", tableName: "MemberProfile").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("member.favorites.postsEnd", tableName: "MemberProfile").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.posts.end")
                 }
             }

@@ -47,7 +47,7 @@ import SwiftUI
     var body: some View {
         VStack(spacing: 0) {
             Button("projectEdit.fixture.signOut") { context.signOut() }
-                .accessibilityIdentifier("projectOwned.fixture.signOut").font(.caption).dynamicTypeSize(.large)
+                .accessibilityIdentifier("projectOwned.fixture.signOut").cyText(.meta).dynamicTypeSize(.large)
             NavigationStack {
                 ProjectOwnedContentBrowser(reader: context.reader, revision: context.revision,
                     makeEditor: { context.editor($0) }, detail: { destination in

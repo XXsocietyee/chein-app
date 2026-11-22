@@ -105,7 +105,7 @@ extension EnvironmentValues {
 
             Section {
                 Text("merchant.cityRedeem.code")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 SecureField("merchant.cityRedeem.code", text: $raw)
@@ -113,7 +113,7 @@ extension EnvironmentValues {
                     .focused($codeFocused).privacySensitive().disabled(!model.isAvailable || model.blocksAllTargets || busy || model.coordinator.review != nil)
                     .accessibilityIdentifier("merchant.cityRedeem.code")
                 Text("merchant.cityRedeem.cameraConsent")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -142,7 +142,7 @@ extension EnvironmentValues {
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text("merchant.cityRedeem.processing")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         CYSkeleton().accessibilityHidden(true)
@@ -165,7 +165,7 @@ extension EnvironmentValues {
                             systemImage: result.redeemed ? "checkmark.circle" : "exclamationmark.circle"
                         )
                         Text(verbatim: shown(result.message))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
@@ -173,11 +173,11 @@ extension EnvironmentValues {
                     }
                     if let unverified = result.unverifiedServerMessage, !unverified.isEmpty {
                         Text(verbatim: "服务返回（尚未确认为本次回执）")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: unverified)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
@@ -191,26 +191,26 @@ extension EnvironmentValues {
                 Section {
                     if let result = model.coordinator.result, !result.isUnknown {
                         Text(verbatim: "服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else if pending == .legacy {
                         Text(verbatim: CityNodeRedemptionResult.legacyGuidance)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else if pending == .storage {
                         Text(verbatim: "本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(verbatim: CityNodeRedemptionResult.unknownGuidance)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: "可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

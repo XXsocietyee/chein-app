@@ -33,9 +33,9 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 HStack(spacing: CYSpacing.sm) {
                     Image(systemName: "dice.fill").font(.title3).foregroundStyle(CYColor.textSecondary)
-                    Text(verbatim: c("Check", "检定")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: c("Check", "检定")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityHidden(true)
-                Text(verbatim: model.problem.skill).font(CYTypography.display).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: model.problem.skill).cyText(.display).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("play.check.skill")
                 CYDiceTierStrip(tier: model.problem.tier)
                 if !model.detailsHidden {
@@ -56,16 +56,16 @@ import SwiftUI
                             .accessibilityIdentifier("play.check.verdict")
                     }
                     let margin = PlayCheckRuntime.marginText(receipt, hidden: model.detailsHidden)
-                    if !margin.isEmpty { Text(verbatim: margin).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if !margin.isEmpty { Text(verbatim: margin).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     let nat = PlayCheckRuntime.natTag(receipt)
-                    if !nat.isEmpty, !model.detailsHidden { Text(verbatim: nat).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if !nat.isEmpty, !model.detailsHidden { Text(verbatim: nat).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     if receipt.settled {
-                        if !receipt.text.isEmpty { Text(verbatim: receipt.text).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
-                        if !receipt.failCostLabel.isEmpty { Text(verbatim: receipt.failCostLabel).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        if !receipt.text.isEmpty { Text(verbatim: receipt.text).cyText(.body).foregroundStyle(CYColor.textSecondary) }
+                        if !receipt.failCostLabel.isEmpty { Text(verbatim: receipt.failCostLabel).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     }
                 }
                 if !model.disabledReason.isEmpty {
-                    Text(verbatim: model.disabledReason).font(CYTypography.meta)
+                    Text(verbatim: model.disabledReason).cyText(.meta)
                         .foregroundStyle(model.unknown ? CYColor.warningText : CYColor.dangerText)
                         .accessibilityIdentifier("play.check.reason")
                 }
@@ -88,7 +88,7 @@ import SwiftUI
                 if model.loading { ProgressView() }
                 // A failed check still advances: closing never blocks the stop.
                 Button { shown = false } label: { Text(verbatim: c("Close", "关闭")) }
-                    .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.label).foregroundStyle(CYColor.textSecondary)
                     .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("play.check.close")
             }
             .padding(CYSpacing.xl)
@@ -115,11 +115,11 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: contact.merchant ? CYKitCopy(locale: locale)("Contact the merchant", contact.label)
                              : CYKitCopy(locale: locale)("Contact the organizer", contact.label))
-                            .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                        if !contact.name.isEmpty { Text(verbatim: contact.name).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                            .cyText(.label).foregroundStyle(CYColor.textPrimary)
+                        if !contact.name.isEmpty { Text(verbatim: contact.name).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         // The number is shown as text; the link beside it is a convenience.
                         HStack(spacing: CYSpacing.sm) {
-                            Text(verbatim: contact.phone).font(CYTypography.body).monospacedDigit().textSelection(.enabled)
+                            Text(verbatim: contact.phone).cyText(.body).monospacedDigit().textSelection(.enabled)
                             if let url = URL(string: "tel:" + contact.phone.filter { $0.isNumber || $0 == "+" }) {
                                 Link(destination: url) { Image(systemName: "phone.fill").accessibilityLabel(Text(verbatim: contact.label)) }
                             }
@@ -334,7 +334,7 @@ import SwiftUI
                             }), in: 0...max(0, reward.quantity)) {
                                 Text(verbatim: copy("Give up \(reward.name): \(reward.discard) of \(reward.quantity)",
                                                     "放弃 \(reward.name)：\(reward.discard) / 本次共 \(reward.quantity) 件"))
-                                    .font(.footnote)
+                                    .cyText(.bodyCompact)
                             }
                             .disabled(flow.busy)
                             .accessibilityIdentifier("play.gameplay.discard.\(reward.itemId)")

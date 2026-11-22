@@ -23,7 +23,7 @@ struct CityHomeRail: View {
                 Button(action: onOpenMap) {
                     HStack(alignment: .firstTextBaseline) {
                         // Section header on the type scale, like 编辑精选 and 附近活动 above and below it; long titles wrap.
-                        Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                        Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                             .monospacedDigit()
                             .cyWrapText()
                         Spacer(minLength: CYSpacing.sm)
@@ -31,7 +31,7 @@ struct CityHomeRail: View {
                             Text(verbatim: copy("全部", "All"))
                             Image(systemName: "chevron.right").imageScale(.small).accessibilityHidden(true)
                         }
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                     }
                     .frame(minHeight: 44).contentShape(Rectangle())
                 }

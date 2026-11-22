@@ -9,24 +9,24 @@ import SwiftUI
         Section {
             if let issue = model.issue {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("profile.complaintProgress.unavailable").font(.subheadline.weight(.semibold))
+                    Text("profile.complaintProgress.unavailable").cyText(.bodyMedium)
                         .accessibilityIdentifier("profile.complaintProgress.issue")
-                    if case .denied(let message?) = issue { Text(verbatim: message).font(.footnote).foregroundStyle(.secondary) }
-                    else { Text(LocalizedStringKey(issue.detailKey)).font(.footnote).foregroundStyle(.secondary) }
+                    if case .denied(let message?) = issue { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(.secondary) }
+                    else { Text(LocalizedStringKey(issue.detailKey)).cyText(.bodyCompact).foregroundStyle(.secondary) }
                 }
             }
             ForEach(model.rows) { row in
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .firstTextBaseline) {
-                        if let name = row.topicName { Text(verbatim: name).font(.subheadline.weight(.semibold)) }
-                        else { Text("profile.complaint.unnamed").font(.subheadline.weight(.semibold)) }
+                        if let name = row.topicName { Text(verbatim: name).cyText(.bodyMedium) }
+                        else { Text("profile.complaint.unnamed").cyText(.bodyMedium) }
                         Spacer(minLength: 8)
-                        if let status = row.statusText { Text(verbatim: status).font(.caption) }
-                        else { Text("profile.complaintProgress.statusUnknown").font(.caption) }
+                        if let status = row.statusText { Text(verbatim: status).cyText(.meta) }
+                        else { Text("profile.complaintProgress.statusUnknown").cyText(.meta) }
                     }
-                    if let reason = row.reason { Text(verbatim: reason).font(.footnote) }
+                    if let reason = row.reason { Text(verbatim: reason).cyText(.bodyCompact) }
                     if let note = row.handleNote {
-                        Text("profile.complaintProgress.handleNote \(note)").font(.footnote).foregroundStyle(.secondary)
+                        Text("profile.complaintProgress.handleNote \(note)").cyText(.bodyCompact).foregroundStyle(.secondary)
                     }
                 }
                 .accessibilityElement(children: .combine)

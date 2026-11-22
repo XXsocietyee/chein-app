@@ -38,7 +38,7 @@ import SwiftUI
     private var content: some View {
         Cloud25Screen(title: installationString("templateEdit.title", locale: locale), seed: editor.installation.requestId, symbol: "square.and.pencil") {
             CYInfoCard {
-                installationText("templateEdit.scope").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                installationText("templateEdit.scope").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 CYListRow(verbatim: Cloud25Copy.value(editor.installation.requestId), trailing: .none) {
                     CYRowIcon(systemImage: "number")
                 }
@@ -57,7 +57,7 @@ import SwiftUI
                     }
                     CYStatusChip(verbatim: state.auditStatus.map(String.init) ?? Cloud25Copy.dash, tone: .neutral, systemImage: "checkmark.shield")
                         .accessibilityLabel(installationText("templateEdit.auditStatus") + Text(verbatim: " \(state.auditStatus.map(String.init) ?? Cloud25Copy.dash)"))
-                    installationText("templateEdit.auditStatus").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    installationText("templateEdit.auditStatus").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
             }
             if let state = editor.state {
@@ -66,7 +66,7 @@ import SwiftUI
                         TextField(text: .init(get: { editor.draft[key] ?? "" }, set: { editor.setText(key, value: $0) }), axis: .vertical) {
                             Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation")
                         }
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .padding(CYSpacing.md)
                         .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
@@ -82,9 +82,9 @@ import SwiftUI
                     }
                 }
                 CYInfoCard {
-                    Text(verbatim: rehearsalText("savedOnly")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: rehearsalText("savedOnly")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     if editor.hasChanges {
-                        Text(verbatim: rehearsalText("unsavedPreserved")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: rehearsalText("unsavedPreserved")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     Cloud25Pill(title: rehearsalText("entry"), primary: false, systemImage: "play.circle", enabled: editor.canReadSavedRehearsal && scenePhase == .active) {
                         readSavedRehearsal()
@@ -104,12 +104,12 @@ import SwiftUI
                     Cloud25Pill(title: installationString("templateEdit.submit", locale: locale), key: "templateEdit.submit", primary: forward == .submit, enabled: editor.canSubmitReview) {
                         prepare("REVIEW")
                     }
-                    installationText("templateEdit.reviewBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    installationText("templateEdit.reviewBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
                 DisclosureGroup {
                     Text(verbatim: state.snapshotJson).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 } label: {
-                    installationText("templateEdit.fullSnapshot").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    installationText("templateEdit.fullSnapshot").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
                 .frame(minHeight: CYSpacing.minTouchTarget)
             }
@@ -151,9 +151,9 @@ import SwiftUI
             NavigationStack {
                 Cloud25Screen(title: installationString("templateEdit.title", locale: locale), seed: original.command.editRequestId, symbol: "checkmark.seal") {
                     CYInfoCard {
-                        installationText("templateEdit.scope").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        installationText("templateEdit.scope").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: original.command.action + " · #" + (original.installation.draftId.map(String.init) ?? Cloud25Copy.dash))
-                            .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: original.command.expectedDraftHash).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         ForEach(original.installation.bindings) { binding in
                             CYListRow(verbatim: binding.kind.rawValue + " · " + binding.label, meta: "#\(binding.resourceId)", trailing: .none) {
@@ -164,10 +164,10 @@ import SwiftUI
                         // Owner sees the complete current audit snapshot before factual confirmation or review submission.
                         Text(verbatim: original.reviewedSnapshotJson).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
-                            installationText("field." + key).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            Text(verbatim: original.command.fields[key] ?? "").font(CYTypography.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            installationText("field." + key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: original.command.fields[key] ?? "").cyText(.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
-                        installationText("templateEdit.reviewBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        installationText("templateEdit.reviewBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                         Cloud25Pill(title: installationString("templateEdit.confirm", locale: locale), key: "templateEdit.confirm", primary: true, enabled: editor.canEdit && editor.review == original) {
                             review = nil
                             Task { await editor.confirm(original) }
@@ -176,7 +176,7 @@ import SwiftUI
                     // Owner sees the complete current audit snapshot before factual confirmation or review submission.
                     Text(verbatim: original.reviewedSnapshotJson).font(.caption.monospaced()).textSelection(.enabled)
                     ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
-                        Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").font(.headline).accessibilityAddTraits(.isHeader)
+                        Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                         Text(verbatim: original.command.fields[key] ?? "").textSelection(.enabled)
                     }
                     Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation")

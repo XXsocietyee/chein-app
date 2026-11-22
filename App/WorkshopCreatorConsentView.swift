@@ -45,15 +45,15 @@ import SwiftUI
             if controller.phase == .loading || controller.phase == .submitting { CYLoadingStateView(rows: 1).accessibilityLabel(Text(verbatim: creatorString("workshopCreator.loading"))) }
             if let issue = controller.issue { Text(creatorString(issueKey(issue))).foregroundStyle(.red).accessibilityIdentifier("workshopCreator.issue") }
             if let pending = controller.pending {
-                Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).font(.caption).textSelection(.enabled) }
+                Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).cyText(.meta).textSelection(.enabled) }
             }
             if let preview = controller.preview {
                 Section(creatorString("workshopCreator.exactSource")) {
-                    Text(creatorString("workshopCreator.textOnly")).font(.footnote)
+                    Text(creatorString("workshopCreator.textOnly")).cyText(.bodyCompact)
                     ForEach(WorkshopCreatorPreview.fieldOrder, id: \.self) { field in
                         if let value = preview.textFields[field] {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(creatorString("workshopCreator.field." + field)).font(.caption).foregroundStyle(.secondary)
+                                Text(creatorString("workshopCreator.field." + field)).cyText(.meta).foregroundStyle(.secondary)
                                 Text(verbatim: value).textSelection(.enabled)
                             }
                         }
@@ -71,7 +71,7 @@ import SwiftUI
                             controller.select(target, appearance: appearance)
                         } label: {
                             HStack {
-                                VStack(alignment: .leading) { Text(verbatim: target.moduleId); Text(verbatim: target.versionId).font(.caption) }
+                                VStack(alignment: .leading) { Text(verbatim: target.moduleId); Text(verbatim: target.versionId).cyText(.meta) }
                                 Spacer()
                                 if controller.selected?.id == target.id { Image(systemName: "checkmark.circle.fill").accessibilityHidden(true) }
                             }
@@ -121,7 +121,7 @@ import SwiftUI
                     LabeledContent(creatorString("workshopCreator.package"), value: receipt.consentReference.moduleId)
                     LabeledContent(creatorString("workshopCreator.version"), value: receipt.consentReference.versionId)
                     LabeledContent(creatorString("workshopCreator.record"), value: receipt.consentReference.consentId)
-                    Text(verbatim: receipt.declaredAt).font(.caption)
+                    Text(verbatim: receipt.declaredAt).cyText(.meta)
                     CYPillButton(verbatim: creatorString("workshopCreator.another"), style: .secondary) { run(controller.offerAnotherReview(appearance)) }
                         .accessibilityIdentifier("workshopCreator.another")
                 }

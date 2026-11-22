@@ -33,9 +33,9 @@ import SwiftUI
                     LabeledContent("merchant.operatorRoster.loadedMembers", value: String(roster.activeMembers.count))
                         .monospacedDigit()
                         .accessibilityIdentifier("merchant.operatorRoster.memberCount")
-                    Text("merchant.operatorRoster.loadedScope").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("merchant.operatorRoster.loadedScope").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     if roster.activeMembers.isEmpty {
-                        Text("merchant.operatorRoster.membersEmpty").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("merchant.operatorRoster.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("merchant.operatorRoster.membersEmpty")
                     }
                     ForEach(roster.activeMembers) { row in rowContent(row) }
@@ -45,14 +45,14 @@ import SwiftUI
                         .monospacedDigit()
                         .accessibilityIdentifier("merchant.operatorRoster.inviteCount")
                     if roster.pendingInvites.isEmpty {
-                        Text("merchant.operatorRoster.invitesEmpty").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("merchant.operatorRoster.invitesEmpty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("merchant.operatorRoster.invitesEmpty")
                     }
                     ForEach(roster.pendingInvites) { row in rowContent(row) }
                 }
                 if roster.hasHistory {
                     Section("merchant.operatorRoster.history") {
-                        Text("merchant.operatorRoster.historyScope").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                        Text("merchant.operatorRoster.historyScope").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         if !roster.previousMembers.isEmpty {
                             DisclosureGroup("merchant.operatorRoster.previousMembers") {
                                 ForEach(roster.previousMembers) { row in rowContent(row) }

@@ -42,7 +42,7 @@ struct EditorResultContent: View {
                 .foregroundStyle(iconColour)
                 .scaleEffect(appeared || reduceMotion ? 1 : 0.8)
                 .accessibilityHidden(true)
-            title.font(.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
+            title.cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if let message {
@@ -130,10 +130,10 @@ struct EditorStateView: View {
                         .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(palette.inputFilledBg))
                         .accessibilityHidden(true)
                         .padding(.bottom, CYSpacing.xs)
-                    (title ?? defaultTitle).font(.headline).foregroundStyle(palette.textPrimary)
+                    (title ?? defaultTitle).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     if let text = message ?? defaultMessage {
-                        text.font(.footnote).foregroundStyle(palette.textSecondary)
+                        text.cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     }
                     if let action {
@@ -253,7 +253,7 @@ struct EditorGameplayPickerGrid: View {
                 DisclosureGroup(isExpanded: $showsUnavailable) {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         if let reason = unavailable.first?.unavailableReason {
-                            Text(verbatim: reason).font(.footnote).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: reason).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                         }
                         ForEach(unavailable) { choice in
                             Label { Text(verbatim: choice.title) } icon: { Image(systemName: choice.systemImage) }
@@ -263,15 +263,15 @@ struct EditorGameplayPickerGrid: View {
                     .padding(.top, CYSpacing.xs)
                 } label: {
                     Text("editorKit.gameplay.unavailable \(unavailable.count)", tableName: EditorKitText.table)
-                        .font(.subheadline.weight(.semibold)).foregroundStyle(palette.textSecondary)
+                        .cyText(.bodyMedium).foregroundStyle(palette.textSecondary)
                 }
                 .accessibilityIdentifier("editorKit.gameplay.unavailable")
             }
             if let picked {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: picked.title).font(.subheadline.weight(.semibold)).foregroundStyle(palette.textPrimary)
-                        Text(verbatim: EditorUnknown.display(picked.summary)).font(.footnote).foregroundStyle(palette.textSecondary)
+                        Text(verbatim: picked.title).cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
+                        Text(verbatim: EditorUnknown.display(picked.summary)).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: CYSpacing.sm)
@@ -332,7 +332,7 @@ struct EditorGameplayPickerGrid: View {
                     }
                 }
                 .editorSelectedBorder(isSelected)
-                Text(verbatim: choice.title).font(.subheadline.weight(.semibold)).foregroundStyle(palette.textPrimary)
+                Text(verbatim: choice.title).cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .contentShape(Rectangle())

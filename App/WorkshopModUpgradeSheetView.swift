@@ -27,10 +27,10 @@ public struct WorkshopModUpgradeSheetView: View {
                 Section(header: Text("workshopUpgrade.manifestTitle")) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: manifestNotice.titleText)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.dangerText)
                         Text(verbatim: manifestNotice.bodyText)
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(.secondary)
                     }
                     .accessibilityIdentifier("workshop.upgrade.manifestIssue")
@@ -40,12 +40,12 @@ public struct WorkshopModUpgradeSheetView: View {
             Section(header: Text(verbatim: presentation.useTermPresentation.titleText)) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(verbatim: presentation.useTermPresentation.versionSummaryText)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                     Text(verbatim: presentation.useTermPresentation.subscriptionSurvivalNotice)
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                     Text(verbatim: presentation.useTermPresentation.redistributionNotice)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityIdentifier("workshop.upgrade.perpetualUseDisclosure")
@@ -53,18 +53,18 @@ public struct WorkshopModUpgradeSheetView: View {
 
             Section(header: Text("workshopUpgrade.diffTitle")) {
                 Text(verbatim: presentation.versionTransitionText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("workshop.upgrade.versionTransition")
 
                 if presentation.addedCapabilities.isEmpty && presentation.removedCapabilities.isEmpty {
                     Text("workshopUpgrade.noFeatureChange")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
                 } else {
                     if !presentation.addedCapabilities.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("workshopUpgrade.added")
-                                .font(.caption.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                                 .foregroundStyle(CYColor.successText)
                             ForEach(presentation.addedCapabilities, id: \.self) { cap in
                                 Text(verbatim: "+ \(cap)")
@@ -77,7 +77,7 @@ public struct WorkshopModUpgradeSheetView: View {
                     if !presentation.removedCapabilities.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("workshopUpgrade.removed")
-                                .font(.caption.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                                 .foregroundStyle(CYColor.warningText)
                             ForEach(presentation.removedCapabilities, id: \.self) { cap in
                                 Text(verbatim: "- \(cap)")
@@ -91,7 +91,7 @@ public struct WorkshopModUpgradeSheetView: View {
                 if !presentation.unchangedCapabilities.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("workshopUpgrade.unchanged")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                         Text(verbatim: presentation.unchangedCapabilities.joined(separator: ", "))
                             .font(.footnote.monospaced())
@@ -103,13 +103,13 @@ public struct WorkshopModUpgradeSheetView: View {
 
             Section(header: Text("workshopUpgrade.rulesTitle")) {
                 Text(verbatim: presentation.pinnedExistingRunsNotice)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("workshop.upgrade.pinnedRunsNotice")
                 Text(verbatim: presentation.reReviewRequirementNotice)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("workshop.upgrade.reReviewNotice")
                 Text(verbatim: presentation.coverageNotice)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(presentation.preview.coverage == .covered ? AnyShapeStyle(.secondary) : AnyShapeStyle(.orange))
                     .accessibilityIdentifier("workshop.upgrade.coverageNotice")
             }
@@ -117,7 +117,7 @@ public struct WorkshopModUpgradeSheetView: View {
             Section(header: Text("workshopUpgrade.confirmTitle")) {
                 Toggle(isOn: $confirmedByBuyer) {
                     Text(verbatim: presentation.confirmationPromptText)
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                 }
                 .accessibilityIdentifier("workshop.upgrade.confirmToggle")
 
@@ -127,14 +127,14 @@ public struct WorkshopModUpgradeSheetView: View {
 
                 if confirmedRequestId != nil {
                     Text("workshopUpgrade.saved")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("workshop.upgrade.confirmedReceipt")
                 }
 
                 if let errorNotice {
                     Text(LocalizedStringKey(errorNotice))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("workshop.upgrade.errorNotice")
                 }

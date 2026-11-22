@@ -35,7 +35,7 @@ import SwiftUI
             .accessibilityIdentifier("mapCore.locationShare.osPermission")
 
             Text(verbatim: "Granting OS location permission never turns on location sharing or roam presence.")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("mapCore.locationShare.permissionNotice")
 
@@ -116,7 +116,7 @@ import SwiftUI
                     Text(verbatim: "Grant \(grant.grantID) • \(grant.precision.rawValue)")
                         .font(.subheadline)
                     Text(verbatim: peerPayloadSummary(for: grant.grantID))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)
@@ -224,7 +224,7 @@ import SwiftUI
                     Text(verbatim: "Pending accept outcome unknown for \(unknownRequest.instanceID) (Attempt #\(unknownRequest.attemptNo))")
                         .font(.subheadline)
                     Text(verbatim: "New accepts stay locked until authoritative server readback resolves this request.")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityIdentifier("mapCore.sideQuest.unknownLockBanner")
@@ -233,7 +233,7 @@ import SwiftUI
             let cards = presentation.discoverableCards(now: now)
             if cards.isEmpty {
                 Text(verbatim: "No discoverable merchant side-quests in the current window.")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("mapCore.sideQuest.emptyCards")
             } else {
@@ -262,26 +262,26 @@ import SwiftUI
                 Image(systemName: card.markerState.symbolName)
                     .accessibilityHidden(true)
                 Text(verbatim: card.title)
-                    .font(.headline)
+                    .cyText(.cardTitle)
             }
 
             Text(verbatim: card.isIndependentOfTheme
                 ? "Scope: Independent Merchant Side-Quest (No Theme Required)"
                 : "Scope: Theme Release \(card.themeReleaseID ?? "")")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: cardMetadataText(card))
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             if card.isCompletedByAuthority {
                 Text(verbatim: "Completed by Server Authority")
-                    .font(.caption)
+                    .cyText(.meta)
                     .accessibilityIdentifier("mapCore.sideQuest.completed.\(card.instanceID)")
             } else if card.evidenceState == .submittedAwaitingReview {
                 Text(verbatim: "Photo evidence submitted — awaiting review (not auto-completed)")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("mapCore.sideQuest.awaitingReview.\(card.instanceID)")
             }
@@ -317,11 +317,11 @@ import SwiftUI
             Text(verbatim: "Attempt #\(attempt.attemptNo) • \(attempt.instanceID) • \(attempt.status.rawValue)")
                 .font(.subheadline)
             Text(verbatim: "Revision \(attempt.revision) • Evidence: \(attempt.evidenceState.rawValue)")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
             if attempt.survivedInstanceExpiryOrRemoval {
                 Text(verbatim: "Preserved after spawn window expiry or viewport removal")
-                    .font(.caption2)
+                    .cyText(.caption)
                     .foregroundStyle(.secondary)
             }
         }

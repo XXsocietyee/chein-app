@@ -134,7 +134,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
             Section {
                 HStack {
                     Text(verbatim: snapshot.statusHeadline)
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isWithinBudget ? "OK" : "OVER_BUDGET")
                         .font(.caption2.monospaced().weight(.bold))
@@ -169,7 +169,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                     Text(verbatim: "系统内存告警自动清理")
                     Spacer()
                     Text(verbatim: snapshot.purgesMemoryOnWarning ? "已开启" : "未开启")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(snapshot.purgesMemoryOnWarning ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mediaCacheBudget.memoryWarningPurge")
@@ -178,7 +178,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                     Text(verbatim: "I05 404/DELETED 媒体即时驱逐")
                     Spacer()
                     Text(verbatim: snapshot.evictsDeletedOr404Immediately ? "已启用" : "未启用")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(snapshot.evictsDeletedOr404Immediately ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mediaCacheBudget.evictionPolicy")
@@ -192,16 +192,16 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(verbatim: pool.title)
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: pool.isWithinBudget ? "正常" : "超限")
-                                .font(.caption2.weight(.semibold))
+                                .cyText(.caption, weight: .semibold)
                                 .foregroundStyle(pool.isWithinBudget ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(
                             verbatim: "内存 \(pool.memoryUsedMB)/\(pool.memoryLimitMB)MB · 磁盘 \(pool.diskUsedMB)/\(pool.diskLimitMB)MB · 404/DELETED 即时淘汰: \(pool.evictsImmediatelyOn404OrDeleted ? "是" : "否")"
                         )
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                     }
                     .accessibilityIdentifier("mediaCacheBudget.pool.\(pool.id)")

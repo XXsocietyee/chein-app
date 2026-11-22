@@ -71,7 +71,7 @@ struct E1CoverArt: View {
         }
         .overlay(alignment: .topTrailing) {
             if debugLabel {
-                Text(verbatim: "DEBUG ART").font(CYTypography.micro.weight(.semibold)).foregroundStyle(.white.opacity(0.5)).padding(6)
+                Text(verbatim: "DEBUG ART").cyText(.micro).foregroundStyle(.white.opacity(0.5)).padding(6)
             }
         }
     }

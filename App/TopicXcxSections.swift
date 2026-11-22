@@ -68,7 +68,7 @@ struct TopicXcxHero: View {
                     HStack(spacing: CYSpacing.sm) {
                         ForEach(topic.categoryNames, id: \.self) { name in
                             Text(verbatim: name)
-                                .font(CYTypography.label)
+                                .cyText(.label)
                                 .foregroundStyle(palette.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(.horizontal, CYSpacing.sm)
@@ -124,16 +124,16 @@ struct TopicXcxStatBar: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(alignment: .firstTextBaseline, spacing: 2) {
                             Text(verbatim: tile.value)
-                                .font(.title3.weight(.semibold))
+                                .cyText(.sectionTitle)
                                 .monospacedDigit()
                                 .foregroundStyle(palette.textPrimary)
                             if let unit = tile.unit {
-                                Text(unit).font(CYTypography.meta).foregroundStyle(palette.textPrimary)
+                                Text(unit).cyText(.meta).foregroundStyle(palette.textPrimary)
                             }
                         }
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
-                        Text(tile.label).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        Text(tile.label).cyText(.meta).foregroundStyle(palette.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine)
@@ -203,8 +203,8 @@ struct TopicXcxLineup: View {
                     UGCBlockedFilterContainer(authorName: member.name) {
                         VStack(spacing: CYSpacing.xs) {
                             CYAvatarView(name: member.name, size: .lg)
-                            Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
-                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: member.name).cyText(.label).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
+                            Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").cyText(.micro).foregroundStyle(CYColor.textTertiary)
                         }
                         .frame(width: 88)
                         .accessibilityElement(children: .combine)
@@ -254,17 +254,17 @@ struct TopicXcxActionBar: View {
         VStack(alignment: .leading, spacing: 2) {
             switch TopicXcxFacts.action(topic) {
             case .ticketWallet:
-                Text("topicXcx.bar.signedUp").font(.title3.weight(.bold)).foregroundStyle(palette.textPrimary)
+                Text("topicXcx.bar.signedUp").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
             case .locked:
                 EmptyView()
             case .selfPlay(let price):
-                priceText(price).font(.title3.weight(.bold)).foregroundStyle(palette.textPrimary).monospacedDigit()
+                priceText(price).cyText(.sectionTitle).foregroundStyle(palette.textPrimary).monospacedDigit()
                 Button(action: openSessions) {
                     HStack(spacing: 2) {
                         Text("topicXcx.cta.sessions")
                         Image(systemName: "chevron.forward").font(.caption2.weight(.semibold)).accessibilityHidden(true)
                     }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                     .contentShape(Rectangle())
@@ -277,8 +277,8 @@ struct TopicXcxActionBar: View {
             case .signUp:
                 if let lowest = lowestTicketPrice {
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        priceText(lowest).font(.title3.weight(.bold)).monospacedDigit()
-                        if lowest > 0 { Text("topicXcx.bar.from").font(CYTypography.meta) }
+                        priceText(lowest).cyText(.sectionTitle).monospacedDigit()
+                        if lowest > 0 { Text("topicXcx.bar.from").cyText(.meta) }
                     }
                     .foregroundStyle(palette.textPrimary)
                 }
@@ -290,7 +290,7 @@ struct TopicXcxActionBar: View {
     var body: some View {
         CYFooterBar {
             VStack(spacing: 6) {
-                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
+                if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").cyText(.bodyCompact).foregroundStyle(palette.warning) }
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     priceColumn
                     Spacer(minLength: CYSpacing.sm)
@@ -425,25 +425,25 @@ struct TopicXcxRouteSection: View {
         Section {
             // Source `route-note`: 固定路线 for city orienteering, 没有固定路线 for free explore.
             Text(topic.productType == 2 ? "u9cde.topic.routeNote.free" : "u9cde.topic.routeNote.fixed")
-                .font(CYTypography.label.weight(.semibold))
+                .cyText(.label, weight: .semibold)
                 .foregroundStyle(topic.productType == 2 ? CYColor.textSecondary : CYNight.ink0)
                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                 .background(Capsule().fill(topic.productType == 2 ? CYNight.glassFill : CYNight.lantern))
                 .accessibilityIdentifier("topic.route.note")
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
-                Text("u9cde.topic.routeConfiguring").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("u9cde.topic.routeConfiguring").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("topic.route.empty")
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
-                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 ForEach(TopicChapterItinerary(chapter: chapter).stops) { stop in
                     VStack(alignment: .leading, spacing: 2) {
-                        if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").font(Theme.Font.label).foregroundStyle(.secondary) }
+                        if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").cyText(.label).foregroundStyle(.secondary) }
                         HStack(alignment: .top) {
-                            Text(verbatim: String(stop.id + 1)).font(Theme.Font.label.weight(.bold).monospacedDigit()).frame(minWidth: 24, minHeight: 24).background(Circle().fill(palette.bgRaised)).accessibilityHidden(true)
+                            Text(verbatim: String(stop.id + 1)).cyText(.label, weight: .bold, monospacedDigit: true).frame(minWidth: 24, minHeight: 24).background(Circle().fill(palette.bgRaised)).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: stop.node.name)
-                                if let hours = stop.node.businessTime { Text(verbatim: hours).font(.caption) }
+                                if let hours = stop.node.businessTime { Text(verbatim: hours).cyText(.meta) }
                                 if let address = stop.node.address { Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption) }
                             }
                         }
@@ -465,7 +465,7 @@ struct TopicXcxSessionChip: View {
                 Text(LocalizedStringKey("topicXcx.weekday." + String(chip.weekday)))
                 Text(verbatim: chip.monthDay)
                 if let time = chip.time { Text(verbatim: time) }
-            }.font(Theme.Font.label.weight(.semibold).monospacedDigit()).accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
+            }.cyText(.label, weight: .semibold, monospacedDigit: true).accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
         }
     }
 }
@@ -482,16 +482,16 @@ struct TopicXcxTemplatesSection: View {
                         ForEach(templates, id: \.id) { template in
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: template.title)
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(palette.textPrimary)
                                     .cyWrapText()
                                 if let players = template.players {
                                     Text(verbatim: players)
-                                        .font(CYTypography.caption)
+                                        .cyText(.caption)
                                         .foregroundStyle(palette.textSecondary)
                                 }
                                 Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))")
-                                    .font(CYTypography.caption)
+                                    .cyText(.caption)
                                     .foregroundStyle(palette.textTertiary)
                             }
                             .frame(width: 152, alignment: .leading)
@@ -520,7 +520,7 @@ struct TopicXcxNodeFootView: View {
         if let merchant = foot.merchant {
             HStack(spacing: 4) {
                 Text(verbatim: merchant + "（" + foot.node + "）").font(.subheadline)
-                if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").font(.caption).foregroundStyle(.secondary) }
+                if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").cyText(.meta).foregroundStyle(.secondary) }
             }.accessibilityIdentifier("topic.nodeFoot")
         }
     }

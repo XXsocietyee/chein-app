@@ -14,13 +14,13 @@ struct PlayTaskSummaryView: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if let title = snapshot.result.topicName {
                 Text(verbatim: title)
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
             }
             LabeledContent("playx.state") { PlayRuntimePhaseText(phase: phase) }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
             if let done = summary.completed, let total = summary.total, let fraction = summary.fraction {
                 CYProgressBar(
@@ -30,7 +30,7 @@ struct PlayTaskSummaryView: View {
                     loadFailed: phase == "failed"
                 )
                 Text(verbatim: String(format: appLocalized("referenceTask.completedCount", locale: locale), locale: locale, done, total))
-                    .font(CYTypography.meta.weight(.semibold)).monospacedDigit()
+                    .cyText(.meta, weight: .semibold).monospacedDigit()
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("referenceTask.count")
                 ProgressView(value: fraction)
@@ -54,7 +54,7 @@ struct PlayTaskSummaryView: View {
                         .accessibilityLabel(Text("play.progress.unknown"))
                         .accessibilityIdentifier("referenceTask.phaseOnly")
                 }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
             }
             if let selection = PlayBranchHistorySelection(snapshot: snapshot), phase == "ready" || phase == "unknown" {
@@ -63,7 +63,7 @@ struct PlayTaskSummaryView: View {
                 }.accessibilityIdentifier("branchHistory.open")
             }
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .foregroundStyle(palette.textPrimary)
         .tint(palette.actionPrimaryBg)
         .accessibilityElement(children: .contain)

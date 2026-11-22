@@ -24,7 +24,7 @@ import SwiftUI
                 if model.busy {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text("正在查询原请求")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         CYSkeleton().accessibilityHidden(true)
@@ -74,7 +74,7 @@ import SwiftUI
                 tone: status == 200 ? .success : .danger
             )
             Text("原记录已保留；此页面不会开启游戏或再次提交。")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

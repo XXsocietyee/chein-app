@@ -76,10 +76,10 @@ extension EnvironmentValues {
             let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: canPublishActivity)
             VStack(spacing: CYSpacing.md) {
                 CYStateArt(kind: .projects)
-                Text(LocalizedStringKey(keys.title)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(LocalizedStringKey(keys.title)).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.center)
                 if let detail = keys.detail {
-                    Text(LocalizedStringKey(detail)).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Text(LocalizedStringKey(detail)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center)
                 }
                 if !merchantScopeAccess.isBrowseOnly, let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
@@ -114,7 +114,7 @@ extension EnvironmentValues {
     var body: some View {
         if let notice = merchantScopeAccess.browseOnlyNotice {
             Text(verbatim: notice)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("myProject.merchant.browseOnlyNotice")
         }
@@ -144,12 +144,12 @@ extension EnvironmentValues {
         )
         HStack(spacing: 6) {
             if card.pending { Circle().fill(CYColor.dangerText).frame(width: 6, height: 6).accessibilityHidden(true) }
-            Text(LocalizedStringKey(card.roleKey)).font(.caption.bold())
+            Text(LocalizedStringKey(card.roleKey)).cyText(.meta, weight: .bold)
         }
         if let when = MyProjectListPresentation.whenText(start: project.startTime, end: project.endTime, chinese: chinese) {
-            Text(verbatim: when).font(.caption)
+            Text(verbatim: when).cyText(.meta)
         }
-        if let address = project.addressName { Text(verbatim: address).font(.caption).foregroundStyle(.secondary) }
+        if let address = project.addressName { Text(verbatim: address).cyText(.meta).foregroundStyle(.secondary) }
         MyProjectTopicFactLine(project: project)
     }
 }

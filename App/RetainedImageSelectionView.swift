@@ -59,7 +59,7 @@ import UIKit
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("image.retained.boundary").font(.footnote)
+            Text("image.retained.boundary").cyText(.bodyCompact)
             CYPillButton("image.retained.select", style: .secondary) { Task { await model.select() } }
                 .disabled(!model.current || !model.context.picker.enabled || !model.context.uploads.uploader.isConfigured || model.selecting || model.context.uploads.locked)
                 .accessibilityIdentifier("image.retained.select")
@@ -74,7 +74,7 @@ import UIKit
                         Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel("image.retained.preview")
                     }
                     Text(verbatim: review.scope.realm)
-                    Text("image.retained.byteCount \(review.selection.jpeg.count)").font(.caption)
+                    Text("image.retained.byteCount \(review.selection.jpeg.count)").cyText(.meta)
                         .accessibilityIdentifier("image.retained.byteCount")
                     CYPillButton("image.retained.confirmUpload") { Task { await model.context.uploads.confirm(review) } }
                         .accessibilityIdentifier("image.retained.confirmUpload")

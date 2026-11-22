@@ -77,7 +77,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack {
                 Text(c.t("任务进度", "Task progress"))
-                    .font(Theme.Font.sectionTitle)
+                    .cyText(.sectionTitle)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if loading {
@@ -101,7 +101,7 @@ extension EnvironmentValues {
                         : c.t("全队已完成 \(board.completedCount) / \(board.tasks.count) 个节点",
                               "Team completed \(board.completedCount) / \(board.tasks.count) nodes")
                 )
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("team.orient.summary")
 
@@ -110,11 +110,11 @@ extension EnvironmentValues {
                         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                             GridRow {
                                 Text(c.t("队员", "Member"))
-                                    .font(CYTypography.caption)
+                                    .cyText(.caption)
                                     .foregroundStyle(CYColor.textSecondary)
                                 ForEach(board.tasks) { task in
                                     Text(verbatim: task.title)
-                                        .font(CYTypography.caption)
+                                        .cyText(.caption)
                                         .foregroundStyle(CYColor.textSecondary)
                                         .lineLimit(1)
                                 }
@@ -123,11 +123,11 @@ extension EnvironmentValues {
                             ForEach(board.members) { member in
                                 GridRow {
                                     Text(verbatim: member.name.isEmpty ? c.t("队员", "Member") : member.name)
-                                        .font(.caption)
+                                        .cyText(.meta)
                                     ForEach(board.tasks) { task in
                                         let done = member.hasCompleted(taskID: task.id)
                                         Text(verbatim: done ? "✓" : "·")
-                                            .font(.caption.weight(.bold))
+                                            .cyText(.meta, weight: .bold)
                                             .foregroundStyle(done ? CYColor.successText : CYColor.textTertiary)
                                             .accessibilityLabel(
                                                 done ? c.t("已完成", "Completed") : c.t("未完成", "Pending")
@@ -150,7 +150,7 @@ extension EnvironmentValues {
 
     private var rankingTitle: some View {
         Text(c.t("本场队伍排名", "Session team ranking"))
-            .font(Theme.Font.sectionTitle)
+            .cyText(.sectionTitle)
             .accessibilityAddTraits(.isHeader)
     }
 
@@ -159,7 +159,7 @@ extension EnvironmentValues {
             rankingTitle
             if ranking.isEmpty {
                 Text(c.t("暂无队伍排名", "No team ranking yet"))
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("team.orient.rankingEmpty")
             }
@@ -167,26 +167,26 @@ extension EnvironmentValues {
             ForEach(ranking) { row in
                 HStack(spacing: 10) {
                     Text(verbatim: "#\(row.rank)")
-                        .font(.subheadline.weight(.bold))
+                        .cyText(.bodyMedium)
                         .monospacedDigit()
                         .frame(width: 32, alignment: .leading)
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(verbatim: row.teamName.isEmpty ? "#\(row.teamID)" : row.teamName)
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             if row.isMyTeam(currentTeamID: detail.team.id) {
                                 CYStatusChip(verbatim: c.t("我的队伍", "My team"), tone: .info, systemImage: "person.fill")
                             }
                         }
                         if let duration = row.durationText {
                             Text(verbatim: duration)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textTertiary)
                         }
                     }
                     Spacer()
                     Text(verbatim: "\(row.completedCount) / \(row.totalTasks)")
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textSecondary)
                 }

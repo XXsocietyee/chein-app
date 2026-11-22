@@ -134,7 +134,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
                         ? "漫游私人工具集：5/5 项已对齐且保持 Fail-Closed"
                         : "漫游私人工具集：存在未闭合工具或词表告警"
                 )
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.allCompliant ? "READY" : "WARNING")
                     .font(.caption.monospaced())
@@ -146,7 +146,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: tool.title)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: tool.isCompliant ? "FAIL-CLOSED" : "NON-COMPLIANT")
                             .font(.caption.monospaced())
@@ -154,7 +154,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
                             .accessibilityIdentifier("explorationPrivateTools.tool.\(tool.id).status")
                     }
                     Text(verbatim: tool.routeSummary)
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 2)
@@ -163,7 +163,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
 
             HStack {
                 Text(verbatim: "双语词表 (\(snapshot.catalogTableName))")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(
@@ -178,7 +178,7 @@ public struct ExplorationPrivateToolsAndCapsuleSectionView: View {
 
             if !snapshot.allCompliant {
                 Text(verbatim: "告警：检测到私人漫游工具缺少账户隔离、未静默远端写操作或双语词表不完整。")
-                    .font(.caption.weight(.medium))
+                    .cyText(.label)
                     .foregroundStyle(.red)
                     .accessibilityIdentifier("explorationPrivateTools.warningBanner")
             }

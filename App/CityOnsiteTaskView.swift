@@ -110,8 +110,8 @@ struct CityOnsiteTaskContent<Entry: View>: View {
             CYNoteBanner(text: Text(LocalizedStringKey(messageKey), tableName: table), symbol: busy ? "hourglass" : "info.circle")
                 .accessibilityIdentifier("cityOnsite.status")
             CYInfoCard(symbol: "checkmark.shield.fill") {
-                Text("cityOnsite.evidenceEntryHint", tableName: table).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                arrivalEntry().font(CYTypography.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary).frame(minHeight: 44)
+                Text("cityOnsite.evidenceEntryHint", tableName: table).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                arrivalEntry().cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).frame(minHeight: 44)
             }
             if let value = snapshot {
                 if value.status == "JOIN_REQUIRED" { CYNoteBanner(text: Text("cityOnsite.joinRequired", tableName: table), symbol: "person.badge.plus") }
@@ -149,7 +149,7 @@ struct CityOnsiteTaskContent<Entry: View>: View {
             if let result = selectedResult {
                 CYInfoCard(title: Text("cityOnsite.originalResult", tableName: table), symbol: "doc.text.magnifyingglass") {
                     CYStatusChip(LocalizedStringKey("cityOnsite.taskStatus." + result.outcome), tone: result.outcome == "COMPLETED" ? .success : .neutral)
-                    Text("cityOnsite.historicalResultBoundary", tableName: table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("cityOnsite.historicalResultBoundary", tableName: table).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     CYDetailsDisclosure(title: Text("cityOnsite.result", tableName: table)) {
                         CYFactRow(label: Text("cityOnsite.result", tableName: table), value: result.resultId)
                         CYFactRow(label: Text("cityOnsite.request", tableName: table), value: result.requestId)

@@ -32,7 +32,7 @@ import SwiftUI
                     }
                 }
             }
-            if reader.isOfflineExample { Text("searchMap.offline").font(.footnote) }
+            if reader.isOfflineExample { Text("searchMap.offline").cyText(.bodyCompact) }
             if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
             else if loading || loadedKey != key { ProgressView("searchMap.loading").accessibilityIdentifier("merchant.discover.loading") }
             else if let issue { SearchMapIssue(key: issue) { Task { await load() } } }
@@ -105,10 +105,10 @@ import SwiftUI
                 else { Image(systemName: "storefront").resizable().scaledToFit().padding(10).foregroundStyle(.secondary) }
             }.frame(width: 56, height: 56).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 5) {
-                if let name = row.displayName { Text(verbatim: name).font(.headline) }
-                else { Text("merchant.discover.unnamed").font(.headline) }
+                if let name = row.displayName { Text(verbatim: name).cyText(.cardTitle) }
+                else { Text("merchant.discover.unnamed").cyText(.cardTitle) }
                 if let summary = row.summary { Text(verbatim: summary).font(.subheadline) }
-                if !row.chips.isEmpty { Text(verbatim: row.chips.joined(separator: " · ")).font(.caption).foregroundStyle(.secondary) }
+                if !row.chips.isEmpty { Text(verbatim: row.chips.joined(separator: " · ")).cyText(.meta).foregroundStyle(.secondary) }
             }
         }.accessibilityElement(children: .combine)
     }

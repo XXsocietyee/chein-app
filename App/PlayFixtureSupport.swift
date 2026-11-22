@@ -135,7 +135,7 @@ struct PlayFixtureHostView: View {
     init(scenario: PlayFixtureScenario = .selected) { reader = PlayFixtureReader(scenario) }
     var body: some View {
         VStack(spacing: 0) {
-            Text("play.fixture.notice").font(.caption.bold()).padding(8)
+            Text("play.fixture.notice").cyText(.meta, weight: .bold).padding(8)
                 .frame(maxWidth: .infinity).background(.yellow.opacity(0.2))
                 .accessibilityIdentifier("play.fixture.notice")
             NavigationStack {

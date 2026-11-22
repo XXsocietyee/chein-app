@@ -136,10 +136,10 @@ public struct PhotoLibraryAndCameraPermissionSectionView: View {
         Section {
             HStack {
                 Text(verbatim: "相册与相机权限合规状态")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isFullyReady ? "最小权限合规 (READY)" : "存在降级告警")
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isFullyReady ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
@@ -149,7 +149,7 @@ public struct PhotoLibraryAndCameraPermissionSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "权限链路汇总")
             }
@@ -159,19 +159,19 @@ public struct PhotoLibraryAndCameraPermissionSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.status).opacity(0.15), in: Capsule())
                             .foregroundStyle(badgeColor(for: row.status))
                     }
                     Text(verbatim: "策略：\(row.permissionPolicy)")
-                        .font(.caption)
+                        .cyText(.meta)
                     Text(verbatim: "兜底：\(row.fallbackMechanism)")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

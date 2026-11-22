@@ -57,7 +57,7 @@ import SwiftUI
                     .listRowSeparator(.hidden)
             }
             Text("每组集齐所选点位即可完成；历史收藏不计入本次游玩。")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if let error { NativeAuthorNotice(text: Text(verbatim: error), tone: .failure) }
@@ -71,14 +71,14 @@ import SwiftUI
                 ForEach(Array(values.enumerated()), id: \.element.key) { index, set in
                     Section {
                         Text("套组名称")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         TextField("套组名称", text: title(set.key))
                             .accessibilityLabel(Text("套组名称"))
                             .accessibilityIdentifier("collectSet.author.title.\(set.key)")
                         Text(verbatim: String(format: CollectSetAuthorValidation.text("collectSet.validation.selectionCount", locale: locale), locale: locale, arguments: [set.nodeIds.count]))
-                            .font(CYTypography.numericBody)
+                            .cyText(.numericBody)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("collectSet.author.count.\(set.key)")
@@ -107,7 +107,7 @@ import SwiftUI
                     .listRowBackground(Color.clear)
                 if values.count >= 64 {
                     Text("最多可配置64组。")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -120,18 +120,18 @@ import SwiftUI
                     .accessibilityIdentifier("collectSet.author.save")
                     .listRowBackground(Color.clear)
                 Text("此处只保存到原草稿；云端保存和发布结果请返回原编辑器查看。离页或切换后台会丢弃本页尚未写入原草稿的套组修改。")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Section {
                     Text("请重新读取当前草稿后继续配置；本页尚未写入原草稿的修改不会恢复。")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if !canRead {
                         Text("当前草稿暂不可编辑。请返回原编辑器处理登录、权限或原保存结果后重试。")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

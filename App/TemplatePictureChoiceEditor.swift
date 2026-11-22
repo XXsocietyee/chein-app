@@ -76,17 +76,17 @@ import Combine
         Form {
             Section {
                 if editor.needsReload {
-                    Text("templatePictures.changed").font(.caption)
+                    Text("templatePictures.changed").cyText(.meta)
                     Button("templatePictures.reload") { editor.reload() }.disabled(!editor.canReload).accessibilityIdentifier("creator.pictures.reload")
-                } else if !editor.isSupported { Text("templatePictures.unsupported").font(.caption) }
-                else { Text("templatePictures.correctCount \(editor.correctCount)").font(.caption) }
+                } else if !editor.isSupported { Text("templatePictures.unsupported").cyText(.meta) }
+                else { Text("templatePictures.correctCount \(editor.correctCount)").cyText(.meta) }
             }
             ForEach(Array(editor.rows.enumerated()), id: \.element.id) { index, row in
                 Section {
-                    Text("templatePictures.number \(index + 1)").font(.headline)
+                    Text("templatePictures.number \(index + 1)").cyText(.cardTitle)
                     TextField("creator.field.name", text: editor.text(row.id, field: .name), axis: .vertical)
                         .accessibilityIdentifier("creator.pictures.name.\(index)")
-                    Text(verbatim: "\(row.name.utf16.count)/32").font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: "\(row.name.utf16.count)/32").cyText(.meta).foregroundStyle(.secondary)
                     TextField("creator.field.imageUrl", text: editor.text(row.id, field: .imageURL), axis: .vertical)
                         .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.URL)
                         .accessibilityIdentifier("creator.pictures.imageURL.\(index)")
@@ -104,7 +104,7 @@ import Combine
             }
             Section {
                 Button("templatePictures.add", systemImage: "plus", action: editor.addAction()).disabled(!editor.canAdd).accessibilityIdentifier("creator.pictures.add")
-                Text("templatePictures.count \(editor.rows.count)").font(.caption)
+                Text("templatePictures.count \(editor.rows.count)").cyText(.meta)
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {

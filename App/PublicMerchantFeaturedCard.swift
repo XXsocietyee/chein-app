@@ -33,12 +33,12 @@ import SwiftUI
                 .font(CYTypography.caption)
                 .foregroundStyle(CYColor.textSecondary)
             if let name = featured.name {
-                Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             } else {
-                Text("merchant.publicHome.featured.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("merchant.publicHome.featured.untitled").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             }
             if let description = featured.description {
-                Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                Text(verbatim: description).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
             }
         }
         .fixedSize(horizontal: false, vertical: true)

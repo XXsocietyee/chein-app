@@ -85,7 +85,7 @@ struct RoamStampSlipSaveRow: View {
             if saver.phase == .saving {
                 ProgressView("roam.share.savingPhotos")
             } else if let key = saver.statusKey {
-                Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(.secondary)
+                Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roamSub.w208.stamp.saveStatus")
             }
             if saver.phase == .permissionDenied {

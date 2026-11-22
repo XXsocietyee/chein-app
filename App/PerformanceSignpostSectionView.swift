@@ -142,10 +142,10 @@ public struct PerformanceSignpostSnapshot: Equatable, Sendable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("performanceSignpost.statusHeadline")
                 Text(verbatim: "子系统 \(snapshot.subsystem) · O(N) 路线投影：\(snapshot.playRouteStopProjectionLinearON ? "已启用" : "未启用") · 静态无敏标签：\(snapshot.stripsSensitiveTracePayloads ? "已强制" : "未强制")")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("performanceSignpost.subsystemSummary")
             }
@@ -156,14 +156,14 @@ public struct PerformanceSignpostSnapshot: Equatable, Sendable {
                         .foregroundStyle(metric.withinBudget ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(metric.pointName) [\(metric.areaName)]")
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: "P95 \(metric.p95LatencyMilliseconds)ms / 预算 \(metric.budgetMilliseconds)ms · 幂等关闭：\(metric.idempotentIntervalEndVerified ? "是" : "否")")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: metric.withinBudget ? "达标" : "超预算")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(metric.withinBudget ? .green : .red)
                 }
                 .accessibilityIdentifier("performanceSignpost.metric." + metric.pointName)

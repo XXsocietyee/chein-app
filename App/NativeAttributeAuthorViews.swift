@@ -59,7 +59,7 @@ private func nativeAttributeText(_ key: String) -> String {
                 }
                 if coordinator.localDraftOnly {
                     Text(verbatim: nativeAttributeText("nativeAttribute.localDraftNotice"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativeAttribute.localOnly")
@@ -79,7 +79,7 @@ private func nativeAttributeText(_ key: String) -> String {
                     } icon: {
                         Image(systemName: "exclamationmark.triangle.fill")
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("nativeAttribute.issue")
                 }
@@ -120,14 +120,14 @@ private func nativeAttributeText(_ key: String) -> String {
                             CYPillButton(verbatim: nativeAttributeText("nativeAttribute.addBasicRegistration"), style: .secondary) { _ = coordinator.add(registrationOnly: true) }
                                 .e1ActionRow()
                             Text(verbatim: nativeAttributeText(coordinator.localDraftOnly ? "nativeAttribute.localDraftNotice" : "nativeAttribute.versionedSaveNotice"))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         } else {
                             CYPillButton(verbatim: nativeAttributeText("nativeAttribute.addDefinitionDraft"), style: .secondary) { _ = coordinator.add(registrationOnly: false) }
                                 .e1ActionRow()
                             Text(verbatim: nativeAttributeText("nativeAttribute.extensionLocalOnly"))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -161,9 +161,9 @@ private func nativeAttributeText(_ key: String) -> String {
                     ForEach(check.issues) { finding in
                         NativeAttributeAuthorDiagnosticIssueView(issue: finding)
                     }
-                    if check.issues.isEmpty { Text(verbatim: nativeAttributeText("nativeAttribute.noPublishIssues")).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                    if check.issues.isEmpty { Text(verbatim: nativeAttributeText("nativeAttribute.noPublishIssues")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
                     Text(verbatim: nativeAttributeText("nativeAttribute.savedSourceCheck"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 } header: { attributeHeader("nativeAttribute.publishCheck") }
@@ -186,11 +186,11 @@ private func nativeAttributeText(_ key: String) -> String {
                         ForEach(preflight.issues) { NativeAttributeAuthorDiagnosticIssueView(issue: $0) }
                     }
                     Text(verbatim: nativeAttributeText("nativeAttribute.diagnosticOnly"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: nativeAttributeText("nativeAttribute.savedSourceCheck"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 } header: { attributeHeader("nativeAttribute.modulePreflight") }
@@ -199,27 +199,27 @@ private func nativeAttributeText(_ key: String) -> String {
                 Section {
                     ForEach(Array(refs.positions.enumerated()), id: \.offset) { _, position in
                         Text(verbatim: cyShownValue(position))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if let reason = refs.incompleteReason {
                         Text(verbatim: nativeAttributeText(reason))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    if refs.permitsDelete { Text(verbatim: nativeAttributeText("nativeAttribute.referenceClear")).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                    if refs.permitsDelete { Text(verbatim: nativeAttributeText("nativeAttribute.referenceClear")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
                 } header: { attributeHeader("nativeAttribute.references") }
             }
             if coordinator.phase == .review {
                 Section {
                     ForEach(Array(coordinator.warnings.enumerated()), id: \.offset) { _, warning in
                         Text(verbatim: nativeAttributeText(warning))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Text(verbatim: nativeAttributeText(coordinator.reviewDeletesKey == nil ? "nativeAttribute.saveReview" : "nativeAttribute.deleteReview"))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .fixedSize(horizontal: false, vertical: true)
                     CYPillButton(verbatim: nativeAttributeText("nativeAttribute.confirm"), systemImage: "checkmark.circle") { Task { await coordinator.confirm() } }
                         .accessibilityIdentifier("nativeAttribute.confirm")
@@ -230,7 +230,7 @@ private func nativeAttributeText(_ key: String) -> String {
             }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .toolbar {
@@ -271,7 +271,7 @@ private func nativeAttributeText(_ key: String) -> String {
             }
             if !row.label.isEmpty && row.isDefinition {
                 Text(verbatim: range)
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .foregroundStyle(CYColor.textSecondary)
             } else if !row.label.isEmpty {
                 CYStatusChip(verbatim: nativeAttributeText("nativeAttribute.legacy"), tone: .neutral, systemImage: "clock.arrow.circlepath")
@@ -297,7 +297,7 @@ private func nativeAttributeText(_ key: String) -> String {
                     .accessibilityIdentifier("nativeAttribute.action.\(action.rawValue)")
             }
             Text(verbatim: nativeAttributeText("nativeAttribute.originalFlow"))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         } header: { attributeHeader("nativeAttribute.projectFlow") }
@@ -312,7 +312,7 @@ private func nativeAttributeText(_ key: String) -> String {
 
 private func attributeHeader(_ key: String) -> some View {
     Text(verbatim: nativeAttributeText(key))
-        .font(CYTypography.sectionTitle)
+        .cyText(.sectionTitle)
         .foregroundStyle(CYColor.textPrimary)
         .textCase(nil)
         .accessibilityAddTraits(.isHeader)
@@ -330,7 +330,7 @@ private func attributeHeader(_ key: String) -> some View {
                 systemImage: issue.level == "error" ? "exclamationmark.circle" : "exclamationmark.triangle"
             )
             Text(verbatim: cyShownValue(issue.message))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             LabeledContent(nativeAttributeText("nativeAttribute.issueCode"), value: cyShownValue(issue.code))
@@ -357,7 +357,7 @@ private func attributeHeader(_ key: String) -> some View {
             if let issue = coordinator.issue {
                 Section {
                     Text(verbatim: nativeAttributeText(issue))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -374,7 +374,7 @@ private func attributeHeader(_ key: String) -> some View {
                 }.disabled(row.existingKey != nil)
                 if row.existingKey != nil {
                     Text(verbatim: nativeAttributeText("nativeAttribute.immutable"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -383,7 +383,7 @@ private func attributeHeader(_ key: String) -> some View {
             if row.isDefinition {
                 Section {
                     Text(verbatim: nativeAttributeText(coordinator.localDraftOnly ? "nativeAttribute.localDraftNotice" : coordinator.usesVersionedDefinitions ? "nativeAttribute.versionedSaveNotice" : "nativeAttribute.extensionLocalOnly"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -430,14 +430,14 @@ private func attributeHeader(_ key: String) -> some View {
                 Section {
                     number(nativeAttributeText("nativeAttribute.initial"), text: $row.initial)
                     Text(verbatim: nativeAttributeText("nativeAttribute.registrationScopeNotice"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }.disabled(!editable)
             }
             Section {
-                if !row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.unsupported")).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
-                if row.unsupportedReason != nil && row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.invalid")).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                if !row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.unsupported")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
+                if row.unsupportedReason != nil && row.sourceIsSupported { Text(verbatim: nativeAttributeText("nativeAttribute.invalid")).cyText(.body).fixedSize(horizontal: false, vertical: true) }
                 CYPillButton(verbatim: nativeAttributeText("nativeAttribute.keepChanges"), systemImage: "checkmark.circle") { if coordinator.replace(row) { dismiss() } }
                     .disabled(!editable || row.unsupportedReason != nil)
                     .accessibilityIdentifier("nativeAttribute.keepChanges")
@@ -455,7 +455,7 @@ private func attributeHeader(_ key: String) -> some View {
             }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .toolbar { if editable { EditButton() } }
@@ -475,7 +475,7 @@ private func attributeHeader(_ key: String) -> some View {
         .onChange(of: row) { _, edited in if editable { coordinator.replace(edited) } }
     }
     private func number(_ title: String, text: Binding<String>) -> some View {
-        LabeledContent { TextField(title, text: text).keyboardType(.numbersAndPunctuation).multilineTextAlignment(.trailing).font(CYTypography.numericBody) } label: { Text(verbatim: title) }
+        LabeledContent { TextField(title, text: text).keyboardType(.numbersAndPunctuation).multilineTextAlignment(.trailing).cyText(.numericBody) } label: { Text(verbatim: title) }
     }
 }
 
@@ -497,7 +497,7 @@ private func attributeHeader(_ key: String) -> some View {
             if rule.needsValue {
                 TextField(nativeAttributeText("nativeAttribute.value"), text: $rule.value)
                     .keyboardType(.numbersAndPunctuation)
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
             }
             if let editor = conditionEditor {
                 NavigationLink("nativeAttribute.condition") {
@@ -511,7 +511,7 @@ private func attributeHeader(_ key: String) -> some View {
                 }
             } else {
                 Text(verbatim: nativeAttributeText("nativeAttribute.conditionPreserved"))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -524,18 +524,18 @@ private func attributeHeader(_ key: String) -> some View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: nativeAttributeText("nativeAttribute.declarationPreview"))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if row.visible && row.display != "hidden" {
                 HStack {
                     if row.display == "icon" { Image(systemName: "circle.fill").foregroundStyle(previewColor).accessibilityHidden(true) }
                     Text(verbatim: cyShownValue(row.label))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                     Spacer()
                     Text(verbatim: cyShownValue(row.initial))
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .foregroundStyle(previewColor)
                 }
                 if row.display == "bar", let lo = Double(row.minimum), let hi = Double(row.maximum), let value = Double(row.initial), lo < hi {
@@ -545,13 +545,13 @@ private func attributeHeader(_ key: String) -> some View {
                 }
                 if !row.icon.isEmpty {
                     Text(verbatim: row.icon)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else {
                 Text(verbatim: nativeAttributeText("nativeAttribute.hiddenPreview"))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

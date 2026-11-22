@@ -308,14 +308,14 @@ import SwiftUI
         let queuedRequest = accessModel.request
         List {
             MerchantOpsWp03Panel(page: .team)
-            if reader.isOfflineExample { Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.synthetic") }
+            if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.synthetic") }
             // Entry does not grant report access; the destination rechecks original APP permissions.
             NavigationLink { SessionCityMerchantValueView() } label: { CityMerchantValueCopy.text("merchantTitle") }
                 .accessibilityIdentifier("cityValue.merchant.entry")
             if let access = accessModel.access(for: reader) {
                 Section {
-                    Text(access.name ?? "#\(access.merchantID)").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                    Text(LocalizedStringKey("merchant.business.role." + String(access.role))).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text(access.name ?? "#\(access.merchantID)").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(LocalizedStringKey("merchant.business.role." + String(access.role))).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 if MerchantOperatorSelfRoleCard.isShown(for: access) {
                     MerchantOperatorSelfRoleCard(access: access)
@@ -345,7 +345,7 @@ import SwiftUI
                     }
                 }
             } else if accessModel.isLoading(for: reader) { CYSkeleton(variant: .card) }
-            if let issue = accessModel.issue(for: reader) { Text(LocalizedStringKey(issue)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let issue = accessModel.issue(for: reader) { Text(LocalizedStringKey(issue)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             CYPillButton("merchant.refreshAccess", style: .secondary) {
                 accessModel.refresh(reader: reader, appearance: visibleAppearance, context: renderedKey)
             }.disabled(accessModel.isLoading(for: reader))
@@ -460,13 +460,13 @@ import SwiftUI
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
-            if reader.isOfflineExample { Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+            if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             filters
             if state.isBusy { CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading") }
             if let key = model.aftercareLoadFailureKey ?? state.failureKey {
                 Section {
-                    Text(LocalizedStringKey(key)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("merchant.business.error")
-                    if case .rejected(_, let message) = state.failure, let message { Text(message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    Text(LocalizedStringKey(key)).cyText(.body).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("merchant.business.error")
+                    if case .rejected(_, let message) = state.failure, let message { Text(message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     if !state.isBusy, !state.isLocked { CYPillButton("action.retry", style: .secondary) { Task { await reload() } } }
                 }
             }
@@ -542,7 +542,7 @@ import SwiftUI
                     }
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
                     Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("merchant.business.list.noMatches")
                 }
@@ -989,7 +989,7 @@ import SwiftUI
                                                identifier: "merchantOps.ledger.row.\(row.id)")
                     } else {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         MerchantBusinessRecordFields(row: row, access: access, compact: true)
                     }
                     }
@@ -1006,7 +1006,7 @@ import SwiftUI
                 } else if row.kind == .batch, case .batch = query {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(row.fields))
                 } else {
-                Text(row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
                 if let card = MerchantReviewCardPresentation(row: row) { MerchantReviewCard(presentation: card) }
                 MerchantBusinessRecordFields(row: row, access: access, compact: false,

@@ -78,20 +78,20 @@ import Combine
             Section { CYHeroHeader("templateLegacyQuiz.title") }.e1HeroRow()
             Section {
                 if editor.needsReload {
-                    Text("templateLegacyQuiz.changed").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("templateLegacyQuiz.changed").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     CYPillButton("templateLegacyQuiz.reload", style: .secondary, systemImage: "arrow.clockwise") { editor.reload() }.disabled(!editor.canReload).e1ActionRow()
-                } else if !editor.isConfigured { Text("templateLegacyQuiz.incomplete").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                } else if !editor.isConfigured { Text("templateLegacyQuiz.incomplete").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }
             if editor.canRead {
                 Section("templateLegacyQuiz.question") {
-                    Text(verbatim: editor.question).font(CYTypography.sectionTitle)
+                    Text(verbatim: editor.question).cyText(.sectionTitle)
                     if editor.state == .completed {
                         Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText).accessibilityIdentifier("templateLegacyQuiz.completed")
                     } else {
                         if editor.method == .text {
                             TextField("templateLegacyQuiz.answer", text: editor.answerInput(), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()
                                 .disabled(!editor.canAttempt).accessibilityIdentifier("templateLegacyQuiz.answer")
-                            if editor.acceptsAnyNonemptyAnswer { Text("templateLegacyQuiz.emptyAliases").font(.caption) }
+                            if editor.acceptsAnyNonemptyAnswer { Text("templateLegacyQuiz.emptyAliases").cyText(.meta) }
                         } else if editor.method == .choice {
                             ForEach(editor.options) { option in
                                 Button(action: editor.selectAction(option.letter)) {

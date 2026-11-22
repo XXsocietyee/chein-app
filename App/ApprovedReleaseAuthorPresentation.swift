@@ -75,7 +75,7 @@ import SwiftUI
                 }.buttonStyle(.borderless).disabled(opening == nil).accessibilityIdentifier("approvedRelease.read")
                 if opening == nil {
                     Text(String(localized: LocalizedStringResource("approvedRelease.unconfigured", defaultValue: "Approved-snapshot reading is not configured for this account, mode or submission. The original submission lock is unchanged.", locale: locale)))
-                        .font(.footnote).accessibilityIdentifier("approvedRelease.unconfigured")
+                        .cyText(.bodyCompact).accessibilityIdentifier("approvedRelease.unconfigured")
                 }
             }
         }

@@ -51,7 +51,7 @@ import SwiftUI
                     }
                 } label: { Text(verbatim: "Role") }
                     .accessibilityIdentifier("contentDetail.fixture.role")
-            }.font(.caption)
+            }.cyText(.meta)
         }
         .task {
             if !guest { await session.authChannels.loginWithPhone(phone: "10000000000", code: "123456") }

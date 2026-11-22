@@ -212,11 +212,11 @@ public struct RoamAndExplorationParitySectionView: View {
             Image(systemName: "map.fill")
                 .foregroundStyle(.teal)
             Text(verbatim: "Roam & Exploration Parity Audit")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("roamExplorationAudit.header")
             Spacer()
             Text(verbatim: summaryBadgeText)
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
@@ -250,13 +250,13 @@ public struct RoamAndExplorationParitySectionView: View {
     private var roamTabSurfaceSummaryRow: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: "Roam Tab Surfaces: Map/POI · Nearby (1km, 4 filters) · Official Routes/Session · History/MyTeams (4 buckets) · NodeCode · Stamp (4:5 EXIF-stripped + Album) · Badges (24-dot/3D/40-pile) · Growth")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("roamExplorationAudit.roamTabSurfaces")
             Text(verbatim: snapshot.roamTabParity.enforcesWhenInUseLocationOnly && snapshot.roamTabParity.suspendsLocationOnBackground
                 ? "Location Privacy: When-In-Use Foreground Only · Background Immediately Suspended"
                 : "Location Privacy Warning: Check When-In-Use / Background Suspension Policy")
-                .font(.caption2.weight(.medium))
+                .cyText(.caption, weight: .medium)
                 .foregroundStyle(snapshot.roamTabParity.enforcesWhenInUseLocationOnly ? .teal : .red)
                 .accessibilityIdentifier("roamExplorationAudit.locationPrivacy")
         }
@@ -266,10 +266,10 @@ public struct RoamAndExplorationParitySectionView: View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
                 Text(verbatim: "[\(row.code)] \(row.title)")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.status.rawValue)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(
@@ -281,11 +281,11 @@ public struct RoamAndExplorationParitySectionView: View {
             }
 
             Text(verbatim: row.contractSummary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.primary)
 
             Text(verbatim: row.guardrailNote)
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(10)
@@ -304,7 +304,7 @@ public struct RoamAndExplorationParitySectionView: View {
 
     private func badgePill(text: String, tint: Color) -> some View {
         Text(verbatim: text)
-            .font(.caption2.weight(.medium))
+            .cyText(.caption, weight: .medium)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(

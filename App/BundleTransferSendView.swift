@@ -58,7 +58,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 CYSkeleton()
                 text("transfer.loading")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -74,7 +74,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 CYSkeleton()
                 text("transfer.sending")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -88,7 +88,7 @@ import SwiftUI
             if let state = model.display { stateChip(state) }
         case .outcomeUnknown:
             text("transfer.unknown")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         case .failed(let code):
@@ -96,7 +96,7 @@ import SwiftUI
                 CYEmptyState(systemImage: "exclamationmark.triangle", "transfer.error", tableName: table, messageIdentifier: "bundleTransfer.error", kind: .failure)
                 if let code {
                     Text(verbatim: Cloud05Copy.server(code))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -108,18 +108,18 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.xl) {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 text("transfer.impact")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .fixedSize(horizontal: false, vertical: true)
                 if preview.impactLines.isEmpty {
                     Text(verbatim: "—")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                 } else {
                     ForEach(Array(preview.impactLines.enumerated()), id: \.offset) { _, line in
                         Text(verbatim: Cloud05Copy.server(line))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -128,20 +128,20 @@ import SwiftUI
             .cyDomainCard()
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 text("transfer.phone")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityHidden(true)
                 TextField(text: $phone) { text("transfer.phone") }
                     .keyboardType(.phonePad)
                     .textContentType(.telephoneNumber)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .cyField()
                     .privacySensitive()
             }
             if preview.offersSMS {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     text("transfer.channel")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                     Picker(selection: $channel) {
                         text("transfer.channel.inApp").tag(BundleTransferChannel.inApp)
@@ -159,7 +159,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             if let code = model.oneTimeCode {
                 Text(verbatim: code.reveal())
-                    .font(CYTypography.dataXL)
+                    .cyText(.dataXL)
                     .foregroundStyle(palette.textPrimary)
                     .monospacedDigit()
                     .textSelection(.enabled)
@@ -170,12 +170,12 @@ import SwiftUI
                     .privacySensitive()
             } else {
                 Text(verbatim: "—")
-                    .font(CYTypography.dataXL)
+                    .cyText(.dataXL)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("bundleTransfer.code")
             }
             text("transfer.code.once")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let state = model.display { stateChip(state) }
@@ -187,7 +187,7 @@ import SwiftUI
     private var recoveredBody: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             text("transfer.code.unavailable")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let state = model.display { stateChip(state) }

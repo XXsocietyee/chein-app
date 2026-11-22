@@ -15,10 +15,10 @@ public struct MerchantInStoreGameDraftSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 6) {
                 Text(verbatim: presentation.statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("merchantInStoreGame.statusHeadline")
                 Text(verbatim: "修订版本 v\(presentation.revision.version) · 阶段 \(presentation.revision.stage.rawValue)")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchantInStoreGame.revisionSummary")
             }
@@ -30,7 +30,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
                     Text(verbatim: item.title)
                     Spacer()
                     Text(verbatim: item.isSatisfied ? "已完备" : "待补充")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(item.isSatisfied ? AnyShapeStyle(.secondary) : AnyShapeStyle(.orange))
                 }
                 .accessibilityIdentifier("merchantInStoreGame.field." + item.id)
@@ -41,7 +41,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
                     Image(systemName: "xmark.octagon.fill")
                         .foregroundStyle(CYColor.dangerText)
                     Text(verbatim: issue.message)
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                 }
                 .accessibilityIdentifier("merchantInStoreGame.productIssue." + issue.id)
             }
@@ -51,7 +51,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
                     Image(systemName: "lock.shield.fill")
                         .foregroundStyle(.secondary)
                     Text(verbatim: blocker.message)
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                 }
                 .accessibilityIdentifier("merchantInStoreGame.blocker." + blocker.id)
             }
@@ -59,15 +59,15 @@ public struct MerchantInStoreGameDraftSectionView: View {
             if let command = presentation.publishCommand {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "幂等发布指令就绪 · \(command.kind.rawValue)")
-                        .font(.caption.weight(.medium))
+                        .cyText(.label)
                     Text(verbatim: "预期版本 v\(command.expectedVersion) · 摘要 \(command.reviewedHash ?? "-")")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityIdentifier("merchantInStoreGame.publishReady")
             } else {
                 Text(verbatim: "暂不可发布：需满足全部必填字段、SKU 校验、双域审批及门控开关")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchantInStoreGame.publishBlocked")
             }

@@ -95,12 +95,12 @@ import SwiftUI
                         HStack(spacing: CYSpacing.lg) {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                if let name = profile.nickname { Text(verbatim: name).font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                                else { Text("square.unknownAuthor").font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                                if let name = profile.nickname { Text(verbatim: name).cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                                else { Text("square.unknownAuthor").cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                                 HStack(spacing: 6) {
                                     Text(verbatim: profile.level.map { "Lv.\($0)" } ?? "—")
                                     Text("member.card.levelTitle", tableName: "MemberProfile")
-                                }.font(CYTypography.bodyCompact.monospacedDigit()).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
+                                }.cyText(.bodyCompact, monospacedDigit: true).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
                             }
                         }
                         if profile.id == memberID, reader.identity.accountID == memberID {
@@ -284,15 +284,15 @@ import SwiftUI
             if let systemImage { Image(systemName: systemImage).accessibilityHidden(true) }
             title
         }
-        .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(palette.textPrimary)
+        .cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
         .frame(maxWidth: .infinity, minHeight: 44)
         .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
         .contentShape(RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
     }
     private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody.weight(.bold)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
+            Text(verbatim: value.map(String.init) ?? "—").cyText(.numericBody, weight: .bold).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            label().cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 56)
         .accessibilityElement(children: .combine)
@@ -466,7 +466,7 @@ struct ProfileSelfCouponContext: Hashable {
     private var placeholder: some View {
         ZStack {
             Circle().fill(.tint.opacity(0.15))
-            if let initial = name?.first { Text(verbatim: String(initial)).font(.title2.weight(.semibold)) }
+            if let initial = name?.first { Text(verbatim: String(initial)).cyText(.sheetTitle) }
             else { Image(systemName: "person.fill").font(.title2) }
         }
     }

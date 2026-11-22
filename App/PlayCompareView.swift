@@ -15,17 +15,17 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let question {
-                Text("playkit.compare.instructions").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text("playkit.compare.instructions").cyText(.body).foregroundStyle(CYColor.textSecondary)
                 if let remaining = question.remainingAttempts {
                     LabeledContent("playkit.compare.remaining") { Text(verbatim: String(remaining)).monospacedDigit() }
-                } else { Text("playkit.compare.unlimited").font(.footnote) }
+                } else { Text("playkit.compare.unlimited").cyText(.bodyCompact) }
                 LabeledContent("playkit.compare.attempts") { Text(verbatim: String(question.attempts)).monospacedDigit() }
                 if question.attempts > 0 {
                     Text(question.lastCorrect ? "playkit.compare.correct" : "playkit.compare.incorrect")
                         .accessibilityIdentifier("playkit.compare.receipt")
                 }
                 if !question.finished && selection.revision != revision {
-                    Text("playkit.compare.changed").font(.footnote)
+                    Text("playkit.compare.changed").cyText(.bodyCompact)
                     CYPillButton("playkit.compare.reload", style: .secondary) { resetSelection = true }
                         .disabled(!enabled).accessibilityIdentifier("playkit.compare.reload")
                 }
@@ -76,7 +76,7 @@ import SwiftUI
     }
     private func side(_ side: PlayCompareQuestion.Side, question: PlayCompareQuestion) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(verbatim: side.label).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            Text(verbatim: side.label).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
             ForEach(side.items) { item in
                 Button {
                     selection.toggle(item.id, question: question, revision: currentRevision()); onDirty()
@@ -86,8 +86,8 @@ import SwiftUI
                             .foregroundStyle(selection.marked.contains(item.id) ? CYColor.textPrimary : CYColor.textTertiary)
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 5) {
-                            Text(verbatim: item.time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).monospacedDigit()
-                            Text(verbatim: item.text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: item.time).cyText(.caption).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+                            Text(verbatim: item.text).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                         }
                         Spacer(minLength: 0)
                     }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
@@ -108,14 +108,14 @@ import SwiftUI
     let question: PlayCompareQuestion
     let marked: [String]
     var body: some View {
-        Text(verbatim: question.prompt).font(.headline)
+        Text(verbatim: question.prompt).cyText(.cardTitle)
         if marked.isEmpty { Text("playkit.compare.none") }
         ForEach(Array([question.left, question.right].enumerated()), id: \.offset) { _, side in
             ForEach(side.items.filter { marked.contains($0.id) }) { item in
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: side.label + " · " + item.time).font(.subheadline.bold())
+                    Text(verbatim: side.label + " · " + item.time).cyText(.bodyMedium)
                     Text(verbatim: item.text)
-                    Text(verbatim: item.id).font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: item.id).cyText(.meta).foregroundStyle(.secondary)
                 }
             }
         }

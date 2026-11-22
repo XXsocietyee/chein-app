@@ -121,7 +121,7 @@ struct RoamPOIActionRows: View {
             }
             .disabled(model.checkInPhase == .working || needRedeem)
             .accessibilityIdentifier("roam.poi.checkin")
-            Text("roam.poi.checkIn.footer").font(.footnote).foregroundStyle(.secondary)
+            Text("roam.poi.checkIn.footer").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
         if case .failed(let failure) = model.checkInPhase {
             failureRow(failure, retry: { model.checkIn(poiID: node.poiId, actions: actions) })
@@ -143,8 +143,8 @@ struct RoamPOIActionRows: View {
         VStack(alignment: .leading, spacing: 6) {
             switch failure {
             case .locationDenied:
-                Label("roam.poi.location.denied.title", systemImage: "location.slash").font(.subheadline.weight(.semibold))
-                Text("roam.poi.location.denied.message").font(.footnote).foregroundStyle(.secondary)
+                Label("roam.poi.location.denied.title", systemImage: "location.slash").cyText(.bodyMedium)
+                Text("roam.poi.location.denied.message").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Button("roam.poi.location.openSettings") {
                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                 }.frame(minHeight: 44)

@@ -120,27 +120,27 @@ public struct DeviceOrientationAndSplitViewAdaptationSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Device Orientation, Safe Area & Split View Adaptation")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("deviceLayoutAdaptation.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllAdapted ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("deviceLayoutAdaptation.statusBadge")
             }
 
             Text(verbatim: safeAreaSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.safeAreaInsetsPreserved ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("deviceLayoutAdaptation.safeAreaSummary")
 
             Text(verbatim: keyboardAvoidanceSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.keyboardAvoidanceVerified ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("deviceLayoutAdaptation.keyboardAvoidanceSummary")
 
             Text(verbatim: sizeClassSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.compactAndRegularAdapted ? CYColor.textSecondary : CYColor.warningText)
                 .accessibilityIdentifier("deviceLayoutAdaptation.sizeClassSummary")
 
@@ -149,14 +149,14 @@ public struct DeviceOrientationAndSplitViewAdaptationSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.groupCode)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.adaptationSummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

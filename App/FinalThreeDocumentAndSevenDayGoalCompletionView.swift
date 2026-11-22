@@ -126,7 +126,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
             Section {
                 HStack {
                     Text(verbatim: snapshot.statusHeadline)
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isAllGoalsCompleted ? "100% DONE" : "INCOMPLETE")
                         .font(.caption2.monospaced().weight(.bold))
@@ -143,7 +143,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                     Text(verbatim: "七日上线关键路径状态")
                     Spacer()
                     Text(verbatim: snapshot.sevenDayGoalAchieved ? "已全部达成" : "进行中")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(snapshot.sevenDayGoalAchieved ? CYColor.textSecondary : CYColor.warningText)
                 }
                 .accessibilityIdentifier("finalGoalCompletionGate.sevenDayStatus")
@@ -152,7 +152,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                     Text(verbatim: "iOS 原生超集保留策略")
                     Spacer()
                     Text(verbatim: snapshot.nativeSupersetPolicyEnforced ? "严格执行 (零降级)" : "未核验")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(snapshot.nativeSupersetPolicyEnforced ? CYColor.textSecondary : CYColor.warningText)
                 }
                 .accessibilityIdentifier("finalGoalCompletionGate.supersetPolicy")
@@ -169,14 +169,14 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                                 .foregroundStyle(row.isFullyVerified ? CYColor.successText : CYColor.warningText)
                                 .accessibilityHidden(true)
                             Text(verbatim: row.documentOrPlanTitle)
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: "\(row.completionPercentage)%")
                                 .font(.caption2.monospaced().weight(.semibold))
                                 .foregroundStyle(row.isFullyVerified ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.verificationSummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .accessibilityIdentifier("finalGoalCompletionGate.row.\(row.id)")

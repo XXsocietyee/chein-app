@@ -97,10 +97,10 @@ struct CYImageCard: View {
         let stacked = typeSize.isAccessibilitySize
         return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             title
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .lineLimit(stacked ? nil : 2)
             if let meta {
-                meta.font(CYTypography.meta).monospacedDigit()
+                meta.cyText(.meta).monospacedDigit()
                     .opacity(stacked || contrast == .increased ? 1 : 0.85)
                     .lineLimit(stacked ? nil : 2)
             }

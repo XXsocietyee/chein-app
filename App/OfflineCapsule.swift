@@ -75,7 +75,7 @@ struct OfflineCapsule: View {
             .accessibilityIdentifier("offline.capsule")
         } else {
             Label("offline.capsule", systemImage: "wifi.slash")
-                .font(CYTypography.meta.weight(.semibold))
+                .cyText(.meta, weight: .semibold)
                 .foregroundStyle(CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                 .background(.ultraThinMaterial, in: Capsule())

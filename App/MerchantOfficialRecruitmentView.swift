@@ -86,7 +86,7 @@ import SwiftUI
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "merchant.officialRecruitment",
                            load: { try await reader.events(city: nil) }) { events in
             List {
-                Section { Text("merchant.officialRecruitment.boundary").font(.footnote).foregroundStyle(.secondary) }
+                Section { Text("merchant.officialRecruitment.boundary").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 if events.isEmpty {
                     Text("merchant.officialRecruitment.empty").accessibilityIdentifier("merchant.officialRecruitment.empty")
                 }

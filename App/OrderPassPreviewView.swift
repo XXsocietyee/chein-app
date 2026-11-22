@@ -28,7 +28,7 @@ struct OrderVerificationPreviewView: View {
         List {
             Section { CYHeroHeader("orderLifecycle.pass.verification") }.e1HeroRow()
             Section {
-                Text("orderLifecycle.verification.preview").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+                Text("orderLifecycle.verification.preview").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                 Text(LocalizedStringKey("orderLifecycle.verification." + receipt.outcome.rawValue))
                     .accessibilityIdentifier("orderLifecycle.verification.outcome")
                 if let message = receipt.message, !message.isEmpty { Text(verbatim: message) }
@@ -54,7 +54,7 @@ struct OrderVerificationPreviewView: View {
             }
             Section {
                 Text("orderLifecycle.verification.role")
-                Text("orderLifecycle.hardOff").font(.footnote).foregroundStyle(.secondary)
+                Text("orderLifecycle.hardOff").cyText(.bodyCompact).foregroundStyle(.secondary)
                 CYPillButton("orderLifecycle.verification.disabled", action: {}).disabled(true)
                     .accessibilityIdentifier("orderLifecycle.verification.disabled").e1ActionRow()
             }

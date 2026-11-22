@@ -45,7 +45,7 @@ import QuestifyCore
                 } icon: {
                     Image(systemName: "exclamationmark.triangle.fill")
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("myProject.mutation.failed")
                 .accessibilityLabel(Text(verbatim: message.isEmpty ? "—" : message))

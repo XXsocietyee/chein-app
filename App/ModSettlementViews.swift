@@ -42,9 +42,9 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
             CYHeroHeader(verbatim: text("modSettlement.title"))
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
-                Text(text("modSettlement.boundary")).font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Text(text("modSettlement.noPaymentAction")).font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
-                if !payoutOpen { Text(locale.language.languageCode?.identifier == "zh" ? "结算读取未开启。页面保留，本次不请求结算或收入。" : "Settlement reads are off. This page stays here and does not request settlement or income.").font(Theme.Font.label) }
+                Text(text("modSettlement.boundary")).cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text(text("modSettlement.noPaymentAction")).cyText(.label).fixedSize(horizontal: false, vertical: true)
+                if !payoutOpen { Text(locale.language.languageCode?.identifier == "zh" ? "结算读取未开启。页面保留，本次不请求结算或收入。" : "Settlement reads are off. This page stays here and does not request settlement or income.").cyText(.label) }
                 NavigationLink {
                     ModCreatorIncomeListView(reader: model.reader)
                 } label: {
@@ -60,7 +60,7 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
                         LabeledContent(text("modSettlement.qualification.revision"), value: String(qualification.revision))
                         if let expiry = qualification.expiresAt { LabeledContent(text("modSettlement.qualification.expires")) { Text(expiry, style: .date) } }
                     } else { Text(text("modSettlement.qualification.missing")) }
-                    Text(text("modSettlement.qualification.channelUnknown")).font(Theme.Font.label).foregroundStyle(.secondary)
+                    Text(text("modSettlement.qualification.channelUnknown")).cyText(.label).foregroundStyle(.secondary)
                 }
                 Section(text("modSettlement.records")) {
                     if overview.records.isEmpty { Text(text("modSettlement.empty")).accessibilityIdentifier("modSettlement.empty") }
@@ -69,12 +69,12 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
                             selection = model.select(record)
                         } label: {
                             VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                                Text(verbatim: record.orderKey).font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                                Text(text(record.state.localizationKey)).font(Theme.Font.cardTitle)
-                                Text(verbatim: record.currency + " " + String(record.amount) + " · " + text("modSettlement.minorUnits")).font(Theme.Font.sectionTitle).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: record.orderKey).cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                Text(text(record.state.localizationKey)).cyText(.cardTitle)
+                                Text(verbatim: record.currency + " " + String(record.amount) + " · " + text("modSettlement.minorUnits")).cyText(.sectionTitle).monospacedDigit().fixedSize(horizontal: false, vertical: true)
                                 if record.frozen { Label(text("modSettlement.frozen"), systemImage: "exclamationmark.shield")
-                            .font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true) }
-                                Text(record.updatedAt, style: .date).font(Theme.Font.label).foregroundStyle(.secondary)
+                            .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                                Text(record.updatedAt, style: .date).cyText(.label).foregroundStyle(.secondary)
                             }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, Theme.Space.s2)
                         }.buttonStyle(.plain).accessibilityIdentifier("modSettlement.record." + record.id)
                     }
@@ -133,18 +133,18 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
             } else if let issue = model.issue { ModSettlementIssueView(issue: issue) { await model.refresh() } }
             if let record = model.visibleRecord {
                 Section(text("modSettlement.result")) {
-                    Text(text(record.state.localizationKey)).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                    Text(text(record.state.localizationKey)).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                     Text(text(record.state.explanationKey))
                     if record.frozen {
                         Label(text("modSettlement.frozen"), systemImage: "exclamationmark.shield")
-                            .font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true)
-                        Text(text("modSettlement.frozenExplanation")).font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
+                            .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                        Text(text("modSettlement.frozenExplanation")).cyText(.label).fixedSize(horizontal: false, vertical: true)
                     }
                     LabeledContent(text(record.isProviderConfirmedPaid ? "modSettlement.confirmedAmount" : "modSettlement.proposedAmount"),
-                                   value: record.currency + " " + String(record.amount)).font(Theme.Font.sectionTitle).monospacedDigit()
-                    Text(text("modSettlement.minorUnitsExplanation")).font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                   value: record.currency + " " + String(record.amount)).cyText(.sectionTitle).monospacedDigit()
+                    Text(text("modSettlement.minorUnitsExplanation")).cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     LabeledContent(text("modSettlement.retainedAmount"), value: record.currency + " " + String(record.retainedAmount)).monospacedDigit()
-                    Text(text("modSettlement.reserveExplanation")).font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text(text("modSettlement.reserveExplanation")).cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 Section(text("modSettlement.trace")) {
                     value("modSettlement.settlementID", record.id)
@@ -158,8 +158,8 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
                 }
                 Section {
                     Text(text("modSettlement.readbackOnly"))
-                    Text(text("modSettlement.reviewBoundary")).font(Theme.Font.label).foregroundStyle(.secondary)
-                    Text(text("modSettlement.noPaymentAction")).font(Theme.Font.label).foregroundStyle(.secondary)
+                    Text(text("modSettlement.reviewBoundary")).cyText(.label).foregroundStyle(.secondary)
+                    Text(text("modSettlement.noPaymentAction")).cyText(.label).foregroundStyle(.secondary)
                 }
             }
         }
@@ -180,8 +180,8 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
     }
     private func value(_ key: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(text(key)).font(.caption).foregroundStyle(.secondary)
-            Text(verbatim: value).font(.footnote).textSelection(.enabled)
+            Text(text(key)).cyText(.meta).foregroundStyle(.secondary)
+            Text(verbatim: value).cyText(.bodyCompact).textSelection(.enabled)
         }
     }
 }

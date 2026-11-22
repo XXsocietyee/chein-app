@@ -117,21 +117,21 @@ import Combine
         Form {
             Section { CYHeroHeader("templateReaction.rehearse").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
-                if controller.mode == .sourceExample { Text("templateReaction.exampleOnly").font(.footnote) }
+                if controller.mode == .sourceExample { Text("templateReaction.exampleOnly").cyText(.bodyCompact) }
             }
             if let state = controller.visibleState {
                 Section {
-                    Text(verbatim: state.kicker).font(.title2)
+                    Text(verbatim: state.kicker).cyText(.sheetTitle)
                     LabeledContent("templateReaction.rounds", value: String(state.rounds))
                     LabeledContent("templateReaction.goal", value: milliseconds(state.goalMs))
                     LabeledContent("templateReaction.round", value: String(state.round))
-                    Text("templateReaction.rule").font(.footnote)
+                    Text("templateReaction.rule").cyText(.bodyCompact)
                 }
                 Section {
                     Button(action: controller.action(.tap)) {
                         VStack(spacing: 16) {
-                            Text(LocalizedStringKey(stageKey(state))).font(.largeTitle.bold())
-                            Text(LocalizedStringKey(hintKey(state))).font(.callout)
+                            Text(LocalizedStringKey(stageKey(state))).cyText(.pageTitle)
+                            Text(LocalizedStringKey(hintKey(state))).cyText(.body)
                         }.frame(maxWidth: .infinity, minHeight: 180).padding()
                             .background(stageColor(state).opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
                             .contentShape(Rectangle())

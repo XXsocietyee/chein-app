@@ -32,8 +32,8 @@ struct CityGamePanel: View {
     @State private var selectedProperty: String?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("cityGame.title", tableName: "CityGame").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-            phaseText.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("cityGame.phase")
+            Text("cityGame.title", tableName: "CityGame").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            phaseText.cyText(.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("cityGame.phase")
             if model.phase == .loading || model.phase == .quoting || model.phase == .sending { CYSkeleton() }
             if let notice = model.notice { noticeText(notice).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.notice") }
             if let outcome = model.lastOutcome { outcomeText(outcome).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.outcome") }
@@ -44,7 +44,7 @@ struct CityGamePanel: View {
                 CYPillButton("cityGame.refresh", style: .tertiary, tableName: "CityGame") { Task { if model.phase == .ready { await model.refresh() } else { await model.load() } } }
                     .accessibilityIdentifier("cityGame.refresh")
             }
-            Text("cityGame.privacy", tableName: "CityGame").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+            Text("cityGame.privacy", tableName: "CityGame").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
@@ -79,13 +79,13 @@ struct CityGamePanel: View {
             statTile("cityGame.points.balance", value: snapshot.memberPoints.map { String($0) }).accessibilityIdentifier("cityGame.points")
         }
         if snapshot.memberPoints == 0, snapshot.neutralTasksAvailable {
-            Text("cityGame.points.zero", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.zeroPoints")
+            Text("cityGame.points.zero", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.zeroPoints")
         }
         if model.canRoll {
             CYPillButton("cityGame.roll", systemImage: "dice", tableName: "CityGame") { model.prepareRoll() }
                 .accessibilityIdentifier("cityGame.roll")
         }
-        if snapshot.properties.isEmpty { Text("cityGame.properties.empty", tableName: "CityGame").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+        if snapshot.properties.isEmpty { Text("cityGame.properties.empty", tableName: "CityGame").cyText(.body).foregroundStyle(CYColor.textSecondary) }
         if boardLayout {
             if let selected = snapshot.properties.first(where: { $0.propertyId == selectedProperty }) { propertyRow(selected) }
         } else {
@@ -106,32 +106,32 @@ struct CityGamePanel: View {
             CYCityBoardRing(properties: snapshot.properties, title: { title(for: $0) }, selection: $selectedProperty)
                 .frame(maxWidth: 420).frame(maxWidth: .infinity)
             if selectedProperty == nil {
-                Text("cityGame.board.selectHint", tableName: "CityGame").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                Text("cityGame.board.selectHint", tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary)
             }
         }
     }
 
     @ViewBuilder private func propertyRow(_ property: CityPropertyState) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: title(for: property)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: title(for: property)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             HStack(spacing: 8) {
                 chip(roleText(property.role), tone: .neutral)
                 chip(statusText(property.status), tone: property.status == .available ? .success : property.status == .safetyBlocked ? .danger : property.status == .held ? .info : .warning)
             }
-            if property.heldByMyTeam { Text("cityGame.property.mine", tableName: "CityGame").font(.footnote) }
+            if property.heldByMyTeam { Text("cityGame.property.mine", tableName: "CityGame").cyText(.meta) }
             if let until = property.protectedUntilMillis {
-                LabeledContent { Text(Date(timeIntervalSince1970: Double(until) / 1000), format: .dateTime.month().day().hour().minute()) } label: { Text("cityGame.property.protectedUntil", tableName: "CityGame") }.font(.footnote)
+                LabeledContent { Text(Date(timeIntervalSince1970: Double(until) / 1000), format: .dateTime.month().day().hour().minute()) } label: { Text("cityGame.property.protectedUntil", tableName: "CityGame") }.cyText(.meta)
             }
-            if let challenge = property.challenge { challengeText(challenge).font(.footnote) }
-            if property.taskAttemptKept { Text("cityGame.property.taskKept", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true) }
+            if let challenge = property.challenge { challengeText(challenge).cyText(.meta) }
+            if property.taskAttemptKept { Text("cityGame.property.taskKept", tableName: "CityGame").cyText(.meta).fixedSize(horizontal: false, vertical: true) }
             ForEach(property.services) { offer in
                 HStack {
                     VStack(alignment: .leading) {
-                        Text(verbatim: offer.title).font(.footnote)
+                        Text(verbatim: offer.title).cyText(.bodyCompact)
                         if let fee = offer.memberPointsFee {
-                            if fee == 0 { Text("cityGame.service.free", tableName: "CityGame").font(.caption) }
-                            else { LabeledContent { Text(verbatim: String(fee)) } label: { Text("cityGame.service.fee", tableName: "CityGame") }.font(.caption) }
-                        } else { Text("cityGame.service.feeUnpublished", tableName: "CityGame").font(.caption) }
+                            if fee == 0 { Text("cityGame.service.free", tableName: "CityGame").cyText(.meta) }
+                            else { LabeledContent { Text(verbatim: String(fee)) } label: { Text("cityGame.service.fee", tableName: "CityGame") }.cyText(.meta) }
+                        } else { Text("cityGame.service.feeUnpublished", tableName: "CityGame").cyText(.meta) }
                     }
                     Spacer(minLength: 0)
                     if model.canAcceptService(offer, on: property) {
@@ -153,7 +153,7 @@ struct CityGamePanel: View {
 
     @ViewBuilder private func reviewCard(_ review: CityGameReview) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("cityGame.review.title", tableName: "CityGame").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text("cityGame.review.title", tableName: "CityGame").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
             actionText(review.kind)
             if let propertyId = review.propertyId, let property = model.snapshot?.properties.first(where: { $0.propertyId == propertyId }) {
                 Text(verbatim: title(for: property))
@@ -166,12 +166,12 @@ struct CityGamePanel: View {
                 LabeledContent { Text("cityGame.review.payerYou", tableName: "CityGame") } label: { Text("cityGame.review.payer", tableName: "CityGame") }
                 LabeledContent { Text(verbatim: String(quote.beneficiaryMemberIds.count)) } label: { Text("cityGame.review.beneficiaries", tableName: "CityGame") }
                 LabeledContent { Text(Date(timeIntervalSince1970: Double(quote.expiresAtMillis) / 1000), format: .dateTime.hour().minute().second()) } label: { Text("cityGame.review.expires", tableName: "CityGame") }
-                Text("cityGame.review.noTeammate", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                Text("cityGame.review.noTeammate", tableName: "CityGame").cyText(.meta).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("cityGame.review.free", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                Text("cityGame.review.free", tableName: "CityGame").cyText(.meta).fixedSize(horizontal: false, vertical: true)
             }
             if !model.reviewAffordable {
-                Text("cityGame.review.insufficient", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                Text("cityGame.review.insufficient", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("cityGame.review.insufficient")
             }
             CYPillButton("cityGame.review.confirm", tableName: "CityGame") { Task { await model.confirm() } }
@@ -185,7 +185,7 @@ struct CityGamePanel: View {
 
     @ViewBuilder private var unknownSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("cityGame.unknown.explain", tableName: "CityGame").font(.footnote).fixedSize(horizontal: false, vertical: true)
+            Text("cityGame.unknown.explain", tableName: "CityGame").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
             CYPillButton("cityGame.unknown.readBack", style: .secondary, tableName: "CityGame") { Task { await model.readBack() } }
                 .accessibilityIdentifier("cityGame.readBack")
             if model.canRetryExact {
@@ -200,7 +200,7 @@ struct CityGamePanel: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: value ?? "—").font(.system(.title3, design: .rounded).weight(.bold)).monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
-            Text(label, tableName: "CityGame").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+            Text(label, tableName: "CityGame").cyText(.caption).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)
@@ -209,7 +209,7 @@ struct CityGamePanel: View {
     }
 
     private func chip(_ text: Text, tone: CYStatusTone) -> some View {
-        text.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+        text.cyText(.caption).foregroundStyle(CYColor.textSecondary)
             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
             .background(Capsule(style: .continuous).fill(CYColor.bgRaised))
     }

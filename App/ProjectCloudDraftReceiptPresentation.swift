@@ -73,10 +73,10 @@ struct ProjectCloudDraftIntentSummary: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(LocalizedStringKey(ProjectCloudDraftReceiptPresentation.intentKey(intent)), tableName: "ProjectCloudDraftReceipt")
-                .font(.headline)
+                .cyText(.cardTitle)
             if let key = ProjectCloudDraftReceiptPresentation.explanationKey(intent) {
                 Text(LocalizedStringKey(key), tableName: "ProjectCloudDraftReceipt")
-                    .font(.body).foregroundStyle(.secondary)
+                    .cyText(.body).foregroundStyle(.secondary)
             }
         }
         .fixedSize(horizontal: false, vertical: true)
@@ -101,7 +101,7 @@ struct ProjectCloudDraftProcessingFacts: View {
             ProjectCloudDraftStatusLine(titleKey: "processing.spotCheck", code: value.spotCheckState)
             if value.audits.isEmpty {
                 Text("processing.noAudits", tableName: "ProjectCloudDraftReceipt")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("projectCloudDraft.noAudits")
             }
             ForEach(value.audits, id: \.taskID) { audit in
@@ -113,11 +113,11 @@ struct ProjectCloudDraftProcessingFacts: View {
                     ProjectCloudDraftStatusLine(titleKey: "processing.auditState", code: audit.state)
                     if audit.actions.isEmpty {
                         Text("processing.noActions", tableName: "ProjectCloudDraftReceipt")
-                            .font(.footnote).foregroundStyle(.secondary)
+                            .cyText(.bodyCompact).foregroundStyle(.secondary)
                     } else {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("processing.actions", tableName: "ProjectCloudDraftReceipt")
-                                .font(.caption).foregroundStyle(.secondary)
+                                .cyText(.meta).foregroundStyle(.secondary)
                             ForEach(Array(audit.actions.enumerated()), id: \.offset) { _, code in
                                 Text(LocalizedStringKey(ProjectCloudDraftReceiptPresentation.statusKey(code)), tableName: "ProjectCloudDraftReceipt")
                                     .fixedSize(horizontal: false, vertical: true)
@@ -128,7 +128,7 @@ struct ProjectCloudDraftProcessingFacts: View {
             }
             if value.media.isEmpty {
                 Text("processing.noMedia", tableName: "ProjectCloudDraftReceipt")
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("projectCloudDraft.noMedia")
             }
             ForEach(value.media, id: \.mediaSHA256) { media in
@@ -138,7 +138,7 @@ struct ProjectCloudDraftProcessingFacts: View {
                     } label: { Text("processing.mediaID", tableName: "ProjectCloudDraftReceipt") }
                     ProjectCloudDraftStatusLine(titleKey: "processing.mediaState", code: media.state)
                     Text(LocalizedStringKey(ProjectCloudDraftReceiptPresentation.riskKey(media.risky)), tableName: "ProjectCloudDraftReceipt")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .cyText(.bodyCompact).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }.padding(.vertical, 4)
             }
@@ -153,9 +153,9 @@ private struct ProjectCloudDraftStatusLine: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(LocalizedStringKey(titleKey), tableName: "ProjectCloudDraftReceipt")
-                .font(.caption).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
             Text(LocalizedStringKey(ProjectCloudDraftReceiptPresentation.statusKey(code)), tableName: "ProjectCloudDraftReceipt")
-                .font(.body).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).fixedSize(horizontal: false, vertical: true)
         }.accessibilityElement(children: .combine)
     }
 }

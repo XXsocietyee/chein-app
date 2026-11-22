@@ -42,7 +42,7 @@ public struct MapVisualLayerControlSectionView: View {
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: theme.isCandidatePalette ? "候选色板" : "已审色板")
-                        .font(.caption2.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
@@ -59,7 +59,7 @@ public struct MapVisualLayerControlSectionView: View {
                             ? "WCAG 对比度达标"
                             : "存在不足: \(theme.contrastShortfalls.joined(separator: ", "))"
                     )
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(theme.contrastShortfalls.isEmpty ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mapVisual.theme.contrastStatus")
@@ -116,11 +116,11 @@ public struct MapVisualLayerControlSectionView: View {
 
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: projection.title)
-                                        .font(.subheadline.weight(.medium))
+                                        .cyText(.bodyMedium)
                                     Text(
                                         verbatim: "\(Self.stateDisplayName(projection.effectiveState)) · 线宽 \(String(format: "%.1f", projection.strokeWidth)) · \(projection.allowsPrimaryAction ? "可交互" : "不可执行主操作")"
                                     )
-                                    .font(.caption)
+                                    .cyText(.meta)
                                     .foregroundStyle(.secondary)
                                 }
 

@@ -209,18 +209,18 @@ struct OfficialOrganizerConsoleView: View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: model.state?.title.isEmpty == false ? model.state!.title : c.t("未命名官方活动", "Untitled official event"))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                 HStack(spacing: CYSpacing.sm) {
                     Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(model.state?.status)))
                     Text(verbatim: "·")
                     Text(verbatim: controlText)
-                }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                }.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 if model.state?.control == .paused {
                     if let r = model.state?.pausedReason, !r.isEmpty {
-                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).font(CYTypography.meta)
+                        Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).cyText(.meta)
                     }
                     if let n = model.state?.resumeNote, !n.isEmpty {
-                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).font(CYTypography.meta)
+                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).cyText(.meta)
                     }
                 }
             }
@@ -233,7 +233,7 @@ struct OfficialOrganizerConsoleView: View {
         let snapshot = model.snapshot
         return Section {
             Text("official.organizer.counts \(snapshot.blockerCountText) \(snapshot.riskCountText)")
-                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("official.organizer.counts")
             switch snapshot.state {
             case .empty:
@@ -283,7 +283,7 @@ struct OfficialOrganizerConsoleView: View {
                      "The result of your earlier request isn't confirmed. Your input is kept; check the result first instead of submitting again."))
                 .font(.subheadline)
             if model.unconfirmedMessage != nil {
-                Text(c.t("暂时无法确认，请稍后再查询", "Can't confirm right now. Check again shortly.")).font(.footnote).foregroundStyle(.secondary)
+                Text(c.t("暂时无法确认，请稍后再查询", "Can't confirm right now. Check again shortly.")).cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             Button(c.t("查询结果", "Check result")) { Task { await model.send(.query) } }.frame(minHeight: 44)
             Button(c.t("按原请求重试", "Retry the original request")) { Task { await model.send(.submit) } }.frame(minHeight: 44)
@@ -335,7 +335,7 @@ struct OfficialOrganizerConsoleView: View {
         let presets = OfficialOrganizerRules.pausePresets[field] ?? []
         let binding = Binding(get: { model.pause[field] ?? OfficialOrganizerPauseEntry() }, set: { model.pause[field] = $0 })
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(fieldLabel(field)).font(CYTypography.bodyCompact.weight(.semibold))
+            Text(fieldLabel(field)).cyText(.bodyMedium)
             Picker(fieldLabel(field), selection: binding.preset) {
                 Text(c.t("不选预设", "No preset")).tag("")
                 ForEach(Array(presets.enumerated()), id: \.offset) { i, zh in Text(presetLabel(field, i, zh)).tag(zh) }
@@ -361,12 +361,12 @@ struct OfficialOrganizerConsoleView: View {
     }
     @ViewBuilder private func hintText(_ action: OfficialOrganizerAction) -> some View {
         if let hint = model.availability[action]?.hint {
-            Text(hintCopy(hint)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(hintCopy(hint)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
     }
     @ViewBuilder private func formErrorText(_ action: OfficialOrganizerAction) -> some View {
         if let (a, e) = model.formError, a == action {
-            Text(formErrorCopy(e)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+            Text(formErrorCopy(e)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("official.organizer.formError")
         }
     }
@@ -515,7 +515,7 @@ struct OfficialOrganizerEntryRow: View {
                 } label: {
                     Label {
                         Text(LocalizedStringKey(cta.key))
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                     } icon: {
                         Image(systemName: "map.fill")
                     }
@@ -555,7 +555,7 @@ struct OfficialOrganizerEntryRow: View {
                     CoreLoopCopy(locale: locale).t("去漫游完成", "Verify in Roam"),
                     systemImage: "location.magnifyingglass"
                 )
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .frame(minHeight: 44)
             }
             .accessibilityIdentifier("official.mission.roam.\(missionIndex)")

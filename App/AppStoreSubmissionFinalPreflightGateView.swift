@@ -131,11 +131,11 @@ public struct AppStoreSubmissionFinalPreflightGateView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "App Store Submission Final Preflight Gate Runner")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("finalPreflightGateRunner.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isSubmissionReady ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("finalPreflightGateRunner.statusBadge")
             }
@@ -146,7 +146,7 @@ public struct AppStoreSubmissionFinalPreflightGateView: View {
                 .accessibilityIdentifier("finalPreflightGateRunner.runnerSummary")
 
             Text(verbatim: submissionDecisionBannerText)
-                .font(.footnote.weight(.semibold))
+                .cyText(.bodyMedium)
                 .foregroundStyle(snapshot.isSubmissionReady ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("finalPreflightGateRunner.submissionDecisionBanner")
 
@@ -155,14 +155,14 @@ public struct AppStoreSubmissionFinalPreflightGateView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.gateCode)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle((row.isPassed && row.isFailClosed) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.checkSummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

@@ -77,7 +77,7 @@ import SwiftUI
                                 VStack(alignment: .leading, spacing: 6) {
                                     Button { model.select(item.id) } label: { Label { Text("merchant.brandImages.image \(item.id + 1)") } icon: { Image(systemName: "photo") } }
                                         .disabled(item.url == nil).accessibilityIdentifier("merchant.brandImages.image." + String(item.id))
-                                    if item.url == nil { Text("merchant.brandImages.unsupported").font(.footnote).foregroundStyle(.secondary) }
+                                    if item.url == nil { Text("merchant.brandImages.unsupported").cyText(.bodyCompact).foregroundStyle(.secondary) }
                                 }
                             }
                         }

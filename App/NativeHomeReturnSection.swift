@@ -9,7 +9,7 @@ struct NativeHomeReturnSection: View {
         Section {
             if let model { content(model) }
             else {
-                Text("homeReturn.notEnabled", tableName: "NativeHomeReturn").font(.footnote).accessibilityIdentifier("homeReturn.notEnabled")
+                Text("homeReturn.notEnabled", tableName: "NativeHomeReturn").cyText(.bodyCompact).accessibilityIdentifier("homeReturn.notEnabled")
             }
         } header: { Text("homeReturn.title", tableName: "NativeHomeReturn") }
         .task { if model?.phase == .idle { await model?.load() } }
@@ -18,8 +18,8 @@ struct NativeHomeReturnSection: View {
     }
 
     @ViewBuilder private func content(_ model: NativeHomeReturnCoordinator) -> some View {
-        phaseText(model.phase).font(.footnote).accessibilityIdentifier("homeReturn.phase")
-        Text("homeReturn.manual", tableName: "NativeHomeReturn").font(.footnote).fixedSize(horizontal: false, vertical: true)
+        phaseText(model.phase).cyText(.bodyCompact).accessibilityIdentifier("homeReturn.phase")
+        Text("homeReturn.manual", tableName: "NativeHomeReturn").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
         if case .run(let id, _) = model.scope {
             (Text("homeReturn.selectedRun", tableName: "NativeHomeReturn") + Text(verbatim: " #\(id)"))
                 .accessibilityIdentifier("homeReturn.selectedRun")
@@ -28,29 +28,29 @@ struct NativeHomeReturnSection: View {
             LabeledContent { Text(verbatim: "\(account.current) / \(account.maximum)") } label: { scopeText(model.scope) }
                 .accessibilityIdentifier("homeReturn.account")
         } else if model.phase == .unavailable {
-            Text("homeReturn.unavailable", tableName: "NativeHomeReturn").font(.footnote)
+            Text("homeReturn.unavailable", tableName: "NativeHomeReturn").cyText(.bodyCompact)
         }
         if let failure = model.failure { failureText(failure).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("homeReturn.failure") }
         if let decision = model.decision { decisionText(decision).accessibilityIdentifier("homeReturn.decision") }
-        if model.requiresAccountReadback { Text("homeReturn.readbackRequired", tableName: "NativeHomeReturn").font(.footnote) }
+        if model.requiresAccountReadback { Text("homeReturn.readbackRequired", tableName: "NativeHomeReturn").cyText(.bodyCompact) }
         if model.canRestore, home?.status == .active {
-            Text("homeReturn.restorePurpose", tableName: "NativeHomeReturn").font(.footnote)
+            Text("homeReturn.restorePurpose", tableName: "NativeHomeReturn").cyText(.bodyCompact)
             Button { Task { await model.confirmRestore(home: home) } } label: { Text("homeReturn.confirmRestore", tableName: "NativeHomeReturn") }
                 .accessibilityIdentifier("homeReturn.confirmRestore")
             Button { model.cancelVerification() } label: { Text("homeReturn.cancel", tableName: "NativeHomeReturn") }
                 .accessibilityIdentifier("homeReturn.cancel")
         }
-        if model.noReceiptYet { Text("homeReturn.noReceiptYet", tableName: "NativeHomeReturn").font(.footnote) }
+        if model.noReceiptYet { Text("homeReturn.noReceiptYet", tableName: "NativeHomeReturn").cyText(.bodyCompact) }
         if model.isBusy { ProgressView() }
         if home?.status != .active, model.phase == .ready {
-            Text("homeReturn.needHome", tableName: "NativeHomeReturn").font(.footnote).accessibilityIdentifier("homeReturn.needHome")
+            Text("homeReturn.needHome", tableName: "NativeHomeReturn").cyText(.bodyCompact).accessibilityIdentifier("homeReturn.needHome")
         }
         if model.canCheckIn, home?.status == .active {
             Button { Task { await model.checkIn(home: home) } } label: { Text("homeReturn.checkIn", tableName: "NativeHomeReturn") }
                 .accessibilityIdentifier("homeReturn.checkIn")
         }
         if model.phase == .unknown {
-            Text("homeReturn.unknown", tableName: "NativeHomeReturn").font(.footnote).fixedSize(horizontal: false, vertical: true)
+            Text("homeReturn.unknown", tableName: "NativeHomeReturn").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
             Button { Task { await model.readBack() } } label: { Text("homeReturn.readBack", tableName: "NativeHomeReturn") }
                 .accessibilityIdentifier("homeReturn.readBack")
             if model.canRetryExact {

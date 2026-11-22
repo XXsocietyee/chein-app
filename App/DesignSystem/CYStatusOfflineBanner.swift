@@ -54,7 +54,7 @@ public struct CYStatusOfflineBanner: View {
                     .font(CYTypography.bodyMedium)
                     .foregroundStyle(foregroundTone)
                 Text(LocalizedStringKey(messageKey))
-                    .font(CYTypography.meta.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(foregroundTone)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: CYSpacing.xs)
@@ -63,7 +63,7 @@ public struct CYStatusOfflineBanner: View {
                         onRetry()
                     } label: {
                         Text(LocalizedStringKey(actionTitleKey))
-                            .font(CYTypography.caption.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                     }
                     .buttonStyle(.bordered)
                     .tint(foregroundTone)
@@ -80,20 +80,20 @@ public struct CYStatusOfflineBanner: View {
                     Text(LocalizedStringKey("cy.state.offline.banner.cachedAt"))
                     Text(cachedAt, format: .dateTime.hour().minute())
                 }
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(palette.textSecondary)
                 .accessibilityIdentifier("cy.offlineBanner.cachedAt")
             }
             if let detailKey {
                 Text(LocalizedStringKey(detailKey))
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("cy.offlineBanner.detail")
             }
             if stillOffline {
                 Text(LocalizedStringKey("cy.state.offline.banner.stillOffline"))
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(foregroundTone)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("cy.offlineBanner.stillOffline")
@@ -163,7 +163,7 @@ struct CYOfflineWriteStatusBanner: View {
                 Text(count > 1
                      ? LocalizedStringKey("cy.state.offline.write.willSendCount \(count)")
                      : LocalizedStringKey("cy.state.offline.write.willSendWhenOnline"))
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("\(accessibilityID).message")
@@ -176,11 +176,11 @@ struct CYOfflineWriteStatusBanner: View {
                         .controlSize(.small)
                     Spacer(minLength: CYSpacing.xs)
                     Text(verbatim: "\(count)")
-                        .font(CYTypography.caption.monospacedDigit())
+                        .cyText(.caption, monospacedDigit: true)
                         .foregroundStyle(palette.textSecondary)
                 }
                 Text("cy.state.offline.queue.syncing")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("\(accessibilityID).message")
@@ -192,13 +192,13 @@ struct CYOfflineWriteStatusBanner: View {
                     Spacer(minLength: CYSpacing.xs)
                     if let onDismissSynced {
                         Button("cy.state.offline.write.dismiss", action: onDismissSynced)
-                            .font(CYTypography.caption)
+                            .cyText(.caption)
                             .buttonStyle(.borderless)
                             .accessibilityIdentifier("\(accessibilityID).dismiss")
                     }
                 }
                 Text("cy.state.offline.write.synced")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("\(accessibilityID).message")
@@ -207,7 +207,7 @@ struct CYOfflineWriteStatusBanner: View {
             card(tone: .warning, border: palette.danger.opacity(0.35), fill: palette.dangerSoft.opacity(0.45)) {
                 CYStatusChip("cy.state.offline.write.chip.locked", tone: .warning, systemImage: "lock.fill")
                 Text("cy.state.offline.queue.lockedUnknown \(count)")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("\(accessibilityID).message")
@@ -216,7 +216,7 @@ struct CYOfflineWriteStatusBanner: View {
             card(tone: .danger, border: palette.danger.opacity(0.35), fill: palette.dangerSoft.opacity(0.45)) {
                 CYStatusChip("cy.state.offline.write.chip.rejected", tone: .danger, systemImage: "xmark.octagon.fill")
                 Text("cy.state.offline.write.rejected")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("\(accessibilityID).message")
@@ -225,7 +225,7 @@ struct CYOfflineWriteStatusBanner: View {
             card(tone: .danger, border: palette.danger.opacity(0.35), fill: palette.dangerSoft.opacity(0.45)) {
                 CYStatusChip("cy.state.offline.write.chip.excluded", tone: .danger, systemImage: "lock.shield.fill")
                 Text("cy.state.offline.queue.moneyNoAutoReplay")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("\(accessibilityID).message")

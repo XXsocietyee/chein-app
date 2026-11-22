@@ -39,7 +39,7 @@ struct ActivityDetailView: View {
                 VStack(spacing: CYSpacing.md) {
                     CYStateArt(kind: .generic)
                     Text("activity.signInRequired")
-                        .font(CYTypography.sectionTitle)
+                        .cyText(.sectionTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
@@ -149,7 +149,7 @@ struct ActivityDetailView: View {
                     VStack(spacing: CYSpacing.lg) {
                         CYStateArt(kind: .failure)
                         Text("activity.loadFailed")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
@@ -316,20 +316,20 @@ struct ActivityDetailView: View {
             VStack(spacing: CYSpacing.lg) {
                 CYStateArt(kind: CYStateKind(symbol: "lock"))
                 Text("activity.clubRequired")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("activity.detail.clubGate")
                 if let message, !message.isEmpty {
                     Text(verbatim: message)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("activity.clubRequiredHint")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
@@ -363,7 +363,7 @@ struct ActivityDetailView: View {
                 .accessibilityLabel(Text("activity.requiredClub.open"))
         }
         if requiredClubDestination == nil || renderedScope == nil || (clubID ?? 0) <= 0 {
-            Text("activity.requiredClub.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("activity.requiredClub.unavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
@@ -403,7 +403,7 @@ struct ActivityDetailView: View {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYStatusChip("activity.cancelled.title", tone: .danger, systemImage: "xmark.octagon")
                         if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)").fixedSize(horizontal: false, vertical: true) }
-                        Text("activity.cancelled.hint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text("activity.cancelled.hint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .questifyCardSurface()
@@ -477,7 +477,7 @@ struct ActivityDetailView: View {
                 } label: {
                     HStack(spacing: CYSpacing.md) {
                         Text(showsMoreInfo ? "activity.more.hide" : "activity.more.show")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                         Spacer(minLength: 0)
                         Image(systemName: "chevron.down")
@@ -524,7 +524,7 @@ struct ActivityDetailView: View {
         if let text=ActivityPresentation.nonempty(detail.summary.description) {
             Section("activity.about") {
                 Text(verbatim:text)
-                    .font(.body)
+                    .cyText(.body)
                     .fixedSize(horizontal:false,vertical:true)
                     .textSelection(.enabled)
                     .questifyCardSurface()
@@ -625,7 +625,7 @@ struct ActivityDetailView: View {
         VStack(spacing: CYSpacing.xs) {
             if let summary = pinnedSummary(detail) {
                 summary
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
@@ -744,7 +744,7 @@ private struct ActivityActionTiles: View {
         Button(action: action) {
             VStack(spacing: CYSpacing.xs) {
                 Image(systemName: symbol).font(.title3).accessibilityHidden(true)
-                title.font(CYTypography.meta).multilineTextAlignment(.center)
+                title.cyText(.meta).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(enabled ? CYColor.textPrimary : CYColor.textTertiary)

@@ -205,7 +205,7 @@ struct RoamExperienceNotice: View {
     var body: some View {
         if offline {
             Label("roam.experience.offline", systemImage: "testtube.2")
-                .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .cyNightGlass(in: Capsule())
                 .accessibilityIdentifier("roam.experience.notice")
@@ -228,7 +228,7 @@ struct RoamExperienceIssue: View {
             items.append(RoamHostedAccessibilityItem(identifier: "roam.experience.retry", action: retry))
         }
         return VStack(alignment: .leading, spacing: 12) {
-            Label(key, systemImage: "exclamationmark.circle").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+            Label(key, systemImage: "exclamationmark.circle").cyText(.body).foregroundStyle(CYColor.textSecondary)
             if canRetry, let retry {
                 CYPillButton("action.retry", style: .secondary, fullWidth: false, action: retry)
                     .accessibilityIdentifier("roam.experience.retry")
@@ -332,9 +332,9 @@ struct RoamRecordedStats: View {
     private func row(_ label: LocalizedStringKey, @ViewBuilder value: () -> some View) -> some View {
         VStack(spacing: 0) {
             HStack {
-                Text(label).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text(label).cyText(.body).foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: CYSpacing.md)
-                value().font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                value().cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             }
             .frame(minHeight: 52)
             .accessibilityElement(children: .combine)

@@ -18,13 +18,13 @@ struct ClubActionFixtureRootView: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: 6) {
-                Text("club.action.fixtureNotice").font(.caption.bold()).accessibilityIdentifier("club.action.fixture.notice")
+                Text("club.action.fixtureNotice").cyText(.meta, weight: .bold).accessibilityIdentifier("club.action.fixture.notice")
                 HStack {
                     Button("club.fixtureSwitchAccount") { store.switchAccount() }.accessibilityIdentifier("club.action.fixture.switchAccount")
                     Button("club.fixtureSignOut") { store.signOut() }.accessibilityIdentifier("club.action.fixture.signOut")
                     Button("club.signIn") { store.signIn() }.accessibilityIdentifier("club.action.fixture.signIn")
-                }.font(.caption)
-                HStack { Text("club.action.fixtureWrites"); Text(store.writeCount, format: .number).accessibilityIdentifier("club.action.fixture.writeCount") }.font(.caption)
+                }.cyText(.meta)
+                HStack { Text("club.action.fixtureWrites"); Text(store.writeCount, format: .number).accessibilityIdentifier("club.action.fixture.writeCount") }.cyText(.meta)
             }.padding(8).frame(maxWidth: .infinity).background(.yellow.opacity(0.15))
             Text(verbatim: store.lastMessage).accessibilityIdentifier("club.application.fixture.message")
             NavigationStack {

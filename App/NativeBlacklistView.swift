@@ -100,7 +100,7 @@ import SwiftUI
             if let original = flow.pendingCommand {
                 Section {
                     text("blacklist.unknown")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("blacklist.original")
@@ -132,7 +132,7 @@ import SwiftUI
                     )
                     .accessibilityIdentifier("blacklist.outcome")
                     text("blacklist.historical")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: "\(result.peerID)\n\(result.requestID)")
@@ -147,7 +147,7 @@ import SwiftUI
                         .accessibilityIdentifier("blacklist.current")
                     } else {
                         text("blacklist.currentFailure")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -211,7 +211,7 @@ import SwiftUI
                         HStack(alignment: .center, spacing: CYSpacing.md) {
                             BlacklistCover(seed: String(item.peerID), symbol: "person.fill", height: 40, radius: CYRadius.sm)
                             Text(verbatim: item.nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.nickname)
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(palette.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("blacklist.exactPeer")
@@ -221,7 +221,7 @@ import SwiftUI
                             .font(.footnote.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)
                             .accessibilityIdentifier("blacklist.reviewIdentity")
                         text("blacklist.confirmImpact")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

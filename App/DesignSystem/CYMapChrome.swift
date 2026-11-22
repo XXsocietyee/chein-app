@@ -141,7 +141,7 @@ struct CYGoLabel: View {
             } else if isWordmark {
                 Text(title).font(.system(.title, design: .default).weight(.heavy).italic())
             } else {
-                Text(title).font(CYTypography.sheetTitle)
+                Text(title).cyText(.sheetTitle)
             }
         }
             .minimumScaleFactor(0.6).lineLimit(1)
@@ -270,7 +270,7 @@ struct CYMapCallout: View {
     var body: some View {
         VStack(spacing: 0) {
             Text(verbatim: text)
-                .font(.footnote.weight(.semibold))
+                .cyText(.bodyMedium)
                 .foregroundStyle(.black)
                 .lineLimit(2)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)

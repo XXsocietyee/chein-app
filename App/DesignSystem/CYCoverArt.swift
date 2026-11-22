@@ -70,10 +70,10 @@ struct CYArtCoverHeader<Chips: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Spacer(minLength: CYSpacing.xl)
-            title.font(CYTypography.sectionTitle.weight(.bold)).foregroundStyle(.white)
+            title.cyText(.sectionTitle).foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
             if let subtitle {
-                subtitle.font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.85))
+                subtitle.cyText(.bodyCompact).foregroundStyle(.white.opacity(0.85))
                     .fixedSize(horizontal: false, vertical: true)
             }
             chips()

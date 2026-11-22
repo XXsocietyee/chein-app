@@ -244,7 +244,7 @@ struct CYNewPulseBadge: View {
 
     var body: some View {
         text
-            .font(CYTypography.micro.weight(.heavy))
+            .cyText(.micro, weight: .heavy)
             .textCase(.uppercase)
             .foregroundStyle(Color.black.opacity(0.85))
             .padding(.horizontal, CYSpacing.sm).padding(.vertical, 3)
@@ -373,7 +373,7 @@ struct CYAlbumPager<Item: Identifiable, Page: View>: View {
                 }
             } else {
                 Text(verbatim: "\(index + 1) / \(items.count)")
-                    .font(CYTypography.caption).monospacedDigit().foregroundStyle(palette.textSecondary)
+                    .cyText(.caption).monospacedDigit().foregroundStyle(palette.textSecondary)
             }
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)

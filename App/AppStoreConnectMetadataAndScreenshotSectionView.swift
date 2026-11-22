@@ -134,22 +134,22 @@ public struct AppStoreConnectMetadataAndScreenshotSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "App Store Connect Metadata & Screenshot Matrix")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("ascMetadataMatrix.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("ascMetadataMatrix.statusBadge")
             }
 
             Text(verbatim: screenshotSetsSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.has69And65InchScreenshotSets ? CYColor.textSecondary : CYColor.warningText)
                 .accessibilityIdentifier("ascMetadataMatrix.screenshotSetsSummary")
 
             Text(verbatim: localeMetadataSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.hasBilingualZhHansAndEnUSMetadata ? CYColor.textSecondary : CYColor.warningText)
                 .accessibilityIdentifier("ascMetadataMatrix.localeMetadataSummary")
 
@@ -167,14 +167,14 @@ public struct AppStoreConnectMetadataAndScreenshotSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.requirementCode)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(row.isReady ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.specificationSummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

@@ -62,7 +62,7 @@ import SwiftUI
         NavigationStack {
             Form {
                 Section {
-                    Text("merchant.npcField.boundary").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchant.npcField.boundary").cyText(.bodyCompact).foregroundStyle(.secondary)
                     if session.buffer.field.multiline {
                         TextEditor(text: text).frame(minHeight: 160)
                             .accessibilityLabel(Text(LocalizedStringKey(session.buffer.field.titleKey)))
@@ -73,7 +73,7 @@ import SwiftUI
                             .accessibilityIdentifier("merchant.npcField.input")
                     }
                     Text("\(session.buffer.value.utf16.count) / \(session.buffer.field.limit)")
-                        .font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                        .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
                     if let key = session.buffer.issueKey { Text(LocalizedStringKey(key)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.npcField.issue") }
                 }
                 Section {

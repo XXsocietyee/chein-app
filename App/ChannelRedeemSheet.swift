@@ -16,7 +16,7 @@ struct ChannelRedeemSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    Text("channelRedeem.note").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("channelRedeem.note").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("channelRedeem.note")
                     TextField("channelRedeem.code", text: $code)
                         .textInputAutocapitalization(.never)
@@ -75,7 +75,7 @@ struct ChannelRedeemSheet: View {
     private func receiptView(_ receipt: ChannelRedeemReceipt) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(receipt.replayed ? "channelRedeem.replayed" : "channelRedeem.redeemed")
-                .font(CYTypography.bodyMedium)
+                .cyText(.bodyMedium)
                 .accessibilityIdentifier(receipt.replayed ? "channelRedeem.replayed" : "channelRedeem.redeemed")
             labeled("channelRedeem.product", receipt.productName)
             labeled("channelRedeem.seats", receipt.seatCount)
@@ -85,7 +85,7 @@ struct ChannelRedeemSheet: View {
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("channelRedeem.use")
             if usingRegistration {
-                Text(verbatim: receipt.registrationNo).font(CYTypography.body).accessibilityIdentifier("channelRedeem.use.registration")
+                Text(verbatim: receipt.registrationNo).cyText(.body).accessibilityIdentifier("channelRedeem.use.registration")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -97,7 +97,7 @@ struct ChannelRedeemSheet: View {
             Spacer()
             Text(verbatim: value)
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .frame(minHeight: CYSpacing.minTouchTarget)
     }
 

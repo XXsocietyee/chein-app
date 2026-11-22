@@ -293,9 +293,9 @@ struct CYRevealToast: View {
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: "sparkles").foregroundStyle(CYColor.brand)
-            Text("roam.fog.revealed").font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+            Text("roam.fog.revealed").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
             Text(verbatim: "·").foregroundStyle(CYColor.textTertiary)
-            CYCountUpPercent(percent: percent).font(.subheadline.weight(.bold)).foregroundStyle(CYColor.textPrimary)
+            CYCountUpPercent(percent: percent).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
         }
         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
         .background(.ultraThinMaterial, in: Capsule(style: .continuous))
@@ -439,8 +439,8 @@ struct CYRoamNearbyCard: View {
             HStack(spacing: CYSpacing.md) {
                 art
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: item.title).font(.headline).foregroundStyle(CYColor.textPrimary).lineLimit(2)
-                    Text(verbatim: item.meta).font(.footnote).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                    Text(verbatim: item.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                    Text(verbatim: item.meta).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: selected ? "mappin.circle.fill" : "chevron.right")

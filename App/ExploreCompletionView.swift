@@ -122,7 +122,7 @@ struct ExploreCompletionProvider {
                 if value.hasTopic { facts(value) }
                 else { CYEmptyState(systemImage: "questionmark.folder", "exploreCompletion.noTopic") }
             } else { CYSkeleton().accessibilityLabel(Text("exploreCompletion.loading")) }
-            Section { Text("exploreCompletion.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            Section { Text("exploreCompletion.readOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }.cyGroupedSurface()
         .navigationTitle("exploreCompletion.title")
         .privacySensitive()
@@ -153,8 +153,8 @@ struct ExploreCompletionProvider {
             if value.requiredChapterCount > 0 {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: "\(value.redeemedChapterCount)/\(value.requiredChapterCount)")
-                        .font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                    Text("exploreCompletion.collected").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    Text("exploreCompletion.collected").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine)
             }
         }

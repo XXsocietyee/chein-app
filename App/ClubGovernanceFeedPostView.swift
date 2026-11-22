@@ -32,7 +32,7 @@ extension EnvironmentValues {
                         if let nickname = post.nickname { Text(verbatim: nickname) }
                         else { Text("square.unknownAuthor") }
                     }
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     // Keep the post anchor on a leaf, so time and source-club
@@ -40,7 +40,7 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("club.feed.post.\(post.id)")
                     if let time = post.createTime {
                         Text(verbatim: time)
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textTertiary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.feed.time.\(post.id)")
@@ -49,7 +49,7 @@ extension EnvironmentValues {
             }
             if let content = post.content {
                 Text(verbatim: content)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
@@ -96,7 +96,7 @@ extension EnvironmentValues {
                 if let name = post.clubName { Text(verbatim: name) }
                 else { Text("club.detail") }
             }
-            .font(CYTypography.bodyCompact)
+            .cyText(.bodyCompact)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: CYSpacing.sm)

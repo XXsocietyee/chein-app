@@ -69,7 +69,7 @@ struct TemplatePlayerPreviewPager: View {
             }
             .cyAnimation(CYMotion.standard, value: step)
             ConfigR4Text.text(step.titleKey)
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(palette.textSecondary)
                 .contentTransition(.opacity)
         }
@@ -118,7 +118,7 @@ private struct PlayerPreviewTapHint: View {
     @Environment(\.cyPalette) private var palette
     var body: some View {
         ConfigR4Text.text("config.preview.tapHint")
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(palette.textTertiary)
             .frame(maxWidth: .infinity)
     }
@@ -166,7 +166,7 @@ private struct PlayerPreviewArrivalPage: View {
                     title
                     if !draft.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         Text(verbatim: draft.description)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                     }
                 }
@@ -186,9 +186,9 @@ private struct PlayerPreviewArrivalPage: View {
     @ViewBuilder private var title: some View {
         let trimmed = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.isEmpty {
-            ConfigR4Text.text("config.preview.untitled").font(CYTypography.sectionTitle).foregroundStyle(palette.textTertiary)
+            ConfigR4Text.text("config.preview.untitled").cyText(.sectionTitle).foregroundStyle(palette.textTertiary)
         } else {
-            Text(verbatim: trimmed).font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+            Text(verbatim: trimmed).cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
         }
     }
 
@@ -226,12 +226,12 @@ private struct PlayerPreviewStoryPage: View {
                 PlayerPreviewCard {
                     if lines.isEmpty {
                         ConfigR4Text.text("config.preview.story.none")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                     } else {
                         ForEach(Array(lines.enumerated()), id: \.offset) { index, line in
                             Text(verbatim: line)
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(palette.textPrimary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .opacity(index < revealed ? 1 : 0)
@@ -294,13 +294,13 @@ private struct PlayerPreviewTaskPage: View {
                 Label { Text(LocalizedStringKey(draft.validationMethod.labelKey)) } icon: {
                     Image(systemName: TemplateGameplayPickerSheet.symbol(draft.validationMethod))
                 }
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(palette.textSecondary)
                 if let question = draft.questionName?.trimmingCharacters(in: .whitespacesAndNewlines), !question.isEmpty {
-                    Text(verbatim: question).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: question).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 }
                 if draft.validationMethod == .choice, !options.isEmpty {
-                    ConfigR4Text.text("config.preview.task.pick").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    ConfigR4Text.text("config.preview.task.pick").cyText(.meta).foregroundStyle(palette.textTertiary)
                     ForEach(options) { option in tile(option) }
                 } else {
                     HStack(spacing: CYSpacing.sm) {
@@ -309,7 +309,7 @@ private struct PlayerPreviewTaskPage: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(palette.textPrimary)
-                    .font(CYTypography.label)
+                    .cyText(.label)
                 }
             }
             Spacer(minLength: 0)
@@ -325,8 +325,8 @@ private struct PlayerPreviewTaskPage: View {
         let border: Color = isPicked ? (isCorrect ? palette.success : palette.danger) : palette.borderSubtle
         return Button { pick(option.letter) } label: {
             HStack(spacing: CYSpacing.md) {
-                Text(verbatim: option.letter).font(CYTypography.label).foregroundStyle(palette.textSecondary)
-                Text(verbatim: option.text).font(CYTypography.body).foregroundStyle(palette.textPrimary)
+                Text(verbatim: option.letter).cyText(.label).foregroundStyle(palette.textSecondary)
+                Text(verbatim: option.text).cyText(.body).foregroundStyle(palette.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if isPicked && isCorrect {
                     Image(systemName: "checkmark")
@@ -393,11 +393,11 @@ private struct PlayerPreviewSuccessPage: View {
                         .frame(width: 48, height: 48)
                         .accessibilityHidden(true)
                         ConfigR4Text.text("config.preview.success.title")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(palette.textPrimary)
                     }
                     if let feedback = draft.feedbackText?.trimmingCharacters(in: .whitespacesAndNewlines), !feedback.isEmpty {
-                        Text(verbatim: feedback).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                        Text(verbatim: feedback).cyText(.body).foregroundStyle(palette.textSecondary)
                     }
                     if let medal {
                         Label { Text(verbatim: medal) } icon: { Image(systemName: "rosette") }
@@ -462,12 +462,12 @@ private struct PlayerPreviewFailurePage: View {
                     .font(CYTypography.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                 ConfigR4Text.text("config.preview.failure.detail")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                 Button(action: retry) { ConfigR4Text.text("config.preview.retry") }
                     .buttonStyle(.bordered)
                     .tint(palette.textPrimary)
-                    .font(CYTypography.label)
+                    .cyText(.label)
             }
             .modifier(PlayerPreviewShake(progress: reduceMotion ? 0 : shake))
             Spacer(minLength: 0)

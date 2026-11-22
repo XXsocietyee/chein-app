@@ -25,7 +25,7 @@ import SwiftUI
                                     else {
                                         // Number only distinguishes rows whose name is missing.
                                         Text("profile.preferenceRemoval.unknownName")
-                                        Text(verbatim: "#\(id)").font(.caption).foregroundStyle(.secondary)
+                                        Text(verbatim: "#\(id)").cyText(.meta).foregroundStyle(.secondary)
                                     }
                                 }
                                 Spacer()

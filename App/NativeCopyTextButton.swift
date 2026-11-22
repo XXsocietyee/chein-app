@@ -22,7 +22,7 @@ import UIKit
                 .accessibilityIdentifier(identifier)
             if let status {
                 Text(LocalizedStringKey(status == .copied ? "localCopy.copied" : "localCopy.failed"))
-                    .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier(identifier + (status == .copied ? ".copied" : ".failed"))
             }
         }

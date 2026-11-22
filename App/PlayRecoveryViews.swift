@@ -18,10 +18,10 @@ private func recoveryText(_ key: String) -> String { String(localized: String.Lo
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Label {
                     Text(LocalizedStringKey("arrival.reason." + (failure.reason?.rawValue ?? "OTHER")), tableName: table)
-                        .font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                 } icon: { Image(systemName: "location.slash").foregroundStyle(CYColor.warningText) }
                 Text(LocalizedStringKey("arrival.next." + (failure.reason?.rawValue ?? "OTHER")), tableName: table)
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("playRecovery.arrival.reason")
@@ -37,7 +37,7 @@ private func recoveryText(_ key: String) -> String { String(localized: String.Lo
                         CYPillButton("arrival.action.scan", style: .tertiary, systemImage: "qrcode.viewfinder", tableName: table, action: onScan)
                             .listRowBackground(Color.clear).accessibilityIdentifier("playRecovery.arrival.scan")
                     } else {
-                        Text("arrival.action.scanHint", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                        Text("arrival.action.scanHint", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     }
                 case .refresh:
                     if let onRefresh {
@@ -45,19 +45,19 @@ private func recoveryText(_ key: String) -> String { String(localized: String.Lo
                             .listRowBackground(Color.clear).accessibilityIdentifier("playRecovery.arrival.refresh")
                     }
                 case .contactOrganizer:
-                    Text("arrival.action.contact", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("arrival.action.contact", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("playRecovery.arrival.contact")
                 case .appealGuard:
-                    Text("arrival.action.appeal", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("arrival.action.appeal", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("playRecovery.arrival.appeal")
                 case .waitForLeader:
-                    Text("arrival.action.leader", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("arrival.action.leader", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 }
             }
             if !failure.replacements.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("arrival.replacement.title", tableName: table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    Text("arrival.replacement.body", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("arrival.replacement.title", tableName: table).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("arrival.replacement.body", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 ForEach(failure.replacements) { stop in
@@ -70,7 +70,7 @@ private func recoveryText(_ key: String) -> String { String(localized: String.Lo
                 }
             } else if failure.reason == .stopClosed || failure.reason == .coordinatesNotConfigured {
                 // U05-02: without an approved replacement there is no skip and no reward.
-                Text("arrival.replacement.none", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("arrival.replacement.none", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("playRecovery.arrival.noReplacement")
             }
         } header: { Text("arrival.title", tableName: table) }
@@ -88,11 +88,11 @@ private func recoveryText(_ key: String) -> String { String(localized: String.Lo
             case .checking:
                 HStack(spacing: CYSpacing.sm) {
                     ProgressView()
-                    Text("submit.checking", tableName: table).font(CYTypography.body)
+                    Text("submit.checking", tableName: table).cyText(.body)
                 }
             case .pending:
                 CYStatusChip(verbatim: recoveryText("submit.pending.chip"), tone: .warning, systemImage: "clock")
-                Text("submit.pending.body", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("submit.pending.body", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let onCheck {
                     CYPillButton("submit.checkAgain", style: .secondary, systemImage: "arrow.clockwise", tableName: table, action: onCheck)
@@ -100,18 +100,18 @@ private func recoveryText(_ key: String) -> String { String(localized: String.Lo
                 }
             case .confirmed:
                 CYStatusChip(verbatim: recoveryText("submit.confirmed.chip"), tone: .success, systemImage: "checkmark.seal")
-                Text("submit.confirmed.body", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("submit.confirmed.body", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             case .failed(_, let refusal):
                 CYStatusChip(verbatim: recoveryText("submit.failed.chip"), tone: .danger, systemImage: "xmark.circle")
-                Text("submit.failed.body", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("submit.failed.body", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let message = refusal.message {
-                    Text(verbatim: message).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: message).cyText(.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
             case .conflict:
                 CYStatusChip(verbatim: recoveryText("submit.conflict.chip"), tone: .info, systemImage: "arrow.triangle.2.circlepath")
-                Text("submit.conflict.body", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("submit.conflict.body", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -135,7 +135,7 @@ struct PlayArrivalReadingSection: View {
     let reading: PlayArrivalReading
     var body: some View {
         Section {
-            Text(verbatim: reading.log).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: reading.log).cyText(.body).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("playRecovery.arrivalReading")
         } header: { Text("arrival.reading.title", tableName: table) }
     }
@@ -148,24 +148,24 @@ struct PlayStationPauseView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             CYStatusChip(verbatim: recoveryText("station.paused.chip"), tone: .warning, systemImage: "pause.circle")
-            if let reason = notice.reason { Text(verbatim: reason).font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
-            else { Text("station.paused.noReason", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+            if let reason = notice.reason { Text(verbatim: reason).cyText(.body).fixedSize(horizontal: false, vertical: true) }
+            else { Text("station.paused.noReason", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             if let eta = notice.resumeEta {
-                LabeledContent { Text(verbatim: eta) } label: { Text("station.paused.resume", tableName: table) }.font(CYTypography.caption)
+                LabeledContent { Text(verbatim: eta) } label: { Text("station.paused.resume", tableName: table) }.cyText(.caption)
             } else {
-                Text("station.paused.resumeUnknown", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("station.paused.resumeUnknown", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
             if let message = notice.replacementMessage {
                 Label { Text(verbatim: message).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "arrow.triangle.branch") }
                     .font(CYTypography.body)
                 if let name = notice.replacementName {
-                    Text("station.paused.replacement \(name)", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("station.paused.replacement \(name)", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 }
             } else {
-                Text("station.paused.noReplacement", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("station.paused.noReplacement", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            Text("station.paused.contact", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text("station.paused.contact", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .accessibilityElement(children: .combine)
@@ -231,7 +231,7 @@ enum PlayOfflinePackEnvironment {
                 Section { CYSkeleton().accessibilityIdentifier("playRecovery.pack.loading") }
             case .failed:
                 Section {
-                    Text("pack.failed", tableName: table).font(CYTypography.body)
+                    Text("pack.failed", tableName: table).cyText(.body)
                     CYPillButton("pack.reload", style: .secondary, systemImage: "arrow.clockwise", tableName: table) { Task { await model.load() } }
                         .listRowBackground(Color.clear).accessibilityIdentifier("playRecovery.pack.reload")
                 }
@@ -256,13 +256,13 @@ enum PlayOfflinePackEnvironment {
                     .accessibilityIdentifier("playRecovery.pack.synced")
             }
             if model.previousCompleteIdentity != nil {
-                Text("pack.previousKept", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("pack.previousKept", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         Section {
             offlineScope(manifest)
-            Text("pack.alwaysOnline", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text("pack.alwaysOnline", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("playRecovery.pack.alwaysOnline")
         } header: { Text("pack.offline.title", tableName: table) }
         if manifest.identity != nil {
@@ -310,16 +310,16 @@ enum PlayOfflinePackEnvironment {
 
     @ViewBuilder private func assetRow(_ asset: PlayContentManifest.Asset) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: asset.textAlternative ?? asset.mime ?? asset.assetKey).font(CYTypography.body).lineLimit(2)
+            Text(verbatim: asset.textAlternative ?? asset.mime ?? asset.assetKey).cyText(.body).lineLimit(2)
             HStack(spacing: CYSpacing.sm) {
                 if let bytes = asset.bytes { Text(verbatim: ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .file)) }
                 else { Text("pack.asset.sizeUnknown", tableName: table) }
                 Text(asset.verified ? "pack.asset.serverHash" : "pack.asset.notVerified", tableName: table)
             }
-            .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            .cyText(.caption).foregroundStyle(CYColor.textSecondary)
             switch model.states[asset.assetKey] ?? .notStored {
             case .notStored:
-                if asset.url == nil { Text("pack.asset.noLink", tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                if asset.url == nil { Text("pack.asset.noLink", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                 else {
                     Button { Task { await model.download(asset) } } label: { Text("pack.asset.download", tableName: table) }
                         .accessibilityIdentifier("playRecovery.pack.download.\(asset.assetKey)")
@@ -350,7 +350,7 @@ enum PlayOfflinePackEnvironment {
         Group {
             if let model { PlayOfflinePackView(model: model) }
             else if attempted {
-                Text("pack.unavailable", tableName: table).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                Text("pack.unavailable", tableName: table).cyText(.body).foregroundStyle(CYColor.textSecondary)
                     .padding().accessibilityIdentifier("playRecovery.pack.unavailable")
             } else { ProgressView() }
         }

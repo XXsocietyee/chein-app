@@ -166,8 +166,8 @@ import UIKit
                     // overwrite the independent copy button and feedback identifiers.
                     Text(verbatim: attribution.title).font(.subheadline.weight(.semibold))
                         .accessibilityIdentifier("settingsNative.attribution.\(attribution.id)")
-                    Text(verbatim: attribution.detail).font(.footnote)
-                    Text(verbatim: attribution.sourceURL).font(.footnote).foregroundStyle(.secondary)
+                    Text(verbatim: attribution.detail).cyText(.bodyCompact)
+                    Text(verbatim: attribution.sourceURL).cyText(.bodyCompact).foregroundStyle(.secondary)
                         .textSelection(.enabled)
                     NativeCopyTextButton(text: attribution.sourceURL,
                         title: LocalizedStringKey(attribution.copyTitleKey),
@@ -185,7 +185,7 @@ struct SettingsTileLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             configuration.icon
-                .font(.body.weight(.semibold))
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .frame(width: 30, height: 30)
                 .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))

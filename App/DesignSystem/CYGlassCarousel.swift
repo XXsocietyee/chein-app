@@ -210,7 +210,7 @@ struct CYCarouselCard: View {
         .overlay(alignment: .topLeading) {
             if let badge = slide.badge, !badge.isEmpty {
                 Text(verbatim: badge)
-                    .font(CYTypography.meta.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(.white)
                     .padding(.horizontal, CYSpacing.sm + 2).padding(.vertical, CYSpacing.xs)
                     .background(.black.opacity(0.45), in: Capsule())
@@ -263,9 +263,9 @@ struct CYCarouselCaption: View {
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(verbatim: title).font(CYTypography.sectionTitle).lineLimit(2)
-            if let date, !date.isEmpty { Text(verbatim: date).font(CYTypography.meta).monospacedDigit() }
-            if let place, !place.isEmpty { Text(verbatim: place).font(CYTypography.meta).opacity(contrast == .increased ? 1 : 0.85).lineLimit(1) }
+            Text(verbatim: title).cyText(.sectionTitle).lineLimit(2)
+            if let date, !date.isEmpty { Text(verbatim: date).cyText(.meta).monospacedDigit() }
+            if let place, !place.isEmpty { Text(verbatim: place).cyText(.meta).opacity(contrast == .increased ? 1 : 0.85).lineLimit(1) }
         }
         .foregroundStyle(.white)
         .padding(CYSpacing.lg)

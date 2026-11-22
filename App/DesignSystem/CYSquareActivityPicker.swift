@@ -17,7 +17,7 @@ struct CYSquareActivityPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("activityPicker.title", tableName: "SocialParity").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                Text("activityPicker.title", tableName: "SocialParity").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
                 Spacer()
                 Button { dismiss() } label: {
                     Image(systemName: "xmark").font(CYTypography.label.weight(.semibold))
@@ -77,9 +77,9 @@ struct CYSquareActivityPicker: View {
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: activity.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                Text(verbatim: activity.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
                 Text("activityPicker.progress \(Self.count(activity.doneCount)) \(Self.count(activity.total))", tableName: "SocialParity")
-                    .font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
             }
             Spacer(minLength: 0)
             Image(systemName: "checkmark.circle.fill").font(CYTypography.sectionTitle).foregroundStyle(CYColor.brand)

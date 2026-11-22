@@ -102,15 +102,15 @@ struct ClubRosterCard: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: clubR1Value(model.title))
-                            .font(CYTypography.body.weight(.semibold))
+                            .cyText(.bodyMedium)
                             .foregroundStyle(palette.textPrimary)
                         Text(verbatim: clubR1Value(model.dateText))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                         HStack(spacing: CYSpacing.sm) {
                             if model.fill != nil { capacityBar }
                             Text(verbatim: model.countText)
-                                .font(CYTypography.meta.monospacedDigit())
+                                .cyText(.meta, monospacedDigit: true)
                                 .foregroundStyle(palette.textSecondary)
                         }
                     }
@@ -141,7 +141,7 @@ struct ClubRosterCard: View {
                 ForEach(model.attendees) { attendee in
                     HStack {
                         Text(verbatim: clubR1Value(attendee.name))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPrimary)
                         Spacer(minLength: CYSpacing.sm)
                         CYStatusTag(verbatim: attendee.statusText, state: attendee.status.tagState)
@@ -171,10 +171,10 @@ struct ClubRosterCard: View {
     private func money(_ key: String, _ raw: String?) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: clubR1Value(raw))
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(palette.textPrimary)
             Text(verbatim: clubR1(key, locale))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

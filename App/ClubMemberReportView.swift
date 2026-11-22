@@ -22,22 +22,22 @@ import SwiftUI
                     // The report form owns the one bar title (`club.gov.action.report`). A second hero would repeat it.
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text("club.memberReport.target")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         if let name = target.displayName {
                             Text(verbatim: name)
-                                .font(CYTypography.sectionTitle)
+                                .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         } else {
                             Text("club.memberReport.unnamed")
-                                .font(CYTypography.sectionTitle)
+                                .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Text("club.memberReport.explanation")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -58,7 +58,7 @@ import SwiftUI
                 .cyDomainPageBackground()
             } else {
                 Text("club.gov.changed")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .padding(CYSpacing.pageHorizontal)
                     .onAppear { closeStale() }

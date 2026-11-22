@@ -19,7 +19,7 @@ import SwiftUI
                 "这是该原请求的服务端回执，不代表下方最新状态仍可提交；次数耗尽不等于答对。",
                 "This is the original request's server receipt, not permission to submit in the latest state below. Exhausted attempts do not mean a correct answer."
             ))
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             labeled(copy("原请求", "Original request"), shown(requestID))
@@ -44,7 +44,7 @@ import SwiftUI
                 if let tries = segment["attempts"].integer { labeled(copy("已用次数", "Attempts used"), String(tries)) }
                 if let feedback = segment["lastFeedback"].text ?? segment["feedback"].text {
                     Text(verbatim: shown(feedback))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -53,7 +53,7 @@ import SwiftUI
                 if let step = segment["currentStepId"].text { labeled(copy("服务端记录步骤", "Recorded server step"), shown(step)) }
                 if let title = segment["currentStep"]["title"].text {
                     Text(verbatim: shown(title))
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -76,11 +76,11 @@ import SwiftUI
     private func labeled(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: title)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: value)
-                .font(CYTypography.body.monospacedDigit())
+                .cyText(.body, monospacedDigit: true)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
@@ -97,7 +97,7 @@ import SwiftUI
                 .foregroundStyle(on ? CYColor.successText : CYColor.textSecondary)
                 .accessibilityHidden(true)
             Text(verbatim: on ? yes : no)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)

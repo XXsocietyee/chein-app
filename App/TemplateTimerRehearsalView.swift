@@ -124,18 +124,18 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
         Form {
             Section { CYHeroHeader(LocalizedStringKey(controller.kind.labelKey)).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
-                if controller.mode == .sourceExample { Text("templateTimer.exampleOnly").font(.footnote) }
+                if controller.mode == .sourceExample { Text("templateTimer.exampleOnly").cyText(.meta) }
             }
             if let state = controller.visibleState {
                 Section {
-                    Text(verbatim: state.kicker).font(.title2)
+                    Text(verbatim: state.kicker).cyText(.sheetTitle)
                     LabeledContent("templateTimer.target", value: seconds(state.targetSeconds))
                     if state.kind == .stopwatch {
                         LabeledContent("templateTimer.round", value: String(state.round))
                         LabeledContent("templateTimer.tolerance", value: seconds(state.toleranceMs / 1000))
                         if let left = state.triesRemaining { LabeledContent("templateTimer.remainingTries", value: String(left)) }
                         else { Text("templateTimer.unlimited") }
-                        Text("templateTimer.blindRule").font(.footnote)
+                        Text("templateTimer.blindRule").cyText(.meta)
                     }
                 }
                 Section {
@@ -147,7 +147,7 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
                                 .accessibilityIdentifier("templateTimer.doneText")
                         }
                     } else if state.isMasked {
-                        Text("templateTimer.hidden").font(.largeTitle)
+                        Text("templateTimer.hidden").cyText(.pageTitle)
                             .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateTimer.masked")
                     } else {
                         TemplateTimerRehearsalReading(value: seconds(state.elapsedMs / 1000), identifier: "templateTimer.stopwatch")
@@ -162,7 +162,7 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
                         Text(LocalizedStringKey("templateTimer.tier." + result.tier.rawValue))
                         Text(LocalizedStringKey("templateTimer.timing." + result.timing.rawValue))
                         LabeledContent("templateTimer.deviation", value: seconds(result.deviationSeconds))
-                        if !state.canStart { Text("templateTimer.resetToRestart").font(.footnote) }
+                        if !state.canStart { Text("templateTimer.resetToRestart").cyText(.meta) }
                     }
                 }
                 Section {
@@ -210,7 +210,7 @@ private struct TemplateTimerRehearsalReading: View {
     let value: String
     let identifier: String
     private var reading: some View {
-        Text(verbatim: value).font(.largeTitle.monospacedDigit())
+        Text(verbatim: value).cyText(.dataXL)
             .accessibilityIdentifier(identifier)
     }
     var body: some View {
@@ -379,7 +379,7 @@ enum TemplateTimerOutcomeText: CaseIterable {
     private func text(_ key: TemplateTimerOutcomeText) -> String { key.value(locale) }
     var body: some View {
         Form {
-            Section { Text(verbatim: text(.scope)).font(.callout) }
+            Section { Text(verbatim: text(.scope)).cyText(.body) }
             if let value = controller.visibleDraft {
                 Section {
                     Toggle(text(.enabled), isOn: controller.enabledBinding).accessibilityIdentifier("templateTimerOutcome.enabled")

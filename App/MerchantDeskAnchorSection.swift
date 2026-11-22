@@ -43,14 +43,14 @@ struct MerchantDeskAnchorAcceptance:Equatable {
     }
     var body:some View {
         Section {
-            Text("merchant.desk.anchor.boundary",tableName:"MerchantDeskSkuSupply").font(.footnote)
+            Text("merchant.desk.anchor.boundary",tableName:"MerchantDeskSkuSupply").cyText(.bodyCompact)
             ForEach(flow.isCurrent ? flow.pending:[],id:\.requestID){record in Button{let captured=visit.revision;Task{await recover(record.requestID,visit:captured)}}label:{Text("merchant.desk.anchor.recover",tableName:"MerchantDeskSkuSupply")}.disabled(flow.busy)}
             MerchantAnchorReadRecoveryPresentation(state:flow.readState.rawValue,busy:flow.busy)
             if flow.hasKnownResult,let request=flow.knownRequestID {
                 VStack(alignment:.leading){
-                    Text("known",tableName:"MerchantAnchorReadRecovery").font(.headline)
-                    Text("original.anchor",tableName:"MerchantAnchorReadRecovery").font(.caption)
-                    Text(verbatim:"\(flow.knownTargetID.map { "#\($0)" } ?? "—") · \(request)").font(CYTypography.meta).textSelection(.enabled)
+                    Text("known",tableName:"MerchantAnchorReadRecovery").cyText(.cardTitle)
+                    Text("original.anchor",tableName:"MerchantAnchorReadRecovery").cyText(.meta)
+                    Text(verbatim:"\(flow.knownTargetID.map { "#\($0)" } ?? "—") · \(request)").cyText(.meta).textSelection(.enabled)
                 }.accessibilityElement(children:.combine)
             } else if !flow.pending.isEmpty,flow.issue,flow.readState != .denied {
                 Text("unknown",tableName:"MerchantAnchorReadRecovery")
@@ -58,7 +58,7 @@ struct MerchantDeskAnchorAcceptance:Equatable {
             if flow.isCurrent,flow.accepted{Text("merchant.desk.anchor.accepted",tableName:"MerchantDeskSkuSupply")}
             if flow.isCurrent,flow.loaded {
                 if !flow.configured{Text("unconfigured",tableName:"MerchantAnchorReadRecovery")}
-                if !flow.canSave,!flow.busy{Text("readonly",tableName:"MerchantAnchorReadRecovery").font(.footnote)}
+                if !flow.canSave,!flow.busy{Text("readonly",tableName:"MerchantAnchorReadRecovery").cyText(.bodyCompact)}
                 if let version=flow.version{Text("merchant.desk.anchor.version \(version)",tableName:"MerchantDeskSkuSupply")}
                 Text("merchant.desk.anchor.wifi \(flow.wifiCount)",tableName:"MerchantDeskSkuSupply")
                 if let store {

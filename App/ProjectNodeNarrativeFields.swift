@@ -112,8 +112,8 @@ struct ProjectNodeNarrativeHostIdentity: Hashable {
                 controller.open(opening)
             }
                 .disabled(opening == nil).accessibilityIdentifier("projectNodeNarrative.open")
-            Text("projectNodeNarrative.hint").font(.footnote).foregroundStyle(.secondary)
-            if opening == nil { Text("projectNodeNarrative.unavailable").font(.footnote) }
+            Text("projectNodeNarrative.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
+            if opening == nil { Text("projectNodeNarrative.unavailable").cyText(.bodyCompact) }
         }
         .sheet(item: Binding(get: {
             controller.matchesHost(model: model, chapterID: chapterID, nodeID: nodeID) ? controller.destination : nil

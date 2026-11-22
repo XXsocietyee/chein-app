@@ -33,7 +33,7 @@ import SwiftUI
                             LabeledContent(creatorString("workshopCreator.package"), value: receipt.consentReference.moduleId)
                             LabeledContent(creatorString("workshopCreator.version"), value: receipt.consentReference.versionId)
                             LabeledContent(creatorString("workshopCreator.record"), value: receipt.consentReference.consentId)
-                            Text(verbatim: receipt.declaredAt).font(.caption)
+                            Text(verbatim: receipt.declaredAt).cyText(.meta)
                         }.accessibilityIdentifier("workshopPending.declarationReceipt")
                     } else if let requestId = controller.declarationRequestId {
                         Section(creatorString("workshopPending.priorDeclaration")) {
@@ -67,12 +67,12 @@ import SwiftUI
                             ForEach(WorkshopCreatorPreview.fieldOrder, id: \.self) { name in
                                 if let value = preview.textFields[name] {
                                     VStack(alignment: .leading) {
-                                        Text(creatorString("workshopCreator.field." + name)).font(.caption)
+                                        Text(creatorString("workshopCreator.field." + name)).cyText(.meta)
                                         Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                                     }
                                 }
                             }
-                            Text(verbatim: preview.packageContentHash).font(.caption).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: preview.packageContentHash).cyText(.meta).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                         if !preview.omittedPlanningMetadata.isEmpty {
                             Section(creatorString("workshopCreator.omitted")) {
@@ -89,8 +89,8 @@ import SwiftUI
                                 } label: {
                                     VStack(alignment: .leading) {
                                         Text(verbatim: item.versionId).fixedSize(horizontal: false, vertical: true)
-                                        Text(verbatim: item.termsDocumentHash).font(.caption).fixedSize(horizontal: false, vertical: true)
-                                        Text(verbatim: item.expiresAt).font(.caption).fixedSize(horizontal: false, vertical: true)
+                                        Text(verbatim: item.termsDocumentHash).cyText(.meta).fixedSize(horizontal: false, vertical: true)
+                                        Text(verbatim: item.expiresAt).cyText(.meta).fixedSize(horizontal: false, vertical: true)
                                     }
                                 }.disabled(controller.phase != .editing)
                                     .accessibilityIdentifier("workshopPending.target." + item.targetId)
@@ -134,16 +134,16 @@ import SwiftUI
             option("translation", value: $controller.form.translation, values: ["ALLOWED", "PROHIBITED"])
             field("allowedRegions", value: $controller.form.allowedRegions)
             field("buyerKinds", value: $controller.form.buyerKinds)
-            Text(creatorString("workshopPending.regionsHelp")).font(.footnote)
+            Text(creatorString("workshopPending.regionsHelp")).cyText(.bodyCompact)
             field("themeLimit", value: $controller.form.themeLimit)
             field("merchantLimit", value: $controller.form.merchantLimit)
             field("runLimit", value: $controller.form.runLimit)
-            Text(creatorString("workshopPending.limitsHelp")).font(.footnote)
+            Text(creatorString("workshopPending.limitsHelp")).cyText(.bodyCompact)
             field("priceMinor", value: $controller.form.priceMinor)
             field("currency", value: $controller.form.currency)
-            Text(creatorString("workshopPending.priceHelp")).font(.footnote)
+            Text(creatorString("workshopPending.priceHelp")).cyText(.bodyCompact)
             field("expiresAt", value: $controller.form.expiresAt)
-            Text(creatorString("workshopPending.expiryHelp")).font(.footnote)
+            Text(creatorString("workshopPending.expiryHelp")).cyText(.bodyCompact)
         }.disabled(controller.phase != .editing)
         Section(creatorString("workshopPending.required")) {
             Text(creatorString("workshopPending.fixedRestrictions")).fixedSize(horizontal: false, vertical: true)

@@ -112,7 +112,7 @@ public struct WeChatAndAppleSignInNonceStateSectionView: View {
             Section {
                 HStack {
                     Text(verbatim: snapshot.statusHeadline)
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isOAuthSecurityReady ? "VERIFIED" : "WARNING")
                         .font(.caption2.monospaced().weight(.bold))
@@ -129,7 +129,7 @@ public struct WeChatAndAppleSignInNonceStateSectionView: View {
                     Text(verbatim: "Apple Sign-In SHA-256 Nonce 绑定")
                     Spacer()
                     Text(verbatim: snapshot.appleSHA256NonceVerified ? "已启用" : "缺失")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(snapshot.appleSHA256NonceVerified ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("oauthNonceStateSecurity.appleNonce")
@@ -138,7 +138,7 @@ public struct WeChatAndAppleSignInNonceStateSectionView: View {
                     Text(verbatim: "微信 OAuth Anti-CSRF State 校验")
                     Spacer()
                     Text(verbatim: snapshot.wechatAntiCSRFStateVerified ? "已启用" : "缺失")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(snapshot.wechatAntiCSRFStateVerified ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("oauthNonceStateSecurity.wechatState")
@@ -147,7 +147,7 @@ public struct WeChatAndAppleSignInNonceStateSectionView: View {
                     Text(verbatim: "App Store Guideline 4.8 登录对等性")
                     Spacer()
                     Text(verbatim: snapshot.guideline4_8ParitySatisfied ? "已达标" : "未达标")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(snapshot.guideline4_8ParitySatisfied ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("oauthNonceStateSecurity.guideline48")
@@ -161,14 +161,14 @@ public struct WeChatAndAppleSignInNonceStateSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(verbatim: row.providerName)
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.isCompliant ? "COMPLIANT" : "ALERT")
                                 .font(.caption2.monospaced().weight(.semibold))
                                 .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.securitySummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .accessibilityIdentifier("oauthNonceStateSecurity.provider.\(row.id)")

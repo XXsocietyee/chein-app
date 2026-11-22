@@ -27,7 +27,7 @@ private struct CYAnchoredMenuModifier: ViewModifier {
                     } label: {
                         HStack(spacing: CYSpacing.sm) {
                             if let symbol = item.systemImage { Image(systemName: symbol).font(CYTypography.label) }
-                            Text(item.title, tableName: item.tableName).font(CYTypography.bodyMedium)
+                            Text(item.title, tableName: item.tableName).cyText(.bodyMedium)
                         }
                         .foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.lg)

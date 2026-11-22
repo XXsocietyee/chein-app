@@ -20,7 +20,7 @@ struct ClubOperationsReviewView: View {
                         .accessibilityIdentifier("club.ops.reviewSheet")
                 } else {
                     Text("club.ops.newClub")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.ops.reviewSheet")
@@ -31,7 +31,7 @@ struct ClubOperationsReviewView: View {
                 if canSubmit {
                     if isExample {
                         Text("club.ops.fixtureOnly")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -48,7 +48,7 @@ struct ClubOperationsReviewView: View {
                     .cyHaptic(.impactMedium, trigger: submitted) { old, new in !old && new }
                 } else {
                     Text("club.ops.writeGated")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -78,20 +78,20 @@ struct ClubOperationsReviewView: View {
                 LabeledContent("club.ops.current") { Text(previous ? "club.ops.enabled" : "club.ops.disabled") }
                 LabeledContent("club.ops.requested") { Text(enabled ? "club.ops.enabled" : "club.ops.disabled") }
                 Text(LocalizedStringKey("club.ops.settingConsequences." + setting.rawValue))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         case .memberRole(let id, let admin, _):
             Section("club.ops.memberRoles") {
                 let name = review.snapshot.members.first { $0.id == id }?.trimmedNickname ?? "—"
-                LabeledContent("club.ops.member") { Text(verbatim: name.isEmpty ? "—" : name).font(CYTypography.cardTitle) }
+                LabeledContent("club.ops.member") { Text(verbatim: name.isEmpty ? "—" : name).cyText(.cardTitle) }
                 Text(admin ? "club.ops.makeAdmin" : "club.ops.removeAdmin")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("club.ops.roleConsequences")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

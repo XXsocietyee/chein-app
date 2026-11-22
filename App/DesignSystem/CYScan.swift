@@ -416,16 +416,16 @@ struct CYScanResultCard: View {
             }
             .frame(width: 96, height: 96)
             if mark == .pending {
-                Text("scan.verifying").font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                Text("scan.verifying").cyText(.body).foregroundStyle(palette.textSecondary)
             }
             if let content {
                 VStack(spacing: CYSpacing.xs) {
-                    content.title.font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                    content.title.cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                         .multilineTextAlignment(.center)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityFocused($titleFocused)
                     if let subtitle = content.subtitle {
-                        subtitle.font(CYTypography.body).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
+                        subtitle.cyText(.body).foregroundStyle(palette.textSecondary).multilineTextAlignment(.center)
                     }
                 }
                 .opacity(titleIn ? 1 : 0)
@@ -433,8 +433,8 @@ struct CYScanResultCard: View {
                 if let counter = content.counter {
                     HStack(spacing: CYSpacing.sm) {
                         CYCountUp(from: counter.from, to: counter.to, fire: countIn)
-                            .font(CYTypography.cardTitle).foregroundStyle(palette.success)
-                        counter.label.font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                            .cyText(.cardTitle).foregroundStyle(palette.success)
+                        counter.label.cyText(.body).foregroundStyle(palette.textSecondary)
                     }
                     .opacity(titleIn ? 1 : 0)
                     .accessibilityElement(children: .combine)
@@ -496,10 +496,10 @@ struct CYScanFailureBanner: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Label { title.font(CYTypography.cardTitle) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(palette.danger) }
+            Label { title.cyText(.cardTitle) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(palette.danger) }
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
-            body_.font(CYTypography.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            body_.cyText(.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             HStack(spacing: CYSpacing.sm) {
                 switch failure {
                 case .notChein: EmptyView()

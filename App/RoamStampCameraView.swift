@@ -47,8 +47,8 @@ import UIKit
                 if !cameraEnabled { Label("media.stamp.disabled", systemImage: "camera.fill") }
                 if cameraDenied {
                     VStack(alignment: .leading, spacing: 6) {
-                        Label("media.stamp.cameraDenied.title", systemImage: "camera.badge.ellipsis").font(.subheadline.weight(.semibold))
-                        Text("media.stamp.cameraDenied.message").font(.footnote).foregroundStyle(.secondary)
+                        Label("media.stamp.cameraDenied.title", systemImage: "camera.badge.ellipsis").cyText(.bodyMedium)
+                        Text("media.stamp.cameraDenied.message").cyText(.bodyCompact).foregroundStyle(.secondary)
                         Button("roam.poi.location.openSettings") {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }.frame(minHeight: 44).accessibilityIdentifier("media.stamp.openSettings")
@@ -182,7 +182,7 @@ import UIKit
                 .accessibilityLabel(Text("roam.stamp.exchange.working"))
         case .idle, .failed:
             if exchangePhase == .failed {
-                Label("roam.stamp.exchange.failed", systemImage: "exclamationmark.triangle").font(.footnote).foregroundStyle(palette.danger)
+                Label("roam.stamp.exchange.failed", systemImage: "exclamationmark.triangle").cyText(.bodyCompact).foregroundStyle(palette.danger)
             }
             CYPillButton(LocalizedStringKey(exchangePhase == .failed ? "action.retry" : "roam.stamp.exchange.button")) {
                 guard exchangePhase != .working else { return }
@@ -194,7 +194,7 @@ import UIKit
                 }
             }
             .accessibilityIdentifier("media.stamp.exchange")
-            Text("roam.stamp.exchange.footer").font(.footnote).foregroundStyle(.secondary)
+            Text("roam.stamp.exchange.footer").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
     }
     private var captionText: String { coordinator?.caption ?? localDraft.caption }
@@ -210,12 +210,12 @@ import UIKit
             HStack {
                 if !RoamExperienceMath.validCaption(captionText) {
                     Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle")
-                        .font(.caption).foregroundStyle(palette.danger).accessibilityIdentifier("media.stamp.caption.limit")
+                        .cyText(.meta).foregroundStyle(palette.danger).accessibilityIdentifier("media.stamp.caption.limit")
                 }
                 Spacer(minLength: 8)
                 // Measured UTF-16 length from StampCameraPageReady; an over-limit caption still shows its real count.
                 let units = StampCameraPageReady.captionUnits(captionText)
-                Text(verbatim: "\(units.phase == .ready ? units.text : String(captionText.utf16.count))/30").font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                Text(verbatim: "\(units.phase == .ready ? units.text : String(captionText.utf16.count))/30").cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
                     .accessibilityIdentifier("media.stamp.caption.remaining")
             }
         }.accessibilityIdentifier("media.stamp.caption.section")

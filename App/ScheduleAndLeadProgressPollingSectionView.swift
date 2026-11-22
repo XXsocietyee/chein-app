@@ -152,10 +152,10 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: "I09 BK-SCHEDULE & Lead Progress Polling")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: headerBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(snapshot.isAuditReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("scheduleLeadPollingAudit.statusBadge")
             }
@@ -173,7 +173,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
                             .font(.caption2.monospaced())
@@ -182,7 +182,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
                     }
 
                     Text(verbatim: row.invariantSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.primary)
 
                     Text(verbatim: row.lifecycleRuleSummary)

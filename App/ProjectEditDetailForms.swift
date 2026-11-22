@@ -227,7 +227,7 @@ import SwiftUI
                 Section("projectEdit.nodes") {
                     if chapter.wrappedValue.nodes.isEmpty {
                         Label("projectEdit.nodes.empty", systemImage: "mappin.slash")
-                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("projectEdit.nodes.empty")
                     }
                     ForEach(chapter.wrappedValue.nodes) { node in
@@ -675,7 +675,7 @@ struct ProjectPublishPreviewSummary: View {
                     }
                     .font(.headline).foregroundStyle(palette.textPrimary).lineLimit(2)
                     Text("publish.preview.counts \(draft.chapters.count) \(draft.chapters.reduce(0) { $0 + $1.nodes.count }) \(draft.tickets.count)", tableName: OpsR3Text.table)
-                        .font(.footnote.monospacedDigit()).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textSecondary)
                     Text(LocalizedStringKey(draft.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                         .font(.footnote).foregroundStyle(palette.textTertiary)
                 }

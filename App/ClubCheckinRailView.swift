@@ -19,14 +19,14 @@ struct ClubCheckinRailView: View {
             }
             if let stateKind {
                 Text(verbatim: stateCopy(stateKind))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.checkin.rail.stateTitle")
             }
             if let sessionTime = rail.sessionTimeText {
                 Text(verbatim: sessionTime)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -34,7 +34,7 @@ struct ClubCheckinRailView: View {
             }
             if let statusTime = rail.statusTimeText {
                 Text(verbatim: statusTime)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -42,14 +42,14 @@ struct ClubCheckinRailView: View {
             }
             if rail.refunded {
                 Label("club.checkin.rail.refunded", systemImage: "arrow.uturn.backward")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.checkin.rail.refundedNote")
             }
         } header: {
             Text("club.checkin.rail.title")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -110,12 +110,12 @@ struct ClubCheckinDetailRows: View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: text("topicName") ?? "—")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let order = text("orderNo") {
                     Text("club.checkin.orderNo \(order)")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -140,20 +140,20 @@ struct ClubCheckinDetailRows: View {
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: text("displayName") ?? "—")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.gov.fact.displayName")
                 if let session = text("sessionTimeText") {
                     Text(verbatim: session)
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(palette.textSecondary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let phone = text("phoneText") {
                     Text(verbatim: phone)
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(palette.textSecondary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
@@ -168,7 +168,7 @@ struct ClubCheckinDetailRows: View {
             }
             if let time = text("statusTimeText") {
                 Text(verbatim: time)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -195,7 +195,7 @@ struct ClubCheckinDetailRows: View {
     }
     private func row(_ title: LocalizedStringKey, _ key: String) -> some View {
         LabeledContent(title) { Text(verbatim: text(key) ?? "—").monospacedDigit() }
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(palette.textPrimary)
     }
 }

@@ -109,9 +109,9 @@ import SwiftUI
                     ForEach([ClubPublicRosterMode.composite, .mileage, .pace, .duration], id: \.self) { value in
                         Text(LocalizedStringKey("club.gov.sort." + value.rawValue)).tag(value)
                     }
-                }.font(CYTypography.label).frame(minHeight: CYSpacing.minTouchTarget)
+                }.cyText(.label).frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("club.publicRoster.sort")
-                Text("club.detail.leaderboard.reset").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("club.detail.leaderboard.reset").cyText(.meta).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if loading { rosterLoading }
@@ -124,7 +124,7 @@ import SwiftUI
     private var rosterLoading: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             CYSkeleton().accessibilityHidden(true)
-            Text("club.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text("club.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
         }
         .accessibilityElement(children: .combine)
     }
@@ -145,7 +145,7 @@ import SwiftUI
     }
     @ViewBuilder private func rosterRows(_ current: ClubPublicRosterSnapshot) -> some View {
         Section {
-        Text(verbatim: shown(current.club.name)).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+        Text(verbatim: shown(current.club.name)).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
         if current.memberIDs.isEmpty { rosterEmpty(memberCount: current.club.memberCount) }
         ForEach(current.members) { member in
@@ -158,7 +158,7 @@ import SwiftUI
         ForEach(Array(ClubDetailRankingPort.fold(current.ranks.map(\.memberId), me: nil).enumerated()), id: \.offset) { _, row in
             switch row {
             case .gap(let hidden):
-                Text("club.publicRoster.rankGap \(hidden)", tableName: "ClubPublicRoster").font(CYTypography.meta)
+                Text("club.publicRoster.rankGap \(hidden)", tableName: "ClubPublicRoster").cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("club.publicRoster.rankGap")
             case .member(let rank, let memberID, _):
@@ -169,7 +169,7 @@ import SwiftUI
                 }
             }
         }
-        Text("club.publicRoster.readOnly", tableName: "ClubPublicRoster").font(CYTypography.meta)
+        Text("club.publicRoster.readOnly", tableName: "ClubPublicRoster").cyText(.meta)
             .foregroundStyle(palette.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -195,7 +195,7 @@ import SwiftUI
                 Text(verbatim: member.metric(mode).map { ClubDetailRankingPort.oneDecimal($0) } ?? "—").monospacedDigit()
                 Text(LocalizedStringKey("club.publicRoster.unit." + mode.rawValue), tableName: "ClubPublicRoster")
             }
-        }.font(CYTypography.meta)
+        }.cyText(.meta)
     }
     @ViewBuilder private func memberLink<Detail: View>(id: Int, nickname: String?, avatar: String? = nil, @ViewBuilder detail: () -> Detail) -> some View {
         let trimmed = nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
@@ -282,12 +282,12 @@ private enum ClubCloud14HTTPS {
 #if DEBUG
 // C44's actual club-name fixture only. No roster, reader, profile target or request.
 #Preview("C44 · public-roster heading · player") {
-    Text(verbatim: "城瘾夜行俱乐部").font(CYTypography.cardTitle)
+    Text(verbatim: "城瘾夜行俱乐部").cyText(.cardTitle)
         .fixedSize(horizontal: false, vertical: true)
         .padding(CYSpacing.pageHorizontal).themeDomain(.player)
 }
 #Preview("C44 · public-roster heading · merchant") {
-    Text(verbatim: "城瘾夜行俱乐部").font(CYTypography.cardTitle)
+    Text(verbatim: "城瘾夜行俱乐部").cyText(.cardTitle)
         .fixedSize(horizontal: false, vertical: true)
         .padding(CYSpacing.pageHorizontal).themeDomain(.merchant)
 }

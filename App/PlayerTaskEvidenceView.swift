@@ -23,7 +23,7 @@ import UIKit
             Form {
                 Section {
                     Text(target.kind == .scan ? "playerEvidence.scan.detail" : "playerEvidence.photo.detail")
-                    Text("playerEvidence.serverAuthority").font(.footnote)
+                    Text("playerEvidence.serverAuthority").cyText(.bodyCompact)
                     if !player.acceptsEvidence(target) { Text("playerEvidence.stale") }
                     if let issue = reviewOwner.issue ?? device?.issue { PlayExperienceIssueView(issue: issue) }
                 }
@@ -57,7 +57,7 @@ import UIKit
             CYPillButton("playerEvidence.scan.camera", style: .secondary) { Task { await reviewOwner.captureDevice(.scan, offered: opening) } }
                 .listRowBackground(Color.clear)
                 .disabled(!valid || device?.supports(.scan) != true || device?.busy == true)
-            if device?.supports(.scan) != true { Text("playerEvidence.deviceOff").font(.footnote) }
+            if device?.supports(.scan) != true { Text("playerEvidence.deviceOff").cyText(.bodyCompact) }
             if case .scan = device?.output {
                 CYStatusChip("playerEvidence.scan.captured", tone: .success, systemImage: "checkmark.viewfinder")
                 CYPillButton("playx.review") { reviewOwner.prepareCapturedScan(outputID: outputID, offered: opening) }.listRowBackground(Color.clear).disabled(!valid || device?.busy == true)
@@ -65,7 +65,7 @@ import UIKit
             TextField("playerEvidence.scan.manual", text: Binding(get: { sameTarget ? reviewOwner.manualText : "" }, set: { reviewOwner.updateManual($0, offered: opening) }), axis: .vertical)
                 .textInputAutocapitalization(.never).autocorrectionDisabled().disabled(!valid).focused($manualFocused)
                 .accessibilityIdentifier("playerEvidence.manual")
-            Text("playerEvidence.scan.manualDetail").font(.footnote)
+            Text("playerEvidence.scan.manualDetail").cyText(.bodyCompact)
             CYPillButton("playerEvidence.scan.reviewManual", style: .secondary) { manualFocused = false; reviewOwner.prepareManual(reviewOwner.manualText, offered: opening) }
                 .listRowBackground(Color.clear)
                 .disabled(!valid || reviewOwner.manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -80,7 +80,7 @@ import UIKit
             CYPillButton("playerEvidence.photo.library", style: .secondary) { Task { await reviewOwner.captureDevice(.photo, library: true, offered: opening) } }
                 .listRowBackground(Color.clear)
                 .disabled(!valid || device?.supportsLibraryPhotos != true || device?.busy == true)
-            if device?.supports(.photo) != true { Text("playerEvidence.deviceOff").font(.footnote) }
+            if device?.supports(.photo) != true { Text("playerEvidence.deviceOff").cyText(.bodyCompact) }
             if valid, case .photo(let bytes, _) = device?.output, let image = UIImage(data: bytes) {
                 Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
                     .accessibilityLabel("playerEvidence.photo.preview")

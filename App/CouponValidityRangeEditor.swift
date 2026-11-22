@@ -73,8 +73,8 @@ struct CouponValidityRangeContext: Equatable {
     var body: some View {
         Form {
             Section {
-                Text("couponManagement.chinaTime").font(.footnote)
-                Text("couponManagement.range.localHint").font(.footnote).foregroundStyle(.secondary)
+                Text("couponManagement.chinaTime").cyText(.meta)
+                Text("couponManagement.range.localHint").cyText(.meta).foregroundStyle(.secondary)
             }
             Section("couponManagement.dates") {
                 Toggle("couponManagement.setStart", isOn: Binding(get: { model.selection.startTime != nil },

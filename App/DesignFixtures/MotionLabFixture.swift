@@ -101,7 +101,7 @@ struct E1MotionLabFixture: View {
                         .padding(.horizontal, CYSpacing.pageHorizontal)
                     }
                     .cyStickyHeader {
-                        Text(verbatim: "Sticky header").font(CYTypography.sectionTitle).padding(.vertical, CYSpacing.sm)
+                        Text(verbatim: "Sticky header").cyText(.sectionTitle).padding(.vertical, CYSpacing.sm)
                     }
                     .onChange(of: step) { _, s in
                         if s == 1 { withAnimation(.easeInOut(duration: 2.2)) { proxy.scrollTo(8, anchor: .bottom) } }
@@ -124,7 +124,7 @@ struct E1MotionLabFixture: View {
                     Spacer()
                     Text(verbatim: reduceMotion ? "REDUCE MOTION: ON (fade/instant)" : "Reduce Motion: off")
                 }
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule().fill(.white.opacity(0.18)).frame(height: 6)
@@ -138,10 +138,10 @@ struct E1MotionLabFixture: View {
                 }
                 .frame(height: 12)
                 HStack(spacing: 6) {
-                    Text(verbatim: current.label).font(.footnote.weight(.semibold))
-                    if let h = current.haptic { Text(verbatim: "haptic: \(h)").font(.caption2.weight(.bold)).padding(.horizontal, 6).padding(.vertical, 2).background(Capsule().fill(.yellow)).foregroundStyle(.black) }
+                    Text(verbatim: current.label).cyText(.bodyMedium)
+                    if let h = current.haptic { Text(verbatim: "haptic: \(h)").cyText(.caption, weight: .bold).padding(.horizontal, 6).padding(.vertical, 2).background(Capsule().fill(.yellow)).foregroundStyle(.black) }
                 }
-                Text(verbatim: "DEBUG motion lab: synthetic content").font(.caption2).opacity(0.6)
+                Text(verbatim: "DEBUG motion lab: synthetic content").cyText(.caption).opacity(0.6)
             }
             .foregroundStyle(.white)
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
@@ -188,8 +188,8 @@ private struct LabDetail: View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 CYCoverArt(seed: "Lantern Walk \(index + 1)").cyHeroParallax(height: 280)
-                Text(verbatim: "Lantern Walk \(index + 1)").font(CYTypography.sectionTitle)
-                Text(verbatim: "Synthetic detail used by the motion lab to show the zoom transition.").font(CYTypography.body)
+                Text(verbatim: "Lantern Walk \(index + 1)").cyText(.sectionTitle)
+                Text(verbatim: "Synthetic detail used by the motion lab to show the zoom transition.").cyText(.body)
             }
             .padding(.bottom, CYSpacing.lg)
         }

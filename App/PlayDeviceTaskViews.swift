@@ -18,7 +18,7 @@ import SwiftUI
         let outputContext = model.outputInteractionContext, outputID = model.outputID
         Section("playx.device.title") {
             if let kind {
-                Text(LocalizedStringKey("playx.device." + kind.rawValue)).font(.headline)
+                Text(LocalizedStringKey("playx.device." + kind.rawValue)).cyText(.cardTitle)
                 if unsupportedPhotoSubtype { Text("playhost.photo.unsupported") }
                 if !model.supports(kind) { Text("playx.device.disabled") }
                 CYPillButton("playx.device.capture", style: .secondary) { Task { await model.capture(kind, photoFilter: photoFilter, interaction: interaction) } }
@@ -32,11 +32,11 @@ import SwiftUI
                         CYPillButton("playx.review") { onEvidence(.scan(code), outputContext) }.listRowBackground(Color.clear).disabled(!model.canReviewOutput).accessibilityIdentifier("playx.device.review")
                     case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
                         Text("playx.device.locationCaptured")
-                        Text(verbatim: coordinateSystem).font(.caption)
+                        Text(verbatim: coordinateSystem).cyText(.meta)
                         if let accuracyMeters, accuracyMeters.isFinite {
                             LabeledContent("playx.device.accuracy") { Text(verbatim: "±" + accuracyMeters.formatted(.number.precision(.fractionLength(0))) + " m") }
                         }
-                        if PlayArrivalAccuracy.isLow(accuracyMeters) { Text("playx.device.lowAccuracy").font(.footnote).accessibilityIdentifier("playx.device.lowAccuracy") }
+                        if PlayArrivalAccuracy.isLow(accuracyMeters) { Text("playx.device.lowAccuracy").cyText(.meta).accessibilityIdentifier("playx.device.lowAccuracy") }
                         Button("playx.review") { onEvidence(.location(longitude: longitude, latitude: latitude, coordinateSystem: coordinateSystem, accuracyMeters: accuracyMeters, measuredAt: measuredAt), outputContext) }
                             .disabled(!model.canReviewOutput || coordinateSystem != "GCJ02").accessibilityIdentifier("playx.device.review")
                     case .photo(let bytes, let mime):
@@ -78,7 +78,7 @@ import SwiftUI
                 LabeledContent("playx.stopwatch.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(machine.target, locale: locale)) }
                 TimelineView(.periodic(from: .now, by: PlayStopwatchTick.interval(reduceMotion: reduceMotion))) { _ in
                     Text(verbatim: machine.visibleElapsed(now: ProcessInfo.processInfo.systemUptime).map { PlayTimedDisplayLocalization.number($0, locale: locale) } ?? "—.—")
-                        .font(.system(.largeTitle, design: .rounded).monospacedDigit())
+                        .cyText(.dataXL)
                         .accessibilityLabel(Text("playx.stopwatch.clock"))
                         .accessibilityAddTraits(.updatesFrequently)
                         .accessibilityValue(Text(LocalizedStringKey(machine.phase == .running ? "playx.stopwatch.running" : "playx.stopwatch.ready")))

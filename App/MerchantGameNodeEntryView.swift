@@ -30,7 +30,7 @@ import SwiftUI
                 }.frame(maxWidth: .infinity, minHeight: 200).accessibilityIdentifier("gameNode.entries.failure")
             } else if rows.isEmpty {
                 VStack(spacing: 8) {
-                    MerchantGameNodeCopy.text("merchantGameNode.entries.noneTitle").font(.headline)
+                    MerchantGameNodeCopy.text("merchantGameNode.entries.noneTitle").cyText(.cardTitle)
                     MerchantGameNodeCopy.text("merchantGameNode.entries.noneMessage").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                 }.padding().frame(maxWidth: .infinity, minHeight: 200).accessibilityIdentifier("gameNode.entries.none")
             } else if rows.count == 1, let only = rows.first {

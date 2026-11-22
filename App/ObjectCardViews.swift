@@ -179,17 +179,17 @@ extension EnvironmentValues {
                 Image(systemName: isFoil ? "sparkles" : "rectangle.portrait").foregroundStyle(isFoil ? CYAlbumMotion.gold : CYColor.textTertiary).accessibilityHidden(true)
             }
             Divider()
-            Text(verbatim: card.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: card.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             if !card.category.isEmpty {
                 CYFactRow(label: Text("objects.category"), value: card.category)
             }
             if !card.place.isEmpty { CYFactRow(label: Text("objects.place"), value: card.place) }
             if !card.caption.isEmpty {
-                Text(verbatim: card.caption).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: card.caption).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
             Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                .cyText(.caption).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, minHeight: 240, alignment: .topLeading)
         .cyAlbumCard(padding: CYSpacing.lg)
@@ -218,7 +218,7 @@ extension EnvironmentValues {
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
             .cyFoilSheen(active: isFoil, cornerRadius: CYRadius.md)
             Text(verbatim: card.title)
-                .font(CYTypography.bodyCompact.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .lineLimit(2).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
             if card.generating { CYStatusChip("objects.generating", tone: .info, systemImage: "hourglass") }
             else if isFoil { CYStatusChip("objects.foil", tone: .info, systemImage: "sparkles") }
@@ -255,7 +255,7 @@ extension EnvironmentValues {
             else {
                 Image(systemName: "photo").font(.largeTitle)
                 if loading { ProgressView("objects.loading") }
-                else { Text(media == nil ? "objects.mediaDisabled" : failed ? "objects.mediaFailed" : "objects.noImage").font(.caption) }
+                else { Text(media == nil ? "objects.mediaDisabled" : failed ? "objects.mediaFailed" : "objects.noImage").cyText(.meta) }
             }
         }.accessibilityElement(children: .combine).accessibilityLabel(Text(verbatim: label))
             .accessibilityValue(Text(loading ? "objects.loading" : media == nil ? "objects.mediaDisabled" : failed ? "objects.mediaFailed" : image == nil ? "objects.noImage" : ""))

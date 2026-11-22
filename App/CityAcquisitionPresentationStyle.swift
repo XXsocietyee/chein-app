@@ -19,7 +19,7 @@ struct CityAcquisitionMetadataRow: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
-            label.font(Theme.Font.label).foregroundStyle(.secondary)
+            label.cyText(.label).foregroundStyle(.secondary)
             Text(verbatim: value).font(Theme.Font.body).monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }

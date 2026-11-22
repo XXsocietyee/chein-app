@@ -49,7 +49,7 @@ import SwiftUI
                     .accessibilityHidden(true)
             }
             Text(verbatim: shown(row.id.text))
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .monospacedDigit()
                 .foregroundStyle(palette.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)

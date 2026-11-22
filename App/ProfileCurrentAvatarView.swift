@@ -66,10 +66,10 @@ import Observation
                     .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityHidden(true)
                 (model.savedAvatarReadSnapshot?.avatar.isEmpty == true ? Text("profile.currentAvatar.empty", tableName: "ProfileCurrentMediaUI") : Text("profile.currentAvatar.unavailable", tableName: "ProfileCurrentMediaUI"))
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("profile.avatar.current.unavailable")
             }
-            Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI").font(.caption).foregroundStyle(.secondary)
+            Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI").cyText(.meta).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityIdentifier("profile.avatar.current")

@@ -139,7 +139,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     CYSkeleton()
                     Text("club.loading")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -165,7 +165,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
             }
             if isCurrent(), permit != nil, let failure = model.failure, failure != .forbidden {
                 Label(LocalizedStringKey(failure.localizationKey), systemImage: "exclamationmark.triangle")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.audience.error")
@@ -173,7 +173,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
             if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }
             if model.countsUnavailable, isCurrent() {
                 Text("club.audience.countsUnavailable")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("club.audience.countsUnavailable")
@@ -195,7 +195,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
             HStack(alignment: .center, spacing: CYSpacing.md) {
                 CYRowIcon(systemImage: Self.symbol(option.id))
                 Text(LocalizedStringKey("club.gov.choice." + option.id))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(option.enabled ? CYColor.textPrimary : CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: CYSpacing.sm)
@@ -208,18 +208,18 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
             }
             if option.needsActivity {
                 Text("club.audience.chooseEvent")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else if !option.enabled {
                 if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) {
                     ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("club.gov.denied")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -232,12 +232,12 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
     @ViewBuilder private func audienceCount(_ option: ClubNotificationAudienceOption) -> some View {
         if let count = option.count {
             ClubOpsJoinNotifyCopy.people(count)
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textSecondary)
         } else {
             Text(verbatim: "—")
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(CYColor.textTertiary)
                 .accessibilityLabel(Text("club.audience.countsUnavailable"))
         }

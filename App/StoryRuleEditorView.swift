@@ -27,7 +27,7 @@ import QuestifyCore
     private var rulesContent: some View {
         if !model.error.isEmpty {
             Text(model.error)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.red)
         }
 
@@ -35,7 +35,7 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("storyRule.conditionsTitle")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 if model.showTopSeg {
                     Picker("", selection: Binding(
@@ -59,7 +59,7 @@ import QuestifyCore
                     model.openAdd(target: "conditions")
                 } label: {
                     Label("storyRule.addCondition", systemImage: "plus.circle")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                 }
                 .buttonStyle(.bordered)
             }
@@ -71,13 +71,13 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("storyRule.effectsTitle")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 if model.effectRows.count > 1 && !model.readOnly {
                     Button(LocalizedStringKey(model.sorting ? "storyRule.sortDone" : "storyRule.sortStart")) {
                         model.toggleSort()
                     }
-                    .font(.caption)
+                    .cyText(.meta)
                     .buttonStyle(.borderless)
                 }
             }
@@ -91,7 +91,7 @@ import QuestifyCore
                     model.openAdd(target: "effects")
                 } label: {
                     Label("storyRule.addEffect", systemImage: "plus.circle")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                 }
                 .buttonStyle(.bordered)
             }
@@ -118,7 +118,7 @@ import QuestifyCore
                     model.openAdd(target: row.path)
                 } label: {
                     Label(row.text, systemImage: "plus")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .padding(.leading, 16)
 
@@ -127,7 +127,7 @@ import QuestifyCore
                     model.onRemove(path: row.path)
                 } label: {
                     Label(row.text, systemImage: "trash")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .padding(.leading, 16)
 
@@ -230,7 +230,7 @@ import QuestifyCore
                         Text("storyRule.renameTarget \(renameLabel)")
                         Spacer()
                         Text("storyRule.renameAction")
-                            .font(.caption)
+                            .cyText(.meta)
                     }
                 }
                 .buttonStyle(.bordered)
@@ -281,14 +281,14 @@ import QuestifyCore
                     ),
                     in: amount.min...amount.max
                 )
-                .font(.caption)
+                .cyText(.meta)
             }
 
             Button(role: .destructive) {
                 model.onRemove(path: path)
             } label: {
                 Label("storyRule.removeSentence", systemImage: "trash")
-                    .font(.caption)
+                    .cyText(.meta)
             }
             .buttonStyle(.borderless)
         }
@@ -301,12 +301,12 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(layer.title)
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Button("storyRule.back") {
                     model.closeLayer()
                 }
-                .font(.caption)
+                .cyText(.meta)
             }
 
             TextField("storyRule.layerSearch", text: Binding(
@@ -323,7 +323,7 @@ import QuestifyCore
                         } label: {
                             HStack {
                                 Text(lRow.label)
-                                    .font(.subheadline.weight(.medium))
+                                    .cyText(.bodyMedium)
                                 Spacer()
                                 if lRow.hasNames {
                                     Image(systemName: lRow.open ? "chevron.up" : "chevron.down")
@@ -382,7 +382,7 @@ enum StoryAnswerFeedback: Equatable {
 
             if !coordinator.errorMessage.isEmpty {
                 Label(coordinator.errorMessage, systemImage: "exclamationmark.triangle.fill")
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.dangerText)
             }
 
@@ -407,7 +407,7 @@ enum StoryAnswerFeedback: Equatable {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     HStack(alignment: .center, spacing: CYSpacing.md) {
                         Text(LocalizedStringKey(coordinator.joinState.isMerchant ? "storyRule.joinMerchant" : "storyRule.joinPlayer"))
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .accessibilityAddTraits(.isHeader)
                         Spacer(minLength: CYSpacing.sm)
@@ -440,11 +440,11 @@ enum StoryAnswerFeedback: Equatable {
         Button(action: action) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(station.name)
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .foregroundStyle(selected ? CYColor.brand : CYColor.textPrimary)
                 if !station.roleName.isEmpty {
                     Text(station.roleName)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                 }
             }
@@ -470,12 +470,12 @@ enum StoryAnswerFeedback: Equatable {
                 } label: {
                     HStack {
                         Text(chapter.title)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .multilineTextAlignment(.leading)
                         Spacer(minLength: CYSpacing.sm)
                         Text("storyRule.stationCount \(chapter.nodes.count)")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
                             .font(CYTypography.meta)
@@ -500,23 +500,23 @@ enum StoryAnswerFeedback: Equatable {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack {
                 Text(node.name)
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(CYColor.textPrimary)
                 Spacer(minLength: CYSpacing.sm)
                 if node.answered {
                     Label("storyRule.answered", systemImage: "checkmark.circle.fill")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.successText)
                 }
             }
             if !node.walkText.isEmpty || !node.durationText.isEmpty {
                 Text([node.walkText, node.durationText].filter { !$0.isEmpty }.joined(separator: " · "))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
             }
             if !node.storyContent.isEmpty {
                 Text(node.storyContent)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -531,7 +531,7 @@ enum StoryAnswerFeedback: Equatable {
     private func answerControls(_ node: StoryTopicNode) -> some View {
         if !node.questionTitle.isEmpty {
             Text(node.questionTitle)
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(CYColor.textPrimary)
         }
         if node.questionType == 1 && !node.options.isEmpty {
@@ -545,7 +545,7 @@ enum StoryAnswerFeedback: Equatable {
                             .foregroundStyle(selected ? CYColor.brand : CYColor.textTertiary)
                             .accessibilityHidden(true)
                         Text("\(opt.key). \(opt.label)")
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(CYColor.textPrimary)
                             .multilineTextAlignment(.leading)
                         Spacer(minLength: 0)
@@ -561,7 +561,7 @@ enum StoryAnswerFeedback: Equatable {
                 get: { coordinator.draftAnswers[node.nodeId] ?? "" },
                 set: { coordinator.selectAnswer(nodeId: node.nodeId, value: $0) }
             ))
-            .font(CYTypography.body)
+            .cyText(.body)
             .padding(.horizontal, CYSpacing.md)
             .frame(minHeight: CYSpacing.minTouchTarget)
             .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
@@ -571,7 +571,7 @@ enum StoryAnswerFeedback: Equatable {
             switch feedback {
             case .invalid(let message):
                 Label(message, systemImage: "exclamationmark.triangle.fill")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.dangerText)
             case .blocked:
                 PlayWriteUnavailableBanner(surface: .storyAnswer)

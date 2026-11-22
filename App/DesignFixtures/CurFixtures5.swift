@@ -131,7 +131,7 @@ private struct Cur5Frame: View {
         VStack(spacing: 0) {
             content
             Text(verbatim: zh ? title + " · 调试夹具 · 合成数据" : title + " · DEBUG fixture · synthetic")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(CYSpacing.sm)

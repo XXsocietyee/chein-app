@@ -29,11 +29,11 @@ extension EnvironmentValues {
                 HStack(spacing: CYSpacing.md) {
                     Image(systemName: "flag.fill").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
                     Text("report.history.title", tableName: "MemberReportProgress")
-                        .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                     Spacer(minLength: CYSpacing.sm)
                     if let unread, unread > 0 {
                         Text(verbatim: unread > 99 ? "99+" : String(unread))
-                            .font(CYTypography.caption.weight(.semibold)).monospacedDigit()
+                            .cyText(.caption, weight: .semibold).monospacedDigit()
                             .foregroundStyle(.white)
                             .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                             .background(CYColor.dangerText, in: Capsule())
@@ -95,17 +95,17 @@ extension EnvironmentValues {
                 inviteSwitch(binding)
                 if ready && presentation == .unknown {
                     Text("mpd.im.inviteReminder.unknown")
-                        .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                        .cyText(.caption).foregroundStyle(CYColor.textTertiary)
                         .accessibilityLabel(Text("mpd.im.inviteReminder.unknownLabel"))
                         .accessibilityIdentifier("im.coopStrip.inviteReminder.unknown")
                         .transition(.opacity)
                 } else if let result {
-                    Text(result).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    Text(result).cyText(.caption).foregroundStyle(CYColor.textTertiary)
                         .transition(.opacity)
                 }
                 if offersSettings {
                     Button(action: openNotificationSettings) { Text("d7.notifyPermission.settings") }
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .accessibilityIdentifier("im.coopStrip.inviteReminder.settings")
                         .accessibilityLabel(Text("d7.notifyPermission.settings"))
                         .accessibilityValue(Text(LocalizedStringKey(presentation == .unknown ? "mpd.im.inviteReminder.unknownLabel" : "mpd.im.inviteReminder.denied")))
@@ -121,7 +121,7 @@ extension EnvironmentValues {
     @ViewBuilder private func inviteSwitch(_ binding: any IMInviteReminderBinding) -> some View {
         Group {
             Toggle(isOn: Binding(get: { presentation == .on }, set: { value in Task { await change(value, binding) } })) {
-                Text("mpd.im.inviteReminder").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("mpd.im.inviteReminder").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             .toggleStyle(.switch)
         }
@@ -202,11 +202,11 @@ extension EnvironmentValues {
                 switch phase {
                 case .loading:
                     HStack(spacing: CYSpacing.sm) { ProgressView(); Text("mpd.review.loading") }
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("im.review.record.loading")
                 case .failed:
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("mpd.review.failed").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                        Text("mpd.review.failed").cyText(.meta).foregroundStyle(CYColor.warningText)
                         Button("mpd.common.retry") { Task { await load(reader, taskID) } }
                             .accessibilityIdentifier("im.review.record.retry")
                     }
@@ -216,9 +216,9 @@ extension EnvironmentValues {
                     }
                     ForEach(record.timeline) { step in
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: step.label).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: step.label).cyText(.body).foregroundStyle(CYColor.textPrimary)
                             Text(verbatim: step.time + ((step.reason ?? "").isEmpty ? "" : " · " + (step.reason ?? "")))
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         }
                     }
                 }

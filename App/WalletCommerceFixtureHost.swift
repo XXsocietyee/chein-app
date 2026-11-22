@@ -114,7 +114,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
             NavigationStack {
                 WalletCommerceHomeView(reader: state.reader, visibility: Self.fullVisibility, onCooperationFinance: {})
                     .safeAreaInset(edge: .top) {
-                        Text(verbatim: "Synthetic fixture · debug only").font(.caption2).foregroundStyle(.secondary).padding(.vertical, 2)
+                        Text(verbatim: "Synthetic fixture · debug only").cyText(.caption).foregroundStyle(.secondary).padding(.vertical, 2)
                     }
                     .toolbar { ToolbarItem(placement: .primaryAction) { Menu { Button("Withdrawal parity") { showParity = true }; Button("Sign out") { state.scope = nil } } label: { Image(systemName: "ellipsis.circle") } } }
                 .navigationDestination(isPresented: $showParity) { WithdrawalParityFixtureHost() }

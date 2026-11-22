@@ -106,7 +106,7 @@ struct QuestifyDensityMap: View {
                                         } else {
                                             VStack(spacing: 0) {
                                                 QuestifyMapPinSymbol(symbol: anchor.id == selectedID ? anchor.symbol : "circle.grid.2x2", selected: anchor.id == selectedID)
-                                                Text(group.members.count, format: .number).font(.body.bold())
+                                                Text(group.members.count, format: .number).cyText(.cardTitle)
                                                     .padding(.horizontal, 6).background(QuestifyMapAppearance.surface, in: Capsule())
                                             }
                                         }
@@ -321,7 +321,7 @@ struct QuestifyMapAlternativeList: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(verbatim: pin.title).fixedSize(horizontal: false, vertical: true)
                                 if pin.id == selectedID {
-                                    Text("mapList.selected").font(.footnote.bold())
+                                    Text("mapList.selected").cyText(.bodyMedium)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             }.frame(maxWidth: .infinity, alignment: .leading)

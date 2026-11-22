@@ -29,7 +29,7 @@ private struct E2PermissionPrimerLab: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             Spacer()
             CYPermissionPrimer(step: step, locale: locale, onPrimary: { lastAction = "primary" }, onSecondary: { lastAction = "secondary" })
-            Text(verbatim: "Offline example · last tap: \(lastAction)").font(CYTypography.meta).foregroundStyle(.secondary)
+            Text(verbatim: "Offline example · last tap: \(lastAction)").cyText(.meta).foregroundStyle(.secondary)
                 .accessibilityIdentifier("e2.permission.lastAction")
             Spacer()
         }

@@ -25,7 +25,7 @@ import UIKit
                     Button(String(localized: LocalizedStringResource("media.discard", table: "ClubProfileMedia", locale: locale)), role: .destructive) { draft.discardMedia(field, original: snapshot.profile) }.disabled(!enabled)
                 }
             }
-            if service == nil { Text(String(localized: LocalizedStringResource("media.disabled", table: "ClubProfileMedia", locale: locale))).font(.footnote) }
+            if service == nil { Text(String(localized: LocalizedStringResource("media.disabled", table: "ClubProfileMedia", locale: locale))).cyText(.bodyCompact) }
         }
         .sheet(isPresented: $showing, onDismiss: { flow.closeSelection() }) {
             NavigationStack { ClubProfileMediaEditor(flow: flow, apply: { receipt in

@@ -165,7 +165,7 @@ struct MessagingHistoryView: View {
         .safeAreaInset(edge:.bottom) {
             if replyPolicy.isSystemNotice, currentHistoryReady {
                 Label("im.reply.systemNotice", systemImage: "info.circle")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
                     .background(CYColor.bgElevated)
@@ -238,14 +238,14 @@ struct MessagingHistoryView: View {
                         CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
                             .frame(width: 28, height: 28).clipShape(Circle())
                         if !dynamicTypeSize.isAccessibilitySize {
-                            MessagingConversationName(conversation: conversation).font(.headline).cyWrapText()
+                            MessagingConversationName(conversation: conversation).cyText(.cardTitle).cyWrapText()
                         }
                     }
                     .accessibilityElement(children: .combine)
                     // The tapped row's avatar and name settle into the bar while the system push slides the inbox
                     // title into the Back button (standard push, so the edge-swipe back stays native).
                     .cyHeroTitleRise()
-                } else { Text("messaging.history.title").font(.headline) }
+                } else { Text("messaging.history.title").cyText(.cardTitle) }
             }
         }
         .sheet(item: $safety) { presentation in
@@ -277,7 +277,7 @@ struct MessagingHistoryView: View {
                 // Mini-program chat-hero: the conversation name sits large under the bar.
                 if conversation != nil {
                     MessagingConversationName(conversation: conversation)
-                        .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                         .cyWrapText().padding(.bottom, CYSpacing.xs)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("messaging.history.hero")
@@ -288,7 +288,7 @@ struct MessagingHistoryView: View {
                     } else {
                         if let earlierIssue {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text("messaging.earlierFailed").font(CYTypography.sectionTitle)
+                                Text("messaging.earlierFailed").cyText(.sectionTitle)
                                 if let message = earlierIssue.message { Text(verbatim: message) }
                                 else { Text(LocalizedStringKey(earlierIssue.detailKey)) }
                             }
@@ -326,7 +326,7 @@ struct MessagingHistoryView: View {
                         VStack(spacing: CYSpacing.sm) {
                             // Time is grouped: one divider per burst, not a stamp on every bubble.
                             if let divider = dividers[message.id] {
-                                IMChatDividerLabel(divider: divider).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                IMChatDividerLabel(divider: divider).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                                     .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
                             }
                             NavigationLink {
@@ -506,12 +506,12 @@ private struct MessagingBubble: View {
                 .frame(width: 36, height: 36).background(Circle().fill(CYColor.bgElevated)).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Theme.Space.s1) {
                 HStack(alignment: .firstTextBaseline) {
-                    Text("messaging.system").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text("messaging.system").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     Spacer(minLength: 4)
                     let stamp = ChatDisplay.stamp(message.createdAt)
-                    Text(verbatim: stamp).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: stamp).cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 }
-                MessagingMessageContent(message: message).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                MessagingMessageContent(message: message).cyText(.body).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 IMRecipientPreviewRow(message: message, input: recipientPreview)
             }
@@ -698,7 +698,7 @@ private struct ChatHistoryLoading: View {
     }
     private var row: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text(labelKey).font(CYTypography.meta)
+            Text(labelKey).cyText(.meta)
             CYSkeleton().accessibilityHidden(true)
         }
         .padding(CYSpacing.lg)
@@ -714,7 +714,7 @@ private struct ChatHistoryEmpty: View {
         VStack(spacing: CYSpacing.sm) {
             CYEmptyState(systemImage: "bubble.left.and.bubble.right", "messaging.history.empty")
             Text(hint)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
                 .multilineTextAlignment(.center)
         }
@@ -730,7 +730,7 @@ private struct ChatHistoryUnknown: View {
         VStack(spacing: CYSpacing.sm) {
             CYEmptyState(systemImage: "questionmark.bubble", "im.chat.unknown.title")
             Text("im.chat.unknown.hint")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
                 .multilineTextAlignment(.center)
         }
@@ -749,12 +749,12 @@ private struct ChatHistoryStatus: View {
             CYEmptyState(systemImage: issue.canRetry ? "exclamationmark.triangle" : "lock", LocalizedStringKey(issue.titleKey))
             if let message = issue.message {
                 Text(verbatim: message)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center)
             } else {
                 Text(LocalizedStringKey(issue.detailKey))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center)
             }

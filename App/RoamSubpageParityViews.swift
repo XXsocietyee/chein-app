@@ -22,7 +22,7 @@ struct RoamHistoryParityStrip: View {
         VStack(alignment: .leading, spacing: 4) {
             value.font(.system(.title3, design: .rounded).weight(.heavy).italic()).monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary).cyWrapText()
-            Text(label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text(label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
     /// Mini-program `h:mm` over every record's `durSec`; any record without one makes the total unknown.
@@ -38,7 +38,7 @@ struct RoamHistoryMonthHead: View {
     let date: Date
     var body: some View {
         Text(date, format: .dateTime.year().month(.wide))
-            .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+            .cyText(.caption, weight: .semibold).foregroundStyle(CYColor.textSecondary)
             .padding(.top, CYSpacing.sm)
             .accessibilityAddTraits(.isHeader)
     }
@@ -59,9 +59,9 @@ struct RoamRunCardDateText: View {
             let hour = Calendar.current.component(.hour, from: date)
             (Text(date, format: .dateTime.month().day().weekday(.abbreviated)) + Text(verbatim: " · ")
              + Text(LocalizedStringKey(Self.daypartKeys[min(3, max(0, hour / 6))])))
-                .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
         } else {
-            Text("roamSub.w208.history.dateUnavailable").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text("roamSub.w208.history.dateUnavailable").cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
 }
@@ -108,7 +108,7 @@ struct RoamRunCardParityMeta: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: value).font(.system(.headline, design: .rounded).weight(.bold).monospacedDigit())
                 .cyWrapText()
-            Text(label).font(.caption2).foregroundStyle(CYColor.textSecondary)
+            Text(label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
@@ -158,7 +158,7 @@ struct RoamSessionParityHeader: View {
                 Text(date, format: .dateTime.year().month().day().weekday(.abbreviated))
                 if let time = record.durationText { Text(verbatim: "· " + time) }
             }
-            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
             .accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.session.header")
         }
     }
@@ -184,27 +184,27 @@ struct RoamShareCardParityFooter: View {
     let record: RoamHistoryRecord
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            RoamSessionRouteNameText(name: RoamSessionRouteName(record)).font(.headline)
+            RoamSessionRouteNameText(name: RoamSessionRouteName(record)).cyText(.cardTitle)
                 .accessibilityIdentifier("roamSub.w208.share.routeName")
             Text("roamSub.w208.session.completeFact").font(.subheadline)
             HStack(spacing: 20) {
                 VStack(alignment: .leading) {
-                    if let percent = record.explorePct { Text(verbatim: "\(percent)%").font(.headline.monospacedDigit()) }
-                    else { Text(verbatim: "--%").font(.headline.monospacedDigit()) }
-                    Text("roamSub.w208.share.explore").font(.caption2).foregroundStyle(.secondary)
+                    if let percent = record.explorePct { Text(verbatim: "\(percent)%").cyText(.cardTitle, monospacedDigit: true) }
+                    else { Text(verbatim: "--%").cyText(.cardTitle, monospacedDigit: true) }
+                    Text("roamSub.w208.share.explore").cyText(.caption).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.explore")
                 VStack(alignment: .leading) {
-                    Text(verbatim: record.shops.map(String.init) ?? "—").font(.headline.monospacedDigit())
-                    Text("roamSub.w208.share.lit").font(.caption2).foregroundStyle(.secondary)
+                    Text(verbatim: record.shops.map(String.init) ?? "—").cyText(.cardTitle, monospacedDigit: true)
+                    Text("roamSub.w208.share.lit").cyText(.caption).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.lit")
                 if record.footprintCount > 0 {
                     VStack(alignment: .leading) {
-                        Text(verbatim: String(record.footprintCount)).font(.headline.monospacedDigit())
-                        Text("roamSub.w208.share.footprints").font(.caption2).foregroundStyle(.secondary)
+                        Text(verbatim: String(record.footprintCount)).cyText(.cardTitle, monospacedDigit: true)
+                        Text("roamSub.w208.share.footprints").cyText(.caption).foregroundStyle(.secondary)
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.footprints")
                 }
             }
-            Text("roamSub.w208.share.brand").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Text("roamSub.w208.share.brand").cyText(.meta, weight: .semibold).foregroundStyle(.secondary)
         }
     }
 }
@@ -212,7 +212,7 @@ struct RoamShareCardParityFooter: View {
 struct RoamShareLinkDormantNotice: View {
     var body: some View {
         Label("roamSub.w208.share.linkNotGenerated", systemImage: "link.badge.plus")
-            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            .cyText(.meta).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("roamSub.w208.share.linkNotGenerated")
     }
 }
@@ -258,7 +258,7 @@ struct RoamShareLinkDormantNotice: View {
     }
     private func snapshotCard(_ snapshot: RoamShareSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(verbatim: snapshot.routeName).font(.title2.bold()).accessibilityAddTraits(.isHeader).accessibilityIdentifier("roamSub.w208.shared.routeName")
+            Text(verbatim: snapshot.routeName).cyText(.sheetTitle).accessibilityAddTraits(.isHeader).accessibilityIdentifier("roamSub.w208.shared.routeName")
             Text("roamSub.w208.session.completeFact")
             HStack(spacing: 4) {
                 Text(Date(timeIntervalSince1970: Double(snapshot.ts) / 1000), format: .dateTime.month().day().weekday(.abbreviated))
@@ -269,15 +269,15 @@ struct RoamShareLinkDormantNotice: View {
                 metric(snapshot.explorePct.map { "\(Int($0))%" } ?? "--%", Text("roamSub.w208.share.explore"))
                 metric(snapshot.shops.map(String.init) ?? "—", Text("roamSub.w208.share.lit"))
             }
-            if snapshot.track.count < 2 { Text("roamSub.w208.shared.noTrack").font(.caption).foregroundStyle(.secondary) }
+            if snapshot.track.count < 2 { Text("roamSub.w208.shared.noTrack").cyText(.meta).foregroundStyle(.secondary) }
             ForEach(Array(snapshot.pois.enumerated()), id: \.offset) { _, place in
                 Label { Text(verbatim: place.name) } icon: { Image(systemName: place.cat == "merchant" ? "storefront" : "mappin") }
             }
-            Text("roamSub.w208.share.brand").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Text("roamSub.w208.share.brand").cyText(.meta, weight: .semibold).foregroundStyle(.secondary)
         }.accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.shared.card")
     }
     private func metric(_ value: String, _ label: Text) -> some View {
-        VStack(alignment: .leading) { Text(verbatim: value).font(.headline.monospacedDigit()); label.font(.caption2).foregroundStyle(.secondary) }
+        VStack(alignment: .leading) { Text(verbatim: value).cyText(.cardTitle, monospacedDigit: true); label.cyText(.caption).foregroundStyle(.secondary) }
             .accessibilityElement(children: .combine)
     }
     private func load() async {
@@ -299,21 +299,21 @@ struct RoamShareLinkDormantNotice: View {
     var body: some View {
         let card = RoamPOINodePresentation(node)
         VStack(alignment: .leading, spacing: 10) {
-            Text("roamSub.w208.poi.badge").font(.caption.weight(.semibold)).foregroundStyle(.tint)
-            if let title = node.templateTitle { Text(verbatim: title).font(.headline) }
-            else if !node.name.isEmpty { Text(verbatim: node.name).font(.headline) }
-            else { Text("roamSub.w208.poi.taskUnknown").font(.headline) }
+            Text("roamSub.w208.poi.badge").cyText(.meta, weight: .semibold).foregroundStyle(.tint)
+            if let title = node.templateTitle { Text(verbatim: title).cyText(.cardTitle) }
+            else if !node.name.isEmpty { Text(verbatim: node.name).cyText(.cardTitle) }
+            else { Text("roamSub.w208.poi.taskUnknown").cyText(.cardTitle) }
             if card.offline {
                 Text(LocalizedStringKey(card.offlineKeepsVoucher ? "roamSub.w208.poi.offlineVoucher" : "roamSub.w208.poi.offline"))
-                    .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.offline")
+                    .cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.offline")
             }
             HStack(spacing: 0) {
                 Text(LocalizedStringKey(card.validationKey))
                 if card.grantsCoupon { Text("roamSub.w208.poi.coupon") }
-            }.font(.footnote).accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.poi.method")
+            }.cyText(.bodyCompact).accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.poi.method")
             Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
-                .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
-            if node.coordinate == nil { Label("roamSub.w208.poi.noNavigation", systemImage: "location.slash").font(.footnote).foregroundStyle(.secondary) }
+                .cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
+            if node.coordinate == nil { Label("roamSub.w208.poi.noNavigation", systemImage: "location.slash").cyText(.bodyCompact).foregroundStyle(.secondary) }
             // 投一张 is hidden: this card has no stamp-exchange coordinator to send with, so the
             // flow could only end on a disabled send button.
             if card.primary == .showVoucher {
@@ -324,7 +324,7 @@ struct RoamShareLinkDormantNotice: View {
             } else if card.primary != .interact {
                 // Completed / pending states are status, not an action.
                 Label(LocalizedStringKey(card.primaryKey), systemImage: card.primary == .completed ? "checkmark.seal" : "lock")
-                    .font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
+                    .cyText(.bodyMedium).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roamSub.w208.poi.primary")
             }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.poi.node")
@@ -401,7 +401,7 @@ struct RoamPOIMissingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))).font(.title2.bold())
+                    Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))).cyText(.sheetTitle)
                     HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt) + " ·"); placeText }
                         .font(.subheadline).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.stamp.header")
@@ -416,9 +416,9 @@ struct RoamPOIMissingView: View {
     private var writeStep: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("roamSub.w208.stamp.noteHeader").font(.headline).accessibilityAddTraits(.isHeader)
+                Text("roamSub.w208.stamp.noteHeader").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 Spacer()
-                Text(verbatim: "\(note.count)/\(RoamStampSlip.captionLimit)").font(.caption.monospacedDigit())
+                Text(verbatim: "\(note.count)/\(RoamStampSlip.captionLimit)").cyText(.meta, monospacedDigit: true)
                     .accessibilityIdentifier("roamSub.w208.stamp.counter")
             }
             TextField("roamSub.w208.stamp.placeholder", text: $note, axis: .vertical)
@@ -433,9 +433,9 @@ struct RoamPOIMissingView: View {
             } label: { Text(LocalizedStringKey(working ? "roamSub.w208.stamp.sending" : "roamSub.w208.stamp.send")).frame(maxWidth: .infinity, minHeight: 44) }
                 .buttonStyle(.questifyPrimary).disabled(!canSend && fixtureReceipt == nil)
                 .accessibilityIdentifier("roamSub.w208.stamp.send")
-            if failed { Text("roamSub.w208.stamp.retry").font(.footnote).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
+            if failed { Text("roamSub.w208.stamp.retry").cyText(.bodyCompact).foregroundStyle(.red).accessibilityIdentifier("roamSub.w208.stamp.failed") }
             if exchange == nil && fixtureReceipt == nil {
-                Text("roamSub.w208.stamp.dormant").font(.caption).foregroundStyle(.secondary)
+                Text("roamSub.w208.stamp.dormant").cyText(.meta).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("roamSub.w208.stamp.dormant")
             }
         }
@@ -474,8 +474,8 @@ struct RoamPOIMissingView: View {
         VStack(alignment: .leading, spacing: 16) {
             if !slip.got {
                 VStack(alignment: .leading, spacing: 6) {
-                    if let reason = slip.reason { Text(verbatim: reason).font(.headline) }
-                    else { Text("roamSub.w208.stamp.noTicket").font(.headline) }
+                    if let reason = slip.reason { Text(verbatim: reason).cyText(.cardTitle) }
+                    else { Text("roamSub.w208.stamp.noTicket").cyText(.cardTitle) }
                     Text("roamSub.w208.stamp.noTicketHint").foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.stamp.noExchange")
             } else {
@@ -489,15 +489,15 @@ struct RoamPOIMissingView: View {
                         withAnimation(reduceMotion ? nil : .spring) { pull = 0 }
                     })
                 if !torn {
-                    Text("roamSub.w208.stamp.tearHint").font(.footnote).foregroundStyle(.secondary)
+                    Text("roamSub.w208.stamp.tearHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     if plainControls {
                         Button("roamSub.w208.stamp.tear") { torn = true }.accessibilityIdentifier("roamSub.w208.stamp.tear")
                     }
                 } else if !revealed {
-                    Text("roamSub.w208.stamp.scratchHint").font(.footnote).foregroundStyle(.secondary)
+                    Text("roamSub.w208.stamp.scratchHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     Button("roamSub.w208.stamp.scratch") { revealed = true }.accessibilityIdentifier("roamSub.w208.stamp.scratch")
                 } else {
-                    Text("roamSub.w208.stamp.takeHint").font(.footnote).foregroundStyle(.secondary)
+                    Text("roamSub.w208.stamp.takeHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
             Button {
@@ -505,31 +505,31 @@ struct RoamPOIMissingView: View {
             } label: { Text("roamSub.w208.stamp.done").frame(maxWidth: .infinity, minHeight: 44) }
                 .buttonStyle(.questifyPrimary).disabled(slip.got && !revealed)
                 .accessibilityIdentifier("roamSub.w208.stamp.done")
-            if slip.got && !revealed { Text("roamSub.w208.stamp.revealFirst").font(.caption).foregroundStyle(.secondary) }
+            if slip.got && !revealed { Text("roamSub.w208.stamp.revealFirst").cyText(.meta).foregroundStyle(.secondary) }
         }
     }
     private var paper: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("roamSub.w208.stamp.departure").font(.caption2).foregroundStyle(.secondary)
-                    place.font(.headline)
-                    Text(openedAt, format: .dateTime.hour().minute()).font(.caption)
+                    Text("roamSub.w208.stamp.departure").cyText(.caption).foregroundStyle(.secondary)
+                    place.cyText(.cardTitle)
+                    Text(openedAt, format: .dateTime.hour().minute()).cyText(.meta)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("roamSub.w208.stamp.serialLabel").font(.caption2).foregroundStyle(.secondary)
-                    Text(verbatim: slip.serial).font(.title3.monospacedDigit().bold()).accessibilityIdentifier("roamSub.w208.stamp.serial")
-                    Text("roamSub.w208.stamp.serialHint").font(.caption2)
+                    Text("roamSub.w208.stamp.serialLabel").cyText(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: slip.serial).cyText(.sectionTitle, monospacedDigit: true).accessibilityIdentifier("roamSub.w208.stamp.serial")
+                    Text("roamSub.w208.stamp.serialHint").cyText(.caption)
                 }
             }
             Divider()
             HStack {
-                VStack(alignment: .leading) { Text("roamSub.w208.stamp.leftBy").font(.caption2).foregroundStyle(.secondary); Text("roamSub.w208.stamp.someone").font(.caption) }
+                VStack(alignment: .leading) { Text("roamSub.w208.stamp.leftBy").cyText(.caption).foregroundStyle(.secondary); Text("roamSub.w208.stamp.someone").cyText(.meta) }
                 Spacer()
                 VStack(alignment: .leading) {
-                    Text("roamSub.w208.stamp.leftAt").font(.caption2).foregroundStyle(.secondary)
-                    Text(verbatim: slip.leftAt ?? "—").font(.caption.monospacedDigit())
+                    Text("roamSub.w208.stamp.leftAt").cyText(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: slip.leftAt ?? "—").cyText(.meta, monospacedDigit: true)
                 }
             }
             Divider()
@@ -538,11 +538,11 @@ struct RoamPOIMissingView: View {
                 RoamStampSlipSaveRow(torn: torn, pictureURL: slip.pictureURL)
                 Divider()
             }
-            Text("roamSub.w208.stamp.forYou").font(.caption2).foregroundStyle(.secondary)
+            Text("roamSub.w208.stamp.forYou").cyText(.caption).foregroundStyle(.secondary)
             ZStack {
                 Group {
                     if let caption = slip.caption { Text(verbatim: caption) } else { Text("roamSub.w208.stamp.noCaption") }
-                }.font(.body).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                }.cyText(.body).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     .accessibilityHidden(!revealed)
                     .accessibilityIdentifier("roamSub.w208.stamp.caption")
                 if !revealed {
@@ -571,7 +571,7 @@ struct RoamCityVoucherHeading: View {
     let title: String?
     var body: some View {
         VStack(spacing: 6) {
-            if let title { Text(verbatim: title).font(.title2.bold()) } else { Text("roamSub.w208.voucher.defaultName").font(.title2.bold()) }
+            if let title { Text(verbatim: title).cyText(.sheetTitle) } else { Text("roamSub.w208.voucher.defaultName").cyText(.sheetTitle) }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.voucher.heading")
     }
 }

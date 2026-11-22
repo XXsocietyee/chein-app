@@ -15,15 +15,15 @@ public struct UnifiedOPT001To003FoundationSectionView: View {
             ForEach(UnifiedOPT001To003FoundationAnd509DefectTriageContract.foundationPackages) { pkg in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(pkg.optID) · \(pkg.title)")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text("优先级 \(pkg.priority) · 关联线索 \(pkg.trackedLegacyClueCount) 条")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
             }
             ForEach(UnifiedOPT001To003FoundationAnd509DefectTriageContract.policyDecisions) { decision in
                 LabeledContent("\(decision.decisionID.rawValue) \(decision.title)", value: decision.iosEnforcedDefault)
-                    .font(.caption)
+                    .cyText(.meta)
             }
         }
     }

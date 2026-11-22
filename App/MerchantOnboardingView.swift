@@ -39,12 +39,12 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             if !session.isConfigured || !model.coordinator.isConfigured {
                 VStack(spacing: CYSpacing.md) {
                     CYEmptyState(systemImage: "network.slash", "merchant.onboarding.title")
-                    Text("auth.notConfigured").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text("auth.notConfigured").cyText(.body).foregroundStyle(CYColor.textSecondary)
                 }
             } else if !session.isSignedIn {
                 VStack(spacing: CYSpacing.md) {
                     CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "merchant.onboarding.title")
-                    Text("merchant.signIn").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text("merchant.signIn").cyText(.body).foregroundStyle(CYColor.textSecondary)
                 }
             } else if model.identity != model.coordinator.identity {
                 CYSkeleton().accessibilityLabel(Text("merchant.onboarding.checking"))
@@ -286,7 +286,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     VStack(spacing: CYSpacing.sm) {
                         if needsConsent {
                             Text("merchant.onboarding.identity.required.consent")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .multilineTextAlignment(.center)
                                 .accessibilityIdentifier("merchant.onboarding.identity.consentHint")
@@ -303,7 +303,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     // HANDOFF-R1 MR-01 / MR-11: the primary stays enabled and jumps to what is missing.
                     VStack(spacing: CYSpacing.sm) {
                         Text("r1merchant.onboarding.consent", tableName: "DesignR1Merchant")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
@@ -562,7 +562,7 @@ struct MerchantOnboardingIdentitySection: View {
                         Button { editingID = true } label: {
                             HStack {
                                 Text(verbatim: model.draft.idCardNumber.masked)
-                                    .font(.body.monospacedDigit())
+                                    .cyText(.numericBody)
                                     .foregroundStyle(palette.textPrimary)
                                 Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "pencil").foregroundStyle(palette.textSecondary).accessibilityHidden(true)
@@ -581,7 +581,7 @@ struct MerchantOnboardingIdentitySection: View {
                             .keyboardType(.asciiCapable)
                             .textInputAutocapitalization(.characters)
                             .autocorrectionDisabled()
-                            .font(.body.monospacedDigit())
+                            .cyText(.numericBody)
                             .focused($focus, equals: .idCard)
                             .onAppear { if editingID { focus = .idCard } }
                             .accessibilityIdentifier("merchant.onboarding.identity.idCard")
@@ -631,7 +631,7 @@ struct MerchantOnboardingIdentitySection: View {
                     .foregroundStyle(model.draft.identityConsent ? palette.textPrimary : palette.textSecondary)
                     .contentTransition(.symbolEffect(.replace))
                 Text(consentText)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }

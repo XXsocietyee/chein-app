@@ -33,7 +33,7 @@ import SwiftUI
                             .accessibilityIdentifier("profile.postsRefresh.refreshing")
                     }
                     if model.retainsPreviousResult {
-                        Text("profile.postsRefresh.retained").font(.footnote).foregroundStyle(.secondary)
+                        Text("profile.postsRefresh.retained").cyText(.bodyCompact).foregroundStyle(.secondary)
                             .accessibilityIdentifier("profile.postsRefresh.retained")
                     }
                     if let error = model.error {

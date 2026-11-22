@@ -140,7 +140,7 @@ public struct CYNavBar<Trailing: View>: View {
 
     private var titleLabel: some View {
         Text(verbatim: title)
-            .font(CYTypography.pageTitle)
+            .cyText(.pageTitle)
             .foregroundStyle(titleColor)
             .cyWrapText(alignment: .center)
             .frame(maxWidth: .infinity)

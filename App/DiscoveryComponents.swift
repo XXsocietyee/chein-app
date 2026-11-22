@@ -97,11 +97,11 @@ struct DiscoveryPlayRow: View {
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(CYTypography.cardTitle)
+                DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                 metaLine
                 if let text = item.description, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(text).lineLimit(2).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                    Text(text).lineLimit(2).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
             }
             Spacer(minLength: CYSpacing.sm)
@@ -120,7 +120,7 @@ extension DiscoveryPlayRow {
         ].compactMap { $0 }
         if let first = parts.first {
             parts.dropFirst().reduce(first) { $0 + Text(verbatim: " · ") + $1 }
-                .font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                .cyText(.meta).foregroundStyle(palette.textTertiary)
         }
     }
 }
@@ -129,7 +129,7 @@ struct DiscoveryPlayMetadata: View {
     let item: DiscoveryPlayTemplate
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if let pack = item.pack { Text(pack.label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let pack = item.pack { Text(pack.label).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             if let players = item.playersText {
                 LabeledContent("discovery.players", value: players)
             }
@@ -139,7 +139,7 @@ struct DiscoveryPlayMetadata: View {
             if let difficulty = item.difficulty, !difficulty.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 LabeledContent("discovery.difficulty", value: difficulty)
             }
-        }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+        }.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
     }
 }
 
@@ -153,7 +153,7 @@ struct DiscoveryTopicMetadata: View {
             // Screens r4 · Figma 243:1964 (SR2-20): monochrome, text-only status in the meta line (no flask glyph).
             if item.previewOnly { Text("discovery.preview").foregroundStyle(CYColor.textTertiary) }
             else if !item.isVerified { Text("discovery.experimental").foregroundStyle(CYColor.textTertiary) }
-        }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+        }.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
     }
 }
 

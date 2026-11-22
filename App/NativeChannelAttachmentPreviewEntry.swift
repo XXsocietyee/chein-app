@@ -68,7 +68,7 @@ import ImageIO
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .contentShape(Rectangle())
-                    }.font(Theme.Font.button).buttonStyle(.borderless).accessibilityIdentifier("attachmentPreview.clear")
+                    }.cyText(.button).buttonStyle(.borderless).accessibilityIdentifier("attachmentPreview.clear")
                 }
             }.font(Theme.Font.body).padding()
         }.nativeChannelScreen().privacySensitive()

@@ -72,19 +72,19 @@ extension EnvironmentValues {
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
                             // Mini `.profit-hero`: caption label over one big tabular total.
                             Text(LocalizedStringKey("cooperation.finance.stat." + stat.key.rawValue))
-                                .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: statText(stat)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                                .cyText(.label).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: statText(stat)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }.padding(.vertical, Theme.Space.s2).accessibilityElement(children: .combine)
                     } else {
-                        LabeledContent { Text(verbatim: statText(stat)).monospacedDigit().font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary) } label: {
-                            Text(LocalizedStringKey("cooperation.finance.stat." + stat.key.rawValue)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                        LabeledContent { Text(verbatim: statText(stat)).monospacedDigit().cyText(.numericBody).foregroundStyle(CYColor.textPrimary) } label: {
+                            Text(LocalizedStringKey("cooperation.finance.stat." + stat.key.rawValue)).cyText(.label).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                 }
                     .accessibilityIdentifier("cooperation.finance.stat.\(stat.key.rawValue)")
             }
-            if let reason = profit.adjustReason { Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if let reason = profit.adjustReason { Text(verbatim: reason).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }
         if profit.isOwner, let walletReader { CoopFinanceFundsStagesSection(reader: walletReader) }
         Section {
@@ -100,8 +100,8 @@ extension EnvironmentValues {
             .disabled(!profit.canWithdraw)
             .accessibilityLabel(Text(LocalizedStringKey(withdrawAccessibilityKey(profit.withdrawState))))
             .accessibilityIdentifier("cooperation.finance.withdraw")
-            if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
-            else if profit.withdrawState == .zero { Text("cooperation.finance.withdraw.zero").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
+            if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
+            else if profit.withdrawState == .zero { Text("cooperation.finance.withdraw.zero").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
         }
         if profit.topics.isEmpty {
             Section {
@@ -150,13 +150,13 @@ extension EnvironmentValues {
     }
     private func topicAmount(_ topic: CoopFinanceProfit.Topic) -> some View {
         Text(verbatim: topic.status != .unsettled && topic.status != .settlementUnknown ? topic.income.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—" : "—")
-            .font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            .cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
     }
     private func topicStatus(_ topic: CoopFinanceProfit.Topic) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(LocalizedStringKey("cooperation.finance.status." + topic.status.rawValue)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+            Text(LocalizedStringKey("cooperation.finance.status." + topic.status.rawValue)).cyText(.label).foregroundStyle(CYColor.textSecondary)
             Text(LocalizedStringKey("cooperation.finance.merchant." + topic.merchantStatus.rawValue))
-                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                .cyText(.meta).foregroundStyle(CYColor.textTertiary)
         }.fixedSize(horizontal: false, vertical: true)
     }
 
@@ -246,13 +246,13 @@ struct CoopFinanceBadge: View {
                 if stages.disputed.value > 0 { LabeledContent("cooperation.finance.stages.disputed", value: amount(stages.disputed, stages.currency)) }
                 if !stages.amountsKnown {
                     Text("cooperation.finance.stages.unknown")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             } else if failed {
                 Text("cooperation.finance.stages.failed")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("cooperation.refresh", style: .secondary, fullWidth: false) { Task { await load() } }

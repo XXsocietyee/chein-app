@@ -32,12 +32,12 @@ import Observation
                     case .idle, .loading: EmptyView()
                     case .active:
                         CYStatusChip("roam.experience.sessionActive", tone: .info, systemImage: "pause.circle")
-                        Text("roam.experience.activeHint").font(.caption)
+                        Text("roam.experience.activeHint").cyText(.meta)
                     case .notFound:
                         CYStatusChip("roam.experience.sessionNotFound", tone: .neutral, systemImage: "questionmark.circle")
                     case .incomplete:
                         CYStatusChip("roam.experience.settlementIncomplete", tone: .warning, systemImage: "clock.badge.exclamationmark")
-                        Text("roam.experience.incompleteHint").font(.caption)
+                        Text("roam.experience.incompleteHint").cyText(.meta)
                     case .finished:
                         CYStatusChip("roam.experience.settled", tone: .success, systemImage: "checkmark.seal")
                         if let result = coordinator.fact?.result {
@@ -48,7 +48,7 @@ import Observation
                             if let medal = result.medal, !medal.isEmpty { Label { Text(verbatim: medal) } icon: { Image(systemName: "medal") } }
                             if let medal = result.shopMedal { Text(verbatim: medal.name) }
                         }
-                        Text("roam.experience.recoveryNoTrack").font(.caption).foregroundStyle(.secondary)
+                        Text("roam.experience.recoveryNoTrack").cyText(.meta).foregroundStyle(.secondary)
                     case .failed:
                         if let error = coordinator.error { RoamExperienceIssue(error: error) { recover() } }
                     }

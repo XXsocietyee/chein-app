@@ -123,7 +123,7 @@ public struct IMAndSocialSafetyParitySectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "社交、成长、广场与私信安全对齐审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("imSocialSafetyAudit.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -132,26 +132,26 @@ public struct IMAndSocialSafetyParitySectionView: View {
                     .accessibilityIdentifier("imSocialSafetyAudit.overallStatus")
 
                 Text(verbatim: Self.memberProfileStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("imSocialSafetyAudit.memberProfileStatus")
 
                 Text(verbatim: Self.growthStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("imSocialSafetyAudit.growthStatus")
 
                 Text(verbatim: Self.squareStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("imSocialSafetyAudit.squareStatus")
 
                 Text(verbatim: Self.imInboxStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("imSocialSafetyAudit.imInboxStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无社交与私信安全检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("imSocialSafetyAudit.empty")
             } else {
@@ -202,19 +202,19 @@ private struct IMSocialSafetyPillarRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.title)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isVerified ? "已核验" : "待修复")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isVerified ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "安全凭据：\(row.safetyVerificationNote)")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

@@ -14,7 +14,7 @@ public struct Legacy52TicketsAndMP01To21SliceSectionView: View {
             LabeledContent("MP切片对齐数", value: "\(Legacy52TicketsAndMP01To21SliceParityContract.all21MiniProgramSlices.count)/21")
             ForEach(Legacy52TicketsAndMP01To21SliceParityContract.all21MiniProgramSlices) { slice in
                 LabeledContent("\(slice.sliceID) (\(slice.parentOPT))", value: slice.summary)
-                    .font(.caption)
+                    .cyText(.meta)
             }
         }
     }

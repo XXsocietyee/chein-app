@@ -12,13 +12,13 @@ struct SecondRegistrationStatsView: View {
                     ForEach(SecondRegistrationWindow.allCases, id: \.rawValue) { window in
                         SecondRegistrationRateRow(window: window, display: .init(report.windows.first { $0.window == window }))
                     }
-                    Text("secondRegistration.windowsNote").font(.footnote).foregroundStyle(.secondary)
+                    Text("secondRegistration.windowsNote").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
                 if !report.transitions.isEmpty {
                     Section("secondRegistration.transitions") {
                         ForEach(Array(report.transitions.enumerated()), id: \.offset) { index, row in
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(LocalizedStringKey(Self.transitionKey(row))).font(.headline)
+                                Text(LocalizedStringKey(Self.transitionKey(row))).cyText(.cardTitle)
                                 SecondRegistrationRateRow(window: row.cell.window, display: .init(row.cell))
                             }.accessibilityElement(children: .combine)
                                 .accessibilityIdentifier("secondRegistration.transition.\(index)")
@@ -41,8 +41,8 @@ struct SecondRegistrationStatsView: View {
                     LabeledContent("secondRegistration.asOf") { Text(verbatim: report.asOf) }
                     LabeledContent("secondRegistration.metricVersion") { Text(verbatim: report.metricVersion) }
                     if report.isTest { Label("secondRegistration.testData", systemImage: "testtube.2") }
-                    Text("secondRegistration.exposureNote").font(.footnote).foregroundStyle(.secondary)
-                    if offline { Label("secondRegistration.offlineExample", systemImage: "testtube.2").font(.footnote) }
+                    Text("secondRegistration.exposureNote").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    if offline { Label("secondRegistration.offlineExample", systemImage: "testtube.2").cyText(.bodyCompact) }
                 }.accessibilityIdentifier("secondRegistration.footer")
             } else {
                 Text("secondRegistration.unavailable").accessibilityIdentifier("secondRegistration.unavailable")

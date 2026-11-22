@@ -14,11 +14,11 @@ struct TeamSeatFactsCard: View {
                     ForEach(rows) { row in
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                             Text(LocalizedStringKey(row.labelKey))
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(row.warning ? CYColor.dangerText : CYColor.textSecondary)
                             Spacer(minLength: CYSpacing.sm)
                             Text(verbatim: String(row.value))
-                                .font(CYTypography.numericBody).monospacedDigit()
+                                .cyText(.numericBody).monospacedDigit()
                                 .foregroundStyle(row.warning ? CYColor.dangerText : CYColor.textPrimary)
                         }
                         .accessibilityElement(children: .combine)
@@ -35,7 +35,7 @@ struct TeamSeatFactsCard: View {
         switch line {
         case .unavailable:
             Label("team.invite.unavailable", systemImage: "clock.badge.xmark")
-                .font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                .cyText(.meta).foregroundStyle(CYColor.warningText)
                 .accessibilityIdentifier("teamSeats.invite")
         case .expires(let raw):
             let chinese = locale.language.languageCode?.identifier == "zh"
@@ -60,18 +60,18 @@ struct TeamViewerRelationshipLine: View {
                              systemImage: duty == "team.viewer.captain" ? "crown" : "person")
                     .accessibilityIdentifier("teamViewer.duty")
                 Text("team.viewer.dutyScope")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if invitation, let status = TeamSeatPresentation.applicationKey(detail.viewer) {
                 Text(LocalizedStringKey(status))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamViewer.application")
             }
             if invitation, detail.joined != true, let hint = TeamSeatPresentation.blockerKey(detail.viewer, entry: .join) {
                 Label(LocalizedStringKey(hint), systemImage: "exclamationmark.circle")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                    .cyText(.meta).foregroundStyle(CYColor.warningText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamViewer.joinHint")
             }

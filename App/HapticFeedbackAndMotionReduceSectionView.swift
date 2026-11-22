@@ -138,10 +138,10 @@ public struct MotionHapticComplianceSnapshot: Sendable, Equatable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("hapticMotionCompliance.statusHeadline")
                 Text(verbatim: "Crossfade 降级：\(snapshot.reduceMotionCrossfadeEnforced ? "已强制" : "未强制") · 最小触感冷却：\(snapshot.minConfiguredHapticCooldownMs)ms · 低电量节流：\(snapshot.lowPowerModeShaderThrottlingEnabled ? "已启用" : "未启用")")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("hapticMotionCompliance.summary")
             }
@@ -152,14 +152,14 @@ public struct MotionHapticComplianceSnapshot: Sendable, Equatable {
                         .foregroundStyle(row.isCompliant ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: "\(row.detail)（冷却 \(row.hapticCooldownMilliseconds)ms）")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: row.isCompliant ? "合规" : "告警")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(row.isCompliant ? .green : .red)
                 }
                 .accessibilityIdentifier("hapticMotionCompliance.row." + row.surfaceID)

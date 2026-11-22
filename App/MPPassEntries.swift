@@ -57,12 +57,12 @@ struct PassCheckoutPass: Identifiable, Equatable {
     private func content(_ card: PassStoreCard) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.lg) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: card.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(verbatim: card.meta).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: card.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: card.meta).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 if !card.covers.isEmpty {
                     HStack(spacing: CYSpacing.xs) {
                         ForEach(card.covers.prefix(3), id: \.self) { cover in
-                            Text(verbatim: cover).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                            Text(verbatim: cover).cyText(.caption).foregroundStyle(CYColor.textPrimary).lineLimit(1)
                                 .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                                 .background(CYNight.ink2, in: Capsule())
                         }
@@ -71,8 +71,8 @@ struct PassCheckoutPass: Identifiable, Equatable {
             }
             Spacer(minLength: CYSpacing.sm)
             VStack(alignment: .trailing, spacing: CYSpacing.xs) {
-                Text(verbatim: card.priceText).font(CYTypography.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                Text("mp.pass.store.go").font(CYTypography.label).foregroundStyle(CYColor.textInverse)
+                Text(verbatim: card.priceText).cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text("mp.pass.store.go").cyText(.label).foregroundStyle(CYColor.textInverse)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                     .background(CYColor.textPrimary, in: Capsule())
             }
@@ -112,11 +112,11 @@ struct PassCheckoutPass: Identifiable, Equatable {
                         HStack(alignment: .firstTextBaseline) {
                             Image(systemName: "circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                Text(verbatim: pass.name).font(CYTypography.bodyMedium)
-                                if let meta = pass.meta { Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                                Text(verbatim: pass.name).cyText(.bodyMedium)
+                                if let meta = pass.meta { Text(verbatim: meta).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                             }
                             Spacer()
-                            if let price = pass.priceText { Text(verbatim: price).font(CYTypography.bodyMedium).monospacedDigit() }
+                            if let price = pass.priceText { Text(verbatim: price).cyText(.bodyMedium).monospacedDigit() }
                         }
                     }
                     .accessibilityIdentifier("contextSelfPlay.cityPass.\(pass.id)")

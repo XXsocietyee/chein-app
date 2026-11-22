@@ -19,7 +19,7 @@ import SwiftUI
                         if let issue = model.issue {
                             Text(LocalizedStringKey(issue == .signIn ? "social.signIn" : "profile.selfMedals.failed"))
                                 .accessibilityIdentifier("profile.selfMedals.issue")
-                            if model.medals != nil { Text("profile.selfMedals.retained").font(.caption) }
+                            if model.medals != nil { Text("profile.selfMedals.retained").cyText(.meta) }
                             Button("action.retry") { Task { await load() } }.disabled(model.isLoading)
                                 .accessibilityIdentifier("profile.selfMedals.retry")
                         }

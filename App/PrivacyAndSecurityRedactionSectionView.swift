@@ -129,7 +129,7 @@ public struct PrivacyAndSecurityRedactionSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "隐私脱敏与安全围栏审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("privacyRedaction.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -138,26 +138,26 @@ public struct PrivacyAndSecurityRedactionSectionView: View {
                     .accessibilityIdentifier("privacyRedaction.overallStatus")
 
                 Text(verbatim: Self.homeRedactionStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("privacyRedaction.homeRedactionStatus")
 
                 Text(verbatim: Self.locationDisclosureStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("privacyRedaction.locationDisclosureStatus")
 
                 Text(verbatim: Self.npcSafetyStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("privacyRedaction.npcSafetyStatus")
 
                 Text(verbatim: Self.cacheEvictionStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("privacyRedaction.cacheEvictionStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无隐私与安全围栏检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("privacyRedaction.empty")
             } else {
@@ -206,19 +206,19 @@ private struct PrivacyRedactionPillarRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.title)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isEnforced ? "已生效" : "未生效")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isEnforced ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "验证样本：\(row.redactionSample)")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

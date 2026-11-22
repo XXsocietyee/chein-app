@@ -36,7 +36,7 @@ import SwiftUI
             else { timedStage }
             if kind == .stopwatch || kind == .reaction {
                 // Mini-program footnote: a device reading for fun; backgrounding interrupts the local clock.
-                Text("playkit.challenge.localNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("playkit.challenge.localNotice").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playkit.challenge.localNotice")
             }
@@ -101,8 +101,8 @@ import SwiftUI
                 .frame(maxWidth: .infinity).padding(CYSpacing.lg)
                 .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
             Text("playkit.type.goalLine \(typeInGoal)")
-                .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
-            Text(segment["caseSensitive"].bool == true ? "playkit.type.caseSensitive" : "playkit.type.caseInsensitive").font(.footnote)
+                .cyText(.body).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
+            Text(segment["caseSensitive"].bool == true ? "playkit.type.caseSensitive" : "playkit.type.caseInsensitive").cyText(.bodyCompact)
             TextField("playkit.type.input", text: $input, axis: .vertical)
                 .textFieldStyle(.roundedBorder).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .focused($typingFocused).disabled(timing.phase != .running || !enabled)
@@ -119,7 +119,7 @@ import SwiftUI
             Circle().stroke(CYColor.bgRaised, lineWidth: 14)
             Circle().trim(from: 0, to: clockProgress).stroke(timing.phase == .measured ? (resultTone ?? CYColor.textPrimary) : CYColor.textPrimary, style: StrokeStyle(lineWidth: 14, lineCap: .round))
                 .rotationEffect(.degrees(-90)).animation(.linear(duration: 0.05), value: clockProgress)
-            Text(verbatim: clockLabel).font(CYTypography.data2XL)
+            Text(verbatim: clockLabel).cyText(.data2XL)
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.5).lineLimit(1).padding(CYSpacing.xl)
         }
         .frame(maxWidth: 300).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
@@ -195,7 +195,7 @@ import SwiftUI
             VStack(spacing: CYSpacing.lg) {
                 Image(systemName: "hand.tap.fill").font(CYTypography.data2XL).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: ChannelCopy.text("圆圈变绿时立刻点按，别抢跑。", "Tap the circle the moment it turns green. Don't jump the gun.", locale: locale))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                    .cyText(.body).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 10) {
                     ForEach(0..<min(reaction.rounds, 10), id: \.self) { index in
@@ -216,7 +216,7 @@ import SwiftUI
                     Circle().strokeBorder(go ? Color.white.opacity(0.5) : CYColor.borderStrong, lineWidth: 4)
                     VStack(spacing: CYSpacing.sm) {
                         Image(systemName: go ? "hand.tap.fill" : "hourglass").font(CYTypography.data2XL)
-                        Text(go ? "playkit.reaction.tap" : "playkit.reaction.wait").font(CYTypography.sectionTitle)
+                        Text(go ? "playkit.reaction.tap" : "playkit.reaction.wait").cyText(.sectionTitle)
                     }.foregroundStyle(go ? Color.black : CYColor.textSecondary).padding(CYSpacing.lg)
                 }
                 .frame(maxWidth: 300).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
@@ -298,13 +298,13 @@ struct PlayTimedResultCard: View {
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
             Image(systemName: icon).font(CYTypography.dataXL).foregroundStyle(tone)
-            Text(verbatim: headline).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-            Text(verbatim: value).font(CYTypography.data2XL)
+            Text(verbatim: headline).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value).cyText(.data2XL)
                 .minimumScaleFactor(0.5).lineLimit(1).foregroundStyle(CYColor.textPrimary)
             if target != nil || delta != nil {
                 Text(verbatim: [target.map { ChannelCopy.text("目标 \($0)", "Target \($0)", locale: locale) },
                                 delta.map { ChannelCopy.text("偏差 \($0)", "Off by \($0)", locale: locale) }].compactMap { $0 }.joined(separator: "  ·  "))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             }
         }
         .frame(maxWidth: .infinity).padding(CYSpacing.xl)

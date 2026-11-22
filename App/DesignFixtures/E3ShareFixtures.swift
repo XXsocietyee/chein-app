@@ -95,7 +95,7 @@ private struct E3ShareTemplateGallery: View {
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     ForEach(Array([E3ShareFixtureContent.walk, E3ShareFixtureContent.route, E3ShareFixtureContent.activity, E3ShareFixtureContent.medal].enumerated()), id: \.offset) { index, content in
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            Text(verbatim: content.title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: content.title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                             ForEach(CYShareCardRatio.allCases) { ratio in
                                 ScrollView(.horizontal) {
                                     HStack(alignment: .top, spacing: CYSpacing.md) {
@@ -109,7 +109,7 @@ private struct E3ShareTemplateGallery: View {
                             }
                         }
                     }
-                    Text(verbatim: locale.pick("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).font(.caption2).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: locale.pick("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).cyText(.caption).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity)
                 }
                 .padding(CYSpacing.lg)

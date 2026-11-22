@@ -63,11 +63,11 @@ struct D6MapFixture: View {
                         CYStatusChip(LocalizedStringKey(t("120 m", "120 米")), systemImage: "location")
                     }
                     Text(verbatim: t("Find the Lantern Gate", "找到灯笼门"))
-                        .font(.system(.title, design: .default).weight(.heavy))
+                        .cyText(.display)
                         .foregroundStyle(.white)
                     Text(verbatim: t("Follow the river and look for red lanterns above a stone arch.",
                                      "沿着河走，找到石拱门上方的红灯笼。"))
-                        .font(CYTypography.body).foregroundStyle(Color.white.opacity(0.7))
+                        .cyText(.body).foregroundStyle(Color.white.opacity(0.7))
                     CYPillButton(LocalizedStringKey(t("I've arrived", "我到了")), action: {})
                     CYSectionHeader(LocalizedStringKey(t("Next stops", "接下来")))
                     CYListRow(LocalizedStringKey(t("Tea House", "茶馆")), meta: LocalizedStringKey(t("Locked until task 2", "完成任务 2 后解锁")), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
@@ -86,19 +86,19 @@ struct D6MapFixture: View {
         VStack {
             HStack(alignment: .top) {
                 Text(verbatim: t("Roam", "漫游"))
-                    .font(.system(.largeTitle).weight(.heavy)).foregroundStyle(.white)
+                    .cyText(.pageTitle).foregroundStyle(.white)
                 Spacer()
                 CYGlassCapsule {
                     HStack(spacing: CYSpacing.lg) {
                         Image(systemName: "book.closed").accessibilityLabel(Text(verbatim: t("Passport", "漫游护照")))
                         Image(systemName: "ellipsis").accessibilityLabel(Text(verbatim: t("More", "更多")))
-                    }.foregroundStyle(.white).font(.system(.body).weight(.semibold))
+                    }.foregroundStyle(.white).cyText(.cardTitle)
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             Spacer()
             Text(verbatim: t("Walk anywhere — the fog lifts as you go.", "走到哪，雾散到哪。"))
-                .font(CYTypography.body).foregroundStyle(Color.white.opacity(0.75)).padding(.bottom, CYSpacing.lg)
+                .cyText(.body).foregroundStyle(Color.white.opacity(0.75)).padding(.bottom, CYSpacing.lg)
             HStack(spacing: CYSpacing.xxl) {
                 CYGlassButton(systemImage: "info", label: "Rules", action: {})
                 CYGoButton(action: {})
@@ -124,7 +124,7 @@ struct D6MapFixture: View {
                             Text(verbatim: t("Search routes, places", "搜索路线、地点等")).foregroundStyle(Color.white.opacity(0.6))
                                 .lineLimit(1).minimumScaleFactor(0.7)
                             Spacer(minLength: 0)
-                        }.font(CYTypography.body)
+                        }.cyText(.body)
                     }
                     CYGlassButton(systemImage: "location.fill", label: "Locate", action: {})
                 }
@@ -160,8 +160,8 @@ struct D6MapFixture: View {
 
     private func stat(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value).font(.system(.title3).weight(.bold).monospacedDigit()).foregroundStyle(.white)
-            Text(label).font(CYTypography.meta).foregroundStyle(Color.white.opacity(0.65))
+            Text(verbatim: value).cyText(.sectionTitle, monospacedDigit: true).foregroundStyle(.white)
+            Text(label).cyText(.meta).foregroundStyle(Color.white.opacity(0.65))
         }
     }
 }

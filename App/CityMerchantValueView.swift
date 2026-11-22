@@ -18,10 +18,10 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text(verbatim: boardTitle).font(.headline)
+                Text(verbatim: boardTitle).cyText(.cardTitle)
                 DatePicker(CityMerchantValueCopy.string("from"), selection: $from)
                 DatePicker(CityMerchantValueCopy.string("to"), selection: $to)
-                CityMerchantValueCopy.text("windowHint").font(.footnote)
+                CityMerchantValueCopy.text("windowHint").cyText(.meta)
                 Button { if let window { run { await model.load(window: window) } } } label: { CityMerchantValueCopy.text("query") }
                     .disabled(model.busy || window == nil).accessibilityIdentifier("cityValue.query")
                 Button { if let window { run { await model.load(window: window, newSnapshot: false) } } } label: { CityMerchantValueCopy.text("retryQuery") }
@@ -31,8 +31,8 @@ import SwiftUI
             }
             if let report = model.report {
                 Section {
-                    Text(verbatim: "\(report.from) → \(report.to)").font(.footnote)
-                    Text(verbatim: "#\(report.resultId)").font(.caption)
+                    Text(verbatim: "\(report.from) → \(report.to)").cyText(.bodyCompact)
+                    Text(verbatim: "#\(report.resultId)").cyText(.meta)
                     if report.incomplete { CityMerchantValueCopy.text("incomplete") }
                     else {
                         metric("entry", report.funnel?["entry"]); metric("meaningful", report.funnel?["meaningfulAction"])
@@ -67,15 +67,15 @@ import SwiftUI
                 }
             }
             Section {
-                CityMerchantValueCopy.text("factsNotice").font(.footnote)
+                CityMerchantValueCopy.text("factsNotice").cyText(.bodyCompact)
                 ForEach(model.facts) { fact in
                     VStack(alignment: .leading, spacing: 4) {
                         CityMerchantValueCopy.text("fact." + fact.kind)
-                        Text(verbatim: fact.occurredAt).font(.caption)
-                        if let type = fact.serviceType { Text(verbatim: type).font(.caption) }
-                        if let reason = fact.reasonCode { CityMerchantValueCopy.text("reason." + reason).font(.caption) }
+                        Text(verbatim: fact.occurredAt).cyText(.meta)
+                        if let type = fact.serviceType { Text(verbatim: type).cyText(.meta) }
+                        if let reason = fact.reasonCode { CityMerchantValueCopy.text("reason." + reason).cyText(.meta) }
                         if let rating = fact.rating { Text(verbatim: "\(rating) / 100") }
-                        Text(verbatim: "#\(fact.id)").font(.caption2)
+                        Text(verbatim: "#\(fact.id)").cyText(.caption)
                         if fact.kind == "SERVICE_SUCCESS" {
                             Button { selectedBenefit = fact } label: { CityMerchantValueCopy.text("benefit.open") }
                                 .disabled(!model.canReadBenefit(fact)).accessibilityIdentifier("cityValue.benefit.\(fact.id)")
@@ -83,7 +83,7 @@ import SwiftUI
                     }.accessibilityIdentifier("cityValue.fact.\(fact.id)")
                 }
                 if model.hasMore { Button { run { await model.loadMore() } } label: { CityMerchantValueCopy.text("more") }.disabled(model.busy).accessibilityIdentifier("cityValue.more") }
-                CityMerchantValueCopy.text("missingSources").font(.footnote)
+                CityMerchantValueCopy.text("missingSources").cyText(.bodyCompact)
             }
         }.cyGroupedSurface().accessibilityIdentifier("cityValue.merchant")
             .task { guard !loadedInitially else { return }; loadedInitially = true; if let window { await model.load(window: window) } }
@@ -119,7 +119,7 @@ import SwiftUI
         NavigationStack {
             List {
                 Section {
-                    CityMerchantValueCopy.text("benefit.historyOnly").font(.footnote)
+                    CityMerchantValueCopy.text("benefit.historyOnly").cyText(.bodyCompact)
                     LabeledContent { Text(verbatim: "#\(fact.id)") } label: { CityMerchantValueCopy.text("benefit.factID") }
                     Text(verbatim: fact.occurredAt)
                 }

@@ -68,7 +68,7 @@ struct E1TicketCard: View {
                         Spacer(minLength: 0)
                     }.padding(CYSpacing.lg)
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                        .font(CYTypography.pageTitle).foregroundStyle(.white)
+                        .cyText(.pageTitle).foregroundStyle(.white)
                         .lineLimit(3).fixedSize(horizontal: false, vertical: true)
                         .padding(CYSpacing.lg)
                         .accessibilityAddTraits(.isHeader)
@@ -81,7 +81,7 @@ struct E1TicketCard: View {
                 if typeSize.isAccessibilitySize {
                     statusChip
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                        .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("ticketWallet.detail.title")
@@ -93,7 +93,7 @@ struct E1TicketCard: View {
                     QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
                 }
                 if let expiryText, !expiryText.isEmpty {
-                    Text(verbatim: expiryText).font(CYTypography.caption).foregroundStyle(CYColor.warningText)
+                    Text(verbatim: expiryText).cyText(.caption).foregroundStyle(CYColor.warningText)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -115,30 +115,30 @@ struct E1TicketCard: View {
                     .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityHidden(true)
                 Text(verbatim: ticket.status == .ready ? c.t("到场出示", "Show at the venue") : c.t("支付后可出示", "Available after payment"))
-                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Text(verbatim: ticket.status == .ready
                      ? c.t("现场工作人员会为你核验，无需截图。", "Venue staff will check it for you. No screenshot needed.")
                      : c.t("完成支付后，这张票就可以出示了。", "Once paid, this pass is ready to present."))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             case .verified:
                 Image(systemName: "checkmark.seal.fill").resizable().scaledToFit()
                     .frame(width: glyph * 0.7, height: glyph * 0.7)
                     .foregroundStyle(CYColor.successText)
                     .symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion).accessibilityHidden(true)
-                Text(verbatim: c.t("已核验入场", "Checked in")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: c.t("已核验入场", "Checked in")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             case .cancelled, .expired, .unknown:
                 Image(systemName: ticket.status == .unknown ? "questionmark.circle" : "ticket").resizable().scaledToFit()
                     .frame(width: glyph * 0.55, height: glyph * 0.55)
                     .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                 Text(verbatim: ticket.status == .cancelled ? c.t("此票已取消", "This ticket was cancelled") : ticket.status == .expired ? c.t("此票已过期", "This ticket has expired") : c.t("暂时无法确认票的状态", "Ticket status unavailable"))
-                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    .cyText(.cardTitle).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             }
             if let number = ticket.registrationNumber, !number.isEmpty {
                 Text(verbatim: number).font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
                     .textSelection(.enabled)
             }
             if let fulfillmentNotice {
-                Text(verbatim: fulfillmentNotice).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                Text(verbatim: fulfillmentNotice).cyText(.caption).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             }
         }
         .frame(maxWidth: .infinity)

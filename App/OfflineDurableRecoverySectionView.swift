@@ -145,10 +145,10 @@ public struct OfflineDurableRecoverySectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: "Offline & Interruption Durable Recovery")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: headerBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(snapshot.allPillarsVerified ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("durableRecovery.statusBadge")
             }
@@ -166,7 +166,7 @@ public struct OfflineDurableRecoverySectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: pillar.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
                             .font(.caption2.monospaced())
@@ -175,7 +175,7 @@ public struct OfflineDurableRecoverySectionView: View {
                     }
 
                     Text(verbatim: pillar.guaranteeSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.recoveryRuleSummary)

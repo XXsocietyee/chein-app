@@ -103,7 +103,7 @@ struct NonCashRewardReadFactsView: View {
                         value: projection.origin.instanceId, id: "rewards.read.instanceId.value")
             sourceValue("rewards.read.rulesVersion", value: projection.origin.rulesVersion, id: "rewards.read.rulesVersion.value")
             LabeledContent("rewards.read.awardedAt") { Text(projection.reward.awardedAt, format: .dateTime) }
-            Text("rewards.read.sourceHint").font(.footnote).accessibilityIdentifier("rewards.read.sourceHint")
+            Text("rewards.read.sourceHint").cyText(.meta).accessibilityIdentifier("rewards.read.sourceHint")
         } header: {
             Text("rewards.read.origin").accessibilityIdentifier("rewards.read.origin.header")
         }
@@ -114,7 +114,7 @@ struct NonCashRewardReadFactsView: View {
                 .accessibilityElement(children: .contain)
             LabeledContent("rewards.read.allocation") { fact(projection.allocation, id: "rewards.read.allocation.value") }
                 .accessibilityElement(children: .contain)
-            Text("rewards.read.qualificationHint").font(.footnote).accessibilityIdentifier("rewards.read.qualificationHint")
+            Text("rewards.read.qualificationHint").cyText(.bodyCompact).accessibilityIdentifier("rewards.read.qualificationHint")
         } header: {
             Text("rewards.read.qualification").accessibilityIdentifier("rewards.read.qualification.header")
         }

@@ -24,7 +24,7 @@ import SwiftUI
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 Text(verbatim: copy.t("订单摘要", "Order summary"))
-                    .font(CYTypography.sheetTitle)
+                    .cyText(.sheetTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .padding(.top, CYSpacing.sm)
@@ -32,7 +32,7 @@ import SwiftUI
                 priceRows
                 if let line = content.complianceDeclarations.first {
                     Text(verbatim: line)
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(palette.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -56,11 +56,11 @@ import SwiftUI
         HStack(alignment: .center, spacing: CYSpacing.md) {
             CYRowIcon(systemImage: "shippingbox")
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
+                Text(verbatim: name).cyText(.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
                 let count = content.catalog.items.count
                 if count > 0 {
                     Text(verbatim: copy.t("包含 \(count) 项", CoreLoopCopy.count(Substring(String(count)), "item included", "items included")))
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
             }
             Spacer(minLength: 0)
@@ -73,14 +73,14 @@ import SwiftUI
         VStack(spacing: 0) {
             if let priceText {
                 row(copy.t("套餐价", "Bundle price")) {
-                    Text(verbatim: priceText).font(CYTypography.numericBody).foregroundStyle(palette.textPrimary).monospacedDigit()
+                    Text(verbatim: priceText).cyText(.numericBody).foregroundStyle(palette.textPrimary).monospacedDigit()
                 }
                 Divider().overlay(palette.borderSubtle)
             }
             if let days = content.extras?.validityDays {
                 row(copy.t("有效期", "Validity")) {
                     Text(verbatim: copy.t("购买后 \(days) 天", CoreLoopCopy.count(Substring(String(days)), "day after purchase", "days after purchase")))
-                        .font(CYTypography.numericBody).foregroundStyle(palette.textPrimary)
+                        .cyText(.numericBody).foregroundStyle(palette.textPrimary)
                 }
                 Divider().overlay(palette.borderSubtle)
             }

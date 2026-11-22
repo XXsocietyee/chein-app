@@ -25,7 +25,7 @@ import SwiftUI
     var body: some View {
         let offeredPresentation = model.presentation
         List {
-            if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(CYTypography.caption) }
+            if reader.isOfflineExample { Text("ticketWallet.offlineExample").cyText(.caption) }
             if !reader.isAuthenticated { TicketWalletIssueView(issue: .login) }
             else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("ticketWallet.loading")) }
@@ -82,7 +82,7 @@ import SwiftUI
                     Section("ticketWallet.entitlements") {
                         LabeledContent("ticketWallet.pendingChapters", value: String(ticket.pendingCount))
                             .accessibilityIdentifier("ticketWallet.pendingChapters")
-                        if ticket.hasUnknownEntitlementStatus { Text("ticketWallet.unknownEntitlementStatus").font(CYTypography.meta) }
+                        if ticket.hasUnknownEntitlementStatus { Text("ticketWallet.unknownEntitlementStatus").cyText(.meta) }
                         ForEach(Array(ticket.entitlements.enumerated()), id: \.offset) { _, entitlement in
                             TicketWalletEntitlementRow(entitlement: entitlement)
                                 .accessibilityIdentifier("ticketWallet.entitlement.\(entitlement.id)")
@@ -310,7 +310,7 @@ private struct TicketWalletEntitlementRow: View {
                     else if let id = entitlement.chapterID { Text("ticketWallet.chapter"); Text(verbatim: String(id)) }
                     else { Text("ticketWallet.unnamedChapter") }
                 }
-                .font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
+                .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 Label {
                     if let label = entitlement.statusLabel { Text(verbatim: label) }

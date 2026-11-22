@@ -252,9 +252,9 @@ enum ApprovedReleaseOriginalRecoveryText: String, CaseIterable {
                     Button { reader.inspect(record) } label: {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(verbatim: record.prepared.name ?? String(record.prepared.topicID))
-                            Text(verbatim: record.command.requestID).font(.caption)
-                            Text(text(record.receipt == nil ? .unknown : .known)).font(.footnote)
-                            Text(text(.inspect)).font(.footnote)
+                            Text(verbatim: record.command.requestID).cyText(.meta)
+                            Text(text(record.receipt == nil ? .unknown : .known)).cyText(.bodyCompact)
+                            Text(text(.inspect)).cyText(.bodyCompact)
                         }.fixedSize(horizontal: false, vertical: true)
                     }.buttonStyle(.borderless).disabled(reader.checking || scenePhase != .active)
                         .accessibilityIdentifier("approvedRelease.recovery.inspect.\(record.command.requestID)")
@@ -266,7 +266,7 @@ enum ApprovedReleaseOriginalRecoveryText: String, CaseIterable {
     }
     private func field(_ key: ApprovedReleaseOriginalRecoveryText, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(text(key)).font(.caption).foregroundStyle(.secondary)
+            Text(text(key)).cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: value).textSelection(.enabled)
         }.fixedSize(horizontal: false, vertical: true)
     }

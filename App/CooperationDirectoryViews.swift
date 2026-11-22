@@ -8,7 +8,7 @@ import SwiftUI
             // tap navigationBars["Cooperation pool"]; the inline label is clipped to a point.
             Section {
                 Text("cooperation.pool.title")
-                    .font(.system(.largeTitle, design: .default).weight(.heavy))
+                    .cyText(.pageTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
@@ -37,7 +37,7 @@ import SwiftUI
                                     CoopCloudCoverThumb(url: TemplateBrowserPort.coverURL(row.cover), seed: poolSeed(row))
                                 }
                                 CooperationName(name: row.name, fallback: "cooperation.unnamedTopic")
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -60,7 +60,7 @@ import SwiftUI
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text("cooperation.pool.title")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .frame(width: 0, height: 0)
                     .clipped()
                     .accessibilityHidden(true)
@@ -101,7 +101,7 @@ import SwiftUI
                             CYRowIcon(systemImage: "person.2")
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 CooperationName(name: row.clubName, fallback: "cooperation.unnamedClub")
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 CooperationStatus(key: row.statusKey)
@@ -126,7 +126,7 @@ import SwiftUI
                         HStack(alignment: .top, spacing: CYSpacing.md) {
                             CYRowIcon(systemImage: "bag")
                             CooperationName(name: row.name, fallback: "cooperation.unnamedMerchant")
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }

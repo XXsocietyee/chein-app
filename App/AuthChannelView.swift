@@ -115,7 +115,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     status
                 }
                 if notConfigured {
-                    Label("auth.notConfigured", systemImage: "info.circle").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                    Label("auth.notConfigured", systemImage: "info.circle").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }
                 legalFootnote
             }
@@ -152,17 +152,17 @@ struct PhoneSignInForm<AppleContent: View>: View {
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.12), lineWidth: 1))
                 .padding(.top, CYSpacing.xl).accessibilityHidden(true)
             Text("auth.channels.phoneTitle")
-                .font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)
+                .cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
             Text("auth.phone.subtitle")
-                .font(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 
     private var countryChip: some View {
         HStack(spacing: CYSpacing.xs) {
-            Text(verbatim: "🇨🇳").font(.title3)
-            Text(verbatim: "+86").font(.system(.body, weight: .semibold)).foregroundStyle(CYColor.textPrimary).fixedSize()
+            Text(verbatim: "🇨🇳").cyText(.sectionTitle)
+            Text(verbatim: "+86").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize()
         }
         .padding(.horizontal, CYSpacing.md).frame(minHeight: 40)
         .background(CYColor.bgRaised, in: Capsule())
@@ -206,7 +206,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     if cooldown > 0 { Text("auth.phone.resendIn \(cooldown)").monospacedDigit() }
                     else { Text(hasSentBefore ? "auth.channels.resendCode" : "auth.channels.sendCode") }
                 }
-                .font(.system(.subheadline, weight: .semibold)).cyWrapText()
+                .cyText(.bodyMedium).cyWrapText()
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .background(canSend ? CYColor.brandSoft : CYColor.bgRaised, in: Capsule())
             }
@@ -218,7 +218,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
 
     private var codeSection: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text("auth.phone.codeHint").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+            Text("auth.phone.codeHint").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
             codeBoxes
         }
         .transition(.opacity.combined(with: .move(edge: .top)))
@@ -240,7 +240,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     let chars = Array(code)
                     let active = focus == .code && i == min(chars.count, 5)
                     Text(i < chars.count ? String(chars[i]) : (active ? "" : " "))
-                        .font(.system(.title, design: .rounded, weight: .semibold).monospacedDigit())
+                        .cyText(.dataXL)
                         .foregroundStyle(CYColor.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 60)
                         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -266,11 +266,11 @@ struct PhoneSignInForm<AppleContent: View>: View {
                 .foregroundStyle(issueIsSoft ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("auth.channels.error")
             if requiresAppUpdate {
-                Text("auth.channels.upgradeRequired").font(.footnote).foregroundStyle(CYColor.dangerText)
+                Text("auth.channels.upgradeRequired").cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("auth.channels.upgradeRequired")
             }
         } else if smsSent {
-            Label("auth.channels.smsSent", systemImage: "checkmark.circle.fill").font(.footnote.weight(.medium)).foregroundStyle(CYColor.textSecondary)
+            Label("auth.channels.smsSent", systemImage: "checkmark.circle.fill").cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
         }
     }
 
@@ -289,7 +289,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
     @ViewBuilder private var appleBlock: some View {
         HStack(spacing: CYSpacing.md) {
             Rectangle().fill(CYColor.textPrimary.opacity(0.12)).frame(height: 1)
-            Text("auth.phone.or").font(.footnote).foregroundStyle(CYColor.textSecondary)
+            Text("auth.phone.or").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
             Rectangle().fill(CYColor.textPrimary.opacity(0.12)).frame(height: 1)
         }
         .accessibilityHidden(true)
@@ -298,12 +298,12 @@ struct PhoneSignInForm<AppleContent: View>: View {
 
     private var legalFootnote: some View {
         VStack(spacing: CYSpacing.xs) {
-            Text("auth.channels.legalConsent").font(.footnote).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            Text("auth.channels.legalConsent").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             HStack(spacing: CYSpacing.lg) {
                 Button("auth.channels.userAgreement") { focus = nil; onAgreement?() }.disabled(onAgreement == nil)
                 Button("auth.channels.privacyPolicy") { focus = nil; onPrivacy?() }.disabled(onPrivacy == nil)
             }
-            .font(.footnote.weight(.semibold)).frame(minHeight: 44)
+            .cyText(.bodyMedium).frame(minHeight: 44)
         }
         .frame(maxWidth: .infinity)
     }

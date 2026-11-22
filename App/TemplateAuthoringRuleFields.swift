@@ -14,14 +14,14 @@ import SwiftUI
     var body: some View {
         Group {
             Text("templateAuthor.field.ruleInstructions")
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(palette.textSecondary)
             if !model.ruleSteps.isEditable {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Text("templateRules.historical").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Text("templateRules.historical").cyText(.meta).foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("templateRules.historical")
                     Text(verbatim: model.ruleSteps.storedText ?? "").textSelection(.enabled)
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("templateRules.original")
                 }
@@ -30,7 +30,7 @@ import SwiftUI
                 ForEach(Array(model.ruleSteps.rows.enumerated()), id: \.element.id) { index, row in
                     HStack(alignment: .top, spacing: CYSpacing.sm) {
                         Text(verbatim: String(format: "%02d", index + 1))
-                            .font(CYTypography.micro.weight(.semibold).monospacedDigit())
+                            .cyText(.micro, monospacedDigit: true)
                             .foregroundStyle(palette.actionPrimaryFg)
                             .frame(width: 24, height: 24)
                             .background(Circle().fill(palette.actionPrimaryBg))
@@ -39,7 +39,7 @@ import SwiftUI
                         TextField("templateRules.prompt", text: model.ruleStep(row.id), axis: .vertical)
                             .id(InputIdentity(rowID: row.id, rejectionRevision: model.ruleInputRevisions[row.id]))
                             .lineLimit(1...6)
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .padding(CYSpacing.sm)
                             .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgPage))
                             .accessibilityIdentifier("templateRules.input.\(index)")
@@ -72,7 +72,7 @@ import SwiftUI
                 .disabled(!model.ruleSteps.canAdd)
             }
             if let key = model.ruleStepIssue {
-                Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(palette.danger)
+                Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(palette.danger)
                     .accessibilityIdentifier("templateRules.issue")
             }
         }

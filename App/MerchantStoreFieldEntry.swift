@@ -72,7 +72,7 @@ import SwiftUI
                             .accessibilityIdentifier("merchant.storeField.input")
                     }
                     Text("\(session.buffer.value.utf16.count) / \(session.buffer.field.limit)")
-                        .font(.caption).monospacedDigit().foregroundStyle(.secondary)
+                        .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
                     if let key = session.buffer.issueKey { Text(LocalizedStringKey(key)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.storeField.issue") }
                 }
                 Section {

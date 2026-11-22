@@ -70,8 +70,8 @@ struct WelcomeView: View {
                     // Wordmark carries the brand now (no nav title): one quiet line above the hero.
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                         Text(verbatim: isChinese ? "城瘾" : "chein")
-                            .font(.system(.title2, design: .rounded).weight(.heavy))
-                        if !isChinese { Text(verbatim: "城瘾").font(.system(.subheadline, design: .rounded).weight(.semibold)).foregroundStyle(CYColor.textSecondary) }
+                            .cyText(.dataXL)
+                        if !isChinese { Text(verbatim: "城瘾").cyText(.numericBody).foregroundStyle(CYColor.textSecondary) }
                     }
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityElement(children: .combine)
@@ -79,18 +79,18 @@ struct WelcomeView: View {
                     WelcomeHero()
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Text("welcome.title")
-                            .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                            .cyText(.dataXL)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                         Text("role.player.detail")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
                         Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("welcome.upgradeRequired")
                     }
@@ -108,7 +108,7 @@ struct WelcomeView: View {
                     if Self.showsMerchantChoice { roleButton(.merchant, title: "role.merchant", primary: false) }
                     if let onBrowse {
                         Button("welcome.browse", action: onBrowse)
-                            .font(CYTypography.bodyCompact.weight(.semibold))
+                            .cyText(.bodyMedium)
                             .foregroundStyle(CYColor.textSecondary)
                             .frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityIdentifier("welcome.browse")
@@ -160,7 +160,7 @@ private struct RoleButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         let shape = RoundedRectangle(cornerRadius: CYRadius.pill, style: .continuous)
         configuration.label
-            .font(CYTypography.label)
+            .cyText(.label)
             .foregroundStyle(primary ? CYColor.textOnAccent : CYColor.textPrimary)
             .frame(maxWidth: .infinity, minHeight: 56)
             .background(primary ? AnyShapeStyle(configuration.isPressed ? CYColor.brandStrong : CYColor.actionPrimaryBg) : AnyShapeStyle(Color.clear), in: shape)

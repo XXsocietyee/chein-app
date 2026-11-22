@@ -68,13 +68,13 @@ struct TemplateAuthoringSavedResultPreferenceKey: PreferenceKey {
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "checkmark.circle.fill").font(.largeTitle).foregroundStyle(CYColor.successText)
-            Text("templateSavedResult.title", tableName: "CreatorSavedResult").font(.title2.bold())
-            Text(verbatim: result.title).font(.headline)
+            Text("templateSavedResult.title", tableName: "CreatorSavedResult").cyText(.sheetTitle)
+            Text(verbatim: result.title).cyText(.cardTitle)
             Text("templateSavedResult.detail", tableName: "CreatorSavedResult").multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             LabeledContent { Text(verbatim: String(result.memberTemplateID.rawValue)) } label: {
                 Text("templateSavedResult.identity", tableName: "CreatorSavedResult")
             }
-            Text("templateSavedResult.destination", tableName: "CreatorSavedResult").font(.footnote).foregroundStyle(.secondary)
+            Text("templateSavedResult.destination", tableName: "CreatorSavedResult").cyText(.bodyCompact).foregroundStyle(.secondary)
             Button(action: close) { Text("templateSavedResult.openLibrary", tableName: "CreatorSavedResult").frame(maxWidth: .infinity) }
                 .buttonStyle(.questifyPrimary).accessibilityIdentifier("templateSavedResult.openLibrary")
         }.padding(24).presentationDetents([.medium]).interactiveDismissDisabled(true)

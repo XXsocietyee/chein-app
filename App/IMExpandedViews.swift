@@ -449,7 +449,7 @@ struct IMMutationSummary: View {
             Button { onDestination(action.destination) } label: {
                 HStack(spacing: CYSpacing.sm) {
                     actionTitle(action.label)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: CYSpacing.sm)
@@ -988,7 +988,7 @@ struct IMVideoCardLabel: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
             Text(verbatim: reference.durationMS.map(imClock) ?? "")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .monospacedDigit()
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)

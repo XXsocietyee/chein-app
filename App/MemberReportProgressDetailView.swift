@@ -28,7 +28,7 @@ import SwiftUI
                             if let label = flow.reasonLabel(for: record) { Text(verbatim: shown(label)) }
                             else { Text(verbatim: copy("report.reason.fallback")) }
                         }
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         HStack(spacing: 4) {
@@ -36,7 +36,7 @@ import SwiftUI
                             Text(verbatim: "·").accessibilityHidden(true)
                             Text("u9cde.report.submittedAt")
                             MemberReportProgressTimeView(value: record.createTime)
-                        }.font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                        }.cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                         if !record.isDecided, record.estimatedResolveAt != nil {
                             labeledTime("report.estimated", value: record.estimatedResolveAt, systemImage: "hourglass")
                         }
@@ -53,12 +53,12 @@ import SwiftUI
                                             stageLabel: { CommunityTrustPlayerService.stageLabels[$0] }, readBack: { load(readIntent()) })
                     }
                     if let summary = record.decisionSummary, !summary.isEmpty {
-                        Section { Text(verbatim: shown(summary)).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).listRowInsets(gutter) } header: { Text("u9cde.report.decision") }
+                        Section { Text(verbatim: shown(summary)).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).listRowInsets(gutter) } header: { Text("u9cde.report.decision") }
                     }
                     if let description = record.description, !description.isEmpty {
                         Section {
                             Text(verbatim: shown(description))
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -68,7 +68,7 @@ import SwiftUI
                     }
                     if record.anonymityPolicy == "SUBJECT_HIDDEN" {
                         memberReportProgressText("report.privacy.source")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .listRowInsets(gutter)
@@ -85,7 +85,7 @@ import SwiftUI
                         } header: { Text("u9cde.report.progress") }
                     } else {
                         Section {
-                            Text("u9cde.report.progressEmpty").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                            Text("u9cde.report.progressEmpty").cyText(.body).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("report.timeline.empty")
                                 .listRowInsets(gutter)
                                 .listRowBackground(Color.clear)
@@ -106,7 +106,7 @@ import SwiftUI
                     .listRowBackground(Color.clear)
             }
             memberReportProgressText("report.detail.boundary")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .listRowInsets(gutter)
@@ -136,12 +136,12 @@ import SwiftUI
             }
             if let note = event.publicNote, !note.isEmpty {
                 Text(verbatim: shown(note))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             MemberReportProgressTimeView(value: event.createTime)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
@@ -158,8 +158,8 @@ import SwiftUI
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
             CYRowIcon(systemImage: systemImage)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                memberReportProgressText(key).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                MemberReportProgressTimeView(value: value).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                memberReportProgressText(key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                MemberReportProgressTimeView(value: value).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             Spacer(minLength: CYSpacing.sm)
         }

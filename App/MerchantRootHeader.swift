@@ -29,7 +29,7 @@ struct MerchantRootHeader<Subtitle: View, Trailing: View>: View {
         layout {
             VStack(alignment: .leading, spacing: 4) {
                 title
-                    .font(.title.weight(.bold))
+                    .cyText(.display)
                     .foregroundStyle(palette.textPrimary)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)

@@ -37,7 +37,7 @@ import SwiftUI
     private var draftChanged: Bool { !question.isEmpty || options.contains { !$0.isEmpty } || usesDeadline }
     var body: some View {
         Form {
-            Section { Text("poll.rules").font(.footnote).foregroundStyle(.secondary) }
+            Section { Text("poll.rules").cyText(.bodyCompact).foregroundStyle(.secondary) }
             if entryCurrent && owner.recoveredCreationWithoutDraft {
                 Text("已按旧记录的原创建编号找到本人投票；旧记录没有保存原草稿，未补造草稿或重新发送。")
             }
@@ -136,7 +136,7 @@ import SwiftUI
             Section("poll.question") {
                 TextField("poll.questionPrompt", text: $question, axis: .vertical).lineLimit(2...5)
                     .focused($focused).accessibilityIdentifier("poll.question")
-                Text(verbatim: "\(question.utf16.count) / 200").font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: "\(question.utf16.count) / 200").cyText(.meta).foregroundStyle(.secondary)
             }
             Section("poll.options") {
                 ForEach(options.indices, id: \.self) { index in
@@ -153,7 +153,7 @@ import SwiftUI
                 if options.count < 10 {
                     Button("poll.addOption", systemImage: "plus.circle") { options.append("") }.accessibilityIdentifier("poll.addOption")
                 }
-                Text("poll.optionLimit").font(.footnote).foregroundStyle(.secondary)
+                Text("poll.optionLimit").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             Section {
                 Toggle("poll.useDeadline", isOn: $usesDeadline).accessibilityIdentifier("poll.useDeadline")
@@ -171,7 +171,7 @@ import SwiftUI
     }
     @ViewBuilder private func result(_ poll: GroupPoll) -> some View {
         Section {
-            Text(verbatim: poll.question).font(.title3.weight(.semibold)).accessibilityIdentifier("poll.result.question")
+            Text(verbatim: poll.question).cyText(.sectionTitle).accessibilityIdentifier("poll.result.question")
             CYStatusChip(LocalizedStringKey(poll.status == "CLOSED" ? "poll.closed" : (poll.isOpen() ? "poll.open" : "poll.deadlinePassed")), tone: poll.isOpen() ? .success : .neutral, systemImage: poll.isOpen() ? "chart.bar.xaxis" : "checkmark.seal")
             if let deadline = poll.deadlineAt?.value { LabeledContent("poll.deadline") { Text(deadline, format: .dateTime) } }
         }
@@ -210,7 +210,7 @@ import SwiftUI
         if owner.canClose {
             Section { Button("poll.reviewClose", role: .destructive) { owner.reviewClose(sourceIsCurrent: { entryCurrent }) }.accessibilityIdentifier("poll.reviewClose") }
         }
-        if !owner.isMember, poll.hasResults { Section { Text("poll.historical").font(.footnote) } }
+        if !owner.isMember, poll.hasResults { Section { Text("poll.historical").cyText(.bodyCompact) } }
         if !owner.canRead { Section { Text("poll.disabled") } }
     }
     @ViewBuilder private var status: some View {
@@ -219,15 +219,15 @@ import SwiftUI
             case .reviewing(let mutation):
                 switch mutation {
                 case .create(let draft):
-                    Text("poll.confirmCreateTitle").font(.headline)
+                    Text("poll.confirmCreateTitle").cyText(.cardTitle)
                     Text(verbatim: draft.question)
                     ForEach(Array(draft.options.enumerated()), id: \.offset) { _, option in Text(verbatim: option) }
                     if let date = draft.deadline { Text(date, format: .dateTime) }
                 case .vote(_, let option):
-                    Text("poll.confirmVoteTitle").font(.headline)
+                    Text("poll.confirmVoteTitle").cyText(.cardTitle)
                     if let text = owner.visiblePoll?.options.first(where: { $0.id == option })?.content { Text(verbatim: text) }
                     Text("poll.noRevote")
-                case .close: Text("poll.confirmCloseTitle").font(.headline); Text("poll.closeWarning")
+                case .close: Text("poll.confirmCloseTitle").cyText(.cardTitle); Text("poll.closeWarning")
                 }
                 Button("poll.confirm") { focused = false; run(.confirm) }.nativeChannelPrimaryAction().accessibilityIdentifier("poll.confirm")
                 Button("action.cancel", role: .cancel) { owner.cancelReview() }.accessibilityIdentifier("poll.cancelReview")
@@ -235,7 +235,7 @@ import SwiftUI
             case .unknown:
                 Text("poll.unknown").nativeChannelNotice(systemImage: "clock").accessibilityIdentifier("poll.unknown")
                 if creating, let draft = owner.originalCreationDraft {
-                    Text("原已确认投票 · 内容与截止时间不会重新生成").font(.headline)
+                    Text("原已确认投票 · 内容与截止时间不会重新生成").cyText(.cardTitle)
                     Text(verbatim: draft.question)
                     ForEach(Array(draft.options.enumerated()), id: \.offset) { _, option in Text(verbatim: option) }
                     if let deadline = draft.deadline { Text(deadline, format: .dateTime) }

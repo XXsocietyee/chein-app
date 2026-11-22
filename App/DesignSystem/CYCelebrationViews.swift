@@ -370,11 +370,11 @@ struct CYStampSlamView: View {
         let u = reduceMotion ? 1 : ease(span(e, 0.45, 0.70))
         return VStack(spacing: CYSpacing.xs) {
             Text(verbatim: copy.stampLine)
-                .font(CYTypography.sheetTitle)
+                .cyText(.sheetTitle)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
             if let place = payload.place?.trimmingCharacters(in: .whitespacesAndNewlines), !place.isEmpty {
-                Text(verbatim: place).font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.8))
+                Text(verbatim: place).cyText(.bodyCompact).foregroundStyle(.white.opacity(0.8))
             }
         }
         .offset(y: 18 * (1 - u))
@@ -390,7 +390,7 @@ struct CYStampSlamView: View {
                 Spacer()
                 HStack(spacing: CYSpacing.xs) {
                     Text(verbatim: countText)
-                        .font(.system(size: 17, weight: .bold, design: .rounded)).monospacedDigit()
+                        .cyText(.cardTitle).monospacedDigit()
                         .foregroundStyle(.white)
                         .contentTransition(reduceMotion ? .opacity : .numericText())
                     Image(systemName: "book.closed.fill")
@@ -548,7 +548,7 @@ struct CYBadgeUnlockCover: View {
         let u = reduceMotion ? 1 : CYStarBloom<CYBadgeShape>.easeOutBack(Self.span(e, 1.1, 1.4)) * Self.span(e, 1.1, 1.3)
         return VStack(spacing: CYSpacing.sm) {
             Text(verbatim: copy.badgeEyebrow)
-                .font(CYTypography.label)
+                .cyText(.label)
                 .textCase(.uppercase)
                 .tracking(isZh ? 1 : 0.6)
                 .foregroundStyle(CYNight.lantern)
@@ -613,7 +613,7 @@ struct CYRoamSummaryView: View {
         let copy = CYCelebrationCopy(locale: locale)
         VStack(spacing: CYSpacing.xl) {
             Text(verbatim: copy.walkTitle)
-                .font(CYTypography.label)
+                .cyText(.label)
                 .textCase(.uppercase)
                 .foregroundStyle(palette.textSecondary)
                 .accessibilityAddTraits(.isHeader)
@@ -627,7 +627,7 @@ struct CYRoamSummaryView: View {
             }
             // The announcement already reads this line; keep it visual so VoiceOver does not hear it twice.
             Text(verbatim: copy.roamLine(payload))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
                 .accessibilityHidden(true)
@@ -677,7 +677,7 @@ struct CYRoamRouteCard: View {
                         .foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                     Text(verbatim: "\(CYUnknown.count(payload.tiles)) \(copy.tilesLit)")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .accessibilityHidden(true)
                 }
@@ -741,7 +741,7 @@ struct CYRollingStat: View {
                 .minimumScaleFactor(0.6)
                 .contentTransition(reduceMotion ? .opacity : .numericText(value: shown))
             Text(verbatim: unit)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)

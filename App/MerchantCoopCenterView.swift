@@ -187,7 +187,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                       id: "merchantCoopCenter.plaza.error") { model.loadRoutes() }
         } else {
             if model.routesLoading {
-                Text(mcc("merchantCoopCenter.plaza.refreshing", locale)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text(mcc("merchantCoopCenter.plaza.refreshing", locale)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("merchantCoopCenter.plaza.refreshing")
             }
             ForEach(Array(model.routes.enumerated()), id: \.offset) { _, route in
@@ -196,7 +196,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
             }
             if let scope = model.routeScope {
                 Text(String(format: mcc("merchantCoopCenter.plaza.scope", locale), scope.openCount, scope.shownCount))
-                    .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
+                    .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity)
                     .accessibilityIdentifier("merchantCoopCenter.plaza.scope")
             }
             if model.routes.isEmpty {
@@ -214,7 +214,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                       id: "merchantCoopCenter.official.error") { model.loadEvents() }
         } else {
             if model.eventsLoading {
-                Text(mcc("merchantCoopCenter.official.refreshing", locale)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text(mcc("merchantCoopCenter.official.refreshing", locale)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("merchantCoopCenter.official.refreshing")
             }
             ForEach(model.events) { event in
@@ -234,7 +234,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
     private func emptyView(_ title: String, id: String) -> some View {
         VStack(spacing: CYSpacing.md) {
             Image(systemName: "tray").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
-            Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             CYPillButton(verbatim: mcc("merchantCoopCenter.refresh", locale), style: .primary) { model.loadAll() }
                 .accessibilityIdentifier("merchantCoopCenter.refresh")
         }
@@ -249,16 +249,16 @@ func mcc(_ key: String, _ locale: Locale) -> String {
             switch issue {
             case .signIn:
                 Image(systemName: "person.crop.circle.badge.exclamationmark").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
-                Text(mcc("merchantCoopCenter.signIn.title", locale)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(mcc("merchantCoopCenter.signIn.reason", locale)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(mcc("merchantCoopCenter.signIn.title", locale)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(mcc("merchantCoopCenter.signIn.reason", locale)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             case .denied:
                 Image(systemName: "lock").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
-                Text(mcc("merchantCoopCenter.denied.title", locale)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(mcc("merchantCoopCenter.denied.reason", locale)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(mcc("merchantCoopCenter.denied.title", locale)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(mcc("merchantCoopCenter.denied.reason", locale)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             case .failed(let message):
                 Image(systemName: "exclamationmark.triangle").font(CYTypography.display).foregroundStyle(CYColor.textSecondary)
-                Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(message ?? fallback).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(message ?? fallback).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 CYPillButton(verbatim: mcc("merchantCoopCenter.retry", locale), style: .secondary, action: retry)
                     .accessibilityIdentifier("merchantCoopCenter.retry")
             }
@@ -292,28 +292,28 @@ struct MerchantCoopCenterRouteCard: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 if let mode = modeText {
-                    Text(mode).font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 3)
+                    Text(mode).cyText(.meta, weight: .semibold).padding(.horizontal, 8).padding(.vertical, 3)
                         .background(Color.accentColor.opacity(0.12), in: Capsule())
                 }
                 Spacer()
                 if let seat = seatText {
-                    Text(seat.text).font(.caption.weight(.semibold)).foregroundStyle(seat.tight ? Color.orange : Color.green)
+                    Text(seat.text).cyText(.meta, weight: .semibold).foregroundStyle(seat.tight ? Color.orange : Color.green)
                         .accessibilityIdentifier("merchantCoopCenter.route.seat." + route.id)
                 }
             }
             HStack(alignment: .top, spacing: 12) {
                 cover
                 VStack(alignment: .leading, spacing: 4) {
-                    if let date = dateText { Text(date).font(.caption).foregroundStyle(.secondary) }
-                    Text(route.title).font(.headline).fixedSize(horizontal: false, vertical: true)
-                    if let meta = metaText { Text("◎  " + meta).font(.caption).foregroundStyle(.secondary) }
+                    if let date = dateText { Text(date).cyText(.meta).foregroundStyle(.secondary) }
+                    Text(route.title).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
+                    if let meta = metaText { Text("◎  " + meta).cyText(.meta).foregroundStyle(.secondary) }
                 }
             }
             HStack(alignment: .bottom) {
                 VStack(alignment: .leading, spacing: 2) {
                     if let terms = termsText { Text(terms).font(.subheadline) }
                     if let deadline = deadlineText {
-                        Text(deadline).font(.caption).foregroundStyle(.secondary)
+                        Text(deadline).cyText(.meta).foregroundStyle(.secondary)
                             .accessibilityIdentifier("merchantCoopCenter.route.deadline." + route.id)
                     }
                 }
@@ -407,15 +407,15 @@ struct MerchantCoopCenterEventCard: View {
     @Environment(\.locale) private var locale
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
-            Text(cityText).font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
-            Text(event.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(cityText).cyText(.caption, weight: .semibold).foregroundStyle(CYColor.textSecondary)
+            Text(event.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             if let subtitle = event.subtitle, !subtitle.isEmpty {
-                Text(subtitle).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(subtitle).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 2) {
-                    Label(mcc("merchantCoopCenter.official.gap", locale), systemImage: "exclamationmark.triangle").font(CYTypography.meta.weight(.semibold))
-                    Text(event.recruitmentWarningReason ?? mcc("merchantCoopCenter.official.gapFallback", locale)).font(CYTypography.caption)
+                    Label(mcc("merchantCoopCenter.official.gap", locale), systemImage: "exclamationmark.triangle").cyText(.meta, weight: .semibold)
+                    Text(event.recruitmentWarningReason ?? mcc("merchantCoopCenter.official.gapFallback", locale)).cyText(.caption)
                 }
                 .foregroundStyle(CYColor.warningText).fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
@@ -424,7 +424,7 @@ struct MerchantCoopCenterEventCard: View {
             HStack(spacing: CYSpacing.xs) {
                 Text(mcc("merchantCoopCenter.official.open", locale))
                 Image(systemName: "chevron.forward").accessibilityHidden(true)
-            }.font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+            }.cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textPrimary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .cyDomainCard()

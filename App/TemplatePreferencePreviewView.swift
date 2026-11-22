@@ -8,8 +8,8 @@ struct TemplatePreferencePreviewView: View {
             ForEach(preview.dimensions.indices, id: \.self) { index in Text(verbatim: preview.dimensions[index]) }
             ForEach(preview.results) { result in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: result.id).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    Text(verbatim: result.title).font(CYTypography.cardTitle)
+                    Text(verbatim: result.id).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: result.title).cyText(.cardTitle)
                     Text(verbatim: result.body)
                     Text(verbatim: result.nextStep)
                     LabeledContent("templateAuthor.preference.days", value: String(result.nextStepDays)).monospacedDigit()

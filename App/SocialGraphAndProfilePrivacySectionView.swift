@@ -169,7 +169,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "个人资料与社交隐私关系图谱对齐状态")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("socialProfileParity.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
@@ -178,7 +178,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                 }
                 Spacer()
                 Text(verbatim: snapshot.isAllReady ? "全部就绪" : "存在告警")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -205,7 +205,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.referenceBadge)
@@ -213,13 +213,13 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).ref")
                 Text(verbatim: row.statusBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.isReady ? .green : .red)
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).status")
             }
 
             Text(verbatim: row.detailText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("socialProfileParity.row.\(row.id).detail")
 
@@ -233,7 +233,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
             if let onSelectRow {
                 Button(action: { onSelectRow(row) }) {
                     Text(verbatim: "查看对齐项详情")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("socialProfileParity.row.\(row.id).action")
             }

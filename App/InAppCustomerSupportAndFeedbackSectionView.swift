@@ -150,23 +150,23 @@ public struct InAppCustomerSupportAndFeedbackSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text(verbatim: "In-App Customer Support & Feedback")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("customerSupportFeedback.headerTitle")
                 Spacer()
                 Text(verbatim: snapshot.overallStatusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("customerSupportFeedback.statusBadge")
             }
 
             Text(verbatim: snapshot.headerSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("customerSupportFeedback.summaryLine")
 
             if !snapshot.isAllCompliant {
                 Text(verbatim: "Warning: One or more support channels lack redacted diagnostic context, offline draft preservation, or ticket readback.")
-                    .font(.caption2.weight(.medium))
+                    .cyText(.caption, weight: .medium)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("customerSupportFeedback.warningBanner")
             }
@@ -175,14 +175,14 @@ public struct InAppCustomerSupportAndFeedbackSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
-                            .font(.caption2.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.detailSummaryText)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)

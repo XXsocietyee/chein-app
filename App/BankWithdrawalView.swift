@@ -95,7 +95,7 @@ import SwiftUI
                 statusLine("exclamationmark.triangle.fill", "bank.withdrawal.unresolved", tone: palette.warning)
             }
             Text("bank.withdrawal.privacy")
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let currentDocument {
@@ -103,7 +103,7 @@ import SwiftUI
                     HStack(spacing: CYSpacing.sm) {
                         CYRowIcon(systemImage: "doc.text")
                         Text("bank.withdrawal.currentDocument")
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: CYSpacing.sm)
@@ -174,7 +174,7 @@ import SwiftUI
                     .accessibilityLabel(Text("bank.withdrawal.amountCNY"))
             }
             Text("bank.withdrawal.feeArrivalUnknown")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -200,18 +200,18 @@ import SwiftUI
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityHidden(true)
                 Text("bank.withdrawal.accepted")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("bank.withdrawal.receipt")
             }
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text("bank.withdrawal.applicationID")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: String(receipt.applicationID))
-                    .font(CYTypography.dataXL)
+                    .cyText(.dataXL)
                     .monospacedDigit()
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -222,7 +222,7 @@ import SwiftUI
                     .foregroundStyle(palette.warning)
                     .accessibilityHidden(true)
                 Text("bank.withdrawal.notPaid")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -260,21 +260,21 @@ import SwiftUI
                                 CYStatusChip("bank.withdrawal.serverWarning", tone: .warning, systemImage: "exclamationmark.triangle")
                             }
                             Text(verbatim: cloud02Known(proof.question))
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(palette.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                             Text(verbatim: cloud02Known(proof.consequence))
-                                .font(CYTypography.bodyCompact)
+                                .cyText(.bodyCompact)
                                 .foregroundStyle(palette.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                             ForEach(Array(proof.safetyMessages.enumerated()), id: \.offset) { _, text in
                                 Text(verbatim: cloud02Known(text))
-                                    .font(CYTypography.bodyCompact)
+                                    .cyText(.bodyCompact)
                                     .foregroundStyle(palette.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             Text("bank.withdrawal.feeArrivalUnknown")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(palette.textTertiary)
                                 .fixedSize(horizontal: false, vertical: true)
                             Cloud02ActionButton(title: "bank.withdrawal.confirmSubmit", identifier: "bank.withdrawal.confirmSubmit", systemImage: "paperplane.fill", primary: true, isDisabled: busy) {
@@ -291,13 +291,13 @@ import SwiftUI
                                 statusLine("exclamationmark.triangle.fill", "bank.withdrawal.unresolved", tone: palette.warning)
                             } else {
                                 Text("bank.withdrawal.notSubmitted")
-                                    .font(CYTypography.body)
+                                    .cyText(.body)
                                     .foregroundStyle(palette.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             if snapshot != nil {
                                 Text("bank.withdrawal.disclosure")
-                                    .font(CYTypography.bodyCompact)
+                                    .cyText(.bodyCompact)
                                     .foregroundStyle(palette.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -312,7 +312,7 @@ import SwiftUI
                     if busy {
                         CYSkeleton().accessibilityLabel(Text("wallet.loading"))
                         Text("wallet.loading")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                     }
                     if let issue { issueLine(issue, identified: false) }
@@ -336,12 +336,12 @@ import SwiftUI
     private func labeled<Content: View>(_ title: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(title)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityHidden(true)
             content()
-                .font(CYTypography.body)
+                .cyText(.body)
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         }
         .padding(CYSpacing.lg)
@@ -355,7 +355,7 @@ import SwiftUI
                 .foregroundStyle(tone)
                 .accessibilityHidden(true)
             Text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -368,7 +368,7 @@ import SwiftUI
                 .foregroundStyle(palette.danger)
                 .accessibilityHidden(true)
             Text(LocalizedStringKey(key))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.danger)
                 .fixedSize(horizontal: false, vertical: true)
                 .modifier(Cloud02Identifier(identified ? "bank.withdrawal.issue" : nil))

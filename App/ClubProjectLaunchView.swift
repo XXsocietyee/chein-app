@@ -73,10 +73,10 @@ import SwiftUI
                 }
                 .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 Text("club.projectLaunch.localHint")
-                    .font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                    .cyText(.body).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: shown(club.name))
-                    .font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                    .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYListRow("club.ops.clubID", trailing: .value(String(club.id))) { CYRowIcon(systemImage: "number") }
             }
@@ -141,7 +141,7 @@ import SwiftUI
     private var launchLoading: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             CYSkeleton().accessibilityHidden(true)
-            Text("club.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text("club.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
         }
         .accessibilityElement(children: .combine)
     }

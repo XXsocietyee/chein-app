@@ -91,7 +91,7 @@ extension EnvironmentValues {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     CYSkeleton().accessibilityHidden(true)
                     Text("club.enroll.loading")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -117,7 +117,7 @@ extension EnvironmentValues {
                     CYNoteBanner(text: Text(LocalizedStringKey(issue.localizationKey)), symbol: "exclamationmark.circle", tone: .danger)
                     if let message = issue.message {
                         Text(verbatim: message)
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -133,7 +133,7 @@ extension EnvironmentValues {
                 Section {
                     subLine.accessibilityIdentifier("club.enroll.headerLine")
                     Label("club.enroll.escrow", systemImage: "lock.shield")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.enroll.escrow")
@@ -293,7 +293,7 @@ extension EnvironmentValues {
             if let count = team.signupCount, count >= 0 { Text("u9cde.clubEnroll.signups \(count)").monospacedDigit() }
             else { Text("club.enroll.signups"); Text("club.enroll.unknown") }
         }
-        .font(CYTypography.meta)
+        .cyText(.meta)
         .foregroundStyle(palette.textTertiary)
         .fixedSize(horizontal: false, vertical: true)
     }
@@ -302,7 +302,7 @@ extension EnvironmentValues {
             HStack(spacing: CYSpacing.sm) {
                 ProgressView()
                 Text("club.enroll.detailLoading")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -310,10 +310,10 @@ extension EnvironmentValues {
         }
         if let issue = reader.detailFailures[team.id] {
             if reader.rosters[team.id] != nil {
-                Text("club.enroll.stale").font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("club.enroll.stale").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             Text(LocalizedStringKey(issue.localizationKey))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             CYPillButton("club.enroll.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false) {
@@ -332,10 +332,10 @@ extension EnvironmentValues {
                     fact("club.enroll.teamStatus", value: teamStatusText(status))
                 }
             }
-            .font(CYTypography.bodyCompact)
+            .cyText(.bodyCompact)
             .accessibilityIdentifier("club.enroll.summary.\(team.id)")
             if roster.tickets.isEmpty {
-                Text("club.enroll.emptyTickets").font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("club.enroll.emptyTickets").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             ForEach(roster.tickets) { ticket in
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -352,7 +352,7 @@ extension EnvironmentValues {
                         }
                     }
                     if ticket.registrants.isEmpty {
-                        Text("club.enroll.emptyRegistrants").font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        Text("club.enroll.emptyRegistrants").cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(ticket.registrants) { registrant in row(registrant, topicID: team.id) }
                 }
@@ -378,7 +378,7 @@ extension EnvironmentValues {
                 Text("club.enroll.registrants")
             }
         }
-        .font(CYTypography.numericBody)
+        .cyText(.numericBody)
         .foregroundStyle(palette.textSecondary)
         .monospacedDigit()
         .fixedSize(horizontal: false, vertical: true)
@@ -396,7 +396,7 @@ extension EnvironmentValues {
         ViewThatFits(in: .horizontal) {
             LabeledContent(title) { value }
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(title).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text(title).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                 value
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -458,7 +458,7 @@ extension EnvironmentValues {
                     .accessibilityHidden(true)
             }
             title(value.nickname, fallback: "club.enroll.player")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -470,7 +470,7 @@ extension EnvironmentValues {
             if name.isEmpty { Text("u9cde.clubEnroll.subLineMine \(reader.teams.count)") }
             else { Text("u9cde.clubEnroll.subLine \(name) \(reader.teams.count)") }
         }
-        .font(CYTypography.meta).monospacedDigit()
+        .cyText(.meta).monospacedDigit()
         .foregroundStyle(palette.textSecondary)
         .fixedSize(horizontal: false, vertical: true)
     }

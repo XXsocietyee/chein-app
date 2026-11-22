@@ -122,7 +122,7 @@ import SwiftUI
                 Text(verbatim: format("notification.readState.counts", String(unread), String(mentions)))
             } else { Text(verbatim: text("notification.readState.unavailable")) }
         }
-        .font(.footnote).foregroundStyle(.secondary)
+        .cyText(.bodyCompact).foregroundStyle(.secondary)
         .privacySensitive()
         .accessibilityIdentifier("notification.readState.\(state.channelID)")
     }

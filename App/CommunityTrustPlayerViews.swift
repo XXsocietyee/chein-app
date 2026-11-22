@@ -15,7 +15,7 @@ struct MerchantSafetySummaryRow: View {
                         .font(CYTypography.cardTitle)
                         .foregroundStyle(summary.level == "UNSAFE" ? CYColor.warningText : CYColor.textPrimary)
                     Text(verbatim: summary.note)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -83,7 +83,7 @@ struct MerchantCorrectionSheet: View {
                         VStack(spacing: CYSpacing.md) {
                             ProgressView()
                             Text(verbatim: PlayerCapabilityCopy.text("正在读取纠错类型", "Loading issue types", locale))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                         .frame(maxWidth: .infinity)
@@ -108,7 +108,7 @@ struct MerchantCorrectionSheet: View {
                                 kind: .generic
                             )
                             Text(verbatim: message)
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .accessibilityIdentifier("merchant.correction.receipt")
                             CYPillButton(verbatim: PlayerCapabilityCopy.text("关闭", "Close", locale), style: .primary) { dismiss() }
@@ -120,13 +120,13 @@ struct MerchantCorrectionSheet: View {
                                    let selectedLabel = issues.first(where: { $0.code == selectedCode })?.label {
                                     HStack {
                                         Text(verbatim: selectedLabel)
-                                            .font(CYTypography.cardTitle)
+                                            .cyText(.cardTitle)
                                             .foregroundStyle(CYColor.textPrimary)
                                         Spacer()
                                         Button(PlayerCapabilityCopy.text("重选类型", "Change", locale)) {
                                             stage = .pickType
                                         }
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .disabled(stage == .busy)
                                     }
                                     .padding(CYSpacing.sm)
@@ -135,7 +135,7 @@ struct MerchantCorrectionSheet: View {
 
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                     Text(verbatim: PlayerCapabilityCopy.text("补充说明", "Details", locale))
-                                        .font(CYTypography.sectionTitle)
+                                        .cyText(.sectionTitle)
                                         .foregroundStyle(CYColor.textSecondary)
                                     TextField(
                                         PlayerCapabilityCopy.text("请写一下哪里不对、正确的信息是什么", "What is wrong and what is correct", locale),
@@ -145,13 +145,13 @@ struct MerchantCorrectionSheet: View {
                                     .lineLimit(3...6)
                                     .textFieldStyle(.roundedBorder)
                                     Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).count)/\(CommunityTrustPlayerService.descriptionMax)")
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(CYColor.textSecondary)
                                 }
 
                                 if stage == .failed || stage == .unknown {
                                     Text(verbatim: message)
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(stage == .failed ? CYColor.dangerText : CYColor.warningText)
                                 }
 
@@ -318,7 +318,7 @@ struct ReportAppealSection: View {
                 TextField(PlayerCapabilityCopy.text("请写下申诉理由", "Why do you appeal", locale), text: $reason, axis: .vertical)
                     .lineLimit(3...8)
                 Text(verbatim: "\(reason.trimmingCharacters(in: .whitespacesAndNewlines).count)/\(CommunityTrustPlayerService.appealMax)")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 if let failure { Text(verbatim: failure).foregroundStyle(CYColor.dangerText) }
                 Button(PlayerCapabilityCopy.text("提交申诉", "Submit appeal", locale)) { confirming = true }
                     .disabled(busy || validReason == nil)
@@ -377,7 +377,7 @@ struct SquareMineListView: View {
             ForEach(items) { post in
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: String((post.contents ?? "").prefix(140)))
-                        .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
+                        .cyText(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
                 }
                 .accessibilityIdentifier("square.mine.\(list.rawValue).\(post.id)")
             }

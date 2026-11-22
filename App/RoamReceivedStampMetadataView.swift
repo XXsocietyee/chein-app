@@ -115,7 +115,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                         )
                     }
                     .accessibilityIdentifier("roam.receivedMetadata.open")
-                    if !reader.isConfigured { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")).font(.caption) }
+                    if !reader.isConfigured { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")).cyText(.meta) }
                 }.frame(maxWidth: .infinity, alignment: .leading).padding().background(.regularMaterial)
             }
             .onChange(of: offered) { _, _ in target = nil }
@@ -204,7 +204,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
         let more = presentation.readAction(), refresh = presentation.refreshAction()
         List {
             if scope.matches(reader) {
-                Section { receivedStampText("boundary").font(.footnote).foregroundStyle(.secondary) }
+                Section { receivedStampText("boundary").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 if let total = pager.total {
                     LabeledContent { Text(total, format: .number) } label: { receivedStampText("total") }
                 }
@@ -223,7 +223,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             RoamStampCard(stamp: stamp, offline: false, allowsRemoteImages: false)
-                            if let key = RoamReceivedStampKind.key(stamp.kind) { receivedStampText(key).font(.caption) }
+                            if let key = RoamReceivedStampKind.key(stamp.kind) { receivedStampText(key).cyText(.meta) }
                         }
                     }
                     .buttonStyle(.plain)
@@ -293,7 +293,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                 if let key = RoamReceivedStampKind.key(stamp.kind) {
                     LabeledContent { receivedStampText(key) } label: { receivedStampText("kind") }
                 }
-                receivedStampText("boundary").font(.footnote).foregroundStyle(.secondary)
+                receivedStampText("boundary").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Section {
                     Button(role: .destructive) { RoamHiddenStamps.hide(stamp.id); dismiss() } label: {
                         Label("roam.stamp.hide", systemImage: "eye.slash").frame(minHeight: 44)

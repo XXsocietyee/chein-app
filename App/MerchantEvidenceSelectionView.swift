@@ -21,7 +21,7 @@ import SwiftUI
     var body: some View {
         Form {
             LabeledContent("merchant.engagement.refundID", value: String(refundID.rawValue))
-            Text("merchant.engagement.evidenceSelectionBoundary").font(.footnote)
+            Text("merchant.engagement.evidenceSelectionBoundary").cyText(.bodyCompact)
             PhotosPicker(selection: $item, matching: .images, photoLibrary: .shared()) { Label("merchant.engagement.selectEvidence", systemImage: "photo.badge.plus") }
                 .disabled(!nativeSelectionEnabled).accessibilityIdentifier("merchant.engagement.evidencePicker")
             Button("merchant.engagement.captureEvidence") { Task { await openCamera() } }

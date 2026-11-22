@@ -249,7 +249,7 @@ public struct MapVisualMV01ToMV41Snapshot: Equatable, Sendable {
                             .accessibilityIdentifier("mapVisualCompliance.domain.badge.\(domain.id)")
                     }
                     Text(verbatim: domain.complianceSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

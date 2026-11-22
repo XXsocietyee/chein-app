@@ -25,9 +25,9 @@ import SwiftUI
             }))
             .keyboardType(.numberPad)
             .accessibilityIdentifier("templateHint.freeUses")
-            Text("templateHint.freeUses.note").font(.footnote).foregroundStyle(.secondary)
+            Text("templateHint.freeUses.note").cyText(.bodyCompact).foregroundStyle(.secondary)
             if let issue = model.draft.advanced.hintQuotaIssue {
-                Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(CYColor.dangerText)
+                Text(LocalizedStringKey(issue)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("templateHint.freeUses.issue")
             }
         }
@@ -40,13 +40,13 @@ import SwiftUI
                 .disabled(!model.canEdit)
                 .accessibilityIdentifier("templateHint.addLayer")
         }
-        Text("templateHint.preview.note").font(.footnote).foregroundStyle(.secondary)
+        Text("templateHint.preview.note").cyText(.bodyCompact).foregroundStyle(.secondary)
     }
 
     private func layerEditor(_ layer: TemplateHintLayerDraft, issue: String?) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack {
-                Text("templateHint.layer \(layer.index + 1)").font(.headline)
+                Text("templateHint.layer \(layer.index + 1)").cyText(.cardTitle)
                 Spacer()
                 Button(role: .destructive) { edit { $0.removeHintLayer(layer.index) } } label: {
                     Image(systemName: "minus.circle")
@@ -69,10 +69,10 @@ import SwiftUI
                 .accessibilityLabel(Text("templateHint.points"))
                 .accessibilityIdentifier("templateHint.points.\(layer.index)")
             } else {
-                Text("templateHint.skip.note").font(.footnote).foregroundStyle(.secondary)
+                Text("templateHint.skip.note").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             if let issue {
-                Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(CYColor.dangerText)
+                Text(LocalizedStringKey(issue)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("templateHint.issue.\(layer.index)")
             }
         }
@@ -100,7 +100,7 @@ import SwiftUI
             .keyboardType(.numberPad)
             .accessibilityIdentifier("templateHint.payload.\(layer.index)")
         case "DIGIT":
-            Text("templateHint.digit.note").font(.footnote).foregroundStyle(.secondary)
+            Text("templateHint.digit.note").cyText(.bodyCompact).foregroundStyle(.secondary)
         default:
             EmptyView()
         }

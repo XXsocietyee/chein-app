@@ -28,7 +28,7 @@ extension EnvironmentValues {
 struct AIGCLabel: View {
     var body: some View {
         Label("mpd.aigc.label", systemImage: "sparkles")
-            .font(CYTypography.caption.weight(.semibold))
+            .cyText(.caption, weight: .semibold)
             .labelStyle(.titleAndIcon)
             .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
             .foregroundStyle(CYColor.textSecondary)
@@ -44,7 +44,7 @@ struct AIGCFilingNumberText: View {
     var body: some View {
         if let number = AIGCDisclosure.filingNumber(raw) {
             Text("mpd.aigc.filing \(number)")
-                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                .cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 .textSelection(.enabled)
                 .accessibilityIdentifier("aigc.filing")
         }

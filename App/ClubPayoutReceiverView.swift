@@ -83,9 +83,9 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         case .failed(let issue):
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("payoutReceiver.loadFailed", tableName: "PayoutReceiver").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text("payoutReceiver.loadFailed", tableName: "PayoutReceiver").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     PayoutReceiverIssueText(issue: issue, fallbackKey: "payoutReceiver.statusUnavailable")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
                         .accessibilityIdentifier("payoutReceiver.reload")
                 }
@@ -120,7 +120,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 if bound { CYStatusChip(verbatim: payoutText("payoutReceiver.bound", locale), tone: .success, systemImage: "checkmark") }
                 if let notice {
                     PayoutReceiverIssueText(issue: notice, fallbackKey: "payoutReceiver.actionFailed")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                        .cyText(.meta).foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("payoutReceiver.notice")
                 }
             }
@@ -267,15 +267,15 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         if !summary.topics.isEmpty {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("clubSettlement.settled", tableName: "PayoutReceiver").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                    Text("clubSettlement.settled", tableName: "PayoutReceiver").cyText(.label).foregroundStyle(CYColor.textSecondary)
                     if let amount = summary.settledAmountText {
-                        Text(verbatim: amount).font(CYTypography.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: amount).cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     } else {
-                        Text("clubSettlement.amountUnverified", tableName: "PayoutReceiver").font(CYTypography.cardTitle).foregroundStyle(CYColor.warningText)
+                        Text("clubSettlement.amountUnverified", tableName: "PayoutReceiver").cyText(.cardTitle).foregroundStyle(CYColor.warningText)
                     }
                     if summary.unverifiedSettledCount > 0 {
                         Text("clubSettlement.unverifiedCount \(summary.unverifiedSettledCount)", tableName: "PayoutReceiver")
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 }
                 .accessibilityElement(children: .combine)
@@ -286,15 +286,15 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             Section {
                 ForEach(summary.sessions) { row in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        HStack { Text(verbatim: row.name).font(CYTypography.cardTitle); Spacer(); Text(verbatim: row.netText).monospacedDigit() }
-                        Text(verbatim: row.dateText).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                        if let gross = row.grossText { Text("clubSettlement.gross \(gross)", tableName: "PayoutReceiver").font(CYTypography.meta) }
+                        HStack { Text(verbatim: row.name).cyText(.cardTitle); Spacer(); Text(verbatim: row.netText).monospacedDigit() }
+                        Text(verbatim: row.dateText).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        if let gross = row.grossText { Text("clubSettlement.gross \(gross)", tableName: "PayoutReceiver").cyText(.meta) }
                         if let fee = row.feeText {
-                            if let rate = row.feeRateText { Text("clubSettlement.feeWithRate \(rate) \(fee)", tableName: "PayoutReceiver").font(CYTypography.meta) }
-                            else { Text("clubSettlement.fee \(fee)", tableName: "PayoutReceiver").font(CYTypography.meta) }
+                            if let rate = row.feeRateText { Text("clubSettlement.feeWithRate \(rate) \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
+                            else { Text("clubSettlement.fee \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
                         }
-                        if let merchantFee = row.merchantFeeText { Text("clubSettlement.merchantFee \(merchantFee)", tableName: "PayoutReceiver").font(CYTypography.meta) }
-                        Text(verbatim: row.payeeText).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        if let merchantFee = row.merchantFeeText { Text("clubSettlement.merchantFee \(merchantFee)", tableName: "PayoutReceiver").cyText(.meta) }
+                        Text(verbatim: row.payeeText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("clubSettlement.session.\(row.activityID)")
@@ -306,16 +306,16 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 ForEach(summary.topics) { row in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack {
-                            Text(verbatim: row.name).font(CYTypography.cardTitle)
+                            Text(verbatim: row.name).cyText(.cardTitle)
                             Spacer()
                             if let amount = row.amountText { Text(verbatim: amount).monospacedDigit() }
                             else { Text("clubSettlement.chip.unverified", tableName: "PayoutReceiver") }
                         }
-                        Text("clubSettlement.original \(row.originalAmountText)", tableName: "PayoutReceiver").font(CYTypography.meta)
-                        Text("clubSettlement.adjustment \(row.executedAdjustmentText)", tableName: "PayoutReceiver").font(CYTypography.meta)
-                        Text("clubSettlement.net \(row.netAmountText)", tableName: "PayoutReceiver").font(CYTypography.meta)
-                        Text(verbatim: row.arrivedText).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        if row.showsPaidText { Text(verbatim: row.paidText).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        Text("clubSettlement.original \(row.originalAmountText)", tableName: "PayoutReceiver").cyText(.meta)
+                        Text("clubSettlement.adjustment \(row.executedAdjustmentText)", tableName: "PayoutReceiver").cyText(.meta)
+                        Text("clubSettlement.net \(row.netAmountText)", tableName: "PayoutReceiver").cyText(.meta)
+                        Text(verbatim: row.arrivedText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        if row.showsPaidText { Text(verbatim: row.paidText).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         CYStatusChip(verbatim: payoutText(row.chipKey, locale),
                                      tone: row.status == "settled" && row.amountText != nil ? .success : .neutral)
                     }
@@ -404,14 +404,14 @@ struct ClubPayoutReceiverLink: View {
         ForEach(ledger.rows) { row in
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("directLedger.redemption \(String(row.redemptionID))", tableName: "PayoutReceiver").font(CYTypography.cardTitle)
+                    Text("directLedger.redemption \(String(row.redemptionID))", tableName: "PayoutReceiver").cyText(.cardTitle)
                     HStack(spacing: CYSpacing.xs) {
                         Text(verbatim: row.timeText)
                         Text(verbatim: "·")
                         Text(LocalizedStringKey(row.statusKey), tableName: "PayoutReceiver")
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    if let claim = row.claimNumber { Text("directLedger.claim \(claim)", tableName: "PayoutReceiver").font(CYTypography.meta) }
-                    if let voucher = row.voucher { Text("directLedger.voucher \(voucher)", tableName: "PayoutReceiver").font(CYTypography.meta) }
+                    }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    if let claim = row.claimNumber { Text("directLedger.claim \(claim)", tableName: "PayoutReceiver").cyText(.meta) }
+                    if let voucher = row.voucher { Text("directLedger.voucher \(voucher)", tableName: "PayoutReceiver").cyText(.meta) }
                 }
                 Spacer()
                 Text(verbatim: ClubDirectLedger.amountText(row.amountCents)).monospacedDigit()
@@ -428,8 +428,8 @@ struct ClubPayoutReceiverLink: View {
 
     private func stat(_ key: String, _ cents: Int) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(LocalizedStringKey(key), tableName: "PayoutReceiver").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            Text(verbatim: ClubDirectLedger.amountText(cents)).font(CYTypography.cardTitle).monospacedDigit()
+            Text(LocalizedStringKey(key), tableName: "PayoutReceiver").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: ClubDirectLedger.amountText(cents)).cyText(.cardTitle).monospacedDigit()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)

@@ -30,7 +30,7 @@ import SwiftUI
                     .accessibilityIdentifier("projectTopicMedia.stage." + stage.rawValue)
             }
             Text(text("选择成功不代表已上传、已审核或已发布。", "A local selection is not an upload, review or publish."))
-                .font(.caption).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
         }.accessibilityIdentifier("projectTopicMedia.stages")
     }
 }

@@ -43,9 +43,9 @@ import UIKit
         case .failed(let issue):
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("payoutAccount.loadFailed", tableName: "PayoutReceiver").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text("payoutAccount.loadFailed", tableName: "PayoutReceiver").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     PayoutReceiverIssueText(issue: issue, fallbackKey: "payoutAccount.loadFailed")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     CYPillButton("payoutReceiver.reload", style: .secondary, tableName: "PayoutReceiver") { Task { await load() } }
                         .accessibilityIdentifier("payoutAccount.reload")
                 }
@@ -67,21 +67,21 @@ import UIKit
             if let key = account.stateKey {
                 LabeledContent {
                     CYStatusChip(verbatim: payoutText(key, locale), tone: tone(account.tone))
-                } label: { Text("payoutAccount.row.state", tableName: "PayoutReceiver").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                } label: { Text("payoutAccount.row.state", tableName: "PayoutReceiver").cyText(.body).foregroundStyle(CYColor.textSecondary) }
                     .accessibilityIdentifier("payoutAccount.state." + (account.state ?? ""))
             }
             if let masked = account.maskedSubMerchantID {
-                LabeledContent { Text(verbatim: masked).font(CYTypography.body).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
-                    label: { Text("payoutAccount.row.subMchid", tableName: "PayoutReceiver").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                LabeledContent { Text(verbatim: masked).cyText(.body).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
+                    label: { Text("payoutAccount.row.subMchid", tableName: "PayoutReceiver").cyText(.body).foregroundStyle(CYColor.textSecondary) }
             }
             if let checked = account.checkedAt {
-                LabeledContent { Text(checked, format: .dateTime.month().day().hour().minute()).font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
-                    label: { Text("payoutAccount.row.checkedAt", tableName: "PayoutReceiver").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                LabeledContent { Text(checked, format: .dateTime.month().day().hour().minute()).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
+                    label: { Text("payoutAccount.row.checkedAt", tableName: "PayoutReceiver").cyText(.body).foregroundStyle(CYColor.textSecondary) }
             }
         } footer: {
             if let description = account.stateDescription {
                 Text(verbatim: description)
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }

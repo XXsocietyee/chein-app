@@ -57,8 +57,8 @@ struct MerchantImageCropDraft: Identifiable {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(LocalizedStringKey(titleKey)).font(.headline)
-            Text("image.crop.localOnly").font(.footnote)
+            Text(LocalizedStringKey(titleKey)).cyText(.cardTitle)
+            Text("image.crop.localOnly").cyText(.bodyCompact)
             if let rect, let preview = try? MerchantImageCropRenderer.preview(draft.source, rect: rect) {
                 Image(uiImage: preview).resizable().scaledToFit().frame(maxHeight: 240)
                     .accessibilityLabel("image.crop.preview")

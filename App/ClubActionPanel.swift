@@ -86,7 +86,7 @@ struct ClubActionPanel: View {
                             }
                                 .disabled(isWorking || state.preventsNewAction)
                                 .accessibilityIdentifier("club.application.message")
-                            Text("club.application.messageHelp").font(.caption).foregroundStyle(.secondary)
+                            Text("club.application.messageHelp").cyText(.meta).foregroundStyle(.secondary)
                             if !ClubApplicationMessage.isValid(joinMessage, for: .apply) {
                                 Group {
                                     if ClubApplicationMessage.isMissingRequiredMessage(joinMessage) {

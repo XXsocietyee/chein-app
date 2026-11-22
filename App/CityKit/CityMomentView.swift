@@ -50,7 +50,7 @@ struct CityMomentView<Stage: View>: View {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         if let kicker {
                             Text(verbatim: kicker)
-                                .font(Font.subheadline.weight(.semibold).monospacedDigit())
+                                .cyText(.numericBody)
                                 .foregroundStyle(palette.textSecondary)
                                 .accessibilityHidden(true)
                         }
@@ -59,7 +59,7 @@ struct CityMomentView<Stage: View>: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                         Text(verbatim: line)
-                            .font(Font.body).foregroundStyle(palette.textSecondary)
+                            .cyText(.body).foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .opacity(beat >= .text ? 1 : 0)
@@ -102,7 +102,7 @@ struct CityMomentView<Stage: View>: View {
                 .cyHeroNumberFont()
                 .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(headline) ?? 0))
         } else {
-            Text(verbatim: headline).font(Font.title.weight(.bold))
+            Text(verbatim: headline).cyText(.display)
         }
     }
 
@@ -168,7 +168,7 @@ struct CitySeal: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         Text(verbatim: text)
-            .font(CYTypography.cardTitle.weight(.heavy))
+            .cyText(.cardTitle, weight: .heavy)
             .foregroundStyle(Color.black.opacity(0.75))
             .padding(.horizontal, 14).padding(.vertical, 10)
             .background(

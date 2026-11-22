@@ -23,12 +23,12 @@ struct MerchantTopicIntroSection: View {
             VStack(alignment: .leading, spacing: 10) {
                 if let subtitle = intro.subtitle { Text(verbatim: subtitle).font(.subheadline).foregroundStyle(.secondary) }
                 if let text = intro.introduction {
-                    Text("merchant.topicIntro.description").font(.headline)
-                    Text(verbatim: text).font(.body).fixedSize(horizontal: false, vertical: true)
+                    Text("merchant.topicIntro.description").cyText(.cardTitle)
+                    Text(verbatim: text).cyText(.body).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("merchant.topicIntro.description")
                 }
                 if !intro.includes.isEmpty {
-                    Text("merchant.topicIntro.includes").font(.headline)
+                    Text("merchant.topicIntro.includes").cyText(.cardTitle)
                     ForEach(Array(intro.includes.enumerated()), id: \.offset) { item in
                         Label { title(item.element) } icon: { Image(systemName: "checkmark.circle") }.font(.subheadline)
                     }

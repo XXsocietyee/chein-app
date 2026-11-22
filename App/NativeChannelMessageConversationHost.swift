@@ -229,7 +229,7 @@ import SwiftUI
             }
         } label: {
             Label("d7.channelChat.tools", systemImage: "plus").labelStyle(.iconOnly)
-                .font(.title3.weight(.medium)).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                .cyText(.sectionTitle, weight: .medium).frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
         }
         .accessibilityIdentifier("channel.message.tools")
     }

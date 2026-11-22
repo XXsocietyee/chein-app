@@ -356,10 +356,10 @@ struct RoamBrowserView: View {
     private func peekLine(count: Int?) -> some View {
         HStack(spacing: CYSpacing.sm) {
             Text(entryReader != nil ? "roam.w208.entry.title" : "roam.browse.header")
-                .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: 0)
             Group { if let count { Text(count, format: .number) } else { Text(verbatim: "—").accessibilityLabel(Text("roam.peek.countUnknown")) } }
-                .font(CYTypography.bodyMedium.monospacedDigit()).foregroundStyle(CYColor.textSecondary)
+                .cyText(.bodyMedium, monospacedDigit: true).foregroundStyle(CYColor.textSecondary)
             Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
         }
         .padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
@@ -423,7 +423,7 @@ struct RoamBrowserView: View {
         let reader = effectiveReader
         if reader.isOfflineExample {
             Label("roam.offlineExample", systemImage: "testtube.2")
-                .font(CYTypography.caption).foregroundStyle(CYColor.warningText).accessibilityIdentifier("roam.fixture.notice")
+                .cyText(.caption).foregroundStyle(CYColor.warningText).accessibilityIdentifier("roam.fixture.notice")
         }
         if let area = reader.searchArea {
             Label {
@@ -478,7 +478,7 @@ struct RoamBrowserView: View {
                 }, controls: {
                     // Title top-left; the ONE overflow menu top-right (area, list, account, passport tools, refresh).
                     HStack(alignment: .center) {
-                        Text("roam.title").font(.system(.largeTitle).weight(.heavy)).foregroundStyle(.white)
+                        Text("roam.title").cyText(.pageTitle).foregroundStyle(.white)
                             .lineLimit(2).minimumScaleFactor(0.6).layoutPriority(1)
                             .shadow(color: .black.opacity(0.5), radius: 6).accessibilityAddTraits(.isHeader)
                         Spacer(minLength: 0)
@@ -529,7 +529,7 @@ struct RoamBrowserView: View {
                 VStack(spacing: CYSpacing.sm) {
                     CYEmptyState(systemImage: "map", "roam.empty", actionTitle: "action.retry") { startLoad() }
                     Text(LocalizedStringKey(query.isEmpty && placeFilter == .all && eventFilter == .all ? "roam.emptyHint" : "roam.filteredEmptyHint"))
-                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center).padding(.horizontal, CYSpacing.xxl)
                 }
                 .frame(maxWidth: .infinity)
@@ -646,8 +646,8 @@ struct RoamItemRow: View {
                 .frame(width: 60, height: 60)
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             VStack(alignment: .leading, spacing: 6) {
-                RoamTitle(item.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                Text(item.kindLabel).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                RoamTitle(item.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                Text(item.kindLabel).cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 if showsCurrentReadStatus, case .place(let place) = item {
                     RoamPlaceReadStatusLabel(status: place.readStatus).font(.caption)
                 }

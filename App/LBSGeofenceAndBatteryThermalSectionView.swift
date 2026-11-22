@@ -112,7 +112,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
                         ? "LBS 围栏与温控功耗策略：3/3 项符合低功耗防发热基线"
                         : "LBS 围栏与温控功耗策略：检测到后台持续采样或温控未降频风险"
                 )
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isBatteryAndThermalSafe ? "OPTIMAL" : "DRAIN_RISK")
                     .font(.caption.monospaced())
@@ -124,7 +124,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.targetMetricText)
                             .font(.caption.monospaced())
@@ -132,7 +132,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
                             .accessibilityIdentifier("lbsBatteryThermal.row.\(row.id).metric")
                     }
                     Text(verbatim: row.detail)
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 2)
@@ -141,7 +141,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
 
             HStack {
                 Text(verbatim: "后台空闲 GPS 切断阈值")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Text(verbatim: "\(snapshot.idleCutoffSeconds)s")
@@ -151,7 +151,7 @@ public struct LBSGeofenceAndBatteryThermalSectionView: View {
 
             if !snapshot.isBatteryAndThermalSafe {
                 Text(verbatim: "告警：当前定位或温控策略未满足低功耗门禁，可能导致后台电量异常消耗或机身过热。")
-                    .font(.caption.weight(.medium))
+                    .cyText(.label)
                     .foregroundStyle(.red)
                     .accessibilityIdentifier("lbsBatteryThermal.warningBanner")
             }

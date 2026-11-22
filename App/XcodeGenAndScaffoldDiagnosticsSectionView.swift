@@ -134,7 +134,7 @@ public struct XcodeGenAndScaffoldDiagnosticsSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "Xcode 工程生成与脚手架一致性诊断")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("xcodeScaffoldAudit.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -143,22 +143,22 @@ public struct XcodeGenAndScaffoldDiagnosticsSectionView: View {
                     .accessibilityIdentifier("xcodeScaffoldAudit.overallStatus")
 
                 Text(verbatim: Self.pbxprojStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("xcodeScaffoldAudit.pbxprojStatus")
 
                 Text(verbatim: Self.catalogStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("xcodeScaffoldAudit.catalogStatus")
 
                 Text(verbatim: Self.signingAndAtsStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("xcodeScaffoldAudit.signingAndAtsStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无工程目标脚手架检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("xcodeScaffoldAudit.empty")
             } else {
@@ -203,15 +203,15 @@ private struct XcodeTargetScaffoldRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: "\(row.target.rawValue) (\(row.sourceFolder))")
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isCompliant ? "已对齐" : "异常")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isCompliant ? .green : .red)
             }
 
             Text(verbatim: "注册源码数：\(row.registeredFileCount) · 文件名唯一：\(row.uniqueBasenamesVerified ? "通过" : "冲突") · Scheme 引用：\(row.schemeBuildableReferenceValid ? "有效" : "缺失")")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

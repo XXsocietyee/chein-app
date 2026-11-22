@@ -6,8 +6,8 @@ import SwiftUI
     @Environment(\.locale) private var locale
     var body: some View {
         Section {
-            Text(String(localized: LocalizedStringResource("topicReview.currentTitle", defaultValue: "Current review task", locale: locale))).font(.headline)
-            Text(String(localized: LocalizedStringResource("topicReview.currentNotice", defaultValue: "This is the task state read from the server, separate from the status saved when you submitted. Even an approved task still needs independent release preparation and permission checks.", locale: locale))).font(.footnote)
+            Text(String(localized: LocalizedStringResource("topicReview.currentTitle", defaultValue: "Current review task", locale: locale))).cyText(.cardTitle)
+            Text(String(localized: LocalizedStringResource("topicReview.currentNotice", defaultValue: "This is the task state read from the server, separate from the status saved when you submitted. Even an approved task still needs independent release preparation and permission checks.", locale: locale))).cyText(.bodyCompact)
                 .accessibilityIdentifier("topicReview.current.notice")
             switch model.flow.observation {
             case .notRequested: EmptyView()
@@ -30,14 +30,14 @@ import SwiftUI
             Button(String(localized: LocalizedStringResource("topicReview.currentRead", defaultValue: "Check current review task", locale: locale))) { model.observe(original) }
                 .buttonStyle(.borderless).disabled(!model.flow.canObserve).accessibilityIdentifier("topicReview.current.read")
             if !model.flow.canObserve {
-                Text(String(localized: LocalizedStringResource("topicReview.currentUnavailable", defaultValue: "Current-task checking is not configured or this saved request is not available for checking.", locale: locale))).font(.footnote)
+                Text(String(localized: LocalizedStringResource("topicReview.currentUnavailable", defaultValue: "Current-task checking is not configured or this saved request is not available for checking.", locale: locale))).cyText(.bodyCompact)
                     .accessibilityIdentifier("topicReview.current.unavailable")
             }
         }
     }
     private func field(_ label: String, _ value: String, _ suffix: String) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("topicReview.current." + suffix)
         }.p04FactRow()
     }

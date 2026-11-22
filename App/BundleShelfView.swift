@@ -81,12 +81,12 @@ private struct BundleShelfRow: View {
     }
     private var text: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
+            Text(verbatim: name).cyText(.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
             if let price = E1Money.yuan(text: item.fromPrice?.text) {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                    if !copy.isChinese { Text(verbatim: "from").font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
-                    Text(verbatim: price).font(CYTypography.dataXL.weight(.semibold)).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.8).lineLimit(1)
-                    if copy.isChinese { Text(verbatim: "起").font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
+                    if !copy.isChinese { Text(verbatim: "from").cyText(.meta).foregroundStyle(palette.textTertiary) }
+                    Text(verbatim: price).cyText(.dataXL, weight: .semibold).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.8).lineLimit(1)
+                    if copy.isChinese { Text(verbatim: "起").cyText(.meta).foregroundStyle(palette.textTertiary) }
                 }
             }
             if let days = item.validityDays {

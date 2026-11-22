@@ -458,13 +458,13 @@ private struct ClubDetailHeader: View {
                             .accessibilityIdentifier("club.detail.logo")
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        ClubName(value: club.name).font(.title2.weight(.bold)).foregroundStyle(palette.textPrimary)
+                        ClubName(value: club.name).cyText(.sheetTitle).foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("club.detail.name")
                             .cyHeroTitleRise()
                         if !metaLine.isEmpty {
-                            Text(verbatim: metaLine).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: metaLine).cyText(.meta).foregroundStyle(palette.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("club.detail.fact.memberCount")
                         }
@@ -480,7 +480,7 @@ private struct ClubDetailHeader: View {
                         if leaderText != nil, cityText != nil { Text(verbatim: "·").accessibilityHidden(true) }
                         if let cityText { Text(verbatim: cityText).accessibilityIdentifier("club.detail.fact.city") }
                     }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.detail.factsGrid")
@@ -511,7 +511,7 @@ private struct ClubDetailHeader: View {
                 }
                 if club.myJoinStatus == 2, let reason = club.myJoinReviewReason {
                     Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.dangerText)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.membership.rejectedReason")

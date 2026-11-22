@@ -317,11 +317,11 @@ struct MPRow: View {
             if let leading { leading }
             layout {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    title.font(CYTypography.bodyMedium)
+                    title.cyText(.bodyMedium)
                         .foregroundStyle(muted ? CYColor.textTertiary : CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let sub {
-                        sub.font(CYTypography.meta)
+                        sub.cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -370,7 +370,7 @@ struct MPRows<Item: Identifiable, Row: View>: View {
 struct MPSectionHeader: View {
     let title: LocalizedStringKey
     var body: some View {
-        Text(title).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+        Text(title).cyText(.label).foregroundStyle(CYColor.textSecondary)
             .textCase(nil)
             .padding(.horizontal, CYSpacing.xs)
             .accessibilityAddTraits(.isHeader)
@@ -404,7 +404,7 @@ struct MPChipTabs<Tab: Hashable & Identifiable>: View {
                         withAnimation(CYMotion.resolve(.spring(response: 0.32, dampingFraction: 0.82), reduceMotion: reduceMotion)) { selection = tab }
                     } label: {
                         title(tab)
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .foregroundStyle(on ? CYColor.textOnAccent : CYColor.textSecondary)
                             .padding(.horizontal, CYSpacing.lg)
                             .frame(minHeight: 36)
@@ -437,7 +437,7 @@ struct MPGatedNote: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
             Image(systemName: "lock").font(CYTypography.caption).accessibilityHidden(true)
-            text.font(CYTypography.meta).fixedSize(horizontal: false, vertical: true)
+            text.cyText(.meta).fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(CYColor.textSecondary)
         .frame(maxWidth: .infinity)
@@ -455,7 +455,7 @@ struct MPInlineError: View {
             Image(systemName: "exclamationmark.circle.fill").accessibilityHidden(true)
             text.fixedSize(horizontal: false, vertical: true)
         }
-        .font(CYTypography.meta)
+        .cyText(.meta)
         .foregroundStyle(CYColor.dangerText)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -481,10 +481,10 @@ struct MPAvatar: View {
         ZStack {
             Circle().fill(CYNight.ink2)
             if let url {
-                AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Text(verbatim: initial).font(CYTypography.label) }
+                AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Text(verbatim: initial).cyText(.label) }
                     .clipShape(Circle())
             } else {
-                Text(verbatim: initial).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: initial).cyText(.label).foregroundStyle(CYColor.textPrimary)
             }
         }
         .frame(width: size, height: size)

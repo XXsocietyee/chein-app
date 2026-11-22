@@ -136,7 +136,7 @@ import SwiftUI
                 case .idle, .failed:
                     if model.phase == .failed {
                         Text("playx.audioClip.retryHint")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .accessibilityIdentifier("playx.audioClip.retryHint")
                     }
                     CYPillButton("playx.audioClip.start") {

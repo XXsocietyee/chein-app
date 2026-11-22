@@ -37,10 +37,10 @@ struct RoamAreaPicker: View {
                             .keyboardType(.numbersAndPunctuation)
                             .autocorrectionDisabled().textInputAutocapitalization(.never)
                             .accessibilityIdentifier("roam.area.latitude.input")
-                        Text("roam.area.latitudeHint").font(.caption).foregroundStyle(.secondary)
+                        Text("roam.area.latitudeHint").cyText(.meta).foregroundStyle(.secondary)
                         if latitudeIsInvalid {
                             Label("roam.area.invalidLatitude", systemImage: "exclamationmark.circle")
-                                .font(.caption).foregroundStyle(.red)
+                                .cyText(.meta).foregroundStyle(.red)
                                 .accessibilityIdentifier("roam.area.latitude.error")
                         }
                     }
@@ -49,10 +49,10 @@ struct RoamAreaPicker: View {
                             .keyboardType(.numbersAndPunctuation)
                             .autocorrectionDisabled().textInputAutocapitalization(.never)
                             .accessibilityIdentifier("roam.area.longitude.input")
-                        Text("roam.area.longitudeHint").font(.caption).foregroundStyle(.secondary)
+                        Text("roam.area.longitudeHint").cyText(.meta).foregroundStyle(.secondary)
                         if longitudeIsInvalid {
                             Label("roam.area.invalidLongitude", systemImage: "exclamationmark.circle")
-                                .font(.caption).foregroundStyle(.red)
+                                .cyText(.meta).foregroundStyle(.red)
                                 .accessibilityIdentifier("roam.area.longitude.error")
                         }
                     }
@@ -60,7 +60,7 @@ struct RoamAreaPicker: View {
                         .accessibilityIdentifier("roam.area.name.input")
                 }
                 Section {
-                    Text("roam.area.coordinateSystem").font(.footnote).foregroundStyle(.secondary)
+                    Text("roam.area.coordinateSystem").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }.cyGroupedSurface()
             .appNavigationTitle("roam.area.title")

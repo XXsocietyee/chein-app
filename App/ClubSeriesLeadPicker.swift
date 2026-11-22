@@ -97,12 +97,12 @@ import SwiftUI
     var body: some View {
         let expected = context, permit = model.permit(in: expected)
         VStack(alignment: .leading, spacing: 12) {
-            Text("club.seriesLead.explanation").font(.footnote)
+            Text("club.seriesLead.explanation").cyText(.bodyCompact)
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.seriesLead.loading") }
             if permit != nil, let failure = model.failure {
                 Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.seriesLead.error")
                 if failure != .forbidden {
-                    Text("clubOpsEvent.lead.unavailable", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(CYColor.warningText)
+                    Text("clubOpsEvent.lead.unavailable", tableName: "ClubOpsEvent").cyText(.bodyCompact).foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("clubOpsEvent.lead.unavailable")
                     ownerDefaultButton(permit: permit)
                 }
@@ -172,7 +172,7 @@ import SwiftUI
     private func memberName(_ member: ClubSeriesLeadMember) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             if let name = member.nickname { Text(verbatim: name) } else { Text("club.seriesLead.unnamed") }
-            Text("club.memberNumber \(member.id)").font(.caption).foregroundStyle(.secondary)
+            Text("club.memberNumber \(member.id)").cyText(.meta).foregroundStyle(.secondary)
         }
     }
 }

@@ -51,7 +51,7 @@ private enum Cur3 {
         VStack(spacing: 0) {
             content()
             Text(verbatim: title + " · DEBUG fixture · synthetic")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(CYSpacing.sm)

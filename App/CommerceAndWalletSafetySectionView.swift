@@ -145,11 +145,11 @@ public struct CommerceAndWalletSafetySectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Commerce & Wallet Safety Pillars")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("commerceWalletSafety.title")
                 Spacer()
                 Text(verbatim: overallGateBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("commerceWalletSafety.overallBadge")
             }
@@ -160,7 +160,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                 .accessibilityIdentifier("commerceWalletSafety.refundLockBanner")
 
             Text(verbatim: nonCashPolicyBannerText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.pointsWithdrawableAllowed ? CYColor.dangerText : CYColor.textSecondary)
                 .accessibilityIdentifier("commerceWalletSafety.nonCashPolicyBanner")
 
@@ -169,7 +169,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(pillar.code)] \(pillar.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: pillar.statusBadgeText)
                                 .font(.caption2.monospaced())
@@ -180,7 +180,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                                 )
                         }
                         Text(verbatim: pillar.policySummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
@@ -194,7 +194,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                 ForEach(W7MeWalletParityCatalog.surfaces) { surface in
                     HStack {
                         Text(verbatim: surface.titleEn)
-                            .font(.caption.weight(.medium))
+                            .cyText(.label)
                         Spacer()
                         Text(verbatim: surface.isFlaggedOffByPolicy ? "FLAGGED-OFF" : "PARITY-READY")
                             .font(.caption2.monospaced())

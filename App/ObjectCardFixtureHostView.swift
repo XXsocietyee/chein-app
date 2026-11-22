@@ -11,12 +11,12 @@ import SwiftUI
                 .id("\(revision)-\(reader.scope)")
                 .safeAreaInset(edge: .bottom) {
                     VStack {
-                        Text("objects.offline").font(.caption)
+                        Text("objects.offline").cyText(.meta)
                         HStack {
                             CYPillButton(verbatim: "Fail next read", style: .tertiary, fullWidth: false) { reader.failNext = true }.accessibilityIdentifier("objects.fixture.fail")
                             CYPillButton(verbatim: "Change session", style: .tertiary, fullWidth: false) { reader.rotateScope(); revision += 1 }.accessibilityIdentifier("objects.fixture.session")
                             CYPillButton(verbatim: "Deny next read", style: .tertiary, fullWidth: false) { reader.denyNext = true }.accessibilityIdentifier("objects.fixture.deny")
-                        }.font(.caption)
+                        }.cyText(.meta)
                     }.padding(8).background(.regularMaterial)
                 }
         }

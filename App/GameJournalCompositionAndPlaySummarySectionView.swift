@@ -140,7 +140,7 @@ public struct GameJournalCompositionAndPlaySummarySectionView: View {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 HStack(spacing: CYSpacing.sm) {
                     Text(verbatim: "手账组合与游玩摘要")
-                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Spacer(minLength: CYSpacing.sm)
                     CYStatusChip(verbatim: snapshot.isFullyReady ? "组合就绪" : "存在降级或异常", tone: snapshot.isFullyReady ? .success : .warning,
@@ -154,7 +154,7 @@ public struct GameJournalCompositionAndPlaySummarySectionView: View {
                 .accessibilityIdentifier("gameJournalComposition.summary")
                 Label {
                     Text(verbatim: snapshot.standaloneLoadUserStampsIntact ? "独立印章读取保持正常" : "独立印章读取出现回归")
-                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                 } icon: {
                     Image(systemName: snapshot.standaloneLoadUserStampsIntact ? "checkmark.shield.fill" : "exclamationmark.shield.fill")
                         .foregroundStyle(snapshot.standaloneLoadUserStampsIntact ? CYColor.successText : CYColor.warningText)
@@ -165,8 +165,8 @@ public struct GameJournalCompositionAndPlaySummarySectionView: View {
                         CYTimelineItem(first: index == 0, last: index == snapshot.rows.count - 1, symbol: icon(row.kind),
                                        tint: row.status == .ready ? CYColor.successText : (row.status == .failed ? CYColor.dangerText : CYColor.warningText)) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: row.title).font(CYTypography.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                                Text(verbatim: "\(row.itemCount) 项 · " + row.detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: row.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: "\(row.itemCount) 项 · " + row.detail).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 4)
@@ -194,8 +194,8 @@ public struct GameJournalCompositionAndPlaySummarySectionView: View {
         HStack(spacing: CYSpacing.md) {
             Image(systemName: symbol).font(.title3).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 0) {
-                Text(verbatim: String(n)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                Text(verbatim: label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: String(n)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
             Spacer(minLength: 0)
         }

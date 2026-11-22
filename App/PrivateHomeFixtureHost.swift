@@ -83,7 +83,7 @@ import Observation
                         Button { mapAdapter?.approvedSource = nil } label: { Text(verbatim: "Synthetic: revoke source") }
                             .accessibilityIdentifier("privateHome.fixture.revokeSource")
                     }
-                }.font(.caption2)
+                }.cyText(.caption)
                     // Payload-free DEBUG instrumentation must not cover the product
                     // Form when its own typography is exercised at accessibility5.
                     .dynamicTypeSize(.large)

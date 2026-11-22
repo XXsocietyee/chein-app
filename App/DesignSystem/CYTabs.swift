@@ -233,7 +233,7 @@ public struct CYTabs<ID: Hashable>: View {
                             .font(CYTypography.label.weight(selectedStyle ? .bold : .semibold))
                         if let badgeCount = item.badgeCount, badgeCount > 0 {
                             Text(verbatim: "\(badgeCount)")
-                                .font(CYTypography.micro.weight(.bold).monospacedDigit())
+                                .cyText(.micro, weight: .bold, monospacedDigit: true)
                                 .foregroundStyle(tokens.badgeForeground)
                         }
                     }

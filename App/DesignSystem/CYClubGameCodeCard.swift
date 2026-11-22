@@ -21,7 +21,7 @@ struct CYClubGameCodeCard<Code: View>: View {
             case .loading:
                 RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYNight.ink2)
                     .frame(width: codeSide, height: codeSide)
-                    .overlay(Text("gameCode.generating", tableName: "SocialParity").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary))
+                    .overlay(Text("gameCode.generating", tableName: "SocialParity").cyText(.meta).foregroundStyle(CYColor.textTertiary))
                     .accessibilityIdentifier("club.gameCode.loading")
             case .ready:
                 code()
@@ -34,7 +34,7 @@ struct CYClubGameCodeCard<Code: View>: View {
                     Group {
                         if let message, !message.isEmpty { Text(verbatim: message) } else { Text("gameCode.failed", tableName: "SocialParity") }
                     }
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    .cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     if let onRetry {
                         CYPillButton("gameCode.retry", style: .secondary, fullWidth: false, compact: true, tableName: "SocialParity", action: onRetry)
@@ -44,7 +44,7 @@ struct CYClubGameCodeCard<Code: View>: View {
                 .accessibilityIdentifier("club.gameCode.error")
             }
             if let name, !name.isEmpty {
-                Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
             }
             if state == .ready, let onSave {
                 Button(action: onSave) {

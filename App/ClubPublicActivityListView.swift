@@ -40,11 +40,11 @@ import SwiftUI
                 }
                 .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 Text("publicTopics.scope", tableName: "ClubPublicTopics")
-                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .cyText(.meta).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if !session.clubIdentity.isSignedIn {
                     Text("publicTopics.guestHandoff", tableName: "ClubPublicTopics")
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -143,7 +143,7 @@ import SwiftUI
     private var activityLoading: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             CYSkeleton().accessibilityHidden(true)
-            Text("club.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text("club.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("club.publicTopics.loading")
@@ -153,10 +153,10 @@ import SwiftUI
             CYStatusChip(verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: issue.titleKey), locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle")
                 .accessibilityIdentifier("club.publicTopics.error")
             if let message = issue.message {
-                Text(verbatim: message).font(CYTypography.body).foregroundStyle(palette.textPrimary)
+                Text(verbatim: message).cyText(.body).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                Text(LocalizedStringKey(issue.hintKey)).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                Text(LocalizedStringKey(issue.hintKey)).cyText(.body).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if issue.needsSignIn, let onSignIn {

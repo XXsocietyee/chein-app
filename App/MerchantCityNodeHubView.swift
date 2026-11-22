@@ -23,7 +23,7 @@ struct MerchantCityNodeBadge: View {
     let key: String
     let tone: Color
     var body: some View {
-        MerchantCityNodeCopy.text(key).font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 3)
+        MerchantCityNodeCopy.text(key).cyText(.meta, weight: .semibold).padding(.horizontal, 8).padding(.vertical, 3)
             .foregroundStyle(tone).background(tone.opacity(0.14), in: Capsule())
     }
 }
@@ -36,9 +36,9 @@ struct MerchantCityNodeInlineError: View {
     let action: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label { MerchantCityNodeCopy.text(titleKey).font(.subheadline.weight(.semibold)) } icon: { Image(systemName: "exclamationmark.circle") }
-            Text(verbatim: message).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Button(action: action) { MerchantCityNodeCopy.text(actionKey) }.font(.footnote.weight(.semibold))
+            Label { MerchantCityNodeCopy.text(titleKey).cyText(.bodyMedium) } icon: { Image(systemName: "exclamationmark.circle") }
+            Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Button(action: action) { MerchantCityNodeCopy.text(actionKey) }.cyText(.bodyMedium)
                 .accessibilityIdentifier(identifier)
         }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.dangerSoft, in: RoundedRectangle(cornerRadius: 12))
@@ -166,7 +166,7 @@ struct MerchantCityNodeInlineError: View {
     private func state(title: String, sub: String, identifier: String, retry: Bool) -> some View {
         VStack(spacing: 10) {
             Image(systemName: retry ? "wifi.exclamationmark" : "lock").font(.largeTitle).foregroundStyle(.secondary)
-            MerchantCityNodeCopy.text(title).font(.headline)
+            MerchantCityNodeCopy.text(title).cyText(.cardTitle)
             Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             if retry {
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
@@ -195,24 +195,24 @@ struct MerchantCityNodeInlineError: View {
             }
         }
         HStack(alignment: .firstTextBaseline) {
-            MerchantCityNodeCopy.text("merchantCityNode.section.title").font(.title3.bold())
+            MerchantCityNodeCopy.text("merchantCityNode.section.title").cyText(.sectionTitle)
             Spacer()
-            Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.section.count", p.itemCount)).font(.footnote).foregroundStyle(.secondary)
+            Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.section.count", p.itemCount)).cyText(.bodyCompact).foregroundStyle(.secondary)
                 .accessibilityIdentifier("cityNodeHub.count")
         }
         if c.locked {
             VStack(alignment: .leading, spacing: 6) {
-                MerchantCityNodeCopy.text("merchantCityNode.write.lockedTitle").font(.subheadline.weight(.semibold))
-                MerchantCityNodeCopy.text("merchantCityNode.write.lockedBody").font(.footnote).foregroundStyle(.secondary)
+                MerchantCityNodeCopy.text("merchantCityNode.write.lockedTitle").cyText(.bodyMedium)
+                MerchantCityNodeCopy.text("merchantCityNode.write.lockedBody").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.write.readback") }
-                    .font(.footnote.weight(.semibold)).disabled(c.busy).accessibilityIdentifier("cityNodeHub.readback")
+                    .cyText(.bodyMedium).disabled(c.busy).accessibilityIdentifier("cityNodeHub.readback")
             }.padding(10).background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeHub.locked")
         }
         ForEach(p.applications) { applicationRow($0) }
         if p.isEmpty {
             VStack(spacing: 10) {
                 Image(systemName: "mappin.slash").font(.largeTitle).foregroundStyle(.secondary)
-                MerchantCityNodeCopy.text("merchantCityNode.empty.title").font(.headline)
+                MerchantCityNodeCopy.text("merchantCityNode.empty.title").cyText(.cardTitle)
                 MerchantCityNodeCopy.text("merchantCityNode.empty.sub").font(.subheadline).foregroundStyle(.secondary)
                 if p.showsEmptyPlacementAction {
                     Button { goCreate(p.quota) } label: { MerchantCityNodeCopy.text("merchantCityNode.place.action") }
@@ -232,13 +232,13 @@ struct MerchantCityNodeInlineError: View {
             }
             switch quota.state {
             case .unknown:
-                if c.busy { MerchantCityNodeCopy.text("merchantCityNode.quota.loading").font(.footnote).foregroundStyle(.secondary) }
+                if c.busy { MerchantCityNodeCopy.text("merchantCityNode.quota.loading").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 else {
                     MerchantCityNodeInlineError(titleKey: "merchantCityNode.quota.unknownTitle", message: MerchantCityNodeCopy.string("merchantCityNode.quota.unknownSub"),
                         actionKey: "merchantCityNode.action.retry", identifier: "cityNodeHub.quota.retry") { if idle { Task { await reload() } } }
                 }
             default:
-                Text(verbatim: quotaLine(quota)).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeHub.quota")
+                Text(verbatim: quotaLine(quota)).cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeHub.quota")
             }
         }
     }
@@ -264,7 +264,7 @@ struct MerchantCityNodeInlineError: View {
             HStack(alignment: .top) {
                 Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.application.title",
                     MerchantCityNodeCopy.string(row.kind == .claim ? "merchantCityNode.application.claim" : "merchantCityNode.application.placement"),
-                    row.name ?? MerchantCityNodeCopy.string("merchantCityNode.application.fallbackName"))).font(.headline)
+                    row.name ?? MerchantCityNodeCopy.string("merchantCityNode.application.fallbackName"))).cyText(.cardTitle)
                 Spacer()
                 switch row.audit {
                 case .reviewing: MerchantCityNodeBadge(key: "merchantCityNode.audit.reviewing", tone: .secondary)
@@ -274,8 +274,8 @@ struct MerchantCityNodeInlineError: View {
             }
             if row.audit == .rejected, let reason = row.auditReason {
                 VStack(alignment: .leading, spacing: 2) {
-                    MerchantCityNodeCopy.text("merchantCityNode.audit.reason").font(.caption.weight(.semibold))
-                    Text(verbatim: reason).font(.footnote)
+                    MerchantCityNodeCopy.text("merchantCityNode.audit.reason").cyText(.meta, weight: .semibold)
+                    Text(verbatim: reason).cyText(.bodyCompact)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("cityNodeHub.reason.\(row.id)")
             }
             if row.withdrawable {
@@ -296,12 +296,12 @@ struct MerchantCityNodeInlineError: View {
         let key = rowKey(toggle), working = target == key && (c.busy || confirming)
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .top) {
-                Text(verbatim: row.name).font(.headline)
+                Text(verbatim: row.name).cyText(.cardTitle)
                 Spacer()
                 MerchantCityNodeBadge(key: row.isOnline ? "merchantCityNode.node.online" : "merchantCityNode.node.offline", tone: row.isOnline ? .green : .secondary)
             }
             Text(verbatim: [row.templateTitle ?? MerchantCityNodeCopy.string("merchantCityNode.node.noTemplate"), row.tags].compactMap { $0 }.joined(separator: " · "))
-                .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeHub.node.sub.\(row.id)")
+                .cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeHub.node.sub.\(row.id)")
             HStack {
                 if row.usesPosterCode && canVerify && service is any MerchantCityNodePosterReading {
                     Button { loadPoster(row.id) } label: { Label { MerchantCityNodeCopy.text("merchantCityNode.poster.open") } icon: { Image(systemName: "qrcode") } }
@@ -407,7 +407,7 @@ struct MerchantCityNodeInlineError: View {
                 if rows.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "tray").font(.largeTitle).foregroundStyle(.secondary)
-                        MerchantCityNodeCopy.text("merchantCityNode.claim.empty").font(.headline)
+                        MerchantCityNodeCopy.text("merchantCityNode.claim.empty").cyText(.cardTitle)
                     }.frame(maxWidth: .infinity).padding(.vertical, 32).accessibilityIdentifier("cityNodeHub.claim.empty")
                 }
                 ForEach(rows) { claimRow($0) }
@@ -422,7 +422,7 @@ struct MerchantCityNodeInlineError: View {
     }
     private func claimLoadError(_ message: String) -> some View {
         VStack(spacing: 10) {
-            MerchantCityNodeCopy.text("merchantCityNode.claim.loadFailed").font(.headline)
+            MerchantCityNodeCopy.text("merchantCityNode.claim.loadFailed").cyText(.cardTitle)
             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             Button { Task { await claimModel.load() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
                 .buttonStyle(.questifyPrimary).disabled(claimModel.coordinator.busy).accessibilityIdentifier("cityNodeHub.claim.retry")
@@ -436,8 +436,8 @@ struct MerchantCityNodeInlineError: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: row.name).font(.headline)
-                    Text(verbatim: row.detail ?? MerchantCityNodeCopy.string("merchantCityNode.claim.platformNode")).font(.footnote).foregroundStyle(.secondary)
+                    Text(verbatim: row.name).cyText(.cardTitle)
+                    Text(verbatim: row.detail ?? MerchantCityNodeCopy.string("merchantCityNode.claim.platformNode")).cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Button { prepareClaim(command) } label: {
@@ -505,11 +505,11 @@ struct MerchantCityNodeInlineError: View {
                             else { ProgressView() }
                         }.frame(width: 240, height: 240).accessibilityLabel(MerchantCityNodeCopy.text("merchantCityNode.poster.title"))
                             .accessibilityIdentifier("cityNodeHub.poster.image")
-                        if let name = code.nodeName { Text(verbatim: name).font(.headline).accessibilityIdentifier("cityNodeHub.poster.name") }
-                        MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").font(.footnote).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                        if let name = code.nodeName { Text(verbatim: name).cyText(.cardTitle).accessibilityIdentifier("cityNodeHub.poster.name") }
+                        MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     case .failed(let message):
                         VStack(spacing: 10) {
-                            MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").font(.headline)
+                            MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").cyText(.cardTitle)
                             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                             Button { loadPoster(shown.poiID) } label: { MerchantCityNodeCopy.text("merchantCityNode.poster.retry") }
                                 .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.poster.retry")

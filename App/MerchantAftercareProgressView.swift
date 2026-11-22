@@ -11,16 +11,16 @@ struct MerchantAftercareProgressView: View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: heroSubtitle)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                 if progress.amount.raw != nil {
                     Text(verbatim: progress.amount.display)
-                        .font(CYTypography.data2XL)
+                        .cyText(.data2XL)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                 } else {
                     Text("merchant.aftercareProgress.amountUnknown")
-                        .font(CYTypography.dataXL)
+                        .cyText(.dataXL)
                         .foregroundStyle(CYColor.textSecondary)
                 }
             }
@@ -70,7 +70,7 @@ struct MerchantAftercareProgressView: View {
                             .accessibilityIdentifier("merchantOps.aftercare.policyText")
                         if let version = progress.policyVersion {
                             Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.policyVersion %lld", version))
-                                .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                 }
@@ -80,12 +80,12 @@ struct MerchantAftercareProgressView: View {
         if let decision = MerchantAftercareDecision(rawValue: progress.opinion.rawValue) {
             Section {
                 Text(verbatim: MerchantOpsCopy.text(MerchantAftercareResponseGuide.consequenceKey(decision)))
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("merchantOps.aftercare.opinionConsequence")
             }
         }
         if let reason = progress.reason {
-            Section("merchant.business.field.reason") { Text(verbatim: reason).font(CYTypography.body) }
+            Section("merchant.business.field.reason") { Text(verbatim: reason).cyText(.body) }
         }
         if let name = progress.customerNickname {
             Section("merchant.aftercareProgress.customer") {
@@ -102,16 +102,16 @@ struct MerchantAftercareProgressView: View {
                         Label("merchant.aftercareProgress.takeover", systemImage: "person.crop.circle.badge.clock")
                     case .response(let response):
                         Label(LocalizedStringKey("merchant.aftercareProgress.decision." + response.decision.rawValue), systemImage: "text.bubble")
-                        Text(LocalizedStringKey(response.actorKey)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        if let content = response.content { Text(verbatim: content).font(CYTypography.body) }
+                        Text(LocalizedStringKey(response.actorKey)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        if let content = response.content { Text(verbatim: content).cyText(.body) }
                         if response.evidence != .none && response.evidence != .notProvided {
                             Text(LocalizedStringKey("merchant.aftercareProgress.evidence." + response.evidence.rawValue))
-                                .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                     if let time = event.occurredAt {
                         Text(verbatim: MerchantAftercareTime.event(time, phoneTimeZone: phoneTimeZone))
-                            .font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                            .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                     }
                 }
                 .fixedSize(horizontal: false, vertical: true)
@@ -130,7 +130,7 @@ struct MerchantAftercareProgressView: View {
         }
         Section {
             Label {
-                Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.help")).font(CYTypography.caption)
+                Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.help")).cyText(.caption)
             } icon: { Image(systemName: "questionmark.circle") }
             .foregroundStyle(CYColor.textSecondary)
             .accessibilityIdentifier("merchantOps.aftercare.help")

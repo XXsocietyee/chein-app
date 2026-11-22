@@ -340,7 +340,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 .buttonStyle(CYPillButtonStyle(style: .tertiary))
             }
         case .pending:
-            Text("compliance.pending.submitted").font(CYTypography.cardTitle).accessibilityIdentifier("compliance.pending.submitted")
+            Text("compliance.pending.submitted").cyText(.cardTitle).accessibilityIdentifier("compliance.pending.submitted")
             pendingCoolingOffCopy.accessibilityIdentifier("compliance.pending")
             Button("compliance.withdrawCancellation", role: .destructive) { cancelIntent = model.cancellationIntent(); cancelReview = cancelIntent != nil }
                 .accessibilityIdentifier("compliance.cancelApplication")
@@ -502,7 +502,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                             marketingChange = model.coordinator.reviewMarketing(row, channel: channel, optedIn: value)
                         })) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(LocalizedStringKey("compliance.channel." + channel.rawValue)).font(.body.weight(.medium))
+                                Text(LocalizedStringKey("compliance.channel." + channel.rawValue)).cyText(.bodyMedium)
                                 Text(LocalizedStringKey("compliance.channel." + channel.rawValue + ".detail")).font(.footnote).foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -646,9 +646,9 @@ struct ComplianceHeader: View {
                 .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
                 .accessibilityHidden(true)
             Text(LocalizedStringKey(destination.title))
-                .font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)
+                .cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-            Text(intro).font(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(intro).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             if destination == .cancellation, ![.completed, .pending, .freshLogin, .unknown].contains(step) {
                 let names = ["compliance.step.1", "compliance.step.2", "compliance.step.3"]
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -658,7 +658,7 @@ struct ComplianceHeader: View {
                             ZStack {
                                 Circle().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.12))
                                 if i < stage { Image(systemName: "checkmark").font(.caption2.weight(.heavy)).foregroundStyle(.white) }
-                                else { Text(verbatim: String(i + 1)).font(.caption.weight(.bold).monospacedDigit()).foregroundStyle(i == stage ? Color.white : CYColor.textSecondary) }
+                                else { Text(verbatim: String(i + 1)).cyText(.meta, weight: .bold, monospacedDigit: true).foregroundStyle(i == stage ? Color.white : CYColor.textSecondary) }
                             }
                             .frame(width: 26, height: 26)
                         }
@@ -667,7 +667,7 @@ struct ComplianceHeader: View {
                         Text(verbatim: "\(stage + 1)/3").monospacedDigit().foregroundStyle(CYColor.textSecondary)
                         Text(LocalizedStringKey(names[stage])).foregroundStyle(CYColor.textPrimary)
                     }
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(LocalizedStringKey(names[stage])))

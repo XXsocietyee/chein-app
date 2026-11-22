@@ -44,7 +44,7 @@ import SwiftUI
         List {
             if let governanceContext { SquareGovernanceEntryView(context: governanceContext) }
             if let deletion { SquareDeletionStatusView(coordinator: deletion) { Task { await verifyDeletion() } } }
-            if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
+            if reader.isOfflineExample { Text("square.offlineExample").cyText(.meta) }
             if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
             else if loadedKey != key { CYSkeleton() }
             else {
@@ -63,7 +63,7 @@ import SwiftUI
                                 postActions(post, actions: actions)
                             }
                             if post.memberID == 0 {
-                                Text(verbatim: "—").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: "—").cyText(.body).foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("square.author.unknown")
                             } else if let viewer = actions?.identity.accountID, viewer == post.memberID {
                                 CreativeSquareAuthorDeleteSection(signedIn: reader.isSignedIn, highlightedPostID: post.id, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
@@ -122,7 +122,7 @@ import SwiftUI
                 CYFooterBar {
                     Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
                         Label("square.xcx.commentPlaceholder", systemImage: "text.bubble")
-                            .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.body).foregroundStyle(CYColor.textSecondary)
                             .padding(.horizontal, CYSpacing.lg)
                             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                             .background(Capsule().fill(CYColor.bgSurfaceSubtle))
@@ -264,7 +264,7 @@ import SwiftUI
             }
             Spacer(minLength: 0)
         }
-        .buttonStyle(.borderless).font(.body).labelStyle(.titleAndIcon)
+        .buttonStyle(.borderless).cyText(.body).labelStyle(.titleAndIcon)
         .frame(minHeight: 44)
     }
     /// Mini `square-share.js`: a publicly shareable post links to its parsed detail URL. Anything else has no public URL.
@@ -336,7 +336,7 @@ import SwiftUI
     @ViewBuilder private func commentRow(_ comment: SquareComment) -> some View {
         if comment.lifecycle == "DELETED" {
             // Source deleted-row placeholder; the removed body is never shown.
-            Text("square.xcx.commentDeleted").font(.footnote).foregroundStyle(.secondary)
+            Text("square.xcx.commentDeleted").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .padding(.leading, comment.parentID == nil ? 0 : 12)
         } else { liveCommentRow(comment) }
     }
@@ -353,10 +353,10 @@ import SwiftUI
                         commentAuthor(comment)
                     }
                     Spacer(minLength: 8)
-                    if !comment.createTime.isEmpty { SquareXcxRelativeTime(createTime: comment.createTime, now: Date()).font(.caption).foregroundStyle(.secondary) }
+                    if !comment.createTime.isEmpty { SquareXcxRelativeTime(createTime: comment.createTime, now: Date()).cyText(.meta).foregroundStyle(.secondary) }
                 }
                 if let name = comment.replyName(in: comments.items) {
-                    Text("square.replyingTo \(name)").font(.caption).foregroundStyle(.secondary)
+                    Text("square.replyingTo \(name)").cyText(.meta).foregroundStyle(.secondary)
                 }
                 if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
@@ -366,7 +366,7 @@ import SwiftUI
                         .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
                     // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
                     if let actions, actions.identity.accountID != nil, comment.generation != .unknown {
-                        Button { reportComment(comment) } label: { Text("square.report").font(.caption).foregroundStyle(.secondary) }
+                        Button { reportComment(comment) } label: { Text("square.report").cyText(.meta).foregroundStyle(.secondary) }
                             .buttonStyle(.borderless)
                             .frame(minHeight: CYSpacing.minTouchTarget)
                             .accessibilityLabel(Text("square.report"))
@@ -406,8 +406,8 @@ import SwiftUI
         else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
     }
     @ViewBuilder private func commentAuthor(_ comment: SquareComment) -> some View {
-        if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).font(.subheadline.weight(.semibold)) }
-        else { Text("square.unknownAuthor").font(.subheadline.weight(.semibold)) }
+        if let nickname = comment.nickname, !nickname.isEmpty { Text(verbatim: nickname).cyText(.bodyMedium) }
+        else { Text("square.unknownAuthor").cyText(.bodyMedium) }
     }
     private struct DeletionRoute: Identifiable { let target: SquareDeletionTarget; var id: SquareDeletionTarget { target } }
     private var deletionBinding: Binding<DeletionRoute?> {
@@ -487,23 +487,23 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: locale.pick("我的广场", "My square posts"))
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if !signedIn {
-                Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("cooperation.login").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             } else {
                 switch phase {
                 case .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
                 case .empty:
-                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: locale.pick("还没有你发布的广场帖", "You have no square posts")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 case .failed:
-                    Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: locale.pick("列表没有读出来，请重试", "The list did not load. Try again.")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await reload() } }
                 case .ready:
                     if let highlightedPostID, !ids.contains(highlightedPostID) {
-                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: locale.pick("这篇已经不在你的列表里", "This post is no longer in your list")).cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
                     }
                     ForEach(ids, id: \.self) { id in
                         authorRow(id)
@@ -520,7 +520,7 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
             : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
         return layout {
             Text(verbatim: "#\(id)")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if !dynamicTypeSize.isAccessibilitySize {

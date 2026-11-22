@@ -18,9 +18,9 @@ import SwiftUI
                     HStack(spacing: 8) { questions }.padding(.vertical, 2)
                 }
             }
-            Text("npcQuick.composeOnly").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text("npcQuick.composeOnly").cyText(.caption).foregroundStyle(CYColor.textTertiary)
             if case .gameNode = context {
-                Text("npcQuick.publicRulesBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                Text("npcQuick.publicRulesBoundary").cyText(.caption).foregroundStyle(CYColor.textTertiary)
             }
         }
         .accessibilityIdentifier("npcQuick.bar")
@@ -64,7 +64,7 @@ import SwiftUI
 struct NPCQuickPillStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(CYTypography.bodyMedium.weight(.semibold)).lineLimit(1)
+        configuration.label.cyText(.bodyMedium).lineLimit(1)
             .foregroundStyle(isEnabled ? CYColor.textPrimary : CYColor.textDisabled)
             .padding(.horizontal, 22).frame(minHeight: 52)
             .background(configuration.isPressed ? CYColor.bgRaised : CYColor.bgElevated, in: Capsule())

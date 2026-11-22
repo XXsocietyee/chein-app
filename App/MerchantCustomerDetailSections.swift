@@ -34,7 +34,7 @@ import SwiftUI
             if canRead {
                 // Source customer/detail order: name and 累计实付 first, then 客户概览, 参与记录, 标签与备注, 跟进与触达.
                 Section {
-                    Text(verbatim: detail.customer.title).font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: detail.customer.title).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     MerchantCustomerIdentityLine(lastInteraction: detail.lastInteractionAt)
                     LabeledContent("merchant.business.field.paidAmount") {
@@ -44,15 +44,15 @@ import SwiftUI
                                 .monospacedDigit()
                         case .unknown:
                             Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         case .permissionHidden:
                             Text("merchant.business.sensitiveUnavailable").foregroundStyle(CYColor.textTertiary)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
                     Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityIdentifier("merchant.customerDetail.paidCard")
                 Section("merchant.customerDetail.identity") {
                     ForEach(["arrivedCount", "pendingCount", "refundedCount"], id: \.self) { key in
@@ -67,16 +67,16 @@ import SwiftUI
                     }
                     ForEach(detail.participation) { group in
                         VStack(alignment: .leading, spacing: 8) {
-                            if let title = group.title { Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                            else { Text("merchant.customerDetail.untitledActivity").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            if let title = group.title { Text(verbatim: title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            else { Text("merchant.customerDetail.untitledActivity").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                             if let latest = group.latest {
                                 Text(LocalizedStringKey(latest.kind.titleKey))
                                 LabeledContent("merchant.customerDetail.recordTime") { timestamp(latest.occurredAt) }
                                 if latest.kind == .refunded {
-                                    Text("merchant.customerDetail.refundTimeBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                    Text("merchant.customerDetail.refundTimeBoundary").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                                 }
                             } else {
-                                Text("merchant.customerDetail.orderUncertain").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                Text("merchant.customerDetail.orderUncertain").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                             if group.events.count > 1 || group.latest == nil {
                                 DisclosureGroup("merchant.customerDetail.sourceEvents") {
@@ -115,7 +115,7 @@ import SwiftUI
                     }
                     ForEach(detail.history) { event in
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(verbatim: event.record.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: event.record.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             eventFacts(event)
                             actions(event.record)
                         }
@@ -132,16 +132,16 @@ import SwiftUI
     @ViewBuilder private func timestamp(_ date: Date?) -> some View {
         if let date {
             Text(verbatim: MerchantCustomerDetailTime.display(date, phoneTimeZone: phoneTimeZone))
-                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-        } else { Text("merchant.customerDetail.timeUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+        } else { Text("merchant.customerDetail.timeUnknown").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
     }
     private func eventFacts(_ event: MerchantCustomerDetailPresentation.Event) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
-            Text(LocalizedStringKey(event.kind.titleKey)).font(CYTypography.body)
-            if let description = event.description { Text(verbatim: description).font(CYTypography.body) }
+            Text(LocalizedStringKey(event.kind.titleKey)).cyText(.body)
+            if let description = event.description { Text(verbatim: description).cyText(.body) }
             LabeledContent("merchant.customerDetail.recordTime") { timestamp(event.occurredAt) }
             if event.kind == .refunded {
-                Text("merchant.customerDetail.refundTimeBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.customerDetail.refundTimeBoundary").cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
             if let corrects = event.record.fields["correctsNoteId"]?.integer, corrects > 0 {
                 LabeledContent("merchant.business.field.correctsNoteId", value: "#\(corrects)")

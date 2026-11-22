@@ -134,7 +134,7 @@ public struct ProductionSigningAndLocalXcconfigSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "生产签名与 Local.xcconfig 归档坐标审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("productionSigningValidator.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -143,22 +143,22 @@ public struct ProductionSigningAndLocalXcconfigSectionView: View {
                     .accessibilityIdentifier("productionSigningValidator.overallStatus")
 
                 Text(verbatim: Self.baseDefaultsStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("productionSigningValidator.baseDefaultsStatus")
 
                 Text(verbatim: Self.localSigningStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("productionSigningValidator.localSigningStatus")
 
                 Text(verbatim: Self.hostAndRealmStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("productionSigningValidator.hostAndRealmStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无 xcconfig 生产签名坐标检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("productionSigningValidator.empty")
             } else {
@@ -203,19 +203,19 @@ private struct XcconfigCoordinateRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.settingKey)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isCoordinateValid ? "就绪" : "告警")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isCoordinateValid ? .green : .red)
             }
 
             Text(verbatim: "Base 默认：\(row.baseFailClosedDefault)")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "Day-3 归档要求：\(row.localReleaseRequirement)")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

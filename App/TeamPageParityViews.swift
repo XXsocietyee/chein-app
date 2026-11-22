@@ -11,15 +11,15 @@ struct TeamPageHeader: View {
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     @ViewBuilder private var teamTitle: some View {
         let title = detail.team.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        if title.isEmpty { Text("team.untitled").font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
-        else { Text(verbatim: title).font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+        if title.isEmpty { Text("team.untitled").cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
+        else { Text(verbatim: title).cyText(.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if kind == .invitation {
                 // Mini join page `.team-head`: eyebrow, title, explainer, then the meta card.
                 teamTitle
-                Text("team.page.inviteExplainer").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("team.page.inviteExplainer").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("teamPage.inviteExplainer")
             } else {
                 // Mini `.team-status(.live)`: brand-soft pill while recruiting, neutral pill otherwise.
@@ -32,7 +32,7 @@ struct TeamPageHeader: View {
                     Text(LocalizedStringKey(TeamPagePresentation.modeKey(confirmedJoinMode ?? detail.team.joinMode)))
                     Text(verbatim: "·").accessibilityHidden(true)
                     Text("team.page.noEffectOnActivity")
-                }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
+                }.cyText(.body).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
                     .accessibilityIdentifier("teamPage.subtitle")
             }
             // Mini `.team-meta`: two equal columns, bold value over caption key (members / start or method).
@@ -43,19 +43,19 @@ struct TeamPageHeader: View {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     // pages/team/join: a missing joined count or capacity is an em dash; a literal 0 stays "0 / max".
                     Text(verbatim: TeamPagePresentation.memberCountText(detail.team))
-                        .font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        .cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                         .contentTransition(.numericText())
-                    Text("team.members.count").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("team.members.count").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    if kind == .invitation { Text("team.page.inviteOnlyMethod").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary) }
-                    else if let start = TeamPagePresentation.startText(detail.team.expireTime, chinese: chinese) { Text(verbatim: start).font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary) }
-                    else { Text("team.page.startPending").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary) }
-                    Text(kind == .invitation ? "team.mode.title" : "team.sessionStart").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                    if kind == .invitation { Text("team.page.inviteOnlyMethod").cyText(.numericBody).foregroundStyle(CYColor.textPrimary) }
+                    else if let start = TeamPagePresentation.startText(detail.team.expireTime, chinese: chinese) { Text(verbatim: start).cyText(.numericBody).foregroundStyle(CYColor.textPrimary) }
+                    else { Text("team.page.startPending").cyText(.numericBody).foregroundStyle(CYColor.textPrimary) }
+                    Text(kind == .invitation ? "team.mode.title" : "team.sessionStart").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.meta")
             }.padding(.top, CYSpacing.sm)
             if kind == .invitation {
-                Text("team.join.consequence").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text("team.join.consequence").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -94,8 +94,8 @@ struct TeamStaleBanner: View {
     let detail: String
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label(LocalizedStringKey(title), systemImage: "arrow.clockwise.circle").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.warningText)
-            Text(LocalizedStringKey(detail)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Label(LocalizedStringKey(title), systemImage: "arrow.clockwise.circle").cyText(.label, weight: .semibold).foregroundStyle(CYColor.warningText)
+            Text(LocalizedStringKey(detail)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.stale")
@@ -117,8 +117,8 @@ struct TeamJoinRetryNotice: View {
     var reasonKey: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Label("team.page.joinFailed", systemImage: "exclamationmark.circle").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.dangerText)
-            Text(LocalizedStringKey(reasonKey ?? "team.page.joinFailed.detail")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Label("team.page.joinFailed", systemImage: "exclamationmark.circle").cyText(.label, weight: .semibold).foregroundStyle(CYColor.dangerText)
+            Text(LocalizedStringKey(reasonKey ?? "team.page.joinFailed.detail")).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.dangerSoft, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityElement(children: .combine).accessibilityIdentifier("teamPage.joinFailed")

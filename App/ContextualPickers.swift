@@ -24,7 +24,7 @@ import SwiftUI
                 } label: {
                     VStack(alignment: .leading) {
                         Text(verbatim: row.name)
-                        if let detail = row.introduction { Text(verbatim: detail).font(.caption).foregroundStyle(.secondary).lineLimit(2) }
+                        if let detail = row.introduction { Text(verbatim: detail).cyText(.meta).foregroundStyle(.secondary).lineLimit(2) }
                     }.frame(minHeight: 44)
                 }.accessibilityIdentifier("context.route.select.\(row.id)")
             }

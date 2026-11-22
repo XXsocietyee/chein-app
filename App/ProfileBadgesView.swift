@@ -57,7 +57,7 @@ struct ProfileBadgesView: View {
             HStack(alignment: .center, spacing: 12) {
                 ProfileBadgeMedal(badge: badge, size: 44)
                 VStack(alignment: .leading, spacing: 5) {
-                    ProfileBadgeTitle(badge: badge).font(.headline)
+                    ProfileBadgeTitle(badge: badge).cyText(.cardTitle)
                     CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
                                  tone: badge.isLocked ? .neutral : .success,
                                  systemImage: badge.isLocked ? "lock" : "checkmark.seal")
@@ -111,7 +111,7 @@ struct ProfileBadgeDetailView: View {
                             if reduceMotion { revealed = true }
                             else { withAnimation(CYMotion.entrance) { revealed = true } }
                         }
-                    ProfileBadgeTitle(badge: badge).font(.title2)
+                    ProfileBadgeTitle(badge: badge).cyText(.sheetTitle)
                     CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
                                  tone: badge.isLocked ? .neutral : .success,
                                  systemImage: badge.isLocked ? "lock" : "checkmark.seal")

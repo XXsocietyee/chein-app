@@ -131,10 +131,10 @@ struct ProjectTicketMeetingPointHostIdentity: Hashable {
                             .accessibilityIdentifier("projectTicketMeetingPoint.longitude")
                         TextField("projectEdit.latitude", text: $candidate.latitude).keyboardType(.numbersAndPunctuation)
                             .accessibilityIdentifier("projectTicketMeetingPoint.latitude")
-                        Text("projectTicketMeetingPoint.datum").font(.footnote).foregroundStyle(.secondary)
+                        Text("projectTicketMeetingPoint.datum").cyText(.bodyCompact).foregroundStyle(.secondary)
                         if !candidate.hasValidCoordinates { Text("projectTicketMeetingPoint.invalidCoordinates") }
                     }
-                    Section { Text("projectTicketMeetingPoint.workingDraft").font(.footnote).foregroundStyle(.secondary) }
+                    Section { Text("projectTicketMeetingPoint.workingDraft").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 } else { Text("projectStarter.stale") }
             }
             .appNavigationTitle("projectTicketMeetingPoint.title").navigationBarTitleDisplayMode(.inline)
@@ -166,10 +166,10 @@ struct ProjectTicketMeetingPointSummary: View {
             if !value.longitude.isEmpty || !value.latitude.isEmpty {
                 summaryRow("projectEdit.longitude", value: value.longitude)
                 summaryRow("projectEdit.latitude", value: value.latitude)
-                Text("projectTicketMeetingPoint.datum").font(.footnote).foregroundStyle(.secondary)
+                Text("projectTicketMeetingPoint.datum").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
-            if !ProjectTicketMeetingPoint.supportsEditing(ticket) { Text("projectTicketMeetingPoint.unsupported").font(.footnote) }
-            else if !value.hasValidCoordinates { Text("projectTicketMeetingPoint.invalidCoordinates").font(.footnote) }
+            if !ProjectTicketMeetingPoint.supportsEditing(ticket) { Text("projectTicketMeetingPoint.unsupported").cyText(.bodyCompact) }
+            else if !value.hasValidCoordinates { Text("projectTicketMeetingPoint.invalidCoordinates").cyText(.bodyCompact) }
         }.accessibilityIdentifier("projectTicketMeetingPoint.summary")
     }
     @ViewBuilder private func summaryRow(_ title: LocalizedStringKey, value: String, expanded: Bool = false) -> some View {

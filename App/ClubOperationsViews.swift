@@ -285,7 +285,7 @@ struct ClubOperationsWorkspaceView: View {
                 .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: club.name).font(.title3.weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: club.name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 if let city = club.city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     Text(verbatim: city).font(.subheadline).foregroundStyle(CYColor.textSecondary)
                 }
@@ -973,7 +973,7 @@ private struct ClubOperationsProfileForm: View {
         if createStep == 0 {
             Section {
                 Text(verbatim: ClubPlayerCopy.createIntroTitle(formLocale))
-                    .font(CYTypography.pageTitle)
+                    .cyText(.pageTitle)
                     .accessibilityIdentifier("club.player.create.intro")
                     // A Section's own onAppear does not fire inside a List; the row's does.
                     .onAppear { publishCreateBar() }
@@ -993,12 +993,12 @@ private struct ClubOperationsProfileForm: View {
                     .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: createStep)
                     .accessibilityHidden(true)
                     Text(verbatim: ClubPlayerCopy.progressLabel(createStep, locale: formLocale))
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.bodyMedium)
                         .foregroundStyle(formPalette.textSecondary)
                         .accessibilityIdentifier("club.player.create.progress")
                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                         Text(verbatim: ClubPlayerCopy.createTitle(step: createStep, locale: formLocale))
-                            .font(.title.weight(.bold))
+                            .cyText(.display)
                             .foregroundStyle(formPalette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1006,7 +1006,7 @@ private struct ClubOperationsProfileForm: View {
                             .accessibilityIdentifier("club.player.create.stepTitle")
                         if createStep == 2 {
                             Text(verbatim: ClubPlayerCopy.directionCount(draft.activityPrefs.count, locale: formLocale))
-                                .font(CYTypography.meta.monospacedDigit())
+                                .cyText(.meta, monospacedDigit: true)
                                 .foregroundStyle(formPalette.textSecondary)
                                 .contentTransition(.numericText())
                                 .accessibilityIdentifier("club.player.create.directionCount")
@@ -1129,7 +1129,7 @@ private struct ClubOperationsProfileForm: View {
             field("name", text: $draft.name).focused($createNameFocused)
             field("description", text: $draft.description, axis: .vertical)
             if let createNameError {
-                Text(verbatim: createNameError).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                Text(verbatim: createNameError).cyText(.meta).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.player.create.nameError")
             }
         } footer: { counterLabel("description", draft.description) }
@@ -1252,7 +1252,7 @@ private struct ClubOperationsProfileForm: View {
         if !isOwner {
             // Locked card instead of disabled toggles, echoing the current owner-only values.
             Section("club.ops.signupSettings") {
-                Text("club.ops.locked.title").font(.subheadline.bold())
+                Text("club.ops.locked.title").cyText(.bodyMedium)
                 lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")
             }
         } else {

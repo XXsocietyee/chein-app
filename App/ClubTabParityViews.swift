@@ -52,12 +52,12 @@ struct ClubLeaderQuotaLine: View {
             line(String(format: clubR1("quota.within", locale), owned, remaining))
         case .unknown:
             Text("club.tab.leaderQuota \(leader.ownedCount.text) \(leader.maxOwned.text)")
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
     }
     private func line(_ text: String) -> some View {
         Text(verbatim: text)
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
 }

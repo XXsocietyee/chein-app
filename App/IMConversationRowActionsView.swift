@@ -107,7 +107,7 @@ struct IMConversationRowButtonToken: Equatable {
                             HStack(alignment: .top, spacing: CYSpacing.md) {
                                 CYRowIcon(systemImage: model.actions.action?.symbolName ?? "bubble.left")
                                 MessagingConversationName(conversation: model.actions.conversation)
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(CYColor.textPrimary)
                                     .multilineTextAlignment(.leading)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -160,7 +160,7 @@ struct IMConversationRowButtonToken: Equatable {
             loadingBlock("im.full.submitting").accessibilityIdentifier("im.row.submitting")
         case .outcomeUnknown:
             Text("d7.rowActions.unknown")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYPillButton("d7.rowActions.retry", systemImage: "arrow.clockwise") {
@@ -175,7 +175,7 @@ struct IMConversationRowButtonToken: Equatable {
                     .accessibilityIdentifier("im.row.acknowledged")
             } else {
                 Text("d7.rowActions.mismatch")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -183,12 +183,12 @@ struct IMConversationRowButtonToken: Equatable {
             CYStatusChip("d7.rowActions.rejected", tone: .danger, systemImage: "xmark.octagon")
         case .closed:
             Text("im.full.closed")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         case .idle:
             Text("im.full.disabled")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -196,7 +196,7 @@ struct IMConversationRowButtonToken: Equatable {
     private func loadingBlock(_ key: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYSkeleton().accessibilityHidden(true)

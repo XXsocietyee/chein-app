@@ -51,7 +51,7 @@ import SwiftUI
                     .listRowBackground(Color.clear)
             case .ready(let ready) where ready.refreshFailed:
                 Label("publisherPricing.stalePreview", systemImage: "clock.arrow.circlepath")
-                    .font(.caption).foregroundStyle(CYColor.warningText).accessibilityIdentifier("publisher.pricing.stale")
+                    .cyText(.meta).foregroundStyle(CYColor.warningText).accessibilityIdentifier("publisher.pricing.stale")
             default:
                 EmptyView()
             }
@@ -68,23 +68,23 @@ import SwiftUI
                     TextField(text("publisherPricing.totalLeadCostForThisGroup"), text: $cost).keyboardType(.decimalPad)
                     TextField(text("publisherPricing.groupSize"), text: $team).keyboardType(.numberPad)
                     if (Int(team) ?? 0) <= 0 {
-                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                        Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).cyText(.meta).foregroundStyle(CYColor.dangerText)
                     }
                 }
             }
             Section {
                 CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateFloor") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { beginLoad() }
                     .listRowBackground(Color.clear).disabled(busy).accessibilityIdentifier("publisher.preview")
-                if busy { Text(text("publisherPricing.checkingTheLatestPricing")).font(.caption) }
+                if busy { Text(text("publisherPricing.checkingTheLatestPricing")).cyText(.meta) }
             }
             if let preview, resultSession == client.session {
                 Section(text("publisherPricing.costFloor")) {
                     // Floor reads TopicPricingXcx money text: two decimals, em dash when unknown, literal 0 stays 0.00.
-                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).font(CYTypography.dataXL).monospacedDigit()
+                    Text(verbatim: "¥" + TopicPricingXcx.moneyText(decimal: preview.minimum)).cyText(.dataXL).monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .contentTransition(.numericText()).accessibilityIdentifier("publisher.floor")
-                    Text("publisherPricing.floorIncludes").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    Text("publisherPricing.marginNote").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("publisherPricing.floorIncludes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("publisherPricing.marginNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 Section(text("publisherPricing.yourFinalPrice")) {
                     TextField(text("publisherPricing.finalPrice"), text: $price).keyboardType(.decimalPad).accessibilityIdentifier("publisher.finalPrice")
@@ -97,15 +97,15 @@ import SwiftUI
                     HStack {
                         Text(verbatim: text("publisherPricing.floorShort") + " ¥" + TopicPricingXcx.moneyText(decimal: preview.minimum))
                         Spacer(); Text(verbatim: "¥\(maximum)")
-                    }.font(.caption)
+                    }.cyText(.meta)
                     if let reference = preview.reference, let count = preview.sampleSize, count > 0 {
                         let area = preview.referenceLabel ?? text("publisherPricing.local")
                         let average = TopicPricingXcx.twoDecimals(NSDecimalNumber(decimal: reference).stringValue) ?? "—"
-                        Text("publisherPricing.reference \(area) \(average) \(count)").font(.caption)
-                    } else { Text(text("publisherPricing.notEnoughSamplesNoReferencePrice")).font(.caption) }
+                        Text("publisherPricing.reference \(area) \(average) \(count)").cyText(.meta)
+                    } else { Text(text("publisherPricing.notEnoughSamplesNoReferencePrice")).cyText(.meta) }
                     switch TopicPricingXcx.delta(price: Decimal(string: price) ?? preview.minimum, reference: preview.reference, sampleSize: preview.sampleSize) {
-                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
-                    case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    case .above(let percent)?: Text("publisherPricing.aboveReference \(percent)").cyText(.meta).foregroundStyle(CYColor.warningText)
+                    case .notAbove?: Text(text("publisherPricing.notAboveTheLocalReferencePrice")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     case nil: EmptyView()
                     }
                 }
@@ -116,9 +116,9 @@ import SwiftUI
                                 PublisherPartnerView(topicID: topicID, row: row, client: client)
                             } label: {
                                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                    if let name = partnerNames[row.id] { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
-                                    else { Text(row.type == "club" ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
-                                    Text(verbatim: termsText(row)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    if let name = partnerNames[row.id] { Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary) }
+                                    else { Text(row.type == "club" ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant")).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary) }
+                                    Text(verbatim: termsText(row)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                             }
                         }
@@ -128,7 +128,7 @@ import SwiftUI
                 }
                 Section {
                     if preview.canConfirm == false {
-                        Text("publisherPricing.phaseBlockedDetail").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                        Text("publisherPricing.phaseBlockedDetail").cyText(.meta).foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("publisher.phaseBlocked")
                     }
                     if showsConfirm {
@@ -287,8 +287,8 @@ import SwiftUI
             if topicID <= 0 || row.partnerID <= 0 || !["club", "merchant"].contains(row.type) {
                 // Source invalid-link state.
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(text("publisherPricing.thisPartnerLinkIsNoLonger")).font(.headline).accessibilityAddTraits(.isHeader)
-                    Text(text("publisherPricing.goBackAndOpenItAgain")).font(.footnote)
+                    Text(text("publisherPricing.thisPartnerLinkIsNoLonger")).cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+                    Text(text("publisherPricing.goBackAndOpenItAgain")).cyText(.bodyCompact)
                 }.accessibilityIdentifier("publisher.partner.invalid")
             } else {
                 Section {
@@ -304,7 +304,7 @@ import SwiftUI
                             .accessibilityIdentifier("publisher.partner.unknown")
                     case .empty(let inspection), .ready(let inspection):
                         let profile = inspection.profile.object ?? [:]
-                        Text(profile["name"]?.text ?? "—").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text(profile["name"]?.text ?? "—").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                         if let description = profile["description"]?.text, !description.isEmpty { Text(description).foregroundStyle(CYColor.textSecondary) }
                         let rows = profileRows(profile)
                         if rows.isEmpty { Text(text("publisherPricing.noProfileYet")).foregroundStyle(CYColor.textSecondary) }
@@ -320,7 +320,7 @@ import SwiftUI
                         LabeledContent(text("publisherPricing.locked"), value: text("publisherPricing.whenSalesOpen"))
                         Text(terms.mode == 1 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement")
                              : terms.mode == 2 ? text("publisherPricing.termsFreezeWhenSalesOpenSettlement44")
-                             : text("publisherPricing.theLineupFreezesWhenSalesOpen")).font(.caption)
+                             : text("publisherPricing.theLineupFreezesWhenSalesOpen")).cyText(.meta)
                     } header: { Text(text("publisherPricing.partnershipTerms")) } footer: {
                         Text("publisherPricing.partnerLocked")
                     }

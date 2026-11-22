@@ -52,7 +52,7 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 4) {
                     if !hidden { Text(verbatim: sub.unitCode).font(.body.monospaced()).privacySensitive() }
                     CYStatusChip(verbatim: sub.status)
-                    if let validTo = sub.validTo { Text(verbatim: validTo).font(.caption) }
+                    if let validTo = sub.validTo { Text(verbatim: validTo).cyText(.meta) }
                 }
             }
         } header: { text("bundle.voucher.subs") }

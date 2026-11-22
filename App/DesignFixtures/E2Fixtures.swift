@@ -18,7 +18,7 @@ struct E2Fixture: View {
     var body: some View {
         VStack(spacing: 0) {
             Text(verbatim: "DEBUG fixture · synthetic data")
-                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                .cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 .frame(maxWidth: .infinity).padding(.vertical, 4).background(CYColor.bgRaised)
             content
         }
@@ -43,7 +43,7 @@ struct E2Fixture: View {
             VStack(spacing: CYSpacing.lg) {
                 DiceD20CanvasView(values: [17], kept: 17, rollMode: "normal", rolling: false)
                     .frame(height: 260)
-                Text(verbatim: "17").font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
+                Text(verbatim: "17").cyText(.dataXL).monospacedDigit()
                     .foregroundStyle(CYColor.textPrimary)
             }.padding(CYSpacing.pageHorizontal)
         case .npcChat: ShopNPCFixtureView(enabled: true, seed: ["Where is the stamp hidden?"])

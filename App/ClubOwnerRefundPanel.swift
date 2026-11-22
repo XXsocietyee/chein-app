@@ -28,14 +28,14 @@ extension EnvironmentValues {
     var body: some View {
         if model.isVisible {
             VStack(alignment: .leading, spacing: 12) {
-                Text("club.refund.title").font(.headline).accessibilityIdentifier("club.refund.panel")
+                Text("club.refund.title").cyText(.cardTitle).accessibilityIdentifier("club.refund.panel")
                 if let coordinator, coordinator.identity == identity {
                     Text(LocalizedStringKey("club.refund.phase." + status.phase.rawValue))
                         .accessibilityIdentifier("club.refund.phase")
                     if status.inFlight { ProgressView("club.refund.working") }
                     if let receipt = status.receipt { receiptRows(receipt) }
                     if model.showsNoReplayNote {
-                        Text("club.refund.noReplay").font(.footnote)
+                        Text("club.refund.noReplay").cyText(.bodyCompact)
                     }
                     if status.readbackUnavailable { Text("club.refund.readbackUnavailable").accessibilityIdentifier("club.refund.readbackUnavailable") }
                     if let failure = failure ?? status.failure {
@@ -51,9 +51,9 @@ extension EnvironmentValues {
                             Task { await coordinator.reconcile(target); if coordinator.identity == identity { onReadback() } }
                         }.disabled(status.inFlight).accessibilityIdentifier("club.refund.readback")
                     }
-                    if !coordinator.canDispatch { Text("club.refund.disabled").font(.footnote).accessibilityIdentifier("club.refund.disabled") }
-                } else { Text("club.refund.disabled").font(.footnote) }
-                Text("club.refund.policy").font(.footnote).foregroundStyle(.secondary)
+                    if !coordinator.canDispatch { Text("club.refund.disabled").cyText(.bodyCompact).accessibilityIdentifier("club.refund.disabled") }
+                } else { Text("club.refund.disabled").cyText(.bodyCompact) }
+                Text("club.refund.policy").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             .sheet(item: $review, onDismiss: cancelPending) { pending in
                 CYSheetContainer(
@@ -76,7 +76,7 @@ extension EnvironmentValues {
 
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Text("club.refund.scopeWarning")
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                             refundConsequenceRow("arrow.uturn.backward.circle", "club.refund.consequence1")
@@ -143,18 +143,18 @@ extension EnvironmentValues {
     private func factRow(_ title: LocalizedStringKey, _ value: String?) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Text(title)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             if let value {
                 Text(verbatim: value)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.trailing)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("club.refund.unknownValue")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textTertiary)
             }
         }
@@ -167,7 +167,7 @@ extension EnvironmentValues {
                 .frame(width: 22)
                 .accessibilityHidden(true)
             Text(verbatim: appLocalized(key, locale: locale))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

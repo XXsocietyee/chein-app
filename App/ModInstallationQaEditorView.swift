@@ -35,16 +35,16 @@ import SwiftUI
     @ViewBuilder private var editorSections: some View {
         Section {
             Text("modInstallation.graph.qaBoundary", tableName: "ModInstallation")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Text("modInstallation.qaEdit.scope", tableName: "ModInstallation")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let state = editor.state {
                 Text(verbatim: state.locale + " · #" + String(state.topicId))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -72,7 +72,7 @@ import SwiftUI
         if let node = editor.node {
             Section {
                 Text(verbatim: node.sourceNodeId + " · #" + String(node.templateId))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
@@ -116,7 +116,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                 if let receipt = pending.receipt {
                     Text("modInstallation.qaEdit.saved", tableName: "ModInstallation")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                     Text(verbatim: receipt.resultDraftHash.isEmpty ? "—" : receipt.resultDraftHash)
                         .font(CYTypography.caption.monospaced())
@@ -132,7 +132,7 @@ import SwiftUI
             }
             if let key = editor.messageKey {
                 Text(LocalizedStringKey("modInstallation." + key), tableName: "ModInstallation")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -152,11 +152,11 @@ import SwiftUI
             }
             Section {
                 Text("modInstallation.qaEdit.scope", tableName: "ModInstallation")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: original.command.sourceNodeId + " · #" + String(original.templateId))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: original.command.expectedDraftHash.isEmpty ? "—" : original.command.expectedDraftHash)

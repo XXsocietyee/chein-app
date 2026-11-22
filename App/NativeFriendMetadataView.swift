@@ -93,7 +93,7 @@ import SwiftUI
             if flow.canPresentPeer && flow.metadata != nil {
                 Section {
                     TextField(localized("d7.friendMeta.remarkPrompt"), text: $remark)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .accessibilityIdentifier("friendMeta.remark")
                     metaAction("friendMeta.review", style: pillStyle(.remark), enabled: flow.canEdit, identifier: "friendMeta.review") {
                         flow.reviewMetadata(remark: remark, groupID: nil, starred: false)
@@ -122,18 +122,18 @@ import SwiftUI
                     ForEach(flow.groups) { group in
                         HStack(spacing: CYSpacing.sm) {
                             groupLabel(group)
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(palette.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                             Spacer(minLength: CYSpacing.sm)
                             if let count = group.friendCount {
                                 Text("d7.friendMeta.friendCount \(count)", tableName: "NativeFriendMetadata")
-                                    .font(CYTypography.numericBody)
+                                    .cyText(.numericBody)
                                     .foregroundStyle(palette.textSecondary)
                                     .monospacedDigit()
                             } else {
                                 Text(verbatim: "—")
-                                    .font(CYTypography.numericBody)
+                                    .cyText(.numericBody)
                                     .foregroundStyle(palette.textTertiary)
                             }
                             if group.isDefault == 0 {
@@ -158,7 +158,7 @@ import SwiftUI
                     }
                 } header: { sectionTitle("d7.friendMeta.myGroups") }
                 Section {
-                    TextField(localized("friendMeta.groupName"),text:$groupName).font(CYTypography.body)
+                    TextField(localized("friendMeta.groupName"),text:$groupName).cyText(.body)
                     Stepper(value:$position,in:0...Int(Int32.max)) { Text("d7.friendMeta.order \(position)", tableName: "NativeFriendMetadata").monospacedDigit() }
                     metaAction(editingGroupID == nil ? "friendMeta.createGroup" : "friendMeta.saveGroup", style: pillStyle(.saveGroup), enabled: flow.canManageGroups) {
                         flow.reviewGroup(id:editingGroupID,name:groupName,position:position)
@@ -184,7 +184,7 @@ import SwiftUI
             }
         }
         .formStyle(.grouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .accessibilityIdentifier("friendMeta.editor").privacySensitive()
@@ -212,7 +212,7 @@ import SwiftUI
     }
     private func sectionTitle(_ key: String) -> some View {
         text(key)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
@@ -225,7 +225,7 @@ import SwiftUI
                     .accessibilityHidden(true)
             }
             text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)

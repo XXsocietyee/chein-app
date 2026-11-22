@@ -169,7 +169,7 @@ private struct ChannelNotifyHeading: View {
     let title: String
     var body: some View {
         Text(verbatim: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : title)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)

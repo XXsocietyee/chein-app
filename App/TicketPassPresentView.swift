@@ -30,7 +30,7 @@ import SwiftUI
                             .accessibilityIdentifier("ticketWallet.present.checkedIn")
                     }
                     Text(verbatim: c.t("亮度已调高，方便扫码。关闭后恢复。", "Brightness is raised for scanning and restored when you close."))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .multilineTextAlignment(.center)
                         .accessibilityIdentifier("ticketWallet.present.brightnessNote")
                 }
@@ -78,7 +78,7 @@ import SwiftUI
     private var summary: some View {
         VStack(spacing: CYSpacing.xs) {
             TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 .multilineTextAlignment(.center).lineLimit(2)
                 .accessibilityAddTraits(.isHeader)
             HStack(spacing: CYSpacing.sm) {
@@ -89,7 +89,7 @@ import SwiftUI
                     Label { Text(verbatim: place).lineLimit(1) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
             }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             .labelStyle(.titleAndIcon)
         }
         .frame(maxWidth: .infinity)
@@ -128,9 +128,9 @@ import SwiftUI
                     .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                     .accessibilityHidden(true)
             }
-            Text(verbatim: c.t("到场出示", "Show at the venue")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: c.t("到场出示", "Show at the venue")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             Text(verbatim: c.t("现场工作人员会为你核验，无需截图。", "Venue staff will check it for you. No screenshot needed."))
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .accessibilityIdentifier("ticketWallet.present.staffTile")

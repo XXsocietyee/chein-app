@@ -188,7 +188,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "App Store 提审合规自检（v\(snapshot.bundleVersionText)）")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("appStoreReadiness.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
@@ -197,7 +197,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
                 }
                 Spacer()
                 Text(verbatim: snapshot.allPassingForSubmission ? "可提审" : "需处理")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -224,7 +224,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: item.titleText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).title")
                 Spacer()
                 Text(verbatim: item.referenceCode)
@@ -232,13 +232,13 @@ public struct AppStoreSubmissionReadinessSectionView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).ref")
                 Text(verbatim: item.statusBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(item.isPassingForSubmission ? .green : .red)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).status")
             }
 
             Text(verbatim: item.detailText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("appStoreReadiness.item.\(item.id).detail")
 
@@ -252,7 +252,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
             if let onSelectCheckItem {
                 Button(action: { onSelectCheckItem(item) }) {
                     Text(verbatim: "查看合规项详情")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("appStoreReadiness.item.\(item.id).action")
             }

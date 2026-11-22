@@ -23,16 +23,16 @@ import SwiftUI
                     .disabled(busy).accessibilityIdentifier("club.profile.draft.discard")
             }
             if !flow.differences.isEmpty {
-                Text("localDraft.comparison", tableName: "ClubProfileLocalDraft").font(.headline)
+                Text("localDraft.comparison", tableName: "ClubProfileLocalDraft").cyText(.cardTitle)
                 ForEach(flow.differences) { difference in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey("localDraft.field." + difference.id), tableName: "ClubProfileLocalDraft").font(.caption.bold())
+                        Text(LocalizedStringKey("localDraft.field." + difference.id), tableName: "ClubProfileLocalDraft").cyText(.meta, weight: .bold)
                         if difference.id == "logo" || difference.id == "cover" {
                             Text("localDraft.imageDifference", tableName: "ClubProfileLocalDraft")
                         } else {
-                            Text("localDraft.savedValue", tableName: "ClubProfileLocalDraft").font(.caption)
+                            Text("localDraft.savedValue", tableName: "ClubProfileLocalDraft").cyText(.meta)
                             Text(verbatim: difference.saved).textSelection(.enabled)
-                            Text("localDraft.currentValue", tableName: "ClubProfileLocalDraft").font(.caption)
+                            Text("localDraft.currentValue", tableName: "ClubProfileLocalDraft").cyText(.meta)
                             Text(verbatim: difference.current).textSelection(.enabled)
                         }
                     }.accessibilityIdentifier("club.profile.draft.compare." + difference.id)
@@ -47,7 +47,7 @@ import SwiftUI
                 Button { readFresh() } label: { Text("localDraft.readFresh", tableName: "ClubProfileLocalDraft") }
                     .disabled(busy).accessibilityIdentifier("club.profile.draft.readFresh")
             }
-            Text("localDraft.localOnly", tableName: "ClubProfileLocalDraft").font(.footnote).foregroundStyle(.secondary)
+            Text("localDraft.localOnly", tableName: "ClubProfileLocalDraft").cyText(.bodyCompact).foregroundStyle(.secondary)
         } header: { Text("localDraft.title", tableName: "ClubProfileLocalDraft") }
         .sheet(isPresented: $confirmsDiscard) {
             CYConfirmSheet(

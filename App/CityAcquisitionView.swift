@@ -53,7 +53,7 @@ import SwiftUI
             if let title = snapshot.ownership.first(where: { $0.pointId == pointID }) {
                 if title.contentHash == board.rulesHash {
                     CYNoteBanner(text: Text("cityAcquire.map.owned", tableName: table), symbol: "checkmark.seal", tone: .success)
-                    Text(verbatim: cloud06Shown(title.ownerTeamId)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: cloud06Shown(title.ownerTeamId)).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     CYNoteBanner(text: Text(CityAcquisitionView.status(title.status), tableName: table), symbol: "seal")
                 } else {
                     CYNoteBanner(text: Text("cityAcquire.map.releaseReview", tableName: table), symbol: "exclamationmark.triangle", tone: .warning)
@@ -130,7 +130,7 @@ import SwiftUI
             if let snapshot = controller.snapshot { tasksBlock(snapshot) }
             titlesBlock
             Text("cityAcquire.lifecycleBoundary", tableName: table)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -187,7 +187,7 @@ import SwiftUI
     }
     private func sectionTitle(_ key: LocalizedStringKey) -> some View {
         Text(key, tableName: table)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
@@ -200,7 +200,7 @@ import SwiftUI
                     CYHeroHeader("cityAcquire.confirm.title", tableName: table)
                     quoteContent(captured)
                     Text("cityAcquire.confirm.hint", tableName: table)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     Button(role: .destructive) { confirm(captured) } label: {
@@ -238,7 +238,7 @@ import SwiftUI
     }
     @ViewBuilder private func quoteContent(_ q: CityAcquisitionQuote) -> some View {
         Text("cityAcquire.quote.title", tableName: table)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
@@ -256,10 +256,10 @@ import SwiftUI
             }
         }
         quoteFacts(q)
-        Text("cityAcquire.quote.currentRelease", tableName: table).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
-        Text("cityAcquire.quote.assurance", tableName: table).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
-        Text(verbatim: cloud06Shown(q.evidenceAcceptanceReason)).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
-        Text(verbatim: cloud06Shown(q.quoteHash)).font(CYTypography.caption).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        Text("cityAcquire.quote.currentRelease", tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+        Text("cityAcquire.quote.assurance", tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+        Text(verbatim: cloud06Shown(q.evidenceAcceptanceReason)).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+        Text(verbatim: cloud06Shown(q.quoteHash)).cyText(.caption).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         if !q.unexpired {
             CYNoteBanner(text: Text("cityAcquire.quote.expired", tableName: table), symbol: "clock.badge.exclamationmark", tone: .danger)
         }
@@ -279,8 +279,8 @@ import SwiftUI
     }
     private func metric(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(label, tableName: table).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
-            Text(verbatim: value).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(label, tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: value).cyText(.dataXL).monospacedDigit().foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -307,7 +307,7 @@ import SwiftUI
             CYFactRow(label: Text("cityAcquire.title.debit", tableName: table), value: t.pointCost.map { String($0) } ?? "—")
             CYFactRow(label: Text("cityAcquire.title.after", tableName: table), value: t.pointsAfter.map { String($0) } ?? "—")
             CYFactRow(label: Text("cityAcquire.quote.actions", tableName: table), value: t.actionCost.map { String($0) } ?? "—")
-            Text(verbatim: cloud06Shown(t.titleId)).font(CYTypography.caption).foregroundStyle(palette.textTertiary).textSelection(.enabled)
+            Text(verbatim: cloud06Shown(t.titleId)).cyText(.caption).foregroundStyle(palette.textTertiary).textSelection(.enabled)
         }
         .accessibilityElement(children: .contain)
     }
@@ -322,11 +322,11 @@ import SwiftUI
     @ViewBuilder private func receiptBlock(_ receipt: CityAcquisitionReceipt) -> some View {
         CYNoteBanner(text: Text(receipt.succeeded ? "cityAcquire.receipt.success" : "cityAcquire.receipt.rejected", tableName: table), symbol: receipt.succeeded ? "checkmark.seal" : "xmark.octagon", tone: receipt.succeeded ? .success : .danger)
         if let code = receipt.errorCode {
-            Text(Self.failure(code), tableName: table).font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(Self.failure(code), tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
-        Text(verbatim: cloud06Shown(receipt.requestId)).font(CYTypography.caption).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        Text(verbatim: cloud06Shown(receipt.requestId)).cyText(.caption).monospacedDigit().foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         if let title = receipt.title {
-            Text("cityAcquire.receipt.historical", tableName: table).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text("cityAcquire.receipt.historical", tableName: table).cyText(.meta).foregroundStyle(palette.textSecondary)
             titleContent(title)
         }
     }

@@ -103,7 +103,7 @@ import SwiftUI
             }
             IMRecipientPreviewRow(message: snapshot.message, input: recipientPreview)
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .privacySensitive()
         .accessibilityIdentifier("ncm47.message.\(snapshot.id.rawValue)")
     }
@@ -123,7 +123,7 @@ import SwiftUI
         let raw = snapshot.content ?? copy("message.system")
         let shown = raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw
         return Text(verbatim: shown)
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity, alignment: .center)
@@ -134,7 +134,7 @@ import SwiftUI
         if let content = snapshot.content {
             let shown = content.trimmingCharacters(in: .whitespacesAndNewlines)
             Text(verbatim: shown.isEmpty ? "—" : shown)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -155,7 +155,7 @@ import SwiftUI
 
     private func note(_ key: String) -> some View {
         Text(LocalizedStringKey(key), tableName: "NativeChannelMessage")
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -164,7 +164,7 @@ import SwiftUI
         let shown = quote.summary ?? placeholder(quote.state)
         return Button { if isCurrent(), quote.state == "VISIBLE" { locateOriginal(quote.id) } } label: {
             Text(verbatim: shown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : shown)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, CYSpacing.md)

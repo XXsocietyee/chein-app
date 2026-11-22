@@ -42,7 +42,7 @@ import SwiftUI
                 Text(verbatim: Cloud25Copy.value(reference.contentHash)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: text("仅举报这个原已购不可变版本。受理回执和审核状态不代表侵权判定、下架、退款或运行许可。",
                                     "Reports only this original immutable purchased version. Receipt and review status do not establish infringement, withdrawal, refund or runtime permission."))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             if let controller, controller.isCurrent {
                 if controller.busy { CYSkeleton().accessibilityLabel(Text("cy.state.loading")) }
@@ -89,7 +89,7 @@ import SwiftUI
                                 controller.pending == nil ? "Confirm report" : "Retry original request")
         let canSubmit = controller.canWrite && !reason.isEmpty && (controller.pending.map { $0.reasonSHA256 == ModOwnedReportPending.digest(reason) } ?? true)
         return CYInfoCard {
-            Text(verbatim: target.title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: target.title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             Picker(text("原举报原因", "Original report reason"), selection: $reason) {
                 Text(verbatim: text("请选择", "Choose a reason")).tag("")
                 ForEach(target.reasons) { item in Text(verbatim: item.label).tag(item.code) }
@@ -100,7 +100,7 @@ import SwiftUI
             }
             Text(verbatim: text("未配置写入批准时只能读取。未知结果必须保留同一请求；重试须重新选择原原因，不会自动发起举报。",
                                 "Without write approval this is read-only. Unknown outcomes retain the same request; retry requires selecting the original reason. Reports are never submitted automatically."))
-                .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -112,10 +112,10 @@ import SwiftUI
                 .accessibilityLabel(Text(verbatim: Cloud25Copy.value(pending.receipt?.state ?? "")))
             if let receipt = pending.receipt, receipt.state != "UNKNOWN" {
                 Text(verbatim: text("原审核举报已留痕；这不是处置结果。", "The original audit report was recorded; this is not a disposition."))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 if receipt.state == "ALREADY_REPORTED" {
                     Text(verbatim: text("本人在同一原审核轮次已有举报；本次没有重复追加原因。", "You already reported in this original review round; this request did not append another reason."))
-                        .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let task = receipt.auditTaskId {
                     CYFactRow(label: Text(verbatim: "AuditTask"), value: String(task))
@@ -127,11 +127,11 @@ import SwiftUI
                     CYFactRow(label: Text(verbatim: "auditStatus"), value: String(status))
                 } else {
                     Text(verbatim: text("当前审核状态未知。", "Current review status is unknown."))
-                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
             } else {
                 Text(verbatim: text("未读到原受理结果；不能当成失败或重新生成请求。", "The original outcome has not been read. This is not a rejection and does not permit a new request."))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
         }
     }

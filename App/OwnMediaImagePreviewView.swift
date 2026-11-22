@@ -123,7 +123,7 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
             Button { model.open() } label: { Text("open", tableName: "OwnMediaImagePreview") }
                 .disabled(!model.available || model.presentation != nil)
                 .frame(minHeight: 44).accessibilityIdentifier("member.media.imagePreview.\(model.asset.id)")
-            if !model.available { Text("unavailable", tableName: "OwnMediaImagePreview").font(.footnote).foregroundStyle(.secondary) }
+            if !model.available { Text("unavailable", tableName: "OwnMediaImagePreview").cyText(.bodyCompact).foregroundStyle(.secondary) }
         }
         .onAppear { model.appear(foreground: scenePhase == .active) }
         .onDisappear { model.disappear() }
@@ -161,7 +161,7 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     CYHeroHeader("title", tableName: "OwnMediaImagePreview")
-                    Text("privateOnly", tableName: "OwnMediaImagePreview").font(.footnote).foregroundStyle(.secondary)
+                    Text("privateOnly", tableName: "OwnMediaImagePreview").cyText(.bodyCompact).foregroundStyle(.secondary)
                     if model.available, model.presentation == offered {
                         if let image = model.image {
                             OwnMediaImagePreviewZoom(image: image).frame(minHeight: 320)
@@ -177,7 +177,7 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
                             }
                         }
                     } else { Text("changed", tableName: "OwnMediaImagePreview") }
-                    Text("limitations", tableName: "OwnMediaImagePreview").font(.footnote).foregroundStyle(.secondary)
+                    Text("limitations", tableName: "OwnMediaImagePreview").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }.padding().frame(maxWidth: .infinity, alignment: .leading)
             }
             .cyHeroScreen()

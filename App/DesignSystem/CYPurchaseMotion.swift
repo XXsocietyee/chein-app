@@ -163,7 +163,7 @@ struct CYPayButton: View {
                     ProgressView().tint(palette.actionPrimaryFg).transition(.opacity)
                 }
             }
-            .font(CYTypography.bodyMedium.weight(.semibold))
+            .cyText(.bodyMedium)
             .foregroundStyle(isEnabled || processing ? palette.actionPrimaryFg : palette.textDisabled)
             .padding(.horizontal, CYSpacing.xl)
             .frame(maxWidth: .infinity, minHeight: 56)
@@ -239,7 +239,7 @@ struct CYBuyBar: View {
         } label: {
             HStack(spacing: CYSpacing.sm) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(verbatim: priceCaption).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: priceCaption).cyText(.meta).foregroundStyle(palette.textTertiary)
                     CYAnimatedPrice(text: priceText ?? "—", font: CYTypography.dataXL)
                 }
                 Image(systemName: "chevron.up")

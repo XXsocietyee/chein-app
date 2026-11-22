@@ -182,10 +182,10 @@ public struct ReleaseArchiveChecklistSectionView: View {
         Section {
             HStack {
                 Text(verbatim: "TestFlight 归档总状态")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isArchiveReady ? "可归档 (ARCHIVE_READY)" : "禁止归档 (HOLD)")
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isArchiveReady ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
@@ -195,7 +195,7 @@ public struct ReleaseArchiveChecklistSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "门禁统计")
             }
@@ -208,7 +208,7 @@ public struct ReleaseArchiveChecklistSectionView: View {
                             .font(.subheadline.monospaced().weight(.medium))
                         Spacer()
                         Text(verbatim: item.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: item.status).opacity(0.15), in: Capsule())
@@ -217,7 +217,7 @@ public struct ReleaseArchiveChecklistSectionView: View {
                     Text(verbatim: "当前值：\(item.currentValue)")
                         .font(.caption.monospaced())
                     Text(verbatim: item.requirementNote)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

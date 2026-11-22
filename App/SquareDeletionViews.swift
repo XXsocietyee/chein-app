@@ -97,7 +97,7 @@ struct SquareDeletionStatusView: View {
         case .rejected(_, let message):
             VStack(alignment: .leading, spacing: 4) {
                 CYStatusChip("square.xcx.delete.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("square.delete.failed")
-                if let message, !message.isEmpty { Text(verbatim: message).font(.caption) }
+                if let message, !message.isEmpty { Text(verbatim: message).cyText(.meta) }
             }
         case .unknown:
             VStack(alignment: .leading, spacing: 6) {
@@ -105,7 +105,7 @@ struct SquareDeletionStatusView: View {
                 CYPillButton("square.xcx.delete.verify", style: .secondary, action: verify).accessibilityIdentifier("square.delete.verify")
             }
         case .disabled:
-            Text("square.xcx.delete.unavailable").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("square.delete.unavailable")
+            Text("square.xcx.delete.unavailable").cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("square.delete.unavailable")
         default: EmptyView()
         }
     }

@@ -5,7 +5,7 @@ struct NativeChannelFlowReference: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
-            label.font(Theme.Font.label).foregroundStyle(.secondary)
+            label.cyText(.label).foregroundStyle(.secondary)
             Text(verbatim: value).font(.callout.monospaced())
                 .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }.accessibilityElement(children: .combine)
@@ -18,7 +18,7 @@ struct NativeChannelFlowFact: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
-            label.font(.caption).foregroundStyle(.secondary)
+            label.cyText(.meta).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: value).font(Theme.Font.body)
                 .fixedSize(horizontal: false, vertical: true)

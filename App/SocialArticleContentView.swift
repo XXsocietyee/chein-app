@@ -22,7 +22,7 @@ struct SocialArticleContentView: View {
     }
     @ViewBuilder private func blockView(_ block: SocialArticleContent.Block) -> some View {
         switch block.kind {
-        case .paragraph: text(block).font(CYTypography.body).foregroundStyle(palette.textPrimary)
+        case .paragraph: text(block).cyText(.body).foregroundStyle(palette.textPrimary)
         case .heading(let level):
             text(block).font(level <= 2 ? CYTypography.sectionTitle : CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
@@ -30,10 +30,10 @@ struct SocialArticleContentView: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(verbatim: marker)
                 text(block)
-            }.font(CYTypography.body).foregroundStyle(palette.textPrimary).padding(.leading, CGFloat(min(depth, 4)) * 12)
+            }.cyText(.body).foregroundStyle(palette.textPrimary).padding(.leading, CGFloat(min(depth, 4)) * 12)
                 .accessibilityElement(children: .combine)
         case .quote:
-            text(block).font(CYTypography.body).padding(.leading, CYSpacing.md).foregroundStyle(palette.textSecondary)
+            text(block).cyText(.body).padding(.leading, CYSpacing.md).foregroundStyle(palette.textSecondary)
         }
     }
     private func text(_ block: SocialArticleContent.Block) -> Text {

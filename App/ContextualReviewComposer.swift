@@ -22,7 +22,7 @@ import SwiftUI
                 }.accessibilityIdentifier("context.review.rating")
                 TextField("context.review.contents", text: $draft.contents, axis: .vertical)
                     .lineLimit(4...10).focused($typing).accessibilityIdentifier("context.review.contents")
-                Text(verbatim: "\(draft.contents.utf16.count)/500").font(.caption)
+                Text(verbatim: "\(draft.contents.utf16.count)/500").cyText(.meta)
             }.disabled(busy || state == .unknown || state == .acknowledged)
             if owner?.writer.isConfigured != true { Section { Text("context.review.disabled") } }
             Section {

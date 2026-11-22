@@ -154,7 +154,7 @@ import UIKit
             .accessibilityIdentifier("roam.medalShare.savePhotos")
         if photoSave.inFlight { ProgressView("roam.share.savingPhotos") }
         else if let key = saveStatusKey {
-            Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("roam.medalShare.saveStatus")
         }
         if phase == .permissionDenied, !photoSave.inFlight {

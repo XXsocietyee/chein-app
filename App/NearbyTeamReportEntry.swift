@@ -14,7 +14,7 @@ import SwiftUI
         if !leader, teamID > 0, let access, access.enabled {
             Button { presented = true } label: {
                 Text(verbatim: c.t("举报队伍", "Report team"))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).underline()
+                    .cyText(.meta).foregroundStyle(CYColor.textTertiary).underline()
                     .frame(minHeight: CYSpacing.minTouchTarget)
             }
             .buttonStyle(.plain)

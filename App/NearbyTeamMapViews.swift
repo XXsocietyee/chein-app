@@ -19,7 +19,7 @@ struct NearbyTeamCountLine: View {
             Image(systemName: "circle.fill").font(.caption2).foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
         }
-        .font(Theme.Font.sectionTitle)
+        .cyText(.sectionTitle)
     }
 }
 
@@ -41,8 +41,8 @@ struct NearbyLoadIssueCard: View {
     let retry: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(LocalizedStringKey(issue.titleKey)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-            Text(LocalizedStringKey(issue.subKey)).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            Text(LocalizedStringKey(issue.titleKey)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(LocalizedStringKey(issue.subKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
             if !issue.offersRetry {
                 EmptyView()
             } else if issue == .signIn {
@@ -107,7 +107,7 @@ struct NearbyTeamListHeader: View {
     let count: Int
     var body: some View {
         Text("nearby.w208.listHeader \(NearbyTeamPresentation.rangeText(radius)) \(count)")
-            .font(CYTypography.bodyCompact.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("nearby.w208.listHeader")
+            .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("nearby.w208.listHeader")
     }
 }
 
@@ -121,8 +121,8 @@ struct NearbyTeamListRow: View {
         Button(action: toggle) {
             HStack(alignment: .top, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-                    else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                    if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+                    else { Text(verbatim: NearbyTeamPresentation.heading(team)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
                     if typeSize >= .xxLarge {
                         VStack(alignment: .leading, spacing: 8) { NearbyTeamSubLine(team: team); NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode)) }
                     } else {
@@ -130,7 +130,7 @@ struct NearbyTeamListRow: View {
                     }
                 }
                 Spacer(minLength: 8)
-                Text(verbatim: "\(team.joinedCount)/\(team.maxMembers)").font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: "\(team.joinedCount)/\(team.maxMembers)").cyText(.numericBody).foregroundStyle(CYColor.textSecondary)
                 Image(systemName: expanded ? "chevron.up" : "chevron.down").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }.buttonStyle(.plain).frame(minHeight: 44).accessibilityIdentifier("nearby.w208.row.\(team.id.rawValue)")
@@ -181,7 +181,7 @@ struct NearbyTeamSubLine: View {
     }
     var body: some View {
         if team.productLabelKey != nil || !team.addressName.isEmpty || team.distance != nil {
-            line.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            line.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -195,7 +195,7 @@ struct NearbyTeamMembersLine: View {
         let seats = left > 0 ? Text("nearby.w208.members.left \(left)") : Text("nearby.w208.members.full")
         return leader + Text(verbatim: " · ") + Text("nearby.w208.members.joined \(team.joinedCount)") + Text(verbatim: " · ") + seats
     }
-    var body: some View { line.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("nearby.w208.members") }
+    var body: some View { line.cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("nearby.w208.members") }
 }
 
 /// Default-face stack. Remote avatar URLs are display data only and are not fetched by this surface.
@@ -225,7 +225,7 @@ struct NearbyTeamNotice: View {
         }
     }
     var body: some View {
-        if let key { Text(key).font(CYTypography.bodyCompact.weight(.medium)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("nearby.w208.notice") }
+        if let key { Text(key).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("nearby.w208.notice") }
     }
 }
 
@@ -246,7 +246,7 @@ struct NearbyMineMembersText: View {
                 Text("nearby.w208.mine.membersUnknown")
             }
         }
-        .font(CYTypography.meta)
+        .cyText(.meta)
         .foregroundStyle(CYColor.textTertiary)
     }
 }
@@ -259,7 +259,7 @@ struct NearbyRecruitingSection: View {
     let openOnMap: (NearbyTeamID) -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("nearby.w208.recruit.title").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            Text("nearby.w208.recruit.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("nearby.w208.recruit.title")
             switch state {
             case .idle: EmptyView()
@@ -279,7 +279,7 @@ struct NearbyRecruitingSection: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(alignment: .top) {
                     NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: team.memberAvatars.count, members: team.joinedCount))
-                    if team.title.isEmpty { Text("nearby.w208.mine.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: team.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    if team.title.isEmpty { Text("nearby.w208.mine.untitled").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: team.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                     Spacer(minLength: 8)
                     NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode))
                 }
@@ -287,7 +287,7 @@ struct NearbyRecruitingSection: View {
                 HStack {
                     NearbyMineMembersText(joined: team.reportedJoinedCount, maximum: team.reportedMaxMembers)
                     Spacer()
-                    Text("nearby.w208.recruit.onMap").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    Text("nearby.w208.recruit.onMap").cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textPrimary)
                 }
             }.frame(maxWidth: .infinity, alignment: .leading).padding()
                 .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).contentShape(Rectangle())

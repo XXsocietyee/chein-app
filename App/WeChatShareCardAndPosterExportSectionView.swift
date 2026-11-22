@@ -120,7 +120,7 @@ public struct WeChatShareCardAndPosterExportSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "微信分享卡片与高清海报导出审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("shareCardPosterExport.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -129,22 +129,22 @@ public struct WeChatShareCardAndPosterExportSectionView: View {
                     .accessibilityIdentifier("shareCardPosterExport.overallStatus")
 
                 Text(verbatim: Self.statusSeparationText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("shareCardPosterExport.statusSeparation")
 
                 Text(verbatim: Self.posterScaleStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("shareCardPosterExport.posterScaleStatus")
 
                 Text(verbatim: Self.qrDeepLinkStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("shareCardPosterExport.qrDeepLinkStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无分享卡片与海报导出检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("shareCardPosterExport.empty")
             } else {
@@ -189,19 +189,19 @@ private struct SharePosterSurfaceRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.surfaceTitle)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isSurfaceCompliant ? "已对齐" : "告警")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isSurfaceCompliant ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "404/503 分离：\(row.separates404Or410GoneFrom503Error ? "通过" : "混淆") · 渲染倍率：\(row.rendersAt3xScale ? "@3x" : "非@3x") · QR 深链：\(row.embedsSanitizedQRDeepLink ? "已脱敏内嵌" : "缺失")")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

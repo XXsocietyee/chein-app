@@ -10,7 +10,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 8) {
             Button(text(.choose)) { controller.open() }
                 .buttonStyle(.borderless).disabled(!controller.available).accessibilityIdentifier("projectMerchantDraft.choose")
-            Text(text(controller.available ? .localReferenceOnly : .unconfigured)).font(.caption)
+            Text(text(controller.available ? .localReferenceOnly : .unconfigured)).cyText(.meta)
         }.sheet(item: controller.presentation(original)) { original in
             ProjectMerchantDraftPanel(controller: controller, original: original)
         }
@@ -30,7 +30,7 @@ import SwiftUI
                         LabeledContent("projectEdit.templateID", value: original.original.templateID.map(String.init) ?? "—")
                     }
                     Section(text(.list)) {
-                        Text(text(.pageCurrent)).font(.caption)
+                        Text(text(.pageCurrent)).cyText(.meta)
                         Button(text(.refresh)) { controller.refresh(original) }
                             .disabled(controller.state == .resolving).accessibilityIdentifier("projectMerchantDraft.refresh")
                         if controller.state == .loading { ProgressView(text(.loading)) }
@@ -42,14 +42,14 @@ import SwiftUI
                                 Button { controller.select(row, review: original) } label: {
                                     VStack(alignment: .leading) {
                                         Text(verbatim: choice.title)
-                                        Text(verbatim: "#\(row.memberTemplateID)").font(.caption)
+                                        Text(verbatim: "#\(row.memberTemplateID)").cyText(.meta)
                                     }
                                 }.buttonStyle(.borderless).disabled(controller.state != .ready)
                                     .accessibilityIdentifier("projectMerchantDraft.option.\(row.sourceID)")
                             } else {
                                 VStack(alignment: .leading) {
                                     Text(verbatim: "#\(row.memberTemplateID)")
-                                    Text(text(.unavailableRow)).font(.caption)
+                                    Text(text(.unavailableRow)).cyText(.meta)
                                 }.accessibilityIdentifier("projectMerchantDraft.unavailable.\(row.sourceID)")
                             }
                         }
@@ -62,7 +62,7 @@ import SwiftUI
                         Section(text(.review)) {
                             Text(verbatim: selected.choice.title)
                             LabeledContent("projectEdit.templateID", value: String(selected.choice.memberTemplateID))
-                            Text(text(.noPublicationAuthority)).font(.caption)
+                            Text(text(.noPublicationAuthority)).cyText(.meta)
                             Button(text(.apply)) { controller.apply(selected, review: original) }
                                 .disabled(controller.state != .ready).accessibilityIdentifier("projectMerchantDraft.apply")
                         }

@@ -84,7 +84,7 @@ import SwiftUI
                 Label(LocalizedStringKey(key), systemImage: hasPending ? "exclamationmark.triangle" : "info.circle")
                     .accessibilityIdentifier("team.message")
             }
-        }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+        }.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         }
@@ -113,10 +113,10 @@ struct TeamMemberRow: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Group {
                     if member.name.isEmpty { Text("team.member.unnamed") } else { Text(verbatim: member.name).fixedSize(horizontal: false, vertical: true) }
-                }.font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                Text(member.isCaptain ? "team.member.captain" : member.role == 0 ? "team.member.player" : "team.member.unknownRole").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                }.cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                Text(member.isCaptain ? "team.member.captain" : member.role == 0 ? "team.member.player" : "team.member.unknownRole").cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }.frame(maxWidth: .infinity, alignment: .leading)
-            if let remove { Button("team.remove", role: .destructive, action: remove).font(CYTypography.label).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("team.remove.\(member.id)") }
+            if let remove { Button("team.remove", role: .destructive, action: remove).cyText(.label).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("team.remove.\(member.id)") }
         }.padding(.vertical, CYSpacing.xs)
     }
 }
@@ -164,54 +164,54 @@ struct TeamMemberRow: View {
                     if let detail = review.detail {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text(verbatim: detail.team.title)
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                             Text(verbatim: "#\(detail.team.id)")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                     }
                     if case .remove(_, let memberID) = review.action, let member = review.detail?.members.first(where: { $0.id == memberID }) {
                         Text(verbatim: member.name)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if case .create(let context, let size, let inviteOnly) = review.action {
                         Text(verbatim: context.title)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         LabeledContent("team.size") { Text(verbatim: "\(size)") }
-                            .font(CYTypography.body)
+                            .cyText(.body)
                         Text(inviteOnly ? "team.mode.invitation" : "team.mode.public")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                     }
                     if case .changeJoinMode(_, let mode) = review.action {
                         LabeledContent {
                             Text(LocalizedStringKey(review.detail?.team.joinMode.key ?? "team.mode.unknown"))
                         } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "当前方式" : "Current mode") }
-                            .font(CYTypography.body)
+                            .cyText(.body)
                         LabeledContent {
                             Text(LocalizedStringKey(mode.key))
                         } label: { Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "确认后的方式" : "Requested mode") }
-                            .font(CYTypography.body)
+                            .cyText(.body)
                         Text(verbatim: locale.language.languageCode?.identifier == "zh"
                             ? "仅更改加入队伍的方式，不变更成员或报名。结果不明时会保留锁定，不自动重试。"
                             : "Only the joining mode changes; membership and registration stay unchanged. An unknown outcome remains locked without automatic retry.")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else if consequenceKeys.isEmpty {
                         Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail)))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(LocalizedStringKey(TeamSeatPresentation.consequenceKey(review.action, detail: review.detail)))
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -222,7 +222,7 @@ struct TeamMemberRow: View {
                                         .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
                                         .accessibilityHidden(true)
                                     Text(LocalizedStringKey(key))
-                                        .font(CYTypography.bodyCompact)
+                                        .cyText(.bodyCompact)
                                         .foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
@@ -241,7 +241,7 @@ struct TeamMemberRow: View {
                             VStack(spacing: CYSpacing.xxs) {
                                 Text("team.leaveInstead")
                                 Text("team.page.leaveAndTransfer")
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -297,31 +297,31 @@ struct TeamMemberRow: View {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: team.title)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let code = team.inviteCode, TeamLookup.validInvite(code) {
                         Text(verbatim: code)
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.brand)
                             .monospaced()
                             .textSelection(.enabled)
                             .accessibilityIdentifier("team.invite.code")
                     } else {
                         Text("team.invite.unavailable")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     if let copyMessageKey {
                         Text(LocalizedStringKey(copyMessageKey))
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(copyMessageKey == "team.invite.copied" ? CYColor.successText : CYColor.dangerText)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("team.invite.copyFeedback")
                     }
                     Text("team.invite.previewOnly")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

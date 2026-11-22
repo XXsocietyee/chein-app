@@ -31,7 +31,7 @@ struct MerchantOperationsEditor: View {
             else if !coordinator.reader.canSave { Section { MerchantContentBoundary() } }
             if let draft = coordinator.draft {
                 fields(draft)
-                if let blocker = draft.blocker { Section { Text(LocalizedStringKey(blocker)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.operations.blocker") } }
+                if let blocker = draft.blocker { Section { Text(LocalizedStringKey(blocker)).cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.operations.blocker") } }
             }
             if coordinator.exampleSaved { Section { Label("merchant.operations.exampleSaved", systemImage: "checkmark.circle").accessibilityIdentifier("merchant.operations.exampleSaved") } }
             if let issue = coordinator.issue { Section { MerchantOperationsIssueView(issue: issue) } }
@@ -433,11 +433,11 @@ struct MerchantOperationsConfirmationView: View {
             List {
                 Section {
                     Text(LocalizedStringKey(confirmation.draft.destination.titleKey))
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                     if confirmation.draft.localOnlyReview {
                         Text("merchant.participation.localOnly")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                     }
                 }

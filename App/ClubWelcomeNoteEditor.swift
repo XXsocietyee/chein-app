@@ -93,11 +93,11 @@ import SwiftUI
                 Button(locale.pick("回读原请求并刷新当前欢迎语", "Read back original request and refresh")) { Task { await flow.load() } }
                     .accessibilityIdentifier("club.welcome.readback")
             }
-            if flow.recoveryUnavailable { Text(locale.pick("原请求回执暂不可读；身份记录未删除，未重发保存。可从俱乐部详情的本人原请求入口继续回读。", "The original receipt can't be read right now. The record is kept and nothing was resent. You can continue from your original requests in club details.")).font(.footnote) }
+            if flow.recoveryUnavailable { Text(locale.pick("原请求回执暂不可读；身份记录未删除，未重发保存。可从俱乐部详情的本人原请求入口继续回读。", "The original receipt can't be read right now. The record is kept and nothing was resent. You can continue from your original requests in club details.")).cyText(.bodyCompact) }
             if visit.isCurrent, !flow.originalResults.isEmpty {
                 Section(locale.pick("本人原请求 · 历史事实", "Your original requests · History")) { ForEach(flow.originalResults) { ClubWelcomeNoteOriginalRow(value: $0) } }
             }
-            if flow.ownerConfirmed && !flow.canSave && flow.state == .ready { Text(locale.pick("内容未变或此接口尚未单独批准写入。只读不会授权保存。", "The text is unchanged, or this endpoint isn't approved for writes yet. Read access does not authorize saving.")).font(.footnote) }
+            if flow.ownerConfirmed && !flow.canSave && flow.state == .ready { Text(locale.pick("内容未变或此接口尚未单独批准写入。只读不会授权保存。", "The text is unchanged, or this endpoint isn't approved for writes yet. Read access does not authorize saving.")).cyText(.bodyCompact) }
         }
         .font(Theme.Font.body)
         .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page", in: domain) != nil ? .hidden : .automatic)
@@ -224,15 +224,15 @@ private struct ClubWelcomeNoteOriginalRow: View {
     @Environment(\.themeDomain) private var domain
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Generated.length("--cy-space-1-5", in: domain)) {
-            Text(verbatim: value.entry.requestID).font(.caption).textSelection(.enabled)
+            Text(verbatim: value.entry.requestID).cyText(.meta).textSelection(.enabled)
             if let receipt = value.receipt, receipt.state == "APPLIED", let note = receipt.welcomeNote {
                 Text(locale.pick("已保存 · 原请求回执确认", "Saved · confirmed by original receipt"))
                 Text(verbatim: note.isEmpty ? locale.pick("当时已清空欢迎语", "The welcome message was cleared") : locale.pick("当时保存：", "Saved: ") + note)
-                if let audit = receipt.auditId { Text(verbatim: locale.pick("原审计编号 \(audit)", "Original audit ID \(audit)")).font(.caption) }
+                if let audit = receipt.auditId { Text(verbatim: locale.pick("原审计编号 \(audit)", "Original audit ID \(audit)")).cyText(.meta) }
             } else if let receipt = value.receipt, receipt.state == "REJECTED" {
                 Text(locale.pick("原请求已拒绝 · 未保留本次设置变更", "Original request rejected · change not kept"))
                 if let message = receipt.message { Text(verbatim: message) }
-                if let audit = receipt.auditId { Text(verbatim: locale.pick("原审计编号 \(audit)", "Original audit ID \(audit)")).font(.caption) }
+                if let audit = receipt.auditId { Text(verbatim: locale.pick("原审计编号 \(audit)", "Original audit ID \(audit)")).cyText(.meta) }
             } else if value.entry.state == "NOT_SENT" {
                 Text(locale.pick("未转发到网络；这条请求没有重发。", "Not sent to the network; this request was not resent."))
             } else {

@@ -115,7 +115,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 CYHeroHeader("club.activityReport.title")
                 Text("club.gov.changed")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -129,21 +129,21 @@ import SwiftUI
                 CYHeroHeader("club.activityReport.title")
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text("club.activityReport.target")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                     choiceTitle(target.choice.name)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let when = schedule(target.choice.startDate, target.choice.startTime) {
                         Text(verbatim: when)
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(palette.textSecondary)
                             .monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Text("club.activityReport.platformHint")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -206,12 +206,12 @@ import SwiftUI
             CYRowIcon(systemImage: "flag")
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 choiceTitle(choice.name)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let when = schedule(choice.startDate, choice.startTime) {
                     Text(verbatim: when)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
@@ -219,7 +219,7 @@ import SwiftUI
                 LabeledContent("club.gov.field.activityId") {
                     Text(verbatim: String(choice.id)).monospacedDigit()
                 }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
             }
             Spacer(minLength: CYSpacing.sm)

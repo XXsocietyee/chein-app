@@ -36,7 +36,7 @@ struct ObjectBadgeWallParityHeader: View {
                 let counts = ObjectBadgeWallPageState.project(wall).counts
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                     Text(verbatim: "\(counts.unlocked) / \(counts.total)")
-                        .font(CYTypography.dataXL).monospacedDigit().foregroundStyle(Theme.Color.textSecondary(in: domain))
+                        .cyText(.dataXL).monospacedDigit().foregroundStyle(Theme.Color.textSecondary(in: domain))
                     Text("badgeWall.state.unknownDetail")
                         .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
                         .fixedSize(horizontal: false, vertical: true)
@@ -56,7 +56,7 @@ struct ObjectBadgeWallParityHeader: View {
                     guard !exploreConsumed else { return }
                     exploreConsumed = true
                     onExploreHome()
-                }.buttonStyle(.bordered).font(Theme.Font.button).frame(minHeight: 44).disabled(exploreConsumed)
+                }.buttonStyle(.bordered).cyText(.button).frame(minHeight: 44).disabled(exploreConsumed)
                     .accessibilityIdentifier("objects.badge.explore")
             }
         }
@@ -347,11 +347,11 @@ enum ObjectBadgeShowroomMode: Equatable {
                         .accessibilityIdentifier("objects.badge.turntable")
                     VStack(spacing: CYSpacing.xs) {
                         Text(verbatim: parameters.name)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                         if !parameters.subtitle.isEmpty {
                             Text(verbatim: parameters.subtitle)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                     }

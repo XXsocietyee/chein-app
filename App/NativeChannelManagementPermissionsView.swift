@@ -74,7 +74,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                                     HStack(spacing: CYSpacing.md) {
                                         CYRowIcon(systemImage: "checkmark.shield")
                                         ncmPermissionText("capability.\(name)")
-                                            .font(CYTypography.body)
+                                            .cyText(.body)
                                             .foregroundStyle(palette.textPrimary)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
@@ -110,7 +110,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                     permissionHero
                     CYEmptyState(systemImage: "lock.shield", "unavailable", tableName: "NativeChannelManagement")
                     ncmPermissionText("entryUnavailable")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -135,7 +135,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
     }
     private func permissionHeader(_ key: String) -> some View {
         ncmPermissionText(key)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .textCase(nil)

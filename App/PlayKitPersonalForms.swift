@@ -18,12 +18,12 @@ extension PlayKitScreen {
             HStack {
                 if step > 0 {
                     Button("playkit.profile.previous") { profileStep = step - 1 }
-                        .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.label).foregroundStyle(CYColor.textSecondary)
                         .disabled(!enabled)
                         .accessibilityIdentifier("playkit.profile.previous")
                 }
                 Spacer()
-                Text(verbatim: "\(step + 1) / \(total)").font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: "\(step + 1) / \(total)").cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
                     .accessibilityLabel(Text("playkit.profile.stepCount \(step + 1) \(total)"))
                     .accessibilityIdentifier("playkit.profile.step")
             }
@@ -36,7 +36,7 @@ extension PlayKitScreen {
                     HStack(spacing: CYSpacing.xxs) {
                         Text(LocalizedStringKey(raw["avatar"]["required"].bool == true ? "playkit.profile.avatarRequired" : "playkit.profile.avatarOptional"))
                         if raw["avatar"]["required"].bool == true { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
-                    }.font(CYTypography.label)
+                    }.cyText(.label)
                 }
                 if !done { photoInput { url in avatarURL = url; dirty = true } }
             }
@@ -45,7 +45,7 @@ extension PlayKitScreen {
         }
         if done {
             Text("playkit.profile.seal")
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.dangerText)
+                .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
                 .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(CYColor.dangerText, lineWidth: 2))
                 .rotationEffect(.degrees(-6))
@@ -54,7 +54,7 @@ extension PlayKitScreen {
                 .accessibilityIdentifier("playkit.profile.seal")
             CYPillButton("playkit.profile.registered") {}.disabled(true).accessibilityIdentifier("playkit.submit.profile")
         } else if final {
-            Text("playkit.profile.lockNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("playkit.profile.lockNotice").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             let payload: [String: PlayWireValue] = ["answers": .object(answers.mapValues(PlayWireValue.string)), "avatarUrl": .string(avatarURL)]
             Button("playkit.profile.finish") { prepare("SUBMIT_PROFILE", payload) }
                 .buttonStyle(.questifyPrimary).disabled(!enabled || !valid("SUBMIT_PROFILE", payload))
@@ -69,15 +69,15 @@ extension PlayKitScreen {
     private func profileSummary(_ questions: [PlayWireValue]) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Group { if projection.title.isEmpty { Text("playkit.profile.formTitle") } else { Text(verbatim: projection.title) } }
-                .font(CYTypography.meta).tracking(4).foregroundStyle(CYColor.textTertiary)
+                .cyText(.meta).tracking(4).foregroundStyle(CYColor.textTertiary)
                 .frame(maxWidth: .infinity)
             ForEach(Array(questions.enumerated()), id: \.offset) { _, question in
                 let key = question["key"].text ?? ""
                 let value = answers[key] ?? ""
                 let shown = PlayKitOption.read(question["options"], idKey: "key").first { $0.id == value }?.label ?? value
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.lg) {
-                    Text(verbatim: question["label"].text ?? key).font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
-                    Text(verbatim: shown.isEmpty ? "—" : shown).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: question["label"].text ?? key).cyText(.body).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: shown.isEmpty ? "—" : shown).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     Spacer(minLength: 0)
                 }
                 .padding(.vertical, CYSpacing.xs)
@@ -94,7 +94,7 @@ extension PlayKitScreen {
         let limit = profileLimit(question)
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack(spacing: CYSpacing.xxs) {
-                Text(verbatim: question["label"].text ?? key).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: question["label"].text ?? key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
             }
             .accessibilityElement(children: .combine)
@@ -113,7 +113,7 @@ extension PlayKitScreen {
                     .accessibilityLabel(Text(verbatim: question["label"].text ?? key))
                     .accessibilityIdentifier("playkit.profile.field." + key)
                 Text(verbatim: "\((answers[key] ?? "").utf16.count) / \(limit)")
-                    .font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
@@ -134,25 +134,25 @@ extension PlayKitScreen {
     @ViewBuilder var noteForm: some View {
         let limit = PlayKitShortMessageLimit.resolve(raw["maxLength"])
         if (raw["previous"].array ?? []).contains(where: { !($0["text"].text ?? "").isEmpty }) {
-            Text("playkit.note.previousLabel").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("playkit.note.previousLabel").cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         ForEach(Array((raw["previous"].array ?? []).enumerated()), id: \.offset) { _, note in
             if let value = note["text"].text, !value.isEmpty {
                 CYInfoCard {
-                    Text(verbatim: value).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
-                    if let at = note["at"].double, at.isFinite { Text(Date(timeIntervalSince1970: at / 1000), style: .date).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    Text(verbatim: value).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    if let at = note["at"].double, at.isFinite { Text(Date(timeIntervalSince1970: at / 1000), style: .date).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
             }
         }
         TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).cyField().disabled(!enabled)
-        Text(verbatim: "\(text.utf16.count) / \(limit)").font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity, alignment: .trailing)
+        Text(verbatim: "\(text.utf16.count) / \(limit)").cyText(.meta, monospacedDigit: true).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity, alignment: .trailing)
         // Preset lines sit under the field as small chips, as in the mini-program.
         let presets = (raw["presets"].array ?? []).compactMap(\.text).filter { !$0.isEmpty }
         if !presets.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: CYSpacing.sm) {
                     ForEach(Array(presets.enumerated()), id: \.offset) { _, preset in
-                        Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: { Text(verbatim: preset).font(CYTypography.label) }
+                        Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: { Text(verbatim: preset).cyText(.label) }
                             .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
                             .disabled(!enabled)
                             .accessibilityAddTraits(text == preset ? .isSelected : [])
@@ -160,7 +160,7 @@ extension PlayKitScreen {
                 }
             }.frame(maxWidth: .infinity)
         }
-        Text("playkit.note.audience").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        Text("playkit.note.audience").cyText(.meta).foregroundStyle(CYColor.textSecondary)
         submitButton("SUBMIT_NOTE", payload: ["text": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
     @ViewBuilder var photoCheckForm: some View {
@@ -168,13 +168,13 @@ extension PlayKitScreen {
         else { ordinaryPhotoCheckForm }
     }
     @ViewBuilder var ordinaryPhotoCheckForm: some View {
-        if let note = raw["shotNote"].text, !note.isEmpty { Text(verbatim: note).font(.title3) }
+        if let note = raw["shotNote"].text, !note.isEmpty { Text(verbatim: note).cyText(.sectionTitle) }
         if let frame = raw["frameUrl"].text, !frame.isEmpty { artwork(frame) }
         if let prior = raw["lastUrl"].text, !prior.isEmpty { artwork(prior) }
         if raw["degraded"].bool != true, raw["passed"].bool != true, raw["flagged"].bool != true, (raw["tries"].integer ?? 0) > 0 {
             // Mini-program retry state: a short headline, then the reviewer's reason.
-            Text("playkit.photo.retryTitle").font(CYTypography.cardTitle).frame(maxWidth: .infinity)
-            if let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
+            Text("playkit.photo.retryTitle").cyText(.cardTitle).frame(maxWidth: .infinity)
+            if let reason = raw["lastReason"].text, !reason.isEmpty { Text(verbatim: reason).cyText(.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity) }
         }
         if let used = raw["tries"].integer, let cap = raw["maxTries"].integer, cap > 0 {
             LabeledContent("playkit.photo.remaining") { Text(verbatim: String(max(0, cap - used))) }
@@ -184,7 +184,7 @@ extension PlayKitScreen {
     }
     @ViewBuilder var scanForm: some View {
         if projection.complete {
-            if let reply = raw["reply"].text, !reply.isEmpty { Text(verbatim: reply).font(.title3) }
+            if let reply = raw["reply"].text, !reply.isEmpty { Text(verbatim: reply).cyText(.sectionTitle) }
             artwork(raw["imageUrl"].text)
             PlatformAudioHost(rawURL: raw["audioUrl"].text, scope: mediaScope, makeModel: makeAudio)
             if raw["kind"].text == "OVERLAY" || raw["overlayUrl"].text?.isEmpty == false {
@@ -198,7 +198,7 @@ extension PlayKitScreen {
                 }
             }
         } else if let device {
-            Text("playkit.scan.scopeLine").font(CYTypography.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+            Text("playkit.scan.scopeLine").cyText(.meta).foregroundStyle(.secondary).frame(maxWidth: .infinity)
             PlayKitScanInput(model: device, identity: evidenceIdentity, enabled: enabled, onDirty: { dirty = true }) { code in prepare("SUBMIT_SCAN", ["code": .string(code)]) }
         } else { Label("playkit.camera.gated", systemImage: "camera") }
     }
@@ -251,7 +251,7 @@ extension PlayKitScreen {
                     else if let output = model.output, case .photo = output { onDirty() }
                 }
             }.disabled(!enabled || model.busy || !model.supportsLibraryPhotos)
-            if !model.supports(.photo) { Text("playkit.camera.gated").font(.footnote) }
+            if !model.supports(.photo) { Text("playkit.camera.gated").cyText(.bodyCompact) }
             if model.busy { ProgressView("playkit.photo.working") }
             if judging { ProgressView("playkit.photo.judging") }
             if capturedIdentity == identity, let output = model.output, case .photo(let bytes, _) = output {
@@ -259,7 +259,7 @@ extension PlayKitScreen {
                 if bytes.count > 10 * 1024 * 1024 { Text("playkit.photo.tooLarge") }
                 CYPillButton(LocalizedStringKey("playkit.photo.upload"), systemImage: "icloud.and.arrow.up") { uploadReview = true }
                     .disabled(!enabled || !model.canUpload || bytes.isEmpty || bytes.count > 10 * 1024 * 1024)
-                if !model.canUpload && model.uploadedPhoto == nil && !model.busy { Text("playkit.photo.uploadGate").font(.footnote) }
+                if !model.canUpload && model.uploadedPhoto == nil && !model.busy { Text("playkit.photo.uploadGate").cyText(.bodyCompact) }
                 if model.uploadedPhoto == nil, model.issue != nil {
                     CYNoteBanner(text: Text("playkit.photo.uploadFailedRetake"), symbol: "exclamationmark.triangle", tone: .warning)
                 }

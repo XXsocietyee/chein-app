@@ -97,7 +97,7 @@ extension View {
         ForEach(CYThemeLook.Palette.allCases, id: \.rawValue) { palette in
             let look = CYThemeLook(style: .stardust, palette: palette)
             Text(verbatim: palette.rawValue)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(look.colors.ink.swiftUIColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(CYSpacing.lg)

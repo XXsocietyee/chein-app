@@ -55,7 +55,7 @@ struct CYClubMemberStrip: View {
         HStack(spacing: CYSpacing.sm) {
             memberFaces
             Text(verbatim: text)
-                .font(CYTypography.meta).monospacedDigit()
+                .cyText(.meta).monospacedDigit()
                 .contentTransition(reduceMotion ? .opacity : .numericText())
                 .foregroundStyle(palette.textSecondary)
                 // One line, never hyphen-wrapped ("12 / mem- / bers"): the parent stacks the strip above a wide pill instead.
@@ -364,7 +364,7 @@ struct CYClubRowCard: View {
                         else { Text(verbatim: name) }
                     }
                     // skill-r2 `Club/List Card` (`210:8452`): name t-head 17, thumbnail 72 r12.
-                    .font(.headline).foregroundStyle(palette.textPrimary)
+                    .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                     .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
                     .fixedSize(horizontal: false, vertical: true)
                     strip

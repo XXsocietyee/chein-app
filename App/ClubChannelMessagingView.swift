@@ -281,7 +281,7 @@ public struct ClubChannelMessagingView: View {
             Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
                 .foregroundStyle(banner.isError ? palette.danger : palette.success)
             Text(banner.message)
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(palette.textPrimary)
             Spacer()
             if banner.canRetry {
@@ -292,7 +292,7 @@ public struct ClubChannelMessagingView: View {
                     }
                 }
                 .frame(minHeight: CYSpacing.minTouchTarget)
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(palette.danger)
                 .accessibilityIdentifier("club.channel.moderation.retryButton")
             }
@@ -300,7 +300,7 @@ public struct ClubChannelMessagingView: View {
                 moderationCoordinator.clearBanner()
             }
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .font(CYTypography.label)
+            .cyText(.label)
             .foregroundStyle(palette.info)
         }
         .padding(.horizontal, CYSpacing.md)
@@ -332,7 +332,7 @@ public struct ClubChannelMessagingView: View {
     @ViewBuilder private func rulesRowContent(horizontal: Bool) -> some View {
         let label = Label {
             Text(copy("发言前请先阅读频道公约", "Review the channel rules to post"))
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(palette.textSecondary)
                 .lineLimit(horizontal ? 1 : nil)
                 .fixedSize(horizontal: !horizontal ? false : true, vertical: true)
@@ -379,18 +379,18 @@ public struct ClubChannelMessagingView: View {
                             .font(CYTypography.label)
                             .foregroundStyle(palette.textSecondary)
                         Text(channel.name)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                             .cyWrapText()
                     }
                     if channel.isReadOnlyAnnouncement {
                         Text(copy("公告 · 只读", "Announcement · read only"))
-                            .font(CYTypography.caption)
+                            .cyText(.caption)
                             .foregroundStyle(palette.textTertiary)
                             .lineLimit(2)
                     } else if channel.isMuted {
                         Text(copy("已开启免打扰", "Muted"))
-                            .font(CYTypography.caption)
+                            .cyText(.caption)
                             .foregroundStyle(palette.textTertiary)
                             .cyWrapText()
                     }
@@ -456,12 +456,12 @@ public struct ClubChannelMessagingView: View {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack {
                             Text(group.title.uppercased())
-                                .font(CYTypography.micro)
+                                .cyText(.micro)
                                 .foregroundStyle(palette.textTertiary)
                             Spacer()
                             if group.totalMentionCount > 0 {
                                 Text("@\(group.totalMentionCount)")
-                                    .font(CYTypography.micro.monospacedDigit())
+                                    .cyText(.micro, monospacedDigit: true)
                                     .padding(.horizontal, 5)
                                     .padding(.vertical, 1)
                                     .background(palette.actionDangerBg, in: Capsule())
@@ -497,14 +497,14 @@ public struct ClubChannelMessagingView: View {
                 Spacer()
                 if let mentionBadge = channel.mentionBadgeText {
                     Text(mentionBadge)
-                        .font(CYTypography.micro.monospacedDigit())
+                        .cyText(.micro, monospacedDigit: true)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(palette.actionDangerBg, in: Capsule())
                         .foregroundStyle(palette.actionDangerFg)
                 } else if let unreadBadge = channel.unreadBadgeText {
                     Text(unreadBadge)
-                        .font(CYTypography.micro.monospacedDigit())
+                        .cyText(.micro, monospacedDigit: true)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(palette.infoSoft, in: Capsule())
@@ -557,7 +557,7 @@ public struct ClubChannelMessagingView: View {
                                         Image(systemName: "arrow.up.circle")
                                         Text(copy("加载更早的频道消息", "Load earlier messages"))
                                     }
-                                    .font(CYTypography.caption)
+                                    .cyText(.caption)
                                     .foregroundStyle(palette.info)
                                     .frame(maxWidth: .infinity)
                                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -643,7 +643,7 @@ public struct ClubChannelMessagingView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.down.circle.fill")
                             Text(copy("\(viewportState.pendingNewMessageCount) 条新消息 · 点击跳转到底部", "\(viewportState.pendingNewMessageCount) new messages · Jump to present"))
-                                .font(.caption.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
@@ -670,7 +670,7 @@ public struct ClubChannelMessagingView: View {
                         .font(.caption)
                         .foregroundStyle(palette.info)
                     Text(copy("回复 \(replyTarget.senderName ?? "成员 #\(replyTarget.senderID ?? 0)")：\(replyTarget.content ?? "")", "Replying to \(replyTarget.senderName ?? "Member #\(replyTarget.senderID ?? 0)"): \(replyTarget.content ?? "")"))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -695,7 +695,7 @@ public struct ClubChannelMessagingView: View {
                     Image(systemName: "lock.shield")
                         .foregroundStyle(palette.warning)
                     Text(copy("请先在上方阅读并同意《俱乐部频道公约》后再发言。", "Please accept the Channel Rules & EULA above before sending messages."))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                 }
                 .padding(.horizontal, 12)
@@ -706,7 +706,7 @@ public struct ClubChannelMessagingView: View {
                     Image(systemName: "megaphone")
                         .foregroundStyle(palette.textSecondary)
                     Text(copy("当前为公告频道，仅主理人与管理员可发布通知", "This is an announcement channel. Only club owners and admins can post notices."))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                 }
                 .padding(.horizontal, 12)
@@ -888,7 +888,7 @@ private struct ChannelBurstGroupCard: View {
                 HStack {
                     VStack { Divider() }
                     Text(dividerText)
-                        .font(.caption2.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .foregroundStyle(palette.textSecondary)
                     VStack { Divider() }
                 }
@@ -902,24 +902,24 @@ private struct ChannelBurstGroupCard: View {
                         .frame(width: 28, height: 28)
                         .overlay(
                             Text(String(group.senderName.prefix(1)))
-                                .font(.footnote.weight(.bold))
+                                .cyText(.bodyMedium)
                                 .foregroundStyle(group.isSystemGroup ? palette.warning : palette.textPrimary)
                         )
                         .accessibilityHidden(true)
                     Text(group.senderName)
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let badge = group.senderRoleBadge, !badge.isEmpty {
                         Text(badge)
-                            .font(.caption2.weight(.semibold))
+                            .cyText(.caption, weight: .semibold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 1)
                             .background(palette.infoSoft, in: Capsule())
                             .foregroundStyle(palette.info)
                     }
                     Text(group.headerTimestampText)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(palette.textSecondary)
                         .cyWrapText()
                 }
@@ -933,13 +933,13 @@ private struct ChannelBurstGroupCard: View {
                                         .font(.caption2)
                                         .foregroundStyle(palette.textSecondary)
                                     Text("\(reply.replyAuthorName): \(reply.replyPreviewText)")
-                                        .font(.caption)
+                                        .cyText(.meta)
                                         .foregroundStyle(palette.textSecondary)
                                         .lineLimit(2)
                                         .fixedSize(horizontal: false, vertical: true)
                                     if reply.threadReplyCount > 1 {
                                         Text(copy("\(reply.threadReplyCount) 条串内回复", "\(reply.threadReplyCount) thread replies"))
-                                            .font(.caption2.weight(.medium))
+                                            .cyText(.caption, weight: .medium)
                                             .foregroundStyle(palette.info)
                                     }
                                 }
@@ -949,7 +949,7 @@ private struct ChannelBurstGroupCard: View {
                             }
 
                             Text(item.displayBody)
-                                .font(.body)
+                                .cyText(.body)
                                 .foregroundStyle(item.message.isPayloadVisible ? palette.textPrimary : palette.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
 
@@ -959,12 +959,12 @@ private struct ChannelBurstGroupCard: View {
                                         .font(.caption)
                                         .foregroundStyle(palette.textSecondary)
                                     Text(attachment.title)
-                                        .font(.caption.weight(.medium))
+                                        .cyText(.label)
                                         .foregroundStyle(palette.textPrimary)
                                         .cyWrapText()
                                     if let sub = attachment.subtitle, !sub.isEmpty {
                                         Text(sub)
-                                            .font(.caption2)
+                                            .cyText(.caption)
                                             .foregroundStyle(palette.textSecondary)
                                             .lineLimit(2)
                                             .fixedSize(horizontal: false, vertical: true)
@@ -983,20 +983,20 @@ private struct ChannelBurstGroupCard: View {
                                         ProgressView()
                                             .controlSize(.mini)
                                         Text(sendState == ChannelOutboundSendPhase.verifyingReceipt.rawValue ? copy("正在校验发送回执…", "Verifying send receipt…") : copy("发送中…", "Sending…"))
-                                            .font(.caption2)
+                                            .cyText(.caption)
                                             .foregroundStyle(palette.textSecondary)
                                     case ChannelOutboundSendPhase.failed.rawValue:
                                         Image(systemName: "exclamationmark.circle.fill")
                                             .foregroundStyle(palette.danger)
                                             .font(.caption2)
                                         Text(copy("发送失败", "Failed to send"))
-                                            .font(.caption2)
+                                            .cyText(.caption)
                                             .foregroundStyle(palette.danger)
                                         if let cid = item.transcriptMessage.clientMessageID {
                                             Button(copy("重试（先核对回执）", "Retry (check receipt first)")) {
                                                 onRetrySend(cid)
                                             }
-                                            .font(.caption2.weight(.semibold))
+                                            .cyText(.caption, weight: .semibold)
                                         }
                                     default:
                                         EmptyView()
@@ -1080,7 +1080,7 @@ public struct ClubChannelMemberRosterSheet: View {
                         Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
                             .foregroundStyle(banner.isError ? palette.danger : palette.success)
                         Text(banner.message)
-                            .font(CYTypography.caption)
+                            .cyText(.caption)
                             .foregroundStyle(palette.textPrimary)
                         Spacer()
                         if banner.canRetry {
@@ -1089,14 +1089,14 @@ public struct ClubChannelMemberRosterSheet: View {
                                     _ = await coordinator.retryLastFailedAction(locale: locale)
                                 }
                             }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .foregroundStyle(palette.danger)
                             .accessibilityIdentifier("club.channel.roster.retryButton")
                         }
                         Button(copy("关闭", "Dismiss")) {
                             coordinator.clearBanner()
                         }
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .foregroundStyle(palette.info)
                     }
                     .padding(.horizontal, CYSpacing.md)
@@ -1114,29 +1114,29 @@ public struct ClubChannelMemberRosterSheet: View {
                                         .frame(width: 32, height: 32)
                                         .overlay(
                                             Text(String(member.nickname.prefix(1)))
-                                                .font(.caption.weight(.bold))
+                                                .cyText(.meta, weight: .bold)
                                                 .foregroundStyle(palette.textPrimary)
                                         )
                                     VStack(alignment: .leading, spacing: 2) {
                                         HStack(spacing: 6) {
                                             Text(member.nickname)
-                                                .font(.subheadline.weight(.medium))
+                                                .cyText(.bodyMedium)
                                                 .foregroundStyle(palette.textPrimary)
                                             Text(member.badgeLabel)
-                                                .font(.caption2.weight(.semibold))
+                                                .cyText(.caption, weight: .semibold)
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 1)
                                                 .background(palette.infoSoft, in: Capsule())
                                                 .foregroundStyle(palette.info)
                                             if coordinator.blockedSenderIDs.contains(member.memberID) {
                                                 Text(copy("已拉黑", "Blocked"))
-                                                    .font(.caption2)
+                                                    .cyText(.caption)
                                                     .foregroundStyle(palette.danger)
                                             }
                                         }
                                         if let expires = member.expiresText, !expires.isEmpty {
                                             Text(copy("角色有效期至 \(expires)", "Role valid until \(expires)"))
-                                                .font(.caption2)
+                                                .cyText(.caption)
                                                 .foregroundStyle(palette.textSecondary)
                                         }
                                     }
@@ -1212,17 +1212,17 @@ public struct ClubChannelMemberRosterSheet: View {
                                     VStack(alignment: .leading, spacing: 2) {
                                         HStack(spacing: 6) {
                                             Text(ban.nickname)
-                                                .font(.subheadline.weight(.medium))
+                                                .cyText(.bodyMedium)
                                                 .foregroundStyle(palette.textPrimary)
                                             Text(ban.platformOnly ? copy("平台封禁", "Platform Ban") : copy("俱乐部封禁", "Club Ban"))
-                                                .font(.caption2.weight(.semibold))
+                                                .cyText(.caption, weight: .semibold)
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 1)
                                                 .background(palette.dangerSoft, in: Capsule())
                                                 .foregroundStyle(palette.danger)
                                         }
                                         Text("\(ban.reasonCode): \(ban.reasonText)")
-                                            .font(.caption2)
+                                            .cyText(.caption)
                                             .foregroundStyle(palette.textSecondary)
                                     }
                                     Spacer()
@@ -1309,7 +1309,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
                 VStack(spacing: CYSpacing.md) {
                     ProgressView()
                     Text(copy("正在加载俱乐部频道…", "Loading club channels…"))
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(palette.textSecondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

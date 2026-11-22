@@ -83,7 +83,7 @@ struct CYLoadingState: View {
         VStack(spacing: CYSpacing.lg) {
             CYSkeleton()
             Text(message)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
         }

@@ -32,11 +32,11 @@ struct CYFogCoverageBadge: View {
     let reading: CYFogCoverageReading
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
-            Text("roam.fog.coverage.explored").font(.footnote).foregroundStyle(CYColor.textSecondary)
-            Text(verbatim: reading.percentText).font(.subheadline.weight(.bold)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            Text("roam.fog.coverage.explored").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: reading.percentText).cyText(.bodyMedium).monospacedDigit().foregroundStyle(CYColor.textPrimary)
             if reading.pending > 0 {
                 Text(verbatim: "·").foregroundStyle(CYColor.textTertiary)
-                Text("roam.fog.coverage.unconfirmed \(reading.pending)").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                Text("roam.fog.coverage.unconfirmed \(reading.pending)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
         .padding(.horizontal, CYSpacing.md).frame(minHeight: 36)

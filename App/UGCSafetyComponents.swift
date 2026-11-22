@@ -250,7 +250,7 @@ struct UGCBlockedNoticeBanner: View {
             Image(systemName: "hand.raised.slash")
                 .foregroundStyle(CYColor.warningText)
             Text(messageKey, tableName: "UGCSafety")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if memberID != nil || authorName != nil {
@@ -262,7 +262,7 @@ struct UGCBlockedNoticeBanner: View {
                     }
                 } label: {
                     Text("ugc.safety.action.unblock", tableName: "UGCSafety")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                 }
                 .disabled(busy)
                 .accessibilityLabel(Text("ugc.safety.action.unblock", tableName: "UGCSafety"))
@@ -330,7 +330,7 @@ struct UGCReportSheet: View {
                             Image(systemName: "headphones")
                                 .foregroundStyle(CYColor.brand)
                             Text("ugc.safety.action.contactSupport", tableName: "UGCSafety")
-                                .font(CYTypography.label)
+                                .cyText(.label)
                                 .foregroundStyle(CYColor.textPrimary)
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -385,7 +385,7 @@ struct UGCReportSheet: View {
     private var formSection: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("ugc.safety.reasonHeader", tableName: "UGCSafety")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
 
             if loading && capabilities == nil {
@@ -412,7 +412,7 @@ struct UGCReportSheet: View {
                     Image(systemName: "exclamationmark.shield.fill")
                         .foregroundStyle(CYColor.dangerText)
                     Text("ugc.safety.emergencyHint", tableName: "UGCSafety")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.dangerText)
                 }
                 .padding(CYSpacing.md)
@@ -421,7 +421,7 @@ struct UGCReportSheet: View {
 
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("ugc.safety.detailsHeader", tableName: "UGCSafety")
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .foregroundStyle(CYColor.textPrimary)
                 TextField(
                     "",
@@ -441,7 +441,7 @@ struct UGCReportSheet: View {
             if canOfferBlock {
                 Toggle(isOn: $alsoBlockAuthor) {
                     Text("ugc.safety.alsoBlockUser", tableName: "UGCSafety")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textPrimary)
                 }
                 .tint(CYColor.brand)
@@ -450,11 +450,11 @@ struct UGCReportSheet: View {
 
             if let serverErrorMessage, !serverErrorMessage.isEmpty {
                 Text(verbatim: serverErrorMessage)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.dangerText)
             } else if let errorKey {
                 Text(errorKey, tableName: "UGCSafety")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.dangerText)
             }
 
@@ -471,7 +471,7 @@ struct UGCReportSheet: View {
             .accessibilityIdentifier("ugc.safety.submitReportButton")
 
             Text("ugc.safety.moderation.footer", tableName: "UGCSafety")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textTertiary)
                 .accessibilityIdentifier("ugc.safety.moderation.notice")
         }
@@ -492,7 +492,7 @@ struct UGCReportSheet: View {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(isSelected ? CYColor.brand : CYColor.textTertiary)
                 Text(verbatim: reason.label)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 if reason.isEmergency {
@@ -787,7 +787,7 @@ struct UGCReviewSafetyFooter: View {
                 } icon: {
                     Image(systemName: "flag")
                 }
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textSecondary)
             }
             .buttonStyle(.plain)
@@ -803,7 +803,7 @@ struct UGCReviewSafetyFooter: View {
                     } icon: {
                         Image(systemName: "hand.raised")
                     }
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.dangerText)
                 }
                 .buttonStyle(.plain)
@@ -917,7 +917,7 @@ struct UGCProfileSafetyActionsSection: View {
 
             if let statusMessageKey {
                 Text(statusMessageKey, tableName: "UGCSafety")
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }

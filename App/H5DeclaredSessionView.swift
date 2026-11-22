@@ -31,7 +31,7 @@ import SwiftUI
                 Button("h5.rejectAnswers") { rejectAnswers() }
                 Button("h5.importMetadata") { importMetadata() }
             } footer: {
-                if !message.isEmpty { Text(LocalizedStringKey(message)).font(CYTypography.meta) }
+                if !message.isEmpty { Text(LocalizedStringKey(message)).cyText(.meta) }
             }
         }
         .navigationTitle(Text("h5.title")).navigationBarTitleDisplayMode(.inline).formStyle(.grouped)

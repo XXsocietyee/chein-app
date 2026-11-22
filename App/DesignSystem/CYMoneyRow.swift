@@ -27,17 +27,17 @@ public struct CYMoneyRow: View {
     private var textBlock: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(title)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
             Text(detail)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
         }
     }
 
     private var amountText: some View {
         Text(signedAmount)
-            .font(CYTypography.numericBody)
+            .cyText(.numericBody)
             .foregroundStyle(incoming ? CYColor.successText : CYColor.dangerText)
             .cyWrapText(alignment: .trailing)
     }

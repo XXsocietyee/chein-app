@@ -36,7 +36,7 @@ enum AlbumFixtures {
         AnyView(
             VStack(spacing: 0) {
                 Text(verbatim: "DEBUG fixture · synthetic data")
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.caption).foregroundStyle(CYColor.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 4).background(CYColor.bgRaised)
                 view
             }
@@ -225,13 +225,13 @@ struct AlbumKitFixture: View {
                     HStack(spacing: CYSpacing.lg) {
                         CYAlbumProgressRing(value: 7, total: 12, accessibilityLabel: Text(verbatim: "7 of 12 collected"))
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(verbatim: "Album kit").font(CYTypography.display).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                            Text(verbatim: "7 of 12 collected · ring counts up").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: "Album kit").cyText(.display).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                            Text(verbatim: "7 of 12 collected · ring counts up").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                     HStack(spacing: CYSpacing.lg) {
                         CYAlbumProgressRing(value: 0, total: nil, size: 64, accessibilityLabel: Text(verbatim: "Total unknown"))
-                        Text(verbatim: "Unknown total = dim track and a dash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(verbatim: "Unknown total = dim track and a dash").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     section("Pages turn on the spine")
                     CYAlbumPager(items: pieces, height: 260, pageLabel: { Text(verbatim: "Page \($0) of \($1)") }) { piece in
@@ -239,7 +239,7 @@ struct AlbumKitFixture: View {
                             CYFoilMedal(unlocked: !piece.locked, size: 120) {
                                 CYCoverArt(seed: piece.name, showsDebugLabel: false, showsGlyph: true)
                             }
-                            Text(verbatim: piece.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: piece.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             CYStatusChip(verbatim: piece.locked ? "Locked" : "Collected", tone: piece.locked ? .neutral : .success)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -255,10 +255,10 @@ struct AlbumKitFixture: View {
                     } back: {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Text(verbatim: "NO. 0041").font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
-                            Text(verbatim: "Old Town tea house").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: "Old Town tea house").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             CYFactRow(label: Text(verbatim: "Collected on"), value: AlbumFixtures.stamp(daysAgo: 1).prefix(10).description)
                             Spacer(minLength: 0)
-                            Text(verbatim: "Tap to turn back").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: "Tap to turn back").cyText(.caption).foregroundStyle(CYColor.textTertiary)
                         }
                         .frame(maxWidth: .infinity, minHeight: 200, alignment: .topLeading).cyAlbumCard(padding: CYSpacing.lg)
                     }
@@ -295,7 +295,7 @@ struct AlbumKitFixture: View {
         }
     }
     private func section(_ title: String) -> some View {
-        Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+        Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
     }
 }
 #endif

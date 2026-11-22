@@ -136,9 +136,9 @@ public struct Wave3HandoffStatusSectionView: View {
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: row.title)
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Text(verbatim: row.statusSummary)
-                                .font(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(.secondary)
                         }
 
@@ -160,9 +160,9 @@ public struct Wave3HandoffStatusSectionView: View {
                     HStack(alignment: .top, spacing: 10) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: gate.title)
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Text(verbatim: gate.detail)
-                                .font(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(.secondary)
                         }
 

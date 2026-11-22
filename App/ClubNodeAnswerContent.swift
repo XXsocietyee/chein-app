@@ -16,7 +16,7 @@ struct ClubNodeAnswerContent: View {
             let hints = (value["hints"].array ?? []).compactMap { nonEmpty($0) }
             if !hints.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("club.story.answer.hints").font(.subheadline.bold())
+                    Text("club.story.answer.hints").cyText(.bodyMedium)
                     ForEach(Array(hints.enumerated()), id: \.offset) { index, hint in
                         Text(verbatim: "\(index + 1) · \(hint)")
                     }

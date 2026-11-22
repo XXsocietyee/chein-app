@@ -97,7 +97,7 @@ import SwiftUI
                 }
                 if model.coordinator.retiredMembershipTeamID != nil {
                     Label("team.changed", systemImage: "person.crop.circle.badge.xmark")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                        .cyText(.meta).foregroundStyle(CYColor.warningText)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("teamMembershipRetired")
                 }
@@ -126,7 +126,7 @@ import SwiftUI
                                 .accessibilityIdentifier("team.postJoin.openDetail")
                         }
                         else if detail.joined == true {
-                            Label("team.alreadyJoined", systemImage: "checkmark.circle").font(CYTypography.label).foregroundStyle(CYColor.successText)
+                            Label("team.alreadyJoined", systemImage: "checkmark.circle").cyText(.label).foregroundStyle(CYColor.successText)
                             NavigationLink {
                                 TeamDetailView(lookup: .id(detail.team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true)
                             } label: { Label("team.detail", systemImage: "person.3") }
@@ -164,11 +164,11 @@ import SwiftUI
                         // Mini leader card (公开招募): shown right after the actions, before the member list.
                         CYCard {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("team.mode.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            Text("team.mode.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             Text(LocalizedStringKey((model.coordinator.confirmedJoinMode ?? detail.team.joinMode).key))
-                                .font(CYTypography.label).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("team.mode.current")
+                                .cyText(.label).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("team.mode.current")
                             Text(LocalizedStringKey(TeamPagePresentation.joinModeHelpKey(model.coordinator.confirmedJoinMode ?? detail.team.joinMode)))
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                             if !readOnly {
                                 ForEach([TeamJoinMode.invitation, .publicApplication], id: \.rawValue) { mode in
                                     let action = TeamAction.changeJoinMode(teamID: detail.team.id, mode: mode)
@@ -182,12 +182,12 @@ import SwiftUI
                         }
                         }
                     }
-                    Text("team.members.title").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                    Text("team.members.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     // Mini `.team-card`: members share one card, hairline between rows.
                     CYCard(padding: CYSpacing.md) {
                         VStack(spacing: 0) {
                             if detail.members.isEmpty {
-                                Text("team.page.membersEmpty").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                Text("team.page.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                             }
                             ForEach(Array(detail.members.enumerated()), id: \.element.id) { index, member in
                                 let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
@@ -199,7 +199,7 @@ import SwiftUI
                     actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
                     actionButton(.disband(teamID: detail.team.id), detail: detail)
                     if TeamPagePresentation.showsRefundNote(detail) {
-                        Text("team.page.refundNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
                     }
                     if !readOnly, invitationCode == nil {
                         TeamReformEntries(detail: detail, hooks: reformHooks) { reformSheet = $0 }.disabled(model.actionLocked)

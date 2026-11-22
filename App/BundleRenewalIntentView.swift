@@ -64,7 +64,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYSkeleton().accessibilityHidden(true)
                 text("renewal.loading")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -78,19 +78,19 @@ import SwiftUI
         if let latest = model.latest {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 text("renewal.latest")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 if let known = latest.knownIntent {
-                    label(known).font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    label(known).cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                 } else {
-                    text("renewal.intent.unrecognized").font(CYTypography.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    text("renewal.intent.unrecognized").cyText(.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let note = latest.note {
                     let trimmed = note.trimmingCharacters(in: .whitespacesAndNewlines)
                     Text(verbatim: trimmed.isEmpty ? "—" : note)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -100,14 +100,14 @@ import SwiftUI
             .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         } else if model.phase == .loaded {
             text("renewal.none")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         if model.phase == .outcomeUnknown {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 text("renewal.unknown")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("renewal.recover", tableName: table, action: { Task { await model.recover() } })
@@ -120,7 +120,7 @@ import SwiftUI
         } else if model.phase != .unavailable {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 text("renewal.choose")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
@@ -130,7 +130,7 @@ import SwiftUI
                     }
                 }
                 TextField(text: $note, axis: .vertical) { text("renewal.note") }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .padding(CYSpacing.md)
                     .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .onChange(of: note) { _, value in

@@ -84,7 +84,7 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
             ProjectChapterAtmosphere.canSubmit($0) ? ProjectChapterAtmosphere.selected(in: $0) : nil
         } : nil
         Section("projectChapterAtmosphere.title") {
-            Text("projectChapterAtmosphere.hint").font(.footnote).foregroundStyle(.secondary)
+            Text("projectChapterAtmosphere.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
             ScrollView(.horizontal) {
                 HStack(spacing: 10) {
                     ForEach(ProjectChapterAtmosphere.allCases) { preset in
@@ -95,8 +95,8 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
                             VStack(alignment: .leading, spacing: 8) {
                                 Image(systemName: selected == preset ? "checkmark.circle.fill" : "circle")
                                     .accessibilityHidden(true)
-                                Text(LocalizedStringKey("projectChapterAtmosphere.color." + preset.rawValue)).font(.headline)
-                                Text(LocalizedStringKey("projectChapterAtmosphere.note." + preset.rawValue)).font(.caption)
+                                Text(LocalizedStringKey("projectChapterAtmosphere.color." + preset.rawValue)).cyText(.cardTitle)
+                                Text(LocalizedStringKey("projectChapterAtmosphere.note." + preset.rawValue)).cyText(.meta)
                             }
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(14).frame(minWidth: 112, maxWidth: 160, minHeight: 112, alignment: .leading)
@@ -116,9 +116,9 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
             }.scrollIndicators(.hidden)
             if let selected {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("projectChapterAtmosphere.preview").font(.caption)
-                    Text(LocalizedStringKey("projectChapterAtmosphere.color." + selected.rawValue)).font(.headline)
-                    if let name = controller.chapter?.name, !name.isEmpty { Text(verbatim: name).font(.title3) }
+                    Text("projectChapterAtmosphere.preview").cyText(.meta)
+                    Text(LocalizedStringKey("projectChapterAtmosphere.color." + selected.rawValue)).cyText(.cardTitle)
+                    if let name = controller.chapter?.name, !name.isEmpty { Text(verbatim: name).cyText(.sectionTitle) }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading).padding()
                 .foregroundStyle(color(selected.foregroundRGB))
@@ -130,7 +130,7 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
                 ProjectChapterAtmosphereUnsupportedNotice(chapter: chapter, supportsSelection: true)
             }
             if controller.saveUnconfirmed {
-                Text("projectChapterAtmosphere.saveUnconfirmed").font(.footnote)
+                Text("projectChapterAtmosphere.saveUnconfirmed").cyText(.bodyCompact)
                     .accessibilityIdentifier("projectChapterAtmosphere.saveUnconfirmed")
             }
         }
@@ -149,9 +149,9 @@ struct ProjectChapterAtmosphereUnsupportedNotice: View {
     let supportsSelection: Bool
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(LocalizedStringKey(supportsSelection ? "projectChapterAtmosphere.unsupported" : "projectChapterAtmosphere.unsupportedReadOnly")).font(.footnote)
+            Text(LocalizedStringKey(supportsSelection ? "projectChapterAtmosphere.unsupported" : "projectChapterAtmosphere.unsupportedReadOnly")).cyText(.bodyCompact)
             if chapter.name.isEmpty { Text("projectChapterAtmosphere.untitled") }
-            else { Text(verbatim: chapter.name).font(.subheadline.bold()) }
+            else { Text(verbatim: chapter.name).cyText(.bodyMedium) }
         }.accessibilityElement(children: .combine)
             .accessibilityIdentifier("projectChapterAtmosphere.unsupported")
     }

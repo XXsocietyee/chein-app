@@ -56,13 +56,13 @@ struct CYBadgeTile: View {
         VStack(spacing: CYSpacing.sm) {
             CYBadgeMedal(seed: seed, symbol: symbol, locked: locked, size: 84)
             name
-                .font(CYTypography.bodyCompact.weight(.semibold))
+                .cyText(.bodyMedium)
                 .foregroundStyle(locked ? CYColor.textSecondary : CYColor.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
                 .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.85)
             status
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(locked ? CYColor.textTertiary : CYColor.successText)
         }
         .frame(maxWidth: .infinity)
@@ -100,9 +100,9 @@ struct CYCelebrationMoment: View {
                 Spacer(minLength: CYSpacing.xxxl)
                 hero.frame(height: 230)
                 VStack(spacing: CYSpacing.sm) {
-                    title.font(.system(.largeTitle, design: .rounded).weight(.heavy)).foregroundStyle(CYColor.textPrimary)
+                    title.cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.center).accessibilityAddTraits(.isHeader)
-                    message.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    message.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .opacity(landed || reduceMotion ? 1 : 0)

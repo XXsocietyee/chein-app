@@ -117,10 +117,10 @@ import SwiftUI
                     ClubCloud14Banner(seed: sessionBannerSeed, symbol: "calendar.badge.plus", imageURL: ClubCloud14HTTPS.url(club.cover))
                 }
                 .listRowBackground(Color.clear).listRowSeparator(.hidden)
-                Text(verbatim: shown(club.name)).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: shown(club.name)).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYListRow("club.ops.clubID", trailing: .value(String(scope.clubID))) { CYRowIcon(systemImage: "number") }
-                Text("club.sessionStart.hint").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("club.sessionStart.hint").cyText(.meta).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !scope.canRead || model.phase == .denied {
@@ -192,7 +192,7 @@ import SwiftUI
     private var sessionLoading: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             CYSkeleton().accessibilityHidden(true)
-            Text("club.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text("club.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("club.sessionStart.loading")

@@ -83,7 +83,7 @@ import Observation
                         Text(verbatim: "Reads: \(data.publicReads) Writes: \(data.writes)").accessibilityIdentifier("profile.selfEditFixture.counts")
                         Button("Fail next synthetic public read") { data.failNextPublic = true }.accessibilityIdentifier("profile.selfEditFixture.failRead")
                         Button("Retire synthetic account") { data.retireAccount() }.accessibilityIdentifier("profile.selfEditFixture.retire")
-                    }.font(.caption)
+                    }.cyText(.meta)
                 }
         }
     }

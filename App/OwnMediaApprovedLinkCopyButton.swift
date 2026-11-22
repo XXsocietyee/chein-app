@@ -83,16 +83,16 @@ private struct OwnMediaApprovedLinkViewIdentity: Hashable {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Explain the original long-lived/public URL before the explicit delivery action.
-            Text("longLived", tableName: "OwnMediaApprovedLink").font(.footnote).foregroundStyle(.secondary)
+            Text("longLived", tableName: "OwnMediaApprovedLink").cyText(.bodyCompact).foregroundStyle(.secondary)
             Button { model.copy() } label: { Label { Text("copy", tableName: "OwnMediaApprovedLink") } icon: { Image(systemName: "doc.on.doc") } }
                 .frame(minHeight: 44).disabled(!model.available || model.visiblePhase == .loading)
                 .accessibilityIdentifier("member.media.approvedLink.\(model.asset.id)")
-            if !model.available { Text("unavailable", tableName: "OwnMediaApprovedLink").font(.footnote).foregroundStyle(.secondary) }
+            if !model.available { Text("unavailable", tableName: "OwnMediaApprovedLink").cyText(.bodyCompact).foregroundStyle(.secondary) }
             switch model.visiblePhase {
             case .idle: EmptyView()
             case .loading: ProgressView { Text("loading", tableName: "OwnMediaApprovedLink") }
-            case .copied: Text("copied", tableName: "OwnMediaApprovedLink").font(.footnote)
-            case .failed: Text("failed", tableName: "OwnMediaApprovedLink").font(.footnote).foregroundStyle(.secondary)
+            case .copied: Text("copied", tableName: "OwnMediaApprovedLink").cyText(.bodyCompact)
+            case .failed: Text("failed", tableName: "OwnMediaApprovedLink").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
         }
         .privacySensitive()

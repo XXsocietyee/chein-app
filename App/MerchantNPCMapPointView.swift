@@ -62,10 +62,10 @@ import SwiftUI
                     Label("merchantMapPoint.title", systemImage: "mappin.and.ellipse")
                     if let saved = point.coordinator.point {
                         Text(LocalizedStringKey(saved.statusKey)).font(.subheadline).foregroundStyle(.secondary)
-                        if saved.coordinate != nil, !saved.address.isEmpty { Text(verbatim: saved.address).font(.footnote) }
+                        if saved.coordinate != nil, !saved.address.isEmpty { Text(verbatim: saved.address).cyText(.bodyCompact) }
                     } else if let issue = point.coordinator.issue, point.coordinator.loadedScope == document.coordinator.reader.scope {
                         MerchantOperationsIssueView(issue: issue)
-                    } else { Text("merchant.loading").font(.footnote) }
+                    } else { Text("merchant.loading").cyText(.bodyCompact) }
                 }
             }.disabled(!document.coordinator.isCurrent || document.coordinator.isBusy)
                 .accessibilityIdentifier("merchantMapPoint.open")
@@ -98,10 +98,10 @@ import SwiftUI
             Section { MerchantOperationsBoundary(isExample: reader.isOfflineExample) }
             if let saved = coordinator.point {
                 Section("merchantMapPoint.title") {
-                    Text("merchantMapPoint.lastRead").font(.caption).foregroundStyle(.secondary)
+                    Text("merchantMapPoint.lastRead").cyText(.meta).foregroundStyle(.secondary)
                     Text(LocalizedStringKey(saved.statusKey)).accessibilityIdentifier("merchantMapPoint.status")
                     if saved.coordinate != nil { MerchantNPCMapPointSummary(value: saved) }
-                    Text("merchantMapPoint.displayOnly").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchantMapPoint.displayOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
                 if coordinator.hasPendingWrite {
                     Section { Text("merchant.operations.unknownOutcome") }
@@ -196,14 +196,14 @@ import SwiftUI
     var body: some View {
         Section("merchantMapPoint.title") {
             if case .npcMapPoint(let saved) = document.coordinator.baseline {
-                Text("merchantMapPoint.lastRead").font(.caption).foregroundStyle(.secondary)
+                Text("merchantMapPoint.lastRead").cyText(.meta).foregroundStyle(.secondary)
                 Text(LocalizedStringKey(saved.statusKey)).accessibilityIdentifier("merchantMapPoint.status")
                 if saved.coordinate != nil { MerchantNPCMapPointSummary(value: saved) }
             }
-            Text("merchantMapPoint.displayOnly").font(.footnote).foregroundStyle(.secondary)
-            Text("merchantMapPoint.mapUnavailable").font(.footnote).foregroundStyle(.secondary)
+            Text("merchantMapPoint.displayOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
+            Text("merchantMapPoint.mapUnavailable").cyText(.bodyCompact).foregroundStyle(.secondary)
             if document.coordinator.isDirty, case .npcMapPoint(let proposed) = document.coordinator.draft {
-                Text("merchantMapPoint.unsaved").font(.headline)
+                Text("merchantMapPoint.unsaved").cyText(.cardTitle)
                 MerchantNPCMapPointSummary(value: proposed)
             }
             Button("merchantMapPoint.enter") {
@@ -255,7 +255,7 @@ import SwiftUI
                         typing = false
                         if model.apply() { dismiss() }
                     }.disabled(!model.canApply).frame(minHeight: 44).accessibilityIdentifier("merchantMapPoint.apply")
-                    Text("merchantMapPoint.reviewNext").font(.footnote).foregroundStyle(.secondary)
+                    Text("merchantMapPoint.reviewNext").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }.disabled(!model.isCurrent)
                 .navigationTitle("merchantMapPoint.title").navigationBarTitleDisplayMode(.inline)

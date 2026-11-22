@@ -175,10 +175,10 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: "Unified Cross-Domain Decisions (U01–U08)")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: headerBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(snapshot.allDecisionsVerified ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("unifiedDecisionsAudit.statusBadge")
             }
@@ -196,7 +196,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: decision.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: decision.statusBadgeText)
                             .font(.caption2.monospaced())
@@ -205,7 +205,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                     }
 
                     Text(verbatim: decision.invariantSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.primary)
 
                     Text(verbatim: decision.failClosedGateSummary)

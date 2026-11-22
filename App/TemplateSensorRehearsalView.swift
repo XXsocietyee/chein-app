@@ -75,7 +75,7 @@ import Combine
     var body: some View {
         Form {
             Section { CYHeroHeader("templateSensor.title", tableName: "TemplateSensorRehearsal").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section { sensorText("boundary"); sensorText("virtualTime").font(.footnote) }
+            Section { sensorText("boundary"); sensorText("virtualTime").cyText(.meta) }
             if let state = controller.visibleState {
                 TemplateSensorRehearsalInputs(state: state, advance: controller.advanceAction())
                     .id(controller.formID)
@@ -110,7 +110,7 @@ import Combine
     @State private var peak = 0.1
     var body: some View {
         Section {
-            if !state.title.isEmpty { Text(verbatim: state.title).font(.headline) }
+            if !state.title.isEmpty { Text(verbatim: state.title).cyText(.cardTitle) }
             if state.game == .compass {
                 LabeledContent { Text(verbatim: "\(Int(state.targetBearing))° ± \(Int(state.tolerance))°") }
                     label: { sensorText("target") }
@@ -121,7 +121,7 @@ import Combine
                 Slider(value: $accuracy, in: 0...180, step: 1) { sensorText("accuracy") }
                     .accessibilityIdentifier("templateSensor.accuracy")
             } else {
-                sensorText("baseline").font(.footnote)
+                sensorText("baseline").cyText(.bodyCompact)
                 LabeledContent { Text(verbatim: String(format: "%.2f", state.loudThreshold)) }
                     label: { sensorText("threshold") }
                 LabeledContent { Text(verbatim: String(format: "%.2f", peak)) } label: { sensorText("peak") }

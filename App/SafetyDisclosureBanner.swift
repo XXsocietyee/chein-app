@@ -18,7 +18,7 @@ struct SafetyDisclosureBanner: View {
                 AIIdentityDisclosureView(disclosure: policy.aiIdentity)
                 if showsNodeSafety { OfflineNodeSafetyView(state: policy.effectiveNodeSafety) }
                 if let clause = policy.noAutoFundsClauseKey {
-                    Text(LocalizedStringKey(clause), tableName: "OpsSafety").font(.footnote).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(clause), tableName: "OpsSafety").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .accessibilityIdentifier("opsSafety.pay.noAutoFunds")
                 }
             }

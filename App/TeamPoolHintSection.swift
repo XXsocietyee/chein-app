@@ -13,12 +13,12 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack {
-                Text("teamPool.title").font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                Text("teamPool.title").cyText(.label).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if let pool = model.pool {
                     Text(verbatim: c.t("团队总分 \(Self.scoreText(pool))", "Team score \(Self.scoreText(pool))"))
-                        .font(CYTypography.meta).monospacedDigit()
+                        .cyText(.meta).monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("teamPool.score")
                         .accessibilityLabel(Text(verbatim: c.t("团队总分", "Team total score")))
@@ -38,21 +38,21 @@ import SwiftUI
                             .accessibilityIdentifier("teamPool.solvedCount")
                     }
                 }
-                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
 
                 teamTimerRow(pool)
             }
 
             if let hint = model.hint {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text("teamPool.hintLevel \(hint.level)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("teamPool.hintLevel \(hint.level)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     Text(verbatim: hint.content)
                         .font(hint.type == "LETTER" || hint.type == "DIGIT" ? CYTypography.pageTitle : CYTypography.body)
                         .foregroundStyle(CYColor.textPrimary).textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("teamPool.hint")
                     if model.coveredByTeam {
-                        Text("teamPool.coveredByTeam").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("teamPool.coveredByTeam").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 }
             } else if model.canRecover && model.notice == .unknown {
@@ -78,7 +78,7 @@ import SwiftUI
                 Text(verbatim: model.skippedByTeam
                      ? c.t("队友已跳过并同步全队进度", "Skipped by teammate; team progress synced")
                      : c.t("本题已同步全队跳过完成（计入共享团队进度）", "Team shared skip applied and synced"))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("teamPool.skipped")
             }
@@ -114,13 +114,13 @@ import SwiftUI
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 if pool.isTimerExpired(at: context.date) {
                     Text("teamPool.timerExpired")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                        .cyText(.meta).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("teamPool.timerExpired")
                         .accessibilityLabel(Text("teamPool.timerExpired"))
                 } else if let remaining = pool.remainingTimerSeconds(at: context.date) {
                     let line = c.t("全队计时剩余 \(Self.formatDuration(remaining))", "Team timer \(Self.formatDuration(remaining))")
                     Text(verbatim: line)
-                        .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("teamPool.timerRemaining")
                         .accessibilityLabel(Text(verbatim: line))
                         .accessibilityValue(Text(verbatim: Self.formatDuration(remaining)))
@@ -129,7 +129,7 @@ import SwiftUI
                     Button { Task { await model.startTimer() } } label: {
                         Text(verbatim: line)
                     }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .accessibilityIdentifier("teamPool.timerStart")
                     .accessibilityLabel(Text(verbatim: line))
                     .accessibilityHint(Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
@@ -173,7 +173,7 @@ import SwiftUI
                 case .failed: Text("teamPool.failed")
                 }
             }
-            .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+            .cyText(.meta).foregroundStyle(CYColor.dangerText)
             .accessibilityIdentifier("teamPool.notice")
             if notice == .unknown || notice == .failed,
                let row = RequestReferenceRow(pathFragment: "/api/team/pool") { row }
@@ -199,7 +199,7 @@ import SwiftUI
                     }
                     Spacer()
                     Text(verbatim: TeamPoolHintSection.scoreText(pool))
-                        .font(CYTypography.cardTitle).monospacedDigit()
+                        .cyText(.cardTitle).monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("teamPool.run.score")
                         .accessibilityLabel(Text(verbatim: c.t("团队总分", "Team total score")))
@@ -216,17 +216,17 @@ import SwiftUI
                         Text(verbatim: c.t("已解 \(solved.count) 关", "\(solved.count) solved"))
                     }
                 }
-                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
 
                 if let limit = pool.timerLimitSec, limit > 0 {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
                         if pool.isTimerExpired(at: context.date) {
                             Text("teamPool.timerExpired")
-                                .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                                .cyText(.meta).foregroundStyle(CYColor.dangerText)
                         } else if let remaining = pool.remainingTimerSeconds(at: context.date) {
                             Text(verbatim: c.t("全队计时剩余 \(TeamPoolHintSection.formatDuration(remaining))",
                                                "Team timer \(TeamPoolHintSection.formatDuration(remaining))"))
-                                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                                 .accessibilityIdentifier("teamPool.run.timer")
                         } else if model.canStartTimer {
                             Button { Task { await model.startTimer() } } label: {
@@ -239,7 +239,7 @@ import SwiftUI
                 }
                 Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
                                    "First solve advances the team · Shared hints, skips, timer & single team score"))
-                    .font(.caption).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
             } header: {
                 Text("teamPool.title")
             }

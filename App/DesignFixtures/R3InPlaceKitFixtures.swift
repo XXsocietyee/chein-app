@@ -49,7 +49,7 @@ struct R3InPlaceKitFixture: View {
     }
 
     private func label(_ text: String) -> some View {
-        Text(verbatim: text).font(CYTypography.caption).foregroundStyle(.secondary)
+        Text(verbatim: text).cyText(.caption).foregroundStyle(.secondary)
     }
 }
 #endif

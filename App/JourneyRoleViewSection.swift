@@ -14,7 +14,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         CYSectionHeader("roleView.title")
                         Text("roleView.loading")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                         CYSkeleton()
@@ -34,7 +34,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         CYSectionHeader("roleView.title")
                         Text("roleView.unavailable")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("roleView.unavailable")
@@ -78,7 +78,7 @@ import SwiftUI
             )
         } else {
             Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roleView.assignment")
@@ -86,7 +86,7 @@ import SwiftUI
                 LabeledContent("roleView.otherRole") {
                     Text(verbatim: other)
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
             }
             ForEach(projection.views) { view in
@@ -94,7 +94,7 @@ import SwiftUI
             }
         }
         Text("roleView.serverAssigned")
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -103,20 +103,20 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if solo {
                 Text(LocalizedStringKey("roleView.assignment." + view.roleID))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !view.title.isEmpty {
                 Text(verbatim: view.title)
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roleView.title." + view.roleID)
             }
             if !view.body.isEmpty {
                 Text(verbatim: view.body)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roleView.body." + view.roleID)

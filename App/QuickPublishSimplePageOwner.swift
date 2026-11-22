@@ -42,13 +42,13 @@ struct QuickPublishSimplePageStatus: View {
                 ProgressView()
                     .accessibilityIdentifier("publishModes.quick.loading")
                 Text("wp06.publish.loading", tableName: table)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
             }
         case .error:
             Label {
                 Text("wp06.publish.error", tableName: table)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .fixedSize(horizontal: false, vertical: true)
             } icon: {
                 Image(systemName: "exclamationmark.triangle.fill")
@@ -59,24 +59,24 @@ struct QuickPublishSimplePageStatus: View {
         case .empty, .hidden:
             LabeledContent {
                 Text(verbatim: owner.quotaText)
-                    .font(CYTypography.label.monospacedDigit())
+                    .cyText(.label, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
                     .accessibilityIdentifier("publishModes.quick.quota")
             } label: {
                 Text("wp06.publish.empty", tableName: table)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("publishModes.quick.empty")
             }
         case .unknown:
             LabeledContent {
                 Text(verbatim: owner.quotaText)
-                    .font(CYTypography.label.monospacedDigit())
+                    .cyText(.label, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
                     .accessibilityIdentifier("publishModes.quick.quota")
             } label: {
                 Text("wp06.publish.unknown", tableName: table)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("publishModes.quick.unknown")
             }
@@ -86,7 +86,7 @@ struct QuickPublishSimplePageStatus: View {
                     .accessibilityIdentifier("publishModes.quick.quota")
             } label: {
                 Text("wp06.publish.quotaRemaining", tableName: table)
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .foregroundStyle(palette.textPrimary)
             }
         }

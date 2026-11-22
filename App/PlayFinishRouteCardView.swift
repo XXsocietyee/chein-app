@@ -17,15 +17,15 @@ import SwiftUI
 
     private var content: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s3) {
-            Text("playx.finishRoute.eyebrow").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
-            if let title = card.title { Text(verbatim: title).font(CYTypography.cardTitle) }
-            else { Text("playx.finishRoute.untitled").font(CYTypography.cardTitle) }
-            if let meta = metaLine { Text(meta).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            Text("playx.finishRoute.eyebrow").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+            if let title = card.title { Text(verbatim: title).cyText(.cardTitle) }
+            else { Text("playx.finishRoute.untitled").cyText(.cardTitle) }
+            if let meta = metaLine { Text(meta).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             ViewThatFits(in: .horizontal) {
                 priceAndAction.fixedSize(horizontal: true, vertical: false)
                 VStack(alignment: .leading, spacing: Theme.Space.s2) {
                     price
-                    Text("playx.finishRoute.action").font(CYTypography.label)
+                    Text("playx.finishRoute.action").cyText(.label)
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
@@ -41,15 +41,15 @@ import SwiftUI
                 price
                 Spacer(minLength: Theme.Space.s4)
                 HStack(spacing: CYSpacing.xs) {
-                    Text("playx.finishRoute.action").font(CYTypography.label)
+                    Text("playx.finishRoute.action").cyText(.label)
                     Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
                 }
             }
     }
     @ViewBuilder private var price: some View {
                 switch card.price {
-                case .from(let amount)?: Text("playx.finishRoute.priceFrom \(NSDecimalNumber(decimal: amount).stringValue)").font(CYTypography.numericBody)
-                case .free?: Text("playx.finishRoute.free").font(CYTypography.numericBody)
+                case .from(let amount)?: Text("playx.finishRoute.priceFrom \(NSDecimalNumber(decimal: amount).stringValue)").cyText(.numericBody)
+                case .free?: Text("playx.finishRoute.free").cyText(.numericBody)
                 case nil: EmptyView()
                 }
     }

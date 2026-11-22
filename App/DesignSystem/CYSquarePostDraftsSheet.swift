@@ -31,7 +31,7 @@ struct CYSquarePostDraftsSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
-                Text("drafts.title", tableName: "SocialParity").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                Text("drafts.title", tableName: "SocialParity").cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button { dismiss() } label: {
@@ -63,7 +63,7 @@ struct CYSquarePostDraftsSheet: View {
                                     .transition(reduceMotion ? .opacity : .move(edge: .leading).combined(with: .opacity))
                             }
                             Text("drafts.count \(visible.count)", tableName: "SocialParity")
-                                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                                .cyText(.caption).foregroundStyle(CYColor.textTertiary)
                                 .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.lg)
                         }
                         .accessibilityIdentifier("square.drafts.list")
@@ -92,13 +92,13 @@ struct CYSquarePostDraftsSheet: View {
                             if let name = row.nickname, !name.isEmpty { Text(verbatim: name) } else { Text("drafts.me", tableName: "SocialParity") }
                             Spacer(minLength: CYSpacing.sm)
                             Text(row.updatedAt, format: .dateTime.month().day().hour().minute())
-                                .font(CYTypography.caption.monospacedDigit()).foregroundStyle(CYColor.textTertiary)
+                                .cyText(.caption, monospacedDigit: true).foregroundStyle(CYColor.textTertiary)
                         }
-                        .font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textPrimary)
                         Group {
                             if let summary = row.summary, !summary.isEmpty { Text(verbatim: summary) } else { Text("drafts.untitled", tableName: "SocialParity") }
                         }
-                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                        .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
@@ -129,10 +129,10 @@ struct CYSquarePostDraftsSheet: View {
 
     private var undoBar: some View {
         HStack {
-            Text("drafts.deleted", tableName: "SocialParity").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+            Text("drafts.deleted", tableName: "SocialParity").cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
             Spacer()
             Button { undoTask?.cancel(); undoTask = nil; undoID = nil } label: {
-                Text("drafts.undo", tableName: "SocialParity").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.brand)
+                Text("drafts.undo", tableName: "SocialParity").cyText(.label, weight: .semibold).foregroundStyle(CYColor.brand)
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             }
             .buttonStyle(.cyPressable)

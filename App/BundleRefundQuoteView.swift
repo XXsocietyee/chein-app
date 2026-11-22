@@ -43,12 +43,12 @@ struct BundleRefundQuoteView: View {
                 }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: catalog(presentation.quoteOnlyNoticeKey))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("bundleRefund.quoteOnly")
                     Text(verbatim: Cloud03Copy.shown(presentation.policyVersion))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -59,11 +59,11 @@ struct BundleRefundQuoteView: View {
     private var amountHero: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: catalog("amountLabel"))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: Cloud03Copy.shown(presentation.amountText))
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -79,12 +79,12 @@ struct BundleRefundQuoteView: View {
         ) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: catalog(presentation.routeBodyKey))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let reason = presentation.serverReason {
                     Text(verbatim: Cloud03Copy.shown(reason))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }

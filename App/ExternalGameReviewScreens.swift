@@ -20,7 +20,7 @@ import QuestifyCore
     @ViewBuilder private var catalogBody: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: W8Text.t("可玩的 HTML 游戏", "HTML games you can play"))
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -34,7 +34,7 @@ import QuestifyCore
             )
             if !model.removedByKillSwitch.isEmpty {
                 Text(verbatim: W8Text.t("已下架并从本机移除：\(model.removedByKillSwitch.joined(separator: ", "))", "Removed from this device because they are no longer published: \(model.removedByKillSwitch.joined(separator: ", "))"))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.dangerText)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
@@ -42,14 +42,14 @@ import QuestifyCore
             }
             if model.catalogFailed, model.catalog.isEmpty {
                 Text(verbatim: W8Text.t("目录没有加载出来。", "The catalog did not load."))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.dangerText)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("externalGame.catalog.error")
             } else if model.catalog.isEmpty {
                 Text(verbatim: W8Text.t("还没有已通过的游戏。", "No approved games yet."))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
@@ -67,7 +67,7 @@ import QuestifyCore
                 Button(W8Text.t("创作者定价与流量收益", "Creator Pricing & Traffic")) {
                     showCreatorMonetization = true
                 }
-                .font(CYTypography.label)
+                .cyText(.label)
                 .accessibilityLabel(W8Text.t("创作者定价与流量收益", "Creator Pricing & Traffic"))
                 .accessibilityHint(W8Text.t("打开创作者变现配置与节点绑定面板", "Open creator monetization and node binding sheet"))
                 .accessibilityIdentifier("externalGame.creatorMonetization")
@@ -85,7 +85,7 @@ import QuestifyCore
     private func catalogRow(_ row: ExternalGameCatalogFact) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: row.name)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -93,7 +93,7 @@ import QuestifyCore
             CurA11yDashText(shown: dash(row.summary), font: CYTypography.body, color: CYColor.textPrimary)
             if let cfg = model.monetizationByGame[row.gameID] {
                 Text(verbatim: monetizationLabel(cfg, moneyOn: Self.moneyOn(session)))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
             if let cfg = model.monetizationByGame[row.gameID],
@@ -107,13 +107,13 @@ import QuestifyCore
                     Button(W8Text.t("TEST 解锁购买 (¥\(String(format: "%.2f", Double(cfg.priceFen) / 100.0)))", "TEST Purchase (¥\(String(format: "%.2f", Double(cfg.priceFen) / 100.0)))")) {
                         Task { _ = await model.purchaseGame(gameID: row.gameID, session: session) }
                     }
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .accessibilityLabel(W8Text.t("解锁购买 \(row.name)", "Purchase \(row.name)"))
                     .accessibilityHint(W8Text.t("发起 TEST 环境模拟购买并解锁下载", "Trigger a test purchase to unlock download and play"))
                     .accessibilityIdentifier("externalGame.purchase.\(row.gameID)")
                 } else {
                     Text(verbatim: W8Text.t("付费内容 · 当前环境未开启支付", "Paid game · payments disabled here"))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("externalGame.paymentsDisabled.\(row.gameID)")
                 }
@@ -210,7 +210,7 @@ import QuestifyCore
             if let requestID = model.unconfirmedRequestID {
                 Section {
                     Text(verbatim: W8Text.t("结果未知，仍保留请求 \(requestID)。", "The result is unknown. Request \(requestID) is still saved."))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
@@ -221,7 +221,7 @@ import QuestifyCore
             }
             if !model.notice.isEmpty {
                 Text(verbatim: model.notice)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.dangerText)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
@@ -236,14 +236,14 @@ import QuestifyCore
             }
             if model.submissionsFailed, model.submissions.isEmpty {
                 Text(verbatim: W8Text.t("提交列表没有加载出来。", "Submissions did not load."))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.dangerText)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("externalGame.submissions.error")
             } else if model.submissions.isEmpty {
                 Text(verbatim: W8Text.t("还没有提交。", "No submissions yet."))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
@@ -257,7 +257,7 @@ import QuestifyCore
     private func submissionRow(_ row: ExternalGameSubmissionFact) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: row.name)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -298,12 +298,12 @@ import QuestifyCore
         NavigationStack {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text(verbatim: W8Text.t("这个游戏的分级是 \(game.manifest.contentRating)。确认你的年龄符合这个分级后再开始。", "This game is rated \(game.manifest.contentRating). Confirm you meet that rating before you play."))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: game.manifest.name)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
@@ -364,7 +364,7 @@ import QuestifyCore
                 )
                 Toggle(isOn: $blocked) {
                     Text(verbatim: W8Text.t("同时在本机屏蔽", "Also block on this device"))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
@@ -462,7 +462,7 @@ import QuestifyCore
                             .accessibilityIdentifier("externalGame.monetization.priceYuan")
                         if !moneyOn {
                             Text(verbatim: W8Text.t("支付没有开启，售价只能在测试环境设置。", "Payments are off. A price can only be set in the test environment."))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("externalGame.monetization.priceLocked")
@@ -530,7 +530,7 @@ import QuestifyCore
 
                 if !model.notice.isEmpty {
                     Section {
-                        Text(verbatim: model.notice).font(CYTypography.meta)
+                        Text(verbatim: model.notice).cyText(.meta)
                             .accessibilityIdentifier("externalGame.monetization.notice")
                     }
                 }

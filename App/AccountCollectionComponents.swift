@@ -152,7 +152,7 @@ struct AccountCollectionCouponDate: View {
     var body: some View {
         if let day = AccountCollectionCoupon.calendarDay(value) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(label).font(.caption).foregroundStyle(.secondary)
+                Text(label).cyText(.meta).foregroundStyle(.secondary)
                 Text(verbatim: day).font(.subheadline).fixedSize(horizontal: false, vertical: true)
             }
         }

@@ -45,7 +45,7 @@ import SwiftUI
                 Section {
                     invoiceText("unknown")
                     Text(verbatim: lockedRequestID?.isEmpty == false ? lockedRequestID! : InvoiceLaunchTitleEditorForm.unknownText)
-                        .font(CYTypography.meta).foregroundStyle(.secondary)
+                        .cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityIdentifier("invoice.title.pendingRequest")
                 }
             }
@@ -61,17 +61,17 @@ import SwiftUI
                         .textInputAutocapitalization(.characters).autocorrectionDisabled()
                         .privacySensitive().accessibilityIdentifier("invoice.title.tax")
                     if !tax.isEmpty, !InvoiceLaunchTitleRules.isValidTax(tax) {
-                        invoiceText("taxInvalid").font(.footnote).foregroundStyle(.secondary)
+                        invoiceText("taxInvalid").cyText(.bodyCompact).foregroundStyle(.secondary)
                             .accessibilityIdentifier("invoice.title.taxHint")
                     }
                 }
                 Toggle(isOn: $isDefault) { invoiceText("defaultTitle") }
                 if case .ready(let form) = screen {
-                    Text(verbatim: form.taxNoMaskedText).font(CYTypography.meta).foregroundStyle(.secondary)
+                    Text(verbatim: form.taxNoMaskedText).cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityIdentifier("invoice.title.taxMask")
                 }
             }.disabled(!model.allows(.saveTitle) || saveLocked)
-            if invalid { invoiceText("notSaved").font(.footnote).foregroundStyle(.red) }
+            if invalid { invoiceText("notSaved").cyText(.bodyCompact).foregroundStyle(.red) }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.allows(.saveTitle), !saveLocked {

@@ -71,7 +71,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                         .accessibilityHidden(true)
                     Text("profile.complaint.pageTitle").font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                    Text("profile.complaint.pageSubtitle").font(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text("profile.complaint.pageSubtitle").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityIdentifier("profile.complaint.pageSubtitle")
@@ -90,7 +90,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 }
                 if let issue = model.issue {
                     Section {
-                        Text(LocalizedStringKey(issue.sourceTitleKey)).font(.headline)
+                        Text(LocalizedStringKey(issue.sourceTitleKey)).cyText(.cardTitle)
                             .accessibilityIdentifier("profile.complaint.issueTitle")
                         if issue != .unavailable {
                             if model.isNetworkFailure && issue == .failed {
@@ -112,7 +112,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     if topics.isEmpty && model.issue == nil && !model.isLoading {
                         Section {
                             Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty")
-                            Text("profile.complaint.sourceEmptyHint").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                            Text("profile.complaint.sourceEmptyHint").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("profile.complaint.emptyHint")
                         }
                     } else if !topics.isEmpty {
@@ -206,7 +206,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
             Section {
                 if let validation = model.validation {
-                    Text(LocalizedStringKey(validation.titleKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
+                    Text(LocalizedStringKey(validation.titleKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.validation")
                 }
                 CYPillButton("profile.complaint.review") {
@@ -225,22 +225,22 @@ private struct ProfileComplaintPresentationKey: Hashable {
     private func reviewSection(_ review: ProfileComplaintReview) -> some View {
         Group {
             Section("profile.complaint.reviewTitle") {
-                topicLabel(review.topic).font(.headline)
+                topicLabel(review.topic).cyText(.cardTitle)
                 Text(verbatim: review.reason).accessibilityIdentifier("profile.complaint.reviewText")
                 if sending.state == .succeeded {
                     CYStatusChip("profile.complaint.submit.done", tone: .success, systemImage: "checkmark")
                         .accessibilityIdentifier("profile.complaint.submit.done")
                 } else if !sending.isConfigured {
-                    Text("profile.complaint.notSubmitted").font(.footnote)
+                    Text("profile.complaint.notSubmitted").cyText(.bodyCompact)
                         .accessibilityIdentifier("profile.complaint.notSubmitted")
                 }
             }
             if case .failed(let failure) = sending.state {
                 Section {
-                    Text(LocalizedStringKey(failure.titleKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
+                    Text(LocalizedStringKey(failure.titleKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.submit.failure")
                     if case .rejected(let message?) = failure {
-                        Text(verbatim: message).font(.footnote).accessibilityIdentifier("profile.complaint.submit.serverMessage")
+                        Text(verbatim: message).cyText(.bodyCompact).accessibilityIdentifier("profile.complaint.submit.serverMessage")
                     }
                 }
             }

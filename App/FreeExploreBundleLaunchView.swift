@@ -13,7 +13,7 @@ import SwiftUI
     /// Menu-picker row inside a card: label left, current choice right, 48pt tall.
     private func choice<P: View>(_ label: Text, selected: String?, @ViewBuilder picker: () -> P) -> some View {
         HStack {
-            label.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+            label.cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: CYSpacing.sm)
             picker().labelsHidden().tint(CYColor.textSecondary)
         }.frame(minHeight: 48)
@@ -127,7 +127,7 @@ import SwiftUI
         if let order = model.order, let bundle = order.bundle {
             CYInfoCard {
                 // Chapters as selectable ticket rows (one tap, haptic) instead of two collapsed menus; the Review pill stays the only primary action.
-                Text("unit", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                Text("unit", tableName: table).cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary)
                 ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
                     CYChoiceRow(label: chapterName(unit.chapterId) ?? unit.id.text, selected: unitID == unit.id) {
                         if unitID != unit.id { offerID = nil }
@@ -136,12 +136,12 @@ import SwiftUI
                 }
                 if let unit = bundle.units.first(where: { $0.id == unitID }),
                    let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
-                    Text("offer", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    Text("offer", tableName: table).cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary)
                     ForEach(item.stores, id: \.offerId) { store in
                         CYChoiceRow(label: store.merchantName ?? store.offerId.text, selected: offerID == store.offerId) { offerID = store.offerId }
                     }
                 }
-                DatePicker(selection: $date) { text("date").font(CYTypography.bodyCompact) }
+                DatePicker(selection: $date) { text("date").cyText(.bodyCompact) }
                 CYPillButton(LocalizedStringKey("review"), style: .primary, tableName: table) {
                     guard let unitID, let offerID else { return }
                     let millis = date.timeIntervalSince1970 * 1_000
@@ -149,27 +149,27 @@ import SwiftUI
                     model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
                 }
                 .disabled(!model.canReserve || unitID == nil || offerID == nil)
-                if !model.canReserve { text("disabled").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if !model.canReserve { text("disabled").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
             if !bundle.reservations.isEmpty {
                 CYInfoCard(title: text("order"), symbol: "ticket.fill") {
                     ForEach(bundle.reservations, id: \.id) { reservation in
                         CYListRow(verbatim: reservation.status, meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
                     }
-                    if let number = order.registrationNo { Text(verbatim: number).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
+                    if let number = order.registrationNo { Text(verbatim: number).cyText(.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
                     LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("freeBundle.paidAmount")
                 }
             }
-        } else if model.order != nil { text("legacy").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+        } else if model.order != nil { text("legacy").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
         if let catalog = model.catalog {
             CYInfoCard(title: catalog.topicName.map { Text(verbatim: $0) } ?? text("catalog"), symbol: "list.star") {
                 if catalog.items.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table) }
                 ForEach(catalog.items, id: \.chapterId) { item in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        if let name = item.name { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                        if let terms = item.termsMode { Text(verbatim: terms).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        if let name = item.name { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                        if let terms = item.termsMode { Text(verbatim: terms).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         ForEach(item.stores, id: \.offerId) { store in
                             CYListRow(verbatim: store.merchantName ?? store.offerId.text, meta: store.validEnd, trailing: .none) { CYRowIcon(systemImage: "storefront") }
                         }

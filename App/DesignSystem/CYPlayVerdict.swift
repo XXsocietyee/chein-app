@@ -62,11 +62,11 @@ struct CYPlayVerdictOverlay: View {
                 Spacer(minLength: 0)
                 mark
                 if verdict.kind == .fail {
-                    Text(wordKey).font(CYTypography.display).foregroundStyle(.white)
+                    Text(wordKey).cyText(.display).foregroundStyle(.white)
                         .accessibilityIdentifier("playVerdict.word")
                 }
                 if let text = verdict.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
-                    Text(verbatim: text).font(CYTypography.body).foregroundStyle(.white.opacity(0.88))
+                    Text(verbatim: text).cyText(.body).foregroundStyle(.white.opacity(0.88))
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("playVerdict.text")
                 }

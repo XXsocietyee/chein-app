@@ -105,7 +105,7 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: sender(row.message.senderName))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityLabel(Text(verbatim: sender(row.message.senderName)))

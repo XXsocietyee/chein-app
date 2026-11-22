@@ -82,7 +82,7 @@ private struct ModUpgradeUnavailable: View {
                 UpgradeFact("oldContentHash", controller.source.contentHash)
                 UpgradeFact("oldTermsHash", controller.source.termsHash)
                 upgradeText("boundary")
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             } header: { upgradeHeader("original") }
@@ -93,11 +93,11 @@ private struct ModUpgradeUnavailable: View {
                     if let original = intent.installation { UpgradeFact("originalRequest", original.requestId) }
                     ModUpgradeFrozenComparisonView(candidate: intent.candidate)
                     Text("这里是原选择时保存的比较，不是当前授权或安装成功证明。继续只使用原选择与原请求。")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     upgradeText("recoveryBoundary")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if intent.installation == nil {
@@ -116,7 +116,7 @@ private struct ModUpgradeUnavailable: View {
                         } icon: {
                             Image(systemName: "exclamationmark.triangle.fill")
                         }
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.dangerText)
                         CYPillButton(verbatim: upgradeString("discardRejected", locale: locale), style: .tertiary) { controller.discardRejected() }
                             .e1ActionRow()
@@ -125,7 +125,7 @@ private struct ModUpgradeUnavailable: View {
                         VStack(spacing: 0) {
                             if let reason = controller.rejectionReason {
                                 Text(verbatim: cyShownValue(reason))
-                                    .font(CYTypography.bodyCompact)
+                                    .cyText(.bodyCompact)
                                     .foregroundStyle(CYColor.dangerText)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .padding(CYSpacing.pageHorizontal)
@@ -183,7 +183,7 @@ private struct ModUpgradeUnavailable: View {
             }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .privacySensitive()
@@ -241,12 +241,12 @@ private struct ModUpgradeUnavailable: View {
             CYStatusChip(verbatim: upgradeString("ordering." + candidate.ordering.rawValue, locale: locale), systemImage: orderingSymbol(candidate.ordering))
             ModUpgradeFrozenComparisonView(candidate: candidate)
             upgradeText("bindings")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             ForEach(candidate.requiredBindings) { binding in
                 Text(verbatim: cyShownValue(binding.kind.rawValue + ":" + binding.key))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -256,11 +256,11 @@ private struct ModUpgradeUnavailable: View {
                 } icon: {
                     Image(systemName: "exclamationmark.triangle.fill")
                 }
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.dangerText)
             }
             upgradeText("reviewNext")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             switch candidate.compatibility {
@@ -272,7 +272,7 @@ private struct ModUpgradeUnavailable: View {
             case .compatible:
                 if candidate.authorization == .acquisitionRequired {
                     upgradeText("acquisitionBoundary")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() }, makeInstallationPair: { reference in
@@ -297,17 +297,17 @@ private struct ModUpgradeUnavailable: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             fact("比较 hash", candidate.comparisonHash)
             Text("hash 仅关联原冻结版本，不是客户端核准签名或当前使用许可。")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             upgradeText("changedFields")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
-            if candidate.changedFields.isEmpty { upgradeText("noChangedFields").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+            if candidate.changedFields.isEmpty { upgradeText("noChangedFields").cyText(.body).foregroundStyle(CYColor.textSecondary) }
             ForEach(candidate.changedFields, id: \.self) { field in
                 Text(verbatim: changeLabel(field))
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -318,17 +318,17 @@ private struct ModUpgradeUnavailable: View {
                     terms(comparison.target)
                 }
                 Text("请逐项比较前后授权。未列入的主体、地点、翻译或改编权不能推定拥有；版本选择不会扩大原许可，旧稿和旧场次不会自动迁移。")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("完整冻结条款比较 UNKNOWN。旧响应或旧 journal 没有这些详情，不代表权益相同或全权；不能据此确认新的升级。已存在的原请求仍可只读恢复。")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .fixedSize(horizontal: false, vertical: true)
         .textSelection(.enabled)
     }
@@ -370,14 +370,14 @@ private struct ModUpgradeUnavailable: View {
                     fact("许可原 POI ID", ids(pois))
                 } else {
                     Text("原 POI 授权范围 UNKNOWN；不代表任意场地可用，也不代替场地方同意或到场证明。")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 fact("权利依据引用", rights.scope.evidenceReferences.joined(separator: "、"))
             } else {
                 Text("该份冻结条款未包含组合授权；不默认授予主体/地点、翻译、改编、remix 或嵌入式再分发权。")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -408,7 +408,7 @@ private struct UpgradeFact: View {
 }
 private func upgradeHeader(_ key: String) -> some View {
     upgradeText(key)
-        .font(CYTypography.sectionTitle)
+        .cyText(.sectionTitle)
         .foregroundStyle(CYColor.textPrimary)
         .textCase(nil)
         .accessibilityAddTraits(.isHeader)
@@ -505,7 +505,7 @@ private struct ModUpgradeThumb: View {
                 UpgradeFact("oldLicense", controller.source.licenseId)
                 UpgradeFact("oldVersion", controller.source.releaseId)
                 Text("只读原 source→target 选择与同一升级请求结果。不查询可升级目录、不重新 stage、不安装、不取消、不删除 journal。旧许可、旧稿与旧 run 不会被覆盖。")
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             } header: { recoveryHeader("原升级来源") }
@@ -514,37 +514,37 @@ private struct ModUpgradeThumb: View {
                     UpgradeFact("targetVersion", intent.candidate.targetReleaseId)
                     if let target = intent.target { UpgradeFact("newLicense", target.licenseId) }
                     if let original = intent.installation { UpgradeFact("originalRequest", original.requestId) }
-                    else { Text("原选择尚无本机绑定的安装请求；不据此重建 UUID 或自动提交。").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                    else { Text("原选择尚无本机绑定的安装请求；不据此重建 UUID 或自动提交。").cyText(.body).fixedSize(horizontal: false, vertical: true) }
                     if let reason = intent.rejectionReason {
                         Text(verbatim: cyShownValue(reason))
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     ModUpgradeFrozenComparisonView(candidate: intent.candidate)
                     Text("原本机比较仅说明当时确认的冻结条款；不把它当成当前有效权益或服务端成功结果。")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 } header: { recoveryHeader("原本机选择 · 不代表已安装") }
             } else if controller.originalRecoveryRead {
-                Section { Text("本机无可读取的原升级选择；不是服务端从未升级的证明。可在目标许可的原安装历史查本人已装结果。").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                Section { Text("本机无可读取的原升级选择；不是服务端从未升级的证明。可在目标许可的原安装历史查本人已装结果。").cyText(.body).fixedSize(horizontal: false, vertical: true) }
             }
             if let receipt = controller.originalRecoveryReceipt {
                 Section {
                     ModInstallationOriginalReceiptSummary(receipt: receipt)
                     Text("原安装回执不授予新的版本、发布或运行权利；撤权后仍保留原发生事实。")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if receipt.state == .cancelled || receipt.state == .failed {
                         Text("这是原请求未完成安装的结果，不是卸载旧稿、回退旧 release/run、退款或客户端退还额度的证明。")
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else if receipt.state == .installed {
                         Text("生成的是目标版本的新私有稿；不据此替换旧稿、旧 release 或旧 run，也不执行版本降级。")
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -558,7 +558,7 @@ private struct ModUpgradeThumb: View {
             if let preview = controller.originalRecoveryPreview {
                 Section {
                     Text("这是原 PREPARED 请求的绑定计划，不是已经安装、发布、运行或可以回滚的证明。")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let raw = preview.fields["qmodTopicGraphJson"], let graph = try? ModInstallationTopicGraph(json: raw) {
@@ -577,7 +577,7 @@ private struct ModUpgradeThumb: View {
             if let facts = controller.originalRecoveryFacts {
                 Section {
                     Text(verbatim: cyShownValue(facts.title))
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: "draftId: \(facts.draftId) · draftContentHash: " + facts.draftContentHash)
@@ -585,7 +585,7 @@ private struct ModUpgradeThumb: View {
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                     Text("这是原草稿读取服务返回的当前配置，可能已被作者编辑；不是原冻结内容、当前许可、审核发布或运行结果的替代证明。")
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     DisclosureGroup("当前规则") { Text(verbatim: facts.rules).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
@@ -598,12 +598,12 @@ private struct ModUpgradeThumb: View {
             }
             if controller.originalRecoveryContentUnknown {
                 Text("预览 / 当前稿读取 UNKNOWN 或当前读取权限已撤；仍保留上次已验证的同一原安装回执，不改读别的版本、不重装。")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if controller.originalRecoveryUnknown { Text("本次原升级结果 UNKNOWN；404、超时或异常均不清理原选择、不换键重发。").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
-            if controller.originalRecoveryStorageUnavailable { Text("原本机 journal 不可读；未删除或替换。").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+            if controller.originalRecoveryUnknown { Text("本次原升级结果 UNKNOWN；404、超时或异常均不清理原选择、不换键重发。").cyText(.body).fixedSize(horizontal: false, vertical: true) }
+            if controller.originalRecoveryStorageUnavailable { Text("原本机 journal 不可读；未删除或替换。").cyText(.body).fixedSize(horizontal: false, vertical: true) }
             Section {
                 CYPillButton(verbatim: "刷新同一原升级请求", systemImage: "arrow.clockwise") { Task { await controller.recoverOriginalReceipt() } }
                     .disabled(controller.busy || !controller.isCurrent)
@@ -612,7 +612,7 @@ private struct ModUpgradeThumb: View {
             if controller.busy { Section { CYSkeleton() } }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .cyGroupedSurface()
         .cyHeroScreen()
         .privacySensitive()
@@ -622,7 +622,7 @@ private struct ModUpgradeThumb: View {
 
 private func recoveryHeader(_ title: String) -> some View {
     Text(verbatim: title)
-        .font(CYTypography.sectionTitle)
+        .cyText(.sectionTitle)
         .foregroundStyle(CYColor.textPrimary)
         .textCase(nil)
         .accessibilityAddTraits(.isHeader)

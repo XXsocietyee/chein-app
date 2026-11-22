@@ -19,9 +19,9 @@ import SwiftUI
                     } else { CYEmptyState(systemImage: "lock", "verificationCode.phase.disabled") }
                 } else {
                     Label("roam.experience.voucherMissing", systemImage: "questionmark.circle")
-                    Text("roam.experience.voucherMissingHint").font(.caption)
+                    Text("roam.experience.voucherMissingHint").cyText(.meta)
                 }
-                Text("verificationCode.city.authority").font(.footnote).foregroundStyle(.secondary)
+                Text("verificationCode.city.authority").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
         }.cyGroupedSurface().navigationTitle("roam.experience.voucher")
             .accessibilityIdentifier("roam.experience.voucher")

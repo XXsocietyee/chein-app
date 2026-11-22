@@ -183,11 +183,11 @@ public struct AppStoreReviewRejectionPreventionSectionView: View {
             Image(systemName: "checkmark.shield.fill")
                 .foregroundStyle(.teal)
             Text(verbatim: "App Store Review Rejection Prevention Playbook")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("reviewRejectionPlaybook.header")
             Spacer()
             Text(verbatim: headerBadgeText)
-                .font(.caption2.weight(.semibold))
+                .cyText(.caption, weight: .semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
@@ -218,10 +218,10 @@ public struct AppStoreReviewRejectionPreventionSectionView: View {
         VStack(alignment: .leading, spacing: 5) {
             HStack(spacing: 6) {
                 Text(verbatim: "[\(rule.guidelineCode)] \(rule.title)")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: rule.isDefenseVerified ? "DEFENDED" : "UNDEFENDED WARNING")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(
@@ -233,7 +233,7 @@ public struct AppStoreReviewRejectionPreventionSectionView: View {
             }
 
             Text(verbatim: rule.defenseSummary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
         }
         .padding(10)
@@ -252,7 +252,7 @@ public struct AppStoreReviewRejectionPreventionSectionView: View {
 
     private func pill(text: String, tint: Color) -> some View {
         Text(verbatim: text)
-            .font(.caption2.weight(.medium))
+            .cyText(.caption, weight: .medium)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(

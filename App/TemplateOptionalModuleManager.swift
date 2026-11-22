@@ -82,14 +82,14 @@ import Combine
         Form {
             Section {
                 if editor.needsReload {
-                    Text("templateModules.changed").font(.caption)
+                    Text("templateModules.changed").cyText(.meta)
                     Button("templateModules.reload") { editor.reload() }.disabled(!editor.canReload)
                 }
             }
             ForEach(TemplateOptionalModules.Module.allCases) { module in
                 Section(LocalizedStringKey(module.labelKey)) {
                     if editor.canEdit {
-                        Text(LocalizedStringKey(editor.enabled(module) ? "templateModules.enabled" : "templateModules.available")).font(.caption)
+                        Text(LocalizedStringKey(editor.enabled(module) ? "templateModules.enabled" : "templateModules.available")).cyText(.meta)
                         if !editor.enabled(module) {
                             Button("templateModules.add", systemImage: "plus", action: editor.addAction(module)).accessibilityIdentifier("templateModules.add." + module.rawValue)
                         }
@@ -109,11 +109,11 @@ import Combine
                         if editor.currentReview?.id == original.id {
                             Section(LocalizedStringKey(original.module.labelKey)) {
                                 Text("templateModules.removeNotice")
-                                if original.module == .story { Text("templateModules.storyNotice").font(.caption) }
-                                if original.module == .reward { Text("templateModules.rewardNotice").font(.caption) }
+                                if original.module == .story { Text("templateModules.storyNotice").cyText(.meta) }
+                                if original.module == .reward { Text("templateModules.rewardNotice").cyText(.meta) }
                                 ForEach(original.fields) { field in
                                     VStack(alignment: .leading) {
-                                        Text(LocalizedStringKey(field.labelKey)).font(.headline)
+                                        Text(LocalizedStringKey(field.labelKey)).cyText(.cardTitle)
                                         if field.value.isEmpty { Text("templateModules.empty").foregroundStyle(.secondary) }
                                         else { Text(verbatim: field.value).textSelection(.enabled) }
                                     }

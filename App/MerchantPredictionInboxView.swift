@@ -234,7 +234,7 @@ extension MerchantPredictionReading {
                         .font(CYTypography.display)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error"))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center)
                     CYPillButton(verbatim: MerchantOpsCopy.text("merchantOps.predict.retry"), style: .primary) {
@@ -259,10 +259,10 @@ extension MerchantPredictionReading {
                             Button { model.open(round) } label: {
                                 VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
                                     Text(verbatim: round.nodeName.isEmpty ? appLocalized("merchant.predict.unnamedNode", locale: locale) : round.nodeName)
-                                        .font(CYTypography.cardTitle)
+                                        .cyText(.cardTitle)
                                         .foregroundStyle(CYColor.textPrimary)
                                     Text(verbatim: round.question.isEmpty ? "—" : round.question)
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(CYColor.textPrimary)
                                     MerchantPredictionRoundFacts(round: round)
                                 }
@@ -290,10 +290,10 @@ extension MerchantPredictionReading {
                     List {
                         Section {
                             Text(verbatim: selected.round.question.isEmpty ? "—" : selected.round.question)
-                                .font(CYTypography.cardTitle)
+                                .cyText(.cardTitle)
                                 .foregroundStyle(CYColor.textPrimary)
                             Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", selected.round.playDay))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                         // Answer options. Publishing the answer is not wired in the app, so options are listed without an action.
@@ -361,7 +361,7 @@ extension MerchantPredictionReading {
     var body: some View {
         let facts = MerchantPredictionInboxPresentation(daysLeft: round.daysLeft, betCount: round.betCount, optionCount: round.options.count)
         Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", round.playDay))
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
         Group {
             switch facts.deadline {
@@ -374,16 +374,16 @@ extension MerchantPredictionReading {
         switch facts.bets {
         case .count(let count):
             Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.bets %lld", count))
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textSecondary)
         case .none:
             Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.noBets"))
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textSecondary)
         }
         Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.options %lld", facts.optionCount))
-            .font(CYTypography.caption)
+            .cyText(.caption)
             .monospacedDigit()
             .foregroundStyle(CYColor.textSecondary)
     }

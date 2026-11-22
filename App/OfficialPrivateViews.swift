@@ -23,7 +23,7 @@ import SwiftUI
                 // Mini-program `oi-hero`: eyebrow, headline and one explanatory paragraph above the invitations.
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("officialInbox.hero.eyebrow").font(CYTypography.label).foregroundStyle(palette.textSecondary)
+                        Text("officialInbox.hero.eyebrow").cyText(.label).foregroundStyle(palette.textSecondary)
                         CYHeroHeader("officialInbox.hero.title", subtitle: "officialInbox.hero.sub")
                     }.accessibilityElement(children: .combine)
                 }
@@ -41,10 +41,10 @@ import SwiftUI
                         }
                         if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
                         // Source meta line: "(city ‖ 全国) · role".
-                        (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
-                        Text(LocalizedStringKey(row.scopeKey)).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+                        (cityText(row) + Text(verbatim: " · ") + roleText(row)).cyText(.meta).foregroundStyle(palette.textSecondary)
+                        Text(LocalizedStringKey(row.scopeKey)).cyText(.caption).foregroundStyle(palette.textTertiary)
                         if let note = row.roleNoteTuple {
-                            Text(verbatim: c.t(note.zh, note.en)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: c.t(note.zh, note.en)).cyText(.caption).foregroundStyle(palette.textSecondary)
                         }
                         // capacityFact keeps a literal 0; a missing or non-integer capacity is an em dash.
                         Group {
@@ -52,18 +52,18 @@ import SwiftUI
                             case .known(let cap): Text(verbatim: appLocalized("official.inbox.capacity \(cap)", locale: locale))
                             case .unknown: Text("official.inbox.capacityUnknown")
                             }
-                        }.font(CYTypography.caption).foregroundStyle(palette.textSecondary)
-                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(CYTypography.caption) }
+                        }.cyText(.caption).foregroundStyle(palette.textSecondary)
+                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).cyText(.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
-                            Text(verbatim: summary).font(CYTypography.meta)
+                            Text(verbatim: summary).cyText(.meta)
                         }
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
-                                .font(CYTypography.caption).foregroundStyle(palette.warning)
+                                .cyText(.caption).foregroundStyle(palette.warning)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).font(CYTypography.caption) }
+                        if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).cyText(.caption) }
                     }
                     .cyDomainCard(padding: CYSpacing.md)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("official.invite.\(row.id)")
@@ -122,13 +122,13 @@ import SwiftUI
                                         if let facts = broadcast.facts {
                                             CYStatusChip(OfficialPrivateFactsText.broadcastStatusKey(facts.status), tone: .neutral, systemImage: "megaphone")
                                         }
-                                        if broadcast.title.isEmpty { Text("official.untitled").font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true) }
-                                        else { Text(verbatim: broadcast.title).font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                                        if broadcast.title.isEmpty { Text("official.untitled").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
+                                        else { Text(verbatim: broadcast.title).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true) }
                                         if let facts = broadcast.facts {
-                                            OfficialPrivateFactsText.broadcastLine(facts).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                                            OfficialPrivateFactsText.broadcastLine(facts).cyText(.meta).foregroundStyle(palette.textSecondary)
                                         }
-                                        if let content = broadcast.content { Text(verbatim: content).font(CYTypography.meta).lineLimit(3).fixedSize(horizontal: false, vertical: true) }
-                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").font(CYTypography.caption).foregroundStyle(palette.textSecondary).monospacedDigit() }
+                                        if let content = broadcast.content { Text(verbatim: content).cyText(.meta).lineLimit(3).fixedSize(horizontal: false, vertical: true) }
+                                        if let reach = broadcast.reach { Text("official.published.reach \(reach)").cyText(.caption).foregroundStyle(palette.textSecondary).monospacedDigit() }
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 }.accessibilityIdentifier("official.broadcast.\(broadcast.id)")
@@ -145,16 +145,16 @@ import SwiftUI
             CYStatusChip(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)), tone: .neutral, systemImage: "calendar")
                 .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             if let title = OfficialPublishedPresentation.nonBlank(event.title) {
-                Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             } else {
-                Text("official.privateParity.published.untitledEvent").font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
+                Text("official.privateParity.published.untitledEvent").cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
             }
             // Source sub line: city, then " · category" only when the server sent one.
             let city = OfficialPublishedPresentation.nonBlank(event.city).map { Text(verbatim: $0) } ?? Text(verbatim: "—")
             Group {
                 if OfficialPublishedPresentation.nonBlank(event.category) != nil { city + Text(verbatim: " · ") + Text(LocalizedStringKey(event.categoryKey)) }
                 else { city }
-            }.font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            }.cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
@@ -163,8 +163,8 @@ import SwiftUI
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
         // Mini-program `cy-empty` (title + sub): quiet centred empty row.
         VStack(spacing: CYSpacing.xs) {
-            Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
-            Text(detail).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
+            Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textSecondary)
+            Text(detail).cyText(.meta).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
         }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.md).accessibilityElement(children: .combine)
     }
 }

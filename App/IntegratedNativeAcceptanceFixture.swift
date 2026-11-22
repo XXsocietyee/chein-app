@@ -305,7 +305,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var body: some View {
         Text(verbatim: "Synthetic normal-root acceptance")
-            .font(.caption2).frame(maxWidth: .infinity).background(.regularMaterial)
+            .cyText(.caption).frame(maxWidth: .infinity).background(.regularMaterial)
             .accessibilityIdentifier("integratedAcceptance.evidence")
             .accessibilityValue(Text(verbatim: fixture.evidence))
     }

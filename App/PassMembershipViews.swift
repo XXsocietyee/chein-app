@@ -120,7 +120,7 @@ struct PassMembershipView: View {
                 if !content.plans.isEmpty { plans(content) }
                 if content.active && !content.plans.isEmpty { renewNote(content) }
                 if !content.plans.isEmpty {
-                    Text("mp.member.terms").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("mp.member.terms").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity, alignment: .center)
                 }
             }
@@ -135,7 +135,7 @@ struct PassMembershipView: View {
                         CYPillButton("mp.member.toLibrary", action: onOpenLibrary).accessibilityIdentifier("membership.toLibrary")
                     }
                 } else {
-                    buyLabel(content).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textTertiary)
+                    buyLabel(content).cyText(.bodyMedium).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity, minHeight: 56)
                         .background(CYColor.bgElevated, in: Capsule())
                         .accessibilityAddTraits(.isStaticText)
@@ -157,10 +157,10 @@ struct PassMembershipView: View {
     private func card(_ content: PassMembershipContent) -> some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("mp.member.eyebrow").font(CYTypography.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary)
-                (content.active ? Text("mp.member.active") : Text("mp.member.inactive")).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                Text("mp.member.eyebrow").cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary)
+                (content.active ? Text("mp.member.active") : Text("mp.member.inactive")).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                 if content.active, let until = content.untilText {
-                    Text("mp.pass.member.until \(until)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("mp.pass.member.until \(until)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
             Spacer()
@@ -184,8 +184,8 @@ struct PassMembershipView: View {
             let on = plan.code == content.selectedPlan
             Button { onSelectPlan(plan.code) } label: {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: plan.priceText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                    plan.lineText.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: plan.priceText).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    plan.lineText.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
                 .padding(CYSpacing.lg)
@@ -194,7 +194,7 @@ struct PassMembershipView: View {
                     .strokeBorder(on ? CYColor.selection : Color.clear, lineWidth: on ? 2 : 0))
                 .overlay(alignment: .topTrailing) {
                     if plan.best {
-                        Text("mp.member.best").font(CYTypography.micro).foregroundStyle(CYNight.ink0)
+                        Text("mp.member.best").cyText(.micro).foregroundStyle(CYNight.ink0)
                             .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                             .background(CYNight.lantern, in: Capsule())
                             .offset(x: -CYSpacing.sm, y: -CYSpacing.sm)
@@ -211,7 +211,7 @@ struct PassMembershipView: View {
     }
 
     private func renewNote(_ content: PassMembershipContent) -> some View {
-        buyLabel(content).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+        buyLabel(content).cyText(.label).foregroundStyle(CYColor.textTertiary)
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             .background(CYColor.bgElevated, in: Capsule())
             .accessibilityIdentifier("membership.renew")
@@ -374,13 +374,13 @@ struct PassLibraryCardView: View {
             CYCachedAsyncImage(card.coverURL, role: .cover)
                 .overlay(LinearGradient(colors: [.clear, CYNight.ink0.opacity(0.92)], startPoint: .center, endPoint: .bottom))
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: card.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                Text(verbatim: card.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
                 HStack(spacing: CYSpacing.xs) {
                     if let kindText { kindText }
                     if kindText != nil && card.minutes != nil { Text(verbatim: "·") }
                     if let minutes = card.minutes { Text("mp.library.minutes \(minutes)") }
                 }
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 // photo-card__bottom: tag chips (kind, city) + chevron, as on the club card.
                 HStack(spacing: CYSpacing.xs) {
                     if let kindText { tag(kindText) }
@@ -396,12 +396,12 @@ struct PassLibraryCardView: View {
         .overlay(alignment: .top) {
             HStack(spacing: CYSpacing.sm) {
                 // photo-card__logo: the 城 mark.
-                Text("mp.library.cityMark").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                Text("mp.library.cityMark").cyText(.caption, weight: .bold).foregroundStyle(CYColor.textPrimary)
                     .frame(width: 28, height: 28)
                     .cyNightGlass(in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
                     .accessibilityHidden(true)
                 if card.freeWithPass {
-                    Text("mp.library.free").font(CYTypography.caption).foregroundStyle(CYNight.ink0)
+                    Text("mp.library.free").cyText(.caption).foregroundStyle(CYNight.ink0)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYNight.lantern, in: Capsule())
                 }
@@ -421,7 +421,7 @@ struct PassLibraryCardView: View {
     }
 
     private func tag(_ text: Text) -> some View {
-        text.font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+        text.cyText(.caption).foregroundStyle(CYColor.textPrimary)
             .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
             .background(CYColor.textPrimary.opacity(0.14), in: Capsule())
     }
@@ -504,9 +504,9 @@ struct PassRevealPaidFacts: Hashable {
             .accessibilityHidden(true)
             Spacer()
             VStack(spacing: CYSpacing.md) {
-                eyebrow.font(CYTypography.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).revealIn(step >= 5, reduceMotion: reduceMotion)
-                title.font(CYTypography.display).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
-                if let line { line.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
+                eyebrow.cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).revealIn(step >= 5, reduceMotion: reduceMotion)
+                title.cyText(.display).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
+                if let line { line.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
                 CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
                     .accessibilityIdentifier("passReveal.start")
                     .revealIn(step >= 8, reduceMotion: reduceMotion)

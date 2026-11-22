@@ -82,11 +82,11 @@ import SwiftUI
                                     .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityHidden(true)
                                 Text(verbatim: (coverLabel?.isEmpty == false ? coverLabel : nil) ?? "")
-                                    .font(CYTypography.bodyMedium)
+                                    .cyText(.bodyMedium)
                                     .foregroundStyle(CYColor.textPrimary)
                                 if coverLabel?.isEmpty != false {
                                     Text("playkit.scratch.coverPrompt")
-                                        .font(CYTypography.bodyMedium)
+                                        .cyText(.bodyMedium)
                                         .foregroundStyle(CYColor.textPrimary)
                                 }
                             }

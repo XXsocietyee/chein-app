@@ -156,7 +156,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
     private var headerView: some View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.sectionTitle)
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("publishTopicModeration.title")
             Spacer()
             Text(verbatim: snapshot.specBadgeText)
@@ -172,11 +172,11 @@ public struct PublishTopicAndCommentModerationSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 8) {
                 Text(verbatim: "九宫格媒体槽位：\(snapshot.nineGridMediaCount)/\(PublishTopicModerationSnapshot.maxNineGridMediaCount)")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .accessibilityIdentifier("publishTopicModeration.nineGridCount")
                 Spacer()
                 Text(verbatim: snapshot.isNineGridWithinLimit ? "容量合规" : "超出上限")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .accessibilityIdentifier("publishTopicModeration.nineGridStatus")
             }
 
@@ -225,7 +225,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
                 .accessibilityIdentifier("publishTopicModeration.ugcBannerState")
 
             Text(verbatim: snapshot.ugcViolationBannerText)
-                .font(.caption)
+                .cyText(.meta)
                 .accessibilityIdentifier("publishTopicModeration.ugcBannerText")
         }
         .accessibilityElement(children: .contain)
@@ -235,7 +235,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
     private var moderationChecklistSectionView: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "发布与评论治理检查项 (\(snapshot.checks.count))")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .accessibilityIdentifier("publishTopicModeration.checklistHeader")
 
             ForEach(snapshot.checks) { row in
@@ -247,10 +247,10 @@ public struct PublishTopicAndCommentModerationSectionView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
-                            .font(.caption.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .accessibilityIdentifier("publishTopicModeration.row.\(row.id).title")
                         Text(verbatim: row.detail)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("publishTopicModeration.row.\(row.id).detail")
                     }
@@ -258,7 +258,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
                     Spacer()
 
                     Text(verbatim: row.statusBadgeText)
-                        .font(.caption2.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(Color.accentColor.opacity(0.14)))

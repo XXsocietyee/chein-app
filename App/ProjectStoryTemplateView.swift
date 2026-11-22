@@ -13,12 +13,12 @@ import SwiftUI
             Form {
                 Section { CYHeroHeader(verbatim: nodeSelection ? String(localized: LocalizedStringResource("projectNodeTemplate.title", table: "ProjectNodeTemplateSelection", locale: locale)) : String(localized: LocalizedStringResource("projectStoryTemplate.title", table: "Localizable", locale: locale))) }.e1HeroRow()
                 Section {
-                    if nodeSelection { Text("projectNodeTemplate.scope", tableName: "ProjectNodeTemplateSelection").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                    else { Text("projectStoryTemplate.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    if nodeSelection { Text("projectNodeTemplate.scope", tableName: "ProjectNodeTemplateSelection").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                    else { Text("projectStoryTemplate.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
                 if let review = controller.review {
                     Section("projectStoryTemplate.previewTitle") {
-                        Text(verbatim: review.source.row.title).font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader).accessibilityIdentifier("projectStoryTemplate.preview.title")
+                        Text(verbatim: review.source.row.title).cyText(.sectionTitle).accessibilityAddTraits(.isHeader).accessibilityIdentifier("projectStoryTemplate.preview.title")
                         Group {
                             if nodeSelection { ProjectStoryTemplatePreview(source: review.source, nodeSelection: true) }
                             else { ProjectStoryTemplatePreview(source: review.source) }

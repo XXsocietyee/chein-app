@@ -17,14 +17,14 @@ import SwiftUI
                     if let limit = quota.limit {
                         LabeledContent("publishingAIQuota.limit") {
                             Text(verbatim: String(limit))
-                                .font(CYTypography.bodyCompact.monospacedDigit())
+                                .cyText(.bodyCompact, monospacedDigit: true)
                                 .foregroundStyle(palette.textPrimary)
                         }
                     } else { PublishingStatusRow(title: Text("publishingAIQuota.limitUnknown")) }
                     if let remaining = quota.remaining {
                         LabeledContent("contextPublish.ai.remaining") {
                             Text(verbatim: String(remaining))
-                                .font(CYTypography.cardTitle.monospacedDigit())
+                                .cyText(.cardTitle, monospacedDigit: true)
                                 .foregroundStyle(remaining == 0 ? palette.danger : palette.textPrimary)
                         }
                         .accessibilityIdentifier("publishingAIQuota.remaining")
@@ -34,7 +34,7 @@ import SwiftUI
                 if let readAt = flow.quotaReadAt {
                     LabeledContent("publishingAIQuota.lastRead") {
                         Text(readAt, format: .dateTime.month().day().hour().minute())
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                     }
                 }

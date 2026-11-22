@@ -163,7 +163,7 @@ public struct CloudCIShardStatusSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "分片状态汇总")
             }
@@ -173,20 +173,20 @@ public struct CloudCIShardStatusSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Text(verbatim: row.runnerImage)
                             .font(.caption2.monospaced())
                             .foregroundStyle(.secondary)
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.state).opacity(0.15), in: Capsule())
                             .foregroundStyle(badgeColor(for: row.state))
                     }
                     Text(verbatim: row.detail)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

@@ -61,7 +61,7 @@ import SwiftUI
             if ownsHost && ProjectClubLead.isEligible(model.draft) && ProjectClubLead.supportsEditing(model.draft) {
                 Toggle("projectClubLead.enabled", isOn: controller.binding(captured))
                     .disabled(captured == nil).accessibilityIdentifier("projectClubLead.enabled")
-                Text("projectClubLead.hint").font(.footnote).foregroundStyle(.secondary)
+                Text("projectClubLead.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
             } else if ownsHost {
                 ProjectClubLeadSummary(draft: model.draft)
             }

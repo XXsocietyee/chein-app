@@ -124,7 +124,7 @@ public struct CouponAndSponsoredRewardSafetySectionView: View {
         Section {
             VStack(alignment: .leading, spacing: 8) {
                 Text(verbatim: "卡券运行态与赞助奖池安全审计")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("couponSponsoredSafety.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
@@ -133,26 +133,26 @@ public struct CouponAndSponsoredRewardSafetySectionView: View {
                     .accessibilityIdentifier("couponSponsoredSafety.overallStatus")
 
                 Text(verbatim: Self.couponJourneyStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("couponSponsoredSafety.couponJourneyStatus")
 
                 Text(verbatim: Self.poolDisclosureStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("couponSponsoredSafety.poolDisclosureStatus")
 
                 Text(verbatim: Self.frozenVoucherStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("couponSponsoredSafety.frozenVoucherStatus")
 
                 Text(verbatim: Self.capabilitiesGateStatusText(for: snapshot))
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .accessibilityIdentifier("couponSponsoredSafety.capabilitiesGateStatus")
             }
             .padding(.vertical, 4)
 
             if snapshot.rows.isEmpty {
                 Text(verbatim: "暂无卡券与赞助奖池安全检查项")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("couponSponsoredSafety.empty")
             } else {
@@ -203,19 +203,19 @@ private struct CouponSponsoredSafetyRowView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(verbatim: row.title)
-                    .font(.subheadline.bold())
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.isCompliant ? "已生效" : "待修复")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(row.isCompliant ? .green : .red)
             }
 
             Text(verbatim: row.summary)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "核验凭据：\(row.evidenceText)")
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

@@ -131,10 +131,10 @@ public struct ThreeDocumentMasterCrosswalkSectionView: View {
         Section {
             HStack {
                 Text(verbatim: "三份主控文档对标总览")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: snapshot.isFullyAligned ? "三单全对齐 (3/3)" : "存在待决项")
-                    .font(.caption2.weight(.bold))
+                    .cyText(.caption, weight: .bold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isFullyAligned ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
@@ -144,7 +144,7 @@ public struct ThreeDocumentMasterCrosswalkSectionView: View {
 
             LabeledContent {
                 Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
+                    .cyText(.numericBody)
             } label: {
                 Text(verbatim: "对标统计")
             }
@@ -157,19 +157,19 @@ public struct ThreeDocumentMasterCrosswalkSectionView: View {
                             .font(.subheadline.monospaced().weight(.semibold))
                         Spacer()
                         Text(verbatim: row.badgeText)
-                            .font(.caption2.weight(.bold))
+                            .cyText(.caption, weight: .bold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.state).opacity(0.15), in: Capsule())
                             .foregroundStyle(badgeColor(for: row.state))
                     }
                     Text(verbatim: row.scopeSummary)
-                        .font(.caption)
+                        .cyText(.meta)
                     Text(verbatim: "覆盖范围：\(row.coveredTicketsText)")
                         .font(.caption2.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: "核验证据：\(row.verificationEvidence)")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

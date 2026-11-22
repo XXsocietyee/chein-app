@@ -116,7 +116,7 @@ import Combine
                 Section(LocalizedStringKey(group.labelKey)) {
                     ForEach(TemplateSamplePreview.Choice.allCases.filter { $0.group == group }) { choice in
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(LocalizedStringKey(choice.labelKey)).font(.headline)
+                            Text(LocalizedStringKey(choice.labelKey)).cyText(.cardTitle)
                             HStack {
                                 CYPillButton("templateSamples.preview", style: .secondary, action: controller.openAction(choice))
                                     .disabled(!controller.canBrowse || controller.presentation != nil)
@@ -150,8 +150,8 @@ import Combine
         Group {
             if let item = controller.visiblePresentation, item.id == presentationID {
                 VStack(spacing: 8) {
-                    Text("templateSamples.previewScope").font(.footnote).padding(.horizontal)
-                    Text("templateSamples.filled \(item.sample.filledFields.count)").font(.caption)
+                    Text("templateSamples.previewScope").cyText(.bodyCompact).padding(.horizontal)
+                    Text("templateSamples.filled \(item.sample.filledFields.count)").cyText(.meta)
                     TemplateCreatorRehearsalView(draft: item.sample.draft, family: item.sample.choice.family)
                         .id(item.id)
                 }

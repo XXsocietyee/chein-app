@@ -96,10 +96,10 @@ private struct RoamPassportTileLabel: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(title)
-                    Text("roam.private.new").font(.caption2.bold()).padding(.horizontal, 6).padding(.vertical, 1)
+                    Text("roam.private.new").cyText(.caption, weight: .bold).padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Color.accentColor.opacity(0.15), in: Capsule())
                 }
-                Text(subtitle).font(.caption).foregroundStyle(.secondary)
+                Text(subtitle).cyText(.meta).foregroundStyle(.secondary)
             }
         } icon: { Image(systemName: systemImage) }
     }
@@ -297,7 +297,7 @@ struct RoamPrivatePageScope: Hashable {
             }
             // Reads are approved but the write route is not: say so instead of silently hiding the compose button.
             if tools.identity != nil, tools.isConfigured, !tools.allowsWrites, model.pending == nil, model.pendingRequestID == nil {
-                Section { Label("roam.capsule.writeUnavailable", systemImage: "lock").font(.footnote).foregroundStyle(.secondary) }
+                Section { Label("roam.capsule.writeUnavailable", systemImage: "lock").cyText(.bodyCompact).foregroundStyle(.secondary) }
                     .accessibilityIdentifier("roam.capsule.writeUnavailable")
             }
             if model.pending != nil || model.pendingRequestID != nil {
@@ -324,8 +324,8 @@ struct RoamPrivatePageScope: Hashable {
             }
             if let opened = model.opened {
                 Section {
-                    Text("roam.capsule.openedMeta \(opened.unlockDateText ?? "—") \(opened.createdDateText ?? "—")").font(.caption).foregroundStyle(.secondary)
-                    Text(verbatim: capsuleText(opened.body)).font(.body).textSelection(.enabled).accessibilityIdentifier("roam.capsule.body")
+                    Text("roam.capsule.openedMeta \(opened.unlockDateText ?? "—") \(opened.createdDateText ?? "—")").cyText(.meta).foregroundStyle(.secondary)
+                    Text(verbatim: capsuleText(opened.body)).cyText(.body).textSelection(.enabled).accessibilityIdentifier("roam.capsule.body")
                     if let photo = opened.photoURL, let url = URL(string: photo), url.scheme == "https" {
                         AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: { CYSkeleton() }
                             .accessibilityLabel(Text("roam.capsule.photo"))
@@ -494,7 +494,7 @@ struct RoamPrivatePageScope: Hashable {
                 .lineLimit(4...12).disabled(model.isBusy || model.pending != nil)
                 .onChange(of: text) { _, value in if value.utf16.count > RoamCapsuleDraft.bodyLimit { text = String(value.utf16.prefix(RoamCapsuleDraft.bodyLimit)) ?? value } }
                 .accessibilityIdentifier("roam.capsule.text")
-            Text("roam.capsule.count \(text.utf16.count)").font(.caption).foregroundStyle(.secondary).monospacedDigit()
+            Text("roam.capsule.count \(text.utf16.count)").cyText(.meta).foregroundStyle(.secondary).monospacedDigit()
         } header: { Text("roam.capsule.bodyLabel") }
         Section {
             LabeledContent("roam.capsule.unlockLabel") { Text(verbatim: unlockDate).monospacedDigit() }
@@ -528,16 +528,16 @@ struct RoamPrivatePageScope: Hashable {
                 if item.state == .open {
                     Button { page.read { await model.open(item) } } label: {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("roam.capsule.openReady \(item.createdDateText ?? "—")").font(.caption).foregroundStyle(.tint)
-                            Text("roam.capsule.openIt").font(.headline)
+                            Text("roam.capsule.openReady \(item.createdDateText ?? "—")").cyText(.meta).foregroundStyle(.tint)
+                            Text("roam.capsule.openIt").cyText(.cardTitle)
                         }
                     }.accessibilityIdentifier("roam.capsule.row.open")
                 } else {
                     Button { lockedTip = true } label: {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("roam.capsule.writtenOn \(item.createdDateText ?? "—")").font(.caption).foregroundStyle(.secondary)
-                            Text("roam.capsule.daysLeft \(item.daysLeft(now: tools.now))").font(.title2.bold()).monospacedDigit()
-                            Text("roam.capsule.unlocksOn \(item.unlockDateText ?? "—")").font(.caption).foregroundStyle(.secondary)
+                            Text("roam.capsule.writtenOn \(item.createdDateText ?? "—")").cyText(.meta).foregroundStyle(.secondary)
+                            Text("roam.capsule.daysLeft \(item.daysLeft(now: tools.now))").cyText(.sheetTitle).monospacedDigit()
+                            Text("roam.capsule.unlocksOn \(item.unlockDateText ?? "—")").cyText(.meta).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine)
                     }.buttonStyle(.plain).accessibilityIdentifier("roam.capsule.row.locked")
                 }
@@ -666,12 +666,12 @@ extension RoamGoalState {
                     Button { page.read { await model.open(row.id) } } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack {
-                                (Text(verbatim: "\(row.progress) / ") + amountText(row.metric, row.target)).font(CYTypography.cardTitle).monospacedDigit()
+                                (Text(verbatim: "\(row.progress) / ") + amountText(row.metric, row.target)).cyText(.cardTitle).monospacedDigit()
                                 Spacer()
                                 CYStatusChip(row.state.titleKey, tone: row.state == .achieved ? .success : .neutral)
                             }
                             ProgressView(value: Double(row.percent), total: 100)
-                            (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                            (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }.accessibilityElement(children: .combine)
                     }.buttonStyle(.plain).accessibilityIdentifier("roam.goals.row")
                 }
@@ -803,11 +803,11 @@ extension RoamGoalState {
     private func startCreating() { guard page.acceptsInput, !page.settlementInFlight, !model.isBusy else { return }; usePeriod(period); model.dismissIssue(); creating = true }
     @ViewBuilder private func detailSection(_ detail: RoamExplorationGoal) -> some View {
         Section {
-            (Text(detail.metric.titleKey) + Text(verbatim: " · ") + Text(detail.state.titleKey)).font(.caption).foregroundStyle(.secondary)
-            (Text(verbatim: "\(detail.progress)").font(Theme.Font.dataXL) + Text(verbatim: " / \(detail.target)").font(.title2))
+            (Text(detail.metric.titleKey) + Text(verbatim: " · ") + Text(detail.state.titleKey)).cyText(.meta).foregroundStyle(.secondary)
+            (Text(verbatim: "\(detail.progress)").cyText(.dataXL) + Text(verbatim: " / \(detail.target)").cyText(.sheetTitle))
                 .monospacedDigit().accessibilityIdentifier("roam.goals.detail.progress")
             ProgressView(value: Double(detail.percent), total: 100).accessibilityLabel(Text(detail.metric.titleKey))
-            Text("roam.goals.range \(detail.startDate) \(detail.endDateExclusive)").font(.caption).foregroundStyle(.secondary)
+            Text("roam.goals.range \(detail.startDate) \(detail.endDateExclusive)").cyText(.meta).foregroundStyle(.secondary)
             Button("roam.goals.collapse") { model.closeDetail() }.accessibilityIdentifier("roam.goals.collapse")
             if detail.state.isCancellable && model.canWrite {
                 Button("roam.goals.cancelThis", role: .destructive) { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCancel() }.accessibilityIdentifier("roam.goals.cancelThis")

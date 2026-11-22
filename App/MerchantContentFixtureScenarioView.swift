@@ -21,9 +21,9 @@ import SwiftUI
             HStack {
                 Button("merchant.content.fixtureSignOut") { environment.signOut() }.accessibilityIdentifier("merchant.content.fixture.signOut")
                 Button("merchant.content.fixtureRecover") { environment.recover() }.accessibilityIdentifier("merchant.content.fixture.recover")
-            }.font(.caption).padding(8)
+            }.cyText(.meta).padding(8)
             NavigationStack { MerchantContentHomeView(service: environment.service, topicID: 70) }.id(environment.revision)
-            Text("merchant.content.fixtureBanner").font(.footnote).padding(6).background(.regularMaterial)
+            Text("merchant.content.fixtureBanner").cyText(.bodyCompact).padding(6).background(.regularMaterial)
         }
     }
 }

@@ -18,7 +18,7 @@ struct ClubRoleRevocationRecoverySection: View {
     private var readable: Bool { visible && scenePhase == .active && access.identity == context.identity && access.authorizationGeneration == context.authorizationGeneration && recovery?.canRead(scope: context.scope, identity: context.identity) == true }
     var body: some View {
         Section {
-            Text("roleRevoke.history.notice", tableName: "ClubRoleRevocation").font(.footnote).foregroundStyle(.secondary)
+            Text("roleRevoke.history.notice", tableName: "ClubRoleRevocation").cyText(.bodyCompact).foregroundStyle(.secondary)
             if readable {
                 if busy { ProgressView().accessibilityLabel(Text("roleRevoke.loading", tableName: "ClubRoleRevocation")) }
                 if issue { Text("roleRevoke.unavailable", tableName: "ClubRoleRevocation") }
@@ -28,9 +28,9 @@ struct ClubRoleRevocationRecoverySection: View {
                             Text(verbatim: "#\(item.entry.assignmentID) · #\(item.entry.targetMemberID)")
                             Text(verbatim: item.entry.roleCode)
                             Text(LocalizedStringKey(item.entry.outcome == "NOT_SENT" ? "roleRevoke.notSent" : item.receipt?.state == "APPLIED" ? "roleRevoke.applied" : "roleRevoke.unknown"), tableName: "ClubRoleRevocation")
-                            Text(verbatim: item.entry.requestID).font(.caption).textSelection(.enabled)
-                            if let audit = item.receipt?.auditId { Text(verbatim: "Audit #\(audit)").font(.caption) }
-                            if let ms = item.receipt?.appliedAt { Text(Date(timeIntervalSince1970: Double(ms) / 1000), style: .date).font(.caption) }
+                            Text(verbatim: item.entry.requestID).cyText(.meta).textSelection(.enabled)
+                            if let audit = item.receipt?.auditId { Text(verbatim: "Audit #\(audit)").cyText(.meta) }
+                            if let ms = item.receipt?.appliedAt { Text(Date(timeIntervalSince1970: Double(ms) / 1000), style: .date).cyText(.meta) }
                         }.privacySensitive().accessibilityIdentifier("club.roleRevoke.history.\(item.id)")
                     }
                 }

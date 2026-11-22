@@ -15,7 +15,7 @@ struct ClubOpsFailureSection: View {
                 )
                 if let detail = copy.detailKey {
                     Text(LocalizedStringKey(detail), tableName: "ClubOpsCustomer")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
@@ -48,7 +48,7 @@ struct ClubOpsFailureSection: View {
                     )
                     if filtered {
                         Text("clubOps.customers.filteredEmptyDetail", tableName: "ClubOpsCustomer")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
@@ -65,7 +65,7 @@ struct ClubOpsFailureSection: View {
             }
         } header: {
             Text("clubOps.customers.count \(list.total) \(list.monthNew)", tableName: "ClubOpsCustomer")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .monospacedDigit()
                 .textCase(nil)
@@ -88,7 +88,7 @@ struct ClubOpsCustomerRowView: View {
             : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         stack {
             Text(verbatim: initial)
-                .font(CYTypography.bodyMedium)
+                .cyText(.bodyMedium)
                 .foregroundStyle(CYColor.textSecondary)
                 .padding(CYSpacing.md)
                 .frame(minWidth: avatarSide, minHeight: avatarSide)
@@ -105,25 +105,25 @@ struct ClubOpsCustomerRowView: View {
                     }
                     if let name = row.displayName {
                         Text(verbatim: name)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.gov.fact.displayName")
                     } else {
                         Text("clubOps.customers.noName", tableName: "ClubOpsCustomer")
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 meta
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .monospacedDigit()
                     .fixedSize(horizontal: false, vertical: true)
                 if let sub = row.subText {
                     Text(verbatim: sub)
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textTertiary)
                         .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -172,18 +172,18 @@ struct ClubOpsCustomerRowView: View {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if let name = detail.displayName {
                         Text(verbatim: name)
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.gov.fact.displayName")
                     } else {
                         Text("clubOps.customers.noName", tableName: "ClubOpsCustomer")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     interaction
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -192,13 +192,13 @@ struct ClubOpsCustomerRowView: View {
             LabeledContent {
                 if let text = paidText {
                     Text(verbatim: text)
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("clubOps.customer.amountHidden", tableName: "ClubOpsCustomer")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -208,7 +208,7 @@ struct ClubOpsCustomerRowView: View {
             .accessibilityIdentifier("clubOps.customer.paidAmount")
             if let phone = detail.phoneText {
                 Text(verbatim: phone)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -245,12 +245,12 @@ struct ClubOpsCustomerRowView: View {
             }
             if let remark = detail.remark {
                 Text("clubOps.customer.remark \(remark)", tableName: "ClubOpsCustomer")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("clubOps.customer.noRemark", tableName: "ClubOpsCustomer")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -275,7 +275,7 @@ private struct ClubOpsCustomerHeading: View {
     init(_ key: String) { self.key = key }
     var body: some View {
         Text(LocalizedStringKey(key), tableName: "ClubOpsCustomer")
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -289,12 +289,12 @@ struct ClubOpsCustomerMetricTile: View {
     var body: some View {
         VStack(spacing: CYSpacing.xs) {
             Text(verbatim: value.displayText)
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(label, tableName: "ClubOpsCustomer")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textTertiary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -317,17 +317,17 @@ struct ClubOpsCustomerRecordRow: View {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 if let day {
                     Text(day, format: .number)
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .monospacedDigit()
                         .foregroundStyle(CYColor.textPrimary)
                 } else {
                     Text(verbatim: "—")
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .foregroundStyle(CYColor.textTertiary)
                 }
                 if let month = record.month {
                     Text("clubOps.customer.month \(month)", tableName: "ClubOpsCustomer")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -336,12 +336,12 @@ struct ClubOpsCustomerRecordRow: View {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let title = record.title {
                     Text(verbatim: title)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 } else {
                     Text("clubOps.customer.untitled", tableName: "ClubOpsCustomer")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -352,7 +352,7 @@ struct ClubOpsCustomerRecordRow: View {
                 )
                 if linked {
                     Text("clubOps.customer.viewTopic", tableName: "ClubOpsCustomer")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -434,7 +434,7 @@ struct ClubOpsCustomerTagRemarkEditor: View {
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .onSubmit(add)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("club.gov.input.tags")
@@ -443,12 +443,12 @@ struct ClubOpsCustomerTagRemarkEditor: View {
                 .accessibilityIdentifier("clubOps.customer.addTag")
         }
         TextField(text: $remark, axis: .vertical) { Text("clubOps.customer.remarkPlaceholder", tableName: "ClubOpsCustomer") }
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textPrimary)
             .accessibilityIdentifier("club.gov.input.remark")
         if let current = issue ?? ClubOpsCustomerTagRemarkDraft.issue(tagsText: tagsText, remark: remark) {
             Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.dangerText)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOps.customer.draftIssue")

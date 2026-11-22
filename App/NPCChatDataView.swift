@@ -126,7 +126,7 @@ struct NPCChatDataPresentation: Identifiable {
                             } icon: {
                                 Image(systemName: "info.circle")
                             }
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                         }
                     }.accessibilityIdentifier("npcData.consentEnded")
@@ -154,13 +154,13 @@ struct NPCChatDataPresentation: Identifiable {
                         }
                         if let policy = value.retentionPolicy, !policy.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: policy)
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .textSelection(.enabled)
                         } else {
                             Text("npcData.policyNotReturned")
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -207,7 +207,7 @@ struct NPCChatDataPresentation: Identifiable {
                             } icon: {
                                 Image(systemName: "exclamationmark.triangle.fill")
                             }
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("npcData.failure")
                         }
@@ -277,7 +277,7 @@ struct NPCChatDataPresentation: Identifiable {
         let coordinator = model.coordinator
         Section {
             Text("npcLogDelete.scope", tableName: "NPCChatLogDeletion")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             switch coordinator.deletion {
@@ -285,7 +285,7 @@ struct NPCChatDataPresentation: Identifiable {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     CYSkeleton()
                     Text("npcLogDelete.deleting", tableName: "NPCChatLogDeletion")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -296,12 +296,12 @@ struct NPCChatDataPresentation: Identifiable {
                 }
                 .accessibilityIdentifier("npcLogDelete.deleted")
                 Text("npcLogDelete.deletedBoundary", tableName: "NPCChatLogDeletion")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             case .unknown:
                 Text("npcLogDelete.unknown", tableName: "NPCChatLogDeletion")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("npcLogDelete.unknown")
@@ -313,7 +313,7 @@ struct NPCChatDataPresentation: Identifiable {
                     } icon: {
                         Image(systemName: "exclamationmark.triangle.fill")
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("npcLogDelete.failure")
                 }
@@ -330,7 +330,7 @@ struct NPCChatDataPresentation: Identifiable {
             }
         } header: {
             Text("npcLogDelete.title", tableName: "NPCChatLogDeletion")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .textCase(nil)
         }
@@ -358,36 +358,36 @@ struct NPCChatDataPresentation: Identifiable {
                 Section {
                     if let text = record.userMessage, !text.isEmpty {
                         Text(verbatim: text)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
-                    } else { Text("npcData.noQuestion").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                    } else { Text("npcData.noQuestion").cyText(.body).fixedSize(horizontal: false, vertical: true) }
                 } header: { NPCChatSectionTitle("npcData.question") }
                 Section {
                     if let text = record.npcReply, !text.isEmpty {
                         Text(verbatim: text)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
-                    } else { Text("npcData.noReply").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                    } else { Text("npcData.noReply").cyText(.body).fixedSize(horizontal: false, vertical: true) }
                 } header: { NPCChatSectionTitle("npcData.reply") }
                 Section {
                     if let time = record.sourceTime {
                         Text(verbatim: cyShownValue(time))
-                            .font(CYTypography.numericBody)
+                            .cyText(.numericBody)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
-                    } else { Text("npcData.timeNotReturned").font(CYTypography.body).fixedSize(horizontal: false, vertical: true) }
+                    } else { Text("npcData.timeNotReturned").cyText(.body).fixedSize(horizontal: false, vertical: true) }
                     Text("npcData.timeBoundary")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 } header: { NPCChatSectionTitle("npcData.sourceTime") }
                 Section {
                     Text("npcData.historicalBoundary")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -407,7 +407,7 @@ private struct NPCChatSectionTitle: View {
     init(_ key: LocalizedStringKey) { self.key = key }
     var body: some View {
         Text(key)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .accessibilityAddTraits(.isHeader)

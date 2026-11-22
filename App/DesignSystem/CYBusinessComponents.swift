@@ -135,7 +135,7 @@ public struct CYActivityFeedCard: View {
         HStack(spacing: CYSpacing.sm) {
             if let capabilityTag, !capabilityTag.isEmpty {
                 Text(verbatim: capabilityTag)
-                    .font(CYTypography.micro.weight(.semibold))
+                    .cyText(.micro)
                     .foregroundStyle(palette.photoCardFg)
                     .padding(.horizontal, 9)
                     .frame(minHeight: 22)
@@ -148,7 +148,7 @@ public struct CYActivityFeedCard: View {
                         .font(.system(size: 11, weight: .bold))
                         .foregroundStyle(palette.rare)
                     Text(verbatim: "\(rareTrophyCount)")
-                        .font(CYTypography.micro.weight(.bold).monospacedDigit())
+                        .cyText(.micro, weight: .bold, monospacedDigit: true)
                         .foregroundStyle(palette.photoCardFg)
                 }
                 .padding(.horizontal, 9)
@@ -162,20 +162,20 @@ public struct CYActivityFeedCard: View {
     private var bottomContent: some View {
         VStack(alignment: .leading, spacing: CYSpacing.s2_5) {
             Text(verbatim: title)
-                .font(CYTypography.sheetTitle)
+                .cyText(.sheetTitle)
                 .foregroundStyle(palette.photoCardFg)
                 .lineLimit(typeSize.isAccessibilitySize ? 3 : 2)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text(verbatim: subtitle)
-                .font(CYTypography.caption.monospacedDigit())
+                .cyText(.caption, monospacedDigit: true)
                 .foregroundStyle(palette.photoCardMuted)
                 .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
 
             HStack(spacing: CYSpacing.s2_5) {
                 Button(action: onPrimary) {
                     Text(verbatim: primaryTitle)
-                        .font(CYTypography.meta.weight(.bold))
+                        .cyText(.meta, weight: .bold)
                         .foregroundStyle(palette.photoCardAction)
                         .padding(.horizontal, CYSpacing.lg)
                         .frame(minHeight: 34)
@@ -187,7 +187,7 @@ public struct CYActivityFeedCard: View {
 
                 Button(action: onSecondary) {
                     Text(verbatim: secondaryTitle)
-                        .font(CYTypography.meta.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(palette.photoCardFg)
                         .padding(.horizontal, CYSpacing.lg)
                         .frame(minHeight: 34)
@@ -283,11 +283,11 @@ public struct CYRouteNodeRow: View {
                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: title)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(tokens.titleColor)
                         if let distanceAndETA {
                             Text(verbatim: distanceAndETA)
-                                .font(CYTypography.meta.monospacedDigit())
+                                .cyText(.meta, monospacedDigit: true)
                                 .foregroundStyle(palette.textTertiary)
                         }
                     }
@@ -306,13 +306,13 @@ public struct CYRouteNodeRow: View {
                             .foregroundStyle(palette.rare)
                             .accessibilityHidden(true)
                         Text(verbatim: perkTitle)
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                         if let onPerkTap, let perkActionTitle {
                             Button(action: onPerkTap) {
                                 Text(verbatim: perkActionTitle)
-                                    .font(CYTypography.caption.weight(.semibold))
+                                    .cyText(.caption, weight: .semibold)
                                     .foregroundStyle(tokens.perkActionColor)
                                     .padding(.horizontal, CYSpacing.md)
                                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -390,7 +390,7 @@ public struct CYRouteNodeRow: View {
                         .foregroundStyle(tokens.nodeGlyphColor)
                 case .current, .upcoming:
                     Text(verbatim: "\(index)")
-                        .font(CYTypography.caption.weight(.bold).monospacedDigit())
+                        .cyText(.caption, weight: .bold, monospacedDigit: true)
                         .foregroundStyle(tokens.nodeGlyphColor)
                 }
             }
@@ -523,7 +523,7 @@ public struct CYTaskStatusCard: View {
                 .accessibilityHidden(true)
 
             Text(verbatim: title)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -537,44 +537,44 @@ public struct CYTaskStatusCard: View {
         switch state {
         case .locked(let requirement, _, _):
             Text(verbatim: requirement)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(tokens.detailForeground)
         case .available(let methodLabel, _, _):
             Text(verbatim: "核验方式：\(methodLabel)")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(tokens.detailForeground)
         case .submitting(let requestId):
             HStack(spacing: CYSpacing.sm) {
                 CYButtonSpinner(tint: palette.info)
                 Text(verbatim: "正在上传凭证并防重锁定 · 请求号 \(requestId)")
-                    .font(CYTypography.meta.monospacedDigit())
+                    .cyText(.meta, monospacedDigit: true)
                     .foregroundStyle(tokens.detailForeground)
             }
         case .completed(let receiptNo, let completedAt, _):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: "核验通过 · \(completedAt)")
-                    .font(CYTypography.meta.monospacedDigit())
+                    .cyText(.meta, monospacedDigit: true)
                     .foregroundStyle(tokens.detailForeground)
                 Text(verbatim: "回执编号 \(receiptNo)")
-                    .font(CYTypography.caption.monospacedDigit())
+                    .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
             }
         case .retryableFailure(let requestId, let detail, _, _):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: detail)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(tokens.detailForeground)
                 Text(verbatim: "保留幂等号 \(requestId)，请先查询原回执或安全重试。")
-                    .font(CYTypography.caption.monospacedDigit())
+                    .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
             }
         case .offlineAwaitingSync(let draftId, let savedAt, _, _):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: "网络离线，答案未丢失（保存于 \(savedAt)），切勿显示为已完成。")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(tokens.detailForeground)
                 Text(verbatim: "本地草稿 \(draftId)")
-                    .font(CYTypography.caption.monospacedDigit())
+                    .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(palette.textTertiary)
             }
         }
@@ -681,7 +681,7 @@ public struct CYStoryCluePanel: View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack(spacing: CYSpacing.sm) {
                 Text(verbatim: "线索阶梯")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                 Spacer(minLength: CYSpacing.sm)
                 CYStatusChip(
@@ -698,7 +698,7 @@ public struct CYStoryCluePanel: View {
             if let pending = pendingCostTier {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(verbatim: "确认消耗 \(pending.pointsCost) 积分解锁「\(pending.title)」？已解锁线索可免费重看。")
-                        .font(CYTypography.meta.monospacedDigit())
+                        .cyText(.meta, monospacedDigit: true)
                         .foregroundStyle(palette.textPrimary)
                     HStack(spacing: CYSpacing.md) {
                         Button(action: { pendingCostTier = nil }) {
@@ -736,7 +736,7 @@ public struct CYStoryCluePanel: View {
             } label: {
                 HStack(spacing: CYSpacing.sm) {
                     Text(verbatim: "L\(tier.level) · \(tier.title)")
-                        .font(CYTypography.label.weight(.semibold))
+                        .cyText(.label, weight: .semibold)
                         .foregroundStyle(palette.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -758,7 +758,7 @@ public struct CYStoryCluePanel: View {
 
             if tier.isUnlocked && expanded, let clueText = tier.clueText {
                 Text(verbatim: clueText)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.bottom, CYSpacing.xs)
@@ -834,14 +834,14 @@ public struct CYProgressBar: View {
 
     private var progressTitle: some View {
         Text(verbatim: title)
-            .font(CYTypography.label.weight(.semibold))
+            .cyText(.label, weight: .semibold)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
     }
 
     private var progressCounter: some View {
         Text(verbatim: counterText)
-            .font(CYTypography.meta.weight(.semibold).monospacedDigit())
+            .cyText(.meta, weight: .semibold, monospacedDigit: true)
             .foregroundStyle(loadFailed ? palette.danger : palette.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -918,7 +918,7 @@ public struct CYRegistrationSummaryCard: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text(verbatim: "选择场次")
-                    .font(CYTypography.caption.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(palette.textSecondary)
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: CYSpacing.sm) {
@@ -938,7 +938,7 @@ public struct CYRegistrationSummaryCard: View {
 
             HStack {
                 Text(verbatim: "参与人数")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                 Spacer()
                 HStack(spacing: CYSpacing.md) {
@@ -946,7 +946,7 @@ public struct CYRegistrationSummaryCard: View {
                         if attendeeCount > minAttendees { attendeeCount -= 1 }
                     }
                     Text(verbatim: "\(attendeeCount)")
-                        .font(CYTypography.numericBody.weight(.bold))
+                        .cyText(.numericBody, weight: .bold)
                         .foregroundStyle(palette.textPrimary)
                         .frame(minWidth: 24)
                     stepperButton(symbol: "plus", disabled: attendeeCount >= maxAttendees) {
@@ -963,11 +963,11 @@ public struct CYRegistrationSummaryCard: View {
                 if let originalAmountText {
                     HStack {
                         Text(verbatim: "原价")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textTertiary)
                         Spacer()
                         Text(verbatim: originalAmountText)
-                            .font(CYTypography.meta.monospacedDigit())
+                            .cyText(.meta, monospacedDigit: true)
                             .strikethrough()
                             .foregroundStyle(palette.textTertiary)
                     }
@@ -975,21 +975,21 @@ public struct CYRegistrationSummaryCard: View {
                 if let discountText {
                     HStack {
                         Text(verbatim: "早鸟/组队优惠")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.success)
                         Spacer()
                         Text(verbatim: discountText)
-                            .font(CYTypography.meta.monospacedDigit())
+                            .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(palette.success)
                     }
                 }
                 HStack(alignment: .firstTextBaseline) {
                     Text(verbatim: "实付合计")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                     Spacer()
                     Text(verbatim: totalAmountText)
-                        .font(CYTypography.dataXL.monospacedDigit())
+                        .cyText(.dataXL)
                         .foregroundStyle(palette.textPrimary)
                 }
             }
@@ -1092,7 +1092,7 @@ public struct CYTeamMemberRow: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.md) {
                 Text(verbatim: "S\(seatNumber)")
-                    .font(CYTypography.caption.weight(.bold).monospacedDigit())
+                    .cyText(.caption, weight: .bold, monospacedDigit: true)
                     .foregroundStyle(isBuyer ? palette.actionPrimaryFg : palette.textPrimary)
                     .frame(width: 32, height: 32)
                     .background(Circle().fill(isBuyer ? palette.actionPrimaryBg : palette.bgRaised))
@@ -1100,7 +1100,7 @@ public struct CYTeamMemberRow: View {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     HStack(spacing: CYSpacing.xs) {
                         Text(verbatim: occupantName?.isEmpty == false ? (occupantName ?? "—") : (isBuyer ? "购票人" : "待成员领取"))
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                         if isBuyer {
                             CYStatusChip(verbatim: "购票人", tone: .info)
@@ -1108,7 +1108,7 @@ public struct CYTeamMemberRow: View {
                     }
                     if let expiresAtText {
                         Text(verbatim: "过期时间 \(expiresAtText)")
-                            .font(CYTypography.micro.monospacedDigit())
+                            .cyText(.micro, monospacedDigit: true)
                             .foregroundStyle(palette.textTertiary)
                     }
                 }
@@ -1118,7 +1118,7 @@ public struct CYTeamMemberRow: View {
 
             if let issuedInviteToken, !issuedInviteToken.isEmpty {
                 Text(verbatim: "一次性邀请码：\(issuedInviteToken)")
-                    .font(CYTypography.micro.monospacedDigit())
+                    .cyText(.micro, monospacedDigit: true)
                     .foregroundStyle(palette.textSecondary)
                     .padding(.horizontal, CYSpacing.md)
                     .padding(.vertical, CYSpacing.xs)
@@ -1206,7 +1206,7 @@ public struct CYPublishStatusBar: View {
 
     private var publishTitle: some View {
         Text(verbatim: "发布状态")
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .cyWrapText()
     }
@@ -1282,7 +1282,7 @@ public struct CYPublishStatusBar: View {
                                     .font(CYTypography.micro)
                                     .foregroundStyle(palette.danger)
                                 Text(verbatim: "第 \(issue.stepIndex + 1) 步：\(issue.message)")
-                                    .font(CYTypography.micro)
+                                    .cyText(.micro)
                                     .foregroundStyle(palette.danger)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                 Image(systemName: "arrow.up.right")

@@ -41,7 +41,7 @@ import SwiftUI
                     Text(copy.text("rpgResource.copy.003")).nativeAuthorSupportingCopy()
                     ForEach(NativeRpgResourceAuthorDraft.names,id:\.self){name in
                         VStack(alignment:.leading){
-                            Text(verbatim: copy.resource(name)).font(.headline).accessibilityAddTraits(.isHeader)
+                            Text(verbatim: copy.resource(name)).cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                             Picker(copy.text("rpgResource.copy.004"),selection:field(name,"enabled")) {Text(copy.text("rpgResource.copy.005")).tag("");Text(copy.text("rpgResource.copy.006")).tag("true");Text(copy.text("rpgResource.copy.007")).tag("false")}
                                 .accessibilityLabel(Text(verbatim: copy.resource(name) + ": " + copy.text("rpgResource.copy.004"))).accessibilityIdentifier("rpgResource.\(name).enabled")
                             TextField(copy.text("rpgResource.copy.008"),text:field(name,"init")).keyboardType(.numberPad)
@@ -53,7 +53,7 @@ import SwiftUI
                         }
                     }
                     VStack(alignment:.leading){
-                        Text(copy.text("rpgResource.copy.014")).font(.headline).accessibilityAddTraits(.isHeader)
+                        Text(copy.text("rpgResource.copy.014")).cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                         TextField(copy.text("rpgResource.copy.015"),text:Binding(get:{editor?.stageMoraleFloorText ?? ""},set:{value in mutate(token){$0.editStageMoraleFloor(value)}})).keyboardType(.numberPad).frame(minHeight: 44).accessibilityIdentifier("rpgResource.moraleFloor")
                         Text(copy.text("rpgResource.copy.016")).nativeAuthorSupportingCopy()
                         CYPillButton(verbatim: copy.text("rpgResource.copy.017"), style: .tertiary){mutate(token){$0.restoreStageMoraleFloor()}}.accessibilityIdentifier("rpgResource.moraleFloor.restore")

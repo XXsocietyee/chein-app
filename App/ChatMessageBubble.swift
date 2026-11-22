@@ -33,17 +33,17 @@ struct ChatMessageBubble<Sender: View, Content: View>: View {
     }
     var body: some View {
         VStack(alignment: isOwn ? .trailing : .leading, spacing: Theme.Space.s1) {
-            sender().font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            sender().cyText(.meta, weight: .semibold).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             content()
-                .font(.body)
+                .cyText(.body)
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
                 .padding(.horizontal, Theme.Space.s3 + 2).padding(.vertical, Theme.Space.s2 + 1)
                 .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: shape)
             if let timestamp, !timestamp.isEmpty {
-                Text(verbatim: timestamp).font(.caption2).foregroundStyle(.secondary)
+                Text(verbatim: timestamp).cyText(.caption).foregroundStyle(.secondary)
                     .padding(.horizontal, Theme.Space.s1)
                     .fixedSize(horizontal: false, vertical: true)
             }

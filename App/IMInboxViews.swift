@@ -73,7 +73,7 @@ struct IMUnreadBadge: View {
         if let text {
             let quiet = muted || text == IMListPageReady.unknownMark
             Text(verbatim: text)
-                .font(.caption2.weight(.semibold)).monospacedDigit()
+                .cyText(.caption, weight: .semibold).monospacedDigit()
                 // Continuity: a count that drops (read in the chat, read-all) rolls down digit by digit instead of
                 // redrawing; Reduce Motion keeps a short cross-fade.
                 .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(count ?? 0)))
@@ -112,21 +112,21 @@ struct IMInboxRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 if typeSize >= .xxLarge {
                     MessagingConversationName(conversation: conversation)
-                        .font(.body.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 6) {
                         officialChip; muteMark
                         IMInboxTimeLabel(raw: conversation.lastMessageAt)
-                            .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                            .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
                     }
                 } else {
                     HStack(alignment: .firstTextBaseline, spacing: 6) {
                         MessagingConversationName(conversation: conversation)
-                            .font(.body.weight(.semibold)).cyWrapText()
+                            .cyText(.cardTitle).cyWrapText()
                         officialChip.fixedSize()
                         muteMark
                         Spacer(minLength: 4)
                         IMInboxTimeLabel(raw: conversation.lastMessageAt)
-                            .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                            .cyText(.meta).monospacedDigit().foregroundStyle(.secondary)
                             .fixedSize().layoutPriority(1)
                     }
                 }

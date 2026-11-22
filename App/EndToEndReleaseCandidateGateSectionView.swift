@@ -129,11 +129,11 @@ public struct EndToEndReleaseCandidateGateSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "End-to-End Release Candidate Gate (RC-GATE-01..06)")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("releaseCandidateGate.title")
                 Spacer()
                 Text(verbatim: summaryBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllGatesGreen ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("releaseCandidateGate.summaryBadge")
             }
@@ -144,7 +144,7 @@ public struct EndToEndReleaseCandidateGateSectionView: View {
                 .accessibilityIdentifier("releaseCandidateGate.archiveModeBanner")
 
             Text(verbatim: failClosedBannerText)
-                .font(.footnote.weight(.semibold))
+                .cyText(.bodyMedium)
                 .foregroundStyle(snapshot.isAllGatesGreen ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("releaseCandidateGate.failClosedBanner")
 
@@ -153,14 +153,14 @@ public struct EndToEndReleaseCandidateGateSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(gate.gateCode)] \(gate.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: gate.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle((gate.isPassed && gate.isFailClosed) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: gate.requirementSummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

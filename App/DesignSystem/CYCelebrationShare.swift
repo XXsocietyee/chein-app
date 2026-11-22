@@ -74,7 +74,7 @@ struct CYCelebrationShareSheet: View {
         let copy = CYCelebrationCopy(locale: locale)
         VStack(spacing: CYSpacing.lg) {
             Text(verbatim: copy.shareTitle)
-                .font(CYTypography.sheetTitle)
+                .cyText(.sheetTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .padding(.top, CYSpacing.xl)
@@ -85,7 +85,7 @@ struct CYCelebrationShareSheet: View {
                 Toggle(CYKitCopy(locale: locale)("Include the route", "卡片带上路线"), isOn: $includeRoute)
                     // SR2-08 / verify-r1 Q3: the kit switch in its neutral tint (ink track at 32 %, white knob).
                     .tint(palette.textPrimary.opacity(0.32))
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("cy.celebration.share.route")
             }
@@ -106,17 +106,17 @@ struct CYCelebrationShareSheet: View {
         if let image {
             ShareLink(item: Image(uiImage: image), preview: SharePreview(Text(verbatim: shown.title), image: Image(uiImage: image))) {
                 Text(verbatim: copy.shareAction)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .frame(maxWidth: .infinity, minHeight: 56)
             }
             .buttonStyle(.cyPrimary)
             .accessibilityIdentifier("cy.celebration.share.link")
         } else if failed {
-            Text(verbatim: copy.shareFailed).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: copy.shareFailed).cyText(.meta).foregroundStyle(palette.textSecondary)
         } else {
             HStack(spacing: CYSpacing.sm) {
                 ProgressView()
-                Text(verbatim: copy.shareRendering).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: copy.shareRendering).cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             .frame(minHeight: 56)
         }

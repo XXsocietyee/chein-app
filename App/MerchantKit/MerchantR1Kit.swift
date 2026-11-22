@@ -50,7 +50,7 @@ struct MerchantR1SectionHeader: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: title)
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: CYSpacing.sm)
@@ -60,7 +60,7 @@ struct MerchantR1SectionHeader: View {
                         Text(verbatim: actionTitle)
                         Image(systemName: "chevron.right").font(CYTypography.caption.weight(.semibold))
                     }
-                    .font(CYTypography.body.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
                     .frame(minHeight: 44)
                     .contentShape(Rectangle())
@@ -92,8 +92,8 @@ struct MerchantR1OutcomeUnknownCard: View {
                     .foregroundStyle(palette.warning)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
-                    Text(verbatim: line).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: line).cyText(.body).foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
@@ -138,19 +138,19 @@ struct MerchantR1HandOffCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
-                Text(verbatim: line).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                Text(verbatim: line).cyText(.body).foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: "\(index + 1)")
-                        .font(CYTypography.label.weight(.bold).monospacedDigit())
+                        .cyText(.label, weight: .bold, monospacedDigit: true)
                         .foregroundStyle(palette.actionPrimaryFg)
                         .frame(width: 22, height: 22)
                         .background(Circle().fill(palette.actionPrimaryBg))
                         .accessibilityHidden(true)
-                    Text(verbatim: step).font(CYTypography.body).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: step).cyText(.body).foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -245,18 +245,18 @@ struct MerchantR1TodayCard: View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: merchantR1("today.pending", locale))
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: today.pending)
-                        .font(CYTypography.data2XL)
+                        .cyText(.data2XL)
                         .foregroundStyle(palette.textPrimary)
                         .contentTransition(.numericText())
                         .monospacedDigit()
                     if today.pending != "—" {
                         Text(verbatim: merchantR1("today.pendingCaption", locale))
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .foregroundStyle(palette.textSecondary)
                     }
                 }
@@ -277,7 +277,7 @@ struct MerchantR1TodayCard: View {
             }
             if today.weekIncome == "—" && today.pending == "—" {
                 Text(verbatim: merchantR1("today.unknownReason", locale))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -293,13 +293,13 @@ struct MerchantR1TodayCard: View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             // Secondary to the 待处理 hero: one step down from the data type.
             Text(verbatim: value)
-                .font(CYTypography.sectionTitle.monospacedDigit())
+                .cyText(.sectionTitle, monospacedDigit: true)
                 .foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText())
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             Text(verbatim: merchantR1(key, locale))
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -336,11 +336,11 @@ struct MerchantR1CumulativeRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: merchantR1("ledger.cumulative", locale))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: MerchantMoney.display(raw))
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .foregroundStyle(palette.textPrimary)
         }
         .accessibilityElement(children: .combine)

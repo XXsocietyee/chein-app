@@ -22,7 +22,7 @@ struct SearchMapResultsCapsuleView: View {
                 default:
                     Text(LocalizedStringKey(state.key))
                 }
-            }.font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+            }.cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 16).padding(.vertical, 10).frame(minHeight: 44)
                 .background(CYColor.bgGlass, in: Capsule())
         }.buttonStyle(.plain).disabled(state == .loading || state == .empty)
@@ -47,12 +47,12 @@ struct SearchMapAllResultsSheet: View {
                 LazyVStack(alignment: .leading, spacing: 12) {
                     if refreshing {
                         ProgressView("searchMap.w208.sheet.refreshingActivities")
-                        Text("searchMap.w208.sheet.refreshingNodes").font(.footnote).foregroundStyle(.secondary)
+                        Text("searchMap.w208.sheet.refreshingNodes").cyText(.bodyCompact).foregroundStyle(.secondary)
                     }
                     if refreshFailed {
                         VStack(alignment: .leading, spacing: 6) {
-                            Label("searchMap.w208.sheet.refreshFailed", systemImage: "exclamationmark.circle").font(.headline)
-                            Text("searchMap.w208.sheet.refreshFailed.detail").font(.footnote).foregroundStyle(.secondary)
+                            Label("searchMap.w208.sheet.refreshFailed", systemImage: "exclamationmark.circle").cyText(.cardTitle)
+                            Text("searchMap.w208.sheet.refreshFailed.detail").cyText(.bodyCompact).foregroundStyle(.secondary)
                             Button("mapRefresh.retry", action: retry).frame(minHeight: 44)
                         }.accessibilityIdentifier("searchMap.w208.sheet.refreshFailed")
                     }
@@ -79,7 +79,7 @@ struct SearchMapAllResultsSheet: View {
                     }
                     let listOnly = rows.filter { !$0.hasValidCoordinates }.count
                     if listOnly > 0 {
-                        Text("searchMap.w208.sheet.listOnlyTip \(listOnly)").font(.footnote).foregroundStyle(.secondary)
+                        Text("searchMap.w208.sheet.listOnlyTip \(listOnly)").cyText(.bodyCompact).foregroundStyle(.secondary)
                             .accessibilityIdentifier("searchMap.w208.sheet.listOnlyTip")
                     }
                     ForEach(rows) { row in

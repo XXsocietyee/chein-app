@@ -135,7 +135,7 @@ private struct QuestifyPrimaryLabel: View {
 
     var body: some View {
         configuration.label
-            .font(Theme.Font.button)
+            .cyText(.button)
             .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
             .padding(.vertical, controlSize == .large ? Theme.Space.s3_5 : Theme.Space.s2)
             .padding(.horizontal, controlSize == .large ? Theme.Space.s5 : Theme.Space.s3_5)
@@ -166,8 +166,8 @@ struct QuestifyHeroValue: View {
 
     var body: some View {
         VStack(spacing: Theme.Space.s1) {
-            value.font(Theme.Font.dataXL).multilineTextAlignment(.center).minimumScaleFactor(0.6).lineLimit(2)
-            if let caption { caption.font(Theme.Font.label).foregroundStyle(.secondary) }
+            value.cyText(.dataXL).multilineTextAlignment(.center).minimumScaleFactor(0.6).lineLimit(2)
+            if let caption { caption.cyText(.label).foregroundStyle(.secondary) }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Theme.Space.s6)
@@ -187,7 +187,7 @@ struct QuestifyRoundAction: View {
                     .font(.body.weight(.semibold))
                     .frame(width: 48, height: 48)
                     .background(.quaternary, in: Circle())
-                Text(title).font(Theme.Font.label).lineLimit(2).multilineTextAlignment(.center)
+                Text(title).cyText(.label).lineLimit(2).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
             .foregroundStyle(.primary)
@@ -257,7 +257,7 @@ struct WorkshopLibraryNotice: View {
 struct WorkshopLibraryState: View {
     let label: Text
     let raw: String
-    var body: some View { label.font(Theme.Font.label).foregroundStyle(.secondary) }
+    var body: some View { label.cyText(.label).foregroundStyle(.secondary) }
 }
 
 struct SquareFlowNoticeStyle: ViewModifier {
@@ -265,7 +265,7 @@ struct SquareFlowNoticeStyle: ViewModifier {
     var tone = Tone.neutral
     func body(content: Content) -> some View {
         content
-            .font(Theme.Font.label)
+            .cyText(.label)
             .foregroundStyle(tone == .critical ? CYColor.dangerText : tone == .attention ? CYColor.warningText : CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }

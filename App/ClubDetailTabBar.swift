@@ -68,8 +68,8 @@ struct ClubDetailOverviewFactsGridView: View {
         HStack(spacing: 12) {
             ForEach(grid.items) { item in
                 VStack(spacing: 4) {
-                    Text(verbatim: item.label).font(.caption).foregroundStyle(.secondary)
-                    Text(verbatim: item.value).font(.subheadline.weight(.semibold))
+                    Text(verbatim: item.label).cyText(.meta).foregroundStyle(.secondary)
+                    Text(verbatim: item.value).cyText(.bodyMedium)
                 }
                 .frame(maxWidth: .infinity)
                 .accessibilityElement(children: .combine)

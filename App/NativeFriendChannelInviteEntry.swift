@@ -100,7 +100,7 @@ import SwiftUI
             }
             if let batch = flow.batch {
                 Section {
-                    if !batch.name.isEmpty { Text(verbatim: batch.name).font(Theme.Font.sectionTitle) }
+                    if !batch.name.isEmpty { Text(verbatim: batch.name).cyText(.sectionTitle) }
                     LabeledContent { Text(verbatim: "\(batch.invited)").monospacedDigit() } label: { Text("d7.channelInvite.invited") }
                     LabeledContent { Text(verbatim: "\(batch.joined)").monospacedDigit() } label: { Text("d7.friendInvite.state.joined") }
                     LabeledContent { Text(verbatim: "\(batch.pending)").monospacedDigit() } label: { Text("d7.channelInvite.pending") }
@@ -115,11 +115,11 @@ import SwiftUI
                                 Text(stateKey(item.state)).foregroundStyle(.secondary)
                             }
                             if batch.guildKind == 3 && batch.targetChannel != true {
-                                Text(LocalizedStringKey(item.parentMember == true ? "d7.channelInvite.teamMember" : "d7.channelInvite.notTeamMember")).font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(LocalizedStringKey(item.parentMember == true ? "d7.channelInvite.teamMember" : "d7.channelInvite.notTeamMember")).cyText(.label).foregroundStyle(.secondary)
                             }
                             if batch.targetChannel == true {
-                                Text(LocalizedStringKey(item.parentMember == true ? "d7.channelInvite.member" : "d7.channelInvite.notMember")).font(Theme.Font.label).foregroundStyle(.secondary)
-                                Text(LocalizedStringKey(item.channelAccess == true ? "d7.channelInvite.canSee" : "d7.channelInvite.cannotSee")).font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(LocalizedStringKey(item.parentMember == true ? "d7.channelInvite.member" : "d7.channelInvite.notMember")).cyText(.label).foregroundStyle(.secondary)
+                                Text(LocalizedStringKey(item.channelAccess == true ? "d7.channelInvite.canSee" : "d7.channelInvite.cannotSee")).cyText(.label).foregroundStyle(.secondary)
                             }
                             if ["INVITED", "PENDING_REVIEW"].contains(item.state) {
                                 Button(role: .destructive) { flow.prepareRevoke(item) } label: { Text("d7.channelInvite.revoke") }
@@ -133,7 +133,7 @@ import SwiftUI
             }
             if let landing = flow.landing {
                 Section {
-                    Text(verbatim: landing.space?.name ?? "—").font(Theme.Font.sectionTitle)
+                    Text(verbatim: landing.space?.name ?? "—").cyText(.sectionTitle)
                     LabeledContent { Text(stateKey(landing.joinState)) } label: { Text(LocalizedStringKey(landing.guildKind == 3 ? "d7.channelInvite.team" : "d7.channelInvite.club")) }
                     if landing.isTargetChannel {
                         if let name = landing.channelName { LabeledContent { Text(verbatim: name) } label: { Text("d7.channelInvite.channel") } }
@@ -164,7 +164,7 @@ import SwiftUI
                     if landing.joinState == "SCREENING_REQUIRED" {
                         ForEach(landing.rules) { rule in
                             DisclosureGroup(rule.title) { Text(verbatim: rule.body).textSelection(.enabled) }
-                            if rule.accepted { Text("d7.channelInvite.ruleAgreed").font(Theme.Font.label).foregroundStyle(.secondary) }
+                            if rule.accepted { Text("d7.channelInvite.ruleAgreed").cyText(.label).foregroundStyle(.secondary) }
                             else { Toggle(LocalizedStringKey(rule.required ? "d7.channelInvite.agreeRequired" : "d7.channelInvite.agree"), isOn: Binding(get: { checked.contains(rule.key) }, set: { if $0 { checked.insert(rule.key) } else { checked.remove(rule.key) } })).disabled(!flow.canWrite || flow.review != nil) }
                         }
                         Button { flow.prepareRecipient(message: "", checked: checked) } label: { Text("d7.channelInvite.continue") }

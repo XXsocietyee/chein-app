@@ -19,7 +19,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if case .outcomeUnknown = state {
                     Text("club.action.unknown")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     CYPillButton(
@@ -35,7 +35,7 @@ import SwiftUI
                     .accessibilityLabel(Text("club.admission.original.read", tableName: "ClubAdmissionRecovery"))
                     if !coordinator.canRecoverOriginal(clubID: clubID) {
                         Text("club.action.unavailable")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -46,7 +46,7 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "checkmark.seal.fill").accessibilityHidden(true)
                     }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("club.admission.original.applied")
                 }

@@ -143,11 +143,11 @@ public struct ClubAccessAndSettlementSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "Club Access, Governance & w2-16 Settlement Parity")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("clubAccessSettlement.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAllScopedAndFailClosed ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("clubAccessSettlement.statusBadge")
             }
@@ -158,7 +158,7 @@ public struct ClubAccessAndSettlementSectionView: View {
                 .accessibilityIdentifier("clubAccessSettlement.accessMeRouteSummary")
 
             Text(verbatim: governanceSummaryText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.governanceRoleVerified ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("clubAccessSettlement.governanceSummary")
 
@@ -172,7 +172,7 @@ public struct ClubAccessAndSettlementSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(row.code)] \(row.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
@@ -183,7 +183,7 @@ public struct ClubAccessAndSettlementSectionView: View {
                                 )
                         }
                         Text(verbatim: row.contractDetail)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

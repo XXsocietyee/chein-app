@@ -29,8 +29,8 @@ extension EnvironmentValues {
                     // Source coupon-qr head card: coupon name over its usage note.
                     if model.couponName != nil || model.couponDescription != nil {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            if let name = model.couponName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                            if let description = model.couponDescription { Text(verbatim: description).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                            if let name = model.couponName { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            if let description = model.couponDescription { Text(verbatim: description).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
@@ -112,7 +112,7 @@ extension EnvironmentValues {
                             .animation(reduceMotion ? nil : CYMotion.standard, value: model.remainingText)
                     }
                 }
-                .font(CYTypography.meta).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
                 .accessibilityIdentifier("couponCode.remaining")
                 Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
                 retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
@@ -147,8 +147,8 @@ extension EnvironmentValues {
                     .frame(width: 64, height: 64)
                     .background(Circle().fill(CYColor.successSoft))
                     .accessibilityHidden(true)
-                Text("u9cde.coupon.used").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                if let time = model.useTime { Text(verbatim: time).font(CYTypography.meta).monospacedDigit().foregroundStyle(.secondary) }
+                Text("u9cde.coupon.used").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                if let time = model.useTime { Text(verbatim: time).cyText(.meta).monospacedDigit().foregroundStyle(.secondary) }
             }
             .padding(.top, CYSpacing.xxl)
             .accessibilityElement(children: .combine)

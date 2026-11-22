@@ -67,12 +67,12 @@ private struct ActivityReviewCard: View {
                     if let name = review.authorName { Text(verbatim: name) }
                     else { Text("activity.reviews.authorUnknown") }
                 }
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("activity.reviews.author.\(index)")
                 Spacer(minLength: 8)
                 if let date = review.createTime {
                     Text(verbatim: date)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -83,7 +83,7 @@ private struct ActivityReviewCard: View {
                             Image(systemName: star < rating ? "star.fill" : "star")
                         }
                     }
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(QuestifyPalette.accent)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text(verbatim: "\(rating) / 5"))

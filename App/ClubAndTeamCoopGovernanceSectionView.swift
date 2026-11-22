@@ -173,7 +173,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "社团、组队与共创治理全景状态")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("clubTeamGovernance.header.title")
                     Text(verbatim: snapshot.headlineSummaryText)
                         .font(.subheadline)
@@ -182,7 +182,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                 }
                 Spacer()
                 Text(verbatim: snapshot.allPillarsHealthy ? "治理就绪" : "需关注")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -209,7 +209,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.referenceBadge)
@@ -217,20 +217,20 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).ref")
                 Text(verbatim: row.statusBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.isHealthy ? .green : .red)
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).status")
             }
 
             Text(verbatim: row.summaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).summary")
 
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(row.invariants, id: \.self) { invariant in
                     Text(verbatim: "• \(invariant)")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -239,7 +239,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
             if let onSelectPillar {
                 Button(action: { onSelectPillar(row) }) {
                     Text(verbatim: "查看治理支柱详情")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).action")
             }

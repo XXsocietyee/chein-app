@@ -11,7 +11,7 @@ import SwiftUI
         let purposes = ledger.activePurposes
         Section {
             if purposes.isEmpty {
-                Text("privacy.location.holds.none").font(.footnote).foregroundStyle(CYColor.textSecondary)
+                Text("privacy.location.holds.none").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("privacy.location.holds.none")
             }
             ForEach(purposes, id: \.self) { purpose in
@@ -20,7 +20,7 @@ import SwiftUI
                         Label(LocalizedStringKey("privacy.location.holds." + purpose.rawValue), systemImage: "location.fill")
                             .font(.subheadline).foregroundStyle(CYColor.textPrimary)
                         if purpose == .roam, ledger.isBackground {
-                            Text("privacy.location.holds.background").font(.caption).foregroundStyle(CYColor.textSecondary)
+                            Text("privacy.location.holds.background").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                     Spacer(minLength: 0)

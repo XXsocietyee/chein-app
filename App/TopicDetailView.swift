@@ -246,10 +246,10 @@ struct TopicDetailView: View {
                                 .font(.title2.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityHidden(true)
                             Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
-                                .font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
-                            Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
-                            if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineLimit(1) }
-                            else { Text("topicXcx.coverHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                                .cyText(.label, weight: .semibold).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: value.name).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
+                            if let subtitle = TopicXcxFacts.heroIntro(value.subtitle) { Text(verbatim: subtitle).cyText(.body).foregroundStyle(CYColor.textSecondary).lineLimit(1) }
+                            else { Text("topicXcx.coverHint").cyText(.body).foregroundStyle(CYColor.textSecondary) }
                         }
                     }.accessibilityElement(children: .combine)
                 } else {
@@ -270,10 +270,10 @@ struct TopicDetailView: View {
                     .listRowBackground(Color.clear)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
-                            .font(CYTypography.meta.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .foregroundStyle(palette.textSecondary)
                         Text(verbatim: value.name)
-                            .font(CYTypography.pageTitle)
+                            .cyText(.pageTitle)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
@@ -288,11 +288,11 @@ struct TopicDetailView: View {
                 if value.betaFlag == 1 {
                     // Source topic-beta block: badge plus feedback note.
                     HStack(spacing: 8) {
-                        Text("topic.source.betaBadge").font(CYTypography.label)
+                        Text("topic.source.betaBadge").cyText(.label)
                             .padding(.horizontal, 8).padding(.vertical, 3)
                             .foregroundStyle(CYColor.brand)
                             .background(Capsule().fill(CYColor.brandSoft))
-                        Text("topic.source.betaNote").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                        Text("topic.source.betaNote").cyText(.caption).foregroundStyle(CYColor.textTertiary)
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                 }
                 // Design hand-off r1 PL-23: one hero, then the title and stats. The cover's 查看详情与报名 scroll button is
@@ -315,9 +315,9 @@ struct TopicDetailView: View {
                 if (value.locationCount ?? 0) > 0 {
                     TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
                 }
-                if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if let subtitle = value.subtitle { Text(verbatim: subtitle).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 if let venue = TopicXcxFacts.venue(value.addressName) {
-                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name).font(CYTypography.bodyMedium); if let address = venue.address { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(CYColor.brand) }
+                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name).cyText(.bodyMedium); if let address = venue.address { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textTertiary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(CYColor.brand) }
                 }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
@@ -328,11 +328,11 @@ struct TopicDetailView: View {
                 Section {
                     if let introduction = value.introduction {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("topicXcx.section.contents").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                            Text(verbatim: introduction).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                            Text("topicXcx.section.contents").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                            Text(verbatim: introduction).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
                         }
                     } else if !includes.isEmpty {
-                        Text("topicXcx.section.contents").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                        Text("topicXcx.section.contents").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                         TopicXcxIncludes(rows: includes)
                     }
                 }
@@ -361,24 +361,24 @@ struct TopicDetailView: View {
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         // Grouped session card: one element. The visible rows stay in source order.
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(verbatim: ticket.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                            Text(verbatim: ticket.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                             else {
                                 if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
                                 if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
                             }
-                            if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                            if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                            if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                            if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                         }
                         Spacer(minLength: CYSpacing.sm)
                         VStack(alignment: .trailing, spacing: CYSpacing.xs) {
-                            TopicPrice(value: ticket.price, label: "topic.price").font(CYTypography.numericBody).monospacedDigit()
-                            if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)").font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
-                            else { Text("topic.source.seatsUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                            TopicPrice(value: ticket.price, label: "topic.price").cyText(.numericBody).monospacedDigit()
+                            if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
+                            else { Text("topic.source.seatsUnknown").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                         }
                     }.accessibilityElement(children: .combine)
                 }
-                if !value.tickets.isEmpty { Text("topic.source.sessionNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if !value.tickets.isEmpty { Text("topic.source.sessionNote").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }.id("topicXcx.anchor.sessions")
             }
             if let activities = value.activities {
@@ -389,7 +389,7 @@ struct TopicDetailView: View {
                             NavigationLink { activityDestination(activity.id) } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     TopicXcxSessionChip(startDate: activity.startDate)
-                                    Text(verbatim: activity.name).font(.headline)
+                                    Text(verbatim: activity.name).cyText(.cardTitle)
                                     if let address = activity.addressName { Text(verbatim: address) }
                                     if let start = activity.startDate { LabeledContent("topic.start", value: start) }
                                     if let end = activity.endDate { LabeledContent("topic.end", value: end) }
@@ -452,11 +452,11 @@ struct TopicDetailView: View {
             }
             Section("topic.comments") {
                 if (value.commentCount ?? value.comments.count) == 0 {
-                    Text("topicXcx.reviews.emptyTitle").font(.headline).accessibilityIdentifier("topic.reviews.emptyPrompt")
+                    Text("topicXcx.reviews.emptyTitle").cyText(.cardTitle).accessibilityIdentifier("topic.reviews.emptyPrompt")
                 }
                 CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
-                Text("activity.reviewPointsNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("activity.reviewPointsNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
             .environment(\.ugcSafetySubjectID, value.id)
             Section {
@@ -471,9 +471,9 @@ struct TopicDetailView: View {
                         VStack(alignment: .leading) {
                             Text(verbatim: chapter.title)
                             if let minutes = chapter.totalTimeMinutes {
-                                LabeledContent("topic.durationMinutes", value: String(minutes)).font(.caption)
+                                LabeledContent("topic.durationMinutes", value: String(minutes)).cyText(.meta)
                             }
-                            LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).font(.caption)
+                            LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
@@ -484,7 +484,7 @@ struct TopicDetailView: View {
                 Section("topic.lockedStory") {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
-                    Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").font(.footnote)
+                    Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").cyText(.bodyCompact)
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
                         CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
                     }
@@ -656,10 +656,10 @@ struct TopicChapterView: View {
             else {
                 List {
                     Section {
-                        Text(verbatim: chapter.title).font(.title2)
+                        Text(verbatim: chapter.title).cyText(.sheetTitle)
                         if let description = chapter.description { Text(verbatim: description).textSelection(.enabled) }
                         if itinerary.hasWalkingEstimates {
-                            Text("topic.itinerary.estimateNotice").font(.footnote).foregroundStyle(.secondary)
+                            Text("topic.itinerary.estimateNotice").cyText(.bodyCompact).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("topic.itinerary.notice")
                         }
                     }
@@ -669,8 +669,8 @@ struct TopicChapterView: View {
                             if let minutes = stop.estimatedWalkingMinutes {
                                 TopicWalkingEstimate(minutes: minutes, position: stop.id)
                             }
-                            LabeledContent("topic.itinerary.stopNumber", value: String(stop.id + 1)).font(.caption)
-                            Text(verbatim: node.name).font(.headline)
+                            LabeledContent("topic.itinerary.stopNumber", value: String(stop.id + 1)).cyText(.meta)
+                            Text(verbatim: node.name).cyText(.cardTitle)
                             if let description = node.description { Text(verbatim: description).textSelection(.enabled) }
                             if let address = node.address { Text(verbatim: address) }
                             PlatformExternalMapHost(destination: .init(name: node.name, address: node.address, latitude: node.latitude, longitude: node.longitude), scope: scope, makeModel: makeExternalMaps)
@@ -688,7 +688,7 @@ struct TopicChapterView: View {
                                         Text(verbatim: merchant.name)
                                     }.accessibilityIdentifier("merchant.publicHome.topicEntry")
                                 } else { Text(verbatim: merchant.name) }
-                                if let hours = merchant.businessTime { Text(verbatim: hours).font(.caption) }
+                                if let hours = merchant.businessTime { Text(verbatim: hours).cyText(.meta) }
                             }
                         }
                     }
@@ -716,7 +716,7 @@ struct TopicChapterView: View {
                 }
         case .failed:
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text("mpfresh.topic.failed.title", tableName: "MpFresh").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text("mpfresh.topic.failed.title", tableName: "MpFresh").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 TopicIssueView(issue: issue, retry: retry)
             }
             .padding(CYSpacing.pageHorizontal)

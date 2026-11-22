@@ -92,7 +92,7 @@ import SwiftUI
                 .safeAreaInset(edge: .trailing, spacing: CYSpacing.sm) {
                     Button { openFilters() } label: {
                         Label("searchMap.filters", systemImage: "square.grid.2x2")
-                            .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.label).foregroundStyle(CYColor.textPrimary)
                             .padding(.horizontal, CYSpacing.md)
                             .frame(minHeight: 44)
                             .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
@@ -104,8 +104,8 @@ import SwiftUI
                 }
                 .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                 .globalSearchInlineField(hidden: inPageHost != nil)
-                if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if historyFailure { Text("searchMap.historyUnavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
             .listRowBackground(Color.clear)
             // The single primary action appears once there is a keyword; the keyboard Search key always submits.
@@ -248,7 +248,7 @@ import SwiftUI
             // 筛选 exists only in the search state: it fades in after half the move and out in the first half back.
             Button { openFilters() } label: {
                 Label("searchMap.filters", systemImage: "square.grid.2x2")
-                    .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.label).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.md)
                     .frame(minHeight: 44)
                     .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
@@ -259,7 +259,7 @@ import SwiftUI
             .accessibilityIdentifier("searchMap.filters")
             .modifier(GlobalSearchProgressFade(progress: host.progress, start: 0.5, end: 1))
             Button("action.cancel") { keywordFocused = false; host.onCancel() }
-                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                .cyText(.body).foregroundStyle(CYColor.textPrimary)
                 .buttonStyle(.borderless).fixedSize()
                 .frame(minHeight: 44)
                 .accessibilityIdentifier("globalSearch.close")
@@ -295,7 +295,7 @@ import SwiftUI
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: CYSpacing.sm) {
                     ForEach(history, id: \.self) { keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
-                            Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: keyword).cyText(.label).foregroundStyle(CYColor.textPrimary)
                                 .cyWrapText(alignment: .center)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
@@ -309,7 +309,7 @@ import SwiftUI
                     sectionTitle("searchMap.history")
                     Spacer()
                     Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
-                        .font(CYTypography.meta).textCase(nil).buttonStyle(.borderless)
+                        .cyText(.meta).textCase(nil).buttonStyle(.borderless)
                         .frame(minHeight: 44).accessibilityIdentifier("searchMap.clearHistory")
                         .accessibilityLabel(Text("searchMap.clearHistory.a11y"))
                 }
@@ -321,7 +321,7 @@ import SwiftUI
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: CYSpacing.sm) {
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
-                            Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: keyword).cyText(.label).foregroundStyle(CYColor.textPrimary)
                                 .cyWrapText(alignment: .center)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .searchNightPill()
@@ -353,7 +353,7 @@ import SwiftUI
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                                 var next = filter; next.categoryID = category.id; applyFilter(next)
                             } label: {
-                                Text(verbatim: category.name).font(CYTypography.label).foregroundStyle(.white)
+                                Text(verbatim: category.name).cyText(.label).foregroundStyle(.white)
                                     .multilineTextAlignment(.leading).shadow(color: .black.opacity(0.35), radius: 2, y: 1)
                                     .frame(maxWidth: .infinity, minHeight: 76, alignment: .bottomLeading).padding(CYSpacing.md)
                                     .background {
@@ -387,7 +387,7 @@ import SwiftUI
         Section {
             Button { mapRoute = .city } label: {
                 Label("searchMap.citySearch", systemImage: "location.north.line")
-                    .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.label).foregroundStyle(CYColor.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .searchNightPill()
                     .contentShape(Capsule())
@@ -410,7 +410,7 @@ import SwiftUI
                     Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find"))
                     Image(systemName: "chevron.down").font(.caption2.weight(.bold))
                 }
-                .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                .cyText(.label).foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
             .pageTemplateControl(
@@ -422,7 +422,7 @@ import SwiftUI
         .listRowBackground(Color.clear)
     }
     private func sectionTitle(_ key: LocalizedStringKey) -> some View {
-        Text(key).font(.title3.weight(.bold)).foregroundStyle(CYColor.textPrimary).textCase(nil)
+        Text(key).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
             .padding(.horizontal, CYSpacing.xs).accessibilityAddTraits(.isHeader)
     }
     @ViewBuilder private func results(_ value: GlobalSearchResults, retainedKinds: [GlobalSearchKind]) -> some View {
@@ -447,17 +447,17 @@ import SwiftUI
         if (loading && !value.rows.isEmpty) || !retainedKinds.isEmpty || !value.gatedKinds.isEmpty || !value.failedKinds.isEmpty {
             Section {
                 if loading && !value.rows.isEmpty {
-                    Text("globalSearchRetention.refreshing").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("globalSearchRetention.refreshing").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("globalSearchRetention.refreshing")
                 }
                 if !retainedKinds.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("globalSearchRetention.stale")
                         ForEach(retainedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "clock.arrow.circlepath") }
-                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("globalSearchRetention.stale")
+                    }.cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("globalSearchRetention.stale")
                 }
                 if !value.gatedKinds.isEmpty {
-                    Label("searchMap.partialSignIn", systemImage: "lock").font(CYTypography.meta)
+                    Label("searchMap.partialSignIn", systemImage: "lock").cyText(.meta)
                         .accessibilityIdentifier("searchMap.guestGate")
                     if let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
                 }
@@ -469,21 +469,21 @@ import SwiftUI
                                 HStack(alignment: .top, spacing: CYSpacing.md) {
                                     Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
                                     Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
-                                        .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                        .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                                 Button("searchMap.retryPage") { Task { await search() } }
-                                    .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                                    .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
                             }
                         } else {
                             HStack(spacing: CYSpacing.md) {
                                 Image(systemName: "info.circle").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
                                 Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
-                                    .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                    .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Spacer(minLength: CYSpacing.sm)
                                 Button("searchMap.retryPage") { Task { await search() } }
-                                    .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                                    .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
                             }
                         }
                     }
@@ -498,7 +498,7 @@ import SwiftUI
             if !loading, GlobalSearchEntryReadiness.phase(configured: reader.isConfigured, loading: loading, issueKey: nil,
                                                           results: value) == .unknown {
                 Label("searchMap.unknownResults", systemImage: "questionmark.circle")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("searchMap.unknown")
             }
             if value.showsEmptyState(for: selectedKind, isLoading: loading) {
@@ -518,10 +518,10 @@ import SwiftUI
             Section {
                 VStack(spacing: CYSpacing.xs) {
                     if !visible.isEmpty {
-                        Text("searchMap.endOfResults").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("searchMap.endOfResults").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                     Button("searchMap.refreshResults") { Task { await search() } }
-                        .font(CYTypography.label).buttonStyle(.borderless).frame(minHeight: 44)
+                        .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
                         .accessibilityIdentifier("searchMap.refreshResults")
                 }
                 .frame(maxWidth: .infinity)
@@ -536,7 +536,7 @@ import SwiftUI
     @ViewBuilder private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
         let selected = selectedKind == kind
         let pill = Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
-            title.font(CYTypography.bodyMedium).cyWrapText(alignment: .center).monospacedDigit()
+            title.cyText(.bodyMedium).cyWrapText(alignment: .center).monospacedDigit()
                 .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .searchNightPill(selected: selected)

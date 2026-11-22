@@ -35,8 +35,8 @@ import SwiftUI
                     HStack(alignment: .top, spacing: 12) {
                         Image(systemName: "storefront").font(.title3).foregroundStyle(.secondary).frame(width: 28).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 6) {
-                            if let name = row.merchantName { Text(verbatim: name).font(.headline) }
-                            else { Text("club.topicMerchants.unnamedMerchant").font(.headline) }
+                            if let name = row.merchantName { Text(verbatim: name).cyText(.cardTitle) }
+                            else { Text("club.topicMerchants.unnamedMerchant").cyText(.cardTitle) }
                             if let station = row.stationName { Text(verbatim: station).font(.subheadline).foregroundStyle(.secondary) }
                             if let state = row.state { Text(verbatim: state).font(.subheadline).foregroundStyle(.secondary) }
                         }

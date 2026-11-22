@@ -14,7 +14,7 @@ struct OfficialRouteCard: View {
                 .overlay(alignment: .topLeading) { chips.padding(CYSpacing.md) }
                 .overlay(alignment: .bottomLeading) {
                     Text(verbatim: route.name)
-                        .font(CYTypography.sectionTitle.weight(.semibold)).foregroundStyle(.white).lineLimit(2)
+                        .cyText(.sectionTitle).foregroundStyle(.white).lineLimit(2)
                         .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.md).padding(.top, CYSpacing.jumbo)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom))
@@ -27,7 +27,7 @@ struct OfficialRouteCard: View {
                             .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
-                        Text(verbatim: "—").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                        Text(verbatim: "—").cyText(.meta).foregroundStyle(palette.textTertiary)
                     }
                     Spacer(minLength: CYSpacing.sm)
                     Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
@@ -79,7 +79,7 @@ struct OfficialRouteDetailContent: View {
             if let url = firstStopURL {
                 Link(destination: url) {
                     Label(t("在地图中打开起点", "Open first stop in Maps"), systemImage: "map")
-                        .font(CYTypography.cardTitle).frame(maxWidth: .infinity, minHeight: 48)
+                        .cyText(.cardTitle).frame(maxWidth: .infinity, minHeight: 48)
                         .foregroundStyle(palette.actionPrimaryFg)
                         .background(Capsule(style: .continuous).fill(palette.actionPrimaryBg))
                 }
@@ -122,8 +122,8 @@ struct OfficialRouteDetailContent: View {
     private func stat(_ icon: String, _ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Image(systemName: icon).font(.subheadline.weight(.semibold)).foregroundStyle(palette.textSecondary)
-            Text(verbatim: value).font(CYTypography.cardTitle).monospacedDigit().foregroundStyle(palette.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
-            Text(verbatim: label).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+            Text(verbatim: value).cyText(.cardTitle).monospacedDigit().foregroundStyle(palette.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
@@ -132,7 +132,7 @@ struct OfficialRouteDetailContent: View {
 
     @ViewBuilder private var stops: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("officialRoute.detail.nodes \(detail.nodes.count)").font(CYTypography.sectionTitle.weight(.semibold))
+            Text("officialRoute.detail.nodes \(detail.nodes.count)").cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
             if detail.nodes.isEmpty {
                 Text("officialRoute.detail.noNodes").foregroundStyle(palette.textSecondary)
@@ -150,14 +150,14 @@ struct OfficialRouteDetailContent: View {
     @ViewBuilder private func nodeRow(_ node: OfficialRouteNode, last: Bool) -> some View {
         let body = HStack(alignment: .top, spacing: CYSpacing.md) {
             VStack(spacing: 0) {
-                Text(verbatim: "\(node.order)").font(.footnote.weight(.bold).monospacedDigit())
+                Text(verbatim: "\(node.order)").cyText(.numericBody)
                     .foregroundStyle(palette.textInverse).frame(width: 28, height: 28)
                     .background(Circle().fill(palette.textPrimary)).accessibilityHidden(true)
                 if !last { Rectangle().fill(palette.borderStrong).frame(width: 2).frame(maxHeight: .infinity) }
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: node.name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
-                if !node.address.isEmpty { Text(verbatim: node.address).font(CYTypography.meta).foregroundStyle(palette.textSecondary) }
+                Text(verbatim: node.name).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                if !node.address.isEmpty { Text(verbatim: node.address).cyText(.meta).foregroundStyle(palette.textSecondary) }
                 if node.stayMinutes > 0 {
                     CYStatusChip(verbatim: t("停留 ", "Stay ") + OfficialRouteFormat.duration(node.stayMinutes, chinese: chinese), systemImage: "hourglass")
                         .padding(.top, 2)

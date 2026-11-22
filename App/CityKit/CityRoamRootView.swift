@@ -243,11 +243,11 @@ struct CityRoamRootView: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: copy("漫游", "Roam")).font(Font.largeTitle.weight(.bold)).foregroundStyle(palette.textPrimary)
+                    Text(verbatim: copy("漫游", "Roam")).cyText(.pageTitle).foregroundStyle(palette.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     Button { path.append(CityRoamPush.board) } label: {
                         HStack(spacing: 4) {
-                            Text(verbatim: statLine).font(CYTypography.meta.monospacedDigit())
+                            Text(verbatim: statLine).cyText(.meta, monospacedDigit: true)
                             Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
                         }
                         .foregroundStyle(palette.textSecondary)
@@ -289,7 +289,7 @@ struct CityRoamRootView: View {
             withAnimation(reduceMotion ? CityTokens.reducedFade : CityTokens.pressSpring) { mode = item }
         } label: {
             Text(verbatim: item == .fog ? copy("迷雾", "Fog") : copy("领地", "Territory"))
-                .font(CYTypography.label)
+                .cyText(.label)
                 .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 36)
                 .background(selected ? AnyShapeStyle(palette.actionPrimaryBg) : AnyShapeStyle(.ultraThinMaterial), in: Capsule())
@@ -401,7 +401,7 @@ struct CityNearbyDrawer: View {
                     }
                     HStack {
                         Text(verbatim: copy("附近 · \(visible.count)", "Nearby · \(visible.count)"))
-                            .font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+                            .cyText(.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
                         Spacer()
                         if detent != .large {
                             Button { set(.large) } label: {
@@ -479,7 +479,7 @@ struct CityNearbyDrawer: View {
                                 CityDeedCard(place: place, size: .row, trailing: place.ownership == .open ? .price : .status)
                                     .overlay(alignment: .bottomTrailing) {
                                         if let text = copy.distance(place.distance(from: origin)) {
-                                            Text(verbatim: text).font(CYTypography.caption.monospacedDigit()).foregroundStyle(palette.textTertiary)
+                                            Text(verbatim: text).cyText(.caption, monospacedDigit: true).foregroundStyle(palette.textTertiary)
                                                 .padding(.trailing, CYSpacing.md).padding(.bottom, 6)
                                         }
                                     }
@@ -516,7 +516,7 @@ struct CityEmptyLine: View {
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
             Image(systemName: symbol).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-            Text(verbatim: text).font(Font.subheadline).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: text).cyText(.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)

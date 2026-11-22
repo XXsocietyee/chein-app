@@ -26,11 +26,11 @@ struct ClubR1OptionCard: View {
                 }
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     title
-                        .font(CYTypography.body.weight(.semibold))
+                        .cyText(.bodyMedium)
                         .foregroundStyle(palette.textPrimary)
                     if let subtitle, !subtitle.isEmpty {
                         Text(verbatim: subtitle)
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textTertiary)
                     }
                 }
@@ -66,7 +66,7 @@ struct ClubR1Chip: View {
     var body: some View {
         Button(action: action) {
             title
-                .font(CYTypography.body.weight(.medium))
+                .cyText(.bodyMedium)
                 .foregroundStyle(isSelected ? palette.actionPrimaryFg : palette.textPrimary)
                 .padding(.horizontal, CYSpacing.lg)
                 .frame(minHeight: 36)
@@ -126,7 +126,7 @@ struct ClubR1FieldError: View {
         } icon: {
             Image(systemName: "exclamationmark.circle.fill")
         }
-        .font(CYTypography.meta)
+        .cyText(.meta)
         .foregroundStyle(palette.danger)
         .accessibilityElement(children: .combine)
     }
@@ -172,7 +172,7 @@ struct ClubCreateCityRow: View {
                     .foregroundStyle(palette.textTertiary)
                     .accessibilityHidden(true)
             }
-            .font(CYTypography.body)
+            .cyText(.body)
             .frame(minHeight: 44)
             .contentShape(Rectangle())
         }
@@ -208,7 +208,7 @@ struct ClubCreateCityPicker: View {
                 TextField(text: $query, prompt: Text(verbatim: clubR1("create.city.search", locale))) {
                     Text(verbatim: clubR1("create.city.search", locale))
                 }
-                .font(CYTypography.body)
+                .cyText(.body)
             }
             .padding(.horizontal, CYSpacing.s2_5)
             .frame(minHeight: 36)

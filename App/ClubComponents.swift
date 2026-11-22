@@ -51,7 +51,7 @@ struct ClubRow: View {
                     if club.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitled") }
                     else { Text(verbatim: club.name) }
                 }
-                .font(.title3.weight(.heavy)).foregroundStyle(palette.textPrimary)
+                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 if !subtitle.isEmpty {
                     Text(verbatim: subtitle).font(.subheadline).foregroundStyle(palette.textSecondary)
@@ -62,9 +62,9 @@ struct ClubRow: View {
                 (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))) {
                     if let host = club.leaderName?.trimmingCharacters(in: .whitespacesAndNewlines), !host.isEmpty {
                         HStack(spacing: 8) {
-                            Text(verbatim: String(host.prefix(1))).font(.caption.weight(.bold))
+                            Text(verbatim: String(host.prefix(1))).cyText(.meta, weight: .bold)
                                 .frame(width: 28, height: 28).background(palette.bgRaised, in: Circle())
-                            Text(verbatim: host).font(.footnote.weight(.semibold)).lineLimit(1)
+                            Text(verbatim: host).cyText(.bodyMedium).lineLimit(1)
                         }
                         .foregroundStyle(palette.textPrimary)
                         .padding(8).frame(maxWidth: .infinity, alignment: .leading)
@@ -104,7 +104,7 @@ struct ClubRow: View {
         let key: LocalizedStringKey = club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined"
             : club.joinPending ? "club.membership.pending" : "club.action.join"
         let primary = !(club.isOwner || club.isJoined || club.joinPending)
-        Text(key).font(.subheadline.weight(.bold)).lineLimit(1)
+        Text(key).cyText(.bodyMedium).lineLimit(1)
             .padding(.horizontal, 16).frame(minHeight: 40)
             .foregroundStyle(primary ? palette.actionPrimaryFg : palette.textPrimary)
             .background(primary ? palette.actionPrimaryBg : palette.bgRaised, in: Capsule())
@@ -171,7 +171,7 @@ struct E3AvatarStack: View {
             }
             if let extra, extra > 0 {
                 // "+N" chip: never a truncated number. The chip widens into a capsule for 3+ digits and scales its text.
-                Text(verbatim: "+\(extra)").font(.caption.weight(.semibold)).monospacedDigit()
+                Text(verbatim: "+\(extra)").cyText(.meta, weight: .semibold).monospacedDigit()
                     .lineLimit(1).minimumScaleFactor(0.6).fixedSize(horizontal: true, vertical: false)
                     .foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, extra >= 100 ? 6 : 0)
@@ -197,7 +197,7 @@ struct E3FollowButton: View {
             HStack(spacing: 4) {
                 if state == .following || state == .mutual { Image(systemName: state == .mutual ? "arrow.left.arrow.right" : "checkmark").font(.caption.weight(.bold)) }
                 if state == .requested { Image(systemName: "clock").font(.caption.weight(.bold)) }
-                Text(verbatim: title).font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
+                Text(verbatim: title).cyText(.bodyMedium).lineLimit(1).minimumScaleFactor(0.8)
             }
             .foregroundStyle(state == .follow ? CYColor.textInverse : CYColor.textPrimary)
             .padding(.horizontal, CYSpacing.lg).frame(minHeight: 36)
@@ -222,8 +222,8 @@ struct E3PersonRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         let text = VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-            Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: meta).cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
         }
         // At accessibility sizes the follow button drops under the name so nothing truncates.
         Group {
@@ -262,9 +262,9 @@ struct E3NoticeRow: View {
                 .frame(width: 44, height: 44).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: time).cyText(.caption).foregroundStyle(CYColor.textTertiary)
             }
             Spacer(minLength: 0)
             if unread, !typeSize.isAccessibilitySize {
@@ -297,8 +297,8 @@ struct E3LocationCard: View {
             }
             .frame(height: 96).clipped().accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: place).font(CYTypography.bodyMedium).lineLimit(2)
-                Text(verbatim: address).font(CYTypography.meta).opacity(0.72).lineLimit(2)
+                Text(verbatim: place).cyText(.bodyMedium).lineLimit(2)
+                Text(verbatim: address).cyText(.meta).opacity(0.72).lineLimit(2)
             }.padding(CYSpacing.md)
         }
         .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
@@ -323,7 +323,7 @@ struct E3VoiceCard: View {
                     Capsule().frame(width: 3, height: h).opacity(i < (played ? 16 : 6) ? 1 : 0.4)
                 }
             }.frame(height: 30).accessibilityHidden(true)
-            Text(verbatim: duration).font(CYTypography.meta).monospacedDigit()
+            Text(verbatim: duration).cyText(.meta).monospacedDigit()
         }
         .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm + 2)
@@ -345,8 +345,8 @@ struct E3FileCard: View {
             Image(systemName: kind).font(.title3).foregroundStyle(isOwn ? CYChat.sent : CYColor.textInverse)
                 .frame(width: 44, height: 44).background(isOwn ? Color.white : CYColor.textPrimary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: name).font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true)
-                Text(verbatim: size).font(CYTypography.meta).opacity(0.72)
+                Text(verbatim: name).cyText(.bodyMedium).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: size).cyText(.meta).opacity(0.72)
             }
             if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
             Image(systemName: "arrow.down.circle").font(.title3).opacity(0.8)
@@ -372,7 +372,7 @@ struct E3VideoCard: View {
         }
         .frame(width: 240, height: 150)
         .overlay(alignment: .bottomTrailing) {
-            Text(verbatim: duration).font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(.white)
+            Text(verbatim: duration).cyText(.meta, weight: .semibold).monospacedDigit().foregroundStyle(.white)
                 .padding(.horizontal, 8).padding(.vertical, 3).background(.black.opacity(0.55), in: Capsule()).padding(CYSpacing.sm)
         }
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -395,7 +395,7 @@ struct E3MonthGrid: View {
         let cols = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
         VStack(spacing: CYSpacing.sm) {
             LazyVGrid(columns: cols, spacing: 0) {
-                ForEach(weekdays, id: \.self) { Text(verbatim: $0).font(.caption.weight(.medium)).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity) }
+                ForEach(weekdays, id: \.self) { Text(verbatim: $0).cyText(.label).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity) }
             }
             LazyVGrid(columns: cols, spacing: 4) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, day in
@@ -438,14 +438,14 @@ struct E3PostCard: View {
             HStack(spacing: CYSpacing.sm) {
                 E3Avatar(seed: author, size: 36)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(verbatim: author).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                    Text(verbatim: club + " · " + time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1)
+                    Text(verbatim: author).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: club + " · " + time).cyText(.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }.padding(CYSpacing.md)
             CYIMCoverArt(seed: coverSeed, systemImage: coverSymbol, symbolSize: 54)
                 .aspectRatio(4.0 / 3.0, contentMode: .fit).frame(maxWidth: .infinity).clipped()
-            Text(verbatim: text).font(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
+            Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
                 .padding(.horizontal, CYSpacing.md).padding(.top, CYSpacing.md)
             HStack(spacing: CYSpacing.xl) {
                 Button { liked.toggle() } label: {
@@ -455,7 +455,7 @@ struct E3PostCard: View {
                 Label { Text(verbatim: count(comments)).monospacedDigit() } icon: { Image(systemName: "bubble.left") }.foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: 0)
             }
-            .font(CYTypography.meta).padding(CYSpacing.md).frame(minHeight: 44)
+            .cyText(.meta).padding(CYSpacing.md).frame(minHeight: 44)
         }
         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
@@ -470,9 +470,9 @@ struct E3SectionTitle: View {
     var trailing: String? = nil
     var body: some View {
         HStack {
-            Text(verbatim: title).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
             Spacer()
-            if let trailing { Text(verbatim: trailing).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if let trailing { Text(verbatim: trailing).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }
     }
 }

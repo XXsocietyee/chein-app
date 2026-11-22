@@ -51,17 +51,17 @@ struct SearchMapOfflineBannerView: View {
         if let key = state.key {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Label(LocalizedStringKey(key), systemImage: "wifi.slash")
-                    .font(CYTypography.meta.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(palette.warning)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("searchMap.w208.offline.message")
                 if case .cached(let date) = state {
                     (Text("searchMap.w208.offline.cachedAt") + Text(verbatim: " ") + Text(date, format: .dateTime.hour().minute()))
-                        .font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+                        .cyText(.caption).foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("searchMap.w208.offline.cachedAt")
                 }
                 if stillOffline {
-                    Text("searchMap.w208.offline.stillOffline").font(CYTypography.caption)
+                    Text("searchMap.w208.offline.stillOffline").cyText(.caption)
                         .foregroundStyle(palette.warning)
                         .accessibilityIdentifier("searchMap.w208.offline.stillOffline")
                 }

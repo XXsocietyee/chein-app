@@ -213,7 +213,7 @@ struct ParticipantFormView: View {
             if model.reader.identity == nil || model.coordinator.identity == nil {
                 VStack(spacing: CYSpacing.md) {
                     CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.signInRequired")
-                    Text("auth.expired").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text("auth.expired").cyText(.body).foregroundStyle(CYColor.textSecondary)
                 }
             } else if model.showsOwnedUnknown {
                 Form {
@@ -228,7 +228,7 @@ struct ParticipantFormView: View {
             } else if !model.reader.isConfigured || !model.coordinator.isConfigured {
                 VStack(spacing: CYSpacing.md) {
                     CYEmptyState(systemImage: "network.slash", "profile.unavailable")
-                    Text("auth.notConfigured").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text("auth.notConfigured").cyText(.body).foregroundStyle(CYColor.textSecondary)
                 }
             } else if model.ownsOriginalCreateRetry && model.operation == .submitting {
                 Form {
@@ -249,7 +249,7 @@ struct ParticipantFormView: View {
                     }
                     Section {
                         VStack(alignment: .leading, spacing: 4) {
-                            Label("profile.participants.name", systemImage: "person").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            Label("profile.participants.name", systemImage: "person").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             TextField("profile.participants.name", text: $model.draft.fullName, prompt: Text("participant.form.namePrompt"))
                             .textContentType(.name).textInputAutocapitalization(.words)
                             .submitLabel(.next).focused($focusedField, equals: .name)
@@ -257,7 +257,7 @@ struct ParticipantFormView: View {
                             .accessibilityIdentifier("participant.form.name")
                         }
                         VStack(alignment: .leading, spacing: 4) {
-                            Label("profile.participants.phone", systemImage: "phone").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            Label("profile.participants.phone", systemImage: "phone").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             TextField("profile.participants.phone", text: $model.draft.mobilePhone, prompt: Text("participant.form.phonePrompt"))
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
@@ -266,7 +266,7 @@ struct ParticipantFormView: View {
                         }
                         // Input errors sit in red under the fields (ui-spec States).
                         if let field = model.validationIssue {
-                            Text(LocalizedStringKey(field.messageKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
+                            Text(LocalizedStringKey(field.messageKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
                         }
                     } footer: {
@@ -444,8 +444,8 @@ private struct ParticipantReadbackRow: View {
     let row: ProfileParticipant
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: ProfileParticipantDisplay.text(row.fullName)).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-            Text(verbatim: ProfileParticipantDisplay.text(row.mobilePhone)).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: ProfileParticipantDisplay.text(row.fullName)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: ProfileParticipantDisplay.text(row.mobilePhone)).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
             if !row.oneLineAddress.isEmpty { Text(verbatim: row.oneLineAddress).foregroundStyle(.secondary) }
         }
         .fixedSize(horizontal: false, vertical: true)

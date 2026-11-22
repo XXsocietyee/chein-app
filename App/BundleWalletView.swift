@@ -18,7 +18,7 @@ import SwiftUI
                 if !order.units.isEmpty {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         text("wallet.entries")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityAddTraits(.isHeader)
                             .fixedSize(horizontal: false, vertical: true)
@@ -66,12 +66,12 @@ import SwiftUI
     private func balanceCard(_ balance: BundleBalanceRow) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             text("wallet.unitsTotal")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityHidden(true)
             Text(verbatim: String(balance.unitsTotal))
-                .font(CYTypography.data2XL)
+                .cyText(.data2XL)
                 .foregroundStyle(palette.textPrimary)
                 .monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)

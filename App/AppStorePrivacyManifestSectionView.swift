@@ -135,11 +135,11 @@ public struct AppStorePrivacyManifestSectionView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "iOS 17+ App Store Privacy Manifest Audit")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     .accessibilityIdentifier("privacyManifestAudit.title")
                 Spacer()
                 Text(verbatim: statusBadgeText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isManifestReady ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("privacyManifestAudit.statusBadge")
             }
@@ -150,7 +150,7 @@ public struct AppStorePrivacyManifestSectionView: View {
                 .accessibilityIdentifier("privacyManifestAudit.trackingBanner")
 
             Text(verbatim: locationDecouplingBannerText)
-                .font(.footnote)
+                .cyText(.bodyCompact)
                 .foregroundStyle(snapshot.w13LocationPermissionDecoupled ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("privacyManifestAudit.locationDecouplingBanner")
 
@@ -164,14 +164,14 @@ public struct AppStorePrivacyManifestSectionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(alignment: .firstTextBaseline) {
                             Text(verbatim: "[\(check.categoryCode)] \(check.title)")
-                                .font(.subheadline.weight(.medium))
+                                .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: check.statusBadgeText)
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(check.isCompliant ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: check.declarationSummary)
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)

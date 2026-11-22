@@ -11,9 +11,9 @@ import SwiftUI
                 ForEach(metrics, id: \.key) { metric in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text(verbatim: metric.value.isEmpty ? "—" : metric.value)
-                            .font(CYTypography.dataXL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
+                            .cyText(.dataXL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.6)
                         Text(LocalizedStringKey("club.topic.verify." + metric.key))
-                            .font(CYTypography.meta).foregroundStyle(.secondary).lineLimit(2)
+                            .cyText(.meta).foregroundStyle(.secondary).lineLimit(2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(CYSpacing.md)

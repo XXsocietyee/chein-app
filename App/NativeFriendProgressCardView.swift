@@ -27,12 +27,12 @@ import SwiftUI
             }
         } header: {
             Text("friendProgress", tableName: "NativeChannelProgress")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .privacySensitive().accessibilityIdentifier("friendProgress.card")
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .task { await model.activate() }
@@ -70,13 +70,13 @@ import SwiftUI
     private func progressTitle(_ title: String, asOf: String?) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: title)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if let asOf {
                 let stamp = asOf.trimmingCharacters(in: .whitespacesAndNewlines)
                 Text(verbatim: stamp.isEmpty ? "—" : stamp)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -87,19 +87,19 @@ import SwiftUI
         VStack(alignment: alignment, spacing: CYSpacing.xxs) {
             if let done = row.meter.done, let required = row.meter.required {
                 Text(verbatim: copy.format("p31.friend.fraction", copy.number(done), copy.number(required)))
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .foregroundStyle(palette.textSecondary)
                     .monospacedDigit()
             }
             if let percent = row.meter.percent {
                 Text(verbatim: copy.format("p31.friend.percent", copy.number(percent)))
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .foregroundStyle(palette.textSecondary)
                     .monospacedDigit()
             }
             if row.meter.done == nil && row.meter.percent == nil {
                 Text(verbatim: "—")
-                    .font(CYTypography.numericBody)
+                    .cyText(.numericBody)
                     .foregroundStyle(palette.textTertiary)
             }
         }

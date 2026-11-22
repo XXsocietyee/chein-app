@@ -68,7 +68,7 @@ import SwiftUI
             Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("settingsNative.legal.sourceNotice")
         }
-        Text(verbatim: SettingsLegalAgreementPage.displayText(document.title)).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+        Text(verbatim: SettingsLegalAgreementPage.displayText(document.title)).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
@@ -77,11 +77,11 @@ import SwiftUI
                 .fixedSize(horizontal: false, vertical: true)
         }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         if !document.intro.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Text(verbatim: document.intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
+            Text(verbatim: document.intro).cyText(.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
         }
         ForEach(Array(document.sections.enumerated()), id: \.offset) { index, section in
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: section.heading).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: section.heading).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 ForEach(Array(SettingsLegalLine.lines(in: section.body).enumerated()), id: \.offset) { _, line in
@@ -89,7 +89,7 @@ import SwiftUI
                         if let marker = line.marker { Text(verbatim: marker).fixedSize(horizontal: false, vertical: true) }
                         Text(verbatim: line.text).frame(maxWidth: .infinity, alignment: .leading)
                             .fixedSize(horizontal: false, vertical: true)
-                    }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled).accessibilityElement(children: .combine)
+                    }.cyText(.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled).accessibilityElement(children: .combine)
                 }
             }
             .accessibilityIdentifier(SettingsLegalAgreementPage.sectionAccessibilityIdentifier(index: index))

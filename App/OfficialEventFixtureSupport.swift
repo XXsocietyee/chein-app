@@ -92,7 +92,7 @@ import SwiftUI
             HStack {
                 Button("official.fixtureGuest") { reader.becomeGuest(); scope = reader.scope }.accessibilityIdentifier("official.fixture.guest")
                 Button("official.fixtureAccount") { reader.switchAccount(); scope = reader.scope }.accessibilityIdentifier("official.fixture.account")
-            }.buttonStyle(.bordered).font(.caption).frame(minHeight: 44)
+            }.buttonStyle(.bordered).cyText(.meta).frame(minHeight: 44)
             Group {
                 switch destination {
                 case "detail": NavigationStack { OfficialEventDetailView(id: 71, reader: reader) }

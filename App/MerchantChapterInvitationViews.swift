@@ -21,14 +21,14 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 18) {
                 MerchantContentBoundary()
                 if let message = c.serverMessage { Text(verbatim: message).accessibilityIdentifier("merchantChapterInvitation.serverMessage") }
-                if let issue = c.issue { Text(LocalizedStringKey(issue)).font(.footnote).accessibilityIdentifier("merchantChapterInvitation.issue") }
+                if let issue = c.issue { Text(LocalizedStringKey(issue)).cyText(.bodyCompact).accessibilityIdentifier("merchantChapterInvitation.issue") }
                 if c.locked {
-                    Text("merchantChapterInvitation.unknownLock").font(.footnote)
+                    Text("merchantChapterInvitation.unknownLock").cyText(.bodyCompact)
                     Button("merchantChapterInvitation.readback") { Task { await model.reconcileChapterInvitation() } }
                         .disabled(c.busy).accessibilityIdentifier("merchantChapterInvitation.readback")
                 }
                 if c.isCurrent, let invitation {
-                    Text(verbatim: invitation.chapterName ?? "—").font(.title2)
+                    Text(verbatim: invitation.chapterName ?? "—").cyText(.sheetTitle)
                     MerchantContentFields(value: invitation.raw, names: ["topicName", "chapterName", "status", "source", "message"])
                     if let reason = invitation.serverReason {
                         LabeledContent("merchantChapterInvitation.serverReason") { Text(verbatim: reason).textSelection(.enabled) }
@@ -38,12 +38,12 @@ import SwiftUI
                     case .rejected: Text("merchantChapterInvitation.rejected").accessibilityIdentifier("merchantChapterInvitation.rejected")
                     case .pending:
                         if invitation.canRespond {
-                            Text("merchantChapterInvitation.pending").font(.headline)
-                            ForEach(MerchantChapterInvitation.impactKeys(accepted: true), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote) }
+                            Text("merchantChapterInvitation.pending").cyText(.cardTitle)
+                            ForEach(MerchantChapterInvitation.impactKeys(accepted: true), id: \.self) { Text(LocalizedStringKey($0)).cyText(.bodyCompact) }
                             Button("merchantChapterInvitation.accept") { prepare(invitation, accepted: true) }
                                 .buttonStyle(.questifyPrimary).disabled(c.busy || c.locked || c.review != nil || c.receipt != nil)
                                 .accessibilityIdentifier("merchantChapterInvitation.accept")
-                            ForEach(MerchantChapterInvitation.impactKeys(accepted: false), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote) }
+                            ForEach(MerchantChapterInvitation.impactKeys(accepted: false), id: \.self) { Text(LocalizedStringKey($0)).cyText(.bodyCompact) }
                             Button("merchantChapterInvitation.reject", role: .destructive) { prepare(invitation, accepted: false) }
                                 .disabled(c.busy || c.locked || c.review != nil || c.receipt != nil)
                                 .accessibilityIdentifier("merchantChapterInvitation.reject")

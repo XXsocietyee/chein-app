@@ -182,7 +182,7 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "后端灰度放行与运行时白名单总控台")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("rolloutAllowlistSwitchboard.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
@@ -191,7 +191,7 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
                 }
                 Spacer()
                 Text(verbatim: snapshot.isAllSafe ? "默认全关安全" : "存在越权开启")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -218,11 +218,11 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.badgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.isSafe ? .green : .red)
                     .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id).status")
             }
@@ -233,14 +233,14 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
                 .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id).ticket")
 
             Text(verbatim: row.prerequisiteDescriptionText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id).detail")
 
             if let onSelectRow {
                 Button(action: { onSelectRow(row) }) {
                     Text(verbatim: "查看开关审批条件")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id).action")
             }

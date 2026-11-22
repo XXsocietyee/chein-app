@@ -76,7 +76,7 @@ struct CloseW5dGatedNotice: View {
     let message: LocalizedStringKey
     var body: some View {
         Label(message, systemImage: "hourglass")
-            .font(.footnote)
+            .cyText(.bodyCompact)
             .foregroundStyle(.secondary)
             .accessibilityIdentifier("closew5d.state.gated")
     }

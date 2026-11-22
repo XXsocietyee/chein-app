@@ -19,7 +19,7 @@ struct RoamShareAlbumGuideView: View {
                     Text(verbatim: RoamShareAlbumGuideCopy.text(guide.copy, locale: locale))
                         .textSelection(.enabled)
                         .accessibilityIdentifier("roam.albumGuide.copy")
-                    Text("roam.albumGuide.copyHint").font(.caption).foregroundStyle(.secondary)
+                    Text("roam.albumGuide.copyHint").cyText(.meta).foregroundStyle(.secondary)
                 }.padding()
             }.navigationTitle(LocalizedStringKey(guide.destination == .moments ? "roam.albumGuide.moments" : "roam.albumGuide.xiaohongshu"))
                 .toolbar { ToolbarItem(placement: .confirmationAction) {

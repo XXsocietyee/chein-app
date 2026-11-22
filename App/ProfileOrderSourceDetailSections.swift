@@ -58,8 +58,8 @@ private struct ProfileOrderTimelineStepRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 if let label = step.label { Text(verbatim: label) }
                 else if let key = step.labelKey { Text(LocalizedStringKey(key)) }
-                if let time = step.time { Text(verbatim: time).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
-                else if let key = step.timeKey { Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let time = step.time { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+                else if let key = step.timeKey { Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
         }
         .accessibilityElement(children: .combine)

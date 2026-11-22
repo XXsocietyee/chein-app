@@ -137,10 +137,10 @@ public struct TopicLikeAndSquareEvictionSnapshot: Equatable, Sendable {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: statusHeadline)
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("topicLikeEviction.statusHeadline")
                 Text(verbatim: "404 驱逐：\(snapshot.evictsCacheOn404 ? "已开启" : "未开启") · DELETED 驱逐：\(snapshot.evictsCacheOnDeletedStatus ? "已开启" : "未开启") · 点赞门控：\(snapshot.likeGrantEnabled ? "开启" : "默认关闭")")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("topicLikeEviction.summary")
             }
@@ -151,14 +151,14 @@ public struct TopicLikeAndSquareEvictionSnapshot: Equatable, Sendable {
                         .foregroundStyle(row.isEnforced ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Text(verbatim: row.detail)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Text(verbatim: row.isEnforced ? "已生效" : "未生效")
-                        .font(.caption.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(row.isEnforced ? .green : .red)
                 }
                 .accessibilityIdentifier("topicLikeEviction.row." + row.ruleID)

@@ -119,7 +119,7 @@ import Combine
                                 .frame(maxWidth:.infinity)
                                 .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
                             Text(verbatim:examples.categoryName(at:index))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)
                                 .lineLimit(1)
                                 .accessibilityIdentifier("creatorIntro.example.category.\(index)")
@@ -127,7 +127,7 @@ import Combine
                                 if item.title.isEmpty { Text("creatorIntro.unnamed",tableName:"CreatorIntroExamples") }
                                 else { Text(verbatim:item.title) }
                             }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .foregroundStyle(palette.textPrimary)
                             .lineLimit(2)
                         }
@@ -142,21 +142,21 @@ import Combine
                     CYSkeleton().frame(maxWidth:.infinity,minHeight:150)
                 case .failed:
                     VStack(alignment:.leading,spacing:8) {
-                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").font(CYTypography.meta).foregroundStyle(palette.danger)
+                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").cyText(.meta).foregroundStyle(palette.danger)
                         Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
                             .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
                             .accessibilityIdentifier("creatorIntro.retry")
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .cyDomainCard()
-                case .empty,.ready: Text("creatorIntro.empty",tableName:"CreatorIntroExamples").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                case .empty,.ready: Text("creatorIntro.empty",tableName:"CreatorIntroExamples").cyText(.meta).foregroundStyle(palette.textSecondary)
                 case .unavailable: EmptyView()
                 }
             }
             VStack(alignment:.leading,spacing:4) {
                 // Mini-program weight order: the lead line is the bold claim, the tail is the lighter follow-on.
-                Text("publishParity.intro.lead").font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
-                Text("publishParity.intro.tail").font(CYTypography.cardTitle).foregroundStyle(palette.textSecondary)
+                Text("publishParity.intro.lead").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
+                Text("publishParity.intro.tail").cyText(.cardTitle).foregroundStyle(palette.textSecondary)
             }
             .fixedSize(horizontal:false,vertical:true)
             .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")

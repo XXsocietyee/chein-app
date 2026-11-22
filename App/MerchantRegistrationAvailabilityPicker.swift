@@ -25,7 +25,7 @@ import SwiftUI
             MerchantRegistrationAvailabilitySourceRows(source: source)
             if let replacement {
                 MerchantRegistrationAvailabilityValues(value: replacement)
-                Label("merchant.registrationAvailability.pending", systemImage: "pencil.circle").font(.footnote)
+                Label("merchant.registrationAvailability.pending", systemImage: "pencil.circle").cyText(.bodyCompact)
                 Button("merchant.registrationAvailability.restore") { guard canEdit else { return }; _ = apply(nil) }
                     .disabled(!canEdit).accessibilityIdentifier("merchant.registrationAvailability.restore")
             }
@@ -36,7 +36,7 @@ import SwiftUI
                     initial: replacement ?? MerchantRegistrationAvailability(source: source)
                         ?? .init(startDay: today, endDay: today))
             }.disabled(!canEdit).accessibilityIdentifier("merchant.registrationAvailability.open")
-            Text("merchant.registrationAvailability.preserve").font(.footnote).foregroundStyle(.secondary)
+            Text("merchant.registrationAvailability.preserve").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
 
     }
@@ -107,11 +107,11 @@ struct MerchantRegistrationAvailabilityReview: View {
     let replacement: MerchantRegistrationAvailability
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s3) {
-            Label("merchant.registrationAvailability.reviewTitle", systemImage: "calendar.badge.clock").font(.headline)
+            Label("merchant.registrationAvailability.reviewTitle", systemImage: "calendar.badge.clock").cyText(.cardTitle)
                 .accessibilityAddTraits(.isHeader)
             MerchantRegistrationAvailabilitySourceRows(source: source)
             MerchantRegistrationAvailabilityValues(value: replacement)
-            Text("merchant.registrationAvailability.reviewHint").font(.footnote)
+            Text("merchant.registrationAvailability.reviewHint").cyText(.bodyCompact)
         }.accessibilityIdentifier("merchant.registrationAvailability.review")
     }
 }
@@ -129,12 +129,12 @@ struct MerchantRegistrationAvailabilityReview: View {
     var body: some View {
         NavigationStack {
             Form {
-                Text("merchant.registrationAvailability.localDraft").font(.footnote)
-                if unrecognized { Text("merchant.registrationAvailability.proposal").font(.footnote).foregroundStyle(.secondary) }
+                Text("merchant.registrationAvailability.localDraft").cyText(.bodyCompact)
+                if unrecognized { Text("merchant.registrationAvailability.proposal").cyText(.bodyCompact).foregroundStyle(.secondary) }
                 Section("merchant.registrationAvailability.dateRange") { day(start: true); day(start: false) }
                 Section("merchant.registrationAvailability.dailyStart") { clock(start: true, hour: true); clock(start: true, hour: false) }
                 Section("merchant.registrationAvailability.dailyEnd") { clock(start: false, hour: true); clock(start: false, hour: false) }
-                Text("merchant.registrationAvailability.civilHint").font(.footnote)
+                Text("merchant.registrationAvailability.civilHint").cyText(.bodyCompact)
                 if !draft.isValid { Label("merchant.registrationAvailability.invalid", systemImage: "exclamationmark.circle").foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true) }
                 if stale { Text("merchant.registrationAvailability.stale").foregroundStyle(.secondary) }
             }

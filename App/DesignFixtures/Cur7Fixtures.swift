@@ -29,7 +29,7 @@ enum Cur7Fixtures {
             VStack(alignment: .leading, spacing: 0) {
                 view
                 Text(verbatim: "DEBUG fixture · " + title)
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
                     .padding(CYSpacing.md)
                     .accessibilityLabel(Text(verbatim: title))
@@ -85,7 +85,7 @@ enum Cur7Fixtures {
                     .accessibilityIdentifier("cur7.sync.banner")
             }
             Text(verbatim: String(tracker.consecutiveFailures))
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityLabel(Text(verbatim: "Sync failures \(tracker.consecutiveFailures)"))
                 .accessibilityIdentifier("cur7.sync.failures")
@@ -209,7 +209,7 @@ enum Cur7Fixtures {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     if unknown {
                         Text(verbatim: "—")
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityLabel(Text(verbatim: "Business status unknown"))
                             .accessibilityIdentifier("cur7.merchant.businessStatus.unknown")

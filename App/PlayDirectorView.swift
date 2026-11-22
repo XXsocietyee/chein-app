@@ -45,7 +45,7 @@ import UIKit
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
                             if planFallbackStatus?.available == false {
                                 Text(verbatim: PlayCloseCopy.text("当前暂无待处理的 Plan Fallback", "No active Plan Fallback state.", locale))
-                                    .font(CYTypography.caption)
+                                    .cyText(.caption)
                                     .foregroundStyle(CYColor.textSecondary)
                             }
                             CYField(
@@ -154,7 +154,7 @@ import UIKit
         Section("playx.director.stations") {
             ForEach(Array(projection.stations.enumerated()), id: \.offset) { _, station in
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(verbatim: station["nodeName"].text ?? station["stationName"].text ?? station["name"].text ?? "—").font(.headline)
+                    Text(verbatim: station["nodeName"].text ?? station["stationName"].text ?? station["name"].text ?? "—").cyText(.cardTitle)
                     if let status = station["status"].text { Text(verbatim: status) }
                     if let reason = station["pauseReason"].text ?? station["blockedReason"].text ?? station["issue"].text { Text(verbatim: reason) }
                     if let eta = station["resumeEta"].text { LabeledContent("playx.player.resumeETA") { Text(verbatim: eta) } }
@@ -165,10 +165,10 @@ import UIKit
         Section("playx.director.teams") {
             ForEach(Array(projection.teams.enumerated()), id: \.offset) { _, team in
                 VStack(alignment: .leading) {
-                    Text(verbatim: team["name"].text ?? team["teamName"].text ?? "—").font(.headline)
+                    Text(verbatim: team["name"].text ?? team["teamName"].text ?? "—").cyText(.cardTitle)
                     if let completed = team["completedNodes"].integer, let total = team["totalNodes"].integer { Text(verbatim: "\(completed) / \(total)") }
                     if let stuck = team["blockedReason"].text ?? team["issue"].text { Text(verbatim: stuck) }
-                    if let event = team["recentEvent"]["action"].text { Text(verbatim: event).font(.caption) }
+                    if let event = team["recentEvent"]["action"].text { Text(verbatim: event).cyText(.meta) }
                 }
             }
         }
@@ -185,13 +185,13 @@ import UIKit
             ForEach(Array((projection.club["broadcasts"].array ?? []).enumerated()), id: \.offset) { _, broadcast in
                 VStack(alignment: .leading) {
                     if let content = broadcast["content"].text { Text(verbatim: content) }
-                    if let status = broadcast["receiptStatus"].text ?? broadcast["status"].text { Text(verbatim: status).font(.caption) }
+                    if let status = broadcast["receiptStatus"].text ?? broadcast["status"].text { Text(verbatim: status).cyText(.meta) }
                     if let count = broadcast["recipientCount"].integer { LabeledContent("playx.director.recipients") { Text(verbatim: String(count)) } }
                 }
             }
         }
         Section("playx.director.submissions") {
-            Text("playx.director.noEvidence").font(.footnote)
+            Text("playx.director.noEvidence").cyText(.bodyCompact)
             ForEach(Array(projection.submissions.enumerated()), id: \.offset) { _, submission in
                 VStack(alignment: .leading) {
                     Text(verbatim: submission["nodeName"].text ?? "—")
@@ -245,8 +245,8 @@ import UIKit
     var body: some View {
         Form {
             Section {
-                Text(LocalizedStringKey("playx.director.action." + action.rawValue)).font(.headline)
-                Text("playx.director.commandNotice").font(.footnote)
+                Text(LocalizedStringKey("playx.director.action." + action.rawValue)).cyText(.cardTitle)
+                Text("playx.director.commandNotice").cyText(.bodyCompact)
                 if action == .broadcast {
                     Picker("playx.director.target", selection: $targetType) {
                         Text("playx.director.target.all").tag("ALL"); Text("playx.director.target.team").tag("TEAM"); Text("playx.director.target.role").tag("ROLE")

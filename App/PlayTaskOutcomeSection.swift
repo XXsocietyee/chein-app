@@ -20,19 +20,19 @@ import Observation
             VStack(alignment: .leading, spacing: Theme.Space.s2) {
                 VStack(alignment: .leading, spacing: Theme.Space.s2) {
                     Text(verbatim: localized("state." + result.state.rawValue))
-                        .font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("playTaskOutcome.state")
                     if [.loading, .submitting, .needsReadback].contains(result.state) {
                         ProgressView().accessibilityLabel(Text(verbatim: localized("state." + result.state.rawValue)))
                     }
                     Text(verbatim: localized("detail." + result.state.rawValue))
-                        .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                        .cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
                     if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                     if result.continuation != .none {
                         Text(verbatim: localized("continue." + result.continuation.rawValue))
                             .fixedSize(horizontal: false, vertical: true)
                         if let name = result.nextNodeName, !name.isEmpty {
-                            Text(verbatim: name).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: name).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("playTaskOutcome.nextName")
                         }
                         // Mini-program chapter flow: the next stop is one tap away instead of Back + find it in the list.

@@ -67,8 +67,8 @@ import SwiftUI
         List {
             if key.current && key.configured && key.signedIn && key.active {
                 Section {
-                    Text(verbatim: project.title).font(.headline)
-                    Text("merchant.projectEvents.boundary").font(.footnote).foregroundStyle(.secondary)
+                    Text(verbatim: project.title).cyText(.cardTitle)
+                    Text("merchant.projectEvents.boundary").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
             if !key.current || !key.configured || !key.signedIn || !key.active {
@@ -86,7 +86,7 @@ import SwiftUI
                     ForEach(Array(rows.enumerated()), id: \.offset) { index, event in
                         VStack(alignment: .leading, spacing: 6) {
                             Text(verbatim: event.content)
-                            Text(verbatim: event.time).font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: event.time).cyText(.meta).foregroundStyle(.secondary)
                         }.accessibilityIdentifier("merchant.projectEvents.row." + String(index))
                     }
                 }

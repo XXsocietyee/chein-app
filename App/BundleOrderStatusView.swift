@@ -127,7 +127,7 @@ enum BundleOrderStatusPresentation {
         ) { CYRowIcon(systemImage: "number") }
         if let number = order.registrationNo {
             Text(verbatim: Cloud03Copy.shown(number))
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(CYColor.textPrimary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)

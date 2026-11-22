@@ -197,12 +197,12 @@ struct CYPermissionPrimer: View {
                 .foregroundStyle(palette.textTertiary)
                 .accessibilityHidden(true)
             Text(verbatim: content.title)
-                .font(.system(.title3, design: .default).weight(.semibold))
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             Text(verbatim: content.body)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if !content.points.isEmpty {
@@ -210,7 +210,7 @@ struct CYPermissionPrimer: View {
                     ForEach(content.points, id: \.self) { point in
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                             Image(systemName: "checkmark").font(CYTypography.meta).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
-                            Text(verbatim: point).font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: point).cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }

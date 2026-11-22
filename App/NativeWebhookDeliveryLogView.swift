@@ -30,7 +30,7 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
                             HStack(alignment: .firstTextBaseline) {
                                 Label(nativeWebhookDeliveryText(delivery.state), systemImage: delivery.state == .unknown ? "clock.arrow.circlepath" : "arrow.up.doc")
-                                    .font(Theme.Font.sectionTitle)
+                                    .cyText(.sectionTitle)
                                 Spacer(minLength: Theme.Space.s2)
                                 if let time = delivery.createdAt {
                                     Text(time.date, format: .dateTime.month().day().hour().minute()).font(.subheadline).foregroundStyle(.secondary)

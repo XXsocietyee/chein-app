@@ -44,7 +44,7 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
-                Text("image.retained.reviewBoundary").font(.footnote)
+                Text("image.retained.reviewBoundary").cyText(.bodyCompact)
                 if reportItem == nil {
                     Picker("merchant.publicHome.rating", selection: $rating) {
                         Text("merchant.publicHome.selectRating").tag(0)

@@ -38,7 +38,7 @@ import SwiftUI
             } else { CYSkeleton(variant: .detail) }
         }
         .listStyle(.insetGrouped)
-        .font(CYTypography.body)
+        .cyText(.body)
         .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
@@ -69,7 +69,7 @@ import SwiftUI
                     .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
-                readText("budget").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                readText("budget").cyText(.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             if dynamicTypeSize.isAccessibilitySize { modePicker.pickerStyle(.menu) }
             else { modePicker.pickerStyle(.segmented) }
@@ -84,7 +84,7 @@ import SwiftUI
         }
         if model.pageModel.phase == .unknown || model.pageModel.phase == .empty {
             Text(verbatim: model.pageModel.moneyText)
-                .font(CYTypography.sectionTitle).monospacedDigit()
+                .cyText(.sectionTitle).monospacedDigit()
                 .accessibilityIdentifier("wallet.analysis.page")
         }
         if slice.rows.isEmpty {
@@ -98,17 +98,17 @@ import SwiftUI
             Section {
                 if let current = summary.months.last {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: current.id).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                        Text(verbatim: current.id).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         if summary.unknownCount > 0, current.count == 0 {
                             monthAmount(current, summary: summary, currency: currency)
-                                .font(CYTypography.dataXL).monospacedDigit()
+                                .cyText(.dataXL).monospacedDigit()
                                 .fixedSize(horizontal: false, vertical: true)
                         } else {
                             // Headline amount rolls when the month figure changes (reload, currency switch).
                             CYStatNumber(text: WalletIncomeAnalysisPresentation.text(current.amount, currency: currency, locale: locale),
                                          font: CYTypography.dataXL)
                         }
-                        if summary.unknownCount > 0 { text("knownSubtotal").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                        if summary.unknownCount > 0 { text("knownSubtotal").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                     }.padding(.vertical, CYSpacing.sm)
                 }
                 if !dynamicTypeSize.isAccessibilitySize {
@@ -122,7 +122,7 @@ import SwiftUI
                     if summary.sources.isEmpty { text("noSources") }
                     ForEach(summary.sources) { source in
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                            LabeledContent { Text(verbatim: WalletIncomeAnalysisPresentation.text(source.amount, currency: currency, locale: locale)).monospacedDigit().font(Theme.Font.cardTitle) } label: { text("source." + source.id) }
+                            LabeledContent { Text(verbatim: WalletIncomeAnalysisPresentation.text(source.amount, currency: currency, locale: locale)).monospacedDigit().cyText(.cardTitle) } label: { text("source." + source.id) }
                             GeometryReader { geometry in
                                 Capsule().fill(Theme.Color.success(in: domain))
                                     .frame(width: geometry.size.width * CGFloat(sourceFraction(source, summary: summary)))
@@ -143,7 +143,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: Theme.Space.s1) {
                 LabeledContent { monthAmount(month, summary: summary, currency: currency).monospacedDigit() }
                     label: { Text(verbatim: month.id) }
-                if summary.unknownCount > 0, month.count > 0 { text("knownSubtotal").font(Theme.Font.label).foregroundStyle(.secondary) }
+                if summary.unknownCount > 0, month.count > 0 { text("knownSubtotal").cyText(.label).foregroundStyle(.secondary) }
             }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
         }
     }
@@ -161,7 +161,7 @@ import SwiftUI
                             }
                         }
                     }.frame(height: 120)
-                    Text(verbatim: String(month.id.suffix(2))).font(Theme.Font.label).foregroundStyle(.secondary)
+                    Text(verbatim: String(month.id.suffix(2))).cyText(.label).foregroundStyle(.secondary)
                 }.frame(maxWidth: .infinity)
             }
         }.padding(.vertical, Theme.Space.s3)

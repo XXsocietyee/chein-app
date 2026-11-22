@@ -79,7 +79,7 @@ import SwiftUI
                 .accessibilityIdentifier("storeDayPage.safetyRating")
                 if missed {
                     Text(verbatim: PlayerCapabilityCopy.text("没有找到这家商家", "Merchant not found", locale))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
             .sheet(item: $rating) {
@@ -335,9 +335,9 @@ struct MapPlaceSuggestions: ViewModifier {
                 ForEach(model.places) { place in
                     Button { open(place) } label: {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: place.name).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: place.name).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                             if !place.address.isEmpty {
-                                Text(verbatim: place.address).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: place.address).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                         }
                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
@@ -349,7 +349,7 @@ struct MapPlaceSuggestions: ViewModifier {
                 }
                 if model.remoteError {
                     Text(verbatim: PlayerCapabilityCopy.text("地点搜索暂不可用", "Place search is unavailable", locale))
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         }

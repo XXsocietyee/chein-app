@@ -46,7 +46,7 @@ struct MarketingConsentOriginalPresentation {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("marketingOriginal.receipt.title", tableName: "MarketingConsentOriginalPresentation")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
             factRow(presentation.outcome(receipt.outcome), systemImage: "doc.text.magnifyingglass")
             factRow(presentation.channel(receipt.channel), systemImage: "megaphone")
@@ -56,7 +56,7 @@ struct MarketingConsentOriginalPresentation {
                 CYEmptyState(systemImage: "clock", resolved(presentation.text("marketingOriginal.receipt.unconfirmed")))
             }
             Text("marketingOriginal.receipt.historyOnly", tableName: "MarketingConsentOriginalPresentation")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             DisclosureGroup {
@@ -93,7 +93,7 @@ struct MarketingConsentOriginalPresentation {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             CYListRow(resolved(presentation.text(key)), trailing: .none, card: false)
             Text(verbatim: shown(value))
-                .font(CYTypography.numericBody)
+                .cyText(.numericBody)
                 .foregroundStyle(palette.textPrimary)
                 .textSelection(.enabled)
         }

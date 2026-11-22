@@ -43,7 +43,7 @@ enum CurFixtures8 {
             VStack(alignment: .leading, spacing: 0) {
                 view
                 Text(verbatim: "DEBUG fixture · " + title)
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(CYColor.textSecondary)
                     .padding(CYSpacing.md)
                     .accessibilityLabel(Text(verbatim: "DEBUG fixture · " + title))
@@ -140,7 +140,7 @@ private struct Cur8StaticTransport: HTTPTransport {
                 TeamPoolRunStatusSection(model: model)
             } else {
                 Text(verbatim: "—")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityLabel(Text("teamPool.unknown"))
                     .accessibilityValue(Text(verbatim: "—"))
@@ -210,7 +210,7 @@ private struct Cur8TeamTransport: HTTPTransport {
                 row
             } else {
                 Text(verbatim: "—")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityLabel(Text("requestReference.label"))
                     .accessibilityValue(Text(verbatim: "—"))

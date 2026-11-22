@@ -109,7 +109,7 @@ struct CYHoldToRollButton: View {
                 Text(LocalizedStringKey(busy ? "mpd.dice.hold.rolling" : (holding ? "mpd.dice.hold.release" : "mpd.dice.hold.idle")))
                     .contentTransition(.opacity)
             }
-            .font(CYTypography.label)
+            .cyText(.label)
             .fontDesign(look?.buttonDesign ?? .default)
             .foregroundStyle(colors?.bg.swiftUIColor ?? CYColor.bgPage)
             .frame(maxWidth: .infinity)

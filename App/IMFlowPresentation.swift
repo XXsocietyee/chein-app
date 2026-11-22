@@ -15,7 +15,7 @@ private struct IMFlowFormPresentation: ViewModifier {
 private struct IMFlowPrimaryActionPresentation: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.font(Theme.Font.button)
+        content.cyText(.button)
             .buttonStyle(.questifyPrimary)
             .controlSize(.large)
             .tint(Theme.Color.actionPrimaryBackground(in: domain))
@@ -54,7 +54,7 @@ struct IMFlowStateMessage: View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: {
             Image(systemName: symbol).accessibilityHidden(true)
         }
-        .font(CYTypography.bodyCompact)
+        .cyText(.bodyCompact)
         .foregroundStyle(color)
         .padding(CYSpacing.md)
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)

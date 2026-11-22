@@ -142,7 +142,7 @@ import Observation
                 Button { session.setOwnerDraftPresentationActive(false); session.setOwnerDraftPresentationActive(true) } label: {
                     Text(verbatim: "Synthetic: replace lifetime")
                 }.accessibilityIdentifier("ownerDraft.fixture.replace")
-            }.font(.caption2)
+            }.cyText(.caption)
         }
     }
 }

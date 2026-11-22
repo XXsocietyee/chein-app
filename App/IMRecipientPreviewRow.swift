@@ -161,7 +161,7 @@ struct IMRecipientPreviewRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text("im.preview.section", tableName: "IMRecipientPreview")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
@@ -191,7 +191,7 @@ private struct IMRecipientPreviewLineView: View {
 
     private var titleBlock: some View {
         title
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textSecondary)
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -200,13 +200,13 @@ private struct IMRecipientPreviewLineView: View {
     private var valueBlock: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             stateLabel
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
             if line.kind == .issued {
                 issuedValueText
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textPrimary)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)

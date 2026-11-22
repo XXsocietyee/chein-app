@@ -54,7 +54,7 @@ public struct CYSheetContainer<Content: View>: View {
                 HStack(spacing: CYSpacing.md) {
                     if let title {
                         Text(verbatim: title)
-                            .font(CYTypography.sheetTitle)
+                            .cyText(.sheetTitle)
                             .foregroundStyle(palette.textPrimary)
                             .accessibilityAddTraits(.isHeader)
                             .pageTemplateReadingOrder(2)
@@ -250,12 +250,12 @@ public struct CYOptionSheet<ID: Hashable>: View {
                             }
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: item.title)
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(rowColor)
                                     .fixedSize(horizontal: false, vertical: true)
                                 if let subtitle = item.subtitle {
                                     Text(verbatim: subtitle)
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(palette.textTertiary)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
@@ -372,7 +372,7 @@ public struct CYModal: View {
         return VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack(alignment: .top, spacing: CYSpacing.sm) {
                 Text(verbatim: title)
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
@@ -396,7 +396,7 @@ public struct CYModal: View {
 
             if !message.isEmpty {
                 Text(verbatim: message)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -411,7 +411,7 @@ public struct CYModal: View {
                                 .frame(width: 20, alignment: .center)
                                 .accessibilityHidden(true)
                             Text(verbatim: item.text)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(palette.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -427,7 +427,7 @@ public struct CYModal: View {
             if let lighterAlternativeTitle, let onLighterAlternative {
                 Button(action: onLighterAlternative) {
                     Text(verbatim: lighterAlternativeTitle)
-                        .font(CYTypography.label.weight(.semibold))
+                        .cyText(.label, weight: .semibold)
                         .foregroundStyle(palette.info)
                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                         .fixedSize(horizontal: false, vertical: true)
@@ -572,7 +572,7 @@ public struct CYPromptModal: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack(alignment: .top, spacing: CYSpacing.sm) {
                 Text(verbatim: title)
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
@@ -593,7 +593,7 @@ public struct CYPromptModal: View {
 
             if let message, !message.isEmpty {
                 Text(verbatim: message)
-                    .font(CYTypography.bodyCompact)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -602,7 +602,7 @@ public struct CYPromptModal: View {
                 TextField(text: $text, prompt: Text(verbatim: placeholder).foregroundStyle(palette.textSecondary)) {
                     Text(verbatim: title)
                 }
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(palette.textPrimary)
                 .padding(.horizontal, CYSpacing.md)
                 .padding(.vertical, CYSpacing.s2_5)
@@ -611,7 +611,7 @@ public struct CYPromptModal: View {
 
                 if let validationMessage, !validationMessage.isEmpty {
                     Text(verbatim: validationMessage)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.danger)
                         .fixedSize(horizontal: false, vertical: true)
                 }

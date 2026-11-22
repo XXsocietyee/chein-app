@@ -55,7 +55,7 @@ struct MerchantEngagementEditorContext: Identifiable {
                     TextField("merchant.engagement.broadcastContent", text: $content, axis: .vertical).lineLimit(3...7).accessibilityIdentifier("merchant.engagement.editor.content")
                 case .invitation:
                     SecureField("merchant.engagement.inviteToken", text: $inviteToken).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("merchant.engagement.editor.inviteToken")
-                    Text("merchant.engagement.invitationUnknownTarget").font(.footnote)
+                    Text("merchant.engagement.invitationUnknownTarget").cyText(.bodyCompact)
                 }
                 if invalid { Text("merchant.business.invalid").foregroundStyle(CYColor.dangerText) }
                 Button("merchant.engagement.previewReview") {
@@ -89,7 +89,7 @@ struct MerchantCRMFilterSummary: View {
         LabeledContent("merchant.business.sourceType", value: filter.sourceType.map(String.init) ?? "—")
         LabeledContent("merchant.business.sourceStart", value: filter.sourceStart ?? "—")
         LabeledContent("merchant.business.sourceEnd", value: filter.sourceEnd ?? "—")
-        if export { Text("merchant.engagement.exportFilterExact").font(.footnote) }
+        if export { Text("merchant.engagement.exportFilterExact").cyText(.bodyCompact) }
     }
 }
 @MainActor struct MerchantEngagementReviewView: View {
@@ -103,7 +103,7 @@ struct MerchantCRMFilterSummary: View {
         NavigationStack {
             List {
                 Section {
-                    Text(LocalizedStringKey("merchant.engagement.command." + (review.command.key))).font(.headline)
+                    Text(LocalizedStringKey("merchant.engagement.command." + (review.command.key))).cyText(.cardTitle)
                     details
                 }
                 if let audience = review.proof.audience {
@@ -120,7 +120,7 @@ struct MerchantCRMFilterSummary: View {
                         .disabled(busy).accessibilityIdentifier("merchant.engagement.confirm")
                 } else {
                     Text("merchant.engagement.actionUnavailable").accessibilityIdentifier("merchant.engagement.liveDisabled")
-                    if !synthetic, let task = review.proof.campaign, !task.hasReviewableMessage { Text("merchant.engagement.messageUnavailable").font(.footnote) }
+                    if !synthetic, let task = review.proof.campaign, !task.hasReviewableMessage { Text("merchant.engagement.messageUnavailable").cyText(.bodyCompact) }
                 }
                 Button("action.cancel", action: cancel).disabled(busy).accessibilityIdentifier("merchant.engagement.cancelReview")
             }.navigationBarTitleDisplayMode(.inline).interactiveDismissDisabled(busy)
@@ -133,7 +133,7 @@ struct MerchantCRMFilterSummary: View {
             LabeledContent("merchant.engagement.selectedSegment", value: review.proof.selectedSegment?.name ?? "—")
             Text(LocalizedStringKey("merchant.engagement.channel." + (draft.channel.rawValue)))
             if let coupon = review.proof.selectedCoupon { LabeledContent("merchant.engagement.selectedCoupon", value: coupon.name ?? "—") }
-            Text(draft.title).font(.headline); Text(draft.content)
+            Text(draft.title).cyText(.cardTitle); Text(draft.content)
         case .dispatchCampaign, .retryCampaign: EmptyView()
         case .broadcast(let draft):
             MerchantCRMFilterSummary(filter: draft.audience.filter, export: false)
@@ -144,7 +144,7 @@ struct MerchantCRMFilterSummary: View {
         case .contact(_, let purpose):
             if let name = review.proof.customer?.rows.first?.title { Text(name) }
             Text(LocalizedStringKey("merchant.engagement.contact." + (purpose.rawValue)))
-        case .acceptInvitation: Text("merchant.engagement.invitationUnknownTarget"); Text("merchant.engagement.invitationConsequence").font(.footnote)
+        case .acceptInvitation: Text("merchant.engagement.invitationUnknownTarget"); Text("merchant.engagement.invitationConsequence").cyText(.bodyCompact)
         case .uploadEvidence(_, let selection, _, _):
             Text(selection.filename)
         }

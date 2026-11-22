@@ -43,7 +43,7 @@ import SwiftUI
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     Image(systemName: "figure.walk.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
-                    Text("roam.experience.subtitle").font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                    Text("roam.experience.subtitle").cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                     RoamExperienceNotice(offline: reader.isOfflineExample)
                 }

@@ -165,12 +165,12 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: "\(snapshot.readyPillarCount)")
-                        .font(CYTypography.dataXL)
+                        .cyText(.dataXL)
                         .foregroundStyle(CYColor.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityHidden(true)
                     Text(verbatim: "Ready pillars: \(snapshot.readyPillarCount)/\(snapshot.pillars.count).")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("sevenDayCommandCenter.summary.footer")
@@ -219,7 +219,7 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
     private var statusRow: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: "Command Center Status")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             CYStatusChip(

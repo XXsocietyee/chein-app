@@ -119,13 +119,13 @@ private struct PassportRollingCount: View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
             if value != nil {
                 Text(verbatim: "\(shown)")
-                    .font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
+                    .cyText(.dataXL).monospacedDigit()
                     .foregroundStyle(palette.textPrimary)
                     .contentTransition(.numericText(value: Double(shown)))
                 Text("passport.stamps.ofTotal \(total)")
-                    .font(CYTypography.cardTitle).monospacedDigit().foregroundStyle(palette.textSecondary)
+                    .cyText(.cardTitle).monospacedDigit().foregroundStyle(palette.textSecondary)
             } else {
-                Text(verbatim: "—").font(.system(.largeTitle, design: .rounded).weight(.bold)).foregroundStyle(palette.textTertiary)
+                Text(verbatim: "—").cyText(.dataXL).foregroundStyle(palette.textTertiary)
             }
         }
         .cyWrapText()
@@ -193,7 +193,7 @@ private struct PassportRollingCount: View {
                     .background(Circle().fill(palette.bgElevated))
                     .accessibilityHidden(true)
                 Text(title)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
                     .cyWrapText(alignment: .center)
@@ -208,7 +208,7 @@ private struct PassportRollingCount: View {
     private var stamps: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text("passport.stamps.title").font(CYTypography.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
+                Text("passport.stamps.title").cyText(.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
                 PassportRollingCount(value: stampCount, total: PassportStampGrid.slots)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(stampCount.map { Text("passport.stamps.count \(PassportStampGrid.earnedSlots($0)) \(PassportStampGrid.slots)") } ?? Text(verbatim: "—"))
@@ -262,10 +262,10 @@ private struct PassportRollingCount: View {
     private var badgeRail: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text("passport.badges.title").font(CYTypography.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
+                Text("passport.badges.title").cyText(.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
-                if let badges { Text(verbatim: "\(badges.count)").font(CYTypography.meta).monospacedDigit().foregroundStyle(palette.textSecondary) }
-                else { Text(verbatim: "—").font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
+                if let badges { Text(verbatim: "\(badges.count)").cyText(.meta).monospacedDigit().foregroundStyle(palette.textSecondary) }
+                else { Text(verbatim: "—").cyText(.meta).foregroundStyle(palette.textTertiary) }
             }
             if let badges {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -275,7 +275,7 @@ private struct PassportRollingCount: View {
                                 CYBadgeMedal(seed: badge.name ?? "badge-\(badge.id)", size: 64)
                                     .cyFoilSheen(cornerRadius: 32)
                                 Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
-                                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                                    .cyText(.meta).foregroundStyle(palette.textSecondary)
                                     .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -296,7 +296,7 @@ private struct PassportRollingCount: View {
     private func openRow(_ title: LocalizedStringKey, id: String, perform: @escaping () -> Void) -> some View {
         Button(action: perform) {
             HStack {
-                Text(title).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(title).cyText(.meta).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
             }

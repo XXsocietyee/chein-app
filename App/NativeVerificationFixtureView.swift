@@ -24,7 +24,7 @@ import Observation
     }
     var body: some View {
         VStack {
-            Text("verification.fixture").font(.caption)
+            Text("verification.fixture").cyText(.meta)
             Text(verbatim: String(transport.mutationCount)).accessibilityIdentifier("verification.fixtureCount")
             NavigationStack {
                 if let flow {

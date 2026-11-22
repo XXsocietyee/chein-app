@@ -175,7 +175,7 @@ import SwiftUI
                     .accessibilityIdentifier("activityEdit.status")
                 if !owner.rejection.isEmpty {
                     Text(verbatim: owner.rejection)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if owner.draft == nil && owner.review == nil {
@@ -189,7 +189,7 @@ import SwiftUI
                 }
                 if let request = owner.pending {
                     Text(verbatim: request.operationID.uuidString).textSelection(.enabled)
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .accessibilityIdentifier("activityEdit.requestID")
                     label("unknownBoundary")
                 }
@@ -228,7 +228,7 @@ import SwiftUI
                         LabeledContent { Text(verbatim: current.draft.text(field)).fixedSize(horizontal: false, vertical: true) } label: { label(field.rawValue) }
                     }
                     Text(verbatim: current.id.uuidString)
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .accessibilityIdentifier("activityEdit.reviewID")
                     Button { owner.cancel(current) } label: { label("cancel") }.disabled(owner.busy)
                     CYPillButton("confirm", tableName: "ActivityEditing") { Task { await owner.confirm(current) } }

@@ -63,7 +63,7 @@ struct MerchantAICommerceFixtureHost: View {
 
                 Section {
                     Text("merchantAICommerce.notice.offline", tableName: "MerchantAICommerce")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
             .navigationTitle(Text("merchantAICommerce.title", tableName: "MerchantAICommerce"))

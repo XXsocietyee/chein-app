@@ -77,18 +77,18 @@ import Combine
         Form {
             Section { CYHeroHeader("templateReasoning.title", tableName: "TemplateReasoningRehearsal").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
-                Text("templateReasoning.localOnly", tableName: "TemplateReasoningRehearsal").font(.callout)
+                Text("templateReasoning.localOnly", tableName: "TemplateReasoningRehearsal").cyText(.body)
             }
             if let state = controller.visibleState, let kind = PlayKitScreenKind(rawValue: state.game.section) {
                 Section {
-                    Text(verbatim: state.segment["prompt"].text ?? "").font(.title2)
+                    Text(verbatim: state.segment["prompt"].text ?? "").cyText(.sheetTitle)
                     PlayKitReasoningForm(kind: kind, segment: state.segment, enabled: state.canSubmit,
                         onDirty: {}, requestReview: controller.submitAction())
                         .id(controller.formID)
                 }
                 if state.result != .ready {
                     Section {
-                        Text("templateReasoning.result", tableName: "TemplateReasoningRehearsal").font(.headline)
+                        Text("templateReasoning.result", tableName: "TemplateReasoningRehearsal").cyText(.cardTitle)
                         Text(LocalizedStringKey("templateReasoning." + state.result.rawValue), tableName: "TemplateReasoningRehearsal")
                             .accessibilityIdentifier("templateReasoning.result")
                     }

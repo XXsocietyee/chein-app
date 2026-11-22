@@ -211,7 +211,7 @@ struct OnboardingFlow: View {
             Spacer()
             if step.showsSkip {
                 Button("onboarding.skip") { send(.skip) }
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(CYColor.textSecondary)
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("onboarding.skip")
@@ -242,7 +242,7 @@ struct OnboardingFlow: View {
             .animation(CYMotion.resolve(OBMotion.page, reduceMotion: reduceMotion), value: step.isFinal)
             if step.isFinal {
                 Button("welcome.browse") { send(.tapGuest) }
-                    .font(CYTypography.bodyCompact.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(CYColor.textSecondary)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("welcome.browse")
@@ -337,7 +337,7 @@ struct OnboardingCopy: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("onboarding.title")
             Text(step.bodyKey)
-                .font(.system(.body))
+                .cyText(.body)
                 .foregroundStyle(.white.opacity(0.6))
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -357,7 +357,7 @@ struct OnboardingConsentNote: View {
     var body: some View {
         Label {
             Text("onboarding.consent.note")
-                .font(CYTypography.caption)
+                .cyText(.caption)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
@@ -530,7 +530,7 @@ struct GOFace: View {
                 .frame(width: size * 0.78, height: size * 0.78)
                 .shadow(color: CYNight.lantern.opacity(lit ? 0.45 : 0), radius: 16)
             Text(verbatim: "GO")
-                .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                .cyText(.dataXL)
                 .foregroundStyle(lit ? CYNight.lanternHot : Color.white.opacity(0.72))
                 .shadow(color: CYNight.lantern.opacity(lit ? 0.7 : 0), radius: 14)
         }
@@ -579,7 +579,7 @@ struct StampSeal: View {
         }
         .overlay(alignment: .bottom) {
             Text("onboarding.stamps.slam")
-                .font(.footnote.weight(.semibold))
+                .cyText(.bodyMedium)
                 .foregroundStyle(CYNight.lanternHot)
                 .lineLimit(1).minimumScaleFactor(0.7)
                 .offset(y: titleIn ? -size * 0.07 : -size * 0.07 + 10)
@@ -655,7 +655,7 @@ struct AvatarOrbit: View {
                         .offset(x: CGFloat(cos(angle)) * radius, y: CGFloat(sin(angle)) * radius)
                 }
                 Text(verbatim: "\(count)")
-                    .font(.system(.title, design: .rounded).weight(.heavy))
+                    .cyText(.dataXL)
                     .foregroundStyle(.white)
                     .contentTransition(.numericText())
             }
@@ -723,7 +723,7 @@ private struct DemoRow: View {
         layout {
             Button(action: onComplete) {
                 Label(buttonKey, systemImage: done ? "checkmark" : symbol)
-                    .font(CYTypography.bodyCompact.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, CYSpacing.lg)
                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -734,7 +734,7 @@ private struct DemoRow: View {
             .disabled(done)
             .accessibilityIdentifier("onboarding.demo")
             Text(done ? doneKey : promptKey)
-                .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .contentTransition(.opacity)
         }
@@ -770,7 +770,7 @@ private struct GOHoldDemo: View {
                         .animation(reduceMotion ? CYMotion.reduced : .easeOut(duration: 0.9).delay(Double(i) * 0.15), value: done)
                 }
                 Circle().fill(CYColor.textPrimary).frame(width: 52, height: 52)
-                    .overlay(Text(verbatim: "GO").font(.headline.weight(.heavy)).foregroundStyle(CYColor.textInverse))
+                    .overlay(Text(verbatim: "GO").cyText(.cardTitle, weight: .heavy).foregroundStyle(CYColor.textInverse))
                 Circle().trim(from: 0, to: done ? 1 : progress)
                     .stroke(CYNight.lantern, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                     .rotationEffect(.degrees(-90)).frame(width: 62, height: 62)
@@ -791,7 +791,7 @@ private struct GOHoldDemo: View {
             .accessibilityAction { onComplete() }
             .accessibilityIdentifier("onboarding.demo")
             Text(done ? "onboarding.roam.done" : "onboarding.roam.prompt")
-                .font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.85))
+                .cyText(.bodyCompact).foregroundStyle(.white.opacity(0.85))
                 .lineLimit(2)
                 .minimumScaleFactor(0.85)
                 .multilineTextAlignment(stacked ? .leading : .center)

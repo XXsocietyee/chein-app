@@ -84,7 +84,7 @@ struct CYMorphButton<DoneAccessory: View>: View {
                 .foregroundStyle(CYNight.ink0)
                 .opacity(state == .done ? 1 : 0).scaleEffect(state == .done || rm ? 1 : 0.5)
             }
-            .font(.system(.body).weight(.bold))
+            .cyText(.cardTitle)
             .foregroundStyle(isEnabled || state != .idle ? palette.actionPrimaryFg : palette.textPlaceholder)
             .padding(.horizontal, compact ? CYSpacing.xl : CYSpacing.xxl)
             .padding(.vertical, CYSpacing.sm)
@@ -200,7 +200,7 @@ struct CYClubJoinStage: View {
             }
             if let n = memberCount, n >= 0 {
                 Text(verbatim: ClubMemberCountLocalization.text(n + (flown ? 1 : 0), locale: locale))
-                    .font(CYTypography.meta).monospacedDigit().contentTransition(.numericText())
+                    .cyText(.meta).monospacedDigit().contentTransition(.numericText())
                     .foregroundStyle(CYColor.textSecondary)
             }
         }

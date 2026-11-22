@@ -132,7 +132,7 @@ private final class PlayStoreDayFixtureTransport: PlayStoreDayOfflineTransport {
             PlayStoreDayMerchantView(model: model)
                 .overlay(alignment: .top) {
                     if flags.verificationShown {
-                        Text("playStoreDay.fixture.verificationPresented", tableName: "PlayStoreDay").font(.footnote.bold()).padding(8)
+                        Text("playStoreDay.fixture.verificationPresented", tableName: "PlayStoreDay").cyText(.bodyMedium).padding(8)
                             .background(.thinMaterial, in: Capsule()).accessibilityIdentifier("storeDayPage.fixture.verification")
                     }
                 }

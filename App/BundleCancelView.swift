@@ -41,7 +41,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 CYInfoCard {
                     Toggle(isOn: $useWaiver) { Text(verbatim: phrase("使用本月豁免次数", "Use this month's waiver")) }
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                 }
@@ -111,7 +111,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYSkeleton().accessibilityHidden(true)
             Text(verbatim: label)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

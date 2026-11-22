@@ -61,8 +61,8 @@ struct RoamHomeTabPicker: View {
                 .frame(maxHeight: .infinity, alignment: .topLeading)
                 .background(spec.spine)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(spec.title).font(.headline).foregroundStyle(.black)
-                    Text(spec.sub).font(.caption).foregroundStyle(.black.opacity(0.6))
+                    Text(spec.title).cyText(.cardTitle).foregroundStyle(.black)
+                    Text(spec.sub).cyText(.meta).foregroundStyle(.black.opacity(0.6))
                 }
                 .padding(14).frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
             }
@@ -119,7 +119,7 @@ struct RoamHomeTabPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("roam.w208.entry.title").font(.headline).accessibilityAddTraits(.isHeader)
+                Text("roam.w208.entry.title").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 Spacer()
                 Button("action.retry", systemImage: "arrow.clockwise", action: refresh)
 
@@ -178,9 +178,9 @@ struct RoamHomeTabPicker: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("roam.w208.entry.empty").font(.subheadline)
                 if let onOpenMap {
-                    NavigationLink { onOpenMap() } label: { Text("roam.w208.entry.emptyHint").font(.caption) }
+                    NavigationLink { onOpenMap() } label: { Text("roam.w208.entry.emptyHint").cyText(.meta) }
                         .accessibilityIdentifier("roam.home.peek.openMap")
-                } else { Text("roam.w208.entry.emptyHint").font(.caption).foregroundStyle(.secondary) }
+                } else { Text("roam.w208.entry.emptyHint").cyText(.meta).foregroundStyle(.secondary) }
             }.accessibilityElement(children: .contain).accessibilityIdentifier("roam.home.peek.empty")
         case .loaded(let cards):
             let rendered = model.loadedScope
@@ -281,7 +281,7 @@ struct RoamEntryCover: View {
                     List {
                         Section {
                             RoamEntryCover(source: card.activity.coverURL).frame(height: 160).listRowInsets(EdgeInsets())
-                            Text(LocalizedStringKey(card.tagKey)).font(.caption.bold()).foregroundStyle(.tint)
+                            Text(LocalizedStringKey(card.tagKey)).cyText(.meta, weight: .bold).foregroundStyle(.tint)
                             RoamEntryMetaLine(card: card).font(.subheadline).foregroundStyle(.secondary)
                             if readOnly { detailLink("roam.w208.entry.viewDetail", identifier: "roam.home.sheet.primary") }
                             else if let key = card.primaryKey { detailLink(LocalizedStringKey(key), identifier: "roam.home.sheet.primary") }
@@ -297,7 +297,7 @@ struct RoamEntryCover: View {
                         if !readOnly && card.registered && !card.ended, card.destination != nil, eventDestination != nil {
                             Section { detailLink("roam.w208.entry.createTeam", identifier: "roam.home.sheet.createTeam") }
                         }
-                        if readOnly { Section { Text("roam.readOnlyNotice").font(.footnote).foregroundStyle(.secondary) } }
+                        if readOnly { Section { Text("roam.readOnlyNotice").cyText(.bodyCompact).foregroundStyle(.secondary) } }
                     }
                 }
             }
@@ -325,11 +325,11 @@ struct RoamEntryCover: View {
     }
     @ViewBuilder private func teamRow(_ team: RoamEntryActivityCard.Team) -> some View {
         let label = VStack(alignment: .leading, spacing: 4) {
-            if team.title.isEmpty { Text("roam.w208.entry.teamUntitled").font(.headline) } else { Text(verbatim: team.title).font(.headline) }
-            Text("roam.w208.entry.teamMembers \(team.joinedCount) \(team.maxMembers)").font(.caption).foregroundStyle(.secondary)
+            if team.title.isEmpty { Text("roam.w208.entry.teamUntitled").cyText(.cardTitle) } else { Text(verbatim: team.title).cyText(.cardTitle) }
+            Text("roam.w208.entry.teamMembers \(team.joinedCount) \(team.maxMembers)").cyText(.meta).foregroundStyle(.secondary)
             // Source: 申请加入 once the viewer holds this activity's ticket, otherwise 报名后申请.
             Text(LocalizedStringKey(card.registered ? "roam.w208.entry.apply" : "roam.w208.entry.applyAfterRegister"))
-                .font(.caption.bold()).foregroundStyle(card.registered ? Color.accentColor : Color.secondary)
+                .cyText(.meta, weight: .bold).foregroundStyle(card.registered ? Color.accentColor : Color.secondary)
         }
         if team.canApply, let teamDestination {
             NavigationLink { teamDestination(team.teamID) } label: { label }.accessibilityIdentifier("roam.home.sheet.team.\(team.teamID.rawValue)")
@@ -481,9 +481,9 @@ struct RoamToolUnavailableView: View {
     }
     private func stat(_ key: LocalizedStringKey, _ value: String, identifier: String) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value).font(.title3.bold()).monospacedDigit()
+            Text(verbatim: value).cyText(.sectionTitle).monospacedDigit()
                 .contentTransition(.numericText())
-            Text(key).font(.caption).foregroundStyle(.secondary)
+            Text(key).cyText(.meta).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -495,10 +495,10 @@ struct RoamToolUnavailableView: View {
                 Image(systemName: tile.symbol).foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
-                        Text(LocalizedStringKey(tile.titleKey)).font(.headline)
-                        if tile.isNew { Text("roam.private.new").font(.caption2.bold()).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
+                        Text(LocalizedStringKey(tile.titleKey)).cyText(.cardTitle)
+                        if tile.isNew { Text("roam.private.new").cyText(.caption, weight: .bold).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
                     }
-                    caption(tile).font(.caption).foregroundStyle(.secondary)
+                    caption(tile).cyText(.meta).foregroundStyle(.secondary)
                 }
             }
         }
@@ -547,8 +547,8 @@ struct RoamToolUnavailableView: View {
         let label = HStack(spacing: 12) {
             Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(LocalizedStringKey(play.titleKey)).font(.headline)
-                Text(LocalizedStringKey(play.subtitleKey)).font(.caption).foregroundStyle(.secondary)
+                Text(LocalizedStringKey(play.titleKey)).cyText(.cardTitle)
+                Text(LocalizedStringKey(play.subtitleKey)).cyText(.meta).foregroundStyle(.secondary)
             }
             Spacer(minLength: 0)
         }

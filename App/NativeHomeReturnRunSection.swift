@@ -6,26 +6,26 @@ import SwiftUI
     var body: some View {
         if model.isAuthorized {
             Section {
-                Text("homeReturn.runBoundary", tableName: "NativeHomeReturn").font(.footnote)
+                Text("homeReturn.runBoundary", tableName: "NativeHomeReturn").cyText(.bodyCompact)
                 if model.phase == .loading { ProgressView() }
                 if model.phase == .unavailable { Text("homeReturn.unavailable", tableName: "NativeHomeReturn") }
                 if model.phase == .blocked { Text("homeReturn.failure.storageUnavailable", tableName: "NativeHomeReturn") }
                 if model.phase == .ready, model.runs.isEmpty, !model.truncated, model.selected == nil {
                     Text("homeReturn.noRuns", tableName: "NativeHomeReturn")
                 }
-                if model.truncated { Text("homeReturn.runsTruncated", tableName: "NativeHomeReturn").font(.footnote) }
+                if model.truncated { Text("homeReturn.runsTruncated", tableName: "NativeHomeReturn").cyText(.bodyCompact) }
                 if model.truncated {
                     Button { Task { await model.loadMore() } } label: { Text("homeReturn.loadMoreRuns", tableName: "NativeHomeReturn") }
                         .disabled(!model.canSelect).accessibilityIdentifier("homeReturn.loadMoreRuns")
                 }
                 if model.loadingMore { ProgressView() }
-                if model.paginationUnavailable { Text("homeReturn.moreUnavailable", tableName: "NativeHomeReturn").font(.footnote) }
+                if model.paginationUnavailable { Text("homeReturn.moreUnavailable", tableName: "NativeHomeReturn").cyText(.bodyCompact) }
                 ForEach(model.runs) { run in
                     Button { Task { await model.select(run) } } label: {
                         VStack(alignment: .leading) {
                             Text("homeReturn.selectRun", tableName: "NativeHomeReturn") + Text(verbatim: " #\(run.runId)")
                             (Text("homeReturn.sourceActivity", tableName: "NativeHomeReturn") + Text(verbatim: " #\(run.activityId) · ") +
-                             Text("homeReturn.sourceTopic", tableName: "NativeHomeReturn") + Text(verbatim: " #\(run.topicId)")).font(.caption)
+                             Text("homeReturn.sourceTopic", tableName: "NativeHomeReturn") + Text(verbatim: " #\(run.topicId)")).cyText(.meta)
                         }
                     }.disabled(!model.canSelect).accessibilityIdentifier("homeReturn.run.\(run.runId)")
                 }

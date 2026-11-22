@@ -18,12 +18,12 @@ import SwiftUI
             layerFilterBar
             if !coordinator.isConfigured {
                 Text("mapPublicLayers.notConfigured")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("mapPublicLayers.notConfigured")
             } else if !coordinator.isAuthenticated {
                 Text("mapPublicLayers.signInRequired")
-                    .font(.footnote)
+                    .cyText(.bodyCompact)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("mapPublicLayers.signInRequired")
             } else {
@@ -44,7 +44,7 @@ import SwiftUI
                     LabeledContent("mapPublicLayers.withheldCount") {
                         Text(coordinator.withheldItems.count, format: .number)
                     }
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("mapPublicLayers.withheldCount")
                 }
@@ -64,9 +64,9 @@ import SwiftUI
         HStack {
             VStack(alignment: .leading, spacing: 2) {
                 Text("mapPublicLayers.title")
-                    .font(.headline)
+                    .cyText(.cardTitle)
                 Text("mapPublicLayers.datumNotice")
-                    .font(.caption2)
+                    .cyText(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
@@ -94,7 +94,7 @@ import SwiftUI
                             LocalizedStringKey(Self.layerTitleKey(for: source)),
                             systemImage: isSelected ? "checkmark.circle.fill" : "circle"
                         )
-                        .font(.caption)
+                        .cyText(.meta)
                     }
                     .buttonStyle(.bordered)
                     .tint(isSelected ? .accentColor : .secondary)
@@ -122,14 +122,14 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(LocalizedStringKey(Self.layerTitleKey(for: page.source)))
-                        .font(.subheadline.weight(.medium))
+                        .cyText(.bodyMedium)
                     Text(LocalizedStringKey(Self.statusTitleKey(for: page)))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 if let reason = page.reason, !reason.isEmpty {
                     Text(verbatim: reason)
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("mapPublicLayers.layer.\(page.source).reason")
                 }
@@ -172,29 +172,29 @@ import SwiftUI
                         .font(.headline)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: item.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                             .multilineTextAlignment(.leading)
                         if let wireItem,
                            let parentLabel = Self.parentContextSummary(for: wireItem) {
                             Text(verbatim: parentLabel)
-                                .font(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.leading)
                                 .accessibilityIdentifier("mapPublicLayers.parent.\(item.key.type.rawValue).\(item.key.id)")
                         }
                         if let summary = wireItem?.summary, !summary.isEmpty {
                             Text(verbatim: summary)
-                                .font(.caption2)
+                                .cyText(.caption)
                                 .foregroundStyle(.secondary)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
                         }
                         HStack(spacing: 8) {
                             Text(LocalizedStringKey(Self.clientTypeTitleKey(for: item.key.type)))
-                                .font(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(.secondary)
                             Text(LocalizedStringKey(Self.markerStateTitleKey(for: item.state)))
-                                .font(.caption2)
+                                .cyText(.caption)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(.secondary.opacity(0.14), in: Capsule())
@@ -220,7 +220,7 @@ import SwiftUI
                         LocalizedStringKey(isSelected ? "searchMap.placeSelected" : "searchMap.selectPlace"),
                         systemImage: isSelected ? "checkmark.circle.fill" : "mappin"
                     )
-                    .font(.caption)
+                    .cyText(.meta)
                 }
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("mapPublicLayers.select.\(item.key.type.rawValue).\(item.key.id)")
@@ -242,7 +242,7 @@ import SwiftUI
                         )
                     } label: {
                         Label("searchMap.routePreview", systemImage: "location.north.line")
-                            .font(.caption)
+                            .cyText(.meta)
                     }
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("mapPublicLayers.navigate.store.\(storeID)")
@@ -260,7 +260,7 @@ import SwiftUI
         } else if coordinator.canRetry {
             HStack(spacing: 12) {
                 Label("mapPublicLayers.failedRetainedCursor", systemImage: "exclamationmark.triangle")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button("mapPublicLayers.retry") {
@@ -279,7 +279,7 @@ import SwiftUI
             .accessibilityIdentifier("mapPublicLayers.nextPage")
         } else if coordinator.isComplete {
             Text("mapPublicLayers.complete")
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("mapPublicLayers.complete")
         }

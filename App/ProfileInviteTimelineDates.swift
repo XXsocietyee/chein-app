@@ -25,7 +25,7 @@ struct ProfileInviteTimelineDates: View {
                     else { Text("profile.inviteTimeline.timeUnknown") }
                 }.accessibilityIdentifier("profile.inviteTimeline.rewardTime")
             }
-        }.font(.caption)
+        }.cyText(.meta)
     }
     static func display(_ value: ProfileInviteTimestamp, locale: Locale, timeZone: TimeZone) -> String {
         let formatter = DateFormatter()

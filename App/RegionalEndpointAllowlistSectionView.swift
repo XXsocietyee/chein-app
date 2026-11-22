@@ -187,16 +187,16 @@ public struct RegionalEndpointAllowlistSectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "区域路由白名单与默认阻断态势（当前：\(snapshot.activeRegion.rawValue)）")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("regionalAllowlist.header.title")
                     Text(verbatim: snapshot.isolationNoticeText)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("regionalAllowlist.header.isolation")
                 }
                 Spacer()
                 Text(verbatim: snapshot.isReleaseReady ? "可发布" : (snapshot.isPostureCompliant ? "发布阻断" : "存在风险"))
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -211,18 +211,18 @@ public struct RegionalEndpointAllowlistSectionView: View {
 
             if !snapshot.isReleaseReady {
                 Text(verbatim: snapshot.releaseBlockerText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(.red)
                     .accessibilityIdentifier("regionalAllowlist.releaseBlocker")
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: "禁用旧主机拦截规则（\(RegionalEndpointAllowlistSnapshot.forbiddenLegacyHost)）")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(.red)
                     .accessibilityIdentifier("regionalAllowlist.legacyHost.title")
                 Text(verbatim: snapshot.legacyHostRejectionNoticeText)
-                    .font(.caption2)
+                    .cyText(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("regionalAllowlist.legacyHost.detail")
             }
@@ -248,31 +248,31 @@ public struct RegionalEndpointAllowlistSectionView: View {
                     .accessibilityIdentifier("regionalAllowlist.row.\(row.id).path")
                 Spacer()
                 Text(verbatim: row.featureCategory)
-                    .font(.caption2)
+                    .cyText(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("regionalAllowlist.row.\(row.id).category")
             }
 
             HStack(spacing: 10) {
                 Text(verbatim: "CN: \(RegionalEndpointGateRow.badgeText(for: row.cnDisposition))")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.cnDisposition == .failClosedBlocked ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary))
                     .accessibilityIdentifier("regionalAllowlist.row.\(row.id).cnStatus")
                 Text(verbatim: "US: \(RegionalEndpointGateRow.badgeText(for: row.usDisposition))")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.usDisposition == .failClosedBlocked ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary))
                     .accessibilityIdentifier("regionalAllowlist.row.\(row.id).usStatus")
             }
 
             Text(verbatim: row.rationaleText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("regionalAllowlist.row.\(row.id).rationale")
 
             if let onSelectRow {
                 Button(action: { onSelectRow(row) }) {
                     Text(verbatim: "检查路由门控")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("regionalAllowlist.row.\(row.id).action")
             }

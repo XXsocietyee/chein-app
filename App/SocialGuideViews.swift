@@ -113,16 +113,16 @@ struct SocialInformationCover: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let created {
-                    Text(verbatim: created).font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: created).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("social.information.createTime")
                 }
             }
             .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
             Divider().overlay(CYColor.borderSubtle)
-            Text("guideXcx.detailDisclaimer").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text("guideXcx.detailDisclaimer").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Divider().overlay(CYColor.borderSubtle)
         }

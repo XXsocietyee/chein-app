@@ -315,7 +315,7 @@ extension EnvironmentValues {
                         .listRowInsets(pageInsets)
                     } else {
                         Text("club.terminal.notTerminal")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

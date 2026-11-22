@@ -283,9 +283,9 @@ struct QmodAuthorImportView: View {
                 ForEach(Array(report.issues.enumerated()), id: \.offset) { index, issue in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: qmodArchiveIssueTitle(issue, locale: locale))
-                            .font(CYTypography.cardTitle).foregroundStyle(CYColor.dangerText)
+                            .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
                         Text(verbatim: qmodArchiveIssueDetail(issue, locale: locale))
-                            .font(.footnote)
+                            .cyText(.bodyCompact)
                         Text(verbatim: qmodArchiveIssueLocation(issue, locale: locale))
                             .font(.caption.monospaced())
                             .foregroundStyle(.secondary)
@@ -300,7 +300,7 @@ struct QmodAuthorImportView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: file.path).font(.subheadline.monospaced())
                         Text(file.matchesManifest ? "qmodImport.fileMatches \(file.bytes)" : "qmodImport.fileMismatch \(file.bytes)")
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                     }
                     .accessibilityIdentifier("qmod.authorImport.file.\(file.path)")

@@ -180,8 +180,8 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(verbatim: option.label)
-                                Text(verbatim: option.value).font(.caption).foregroundStyle(.secondary)
-                                if !editor.canSelect(option) { Text("templateMetadata.unsupportedOption").font(.caption) }
+                                Text(verbatim: option.value).cyText(.meta).foregroundStyle(.secondary)
+                                if !editor.canSelect(option) { Text("templateMetadata.unsupportedOption").cyText(.meta) }
                             }
                             Spacer()
                             if editor.savedRawValue == option.value { Image(systemName: "checkmark") }
@@ -303,7 +303,7 @@ enum TemplateMetadataField: String, CaseIterable, Identifiable {
                 Section("templateMetadata.saved") {
                     if let raw = editor.savedRawValue { Text(verbatim: raw).accessibilityIdentifier("templateVenue.savedRaw") }
                     else { Text("templateMetadata.unset") }
-                    if editor.hasHistoricalValue { Text("templateVenue.historical").font(.caption).foregroundStyle(.secondary) }
+                    if editor.hasHistoricalValue { Text("templateVenue.historical").cyText(.meta).foregroundStyle(.secondary) }
                 }
                 Section {
                     ForEach(TemplateVenuePreset.allCases) { preset in

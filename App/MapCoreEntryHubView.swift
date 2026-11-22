@@ -29,7 +29,7 @@ struct MapCoreEntryHubView: View {
                 Text("mapCore.entries.title", tableName: "MapCoreEntry").sectionHeading()
             } footer: {
                 Text("mapCore.entries.footer", tableName: "MapCoreEntry")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -53,12 +53,12 @@ struct MapCoreEntryHubView: View {
             } footer: {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("mapCore.legend.footer", tableName: "MapCoreEntry")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if manifest.approval == .candidate {
                         Text("mapCore.legend.candidate", tableName: "MapCoreEntry")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("mapCore.legend.candidate")
@@ -69,16 +69,16 @@ struct MapCoreEntryHubView: View {
             Section {
                 LabeledContent {
                     Text("mapCore.share.off", tableName: "MapCoreEntry")
-                        .font(CYTypography.numericBody)
+                        .cyText(.numericBody)
                         .foregroundStyle(CYColor.textPrimary)
                 } label: {
                     Text("mapCore.share.status", tableName: "MapCoreEntry")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                 }
                 .accessibilityIdentifier("mapCore.share.status")
                 Text("mapCore.share.permissionIsNotSharing", tableName: "MapCoreEntry")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("mapCore.share.explain", style: .secondary, tableName: "MapCoreEntry") { showsSharingExplainer = true }
@@ -125,7 +125,7 @@ struct MapCoreEntryHubView: View {
     private func titleBlock(_ entry: MapCoreEntry, open: Bool) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             MapCoreEntryText.title(entry)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
@@ -134,7 +134,7 @@ struct MapCoreEntryHubView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityHidden(true)
                 MapCoreEntryText.availability(entry.availability)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -151,7 +151,7 @@ struct MapCoreEntryHubView: View {
                 .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).stroke(swatch(for: state), lineWidth: state.strokeWidth))
                 .accessibilityHidden(true)
             MapCoreEntryText.state(state)
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: CYSpacing.sm)
@@ -189,7 +189,7 @@ struct LocationShareExplainerView: View {
                 ForEach(LocationShareDisclosure.allCases, id: \.self) { item in
                     Toggle(isOn: Binding(get: { draft.acknowledged.contains(item) }, set: { if $0 { draft.acknowledge(item) } else { draft.withdraw(item) } })) {
                         MapCoreEntryText.disclosure(item)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -197,7 +197,7 @@ struct LocationShareExplainerView: View {
                 }
             } footer: {
                 Text("mapCore.share.disclosureFooter", tableName: "MapCoreEntry")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -207,7 +207,7 @@ struct LocationShareExplainerView: View {
                     .disabled(true)
                     .accessibilityIdentifier("mapCore.share.start")
                 Text("mapCore.share.unavailable", tableName: "MapCoreEntry")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("mapCore.share.unavailable")

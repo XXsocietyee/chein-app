@@ -37,7 +37,7 @@ import SwiftUI
                 }
                 #if DEBUG
                 if let diagnosticText {
-                    Text(verbatim: diagnosticText()).font(.caption)
+                    Text(verbatim: diagnosticText()).cyText(.meta)
                         .accessibilityIdentifier("profile.selfEdit.fixture.context")
                 }
                 #endif

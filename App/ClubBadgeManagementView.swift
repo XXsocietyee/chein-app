@@ -21,7 +21,7 @@ import SwiftUI
                     CYSkeleton().accessibilityLabel(Text("loading", tableName: "ClubBadge"))
                 } else {
                     Text("readError", tableName: "ClubBadge")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -101,7 +101,7 @@ import SwiftUI
             if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text("readError", tableName: "ClubBadge")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     CYPillButton("refresh", style: flow.canCreate ? .secondary : .primary, tableName: "ClubBadge") {
@@ -113,7 +113,7 @@ import SwiftUI
         resultStatus(flow.resultPresentation, createIsPrimary: flow.canCreate)
         if flow.showsOwnerOnlyNotice {
             Text("ownerOnly", tableName: "ClubBadge")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -149,12 +149,12 @@ import SwiftUI
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         badgeName(badge)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         if let desc = shownDescription(badge) {
                             Text(verbatim: desc)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(palette.textTertiary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -175,7 +175,7 @@ import SwiftUI
     @ViewBuilder private func memberPicker(_ flow: ClubBadgeManagementFlow) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text("recipient", tableName: "ClubBadge")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .fixedSize(horizontal: false, vertical: true)
@@ -184,7 +184,7 @@ import SwiftUI
                 CYSkeleton().accessibilityLabel(Text("membersLoading", tableName: "ClubBadge"))
             case .error:
                 Text("membersError", tableName: "ClubBadge")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("retry", style: .secondary, tableName: "ClubBadge") {
@@ -201,12 +201,12 @@ import SwiftUI
                             CYRowIcon(systemImage: member.isOwner ? "crown" : "person")
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: member.trimmedNickname ?? String(member.memberId))
-                                    .font(CYTypography.cardTitle)
+                                    .cyText(.cardTitle)
                                     .foregroundStyle(palette.textPrimary)
                                     .fixedSize(horizontal: false, vertical: true)
                                 if member.isOwner {
                                     Text("ownerMark", tableName: "ClubBadge")
-                                        .font(CYTypography.meta)
+                                        .cyText(.meta)
                                         .foregroundStyle(palette.textTertiary)
                                 }
                             }
@@ -230,13 +230,13 @@ import SwiftUI
             EmptyView()
         case .storageUnavailable:
             Text("storageUnavailable", tableName: "ClubBadge")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         case .unknown:
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text("unknown", tableName: "ClubBadge")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("recover", style: createIsPrimary ? .secondary : .primary, tableName: "ClubBadge") {
@@ -245,12 +245,12 @@ import SwiftUI
             }
         case .needsReview:
             Text("actionNeedsReview", tableName: "ClubBadge")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         case .notSent:
             Text("notSent", tableName: "ClubBadge")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         case .confirmed(let receipt):
@@ -258,7 +258,7 @@ import SwiftUI
         case .historical(let receipt):
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("historicalResult", tableName: "ClubBadge")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 receiptLine(receipt)
@@ -279,7 +279,7 @@ import SwiftUI
             Image(systemName: known ? "checkmark.seal" : "questionmark.circle")
                 .accessibilityHidden(true)
         }
-        .font(CYTypography.label)
+        .cyText(.label)
         .foregroundStyle(known ? palette.success : palette.textSecondary)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
@@ -294,7 +294,7 @@ import SwiftUI
                 labeledField("name", text: $draft.name)
                 labeledField("description", text: $draft.description, axis: .vertical)
                 Text("limits", tableName: "ClubBadge")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
                 VStack(spacing: CYSpacing.sm) {
@@ -325,11 +325,11 @@ import SwiftUI
     private func labeledField(_ key: String, text: Binding<String>, axis: Axis = .horizontal) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(LocalizedStringKey(key), tableName: "ClubBadge")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             TextField("", text: text, axis: axis)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .padding(CYSpacing.md)
                 .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "ClubBadge"))

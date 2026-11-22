@@ -132,7 +132,7 @@ import SwiftUI
     }
     private func stateView(title: String, sub: String?, identifier: String, retry: Bool) -> some View {
         VStack(spacing: 10) {
-            MerchantCityNodeCopy.text(title).font(.headline)
+            MerchantCityNodeCopy.text(title).cyText(.cardTitle)
             if let sub { Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center) }
             if retry {
                 Button { Task { await model.load(); seedIfNeeded() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
@@ -144,7 +144,7 @@ import SwiftUI
     @ViewBuilder private func ready(_ snapshot: MerchantContentSnapshot?) -> some View {
         MerchantCityNodeCopy.text("merchantCityNode.create.lede").font(.subheadline).foregroundStyle(.secondary)
         if !MerchantCityNodeWriteGate.saveAvailable(permitsWrites: service.permitsWrites, isOfflineExample: isOfflineFixture) {
-            MerchantCityNodeCopy.text("merchantCityNode.write.disabled").font(.footnote).foregroundStyle(.secondary)
+            MerchantCityNodeCopy.text("merchantCityNode.write.disabled").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .padding(10).frame(maxWidth: .infinity, alignment: .leading)
                 .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityIdentifier("cityNodeCreate.writeUnavailable")
@@ -154,14 +154,14 @@ import SwiftUI
         addressCard
         if c.locked {
             VStack(alignment: .leading, spacing: 6) {
-                MerchantCityNodeCopy.text("merchantCityNode.write.lockedTitle").font(.subheadline.weight(.semibold))
-                MerchantCityNodeCopy.text("merchantCityNode.create.unknownBody").font(.footnote).foregroundStyle(.secondary)
+                MerchantCityNodeCopy.text("merchantCityNode.write.lockedTitle").cyText(.bodyMedium)
+                MerchantCityNodeCopy.text("merchantCityNode.create.unknownBody").cyText(.bodyCompact).foregroundStyle(.secondary)
                 if let found = uncertainReadback {
-                    MerchantCityNodeCopy.text(found ? "merchantCityNode.create.unknownFound" : "merchantCityNode.create.unknownMissing").font(.footnote)
+                    MerchantCityNodeCopy.text(found ? "merchantCityNode.create.unknownFound" : "merchantCityNode.create.unknownMissing").cyText(.bodyCompact)
                         .accessibilityIdentifier("cityNodeCreate.unknown.result")
                 }
                 Button { Task { await readUncertain() } } label: { MerchantCityNodeCopy.text("merchantCityNode.write.readback") }
-                    .font(.footnote.weight(.semibold)).disabled(c.busy).accessibilityIdentifier("cityNodeCreate.unknown.readback")
+                    .cyText(.bodyMedium).disabled(c.busy).accessibilityIdentifier("cityNodeCreate.unknown.readback")
             }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
                 .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeCreate.locked")
         } else if submitAttempted, submittedID == nil, c.issue != nil, c.review == nil, c.receipt == nil, !submitting {
@@ -187,7 +187,7 @@ import SwiftUI
                     MerchantCityNodeCopy.text(titles[index]).font(.caption.weight(states[index] == .doing ? .bold : .regular))
                     if let stamp = stamps[index] {
                         Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.station.today", stamp.formatted(date: .omitted, time: .shortened)))
-                            .font(.caption2).foregroundStyle(.secondary)
+                            .cyText(.caption).foregroundStyle(.secondary)
                     }
                 }.frame(maxWidth: .infinity).accessibilityElement(children: .combine)
                     .accessibilityIdentifier("cityNodeCreate.station.\(index).\(states[index].rawValue)")
@@ -198,7 +198,7 @@ import SwiftUI
     @ViewBuilder private func templateCard(_ snapshot: MerchantContentSnapshot?) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                MerchantCityNodeCopy.text("merchantCityNode.create.templateStep").font(.headline)
+                MerchantCityNodeCopy.text("merchantCityNode.create.templateStep").cyText(.cardTitle)
                 Spacer()
                 if templateID > 0 {
                     Label { MerchantCityNodeCopy.text("merchantCityNode.create.configured") } icon: { Image(systemName: "checkmark") }
@@ -207,10 +207,10 @@ import SwiftUI
             }
             if templateID > 0 {
                 let summary = MerchantCityNodeTemplateSummary(templateID: templateID, templates: snapshot?.value["templates"] ?? .null)
-                Text(verbatim: summary.title ?? "#\(templateID)").font(.subheadline.weight(.semibold)).accessibilityIdentifier("cityNodeCreate.template.title")
+                Text(verbatim: summary.title ?? "#\(templateID)").cyText(.bodyMedium).accessibilityIdentifier("cityNodeCreate.template.title")
                 let meta = [summary.interaction.map { MerchantCityNodeCopy.string(interactionKey($0)) },
                             summary.validationMethod.map { MerchantCityNodeCopy.string(validationKey($0)) }].compactMap { $0 }
-                if !meta.isEmpty { Text(verbatim: meta.joined(separator: " · ")).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.template.summary") }
+                if !meta.isEmpty { Text(verbatim: meta.joined(separator: " · ")).cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.template.summary") }
             }
             Button { openTemplate() } label: {
                 MerchantCityNodeCopy.text(templateID > 0 ? "merchantCityNode.create.reconfigure" : "merchantCityNode.create.configure")
@@ -221,9 +221,9 @@ import SwiftUI
             if handoff.recoveryNeeded, handoff.opening == nil, c.snapshot == nil {
                 Button { let permit = handoff.generation; Task { await handoff.recoverParent(binding: templateBinding, permit: permit) } } label: {
                     MerchantCityNodeCopy.text("merchantCityNode.create.templateReread")
-                }.font(.footnote).disabled(!handoff.active || handoff.busy || !templateBinding.canReload())
+                }.cyText(.bodyCompact).disabled(!handoff.active || handoff.busy || !templateBinding.canReload())
             }
-            if let issue = handoff.issue, handoff.opening == nil { Text(LocalizedStringKey(issue.key)).font(.caption) }
+            if let issue = handoff.issue, handoff.opening == nil { Text(LocalizedStringKey(issue.key)).cyText(.meta) }
         }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeCreate.template")
     }
@@ -231,23 +231,23 @@ import SwiftUI
     @ViewBuilder private var addressCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                MerchantCityNodeCopy.text("merchantCityNode.create.addressStep").font(.headline)
+                MerchantCityNodeCopy.text("merchantCityNode.create.addressStep").cyText(.cardTitle)
                 Spacer()
                 if picked != nil {
                     HStack(spacing: 4) {
                         if confirmed { Image(systemName: "checkmark") }
                         MerchantCityNodeCopy.text(confirmed ? "merchantCityNode.create.addressConfirmed" : "merchantCityNode.create.addressPending")
-                    }.font(.caption.weight(.semibold)).foregroundStyle(confirmed ? CYColor.successText : CYColor.warningText).accessibilityIdentifier("cityNodeCreate.address.state")
+                    }.cyText(.meta, weight: .semibold).foregroundStyle(confirmed ? CYColor.successText : CYColor.warningText).accessibilityIdentifier("cityNodeCreate.address.state")
                 }
             }
             let choose: () -> Void = addressSource.map { addressChoice.openAction($0, provider: placeSearch, current: { addressSource }) } ?? {}
             let canChoose = addressSource != nil && placeSearch != nil
             if let picked {
-                Text(verbatim: picked.name.isEmpty ? MerchantCityNodeCopy.string("merchantCityNode.create.myStore") : picked.name).font(.subheadline.weight(.semibold))
+                Text(verbatim: picked.name.isEmpty ? MerchantCityNodeCopy.string("merchantCityNode.create.myStore") : picked.name).cyText(.bodyMedium)
                     .accessibilityIdentifier("cityNodeCreate.address.name")
-                if !picked.address.isEmpty { Text(verbatim: picked.address).font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.address.line") }
+                if !picked.address.isEmpty { Text(verbatim: picked.address).cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("cityNodeCreate.address.line") }
                 if fromProfile && !confirmed {
-                    Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.create.profileHint", 80)).font(.footnote).foregroundStyle(.secondary)
+                    Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.create.profileHint", 80)).cyText(.bodyCompact).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityNodeCreate.address.hint")
                     HStack {
                         Button { confirmProfileAddress() } label: { MerchantCityNodeCopy.text("merchantCityNode.create.confirmAddress") }
@@ -260,7 +260,7 @@ import SwiftUI
                         .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.repickAddress")
                 }
             } else {
-                MerchantCityNodeCopy.text("merchantCityNode.create.noCoordinate").font(.footnote).foregroundStyle(.secondary)
+                MerchantCityNodeCopy.text("merchantCityNode.create.noCoordinate").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Button(action: choose) { MerchantCityNodeCopy.text("merchantCityNode.create.markOnMap") }
                     .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.mark")
             }
@@ -275,7 +275,7 @@ import SwiftUI
                 HStack(spacing: 8) {
                     if submitting { ProgressView() }
                     MerchantCityNodeCopy.text(submittedID != nil ? "merchantCityNode.create.reread" : "merchantCityNode.create.submit")
-                }.font(.headline).frame(maxWidth: .infinity).padding(.vertical, 6)
+                }.cyText(.cardTitle).frame(maxWidth: .infinity).padding(.vertical, 6)
             }.buttonStyle(.questifyPrimary).disabled(!ready && submittedID == nil)
                 .accessibilityIdentifier("cityNodeCreate.submit")
         }

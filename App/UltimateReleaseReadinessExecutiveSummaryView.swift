@@ -150,7 +150,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
     private var headerView: some View {
         rowLayout {
             Text(verbatim: snapshot.sectionTitle)
-                .font(.headline).accessibilityAddTraits(.isHeader)
+                .cyText(.cardTitle).accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("ultimateExecutiveSummary.title")
             Spacer()
             CYStatusChip(verbatim: snapshot.releaseTagText, tone: .neutral, systemImage: "tag")
@@ -167,12 +167,12 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
                     .accessibilityIdentifier("ultimateExecutiveSummary.bannerState")
 
                 Text(verbatim: snapshot.executiveHeadlineText)
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .accessibilityIdentifier("ultimateExecutiveSummary.headline")
             }
 
             Text(verbatim: snapshot.signOffSummaryText)
-                .font(.caption2)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("ultimateExecutiveSummary.signOffSummary")
         }
@@ -188,7 +188,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
     private var metricCardsListSectionView: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "核心交付指标 (\(snapshot.cards.count) 项)")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .accessibilityIdentifier("ultimateExecutiveSummary.metricsHeader")
 
             ForEach(snapshot.cards) { card in
@@ -196,7 +196,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         rowLayout {
                             Text(verbatim: card.metricTitle)
-                                .font(.caption.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                                 .accessibilityIdentifier("ultimateExecutiveSummary.card.\(card.id).title")
                             Text(verbatim: card.primaryValueText)
                                 .font(.caption2.monospaced().weight(.bold))
@@ -204,7 +204,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
                                 .accessibilityIdentifier("ultimateExecutiveSummary.card.\(card.id).value")
                         }
                         Text(verbatim: card.detailSummary)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("ultimateExecutiveSummary.card.\(card.id).summary")
                     }

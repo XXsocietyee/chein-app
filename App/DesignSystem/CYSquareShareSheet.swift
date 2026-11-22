@@ -38,7 +38,7 @@ struct CYSquareShareSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack {
-                Text("share.title", tableName: "SocialParity").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                Text("share.title", tableName: "SocialParity").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
                 Spacer()
                 Button { dismiss() } label: {
                     Image(systemName: "xmark").font(CYTypography.label.weight(.semibold))
@@ -51,7 +51,7 @@ struct CYSquareShareSheet: View {
             }
             card
             if payload.isGeneric {
-                Text("share.genericNote", tableName: "SocialParity").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("share.genericNote", tableName: "SocialParity").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             ShareLink(item: url, preview: SharePreview(payload.excerpt ?? Self.brand)) {
@@ -99,8 +99,8 @@ struct CYSquareShareSheet: View {
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: payload.excerpt ?? Self.brand).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
-                Text(verbatim: Self.brand).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: payload.excerpt ?? Self.brand).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                Text(verbatim: Self.brand).cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
             Spacer(minLength: 0)
         }

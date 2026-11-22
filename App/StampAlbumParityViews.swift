@@ -14,11 +14,11 @@ struct StampAlbumTotalHeader: View {
     var body: some View {
         // Mini-program `al-hd`: a large light count and a small 枚 beside it (B62); unknown stays the em dash.
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Text(verbatim: text).font(.system(.largeTitle, design: .default).weight(.light)).monospacedDigit()
+            Text(verbatim: text).cyText(.pageTitle, weight: .light).monospacedDigit()
                 .contentTransition(.numericText())
                 .foregroundStyle(palette.textPrimary)
             if Int(text) != nil {
-                Text("u10.album.unit").font(CYTypography.bodyCompact).foregroundStyle(palette.textTertiary)
+                Text("u10.album.unit").cyText(.bodyCompact).foregroundStyle(palette.textTertiary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

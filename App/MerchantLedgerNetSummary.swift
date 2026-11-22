@@ -7,13 +7,13 @@ struct MerchantLedgerNetSummary: View {
             Text("merchant.business.field.personalArrivedThisMonthNet")
                 .font(.subheadline).foregroundStyle(.secondary)
             if let amount = presentation.amount {
-                Text(verbatim: amount).font(Theme.Font.pageTitle).monospacedDigit()
+                Text(verbatim: amount).cyText(.pageTitle).monospacedDigit()
             } else {
                 Text("merchant.business.amountPending")
-                    .font(Theme.Font.sectionTitle).foregroundStyle(.secondary)
+                    .cyText(.sectionTitle).foregroundStyle(.secondary)
             }
             Text(LocalizedStringKey(presentation.titleKey))
-                .font(.footnote).foregroundStyle(.secondary)
+                .cyText(.bodyCompact).foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
@@ -28,7 +28,7 @@ struct MerchantLedgerRefundPreviewSections<Row: View, More: View>: View {
     let more: (MerchantAftercareBucket) -> More
     var body: some View {
         Section("merchant.refundPreview.title") {
-            Text("merchant.refundPreview.boundary").font(.footnote).foregroundStyle(.secondary)
+            Text("merchant.refundPreview.boundary").cyText(.bodyCompact).foregroundStyle(.secondary)
             if !preview.included { Text("merchant.refundPreview.notIncluded") }
             if preview.loading { ProgressView("merchant.loading") }
         }
@@ -40,7 +40,7 @@ struct MerchantLedgerRefundPreviewSections<Row: View, More: View>: View {
                     ForEach(page.rows, id: \.id) { value in
                         row(value).id(page.rowIdentity(value))
                     }
-                    if page.hasMore { Text("merchant.refundPreview.moreAvailable").font(.footnote) }
+                    if page.hasMore { Text("merchant.refundPreview.moreAvailable").cyText(.bodyCompact) }
                 }
                 more(page.bucket)
             }

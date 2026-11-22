@@ -52,7 +52,7 @@ private struct E3Page<Content: View>: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xl) {
                     content()
-                    Text(verbatim: locale.pick("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).font(.caption2).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: locale.pick("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).cyText(.caption).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity)
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
@@ -82,15 +82,15 @@ struct E3ClubDetailFixture: View {
                         LinearGradient(stops: [.init(color: .clear, location: 0.35), .init(color: .black, location: 1)], startPoint: .top, endPoint: .bottom)
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             CYStatusChip(verbatim: t("公开加入", "Open to join"), tone: .success, systemImage: "checkmark.circle")
-                            Text(verbatim: t("夜行者俱乐部", "Night Walkers")).font(.largeTitle.weight(.bold)).foregroundStyle(.white).lineLimit(3)
-                            Text(verbatim: t("每周三晚，漫步老城区的灯与影。", "Wednesday evenings, strolling the lights and shadows of the old town.")).font(CYTypography.body).foregroundStyle(.white.opacity(0.85))
+                            Text(verbatim: t("夜行者俱乐部", "Night Walkers")).cyText(.pageTitle).foregroundStyle(.white).lineLimit(3)
+                            Text(verbatim: t("每周三晚，漫步老城区的灯与影。", "Wednesday evenings, strolling the lights and shadows of the old town.")).cyText(.body).foregroundStyle(.white.opacity(0.85))
                         }.padding(CYSpacing.lg)
                     }
                     .frame(maxWidth: .infinity)
                     VStack(alignment: .leading, spacing: CYSpacing.lg) {
                         HStack(spacing: CYSpacing.md) {
                             E3AvatarStack(seeds: ["a1", "b2", "c3", "d4", "e5"], extra: 123)
-                            Text(verbatim: t("128 位成员 · 本周 3 场活动", "128 members · 3 events this week")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                            Text(verbatim: t("128 位成员 · 本周 3 场活动", "128 members · 3 events this week")).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2)
                         }
                         Picker("", selection: $tab) {
                             Text(verbatim: t("动态", "Posts")).tag(0); Text(verbatim: t("活动", "Events")).tag(1); Text(verbatim: t("关于", "About")).tag(2)
@@ -100,10 +100,10 @@ struct E3ClubDetailFixture: View {
                         } else if tab == 1 {
                             CYImageCard(verbatim: t("周三夜行：老城灯影", "Wednesday walk: old-town lights"), fallback: "", meta: t("周三 19:30 · 钟楼广场", "Wed 7:30 PM · Clock Tower Square"), aspectRatio: 16.0 / 10.0, style: .hero)
                         } else {
-                            Text(verbatim: t("一群喜欢夜晚散步、拍照、收集街头故事的人。新人随时欢迎，无需经验。", "People who love evening walks, photography and collecting street stories. Newcomers welcome, no experience needed.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).e3Card()
+                            Text(verbatim: t("一群喜欢夜晚散步、拍照、收集街头故事的人。新人随时欢迎，无需经验。", "People who love evening walks, photography and collecting street stories. Newcomers welcome, no experience needed.")).cyText(.body).foregroundStyle(CYColor.textSecondary).e3Card()
                         }
                     }.padding(.horizontal, CYSpacing.lg)
-                    Text(verbatim: t("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).font(.caption2).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity)
+                    Text(verbatim: t("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).cyText(.caption).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity)
                 }
             }
             .ignoresSafeArea(edges: .top)
@@ -111,7 +111,7 @@ struct E3ClubDetailFixture: View {
             .safeAreaInset(edge: .bottom) {
                 Button { withAnimation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.65)) { joined.toggle() } } label: {
                     Label(joined ? t("已加入", "Joined") : t("加入俱乐部", "Join club"), systemImage: joined ? "checkmark.circle.fill" : "plus")
-                        .font(.headline).symbolEffect(.bounce, value: joined)
+                        .cyText(.cardTitle).symbolEffect(.bounce, value: joined)
                         .frame(maxWidth: .infinity, minHeight: 52)
                         .foregroundStyle(joined ? CYColor.textPrimary : CYColor.textInverse)
                         .background(joined ? CYColor.bgRaised : CYColor.textPrimary, in: Capsule())
@@ -140,7 +140,7 @@ struct E3ClubApplyFixture: View {
             ZStack(alignment: .bottomTrailing) {
                 CYIMCoverArt(seed: name.isEmpty ? "new club" : name, systemImage: "sparkles", symbolSize: 56)
                     .frame(height: 180).frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-                Label(t("更换封面", "Change cover"), systemImage: "photo").font(.footnote.weight(.semibold)).foregroundStyle(.white)
+                Label(t("更换封面", "Change cover"), systemImage: "photo").cyText(.bodyMedium).foregroundStyle(.white)
                     .padding(.horizontal, 12).frame(minHeight: 36).background(.black.opacity(0.5), in: Capsule()).padding(CYSpacing.md)
             }
             VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -156,7 +156,7 @@ struct E3ClubApplyFixture: View {
                     HStack(spacing: CYSpacing.sm) {
                         ForEach(Array(cats.enumerated()), id: \.offset) { i, c in
                             Button { category = i } label: {
-                                Text(verbatim: c).font(.subheadline.weight(.medium)).padding(.horizontal, 16).frame(minHeight: 44)
+                                Text(verbatim: c).cyText(.bodyMedium).padding(.horizontal, 16).frame(minHeight: 44)
                                     .foregroundStyle(category == i ? CYColor.textInverse : CYColor.textPrimary)
                                     .background(category == i ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
                             }.buttonStyle(E3PressStyle()).accessibilityAddTraits(category == i ? .isSelected : [])
@@ -164,7 +164,7 @@ struct E3ClubApplyFixture: View {
                     }
                 }.sensoryFeedback(.selection, trigger: category)
             }
-            Toggle(isOn: $agree) { Text(verbatim: t("我已阅读并同意社区规则", "I have read and agree to the community rules")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            Toggle(isOn: $agree) { Text(verbatim: t("我已阅读并同意社区规则", "I have read and agree to the community rules")).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 .e3Card(padding: CYSpacing.md)
             CYPillButton(verbatim: t("提交申请", "Submit application")) {}
         }
@@ -187,8 +187,8 @@ struct E3ClubCalendarFixture: View {
                 HStack(spacing: CYSpacing.md) {
                     CYIMCoverArt(seed: e.3, systemImage: "figure.walk", symbolSize: 22).frame(width: 64, height: 64).clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(verbatim: e.0).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(2)
-                        Text(verbatim: e.1 + " · " + e.2).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).lineLimit(2)
+                        Text(verbatim: e.0).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                        Text(verbatim: e.1 + " · " + e.2).cyText(.meta).foregroundStyle(CYColor.textTertiary).lineLimit(2)
                         E3AvatarStack(seeds: ["x", "y", "z"], extra: 9, size: 22)
                     }
                     Spacer(minLength: 0)
@@ -212,7 +212,7 @@ struct E3ClubFeedFixture: View {
                         VStack(spacing: 6) {
                             E3Avatar(seed: n, systemImage: "sparkles", size: 60).padding(3)
                                 .overlay(Circle().strokeBorder(AngularGradient(colors: [.orange, .pink, CYColor.avatarRing, .orange], center: .center), lineWidth: 2.5))
-                            Text(verbatim: n).font(.caption).foregroundStyle(CYColor.textSecondary).lineLimit(1).frame(width: 72)
+                            Text(verbatim: n).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).frame(width: 72)
                         }
                     }
                 }
@@ -233,7 +233,7 @@ struct E3RichChatFixture: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 4) {
-                    Text(verbatim: t("今天 19:24", "Today 7:24 PM")).font(.caption).foregroundStyle(CYColor.textTertiary).padding(.vertical, CYSpacing.sm)
+                    Text(verbatim: t("今天 19:24", "Today 7:24 PM")).cyText(.meta).foregroundStyle(CYColor.textTertiary).padding(.vertical, CYSpacing.sm)
                     row(false, "u1", .first, t("到了吗？", "Are you there yet?"))
                     row(false, "u1", .last, t("我在钟楼下面，给你发位置", "I'm under the clock tower, sending the pin"), time: "19:24")
                     HStack(alignment: .bottom, spacing: 8) { Color.clear.frame(width: 28, height: 1); E3LocationCard(place: t("钟楼广场", "Clock Tower Square"), address: t("老城区 中山路 1 号", "1 Zhongshan Rd, Old Town")); Spacer(minLength: 0) }.padding(.top, 6)
@@ -242,7 +242,7 @@ struct E3RichChatFixture: View {
                     HStack { Spacer(); E3VoiceCard(duration: "0:18", isOwn: true) }.padding(.top, 6)
                     HStack(alignment: .bottom, spacing: 8) { E3Avatar(seed: "u1", size: 28); E3FileCard(name: t("夜行路线.pdf", "night-route.pdf"), size: "1.2 MB"); Spacer(minLength: 0) }.padding(.top, 10)
                     HStack(alignment: .bottom, spacing: 8) { E3Avatar(seed: "u1", size: 28); E3VideoCard(seed: "vid", duration: "0:42"); Spacer(minLength: 0) }.padding(.top, 6)
-                    Text(verbatim: t("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).font(.caption2).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
+                    Text(verbatim: t("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).cyText(.caption).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
                 }.padding(.horizontal, CYSpacing.lg)
             }
             .defaultScrollAnchor(.bottom)
@@ -251,7 +251,7 @@ struct E3RichChatFixture: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    HStack(spacing: 8) { E3Avatar(seed: "u1", size: 28); VStack(alignment: .leading, spacing: 0) { Text(verbatim: t("林夏", "Lin Xia")).font(.headline); Text(verbatim: t("在线", "Online")).font(.caption2).foregroundStyle(.green) } }
+                    HStack(spacing: 8) { E3Avatar(seed: "u1", size: 28); VStack(alignment: .leading, spacing: 0) { Text(verbatim: t("林夏", "Lin Xia")).cyText(.cardTitle); Text(verbatim: t("在线", "Online")).cyText(.caption).foregroundStyle(.green) } }
                 }
             }
         }
@@ -294,7 +294,7 @@ struct E3InviteFixture: View {
                         LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom)
                         VStack(alignment: .leading, spacing: 6) {
                             CYStatusChip(verbatim: accepted ? t("已接受", "Accepted") : t("待回复", "Awaiting reply"), tone: accepted ? .success : .warning, systemImage: accepted ? "checkmark.circle" : "clock")
-                            Text(verbatim: t("河畔咖啡 × 夜行者", "Riverside Café × Night Walkers")).font(.title.weight(.bold)).foregroundStyle(.white)
+                            Text(verbatim: t("河畔咖啡 × 夜行者", "Riverside Café × Night Walkers")).cyText(.display).foregroundStyle(.white)
                         }.padding(CYSpacing.lg)
                     }.clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -306,10 +306,10 @@ struct E3InviteFixture: View {
                         term("lock.shield", t("押金", "Deposit"), "—")
                     }.e3Card()
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(verbatim: t("对方留言", "Their message")).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
-                        Text(verbatim: t("希望每周三晚上在我们店做一场夜行集合。", "We'd love to host a Wednesday night walk meet-up at our café.")).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: t("对方留言", "Their message")).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: t("希望每周三晚上在我们店做一场夜行集合。", "We'd love to host a Wednesday night walk meet-up at our café.")).cyText(.body).foregroundStyle(CYColor.textPrimary)
                     }.e3Card()
-                    Text(verbatim: t("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).font(.caption2).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity)
+                    Text(verbatim: t("调试示例 · 合成数据", "DEBUG fixture · synthetic data")).cyText(.caption).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity)
                 }.padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
             }
             .background(CYColor.bgPage.ignoresSafeArea())
@@ -328,9 +328,9 @@ struct E3InviteFixture: View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         return layout {
             Image(systemName: icon).foregroundStyle(CYColor.textSecondary).frame(width: 24).accessibilityHidden(true)
-            Text(verbatim: k).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: k).cyText(.meta).foregroundStyle(CYColor.textTertiary)
             if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
-            Text(verbatim: v).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(typeSize.isAccessibilitySize ? .leading : .trailing)
+            Text(verbatim: v).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(typeSize.isAccessibilitySize ? .leading : .trailing)
         }
     }
 }
@@ -346,7 +346,7 @@ struct E3NoticesFixture: View {
             ScrollView(.horizontal, showsIndicators: false) { HStack(spacing: CYSpacing.sm) {
                 ForEach(Array([t("全部", "All"), t("俱乐部", "Clubs"), t("合作", "Collab"), t("系统", "System")].enumerated()), id: \.offset) { i, n in
                     Button { filter = i } label: {
-                        Text(verbatim: n).font(.subheadline.weight(.medium)).padding(.horizontal, 14).frame(minHeight: 44).fixedSize()
+                        Text(verbatim: n).cyText(.bodyMedium).padding(.horizontal, 14).frame(minHeight: 44).fixedSize()
                             .foregroundStyle(filter == i ? CYColor.textInverse : CYColor.textPrimary)
                             .background(filter == i ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
                     }.buttonStyle(E3PressStyle())
@@ -382,7 +382,7 @@ struct E3PeopleFixture: View {
                 Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary)
                 Text(verbatim: t("搜索昵称", "Search by name")).foregroundStyle(CYColor.textPlaceholder)
                 Spacer()
-            }.font(.body).padding(.horizontal, CYSpacing.md).frame(minHeight: 44).background(CYColor.bgElevated, in: Capsule())
+            }.cyText(.body).padding(.horizontal, CYSpacing.md).frame(minHeight: 44).background(CYColor.bgElevated, in: Capsule())
             VStack(spacing: 0) {
                 ForEach(Array(people.enumerated()), id: \.offset) { i, p in
                     E3PersonRow(name: p.0, meta: p.1, seed: p.0, state: states[i], actionTitle: title(states[i], t)) {

@@ -14,7 +14,7 @@ struct ClubOpsJoinRequestActionLabel: View {
                 Text(LocalizedStringKey("club.management." + action.rawValue))
             }
         }
-        .font(CYTypography.label)
+        .cyText(.label)
         .fixedSize(horizontal: false, vertical: true)
         .multilineTextAlignment(.leading)
     }
@@ -35,7 +35,7 @@ struct ClubOpsJoinRequestLoadIssue: View {
                 } icon: {
                     Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
                 }
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.warningText)
             }
             CYPillButton(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale", style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsJoinNotify", action: retry)
@@ -52,7 +52,7 @@ struct ClubOpsNotifyDeniedText: View {
         VStack(spacing: CYSpacing.sm) {
             CYEmptyState(systemImage: "lock", "clubOpsNotify.denied.title", tableName: "ClubOpsJoinNotify", kind: .generic)
             Text("clubOpsNotify.denied.body", tableName: "ClubOpsJoinNotify")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)

@@ -35,7 +35,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
         VStack(spacing: CYSpacing.xxl) {
             Spacer(minLength: CYSpacing.xxl)
             if !shownTitle.isEmpty {
-                Text(verbatim: shownTitle).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: shownTitle).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("playkit.hangman.title")
             }
@@ -49,7 +49,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     .multilineTextAlignment(.center)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .submitLabel(.done).onSubmit(send)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .padding(.horizontal, CYSpacing.lg).frame(minHeight: 48)
                     .background(Capsule().fill(CYColor.bgElevated))
                     .overlay(Capsule().strokeBorder(wrong ? CYColor.dangerText : CYColor.borderSubtle))
@@ -65,7 +65,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     .multilineTextAlignment(.center)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .submitLabel(.done).onSubmit(send)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .padding(.horizontal, CYSpacing.lg).frame(minHeight: 48)
                     .background(Capsule().fill(CYColor.bgElevated))
                     .overlay(Capsule().strokeBorder(wrong ? CYColor.dangerText : CYColor.borderSubtle))
@@ -77,17 +77,17 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 modeSwitch
             } else {
                 Text(verbatim: projection.display.isEmpty ? "—" : projection.display)
-                    .font(CYTypography.cardTitle).foregroundStyle(CYNight.verify)
+                    .cyText(.cardTitle).foregroundStyle(CYNight.verify)
                     .accessibilityIdentifier("playkit.hangman.display")
                 if !shownFeedback.isEmpty {
-                    Text(verbatim: shownFeedback).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: shownFeedback).cyText(.body).foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("playkit.hangman.feedback")
                 }
             }
             Spacer(minLength: CYSpacing.xxl)
             if unavailable {
-                Text("playkit.questo.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("playkit.questo.unavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center).accessibilityIdentifier("playkit.hangman.unavailable")
             }
             cta
@@ -117,7 +117,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
             if wrong { Text("playkit.hangman.wrong").accessibilityIdentifier("playkit.hangman.wrong") }
             else { Text(verbatim: " ").accessibilityHidden(true) }
         }
-        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+        .cyText(.meta).foregroundStyle(CYColor.dangerText)
     }
 
     /// Cells or the whole word; switching keeps what was typed in each.
@@ -125,7 +125,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
         Button(wholeWord ? "playkit.hangman.useCells" : "playkit.hangman.useWholeWord") {
             wholeWord.toggle(); wrong = false; unavailable = false
         }
-        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
         .disabled(!enabled)
         .accessibilityIdentifier("playkit.hangman.mode")
     }
@@ -134,7 +134,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
         PlayKitCenteredFlow(spacing: CYSpacing.md) {
             ForEach(projection.groups(typed: typed)) { group in
                 if let separator = group.separator {
-                    Text(verbatim: separator).font(CYTypography.cardTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                    Text(verbatim: separator).cyText(.cardTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                 } else {
                     HStack(spacing: CYSpacing.xs) { ForEach(group.cells) { cell($0) } }
                 }
@@ -244,18 +244,18 @@ typealias PlayKitAccusationWrite = (String) -> Void
             if projection.showsEnding { ending }
             else {
                 if showsTitle && !projection.title.isEmpty {
-                    Text(verbatim: projection.title).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: projection.title).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.center).frame(maxWidth: .infinity).fixedSize(horizontal: false, vertical: true)
                 }
                 if projection.boardImage != nil || !projection.clues.isEmpty { board }
                 ForEach(Array(projection.intro.enumerated()), id: \.offset) { _, block in
                     if case .text(let text) = block {
-                        Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity, alignment: .leading)
+                        Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 if projection.wrongAttempt {
                     Text(verbatim: projection.retryNote.isEmpty ? appLocalized("playkit.accusation.wrong", locale: locale) : projection.retryNote)
-                        .font(CYTypography.meta).foregroundStyle(CYColor.dangerText)
+                        .cyText(.meta).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("playkit.accusation.wrong")
                 }
                 if !projection.suspects.isEmpty {
@@ -290,7 +290,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 ForEach(Array(projection.clues.enumerated()), id: \.element.id) { index, clue in
                     let name = clue.name.isEmpty ? appLocalized("playkit.accusation.clue", locale: locale) : clue.name
                     Button { openClue = index; confirmOpen = false } label: {
-                        Text(verbatim: name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textPrimary)
                             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
                             .background(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).fill(CYColor.bgElevated))
                             .rotationEffect(.degrees(reduceMotion ? 0 : Self.pinTilt[index % Self.pinTilt.count]))
@@ -350,21 +350,21 @@ typealias PlayKitAccusationWrite = (String) -> Void
             ZStack {
                 Rectangle().fill(CYColor.bgRaised)
                 if let avatar = suspect.avatar { PlayKitArtwork(source: avatar, approvedHosts: approvedHosts) }
-                else { Text(verbatim: suspect.initial).font(CYTypography.display).foregroundStyle(CYColor.textTertiary) }
+                else { Text(verbatim: suspect.initial).cyText(.display).foregroundStyle(CYColor.textTertiary) }
             }
             .frame(height: 124).frame(maxWidth: .infinity).clipped()
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(verbatim: suspect.initial).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: suspect.initial).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .frame(width: 52, height: 52).background(Circle().fill(CYColor.bgRaised))
                     .overlay(Circle().strokeBorder(CYColor.bgElevated, lineWidth: 3))
                     .padding(.top, -36).accessibilityHidden(true)
-                Text(verbatim: suspect.name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: suspect.name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 if !suspect.identity.isEmpty {
-                    Text(verbatim: suspect.identity).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: suspect.identity).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
                 ForEach(Array(suspect.testimony.enumerated()), id: \.offset) { _, line in
-                    Text(verbatim: "「" + line + "」").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: "「" + line + "」").cyText(.body).foregroundStyle(CYColor.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(CYSpacing.md)
                         .background(CYColor.bgRaised)
@@ -393,15 +393,15 @@ typealias PlayKitAccusationWrite = (String) -> Void
 
     private func confirmPanel(_ suspect: PlayKitAccusationProjection.Suspect) -> some View {
         PlayKitCenteredPanel(dismiss: { confirmOpen = false }) {
-            Text(verbatim: suspect.initial).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: suspect.initial).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                 .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
             let name = suspect.name.isEmpty ? appLocalized("playkit.accusation.someone", locale: locale) : suspect.name
             Text(verbatim: appLocalized("playkit.accusation.confirmTitle \(name)", locale: locale))
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
             Text(verbatim: (suspect.identity.isEmpty ? "" : suspect.identity + " · ") + appLocalized("playkit.accusation.final", locale: locale))
-                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
+                .cyText(.meta).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
             if unavailable {
-                Text("playkit.questo.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("playkit.questo.unavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .multilineTextAlignment(.center).accessibilityIdentifier("playkit.accusation.unavailable")
             }
             CYPillButton("playkit.accusation.confirm") {
@@ -418,16 +418,16 @@ typealias PlayKitAccusationWrite = (String) -> Void
 
     private func cluePanel(_ clue: PlayKitAccusationProjection.Clue) -> some View {
         PlayKitCenteredPanel(dismiss: { openClue = nil }) {
-            Text("playkit.accusation.clue").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("playkit.accusation.clue").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             if let image = clue.image {
                 PlayKitArtwork(source: image, approvedHosts: approvedHosts)
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .frame(maxHeight: 180).accessibilityHidden(true)
             }
             Text(verbatim: clue.name.isEmpty ? appLocalized("playkit.accusation.clue", locale: locale) : clue.name)
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             if !clue.text.isEmpty {
-                Text(verbatim: clue.text).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                Text(verbatim: clue.text).cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
             }
             CYPillButton("playkit.accusation.collapse", style: .secondary) { openClue = nil }
                 .accessibilityIdentifier("playkit.accusation.clueClose")
@@ -448,12 +448,12 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     .accessibilityHidden(true)
             }
             .frame(height: 220)
-            Text(endingLabel).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+            Text(endingLabel).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                 .accessibilityIdentifier("playkit.accusation.verdict")
             ForEach(Array(projection.screen.enumerated()), id: \.offset) { _, block in
                 switch block {
                 case .text(let text):
-                    Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                    Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 case .image(let url, let alt):
                     PlayKitArtwork(source: url, approvedHosts: approvedHosts)
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))

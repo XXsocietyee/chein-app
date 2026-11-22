@@ -16,21 +16,21 @@ import SwiftUI
             Section("当前原场次与表决") {
                 if let p = model.projection {
                     Text("活动 \(p.team.activityID) · 场次 \(p.team.sessionID) · 本队 \(p.team.teamID)")
-                    Text("版本 \(p.team.revision) · 权限代次 \(p.team.authorityEpoch) · 原票轮 \(p.round)").font(.caption)
+                    Text("版本 \(p.team.revision) · 权限代次 \(p.team.authorityEpoch) · 原票轮 \(p.round)").cyText(.meta)
                     Text(p.team.captain ? "当前真实队长" : "当前队员只读，不能替队长签署")
                     Text("\(policy(p.policy)) · \(phase(p.phase))")
-                    if !p.team.writable { Text("当前原状态不允许新签署；可读取当前状态和本人原回执。").font(.caption) }
+                    if !p.team.writable { Text("当前原状态不允许新签署；可读取当前状态和本人原回执。").cyText(.meta) }
                 } else { Text("尚未确认当前本队与原方案。") }
                 if model.busy { ProgressView() }
                 if let message = model.message { Text(message).accessibilityIdentifier("sharedPlan.message") }
                 Button(model.pending == nil ? "刷新当前原状态" : "核对同一原请求回执") { reset(); Task { await model.load() } }
                     .disabled(model.busy || !model.isCurrent).accessibilityIdentifier("sharedPlan.refresh")
-                if !model.writesEnabled { Text("原 PLAYER 写能力／command 端点未批准或已撤销，当前只读。").font(.caption) }
+                if !model.writesEnabled { Text("原 PLAYER 写能力／command 端点未批准或已撤销，当前只读。").cyText(.meta) }
             }
             if let command = model.pending {
                 Section("待确认原命令") {
                     Text(command.action.title); Text(command.requestID).font(.caption.monospaced())
-                    Text("原本队 \(command.identity.teamID) · 原版本 \(command.revision) · 原权限代次 \(command.authorityEpoch) · 原票轮 \(command.identity.round)").font(.caption)
+                    Text("原本队 \(command.identity.teamID) · 原版本 \(command.revision) · 原权限代次 \(command.authorityEpoch) · 原票轮 \(command.identity.round)").cyText(.meta)
                     Text("UNKNOWN 不是失败。离页、重启后仍核对同一请求；不换 ID、不重发，也不把当前选定或库存当作原请求成功。")
                 }
             }
@@ -40,7 +40,7 @@ import SwiftUI
                     Text(receipt.requestID).font(.caption.monospaced())
                     if let reason = receipt.reason { Text(reason) }
                     if receipt.outcome == "APPLIED", receipt.action == .execute { result(receipt.result["result"], label: "本次原执行结果") }
-                    else { Text("本次动作的回执与下方最新状态分开；意向、选定或锁定不代表执行完成。").font(.caption) }
+                    else { Text("本次动作的回执与下方最新状态分开；意向、选定或锁定不代表执行完成。").cyText(.meta) }
                 }
             }
             if let p = model.projection {
@@ -48,7 +48,7 @@ import SwiftUI
                     ForEach(p.team.items) { item in
                         LabeledContent(item.name, value: "可用 \(item.available.map(String.init) ?? "未发布") · 锁定 \(item.locked.map(String.init) ?? "未发布")")
                     }
-                    Text("锁定仍计入背包负重；方案锁与交易锁不混用。不展示他队私有意向或臆造库存。").font(.caption)
+                    Text("锁定仍计入背包负重；方案锁与交易锁不混用。不展示他队私有意向或臆造库存。").cyText(.meta)
                 }
                 Section("当前共同方案") {
                     ForEach(p.rows) { row in
@@ -57,11 +57,11 @@ import SwiftUI
                             quantities = Dictionary(uniqueKeysWithValues: row.cost.map { cost in (cost.itemID, String(row.ownIntent.first { $0.itemID == cost.itemID }?.quantity ?? 0)) })
                         } label: {
                             VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                                Text(row.title).font(Theme.Font.cardTitle)
-                                if row.selected { Label("已选定，尚须核对执行状态", systemImage: "checkmark.seal").font(.footnote) }
+                                Text(row.title).cyText(.cardTitle)
+                                if row.selected { Label("已选定，尚须核对执行状态", systemImage: "checkmark.seal").cyText(.bodyCompact) }
                                 Text(row.summary).font(.subheadline).foregroundStyle(.secondary)
-                                Text("需求：" + amounts(row.cost, p)).font(.footnote)
-                                Text(row.conditionsMet ? "原公共前置已满足" : "原公共前置尚未满足").font(.footnote).foregroundStyle(.secondary)
+                                Text("需求：" + amounts(row.cost, p)).cyText(.bodyCompact)
+                                Text(row.conditionsMet ? "原公共前置已满足" : "原公共前置尚未满足").cyText(.bodyCompact).foregroundStyle(.secondary)
                             }.modifier(SharedPlanSelectionMark(selected: selectedEnding == row.endingKey))
                         }.disabled(model.busy || model.pending != nil).accessibilityIdentifier("sharedPlan.row.\(row.endingKey)")
                     }
@@ -71,12 +71,12 @@ import SwiftUI
                     Section(row.title) {
                         if let proposal = row.proposalKey {
                             let versionText = row.version.map(String.init) ?? "—"
-                            Text(verbatim: "原提案 \(proposal) · 版本 \(versionText)").font(.caption)
+                            Text(verbatim: "原提案 \(proposal) · 版本 \(versionText)").cyText(.meta)
                         }
                         Text("本队私有意向：" + amounts(row.ownIntent, p))
                         Text(row.ownConfirmed ? "本队当前队长已确认托管" : row.signatureCurrent ? "本队当前队长已签署意向，尚未托管" : row.ownIntent.isEmpty ? "尚无本队投入意向" : "队长已变更，旧意向签名无效，须改案后重新签署")
-                        ForEach(row.confirmed.keys.sorted(), id: \.self) { team in Text("原公开托管 · 队伍 \(team)：" + amounts(row.confirmed[team] ?? [], p)).font(.caption) }
-                        if let reason = row.reason { Text("原状态：\(reason)").font(.caption) }
+                        ForEach(row.confirmed.keys.sorted(), id: \.self) { team in Text("原公开托管 · 队伍 \(team)：" + amounts(row.confirmed[team] ?? [], p)).cyText(.meta) }
+                        if let reason = row.reason { Text("原状态：\(reason)").cyText(.meta) }
                         if p.allows(.intent, row: row) {
                             ForEach(row.cost, id: \.itemID) { cost in
                                 LabeledContent {
@@ -88,12 +88,12 @@ import SwiftUI
                                 } label: {
                                     VStack(alignment: .leading, spacing: Theme.Space.s1) {
                                         Text(name(cost.itemID, p))
-                                        Text("需求 \(cost.quantity)").font(.footnote).foregroundStyle(.secondary)
+                                        Text("需求 \(cost.quantity)").cyText(.bodyCompact).foregroundStyle(.secondary)
                                     }
                                 }
                             }
                             Button(PlaySharedPlanAction.intent.title) { prepare(.intent, row: row) }.disabled(!enabled(.intent, p, row))
-                            Text("0–999 整数；全零表示清空本队意向，不等于撤回整个提案。").font(.caption)
+                            Text("0–999 整数；全零表示清空本队意向，不等于撤回整个提案。").cyText(.meta)
                         }
                         ForEach(rowActions) { action in
                             if p.allows(action, row: row) {
@@ -104,7 +104,7 @@ import SwiftUI
                         if row.started, let node = row.operationNodeID {
                             Button("进入原操作题组 · 节点 \(node)") { Task { await model.prepareOperation(endingKey: row.endingKey) } }
                                 .disabled(!model.canInteract || !model.writesEnabled || !p.team.writable).accessibilityIdentifier("sharedPlan.operation")
-                            Text("使用已开始的真实 PLAN 实例及原高级玩法；题组 PASS、费用和结算仍由原 writer 决定。").font(.caption)
+                            Text("使用已开始的真实 PLAN 实例及原高级玩法；题组 PASS、费用和结算仍由原 writer 决定。").cyText(.meta)
                         }
                     }
                 }
@@ -114,7 +114,7 @@ import SwiftUI
                         Text("本队接受：" + acceptanceText(p))
                         Text(signature(p.ownAcceptance))
                     }
-                    if let vote = p.consensus[String(p.team.teamID)].text { Text("原公开共识票：" + planName(vote, p)); Text("当前签名效力与是否选定仍以原阶段及可用动作为准。").font(.caption) }
+                    if let vote = p.consensus[String(p.team.teamID)].text { Text("原公开共识票：" + planName(vote, p)); Text("当前签名效力与是否选定仍以原阶段及可用动作为准。").cyText(.meta) }
                     if p.ownRejectedAll { Text("本队当前队长已签署拒绝全部当前范围内方案。") }
                     ForEach(globalActions) { action in
                         if p.allows(action) { Button(action.title) { prepare(action) }.disabled(!enabled(action, p)) }

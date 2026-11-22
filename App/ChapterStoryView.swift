@@ -115,7 +115,7 @@ import UIKit
                         .accessibilityIdentifier("chapterStory.lockedStop")
                     }
                     if model.thoughtSyncPhase == .syncing { ProgressView("chapterStory.thought.syncing") }
-                    if model.thoughtSyncPhase == .disabled { Text("chapterStory.thought.disabled").font(.footnote).foregroundStyle(.secondary) }
+                    if model.thoughtSyncPhase == .disabled { Text("chapterStory.thought.disabled").cyText(.bodyCompact).foregroundStyle(.secondary) }
                     if model.thoughtSyncPhase == .needsReadback {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("chapterStory.thought.readback")
@@ -132,7 +132,7 @@ import UIKit
                     }
                     if let progress = chapterProgress, progress.done == progress.total {
                         if let closing = chapter.closingLine {
-                            Text(verbatim: closing).font(CYTypography.body).italic().foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: closing).cyText(.body).italic().foregroundStyle(CYColor.textSecondary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .accessibilityIdentifier("chapterStory.closingLine")
                         }
@@ -145,7 +145,7 @@ import UIKit
                             ],
                             nextTitle: position?.next, onContinue: { leave() })
                     } else {
-                        Text("chapterStory.end").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("chapterStory.end").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         CYPillButton("chapterStory.return") { leave() }
                     }
                 } else if model.phase == .loading && model.snapshot == nil {
@@ -236,7 +236,7 @@ import UIKit
     }
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
-        case .text(let text): Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+        case .text(let text): Text(verbatim: text).cyText(.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         case .image(let url):
             ChapterStoryArtwork(url: url, alt: segment.alt, reader: imageReader) { image in zoomedImage = .init(image: image, alt: segment.alt) }
                 .id(mediaScope)
@@ -248,7 +248,7 @@ import UIKit
                 if let transcript = segment.alt {
                     // Same-version text of the audio: muted, interrupted or slow audio still gives the evidence.
                     DisclosureGroup {
-                        Text(verbatim: transcript).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: transcript).cyText(.body).foregroundStyle(CYColor.textPrimary)
                             .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
                     } label: { Text("chapterStory.transcript", tableName: "PlayFullStory") }
                     .accessibilityIdentifier("chapterStory.transcript." + segment.id)
@@ -264,7 +264,7 @@ import UIKit
         case .voice(let speaker, let text):
             VStack(alignment: .leading, spacing: 8) {
                 if !speaker.isEmpty { Text(verbatim: speaker).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                Text(verbatim: text).font(CYTypography.body).italic().foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: text).cyText(.body).italic().foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
             }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                 .accessibilityElement(children: .combine)
@@ -280,7 +280,7 @@ import UIKit
             }
         case .dream(let title, let images):
             VStack(alignment: .leading, spacing: 12) {
-                if let title { Text(verbatim: title).font(.headline).accessibilityAddTraits(.isHeader) }
+                if let title { Text(verbatim: title).cyText(.cardTitle).accessibilityAddTraits(.isHeader) }
                 ForEach(Array(images.enumerated()), id: \.offset) { _, item in
                     ChapterStoryArtwork(url: item.url, alt: item.line, reader: imageReader) { image in zoomedImage = .init(image: image, alt: item.line) }
                         .id(mediaScope)
@@ -292,9 +292,9 @@ import UIKit
             }
         case .thought(let name, let description):
             VStack(alignment: .leading, spacing: 8) {
-                Label { Text(verbatim: name).font(CYTypography.cardTitle) } icon: { Image(systemName: "lightbulb") }
+                Label { Text(verbatim: name).cyText(.cardTitle) } icon: { Image(systemName: "lightbulb") }
                 if let description {
-                    Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: description).cyText(.body).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                 }
             }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
@@ -520,7 +520,7 @@ struct ChapterStoryZoomedImage: Identifiable {
             if !requestKey.enabled || !requestKey.active {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("chapterStory.imageGated", systemImage: "photo")
-                    if let alt { Text(verbatim: alt).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                    if let alt { Text(verbatim: alt).cyText(.body).foregroundStyle(CYColor.textPrimary) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
             else if let image, loadedURL == url {
@@ -535,7 +535,7 @@ struct ChapterStoryZoomedImage: Identifiable {
                 // Slow or failed media: the alt text still carries the evidence, and the reader can retry.
                 VStack(alignment: .leading, spacing: 8) {
                     Label("chapterStory.imageFailed", systemImage: "photo")
-                    if let alt { Text(verbatim: alt).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                    if let alt { Text(verbatim: alt).cyText(.body).foregroundStyle(CYColor.textPrimary) }
                     Button { attempt += 1 } label: { Text("chapterStory.image.retry", tableName: "PlayFullStory") }
                         .accessibilityIdentifier("chapterStory.image.retry")
                 }.frame(maxWidth: .infinity, alignment: .leading)
@@ -543,7 +543,7 @@ struct ChapterStoryZoomedImage: Identifiable {
             else {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("chapterStory.imageGated", systemImage: "photo")
-                    if let alt { Text(verbatim: alt).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
+                    if let alt { Text(verbatim: alt).cyText(.body).foregroundStyle(CYColor.textPrimary) }
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }.frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 18))

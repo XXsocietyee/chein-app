@@ -12,7 +12,7 @@ struct ClubCreateCurrentRecordSection: View {
             Text(locale.language.languageCode?.identifier == "zh"
                 ? "这只是当前记录，不是可用名额，也不能确认原创建请求。原请求仍待确认，请勿再次提交。"
                 : "These are current records, not available slots or confirmation of the original creation request. That request remains unconfirmed. Do not submit it again.")
-                .font(.footnote).foregroundStyle(.secondary)
+                .cyText(.bodyCompact).foregroundStyle(.secondary)
         }.accessibilityIdentifier("club.ops.create.currentRecordCount")
     }
 }

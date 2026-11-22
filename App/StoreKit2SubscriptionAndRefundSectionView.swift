@@ -146,9 +146,9 @@ public struct StoreKit2SubscriptionAndRefundSectionView: View {
         Section {
             VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
                 Text(verbatim: "StoreKit 2 订阅与退款生命周期合规")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                 Text(verbatim: snapshot.isFullyCompliant ? "4/4 合规 (STOREKIT2_OK)" : "存在不合规告警")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background((snapshot.isFullyCompliant ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
@@ -159,7 +159,7 @@ public struct StoreKit2SubscriptionAndRefundSectionView: View {
             VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
                 Text(verbatim: "生命周期控制汇总").font(.subheadline).foregroundStyle(.secondary)
                 Text(verbatim: snapshot.summaryText)
-                    .font(.body.monospacedDigit()).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.numericBody).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("storeKit2Lifecycle.summary")
 
@@ -167,9 +167,9 @@ public struct StoreKit2SubscriptionAndRefundSectionView: View {
                 VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
                     VStack(alignment: .leading, spacing: RevolutContentStyle.spacing) {
                         Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
+                            .cyText(.bodyMedium)
                         Text(verbatim: row.badgeText)
-                            .font(.caption.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(badgeColor(for: row.status).opacity(0.15), in: Capsule())

@@ -116,7 +116,7 @@ import SwiftUI
         case .known(let receipt):
             Section {
                 Text(String(localized: LocalizedStringResource("topicReview.submitted", defaultValue: "The server recorded this review request. It is not an approval or a release receipt. The original V2 submission remains unchanged.", locale: locale)))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("topicReview.submitted")
@@ -127,7 +127,7 @@ import SwiftUI
                     : String(localized: LocalizedStringResource("topicReview.escalated", defaultValue: "Escalated review", locale: locale)), "submittedState")
                 receiptField(String(localized: LocalizedStringResource("topicReview.requestID", defaultValue: "Saved request ID", locale: locale)), receipt.requestID, "requestID")
                 Text(String(localized: LocalizedStringResource("topicReview.afterSubmission", defaultValue: "Close this sheet to check the approved snapshot separately. A saved submission status is historical and does not establish the current review outcome.", locale: locale)))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -136,7 +136,7 @@ import SwiftUI
             if !flow.isReceiptForThisSubmission {
                 Section {
                     Text(String(localized: LocalizedStringResource("topicReview.previousDraft", defaultValue: "This recovered receipt belongs to an earlier submitted draft. You can now capture the current acknowledged draft.", locale: locale)))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Cloud02ActionButton(title: "topicReview.captureCurrent", identifier: "topicReview.captureCurrent", systemImage: "square.and.arrow.down", primary: true) {
@@ -149,7 +149,7 @@ import SwiftUI
         case .unconfirmed:
             Section {
                 Text(String(localized: LocalizedStringResource("topicReview.unconfirmed", defaultValue: "The outcome is unconfirmed. The original request is saved. Check its status or retry exactly that request; a new request will not be invented.", locale: locale)))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("topicReview.unconfirmed")
@@ -181,7 +181,7 @@ import SwiftUI
             Section {
                 if !flow.canReadStatus && !flow.canRetryExact {
                     Text(String(localized: LocalizedStringResource("topicReview.recoveryUnavailable", defaultValue: "Recovery is not configured for this account or request. The saved request remains unchanged.", locale: locale)))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("topicReview.recoveryUnavailable")
@@ -203,11 +203,11 @@ import SwiftUI
     private func receiptField(_ label: String, _ value: String, _ suffix: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(verbatim: label)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: cloud02Known(value))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .monospacedDigit()
                 .foregroundStyle(palette.textPrimary)
                 .textSelection(.enabled)
@@ -221,7 +221,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             CYStateArt(kind: art, size: typeSize.isAccessibilitySize ? 84 : 120)
             Text(key)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -247,7 +247,7 @@ import SwiftUI
                 ApprovedTopicReviewSummarySection(capture: original.capture, prefix: "topicReview.confirm")
                 Section {
                     Text(String(localized: LocalizedStringResource("topicReview.confirmation", defaultValue: "Send exactly this captured version for review. This action does not approve the content or create an immutable release.", locale: locale)))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Cloud02ActionButton(title: "topicReview.submit", identifier: "topicReview.confirm.submit", systemImage: "paperplane.fill", primary: true) {

@@ -36,7 +36,7 @@ import SwiftUI
                         .accessibilityIdentifier(id("selectedCover.openImage"))
                 }
                 Text(String(localized: LocalizedStringResource("topicReview.coverSelection.notLoaded", defaultValue: "Image bytes are not loaded by this record view. The author-only locator is not opened as an arbitrary URL.", locale: locale)))
-                    .font(.footnote).accessibilityIdentifier(id("selectedCover.notLoaded"))
+                    .cyText(.bodyCompact).accessibilityIdentifier(id("selectedCover.notLoaded"))
             } header: { Text(String(localized: LocalizedStringResource("topicReview.coverSelection.title", defaultValue: "Captured selected cover", locale: locale))) }
         .sheet(item: imageController.binding(originalImage)) { original in
             OwnedTopicCoverImageView(original: original) { imageController.close(original) }
@@ -45,7 +45,7 @@ import SwiftUI
     }
     private func field(_ label: String, _ value: String, _ key: String) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: value).textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(id(key))
         }.p04FactRow()
     }

@@ -13,9 +13,9 @@ public struct BaseUISuiteFailureRemediationSectionView: View {
             ForEach(BaseUISuiteFailureRemediationCoordinator.clusters) { cluster in
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(cluster.clusterID) · \(cluster.title)")
-                        .font(.subheadline.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text(cluster.remediationApplied)
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
             }

@@ -36,7 +36,7 @@ import SwiftUI
                     "提交后将进入审核，审核结果以服务器为准；提交不代表已退款或已核销。",
                     "Your appeal will be submitted for review. The outcome is decided by the server; submitting does not refund or redeem anything."
                 )
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 statusBlock
@@ -61,7 +61,7 @@ import SwiftUI
                 } label: { text("申诉原因", "Reason") }
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 TextField(phrase("补充说明（最多500字）", "Note (up to 500 characters)"), text: $note, axis: .vertical)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .padding(CYSpacing.md)
                     .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
@@ -90,7 +90,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 CYSkeleton().accessibilityHidden(true)
                 Text(verbatim: phrase("正在提交", "Submitting"))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -151,7 +151,7 @@ import SwiftUI
             CYNoteBanner(text: Text(verbatim: Cloud03Copy.shown(shown.title)), symbol: "clock", tone: .info)
             if let detail = shown.detail {
                 Text(verbatim: Cloud03Copy.shown(detail))
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

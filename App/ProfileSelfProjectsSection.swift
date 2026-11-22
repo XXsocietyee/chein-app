@@ -60,7 +60,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                     if model.isLoading || model.loadedScope == nil { ProgressView("creatorContent.loading") }
                     if let issue = model.issue {
                         Text(LocalizedStringKey(issue.localizationKey)).accessibilityIdentifier("profile.selfProjects.issue")
-                        if model.page != nil { Text("profile.selfProjects.stale").font(.caption) }
+                        if model.page != nil { Text("profile.selfProjects.stale").cyText(.meta) }
                         if issue != .login {
                             Button("creatorContent.retry") { Task { await load() } }
                                 .disabled(model.isLoading).accessibilityIdentifier("profile.selfProjects.retry")
@@ -73,7 +73,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                             CYEmptyState(systemImage: "folder", "profile.selfProjects.empty", messageIdentifier: "profile.selfProjects.empty", kind: .projects).listRowBackground(Color.clear).listRowSeparator(.hidden)
                         }
                         if preview.sourceTruncated {
-                            Text("profile.selfProjects.truncated").font(.caption)
+                            Text("profile.selfProjects.truncated").cyText(.meta)
                                 .accessibilityIdentifier("profile.selfProjects.truncated")
                         }
                         ForEach(preview.rows) { project in
@@ -109,9 +109,9 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
         VStack(alignment: .leading, spacing: 6) {
             if project.title.isEmpty { Text("creatorContent.untitled") } else { Text(verbatim: project.title) }
             if let status = ProfileSelfProjectCalendar.status(start: project.startTime, end: project.endTime, today: today) {
-                Text(LocalizedStringKey("profile.selfProjects.schedule." + status.rawValue)).font(.caption)
+                Text(LocalizedStringKey("profile.selfProjects.schedule." + status.rawValue)).cyText(.meta)
             }
-            if let start = project.startTime { Text(verbatim: start).font(.caption).foregroundStyle(.secondary) }
+            if let start = project.startTime { Text(verbatim: start).cyText(.meta).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
 }

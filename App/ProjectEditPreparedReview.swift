@@ -63,14 +63,14 @@ struct ProjectEditPreparedNodesView: View {
                 ForEach(chapters) { chapter in
                     VStack(alignment: .leading, spacing: 10) {
                         if chapter.isObject {
-                        ProjectEditPreparedValue(value: chapter.name).font(.headline)
+                        ProjectEditPreparedValue(value: chapter.name).cyText(.cardTitle)
                             .accessibilityIdentifier("projectPrepared.chapter.\(chapter.id).name")
                         LabeledContent { ProjectEditPreparedValue(value: chapter.description) } label: { Text("projectEdit.story") }
                         if let nodes = chapter.nodes {
                             if nodes.isEmpty { Text("projectPrepared.emptyNodes") }
                             ForEach(nodes) { node in
                                 VStack(alignment: .leading, spacing: 8) {
-                                    Text("projectPrepared.nodePosition \(node.id + 1)").font(.headline)
+                                    Text("projectPrepared.nodePosition \(node.id + 1)").cyText(.cardTitle)
                                     if node.isObject {
                                         ForEach(ProjectEditPreparedNodes.Field.allCases) { field in
                                             LabeledContent {

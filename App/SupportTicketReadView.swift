@@ -15,27 +15,27 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
         let rendered = readIntent()
         Form {
             Section { CYHeroHeader("title", tableName: "SupportTicketRead").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section { supportTicketReadText("boundary").font(.footnote) }
+            Section { supportTicketReadText("boundary").cyText(.bodyCompact) }
             if let flow, flow.isCurrent {
                 if let ticket = flow.ticket {
                     Section {
                         Text(verbatim: ticket.subject).textSelection(.enabled)
-                        Text(verbatim: ticket.ticket_no).font(.caption).textSelection(.enabled)
+                        Text(verbatim: ticket.ticket_no).cyText(.meta).textSelection(.enabled)
                         field("status", ticket.status); field("category", ticket.category)
                         field("timezone", ticket.timezone); field("created", ticket.create_time)
                         field("sla", ticket.sla_state); field("firstDue", ticket.sla_first_due_at); field("resolveDue", ticket.sla_resolve_due_at)
                         if let reference = ticket.related_reference {
-                            supportTicketReadText("reference").font(.footnote)
-                            Text(verbatim: reference.domain_type + " #" + reference.resource_id + " · MEMBER #" + reference.owner_member_id).font(.caption).textSelection(.enabled)
+                            supportTicketReadText("reference").cyText(.meta)
+                            Text(verbatim: reference.domain_type + " #" + reference.resource_id + " · MEMBER #" + reference.owner_member_id).cyText(.meta).textSelection(.enabled)
                         }
                     }
                     Section {
                         ForEach(flow.messages) { message in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: message.sender_type).font(.caption)
+                                Text(verbatim: message.sender_type).cyText(.meta)
                                 Text(verbatim: message.content).textSelection(.enabled)
-                                Text(verbatim: message.create_time).font(.caption)
-                                if !message.attachments.isEmpty { supportTicketReadText("attachmentsUnavailable").font(.footnote) }
+                                Text(verbatim: message.create_time).cyText(.meta)
+                                if !message.attachments.isEmpty { supportTicketReadText("attachmentsUnavailable").cyText(.meta) }
                             }
                         }
                         if flow.loaded && flow.messages.isEmpty { supportTicketReadText("messagesEmpty") }
@@ -43,17 +43,17 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                         CYPillButton("reloadDetail", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.reloadDetail($1) } }.disabled(flow.busy)
                     } header: { supportTicketReadText("messages") }
                     Section {
-                        supportTicketReadText("timelineBoundary").font(.footnote)
+                        supportTicketReadText("timelineBoundary").cyText(.meta)
                         ForEach(flow.events) { event in
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(verbatim: event.event_type + " · " + event.actor_type)
-                                Text(verbatim: event.result_state).font(.caption)
-                                if let status = event.historical_status { Text(verbatim: status).font(.caption) }
-                                if let reason = event.reason { Text(verbatim: reason).font(.caption) }
-                                if let sla = event.historical_sla_state { Text(verbatim: sla).font(.caption) }
-                                if let version = event.historical_version { Text(verbatim: "v" + String(version)).font(.caption) }
-                                if let original = event.request_id { Text(verbatim: original).font(.caption).textSelection(.enabled) }
-                                Text(verbatim: event.created_at).font(.caption)
+                                Text(verbatim: event.result_state).cyText(.meta)
+                                if let status = event.historical_status { Text(verbatim: status).cyText(.meta) }
+                                if let reason = event.reason { Text(verbatim: reason).cyText(.meta) }
+                                if let sla = event.historical_sla_state { Text(verbatim: sla).cyText(.meta) }
+                                if let version = event.historical_version { Text(verbatim: "v" + String(version)).cyText(.meta) }
+                                if let original = event.request_id { Text(verbatim: original).cyText(.meta).textSelection(.enabled) }
+                                Text(verbatim: event.created_at).cyText(.meta)
                             }
                         }
                         if flow.timelineLoaded && flow.events.isEmpty { supportTicketReadText("eventsEmpty") }
@@ -66,7 +66,7 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                             Button { run(rendered) { await $0.open(row, intent: $1) } } label: {
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(verbatim: row.subject)
-                                    Text(verbatim: row.ticket_no + " · " + row.status).font(.caption)
+                                    Text(verbatim: row.ticket_no + " · " + row.status).cyText(.meta)
                                 }
                             }.disabled(flow.busy || !flow.reader.allows(.detail))
                             .accessibilityIdentifier("support.read.row." + row.ticket_no)

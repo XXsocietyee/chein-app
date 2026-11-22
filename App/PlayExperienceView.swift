@@ -527,7 +527,7 @@ import SwiftUI
                         ForEach(board.entries) { row in
                             LabeledContent { Text(verbatim: String(row.score)).monospacedDigit() } label: {
                                 HStack(spacing: 10) {
-                                    Text(verbatim: row.rank.map(String.init) ?? "—").font(.headline.monospacedDigit()).frame(minWidth: 28, alignment: .leading)
+                                    Text(verbatim: row.rank.map(String.init) ?? "—").cyText(.cardTitle, monospacedDigit: true).frame(minWidth: 28, alignment: .leading)
                                     if let name = row.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") }
                                 }
                             }
@@ -620,7 +620,7 @@ import SwiftUI
                     HStack(spacing: CYSpacing.sm) {
                         Image(systemName: "timer").accessibilityHidden(true)
                         Text(verbatim: PlayRunElapsedText.format(seconds))
-                            .font(CYTypography.dataXL).monospacedDigit().cyWrapText()
+                            .cyText(.dataXL).monospacedDigit().cyWrapText()
                             .accessibilityAddTraits(.updatesFrequently)
                             .accessibilityIdentifier("playx.run.clock")
                     }.foregroundStyle(.white)
@@ -872,7 +872,7 @@ import SwiftUI
                             systemImage: "shippingbox.fill"
                         )
                         Text(verbatim: dispatched.displayName)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                         if let rule = dispatched.ruleInstructions, !rule.isEmpty {
                             Text(verbatim: rule)
@@ -1023,10 +1023,10 @@ import SwiftUI
                             Button { answer = key } label: {
                                 HStack(spacing: CYSpacing.md) {
                                     Text(verbatim: key)
-                                        .font(CYTypography.cardTitle)
+                                        .cyText(.cardTitle)
                                         .foregroundStyle(on ? palette.actionPrimaryFg : palette.textSecondary)
                                     Text(verbatim: options[key] ?? key)
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(on ? palette.actionPrimaryFg : palette.textPrimary)
                                         .fixedSize(horizontal: false, vertical: true)
                                     Spacer(minLength: 0)
@@ -1162,11 +1162,11 @@ import SwiftUI
                 )
             }
             PlayNodeTitle(name: node.name)
-                .font(CYTypography.pageTitle)
+                .cyText(.pageTitle)
                 .foregroundStyle(palette.textPrimary)
             if let body = node.storyText ?? node.description {
                 Text(verbatim: body)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -1178,7 +1178,7 @@ import SwiftUI
             }
             if let question = node.question {
                 Text(verbatim: question)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -1189,13 +1189,13 @@ import SwiftUI
             }
             if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
                 Text(verbatim: requirement)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("playx.photo.requirement")
             }
             if node.validationMethod == 4 {
                 Text("playx.scan.prompt")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("playx.scan.prompt")
             }
@@ -1327,9 +1327,9 @@ struct PlayCompatibilitySection: View {
         case .unsupported(let missing):
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Label { Text("playCompat.unsupported.title", tableName: "PlayFullStory").font(CYTypography.cardTitle) }
+                    Label { Text("playCompat.unsupported.title", tableName: "PlayFullStory").cyText(.cardTitle) }
                         icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
-                    Text("playCompat.unsupported.body", tableName: "PlayFullStory").font(CYTypography.body)
+                    Text("playCompat.unsupported.body", tableName: "PlayFullStory").cyText(.body)
                         .foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     if !missing.isEmpty {
                         DisclosureGroup {

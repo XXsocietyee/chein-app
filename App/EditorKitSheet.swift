@@ -52,12 +52,12 @@ struct EditorSheetHeader: View {
             VStack(spacing: 2) {
                 if let eyebrow {
                     eyebrow
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                         .multilineTextAlignment(.center)
                 }
                 title
-                    .font(.title3.weight(.bold))
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)

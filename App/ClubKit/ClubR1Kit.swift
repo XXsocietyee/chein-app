@@ -69,7 +69,7 @@ struct ClubR1Row<Trailing: View>: View {
         HStack(spacing: CYSpacing.md) {
             if let initial {
                 Text(verbatim: String(initial.prefix(1)))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .frame(width: 36, height: 36)
                     .background(Circle().fill(palette.bgRaised))
@@ -83,11 +83,11 @@ struct ClubR1Row<Trailing: View>: View {
             }
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: clubR1Value(title))
-                    .font(CYTypography.body.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
                 if let subtitle, !subtitle.isEmpty {
                     Text(verbatim: subtitle)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                         .lineLimit(1)
                 }
@@ -139,10 +139,10 @@ struct ClubR1SwitchRow: View {
         Toggle(isOn: $isOn) {
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: title)
-                    .font(CYTypography.body.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
                 Text(verbatim: explanation)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -163,7 +163,7 @@ struct ClubR1Group<Content: View>: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if let header {
                 Text(verbatim: header)
-                    .font(CYTypography.meta.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(palette.textTertiary)
                     .padding(.horizontal, CYSpacing.lg)
                     .accessibilityAddTraits(.isHeader)
@@ -184,10 +184,10 @@ struct ClubR1SwitchLabel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             title
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
             Text(verbatim: explanation)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }

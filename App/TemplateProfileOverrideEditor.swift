@@ -95,10 +95,10 @@ import Combine
         Form {
             if let config = controller.visibleConfiguration {
                 Section("templateProfileOverride.question") {
-                    Text(verbatim: config.questionLabel); Text(verbatim: config.questionKey).font(.caption)
+                    Text(verbatim: config.questionLabel); Text(verbatim: config.questionKey).cyText(.meta)
                     if !config.isSupported { Text("templateProfileOverride.readOnly") }
                     else if !config.canEdit { Text("templateProfileOverride.disabled") }
-                    Text("templateProfileOverride.scope").font(.footnote).foregroundStyle(.secondary)
+                    Text("templateProfileOverride.scope").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
                 Section {
                     Toggle("templateProfileOverride.enabled", isOn: controller.enabledBinding()).disabled(!controller.canEditForm)
@@ -108,20 +108,20 @@ import Combine
                             .accessibilityIdentifier("templateProfileOverride.variable")
                         TextField("templateProfileOverride.threshold", text: controller.textBinding(.threshold)).keyboardType(.numbersAndPunctuation)
                             .accessibilityIdentifier("templateProfileOverride.threshold")
-                        Text("templateProfileOverride.bounds").font(.footnote).foregroundStyle(.secondary)
+                        Text("templateProfileOverride.bounds").cyText(.bodyCompact).foregroundStyle(.secondary)
                         Picker("templateProfileOverride.option", selection: controller.textBinding(.option)) {
                             if let current = controller.form?.option, !config.options.contains(where: { $0.key == current }) { Text(verbatim: current).tag(current) }
                             ForEach(config.options) { option in Text(verbatim: option.label.isEmpty ? option.key : option.label).tag(option.key) }
                         }.accessibilityIdentifier("templateProfileOverride.option")
                         TextField("templateProfileOverride.voice", text: controller.textBinding(.voice), axis: .vertical)
                             .accessibilityIdentifier("templateProfileOverride.voice")
-                        Text("templateProfileOverride.voiceHint").font(.footnote).foregroundStyle(.secondary)
+                        Text("templateProfileOverride.voiceHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     }
                 }.disabled(!controller.canEditForm)
                 if !controller.issues.isEmpty { Section("templateProfileOverride.validation") { ForEach(controller.issues, id: \.self) { Text(LocalizedStringKey($0)) } } }
                 Section {
-                    Text("templateProfileOverride.stageScope").font(.footnote).foregroundStyle(.secondary)
-                    Text("templateProfileOverride.saveScope").font(.footnote).foregroundStyle(.secondary)
+                    Text("templateProfileOverride.stageScope").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    Text("templateProfileOverride.saveScope").cyText(.bodyCompact).foregroundStyle(.secondary)
                     Button("templateProfileOverride.apply", action: controller.applyAction()).disabled(!controller.canApply).accessibilityIdentifier("templateProfileOverride.apply")
                     Button("templateProfileOverride.save", action: controller.saveAction()).disabled(!controller.canSave).accessibilityIdentifier("templateProfileOverride.save")
                     Button("templateProfileOverride.reload") { controller.reload() }.disabled(!controller.canReload)

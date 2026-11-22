@@ -162,23 +162,23 @@ import SwiftUI
     }
     private func sectionTitle(_ title: String) -> some View {
         Text(verbatim: title)
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
     }
     private var rowGap: CGFloat { dynamicTypeSize.isAccessibilitySize ? CYSpacing.sm : CYSpacing.xxs }
     @ViewBuilder private var requestBody: some View {
-        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+        if reader.session == nil { Text("cooperation.login").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
         else {
             switch requests {
             case .idle, .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
             case .empty:
                 Text(verbatim: locale.pick("未查到本次发送记录；仍可能已经发出，请勿重复发送", "No original send was found. It may still have been sent. Do not send again."))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             case .failed:
                 Text(verbatim: locale.pick("原请求暂无法查询，请勿重复发送", "The original request cannot be read right now. Do not send again."))
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await loadRequests() } }
             case .ready:
                 ForEach(Array(requestRows.enumerated()), id: \.offset) { _, row in
@@ -195,14 +195,14 @@ import SwiftUI
         }
     }
     @ViewBuilder private var stationBody: some View {
-        if reader.session == nil { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+        if reader.session == nil { Text("cooperation.login").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
         else {
             switch stations {
             case .idle, .loading: CYSkeleton().accessibilityLabel(Text(verbatim: locale.pick("读取中", "Loading")))
             case .empty:
-                Text(verbatim: locale.pick("暂无已确定据点", "No confirmed station")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: locale.pick("暂无已确定据点", "No confirmed station")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             case .failed:
-                Text(verbatim: locale.pick("据点读取失败，请重试", "Stations did not load. Try again.")).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: locale.pick("据点读取失败，请重试", "Stations did not load. Try again.")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await loadStations() } }
             case .ready:
                 if stationRows.isEmpty { valueLine(nil, font: CYTypography.body, color: CYColor.textSecondary) }
@@ -291,7 +291,7 @@ import SwiftUI
                     }
                 }.disabled(model.topicsBusy)
                 // Mini `.card-hint--warn`: topic not in its recruiting window.
-                if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed").font(CYTypography.meta).foregroundStyle(CYColor.warningText) }
+                if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed").cyText(.meta).foregroundStyle(CYColor.warningText) }
                 if model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
             // Source order: ① 关联主题, ③ 邀请对象 (club / merchant switch inside it); terms follow in the editor.
@@ -321,8 +321,8 @@ import SwiftUI
                     Button { model.toggle(candidate.id, permit: permit) } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                Text(verbatim: candidate.name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                                CoopInviteTargetMeta(candidate: candidate, memberCount: model.memberCounts[candidate.id]).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                Text(verbatim: candidate.name).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                CoopInviteTargetMeta(candidate: candidate, memberCount: model.memberCounts[candidate.id]).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                             }
                             Spacer()
                             // Mini `.target-action`: "已选" chip when chosen; a check keeps it native.
@@ -461,7 +461,7 @@ import SwiftUI
             }
             TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
                 .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
-            Text(verbatim: "\(message.count) / 100").font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: "\(message.count) / 100").cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             Picker("cooperation.invite.terms", selection: $fixed) {
                 Text("cooperation.invite.terms.traffic").tag(false)
@@ -472,7 +472,7 @@ import SwiftUI
                     HStack(spacing: 4) {
                         Text(verbatim: "¥")
                         TextField(text: $fee, prompt: Text(verbatim: "0.00")) { Text("coopflow.field.fixedFee") }.keyboardType(.decimalPad).focused($typing)
-                        Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 } label: { Text("coopflow.field.fixedFee") }
                 Text("coopflow.currency")

@@ -29,8 +29,8 @@ import Observation
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
                 CYHeroHeader(verbatim: name)
                 PlatformExternalMapHost(destination: .init(name: name, latitude: destination.latitude, longitude: destination.longitude), scope: scope, makeModel: makeExternalMaps)
-                Text("searchMap.routeOriginDisclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                Text("searchMap.mode.walking").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+                Text("searchMap.routeOriginDisclosure").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("searchMap.mode.walking").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                 if let navigationReference, let walkingFactory, walkingFactory.available {
                     NavigationLink {
                         WalkingNavigationView(reference: navigationReference, factory: walkingFactory, offline: offline)
@@ -46,17 +46,17 @@ import Observation
                     SearchMapCanvas(area: RoamSearchArea(coordinate: origin, label: ""),
                         pins: [SearchMapPin(id: "destination", title: name, coordinate: destination, symbol: "mappin")],
                         polyline: route.coordinates, offline: offline)
-                    Text("searchMap.roadRoute").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+                    Text("searchMap.roadRoute").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("searchMap.route.kind")
                     LabeledContent("searchMap.distance") { Text(Measurement(value: route.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated)) }
                     if let eta = route.etaSeconds { LabeledContent("searchMap.etaMinutes") { Text(max(1, (eta / 60).rounded()), format: .number.precision(.fractionLength(0))) } }
                     ForEach(Array(route.steps.enumerated()), id: \.offset) { index, step in
                         HStack(alignment: .top, spacing: CYSpacing.md) {
-                            Text(verbatim: "\(index + 1)").font(CYTypography.numericBody).foregroundStyle(CYColor.textTertiary)
-                            Text(verbatim: step.instruction).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: "\(index + 1)").cyText(.numericBody).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: step.instruction).cyText(.body).fixedSize(horizontal: false, vertical: true)
                             Spacer()
                             Text(Measurement(value: step.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
-                                .font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.numericBody).foregroundStyle(CYColor.textSecondary)
                         }.accessibilityElement(children: .combine)
                     }
                 } else if owner != nil, loader.failed {
@@ -67,7 +67,7 @@ import Observation
                     }
                 }
                 else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("searchMap.loading")) }
-                Text("searchMap.routeBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("searchMap.routeBoundary").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).cyHeroScreen()
             .onAppear { loader.appear(input) }
@@ -104,14 +104,14 @@ import Observation
                 } label: { CYPillButtonLabel("walking.saved.open", systemImage: "bookmark") }
                     .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("walking.saved.open")
-                Text("walking.saved.notice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("walking.saved.notice").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 CYPillButton("walking.saved.remove", style: .tertiary) {
                     do { try factory.removeSavedDestination(saved); self.saved = nil; failed = false }
                     catch { failed = true }
                 }.accessibilityIdentifier("walking.saved.remove")
             }
             if failed {
-                Text("walking.saved.failed").font(.footnote).accessibilityIdentifier("walking.saved.failed")
+                Text("walking.saved.failed").cyText(.bodyCompact).accessibilityIdentifier("walking.saved.failed")
                 CYPillButton("walking.saved.retryRead", style: .secondary, systemImage: "arrow.clockwise") { load(offered) }
                     .disabled(offered == nil || !factory.available)
                     .accessibilityIdentifier("walking.saved.retryRead")

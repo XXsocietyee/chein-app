@@ -189,7 +189,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack(spacing: CYSpacing.xs) {
                             Text(titleKey)
-                                .font(CYTypography.bodyMedium.weight(.semibold))
+                                .cyText(.bodyMedium)
                                 .foregroundStyle(palette.textPrimary)
                             if model.isMuted {
                                 Image(systemName: "bell.slash")
@@ -200,12 +200,12 @@ import SwiftUI
                         }
                         if let preview = model.summary?.lastMsgText, !preview.isEmpty {
                             Text(verbatim: preview)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)
                                 .lineLimit(1)
                         } else {
                             Text(subtitleKey)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)
                                 .lineLimit(1)
                         }

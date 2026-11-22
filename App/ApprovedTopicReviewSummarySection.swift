@@ -20,7 +20,7 @@ import SwiftUI
             field(String(localized: LocalizedStringResource("topicReview.categories", defaultValue: "Captured category IDs", locale: locale)), capture.categoryIDs, "categories")
             field(String(localized: LocalizedStringResource("topicReview.cover", defaultValue: "Cover reference (not fetched)", locale: locale)), capture.coverReference, "cover")
             Text(String(localized: LocalizedStringResource("topicReview.summaryLimits", defaultValue: "This is the captured server content for a review request. It is not approved or released. Answers and private guide text remain server-side; media proof and publication eligibility are not established by this summary.", locale: locale)))
-                .font(.footnote).accessibilityIdentifier(id("limits"))
+                .cyText(.bodyCompact).accessibilityIdentifier(id("limits"))
         }
         if let cover = capture.selectedCover {
             ApprovedTopicSelectedCoverSection(cover: cover, prefix: prefix, approved: false, source: coverSource, session: coverSession, parentCurrent: coverContextCurrent)
@@ -61,7 +61,7 @@ import SwiftUI
     }
     private func field(_ label: String, _ value: String?, _ key: String) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: value ?? String(localized: LocalizedStringResource("topicReview.missing", defaultValue: "Not supplied", locale: locale)))
                 .textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(id(key))
         }.p04FactRow()

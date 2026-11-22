@@ -29,35 +29,35 @@ struct InstallationTopicGraphContent: View {
     private var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(verbatim: graph.title).font(.headline)
+            Text(verbatim: graph.title).cyText(.cardTitle)
             Text(verbatim: graph.description).textSelection(.enabled)
-            Text(verbatim: graph.startNodeKey).font(.caption)
+            Text(verbatim: graph.startNodeKey).cyText(.meta)
             if let locale = graph.locale {
-                Text(verbatim: locale).font(.caption)
-                Text("modInstallation.graph.qaBoundary", tableName: "ModInstallation").font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: locale).cyText(.meta)
+                Text("modInstallation.graph.qaBoundary", tableName: "ModInstallation").cyText(.meta).foregroundStyle(.secondary)
             }
             ForEach(graph.moduleFrames) { frame in
                 VStack(alignment: .leading) {
-                    Text(isChinese ? "子模组 \(frame.dependency.packageId) · \(frame.dependency.packageVersion)" : "Child module \(frame.dependency.packageId) · \(frame.dependency.packageVersion)").font(.headline)
+                    Text(isChinese ? "子模组 \(frame.dependency.packageId) · \(frame.dependency.packageVersion)" : "Child module \(frame.dependency.packageId) · \(frame.dependency.packageVersion)").cyText(.cardTitle)
                     Text(isChinese ? "入口 \(frame.entryNodeId) → 原映射 \(frame.compiledEntryNodeId)" : "Entry \(frame.entryNodeId) → original mapping \(frame.compiledEntryNodeId)")
                     Text(isChinese ? "子 END 返回父节点 \(frame.returnNodeId)" : "Child END returns to parent node \(frame.returnNodeId)")
                     Text(isChinese ? "节点映射 \(frame.nodeMap.count) 项；地点槽映射 \(frame.venueSlotMap.count) 项" : "Node mappings: \(frame.nodeMap.count); venue-slot mappings: \(frame.venueSlotMap.count)")
-                    Text(isChinese ? "编译 \(frame.compilerVersion) · \(frame.compiledHash)" : "Compiler \(frame.compilerVersion) · \(frame.compiledHash)").font(.caption)
+                    Text(isChinese ? "编译 \(frame.compilerVersion) · \(frame.compiledHash)" : "Compiler \(frame.compilerVersion) · \(frame.compiledHash)").cyText(.meta)
                 }
             }
             ForEach(graph.nodes) { node in
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: node.id + " · " + node.sourceType + " · " + node.title).font(.headline)
+                    Text(verbatim: node.id + " · " + node.sourceType + " · " + node.title).cyText(.cardTitle)
                     Text(verbatim: node.body).textSelection(.enabled)
                     if let dependency = node.dependency {
-                        Text(verbatim: dependency.packageId + " @ " + dependency.packageVersion).font(.caption)
+                        Text(verbatim: dependency.packageId + " @ " + dependency.packageVersion).cyText(.meta)
                         Text(verbatim: "artifact=" + (node.artifactHash ?? "")).font(.caption.monospaced())
-                        Text(isChinese ? "由原 H5 服务端结果决定分支；关闭宿主不算放弃。" : "The original H5 server result determines the branch. Closing the host does not count as abandoning the challenge.").font(.footnote)
+                        Text(isChinese ? "由原 H5 服务端结果决定分支；关闭宿主不算放弃。" : "The original H5 server result determines the branch. Closing the host does not count as abandoning the challenge.").cyText(.meta)
                         if let policy = node.attemptPolicy {
                             if let count = policy.maxAttempts { Text(isChinese ? "最多尝试 \(count) 次；用尽后走已审核失败分支。" : "Maximum attempts: \(count). Once exhausted, follow the reviewed failure branch.") }
                             if let seconds = policy.timeoutSeconds { Text(isChinese ? "挑战期限 \(seconds) 秒，从原服务端会话创建起计算。" : "Challenge deadline: \(seconds) seconds from creation of the original server session.") }
                             ForEach(policy.branches.keys.sorted(), id: \.self) { code in Text("\(code) → \(policy.branches[code] ?? "")") }
-                        } else { Text(isChinese ? "未配置有限次数或挑战期限；失败保持原无限重试。" : "No attempt limit or challenge deadline is configured. Failures retain the original unlimited retries.").font(.footnote) }
+                        } else { Text(isChinese ? "未配置有限次数或挑战期限；失败保持原无限重试。" : "No attempt limit or challenge deadline is configured. Failures retain the original unlimited retries.").cyText(.meta) }
                     }
                     if node.sourceType == "ADVANCED_GAME", let qa = try? ModInstallationQaPick(json: node.advancedConfigJson) {
                         InstallationQaPickContent(question: qa)
@@ -65,7 +65,7 @@ struct InstallationTopicGraphContent: View {
                     ForEach(node.choices ?? []) { choice in
                         Text(verbatim: choice.id + " · " + choice.label + " → " + choice.next)
                         if choice.id == node.fallbackChoiceId {
-                            Text("modInstallation.graph.fallback", tableName: "ModInstallation").font(.caption).foregroundStyle(.secondary)
+                            Text("modInstallation.graph.fallback", tableName: "ModInstallation").cyText(.meta).foregroundStyle(.secondary)
                         }
                     }
                     ForEach(graph.edges.filter { $0.fromNodeKey == node.id }) { edge in
@@ -73,7 +73,7 @@ struct InstallationTopicGraphContent: View {
                     }
                 }
             }
-            Text("modInstallation.graph.topicBoundary", tableName: "ModInstallation").font(.caption).foregroundStyle(.secondary)
+            Text("modInstallation.graph.topicBoundary", tableName: "ModInstallation").cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: graph.guide).font(.caption.monospaced()).textSelection(.enabled)
         }
     }
@@ -87,8 +87,8 @@ private struct InstallationQaPickContent: View {
             Text(question.multi ? "modInstallation.graph.qaMulti" : "modInstallation.graph.qaSingle", tableName: "ModInstallation")
             Text("modInstallation.graph.qaAttempts", tableName: "ModInstallation") + Text(verbatim: " · \(question.maxTries)")
             ForEach(question.options) { option in
-                Text(verbatim: option.id + " · " + option.label).font(.body)
-                if option.correct { Text("modInstallation.graph.qaAnswer", tableName: "ModInstallation").font(.caption) }
+                Text(verbatim: option.id + " · " + option.label).cyText(.body)
+                if option.correct { Text("modInstallation.graph.qaAnswer", tableName: "ModInstallation").cyText(.meta) }
                 if let feedback = option.fb { Text(verbatim: feedback).textSelection(.enabled) }
             }
         }

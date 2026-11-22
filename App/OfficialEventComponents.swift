@@ -42,7 +42,7 @@ struct OfficialIssueView: View {
         VStack(alignment: .leading, spacing: 16) {
             if let copy {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(copy.title).font(.headline).accessibilityIdentifier(copy.identifier)
+                    Text(copy.title).cyText(.cardTitle).accessibilityIdentifier(copy.identifier)
                     Text(copy.detail).foregroundStyle(.secondary)
                 }.fixedSize(horizontal: false, vertical: true)
             }
@@ -159,7 +159,7 @@ struct OfficialReadOnlyNotice: View {
         // Unavailable actions are simply absent; only the example-content marker remains.
         if offline {
             Label("official.offlineExample", systemImage: "info.circle")
-                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -169,7 +169,7 @@ struct OfficialEventCard: View {
         QuestifyImageEntityCard(imageSource: event.coverImage, title: event.title, subtitle: event.subtitle,
                                 fallbackTitle: "official.untitled", fallbackSymbol: "sparkles") {
             Label(LocalizedStringKey(event.statusKey), systemImage: "calendar")
-                .font(CYTypography.label).foregroundStyle(CYColor.brand)
+                .cyText(.label).foregroundStyle(CYColor.brand)
             if event.paused { Label("official.status.paused", systemImage: "pause.circle").foregroundStyle(CYColor.warningText) }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 4) {
@@ -204,7 +204,7 @@ struct OfficialEventCard: View {
 struct OfficialFlowSurface: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.font(.body).listStyle(.insetGrouped).formStyle(.grouped)
+        content.cyText(.body).listStyle(.insetGrouped).formStyle(.grouped)
             .scrollContentBackground(.hidden)
             .background(Theme.Generated.color("--cy-color-bg-page", in: domain) ?? Color(uiColor: .systemGroupedBackground))
             .tint(Theme.Generated.color("--cy-color-brand", in: domain) ?? Color.accentColor)
@@ -284,7 +284,7 @@ struct OfficialRecordValue: View {
     let value: String
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(title).cyText(.meta).foregroundStyle(.secondary)
             Text(verbatim: value).font(.footnote.monospaced()).lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
         }.frame(maxWidth: .infinity, alignment: .leading)

@@ -116,7 +116,7 @@ private struct RoamFixtureStage: View {
                 CYRoamPlayerDot(walking: phase == .walking).position(x: geo.size.width * 0.5, y: geo.size.height * 0.46)
                 VStack {
                     HStack {
-                        Text(verbatim: "Roam").font(.largeTitle.weight(.heavy)).foregroundStyle(.white)
+                        Text(verbatim: "Roam").cyText(.pageTitle).foregroundStyle(.white)
                         Spacer()
                         CYRoamStatusDot(phase: phase)
                     }.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.xxl)
@@ -127,7 +127,7 @@ private struct RoamFixtureStage: View {
                 }
                 goControl(geo).opacity(detent == .peek ? 1 : 0)
                 CYRoamNearbySheet(detent: $detent) {
-                    Text(verbatim: appLocalized("roam.nearby.header \(items.count)", locale: locale)).font(.headline).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: appLocalized("roam.nearby.header \(items.count)", locale: locale)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 } content: {
                     ScrollView {
                         LazyVStack(spacing: CYSpacing.sm) {
@@ -340,7 +340,7 @@ private struct RoamFogEngineFixture: View {
             }.ignoresSafeArea()
             VStack {
                 HStack {
-                    Text(verbatim: "Fog engine").font(.title2.weight(.heavy)).foregroundStyle(light ? Color.black : Color.white)
+                    Text(verbatim: "Fog engine").cyText(.sheetTitle).foregroundStyle(light ? Color.black : Color.white)
                     Spacer()
                     CYFogCoverageBadge(reading: CYFogCoverageReading(reading))
                 }.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.xxl)

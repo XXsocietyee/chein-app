@@ -92,9 +92,9 @@ struct DiscoveryTemplateDetailView: View {
                             Section {
                                 ForEach(Array(parity.ruleSteps.enumerated()), id: \.offset) { index, step in
                                     HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                                        Text(verbatim: String(index + 1)).font(CYTypography.label.monospacedDigit())
+                                        Text(verbatim: String(index + 1)).cyText(.label, monospacedDigit: true)
                                             .frame(width: 28, height: 28).background(CYColor.bgSurfaceStrong, in: Circle())
-                                        Text(verbatim: step).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                                        Text(verbatim: step).cyText(.body).foregroundStyle(palette.textSecondary)
                                             .fixedSize(horizontal: false, vertical: true)
                                     }
                                     .accessibilityElement(children: .combine)
@@ -113,7 +113,7 @@ struct DiscoveryTemplateDetailView: View {
                             textSection("discovery.location", text: item.usageLocation)
                             textSection("discovery.materials", text: item.requiredMaterials)
                             if let verification = item.verification {
-                                Section { Text(verification.label).font(CYTypography.body) } header: { DiscoverySectionHeader("discovery.verification") }.discoveryCardRow()
+                                Section { Text(verification.label).cyText(.body) } header: { DiscoverySectionHeader("discovery.verification") }.discoveryCardRow()
                             }
                         }
                     } else {
@@ -209,7 +209,7 @@ struct DiscoveryTemplateDetailView: View {
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled) } header: { DiscoverySectionHeader(title) }
+            Section { Text(text).cyText(.body).foregroundStyle(palette.textSecondary).textSelection(.enabled) } header: { DiscoverySectionHeader(title) }
                 .discoveryCardRow()
         }
     }
@@ -350,7 +350,7 @@ struct DiscoveryTopicTemplatePreview: View {
         .onDisappear { detail.clear() }
     }
     @ViewBuilder private func optionalText(_ value: String?) -> some View {
-        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).font(CYTypography.meta).foregroundStyle(palette.textSecondary).textSelection(.enabled) }
+        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).cyText(.meta).foregroundStyle(palette.textSecondary).textSelection(.enabled) }
     }
     /// Mini-program `author || '城瘾'`.
     private func topicAuthor(_ item: PublicTopicTemplateDetail) -> Text {
@@ -366,13 +366,13 @@ struct DiscoveryTopicTemplatePreview: View {
         if nonempty(item.description) != nil || !item.chapters.isEmpty {
             Section {
                 if let opening = nonempty(item.description) {
-                    Text(verbatim: opening).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: opening).cyText(.body).foregroundStyle(palette.textSecondary)
                         .textSelection(.enabled).lineLimit(openingExpanded ? nil : 4)
                     if opening.count > 90 {
                         Button(openingExpanded ? "u10.template.cap.collapse" : "u10.template.cap.expand") {
                             openingExpanded.toggle()
                         }
-                        .font(CYTypography.meta.weight(.semibold))
+                        .cyText(.meta, weight: .semibold)
                         .foregroundStyle(palette.brand)
                         .accessibilityIdentifier("discovery.topicDetail.openingToggle")
                     }
@@ -382,24 +382,24 @@ struct DiscoveryTopicTemplatePreview: View {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                             if !TopicXcxFacts.hidesGeneratedChapterOrdinal(chapter.name ?? "") {
-                                Text("u10.template.chapterNo \(index + 1)").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                                Text("u10.template.chapterNo \(index + 1)").cyText(.meta).foregroundStyle(palette.textTertiary)
                             }
-                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(CYTypography.cardTitle)
+                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").cyText(.cardTitle)
                         }
                         let guide = TopicXcxFacts.chapterGuide(description: chapter.description)
                         if !guide.isEmpty {
-                            Text(verbatim: guide).font(CYTypography.meta).foregroundStyle(palette.textSecondary).lineLimit(2)
+                            Text(verbatim: guide).cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(2)
                         }
                         let stops = numbered.filter { $0.chapterID == chapter.id }
                         if !stops.isEmpty {
                             TemplateChipFlow(spacing: CYSpacing.sm) {
                                 ForEach(stops, id: \.number) { stop in
                                     HStack(spacing: CYSpacing.xs) {
-                                        Text(verbatim: String(stop.number)).font(CYTypography.micro.monospacedDigit())
+                                        Text(verbatim: String(stop.number)).cyText(.micro, monospacedDigit: true)
                                             .frame(width: 22, height: 22).background(CYNight.ink0, in: Circle())
                                         stop.name.map { Text(verbatim: $0) } ?? Text("u10.template.stopNo \(stop.number)")
                                     }
-                                    .font(CYTypography.meta).foregroundStyle(palette.textPrimary).cyWrapText()
+                                    .cyText(.meta).foregroundStyle(palette.textPrimary).cyWrapText()
                                     .padding(.trailing, CYSpacing.sm).padding(CYSpacing.xxs)
                                     .background(CYNight.ink2, in: Capsule())
                                 }
@@ -408,7 +408,7 @@ struct DiscoveryTopicTemplatePreview: View {
                         if let count = chapter.nodeCount { LabeledContent("discovery.publicStations", value: String(count)) }
                         if let status = chapter.recruitStatus {
                             VStack(alignment: .leading, spacing: 6) {
-                                Text("discovery.publicRecruitment").font(CYTypography.cardTitle)
+                                Text("discovery.publicRecruitment").cyText(.cardTitle)
                                 optionalText(status.state)
                                 if let count = status.remainingMerchantCount {
                                     LabeledContent("discovery.publicRemaining", value: String(count))
@@ -447,9 +447,9 @@ struct DiscoveryTopicTemplatePreview: View {
                                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                                     .accessibilityHidden(true)
                                 (nonempty(node.name).map { Text(verbatim: $0) } ?? Text("u10.template.nodeNo \(index + 1)"))
-                                    .font(CYTypography.label).foregroundStyle(palette.textPrimary).cyWrapText()
+                                    .cyText(.label).foregroundStyle(palette.textPrimary).cyWrapText()
                                 if let teaser = nonempty(node.hookTeaser) {
-                                    Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary).cyWrapText()
+                                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary).cyWrapText()
                                 }
                                 // U02-05: credit for the first 8 node images only (mini _loadCredits).
                                 if index < 8, let reference = nonempty(node.imgUrl), TopicTemplateAdoptionFactory.attributionIsLive {
@@ -467,13 +467,13 @@ struct DiscoveryTopicTemplatePreview: View {
                 .accessibilityIdentifier("discovery.topicDetail.nodes")
         }
         if item.chapters.isEmpty && item.games.isEmpty {
-            Section { Text("discovery.publicEmpty").font(CYTypography.body).foregroundStyle(palette.textSecondary) }.discoveryCardRow()
+            Section { Text("discovery.publicEmpty").cyText(.body).foregroundStyle(palette.textSecondary) }.discoveryCardRow()
         }
         if let medal = item.finishMedalName {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    Text(verbatim: medal).font(CYTypography.cardTitle)
-                    Text("u10.template.medalHint").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: medal).cyText(.cardTitle)
+                    Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textTertiary)
                 }.accessibilityElement(children: .combine)
             } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star") }
                 .discoveryCardRow()
@@ -487,8 +487,8 @@ struct DiscoveryTopicTemplatePreview: View {
     }
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
-            value.font(CYTypography.numericBody).foregroundStyle(palette.textPrimary)
-            Text(label).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+            value.cyText(.numericBody).foregroundStyle(palette.textPrimary)
+            Text(label).cyText(.caption).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -514,7 +514,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     if !groupStops.isEmpty {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter")
-                                .font(CYTypography.meta.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                                 .foregroundStyle(palette.textSecondary)
                             ForEach(groupStops, id: \.number) { stopRow($0) }
                         }
@@ -527,15 +527,15 @@ struct DiscoveryTopicTemplatePreview: View {
     }
     private func stopRow(_ stop: NumberedStop) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            Text(verbatim: String(stop.number)).font(CYTypography.label.monospacedDigit())
+            Text(verbatim: String(stop.number)).cyText(.label, monospacedDigit: true)
                 .frame(width: 32, height: 32).background(CYNight.ink0, in: Circle())
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                if let name = stop.name { Text(verbatim: name).font(CYTypography.label).cyWrapText() }
+                if let name = stop.name { Text(verbatim: name).cyText(.label).cyWrapText() }
                 if let play = stop.interactionType {
-                    Text(verbatim: play).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: play).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 if let teaser = stop.hookTeaser {
-                    Text(verbatim: teaser).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary)
                 }
             }
         }
@@ -605,7 +605,7 @@ private struct PublicTemplateSilhouette: View {
             }
             #if DEBUG
             Text(verbatim: "ROUTE SHAPE · DEBUG")
-                .font(CYTypography.micro).foregroundStyle(palette.textTertiary)
+                .cyText(.micro).foregroundStyle(palette.textTertiary)
                 .padding(CYSpacing.sm)
             #endif
         }

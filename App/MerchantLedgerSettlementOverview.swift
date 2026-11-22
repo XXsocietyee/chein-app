@@ -101,7 +101,7 @@ import UIKit
         let cover = Binding<MerchantLedgerBatchCover?>(get: { model.state.cover }, set: { model.childPopped($0 == nil ? model.state.cover : nil) })
         List {
             if reader.isOfflineExample {
-                Text("merchant.business.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
             // HANDOFF-R1 MR-21 / MR-20: one 账本 — the cumulative total from the workbench, the overview,
             // then a 核销 · 结算 switcher instead of two stacked lists.
@@ -156,7 +156,7 @@ import UIKit
             case .failed:
                 if let key = slot.failureKey {
                     Text(LocalizedStringKey(key))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
                 Button { model.load(id, page: slot.page) } label: {
@@ -181,7 +181,7 @@ import UIKit
             switch id {
             case .overview:
                 let summary = snapshot.document.summary
-                if summary.isEmpty { Text("merchant.business.empty").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                if summary.isEmpty { Text("merchant.business.empty").cyText(.body).foregroundStyle(CYColor.textSecondary) }
                 if let strip = MerchantLedgerParity.summary(summary, canReadFinance: snapshot.access.allows("merchant:finance:read")) {
                     MerchantLedgerSummaryStrip(summary: strip, usesKit: false)
                 }

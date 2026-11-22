@@ -196,7 +196,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
     private var headerView: some View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.sectionTitle)
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("merchantDecorWizard.title")
             Spacer()
             Text(verbatim: snapshot.paritySpecIDsText)
@@ -216,12 +216,12 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                     .accessibilityIdentifier("merchantDecorWizard.poiEndpoint")
                 Spacer()
                 Text(verbatim: snapshot.isDecorJsonCompliant ? "JSON 契约通过" : "JSON 契约异常")
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .accessibilityIdentifier("merchantDecorWizard.decorComplianceBadge")
             }
 
             Text(verbatim: snapshot.poiSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .accessibilityIdentifier("merchantDecorWizard.poiSummary")
 
             HStack(spacing: 6) {
@@ -253,7 +253,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Text(verbatim: "入驻四步向导 (\(snapshot.wizardSteps.count) 步)")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("merchantDecorWizard.wizardHeader")
                 Spacer()
                 Text(verbatim: snapshot.shopApplyEndpoint)
@@ -272,7 +272,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(verbatim: step.title)
-                                .font(.caption.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                                 .accessibilityIdentifier("merchantDecorWizard.step.\(step.id).title")
                             Text(verbatim: step.stepCode)
                                 .font(.caption2.monospaced())
@@ -280,7 +280,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                                 .accessibilityIdentifier("merchantDecorWizard.step.\(step.id).code")
                         }
                         Text(verbatim: step.summary)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("merchantDecorWizard.step.\(step.id).summary")
                     }
@@ -288,7 +288,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                     Spacer()
 
                     Text(verbatim: step.statusBadgeText)
-                        .font(.caption2.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(Color.accentColor.opacity(0.14)))
@@ -311,7 +311,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                     .accessibilityIdentifier("merchantDecorWizard.npcVoiceEndpoint")
                 Spacer()
                 Text(verbatim: snapshot.npcVoiceSynthesisStateText)
-                    .font(.caption2)
+                    .cyText(.caption)
                     .accessibilityIdentifier("merchantDecorWizard.npcVoiceStatusText")
             }
 
@@ -330,7 +330,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
             }
 
             Text(verbatim: snapshot.insightMetricsSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .accessibilityIdentifier("merchantDecorWizard.insightMetricsSummary")
         }
         .padding(8)

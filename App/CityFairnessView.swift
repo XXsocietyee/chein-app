@@ -98,7 +98,7 @@ struct CityFairnessView: View {
     private var loadingBlock: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text("fairness.loading", tableName: table)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYSkeleton().accessibilityHidden(true)
@@ -109,11 +109,11 @@ struct CityFairnessView: View {
     private func ratioBlock(_ page: CityFairnessPage) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text(page.showsRatio ? "fairness.ratio" : "fairness.unknown", tableName: table)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: page.showsRatio ? page.ratioText : "—")
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -125,10 +125,10 @@ struct CityFairnessView: View {
     private func reasonLine(_ reason: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text("fairness.missingReason", tableName: table)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
             Text(verbatim: cloud06Shown(reason))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -217,7 +217,7 @@ struct CityFairnessEvidenceView: View {
         } else {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Text("fairness.loading", tableName: table)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYSkeleton().accessibilityHidden(true)
@@ -235,10 +235,10 @@ struct CityFairnessEvidenceView: View {
     private func reasonLine(_ reason: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text("fairness.missingReason", tableName: table)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
             Text(verbatim: cloud06Shown(reason))
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -254,7 +254,7 @@ private struct CityFairnessFactsBlock: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text("fairness.coverage", tableName: table)
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)

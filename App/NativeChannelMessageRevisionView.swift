@@ -85,7 +85,7 @@ import SwiftUI
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     CYRowIcon(systemImage: "text.bubble")
                     Text("message.unavailable", tableName: "NativeChannelMessage")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)

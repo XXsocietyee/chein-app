@@ -104,13 +104,13 @@ public extension ReleasePreflightAndUIReadinessContract {
                             ? "归档预检状态：可发布归档 (PASS)"
                             : "归档预检状态：未满足发布门禁（共 \(report.violations.count) 项阻断）"
                     )
-                    .font(.headline)
+                    .cyText(.cardTitle)
                     Text(
                         verbatim: report.isSafeUnconfiguredCIDefault
                             ? "CI 默认状态：Base.xcconfig 安全未配置基线（Fail-Closed）"
                             : "CI 默认状态：已加载自定义构建或签名参数"
                     )
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
                 }
             }
@@ -172,7 +172,7 @@ public extension ReleasePreflightAndUIReadinessContract {
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: "阻断项 #\(index + 1)")
-                                .font(.caption.weight(.semibold))
+                                .cyText(.meta, weight: .semibold)
                                 .foregroundStyle(.secondary)
                             Text(verbatim: Self.describeViolation(violation))
                                 .font(.subheadline)
@@ -228,10 +228,10 @@ public extension ReleasePreflightAndUIReadinessContract {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text(verbatim: Self.describeSurfaceTitle(contract.surface))
-                            .font(.headline)
+                            .cyText(.cardTitle)
                         Spacer()
                         Text(verbatim: Self.describeReadinessBadge(evaluation))
-                            .font(.caption.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .foregroundStyle(evaluation == .ready ? AnyShapeStyle(.green) : AnyShapeStyle(.secondary))
                     }
                     Text(verbatim: "Root 锚点: \(contract.rootAccessibilityIdentifier) · 主交互锚点: \(contract.primaryInteractiveAnchorIdentifier)")
@@ -242,11 +242,11 @@ public extension ReleasePreflightAndUIReadinessContract {
                         .foregroundStyle(.secondary)
                     if contract.requiresOffScreenFormReveal {
                         Text(verbatim: "表单折叠显露要求: 需调用 \(contract.revealHelperIdentifier ?? "revealInForm") 滚动显露主输入项")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Text(verbatim: Self.describeReadinessDetail(evaluation))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)

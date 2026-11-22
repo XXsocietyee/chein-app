@@ -31,7 +31,7 @@ import SwiftUI
                 }.accessibilityIdentifier("sensorDraft.type")
                 ForEach(value.kind?.parameters ?? [], id: \.rawValue) { parameter in
                     VStack(alignment: .leading) {
-                        Text(LocalizedStringKey(parameter.labelKey)).font(.subheadline.weight(.semibold))
+                        Text(LocalizedStringKey(parameter.labelKey)).cyText(.bodyMedium)
                         TextField(LocalizedStringKey(parameter.labelKey), text: Binding(get: { value.input(parameter) }, set: { model.setSensorInput(parameter, $0) }))
                             .focused($focusedParameter, equals: parameter.rawValue)
                             .keyboardType(.numberPad).accessibilityIdentifier("sensorDraft.input." + parameter.rawValue)
@@ -44,8 +44,8 @@ import SwiftUI
                                     }
                                 }
                             }
-                        Text("1…\(parameter.maximum)").font(.caption).foregroundStyle(.secondary)
-                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(.caption).foregroundStyle(.secondary) }
+                        Text("1…\(parameter.maximum)").cyText(.meta).foregroundStyle(.secondary)
+                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").cyText(.meta).foregroundStyle(.secondary) }
                     }
                 }
             } else { Text("sensorDraft.preserved").foregroundStyle(.secondary).accessibilityIdentifier("sensorDraft.preserved") }

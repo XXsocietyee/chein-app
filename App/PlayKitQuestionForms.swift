@@ -10,7 +10,7 @@ extension PlayKitScreen {
             photoInput { url in prepare("SUBMIT_QA", ["imageUrl": .string(url)]) }
         } else if mode == "PICK" {
             let multi = raw["multi"].bool == true
-            if multi { Text("playkit.qa.multiHint").font(.footnote) }
+            if multi { Text("playkit.qa.multiHint").cyText(.bodyCompact) }
             if let pictures = PlayKitImageOption.read(raw) {
                 // UG-02: two picture cards per row, key and label under the picture. Judgement stays on the option id.
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: CYSpacing.md), GridItem(.flexible(), spacing: CYSpacing.md)], spacing: CYSpacing.md) {
@@ -38,8 +38,8 @@ extension PlayKitScreen {
         attempts
     }
     @ViewBuilder var branchForm: some View {
-        if let title = raw["currentStep"]["title"].text { Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader) }
-        if let body = raw["currentStep"]["body"].text { Text(verbatim: body).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+        if let title = raw["currentStep"]["title"].text { Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader) }
+        if let body = raw["currentStep"]["body"].text { Text(verbatim: body).cyText(.body).foregroundStyle(CYColor.textSecondary) }
         ForEach(projection.options) { option in
             CYChoiceRow(label: option.label, selected: false, enabled: enabled) { prepare("CHOOSE", ["optionId": .string(option.id)]) }
         }
@@ -49,7 +49,7 @@ extension PlayKitScreen {
         // Read only the current accepted node projection, with no cached tier.
         if model.isCurrent, !["stale", "disabled"].contains(model.phase),
            let resultKey = projection.estimateResultKey {
-            Text(LocalizedStringKey(resultKey)).font(.headline)
+            Text(LocalizedStringKey(resultKey)).cyText(.cardTitle)
                 .accessibilityIdentifier("playkit.estimate.result")
         }
         // The completed projection does not return the player's guess. Do not
@@ -71,7 +71,7 @@ extension PlayKitScreen {
         ForEach(projection.options) { option in
             VStack(alignment: .leading, spacing: 12) {
                 artwork(option.raw["imageUrl"].text)
-                Text(verbatim: option.label).font(.headline)
+                Text(verbatim: option.label).cyText(.cardTitle)
                 if let note = option.raw["note"].text { Text(verbatim: note) }
                 if let result, result.lastPickID == option.id {
                     Label(result.passed ? "playkit.pricePair.lastCorrect" : "playkit.pricePair.lastIncorrect",
@@ -151,12 +151,12 @@ extension PlayKitScreen {
             // Mini-program "还能错 ●●●": one dot per remaining try.
             let left = max(0, cap - (used ?? 0))
             HStack(spacing: CYSpacing.xs) {
-                Text("playkit.triesLeft").font(CYTypography.meta).foregroundStyle(.secondary)
+                Text("playkit.triesLeft").cyText(.meta).foregroundStyle(.secondary)
                 if cap <= 10 {
                     ForEach(0..<cap, id: \.self) { index in
                         Circle().fill(index < left ? Color.primary : Color.secondary.opacity(0.3)).frame(width: 8, height: 8)
                     }
-                } else { Text(verbatim: "\(left) / \(cap)").font(CYTypography.meta).monospacedDigit() }
+                } else { Text(verbatim: "\(left) / \(cap)").cyText(.meta).monospacedDigit() }
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
             .accessibilityElement(children: .ignore)
@@ -230,8 +230,8 @@ extension PlayKitScreen {
                     .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
                         .strokeBorder(selected ? CYColor.textPrimary : CYColor.borderSubtle, lineWidth: selected ? 2 : 1))
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                    Text(verbatim: option.key).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
-                    Text(verbatim: option.label).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: option.key).cyText(.label).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: option.label).cyText(.body).foregroundStyle(CYColor.textPrimary)
                         .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -259,7 +259,7 @@ extension PlayKitScreen {
     private var keyPlaceholder: some View {
         ZStack {
             CYColor.bgRaised
-            Text(verbatim: option.key).font(CYTypography.pageTitle).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: option.key).cyText(.pageTitle).foregroundStyle(CYColor.textTertiary)
         }
     }
 }

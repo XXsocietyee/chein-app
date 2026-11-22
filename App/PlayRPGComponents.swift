@@ -21,10 +21,10 @@ import QuestifyCore
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(availability.title)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                     Text(availability.message)
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -50,10 +50,10 @@ import QuestifyCore
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                         Text(item.title)
-                            .font(CYTypography.bodyMedium)
+                            .cyText(.bodyMedium)
                             .foregroundStyle(CYColor.textPrimary)
                         Text(item.detail)
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                     }
                     Spacer(minLength: 0)
@@ -94,7 +94,7 @@ import QuestifyCore
                     controlsCard
                     if !session.history.isEmpty { historySection }
                     Text(W8Text.t("练习掷骰只在本机进行，不会记录到角色卡。", "Practice rolls stay on this device and are not recorded on your character."))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -128,12 +128,12 @@ import QuestifyCore
                 )
                 if let receipt = shownReceipt {
                     Text(receipt.success == true ? W8Text.t("检定通过", "Check passed") : W8Text.t("检定未通过", "Check failed"))
-                        .font(CYTypography.sectionTitle)
+                        .cyText(.sectionTitle)
                         .foregroundStyle(receipt.success == true ? CYColor.successText : CYColor.dangerText)
                     DiceJourneyReceiptSummaryCard(receipt: receipt)
                 } else {
                     Text(rolling ? W8Text.t("掷骰中…", "Rolling…") : W8Text.t("选择难度后掷骰", "Pick a difficulty, then roll"))
-                        .font(CYTypography.bodyCompact)
+                        .cyText(.bodyCompact)
                         .foregroundStyle(CYColor.textSecondary)
                 }
             }
@@ -164,7 +164,7 @@ import QuestifyCore
 
                 Stepper(value: $skill, in: -5...10) {
                     Text(W8Text.t("技能加值 \(skill >= 0 ? "+" : "")\(skill)", "Skill bonus \(skill >= 0 ? "+" : "")\(skill)"))
-                        .font(CYTypography.bodyMedium)
+                        .cyText(.bodyMedium)
                         .foregroundStyle(CYColor.textPrimary)
                 }
                 .disabled(rolling)
@@ -187,11 +187,11 @@ import QuestifyCore
                     ForEach(session.history) { entry in
                         HStack {
                             Text("D20 \(entry.kept)")
-                                .font(CYTypography.numericBody)
+                                .cyText(.numericBody)
                                 .foregroundStyle(CYColor.textPrimary)
                             Spacer()
                             Text(W8Text.t("总计 \(entry.total) / DC \(entry.dc)", "Total \(entry.total) / DC \(entry.dc)"))
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                             Image(systemName: entry.success ? "checkmark.circle.fill" : "xmark.circle.fill")
                                 .foregroundStyle(entry.success ? CYColor.successText : CYColor.dangerText)

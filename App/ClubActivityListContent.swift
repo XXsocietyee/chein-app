@@ -18,7 +18,7 @@ import SwiftUI
     private var endedRows: [ClubActivityRow] { rows.filter { $0.status == .ended } }
     var body: some View {
         Section("club.activityList.current") {
-            Text("club.activityList.timeZone").font(.caption).foregroundStyle(.secondary)
+            Text("club.activityList.timeZone").cyText(.meta).foregroundStyle(.secondary)
             if rows.isEmpty { Text("club.calendar.noEvents").accessibilityIdentifier("club.calendar.empty") }
             else if currentRows.isEmpty { Text("club.activityList.noCurrent").accessibilityIdentifier("club.activityList.current.empty") }
             ForEach(currentRows) { row in item(row) }
@@ -46,17 +46,17 @@ private struct ClubActivityCard: View {
                 SquareImage(source: cover).frame(maxWidth: .infinity).frame(height: 140).clipped().accessibilityHidden(true)
             }
             HStack(alignment: .top) {
-                if let name = row.name { Text(verbatim: name).font(.headline) }
-                else { Text("club.calendar.untitled").font(.headline) }
+                if let name = row.name { Text(verbatim: name).cyText(.cardTitle) }
+                else { Text("club.calendar.untitled").cyText(.cardTitle) }
                 Spacer(minLength: 8)
-                Text(LocalizedStringKey("club.activityList.status." + row.status.rawValue)).font(.caption.bold())
+                Text(LocalizedStringKey("club.activityList.status." + row.status.rawValue)).cyText(.meta, weight: .bold)
                     .foregroundStyle(row.status == .live ? CYColor.successText : row.status == .ended ? Color.secondary : Color.primary)
                     .accessibilityIdentifier("club.activityList.status.\(row.id)")
             }
             if let value = timeText { Text(verbatim: value).font(.subheadline) }
             else { Text("club.calendar.dateUnknown").font(.subheadline) }
             if let address = row.address { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") }.font(.caption) }
-            Text(LocalizedStringKey("club.activityList.category." + row.category.rawValue)).font(.caption).foregroundStyle(.secondary)
+            Text(LocalizedStringKey("club.activityList.category." + row.category.rawValue)).cyText(.meta).foregroundStyle(.secondary)
             if row.signups != nil || row.stations != nil || row.mileageKM != nil {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .top, spacing: 20) { stats }
@@ -73,8 +73,8 @@ private struct ClubActivityCard: View {
     }
     private func stat(_ value: Double, title: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(value, format: .number).font(.headline)
-            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text(value, format: .number).cyText(.cardTitle)
+            Text(title).cyText(.meta).foregroundStyle(.secondary)
         }.accessibilityElement(children: .combine)
     }
     private var timeText: String? {

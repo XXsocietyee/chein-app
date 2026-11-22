@@ -103,7 +103,7 @@ public struct CYOfflineBanner: View {
                 .accessibilityHidden(true)
 
             Text("cy.state.offline.title")
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -115,7 +115,7 @@ public struct CYOfflineBanner: View {
         if let onRetry {
             Button(action: onRetry) {
                 Text("cy.state.offline.retry")
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .foregroundStyle(CYColor.brand)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -190,7 +190,7 @@ public struct CYInlineError: View {
                     Text(message)
                 }
             }
-            .font(CYTypography.bodyCompact)
+            .cyText(.bodyCompact)
             .foregroundStyle(CYColor.dangerText)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -202,7 +202,7 @@ public struct CYInlineError: View {
         if let retryTitle, let onRetry {
             Button(action: onRetry) {
                 Text(retryTitle)
-                    .font(CYTypography.label.weight(.semibold))
+                    .cyText(.label, weight: .semibold)
                     .foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(minHeight: CYSpacing.minTouchTarget)
@@ -288,7 +288,7 @@ public struct CYToastPill: View {
                     Text(messageKey)
                 }
             }
-            .font(CYTypography.bodyCompact)
+            .cyText(.bodyCompact)
             .foregroundStyle(CYColor.textPrimary)
             .multilineTextAlignment(.leading)
             .fixedSize(horizontal: false, vertical: true)
@@ -296,7 +296,7 @@ public struct CYToastPill: View {
             if let undoTitle, let onUndo {
                 Button(action: onUndo) {
                     Text(undoTitle)
-                        .font(CYTypography.label.weight(.bold))
+                        .cyText(.label, weight: .bold)
                         .foregroundStyle(CYColor.infoText)
                         .padding(.horizontal, CYSpacing.xs)
                         .frame(minHeight: 32)

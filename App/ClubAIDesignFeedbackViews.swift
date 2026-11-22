@@ -147,7 +147,7 @@ import UIKit
                         } icon: {
                             Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
                         }
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("club.aiFeedback.failed")
                         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))

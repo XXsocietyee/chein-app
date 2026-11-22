@@ -117,7 +117,7 @@ struct PublishingField<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s1) {
-                title.font(CYTypography.label).foregroundStyle(palette.textSecondary)
+                title.cyText(.label).foregroundStyle(palette.textSecondary)
                 if required {
                     Text(verbatim: "*").foregroundStyle(Theme.Color.danger(in: domain))
                         .accessibilityHidden(true)
@@ -176,10 +176,10 @@ struct PublishingFormSurface: ViewModifier {
                     Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore)
                 }.pickerStyle(.inline)
                 Text("contextPublish.mode.cityDetail")
-                    .font(CYTypography.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .cyText(.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
                 Text("contextPublish.mode.exploreDetail")
-                    .font(CYTypography.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .cyText(.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
             }.modifier(PublishingFormSurface()).font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
                 .cyHeroScreen()
@@ -218,9 +218,9 @@ struct PublishingFormSurface: ViewModifier {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Space.s4) {
                     CYStatusChip("contextPublish.result.acknowledged", tone: .success, systemImage: "checkmark.circle.fill")
-                    Text("contextPublish.result.acknowledged").font(CYTypography.sectionTitle)
+                    Text("contextPublish.result.acknowledged").cyText(.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                    Text(verbatim: receipt.title).font(CYTypography.cardTitle)
+                    Text(verbatim: receipt.title).cyText(.cardTitle)
                         .fixedSize(horizontal: false, vertical: true)
                     if let statusLoader {
                         TopicPublicationStatusPanel(topicID: acknowledgment.topicID, load: statusLoader)
@@ -241,12 +241,12 @@ struct PublishingFormSurface: ViewModifier {
         ScrollView {
         VStack(alignment: .leading, spacing: Theme.Space.s4) {
             CYStatusChip("contextPublish.result.acknowledged", tone: .success, systemImage: "checkmark.circle.fill")
-            Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle").font(CYTypography.sectionTitle)
+            Label("contextPublish.result.acknowledged", systemImage: "checkmark.circle").cyText(.sectionTitle)
                 .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-            Text(verbatim: receipt.title).font(CYTypography.cardTitle)
+            Text(verbatim: receipt.title).cyText(.cardTitle)
                 .fixedSize(horizontal: false, vertical: true)
             LabeledContent("contextPublish.result.chapters") {
-                Text(verbatim: String(receipt.chapterCount)).font(CYTypography.bodyCompact.monospacedDigit())
+                Text(verbatim: String(receipt.chapterCount)).cyText(.bodyCompact, monospacedDigit: true)
             }
             .cyDomainCard()
             Text("contextPublish.result.readStatus").font(Theme.Font.body)

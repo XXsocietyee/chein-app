@@ -20,7 +20,7 @@ struct CoopRelationCardDetails: View {
             if !row.venueTags.isEmpty {
                 HStack(spacing: 8) {
                     ForEach(Array(row.venueTags.enumerated()), id: \.offset) { item in
-                        title(item.element).font(.caption)
+                        title(item.element).cyText(.meta)
                             .padding(.horizontal, 8).padding(.vertical, 2)
                             .background(.quaternary, in: Capsule())
                     }

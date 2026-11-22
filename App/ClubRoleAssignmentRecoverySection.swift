@@ -18,7 +18,7 @@ struct ClubRoleAssignmentRecoverySection: View {
     private var readable: Bool { visible && scenePhase == .active && access.identity == context.identity && access.authorizationGeneration == context.authorizationGeneration && recovery?.canRead(scope: context.scope, identity: context.identity) == true }
     var body: some View {
         Section {
-            Text("roleAssign.history.notice", tableName: "ClubRoleAssignment").font(.footnote).foregroundStyle(.secondary)
+            Text("roleAssign.history.notice", tableName: "ClubRoleAssignment").cyText(.bodyCompact).foregroundStyle(.secondary)
             if readable {
                 if busy { ProgressView().accessibilityLabel(Text("roleAssign.loading", tableName: "ClubRoleAssignment")) }
                 if issue { Text("roleAssign.unavailable", tableName: "ClubRoleAssignment") }
@@ -28,10 +28,10 @@ struct ClubRoleAssignmentRecoverySection: View {
                             Text(verbatim: "#\(item.entry.targetMemberID)")
                             Text(verbatim: item.entry.roleCode)
                             Text(LocalizedStringKey(item.entry.outcome == "NOT_SENT" ? "roleAssign.notSent" : item.receipt?.state == "APPLIED" ? "roleAssign.applied" : "roleAssign.unknown"), tableName: "ClubRoleAssignment")
-                            Text(verbatim: item.entry.requestID).font(.caption).textSelection(.enabled)
-                            if let assignment = item.receipt?.assignmentId { Text(verbatim: "#\(assignment)").font(.caption) }
-                            if let audit = item.receipt?.auditId { Text(verbatim: "Audit #\(audit)").font(.caption) }
-                            if let ms = item.receipt?.appliedAt { Text(Date(timeIntervalSince1970: Double(ms) / 1000), style: .date).font(.caption) }
+                            Text(verbatim: item.entry.requestID).cyText(.meta).textSelection(.enabled)
+                            if let assignment = item.receipt?.assignmentId { Text(verbatim: "#\(assignment)").cyText(.meta) }
+                            if let audit = item.receipt?.auditId { Text(verbatim: "Audit #\(audit)").cyText(.meta) }
+                            if let ms = item.receipt?.appliedAt { Text(Date(timeIntervalSince1970: Double(ms) / 1000), style: .date).cyText(.meta) }
                         }.privacySensitive().accessibilityIdentifier("club.roleAssign.history.\(item.id)")
                     }
                 }

@@ -134,7 +134,7 @@ import SwiftUI
                     }
                     if overview.hasMoreProjects {
                         Text("club.statsOverview.firstFive")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -176,10 +176,10 @@ import SwiftUI
                 metric("club.statsOverview.rate", systemImage: "percent") { rate(overview.completion) }
             }.accessibilityIdentifier("club.statsOverview.summary")
             Text("club.statsOverview.scope")
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             Text("club.statsOverview.rateScope")
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -202,7 +202,7 @@ import SwiftUI
             else if project.name == nil { Text("club.statsOverview.unnamed") }
             else { Text(verbatim: "—").accessibilityLabel(Text("club.statsOverview.unnamed")) }
         }
-        .font(CYTypography.cardTitle)
+        .cyText(.cardTitle)
         .foregroundStyle(CYColor.textPrimary)
         .fixedSize(horizontal: false, vertical: true)
     }
@@ -223,10 +223,10 @@ import SwiftUI
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
             value()
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .foregroundStyle(CYColor.textPrimary)
             Text(title)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

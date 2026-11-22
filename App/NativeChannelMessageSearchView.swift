@@ -42,7 +42,7 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
                     }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .combine)
@@ -56,7 +56,7 @@ import SwiftUI
             if model.isCurrent {
                 if let oldest = model.oldestSearchableAt {
                     LabeledContent {
-                        Text(verbatim: shown(oldest)).font(CYTypography.numericBody).monospacedDigit()
+                        Text(verbatim: shown(oldest)).cyText(.numericBody).monospacedDigit()
                     } label: { Text("search.retention", tableName: "NativeChannelMessage") }
                 }
                 if let reason = model.degradedReason {
@@ -65,7 +65,7 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "info.circle").accessibilityHidden(true)
                     }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .combine)
@@ -85,7 +85,7 @@ import SwiftUI
                         }
                     } header: {
                         Text(verbatim: group.0)
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .textCase(nil)
                             .accessibilityAddTraits(.isHeader)

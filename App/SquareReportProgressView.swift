@@ -20,7 +20,7 @@ struct MemberReportProgressTimeView: View {
         List {
             CYHeroHeader("report.history.title", tableName: "MemberReportProgress")
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            memberReportProgressText("report.read.boundary").font(.footnote)
+            memberReportProgressText("report.read.boundary").cyText(.bodyCompact)
             if let flow, flow.isCurrent {
                 Picker(selection: Binding(get: { flow.filter }, set: { value in
                     guard let (original, intent) = rendered else { return }; original.changeFilter(value, intent: intent)
@@ -35,7 +35,7 @@ struct MemberReportProgressTimeView: View {
                         // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」, stage and chevron on the right.
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             memberReportProgressText("report.stage.\(record.stageKey)")
-                                .font(CYTypography.micro.weight(.semibold))
+                                .cyText(.micro)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .padding(.horizontal, CYSpacing.sm)
                                 .frame(minHeight: 20)
@@ -46,14 +46,14 @@ struct MemberReportProgressTimeView: View {
                                 if let label = flow.reasonLabel(for: record) { Text(verbatim: label) }
                                 else { memberReportProgressText("report.reason.fallback") }
                             }
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             MemberReportProgressTimeView(value: record.createTime)
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                             Text("u9cde.report.number \(String(record.id))")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .monospacedDigit()
                                 .foregroundStyle(CYColor.textTertiary)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -70,7 +70,7 @@ struct MemberReportProgressTimeView: View {
                 }
                 if flow.loaded && !flow.records.isEmpty && !flow.hasMore && !flow.busy {
                     // Source list footer: 已经到底了.
-                    Text("u9cde.report.end").font(.footnote).foregroundStyle(.secondary)
+                    Text("u9cde.report.end").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                         .accessibilityIdentifier("report.progress.end")
                 }

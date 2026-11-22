@@ -181,7 +181,7 @@ public struct CYField: View {
                             .accessibilityHidden(true)
                     }
                     Text(verbatim: footer.text)
-                        .font(CYTypography.micro)
+                        .cyText(.micro)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .foregroundStyle(footerColor)
@@ -194,11 +194,11 @@ public struct CYField: View {
         HStack(spacing: CYSpacing.xs) {
             HStack(spacing: CYSpacing.xxs) {
                 Text(verbatim: label)
-                    .font(CYTypography.caption.weight(.medium))
+                    .cyText(.caption, weight: .medium)
                     .foregroundStyle(palette.textSecondary)
                 if isRequired {
                     Text(verbatim: "*")
-                        .font(CYTypography.caption.weight(.bold))
+                        .cyText(.caption, weight: .bold)
                         .foregroundStyle(palette.danger)
                         .accessibilityHidden(true)
                 }
@@ -206,7 +206,7 @@ public struct CYField: View {
             Spacer(minLength: CYSpacing.sm)
             if let maxLength {
                 Text(verbatim: "\(text.count)/\(maxLength)")
-                    .font(CYTypography.micro.monospacedDigit())
+                    .cyText(.micro, monospacedDigit: true)
                     .foregroundStyle(text.count > maxLength ? palette.danger : palette.textTertiary)
             }
         }
@@ -220,14 +220,14 @@ public struct CYField: View {
                 ZStack(alignment: .topLeading) {
                     if text.isEmpty {
                         Text(verbatim: placeholder)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .foregroundStyle(palette.textPlaceholder)
                             .padding(.top, 8)
                             .padding(.leading, 4)
                             .allowsHitTesting(false)
                     }
                     TextEditor(text: boundedBinding)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(tokens.textForeground)
                         .scrollContentBackground(.hidden)
                         .focused($isFocused)
@@ -240,7 +240,7 @@ public struct CYField: View {
                     text: boundedBinding,
                     prompt: Text(verbatim: placeholder).foregroundStyle(palette.textPlaceholder)
                 )
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(tokens.textForeground)
                 .focused($isFocused)
                 .disabled(resolvedState == .disabled)

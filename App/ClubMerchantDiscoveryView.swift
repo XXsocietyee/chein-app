@@ -22,7 +22,7 @@ import SwiftUI
                         set: { model.setKeyword($0, permit: permit) }))
                         .textInputAutocapitalization(.never).autocorrectionDisabled()
                         .accessibilityIdentifier("club.merchantDiscovery.search")
-                    Text("club.merchantDiscovery.localOnly").font(.footnote).foregroundStyle(.secondary)
+                    Text("club.merchantDiscovery.localOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
                     switch model.phase(in: scope) {
                     case .idle, .loading:
                         ProgressView("club.loading").accessibilityIdentifier("club.merchantDiscovery.loading")
@@ -54,7 +54,7 @@ import SwiftUI
                             } else {
                                 VStack(alignment: .leading, spacing: 4) {
                                     card(row)
-                                    Text("club.merchantProfile.unavailable").font(.caption).foregroundStyle(.secondary)
+                                    Text("club.merchantProfile.unavailable").cyText(.meta).foregroundStyle(.secondary)
                                 }
                             }
                         }
@@ -87,8 +87,8 @@ import SwiftUI
     }
     private func card(_ row: ClubMerchantDiscoveryRow) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            if row.name.isEmpty { Text("club.merchantDiscovery.unnamed").font(.headline) }
-            else { Text(verbatim: row.name).font(.headline) }
+            if row.name.isEmpty { Text("club.merchantDiscovery.unnamed").cyText(.cardTitle) }
+            else { Text(verbatim: row.name).cyText(.cardTitle) }
             if !row.activityTypes.isEmpty { Text(verbatim: row.activityTypes) }
             if !row.address.isEmpty { Text(verbatim: row.address).font(.subheadline) }
             if !row.city.isEmpty { Text(verbatim: row.city).font(.subheadline) }

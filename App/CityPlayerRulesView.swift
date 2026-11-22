@@ -80,7 +80,7 @@ struct CityPlayerRulesContent: View {
                         CYFactRow(label: Text("cityRules.field.rulesHash", tableName: table), value: snapshot.board.rulesHash)
                     }
                 }
-                Text("cityRules.excluded", tableName: table).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("cityRules.excluded", tableName: table).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             CYPillButton(LocalizedStringKey("cityRules.refresh"), style: .secondary, systemImage: "arrow.clockwise", tableName: table, action: refresh)
@@ -91,7 +91,7 @@ struct CityPlayerRulesContent: View {
         let e = snapshot.eligibility
         return CYInfoCard(title: Text("cityRules.eligibility.title", tableName: table), symbol: "person.badge.shield.checkmark.fill") {
             Text(LocalizedStringKey("cityRules.eligibility." + e.status), tableName: table)
-                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("cityRules.eligibility")
             if e.memberCount != nil || e.presentCount != nil || e.confirmedCount != nil {
                 ViewThatFits(in: .horizontal) {
@@ -99,7 +99,7 @@ struct CityPlayerRulesContent: View {
                     VStack(spacing: CYSpacing.sm) { counts(e) }
                 }
             }
-            Text("cityRules.noActionGrant", tableName: table).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("cityRules.noActionGrant", tableName: table).cyText(.meta).foregroundStyle(CYColor.textTertiary)
         }
     }
     @ViewBuilder private func counts(_ e: CityPlayerRulesEligibility) -> some View {
@@ -109,8 +109,8 @@ struct CityPlayerRulesContent: View {
     }
     private func stat(_ n: Int, _ key: String) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: String(n)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-            Text(LocalizedStringKey(key), tableName: table).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            Text(verbatim: String(n)).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
+            Text(LocalizedStringKey(key), tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 64).padding(CYSpacing.sm)
         .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
@@ -124,12 +124,12 @@ struct CityPlayerRulesContent: View {
         return CYCollapsibleCard(title: Text(LocalizedStringKey("cityRules.section." + section.id), tableName: table), symbol: Self.icons[section.id] ?? "doc.text", expanded: isOpen) {
             if section.status != "PUBLISHED" {
                 Text(LocalizedStringKey("cityRules.disclosure." + section.status), tableName: table)
-                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             ForEach(shown) { item in
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(LocalizedStringKey("cityRules.field." + item.key), tableName: table).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    value(item, sectionID: section.id).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    Text(LocalizedStringKey("cityRules.field." + item.key), tableName: table).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    value(item, sectionID: section.id).cyText(.body).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

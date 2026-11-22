@@ -30,21 +30,21 @@ struct TemplateXbHead<Cover: View>: View {
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                title.font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                title.cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
                     .lineLimit(2).accessibilityAddTraits(.isHeader)
                 if let publisher {
-                    publisher.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                    publisher.cyText(.body).foregroundStyle(CYColor.textSecondary).lineLimit(1)
                         .accessibilityIdentifier("template.xb.publisher")
                 }
                 if official {
-                    Text("discovery.templateDetail.publisher.official").font(CYTypography.micro)
+                    Text("discovery.templateDetail.publisher.official").cyText(.micro)
                         .foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYNight.glassFill, in: Capsule())
                         .overlay(Capsule().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
                 }
                 if let subtitle, !subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(verbatim: subtitle).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: subtitle).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
             }
             Spacer(minLength: 0)
@@ -82,7 +82,7 @@ struct TemplateXbShareButton: View {
 /// Ghost 应用 pill matching the share key (owner V-24: same fill and text colour, only wider).
 struct TemplateXbApplyLabel: View {
     var body: some View {
-        Text("templateAuthor.adopt").font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+        Text("templateAuthor.adopt").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
             .frame(maxWidth: .infinity, minHeight: 52)
             .background(CYNight.ink2, in: Capsule())
     }
@@ -100,7 +100,7 @@ struct TemplateXbTabs: View {
                     if reduceMotion { selection = tab } else { withAnimation(CYMotion.standard) { selection = tab } }
                 } label: {
                     VStack(spacing: CYSpacing.sm) {
-                        Text(tab.title).font(CYTypography.cardTitle)
+                        Text(tab.title).cyText(.cardTitle)
                             .foregroundStyle(on ? CYColor.textPrimary : CYColor.textTertiary)
                         ZStack {
                             Capsule().fill(Color.clear).frame(height: 3)
@@ -162,14 +162,14 @@ struct TemplateCapabilityRows: View {
         let open = expanded.contains(row.key)
         let visible = row.collapsible && !open ? Array(row.chips.prefix(TemplateCapabilityRow.inlineMax)) : row.chips
         return HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            Text(row.label).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textTertiary)
+            Text(row.label).cyText(.bodyCompact).foregroundStyle(CYColor.textTertiary)
                 .frame(minWidth: 40, alignment: .leading)
             TemplateFlowChips(chips: visible, onAction: onAction)
             Spacer(minLength: 0)
             if row.collapsible {
                 Button { if open { expanded.remove(row.key) } else { expanded.insert(row.key) } } label: {
                     Group { if open { Text("u10.template.cap.collapse") } else { Text("u10.template.cap.expand") } }
-                        .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.label).foregroundStyle(CYColor.textSecondary)
                         .frame(minWidth: 44, minHeight: 44)
                 }
                 .buttonStyle(.plain)
@@ -210,7 +210,7 @@ private struct TemplateFlowChips: View {
 
 struct TemplateChipStyle: ViewModifier {
     func body(content: Content) -> some View {
-        content.font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+        content.cyText(.label).foregroundStyle(CYColor.textPrimary)
             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + CYSpacing.xxs)
             .background(CYNight.ink2, in: Capsule())
     }
@@ -248,8 +248,8 @@ struct TemplateXbSectionTitle: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
             Image(systemName: systemImage).foregroundStyle(CYNight.lantern).accessibilityHidden(true)
-            Text(title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-            if let note { note.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            Text(title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            if let note { note.cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)

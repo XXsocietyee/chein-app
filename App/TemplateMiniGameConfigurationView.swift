@@ -8,7 +8,7 @@ import SwiftUI
         Group {
             if game.isReasoning {
                 TemplateAuthoringField("prompt", text: binding("prompt"), multiline: true)
-                Text(LocalizedStringKey("playkitAuthor.instructions." + game.rawValue)).font(.footnote)
+                Text(LocalizedStringKey("playkitAuthor.instructions." + game.rawValue)).cyText(.bodyCompact)
                 if game == .sort {
                     TemplateAuthoringField("maxAttempts", text: binding("maxAttempts"))
                     sortEditor
@@ -65,11 +65,11 @@ import SwiftUI
         let left = rows("left"), right = rows("right")
         ForEach(0..<max(left.count, right.count), id: \.self) { index in
             VStack(alignment: .leading) {
-                Text(verbatim: String(index + 1)).font(.caption)
+                Text(verbatim: String(index + 1)).cyText(.meta)
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading) { Text("playkitAuthor.left").font(.caption); rowField("left", index: index) }
+                    VStack(alignment: .leading) { Text("playkitAuthor.left").cyText(.meta); rowField("left", index: index) }
                     Image(systemName: "link").accessibilityHidden(true)
-                    VStack(alignment: .leading) { Text("playkitAuthor.right").font(.caption); rowField("right", index: index) }
+                    VStack(alignment: .leading) { Text("playkitAuthor.right").cyText(.meta); rowField("right", index: index) }
                 }
                 Button("playkitAuthor.removePair", role: .destructive) {
                     model.draft.advanced.removeRow(section, "left", index: index)
@@ -92,7 +92,7 @@ import SwiftUI
     }
     @ViewBuilder private var classifyEditor: some View {
         let bins = rows("bins"), items = rows("items")
-        Text("playkitAuthor.categories").font(.headline)
+        Text("playkitAuthor.categories").cyText(.cardTitle)
         ForEach(Array(bins.enumerated()), id: \.offset) { index, _ in
             HStack {
                 rowField("bins", index: index)
@@ -100,7 +100,7 @@ import SwiftUI
             }
         }
         Button("playkitAuthor.addCategory") { model.draft.advanced.appendRow(section, "bins", prefix: "bin", maximum: 4) }.disabled(bins.count >= 4)
-        Text("playkitAuthor.items").font(.headline)
+        Text("playkitAuthor.items").cyText(.cardTitle)
         ForEach(Array(items.enumerated()), id: \.offset) { index, item in
             VStack(alignment: .leading) {
                 rowField("items", index: index)
@@ -131,9 +131,9 @@ import SwiftUI
                 CYHeroHeader("playkitAuthor.preview")
                 if let segment, let kind = PlayKitScreenKind(rawValue: game.section) {
                     if game.isReasoning {
-                        if let prompt = segment["prompt"].text { Text(verbatim: prompt).font(CYTypography.sectionTitle) }
+                        if let prompt = segment["prompt"].text { Text(verbatim: prompt).cyText(.sectionTitle) }
                         PlayKitReasoningForm(kind: kind, segment: segment, enabled: true, onDirty: {}, requestReview: { _, payload, _ in previewPayload = payload })
-                        if let previewPayload { Text("playkitAuthor.previewPayload").font(CYTypography.cardTitle); PlayKitPayloadReadback(payload: previewPayload) }
+                        if let previewPayload { Text("playkitAuthor.previewPayload").cyText(.cardTitle); PlayKitPayloadReadback(payload: previewPayload) }
                     } else {
                         PlayKitSensorChallengeView(kind: kind, segment: segment, enabled: false, active: false, onDirty: {}, requestReview: { _, _, _ in })
                     }

@@ -120,7 +120,7 @@ struct MerchantOpsWp03Panel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? CYSpacing.md : CYSpacing.sm) {
             Text(LocalizedStringKey(titleKey), tableName: "MerchantOpsWp03")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
@@ -163,7 +163,7 @@ private struct MerchantOpsWp03RowView: View {
         VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? CYSpacing.sm : CYSpacing.xs) {
             copy(LocalizedStringKey(titleKey), font: CYTypography.bodyMedium, color: CYColor.textPrimary)
             Text(verbatim: MerchantOpsWp03Catalog.method(for: route.path) + " /" + route.path)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
             state
@@ -216,7 +216,7 @@ private struct MerchantOpsWp03RowView: View {
                 .accessibilityIdentifier("wp03.empty." + route.id)
         case .failed:
             Text(verbatim: reply?.message ?? MerchantOpsWp03Reply.unknown)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             CYPillButton(
@@ -237,7 +237,7 @@ private struct MerchantOpsWp03RowView: View {
                 .accessibilityIdentifier("wp03.signedOut." + route.id)
         case .ready:
             Text(verbatim: reply?.detail ?? MerchantOpsWp03Reply.unknown)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("wp03.ready." + route.id)

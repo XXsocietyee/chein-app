@@ -31,7 +31,7 @@ struct PlayAnswerReview: Identifiable, Equatable {
                         Text(verbatim: review.displayAnswer).fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("play.answer.review.value")
                     } header: { Text(verbatim: localized("answer")) }
-                    Text(verbatim: localized("detail")).font(.footnote)
+                    Text(verbatim: localized("detail")).cyText(.bodyCompact)
                     Button(action: confirm) { Text(verbatim: localized("confirm")) }
                         .buttonStyle(.questifyPrimary).accessibilityIdentifier("play.answer.review.confirm")
                 } else {

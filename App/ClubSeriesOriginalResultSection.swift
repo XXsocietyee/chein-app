@@ -32,7 +32,7 @@ import SwiftUI
     }
     var body: some View {
         Section {
-            Text("seriesOriginal.notice", tableName: "ClubSeriesOriginalResult").font(.footnote).foregroundStyle(.secondary)
+            Text("seriesOriginal.notice", tableName: "ClubSeriesOriginalResult").cyText(.bodyCompact).foregroundStyle(.secondary)
             if readable {
                 Button { refresh &+= 1 } label: { Text("seriesOriginal.read", tableName: "ClubSeriesOriginalResult") }
                     .disabled(busy).accessibilityIdentifier("club.series.original.read")
@@ -47,8 +47,8 @@ import SwiftUI
                     case .applied(let receipt):
                         Text("seriesOriginal.applied", tableName: "ClubSeriesOriginalResult")
                             .accessibilityIdentifier("club.series.original.applied")
-                        Text(verbatim: receipt.requestID).font(.caption).textSelection(.enabled)
-                        Text(verbatim: "#\(receipt.seriesID)").font(.headline)
+                        Text(verbatim: receipt.requestID).cyText(.meta).textSelection(.enabled)
+                        Text(verbatim: "#\(receipt.seriesID)").cyText(.cardTitle)
                         ClubGovernanceFactRows(value: receipt.series,
                             fields: ["recurrenceType", "defaultLeadMemberId", "defaultCapacity", "waitlistEnabled", "offerMinutes"])
                         ForEach(Array(receipt.occurrences.enumerated()), id: \.offset) { _, row in
@@ -60,7 +60,7 @@ import SwiftUI
                                 }
                             }
                         }
-                        DisclosureGroup { Text(verbatim: completeJSON(receipt.value)).font(.caption).textSelection(.enabled) }
+                        DisclosureGroup { Text(verbatim: completeJSON(receipt.value)).cyText(.meta).textSelection(.enabled) }
                             label: { Text("seriesOriginal.complete", tableName: "ClubSeriesOriginalResult") }
                     }
                 }

@@ -283,7 +283,7 @@ struct ClubCommunityFeedView: View {
                     }
                     if let clubID {
                         Button("club.community.next") { Task { await model.loadMorePosts(clubID: clubID) } }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             .disabled(!model.canLoadMorePosts)
                     }
@@ -297,7 +297,7 @@ struct ClubCommunityFeedView: View {
                 }
                 if model.context.coordinator?.permitsInjectedWrites != true {
                     Text("club.community.offline")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -370,7 +370,7 @@ struct ClubCommunityFeedView: View {
     }
     private func communityNotice(_ key: String, identifier: String) -> some View {
         Text(LocalizedStringKey(key))
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier(identifier)
@@ -379,7 +379,7 @@ struct ClubCommunityFeedView: View {
         let read = refresh ?? operation
         return VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(LocalizedStringKey("club.community.pendingLocked"))
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("\(identifierPrefix).pendingLocked.\(pending.operationKind)")
@@ -387,7 +387,7 @@ struct ClubCommunityFeedView: View {
                 Button("club.community.reconcilePending") {
                     Task { await model.reconcilePending(clubID: clubID, post: post, refresh: read) }
                 }
-                .font(CYTypography.label)
+                .cyText(.label)
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 .disabled(model.busy || model.loading)
                 .accessibilityIdentifier("\(identifierPrefix).reconcilePending")
@@ -407,11 +407,11 @@ struct ClubCommunityFeedView: View {
             }
             if item.isRepost {
                 Label("club.community.repostedBy \(item.reposterName)", systemImage: "arrow.2.squarepath")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                 if !item.repostTime.isEmpty {
                     Text(verbatim: item.repostTime)
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textTertiary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
@@ -553,7 +553,7 @@ struct ClubCommunityPostTile: View {
                 }
             }
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .foregroundStyle(CYColor.textPrimary)
         .buttonStyle(.borderless)
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
@@ -616,7 +616,7 @@ struct ClubCommunityPostDetailView: View {
                 if let pending = model.pendingRecord, let targetClubID = post.clubID ?? clubID {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text(LocalizedStringKey("club.community.pendingLocked"))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.community.detail.pendingLocked.\(pending.operationKind)")
@@ -634,7 +634,7 @@ struct ClubCommunityPostDetailView: View {
                                     )
                                 }
                             }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .frame(minHeight: CYSpacing.minTouchTarget)
                             .disabled(model.busy || model.loading)
                             .accessibilityIdentifier("club.community.detail.reconcilePending")
@@ -647,7 +647,7 @@ struct ClubCommunityPostDetailView: View {
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
                 if let notice = model.notice {
                     Text(LocalizedStringKey(notice))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.community.detail.notice")
@@ -735,7 +735,7 @@ struct ClubCommunityComposer: View {
                     if post == nil { CYHeroHeader("club.community.create") }
                     else { CYHeroHeader("club.community.edit") }
                     TextEditor(text: $content)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .scrollContentBackground(.hidden)
                         .padding(CYSpacing.sm)
                         .frame(minHeight: editorMinHeight)
@@ -744,12 +744,12 @@ struct ClubCommunityComposer: View {
                         .accessibilityIdentifier("club.community.content")
                     if content.isEmpty {
                         Text(verbatim: locale.pick("有什么新鲜好玩的分享吗？", "Share something new?"))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .accessibilityHidden(true)
                     }
                     Text(verbatim: "\(content.count)/300")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .monospacedDigit()
                         .foregroundStyle(palette.textSecondary)
                     ClubPostImageSectionView(
@@ -828,7 +828,7 @@ struct ClubCommunityReviewView: View {
         ) {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 Text(LocalizedStringKey("club.community." + review.operation.labelKey))
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -847,7 +847,7 @@ struct ClubCommunityReviewView: View {
                 switch review.operation {
                 case let .create(content, images), let .update(content, images, _):
                     Text(verbatim: content)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     ForEach(Array(images.enumerated()), id: \.offset) { index, image in
@@ -856,27 +856,27 @@ struct ClubCommunityReviewView: View {
                 case let .comment(content):
                     let commentValue = content.isEmpty ? PageTemplateVoiceOver.dash : content
                     Text(verbatim: commentValue)
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityLabel(PageTemplateVoiceOver.spoken(commentValue, locale: locale))
                 case .report, .reportComment:
                     Text("club.community.queuedExplanation")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 case .toggleLike:
                     Text("club.community.toggleWarning")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 case let .pin(pinned, _):
                     Text(pinned ? "club.community.pin" : "club.community.unpin")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                 default:
                     Text("club.community.deleteWarning")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.dangerText)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -887,7 +887,7 @@ struct ClubCommunityReviewView: View {
                         Image(systemName: "wifi.slash").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
                         Text("club.community.offline").foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .padding(CYSpacing.md)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(CYColor.bgSurface, in: .rect(cornerRadius: CYRadius.md))
@@ -935,11 +935,11 @@ struct ClubCommunityReviewView: View {
     private func factRow(_ title: LocalizedStringKey, _ value: String) -> some View {
         HStack {
             Text(title)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: value)
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .monospacedDigit()
         }
@@ -964,14 +964,14 @@ struct ClubCommunityCommentsView: View {
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
                 if let notice = model.notice {
                     Text(LocalizedStringKey(notice))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let pending = model.pendingRecord {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text(LocalizedStringKey("club.community.pendingLocked"))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.community.comments.pendingLocked.\(pending.operationKind)")
@@ -979,7 +979,7 @@ struct ClubCommunityCommentsView: View {
                             Button("club.community.reconcilePending") {
                                 Task { await model.reconcilePending(clubID: clubID, post: post, refresh: operation) }
                             }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .frame(minHeight: CYSpacing.minTouchTarget)
                             .disabled(model.busy || model.loading)
                             .accessibilityIdentifier("club.community.comments.reconcilePending")
@@ -1016,7 +1016,7 @@ struct ClubCommunityCommentsView: View {
                                 Button(canDelete ? "club.community.deleteComment" : "club.community.reportComment") {
                                     Task { await model.prepare(canDelete ? .deleteComment : .reportComment, clubID: clubID, post: post, comment: comment) }
                                 }
-                                .font(CYTypography.label)
+                                .cyText(.label)
                                 .frame(minHeight: CYSpacing.minTouchTarget)
                                 .disabled(model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                             }
@@ -1028,7 +1028,7 @@ struct ClubCommunityCommentsView: View {
                     }
                 }
                 TextField("club.community.commentContent", text: $content, axis: .vertical)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .padding(CYSpacing.md)
                     .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityIdentifier("club.community.commentContent")
@@ -1066,7 +1066,7 @@ struct ClubCommunityHistoryView: View {
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
                 if let notice = model.notice {
                     Text(LocalizedStringKey(notice))
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -1080,12 +1080,12 @@ struct ClubCommunityHistoryView: View {
                         }
                         let contentValue = revision.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PageTemplateVoiceOver.dash : revision.content
                         Text(verbatim: contentValue)
-                            .font(CYTypography.body)
+                            .cyText(.body)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityLabel(PageTemplateVoiceOver.spoken(contentValue, locale: locale))
                         let timeValue = revision.createTime.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? PageTemplateVoiceOver.dash : revision.createTime
                         Text(verbatim: timeValue)
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .monospacedDigit()
                             .fixedSize(horizontal: false, vertical: true)
@@ -1122,7 +1122,7 @@ private struct ClubCommunityCommentRow: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel(PageTemplateVoiceOver.spoken(shown(comment.content), locale: locale))
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .foregroundStyle(CYColor.textPrimary)
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -1154,7 +1154,7 @@ private struct ClubCommunityReferenceCover: View {
                 .accessibilityLabel(Text("club.community.image") + Text(verbatim: " \(index + 1)"))
             if !trimmed.isEmpty {
                 Text(verbatim: trimmed)
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)

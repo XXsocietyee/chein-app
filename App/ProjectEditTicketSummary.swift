@@ -15,7 +15,7 @@ struct ProjectEditTicketSummaryLabel: View {
                 Text("editorKit.tickets.summaryNoPrice \(summary.kinds)", tableName: "EditorKit").foregroundStyle(palette.textSecondary)
             }
         }
-        .font(CYTypography.meta)
+        .cyText(.meta)
         .textCase(nil)
         .accessibilityIdentifier("projectEdit.tickets.summary")
     }
@@ -39,7 +39,7 @@ struct ProjectEditTicketValue: View {
                 Text(verbatim: EditorUnknown.dash)
             }
         }
-        .font(CYTypography.meta)
+        .cyText(.meta)
         .foregroundStyle(palette.textSecondary)
     }
 }

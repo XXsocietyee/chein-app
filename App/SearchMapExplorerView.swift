@@ -76,7 +76,7 @@ import SwiftUI
         ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if reader.isOfflineExample { Text("searchMap.offline").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+                if reader.isOfflineExample { Text("searchMap.offline").cyText(.caption).foregroundStyle(CYColor.textTertiary) }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline).accessibilityAddTraits(.isHeader) }
                 if mode == .city {
                     TextField("searchMap.cityPlaceholder", text: $filter.keyword)
@@ -313,7 +313,7 @@ import SwiftUI
     private func selectedPlaceSummary(_ id: String, area: RoamSearchArea) -> some View {
         let renderedContext = pinSelectionContext
         return VStack(alignment: .leading, spacing: 10) {
-            Text("searchMap.selectedPlace").accessibilityIdentifier("searchMap.selectedSummary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityFocused($selectionFocused)
+            Text("searchMap.selectedPlace").accessibilityIdentifier("searchMap.selectedSummary").cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityFocused($selectionFocused)
             pinDetail(id, area: area)
             Button("searchMap.clearSelection") {
                 guard selectedPin == id, renderedContext.accepts(id, current: pinSelectionContext, isConfigured: reader.isConfigured) else { return }

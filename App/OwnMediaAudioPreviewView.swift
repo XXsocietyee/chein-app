@@ -184,7 +184,7 @@ private struct OwnMediaAudioPreviewViewIdentity: Hashable {
             Button { model.open() } label: { Text("open", tableName: "OwnMediaAudioPreview") }
                 .disabled(!model.available || model.presentation != nil).frame(minHeight: 44)
                 .accessibilityIdentifier("member.media.audioPreview.\(model.asset.id)")
-            if !model.available { Text("unavailable", tableName: "OwnMediaAudioPreview").font(.footnote).foregroundStyle(.secondary) }
+            if !model.available { Text("unavailable", tableName: "OwnMediaAudioPreview").cyText(.bodyCompact).foregroundStyle(.secondary) }
         }
         .onAppear { model.appear(foreground: scenePhase == .active) }
         .onDisappear { model.disappear() }
@@ -218,7 +218,7 @@ private struct OwnMediaAudioPreviewViewIdentity: Hashable {
                 if model.available, model.presentation == offered {
                     OwnMediaAudioPreviewControls(model: model, offered: offered, operation: model.controlRevision)
                 } else { Text("unavailable", tableName: "OwnMediaAudioPreview") }
-                Text("limits", tableName: "OwnMediaAudioPreview").font(.footnote).foregroundStyle(.secondary)
+                Text("limits", tableName: "OwnMediaAudioPreview").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
             .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {

@@ -30,17 +30,17 @@ import SwiftUI
                     Image(systemName: "exclamationmark.bubble.fill")
                         .foregroundStyle(.orange)
                     Text(verbatim: "报价版本或总价已变更，需消费者显式确认后方可继续")
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.bodyMedium)
                 }
                 .accessibilityIdentifier("commerceOrderLifecycle.quoteConfirmationBanner")
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(verbatim: "订单 \(orderSnapshot.orderID) · 整体投影 \(orderSnapshot.projection.rawValue)")
-                    .font(.subheadline.weight(.semibold))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("commerceOrderLifecycle.orderHeader")
                 Text(verbatim: "实物/服务履约与主题权益严格分离统计，互不替代")
-                    .font(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(.secondary)
             }
 
@@ -49,7 +49,7 @@ import SwiftUI
                     Image(systemName: "lock.trianglebadge.exclamationmark.fill")
                         .foregroundStyle(.red)
                     Text(verbatim: "存在 UNKNOWN 状态退款单：已锁定客户端重试，仅允许服务端回查")
-                        .font(.footnote)
+                        .cyText(.bodyCompact)
                 }
                 .accessibilityIdentifier("commerceOrderLifecycle.unknownRefundLockWarning")
             }
@@ -58,18 +58,18 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(verbatim: "行 \(line.lineID) (\(line.skuID) · \(line.kind.rawValue))")
-                            .font(.footnote.weight(.medium))
+                            .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: line.isLineFulfilled ? "已履约" : "履约 \(line.fulfilledQuantity)/\(line.orderedQuantity)")
-                            .font(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(line.isLineFulfilled ? AnyShapeStyle(.green) : AnyShapeStyle(.secondary))
                     }
                     Text(verbatim: "主题权益：生效 \(line.activeEntitlementCount) · 已核销 \(line.consumedEntitlementCount)（不计入实物履约）")
-                        .font(.caption2)
+                        .cyText(.caption)
                         .foregroundStyle(.secondary)
                     if line.hasUnknownRefund {
                         Text(verbatim: "该行退款状态 UNKNOWN，禁止客户端重复发起退款")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.red)
                     }
                 }
@@ -79,12 +79,12 @@ import SwiftUI
             if let redemption = redemptionEvaluation {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "店员核销校验 · \(Self.scopeDecisionLabel(redemption.scopeDecision))")
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text(verbatim: "预览可确认：\(redemption.previewConfirmable ? "是" : "否") · 凭证格式合规：\(redemption.credentialLooksOpaque ? "是" : "否") · 允许终态确认：\(redemption.canProceedToFinalConfirm ? "是" : "否")")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                     Text(verbatim: Self.finalOutcomeLabel(redemption))
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(redemption.isDuplicateRedemption ? AnyShapeStyle(.orange) : AnyShapeStyle(.primary))
                 }
                 .accessibilityIdentifier("commerceOrderLifecycle.redemption")
@@ -93,13 +93,13 @@ import SwiftUI
             if let reward = rewardProjection {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "赞助奖池项 \(reward.itemID) · \(Self.disclosureLabel(reward.disclosure))")
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.bodyMedium)
                     Text(verbatim: "展示门控：\(reward.isPresentable ? "已开启" : "默认关闭") · 冻结券条款校验：\(reward.voucherReadbackAccepted ? "通过（不可缩期或改版）" : "拒绝回退")")
-                        .font(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                     if let refusal = reward.bindingRefusal {
                         Text(verbatim: "绑定拒绝原因：\(refusal.rawValue)")
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.orange)
                     }
                 }

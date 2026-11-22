@@ -67,7 +67,7 @@ import SwiftUI
             else if let issue = model.issue(owner: owner) {
                 CooperationIssueView(issue: issue, retry: issue.canRetry ? { schedule(permit) } : nil)
             } else if let value = model.value(owner: owner) {
-                if reader.isOfflineExample { Label("cooperation.offline", systemImage: "network.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if reader.isOfflineExample { Label("cooperation.offline", systemImage: "network.slash").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 content(value)
             } else {
                 // Mini `cy-skeleton type="list"`: a calm centred spinner until rows arrive.
@@ -117,10 +117,10 @@ struct CooperationIssueView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(LocalizedStringKey(issue.key), systemImage: issue == .login ? "lock" : symbol)
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("cooperation.issue")
-            if case .server(let text) = issue { Text(verbatim: text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
+                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("cooperation.issue")
+            if case .server(let text) = issue { Text(verbatim: text).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
             if case .forbidden(let message) = issue, let message, !message.isEmpty {
-                Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
             }
             if let retry { Button("cooperation.retry", action: retry).accessibilityIdentifier("cooperation.retry") }
         }.padding(.vertical, 8)

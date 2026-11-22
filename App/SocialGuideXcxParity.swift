@@ -11,7 +11,7 @@ struct SocialGuideXcxHero: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYHeroHeader("guideXcx.heroLead", subtitle: "guideXcx.heroDetail")
-            Text("guideXcx.heroEmphasis").font(CYTypography.label).foregroundStyle(palette.textSecondary)
+            Text("guideXcx.heroEmphasis").cyText(.label).foregroundStyle(palette.textSecondary)
         }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.hero")
             .themeDomain(.player)
     }
@@ -31,12 +31,12 @@ struct SocialGuideXcxModeRow: View {
                     .background(CYNight.ink2, in: Circle())
                     .overlay(Circle().strokeBorder(CYNight.glassEdgeTop, lineWidth: 1))
                     .accessibilityHidden(true)
-                Text(mode.titleKey).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(mode.titleKey).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             }
             if onOpen != nil {
                 HStack {
                     Spacer(minLength: 0)
-                    Text("guideXcx.go").font(CYTypography.label.weight(.semibold))
+                    Text("guideXcx.go").cyText(.label, weight: .semibold)
                         .foregroundStyle(CYNight.ink0).padding(.horizontal, CYSpacing.xxl).frame(minHeight: 44)
                         .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }

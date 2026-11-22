@@ -211,7 +211,7 @@ struct CYLookButtonStyle: ButtonStyle {
         case .text: colors.mute.swiftUIColor
         }
         configuration.label
-            .font(CYTypography.label)
+            .cyText(.label)
             .fontDesign(look?.buttonDesign ?? .default)
             .tracking(look?.style == .survival || look?.style == .cyber ? 1.6 : 0)
             .foregroundStyle(text)

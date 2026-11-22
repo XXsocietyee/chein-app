@@ -104,7 +104,7 @@ import SwiftUI
             CYHeroHeader("d7.channelWelcome.title")
             if !detail.isEmpty {
                 Text(verbatim: detail)
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -118,7 +118,7 @@ import SwiftUI
     private func signpostRow(_ item: NativeChannelWelcomeSnapshot.Signpost) -> some View {
         CYListRow(verbatim: item.label, trailing: .chevron) {
             Text(verbatim: item.emoji)
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .accessibilityHidden(true)

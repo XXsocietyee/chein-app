@@ -48,7 +48,7 @@ struct CYStatusChip: View {
             Group {
                 if let verbatim { Text(verbatim: verbatim) } else { Text(text, tableName: tableName) }
             }
-            .font(CYTypography.micro.weight(.semibold))
+            .cyText(.micro)
         }
         .foregroundStyle(foreground)
         .padding(.horizontal, 9)
@@ -102,7 +102,7 @@ struct CYCountBadge: View {
     var body: some View {
         if let label {
             Text(verbatim: label)
-                .font(CYTypography.micro.weight(.bold).monospacedDigit())
+                .cyText(.micro, weight: .bold, monospacedDigit: true)
                 .foregroundStyle(palette.actionDangerFg)
                 .padding(.horizontal, 5)
                 .frame(minWidth: 16, minHeight: 16)

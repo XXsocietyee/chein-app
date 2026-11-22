@@ -27,7 +27,7 @@ extension EnvironmentValues {
             Section {
                 VStack(alignment: .leading, spacing: Theme.Space.s2) {
                     Text(LocalizedStringKey(controller.messageKey), tableName: table)
-                        .font(.body)
+                        .cyText(.body)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cityMerchant.status")
                     if controller.busy {
@@ -40,7 +40,7 @@ extension EnvironmentValues {
                     reference("cityMerchant.merchant", value: value.merchantId)
                     reference("cityMerchant.version", value: String(value.version))
                     Text(LocalizedStringKey(value.effectiveState == "PAUSED" ? "cityMerchant.state.paused" : "cityMerchant.state.inherit"), tableName: table)
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .fixedSize(horizontal: false, vertical: true)
                     if let relation = value.relation {
                         reference("cityMerchant.board", value: relation.boardId)
@@ -55,7 +55,7 @@ extension EnvironmentValues {
                         .font(.subheadline).foregroundStyle(.secondary)
                         .accessibilityHidden(true)
                     TextField(text: $reason, axis: .vertical) { Text("cityMerchant.reason", tableName: table) }
-                        .font(.body)
+                        .cyText(.body)
                         .lineLimit(3...6)
                         .accessibilityIdentifier("cityMerchant.reason")
                 }.padding(.vertical, Theme.Space.s1)
@@ -74,7 +74,7 @@ extension EnvironmentValues {
                         .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                 }
                     .disabled(!controller.canPrepare || controller.snapshot?.effectiveState != "PAUSED")
-                Text("cityMerchant.disclaimer", tableName: table).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                Text("cityMerchant.disclaimer", tableName: table).cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             } header: { Text("cityMerchant.intent.heading", tableName: table) }
             if let request = controller.pendingRequestID {
                 Section {
@@ -85,14 +85,14 @@ extension EnvironmentValues {
             if let receipt = controller.receipt, let id = receipt.originalRequestId {
                 Section {
                     reference("cityMerchant.original", value: id)
-                    Text("cityMerchant.receipt.recorded", tableName: table).font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    Text(verbatim: receipt.status).font(.callout.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    Text("cityMerchant.receipt.recorded", tableName: table).cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: receipt.status).cyText(.cardTitle).fixedSize(horizontal: false, vertical: true)
                 } header: { Text("cityMerchant.receipt", tableName: table) }
             }
             if let rejection = controller.originalRejection {
                 Section {
                     reference("cityMerchant.original", value: rejection.requestID.uuidString)
-                    Text("cityMerchant.status.notApplied", tableName: table).font(.body).fixedSize(horizontal: false, vertical: true)
+                    Text("cityMerchant.status.notApplied", tableName: table).cyText(.body).fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: rejection.reason).font(.footnote.monospaced()).foregroundStyle(.secondary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 } header: { Text("cityMerchant.receipt", tableName: table) }
             }
@@ -101,7 +101,7 @@ extension EnvironmentValues {
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: .merchant))
-        .font(.body)
+        .cyText(.body)
         .tint(Theme.Color.actionPrimaryBackground(in: .merchant))
         .themeDomain(.merchant)
         .scrollDismissesKeyboard(.interactively)
@@ -161,7 +161,7 @@ extension EnvironmentValues {
     }
     private func actionLabel(_ key: String) -> some View {
         Text(LocalizedStringKey(key), tableName: table)
-            .font(.body.weight(.semibold))
+            .cyText(.cardTitle)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
             .contentShape(Rectangle())

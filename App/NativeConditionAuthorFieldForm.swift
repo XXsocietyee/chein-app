@@ -72,7 +72,7 @@ import SwiftUI
                 .filter { !writable || (!$0.key.hasPrefix("sys.passed.") && !$0.key.hasPrefix("sys.quest.") && !OriginalRpgGrowthFacts.reserved($0.key) && !NativeRpgEnvironmentTemplateDraft.conditionKeys.contains($0.key) && !OriginalRpgProgressConditions.reserved($0.key)) }
                 .filter { !["ADD", "MIN", "MAX", "RESET", "CLAMP"].contains(operation) || model.catalog?.component?.dynamicCounters.contains($0.key) == true }
             picker(field.key, options: options.map { .init(id: $0.key, label: $0.label + " · " + $0.key) })
-            if options.isEmpty { Text("nativeCondition.noAttributes").font(.footnote) }
+            if options.isEmpty { Text("nativeCondition.noAttributes").cyText(.bodyCompact) }
         case .node: picker(field.key, options: model.catalog?.nodes ?? [])
         case .item:
             let held = ["ITEM_HELD", "ITEM_ACQUIRED"].contains(operation)

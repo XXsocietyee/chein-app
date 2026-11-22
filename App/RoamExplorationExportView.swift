@@ -308,7 +308,7 @@ private struct RoamExportFileSaveLink: View {
                        in: RoamShanghaiPicker.date(startDate)..., displayedComponents: .date)
                 .environment(\.timeZone, RoamShanghaiPicker.timeZone).accessibilityIdentifier("roam.export.endDate")
             if !RoamExportContract.isValidRange(start: startDate, end: endDate) {
-                Text("roam.export.rangeLimit").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("roam.export.rangeLimit")
+                Text("roam.export.rangeLimit").cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("roam.export.rangeLimit")
             }
         }.disabled(model.isBusy)
         Section {
@@ -321,7 +321,7 @@ private struct RoamExportFileSaveLink: View {
     @ViewBuilder private var progress: some View {
         Section {
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: "\(model.percent)%").font(.largeTitle.bold()).monospacedDigit()
+                Text(verbatim: "\(model.percent)%").cyText(.pageTitle).monospacedDigit()
                 Spacer()
                 Text("roam.export.readCount \(model.read) \(model.expected)").font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
             }.accessibilityElement(children: .combine).accessibilityIdentifier("roam.export.progress")
@@ -333,7 +333,7 @@ private struct RoamExportFileSaveLink: View {
         if let file = model.fileForDelivery(foreground: scenePhase == .active) {
             Section {
                 LabeledContent { Text("roam.export.rows \(file.rows)") } label: {
-                    Label { Text(verbatim: file.fileName) } icon: { Text(verbatim: "JSONL").font(.caption2.bold()) }
+                    Label { Text(verbatim: file.fileName) } icon: { Text(verbatim: "JSONL").cyText(.caption, weight: .bold) }
                 }.accessibilityIdentifier("roam.export.file")
                 CYPillButton("roam.export.share") {
                     if owner.active, let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {

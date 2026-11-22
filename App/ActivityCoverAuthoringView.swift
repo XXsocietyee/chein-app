@@ -194,7 +194,7 @@ import UIKit
     @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            label("boundary").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+            label("boundary").cyText(.meta).foregroundStyle(palette.textTertiary)
             if !owner.isOpen {
                 if let reference = owner.visiblePreviewReference {
                     DiscoveryArtwork(source: reference)
@@ -213,7 +213,7 @@ import UIKit
                 }
             } else {
                 Text(LocalizedStringKey(owner.current ? owner.status : "changed"), tableName: "ActivityCoverAuthoring")
-                    .font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                    .cyText(.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("activityCover.status")
                 Button(action: owner.chooseAction()) { label("choose") }
                     .buttonStyle(CYPillButtonStyle(style: .secondary))

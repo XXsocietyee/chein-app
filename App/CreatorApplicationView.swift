@@ -20,10 +20,10 @@ import SwiftUI
                         .frame(width: 52, height: 52)
                         .background(SettingsTint.indigo.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
                         .accessibilityHidden(true)
-                    Text(zh ? "成为创作者" : "Become a creator").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    Text(zh ? "成为创作者" : "Become a creator").cyText(.dataXL)
                         .foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                     Text(zh ? "把你的路线和故事分享给这座城市。" : "Share your own routes and stories with the city.")
-                        .font(.body).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.body).foregroundStyle(CYColor.textSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .listRowBackground(Color.clear)

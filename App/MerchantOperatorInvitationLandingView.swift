@@ -14,7 +14,7 @@ import SwiftUI
     var body: some View {
         List {
             Text("merchant.engagement.invitationUnknownTarget")
-            Text("merchant.engagement.invitationConsequence").font(.footnote)
+            Text("merchant.engagement.invitationConsequence").cyText(.bodyCompact)
             if reader.scope == nil {
                 Text("merchant.engagement.invitationSignInHint")
                 Button("merchant.signIn", action: requestSignIn).accessibilityIdentifier("merchant.engagement.inviteSignIn")

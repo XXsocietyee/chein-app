@@ -46,12 +46,12 @@ struct TopicSessionSelectionView: View {
                 if !detail.tickets.isEmpty {
                     Section("topic.tickets") {
                         Text("topic.sessionSelection.ticketDependency")
-                            .font(.footnote)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("topic.sessionSelection.ticketDependency")
                         ForEach(Array(detail.tickets.enumerated()), id: \.offset) { _, ticket in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: ticket.name).font(.headline)
+                                Text(verbatim: ticket.name).cyText(.cardTitle)
                                 TopicPrice(value: ticket.price, label: "topic.price")
                                 if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
                                 if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
@@ -92,7 +92,7 @@ struct TopicSessionSelectionView: View {
 
     private func activityRow(_ activity: TopicActivitySummary) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: activity.name).font(.headline)
+            Text(verbatim: activity.name).cyText(.cardTitle)
             if let address = activity.addressName { Text(verbatim: address) }
             if let start = activity.startDate { LabeledContent("topic.start", value: start) }
             if let end = activity.endDate { LabeledContent("topic.end", value: end) }

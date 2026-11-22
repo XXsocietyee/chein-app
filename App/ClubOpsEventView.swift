@@ -76,7 +76,7 @@ import SwiftUI
         VStack(spacing: CYSpacing.sm) {
             CYEmptyState(systemImage: "lock", "clubOpsEvent.denied.title", tableName: "ClubOpsEvent", kind: .generic)
             Text("clubOpsEvent.denied.body", tableName: "ClubOpsEvent")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
@@ -96,7 +96,7 @@ import SwiftUI
                     } icon: {
                         Image(systemName: "eye.slash").accessibilityHidden(true)
                     }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("clubOpsEvent.roster.hidden")
                 }
@@ -181,7 +181,7 @@ import SwiftUI
             CYRowIcon(systemImage: "calendar")
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 title
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let enabled = row.waitlistEnabled {
@@ -226,7 +226,7 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     CYEmptyState(systemImage: "calendar", "clubOpsEvent.series.empty", tableName: "ClubOpsEvent")
                     Text("clubOpsEvent.series.emptyHint", tableName: "ClubOpsEvent")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
@@ -261,7 +261,7 @@ struct ClubOpsEventOccurrenceMetaText: View {
     let meta: ClubOpsEventOccurrenceMeta
     var body: some View {
         metaText
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .monospacedDigit()
             .fixedSize(horizontal: false, vertical: true)
@@ -290,20 +290,20 @@ struct ClubOpsEventOccurrenceMetaText: View {
                 ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
                 if let reason {
                     Text("clubOpsEvent.cancel.reason \(reason)", tableName: "ClubOpsEvent")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }.accessibilityIdentifier("clubOpsEvent.cancel.cancelled")
         case .active?:
             Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.active")
         case nil:
             Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent")
-                .font(CYTypography.body)
+                .cyText(.body)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.unknownState")
@@ -319,7 +319,7 @@ struct ClubOpsEventOccurrenceMetaText: View {
     var body: some View {
         if !confirmed {
             Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.incomplete")
@@ -377,7 +377,7 @@ struct ClubOpsEventSeriesConflictNotice: View {
             } icon: {
                 Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
             }
-            .font(CYTypography.body)
+            .cyText(.body)
             .foregroundStyle(CYColor.warningText)
             .accessibilityIdentifier("clubOpsEvent.series.conflict")
         }
@@ -389,7 +389,7 @@ private struct ClubOpsTableHeading: View {
     init(_ key: String) { self.key = key }
     var body: some View {
         Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
-            .font(CYTypography.sectionTitle)
+            .cyText(.sectionTitle)
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -402,7 +402,7 @@ private struct ClubOpsTableNote: View {
     init(_ key: String) { self.key = key }
     var body: some View {
         Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
             .textCase(nil)
             .fixedSize(horizontal: false, vertical: true)
@@ -431,7 +431,7 @@ private struct ClubOpsEventStatusLine: View {
         } icon: {
             Image(systemName: symbol).accessibilityHidden(true)
         }
-        .font(CYTypography.body)
+        .cyText(.body)
         .foregroundStyle(tone)
         .accessibilityElement(children: .combine)
     }

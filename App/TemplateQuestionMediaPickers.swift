@@ -83,7 +83,7 @@ private extension TemplateAuthoringModel {
 
     var body: some View {
         HStack(spacing: CYSpacing.sm) {
-            ConfigR4Text.text(kind.labelKey).font(CYTypography.label).foregroundStyle(palette.textSecondary)
+            ConfigR4Text.text(kind.labelKey).cyText(.label).foregroundStyle(palette.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             Menu {
                 menu()
@@ -170,9 +170,9 @@ private extension TemplateAuthoringModel {
                         .font(CYTypography.sectionTitle)
                         .accessibilityHidden(true)
                     ConfigR4Text.text(reference.isEmpty ? "config.qimage.choose" : "config.qimage.set")
-                        .font(CYTypography.bodyMedium)
+                        .cyText(.bodyMedium)
                     ConfigR4Text.text("config.qimage.boundary")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textTertiary)
                 }
                 .foregroundStyle(palette.textSecondary)
@@ -196,7 +196,7 @@ private extension TemplateAuthoringModel {
     @ViewBuilder private var openFlow: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             ConfigR4Text.text(owner.current ? "config.qimage.status." + owner.status : "config.qimage.status.changed")
-                .font(CYTypography.bodyCompact)
+                .cyText(.bodyCompact)
                 .foregroundStyle(owner.status == "rejected" || owner.status == "unknown" ? palette.danger : palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("config.qimage.status")
@@ -263,10 +263,10 @@ private extension TemplateAuthoringModel {
                     VStack(alignment: .leading, spacing: 2) {
                         ConfigR4Text.text(isSet ? (kind == .audio ? "config.qaudio.set" : "config.qimage.set")
                                                 : (kind == .audio ? "config.qaudio.empty" : "config.qimage.empty"))
-                            .font(CYTypography.bodyMedium)
+                            .cyText(.bodyMedium)
                             .foregroundStyle(palette.textPrimary)
                         ConfigR4Text.text(kind == .audio ? "config.qaudio.choose" : "config.qimage.checkLocal")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textTertiary)
                     }
                     Spacer(minLength: CYSpacing.sm)

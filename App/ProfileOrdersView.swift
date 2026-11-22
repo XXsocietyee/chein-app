@@ -140,7 +140,7 @@ private struct ProfileOrderRow: View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             content
             if let explanation = UnknownPaymentState.explanation(payment: order.paymentStatus, registration: order.registrationStatus) {
-                Text(verbatim: explanation).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: explanation).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("profile.orders.history.unknownPayment")
             }
             Divider().overlay(CYColor.borderSubtle)
@@ -168,7 +168,7 @@ private struct ProfileOrderRow: View {
                     if let title = order.title, !title.isEmpty { Text(verbatim: title) }
                     else { Text("profile.orders.untitled") }
                 }
-                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 // Source row shows the owner's MM.dd HH:mm range; otherwise keep the literal date.
                 if let range = ProfileOrderTimeRangeText.text(start: order.startDate, end: order.endDate) {
@@ -186,9 +186,9 @@ private struct ProfileOrderRow: View {
         switch order.sourceMode {
         case .cityOrienteering?:
             // HANDOFF-R1 MC-35 / §2 Status: blue is not used for status or tags.
-            Text("profile.orders.mode.city").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.textSecondary)
+            Text("profile.orders.mode.city").cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
         case .freeExplore?:
-            Text("profile.orders.mode.free").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.successText)
+            Text("profile.orders.mode.free").cyText(.caption, weight: .bold).foregroundStyle(CYColor.successText)
         case nil: EmptyView()
         }
     }
@@ -203,9 +203,9 @@ private struct ProfileOrderRow: View {
             // Source 实付款 ¥x; an unknown amount shows "—", never a currency caveat.
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                 // Source: 待付款 while registrationStatus == 1, otherwise 实付款.
-                Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
-                    .font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                     .cyWrapText()
             }
             if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
@@ -414,7 +414,7 @@ struct ProfileOrderDetailView: View {
             .frame(minHeight: 44).disabled(target == nil || !ticketEntryVisible)
             .accessibilityIdentifier("orderTicketEntry.open")
         Text(target == nil ? "orderTicketEntry.unavailable" : "orderTicketEntry.freshRead")
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
     }
     private func retireTicketEntry() { ticketTarget = nil; ticketPresentationID = UUID() }
 }
@@ -425,13 +425,13 @@ struct ProfileOrderTicketScheduleRows: View {
     var body: some View {
         let schedule = ProfileOrderSchedulePresentation(order)
         if schedule.isTicket {
-            Text("profileTicketSchedule.title").font(.subheadline.weight(.semibold))
+            Text("profileTicketSchedule.title").cyText(.bodyMedium)
                 .accessibilityIdentifier("profile.order.ticketSchedule")
             ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start)
             ProfileOrderTicketTimeRow(label: "profile.orders.end", value: schedule.end)
         } else {
             if schedule.start != .absent || schedule.end != .absent {
-                Text("profileTicketSchedule.ownerTimes").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text("profileTicketSchedule.ownerTimes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("profile.order.ownerSchedule")
             }
             if schedule.start != .absent { ProfileOrderTicketTimeRow(label: "profile.orders.start", value: schedule.start) }
@@ -466,7 +466,7 @@ struct ProfileOrderTicketTimeRow: View {
             } else if case .source(let raw) = value {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(verbatim: raw).textSelection(.enabled)
-                    Text("profileTicketSchedule.unparsed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("profileTicketSchedule.unparsed").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.fixedSize(horizontal: false, vertical: true)
             } else { Text("profile.orders.unknown") }
         }
@@ -521,7 +521,7 @@ private struct ProfileOrderStateNoticeSection: View {
                             .background(Capsule().fill(CYColor.bgSurfaceSubtle))
                             .accessibilityIdentifier("profile.order.detail.stateTag")
                     }
-                    if let hint = notice.hint { Text(verbatim: hint).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                    if let hint = notice.hint { Text(verbatim: hint).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 }.padding(.vertical, 4).accessibilityElement(children: .contain)
             }
         }

@@ -34,7 +34,7 @@ struct SearchMapCanvas: View {
                             Button { onSelect?(pin.id) } label: {
                                 HStack(spacing: 12) {
                                     QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)
-                                    Text(verbatim: pin.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                                    Text(verbatim: pin.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                                         .multilineTextAlignment(.leading)
                                 }
                                 .padding(.trailing, CYSpacing.md)

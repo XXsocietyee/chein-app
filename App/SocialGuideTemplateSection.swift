@@ -150,7 +150,7 @@ enum SocialGuideTemplateRows {
                                         Text("social.guideTemplates.playedTimes \(count)").font(.caption).foregroundStyle(.secondary)
                                     }
                                     Spacer(minLength: 0)
-                                    Text("social.guideTemplates.start").font(CYTypography.label.weight(.semibold))
+                                    Text("social.guideTemplates.start").cyText(.label, weight: .semibold)
                                         .foregroundStyle(CYNight.ink0).padding(.horizontal, CYSpacing.xl).frame(minHeight: 44)
                                         .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                                 }

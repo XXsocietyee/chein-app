@@ -102,13 +102,13 @@ private struct Cur6ErrorLab: View {
             }
             Section {
                 Text(verbatim: "\(host) money=\(money) payout=\(payoutOpen) writes=\(writes) password=\(password)")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .accessibilityIdentifier("cur6.error.area")
                 Text(verbatim: "FEATURE_CLOSED \(featurePaid)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .accessibilityIdentifier("cur6.error.featureClosed")
                 Text(verbatim: "CASH_CLOSED \(cashPaid)")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .accessibilityIdentifier("cur6.error.cashClosed")
                 Text(verbatim: BackendErrorCatalog.playerFacing(code: "FEATURE_CLOSED", language: language))
                 Text(verbatim: BackendErrorCatalog.playerFacing(code: "CASH_CLOSED", language: language))
@@ -119,8 +119,8 @@ private struct Cur6ErrorLab: View {
 
     private func row(_ label: String, _ sentence: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(verbatim: label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            Text(verbatim: sentence).font(CYTypography.body)
+            Text(verbatim: label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: sentence).cyText(.body)
         }
         .accessibilityIdentifier("cur6.error.\(label)")
     }
@@ -136,7 +136,7 @@ private struct Cur6PermitLab: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             Spacer()
             CYPermissionPrimer(kind: kind, denied: denied, locale: locale, onPrimary: { lastAction = "primary" }, onSecondary: { lastAction = "secondary" })
-            Text(verbatim: "Offline example · \(lastAction)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: "Offline example · \(lastAction)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("cur6.permit.lastAction")
             Spacer()
         }
@@ -222,7 +222,7 @@ private struct Cur6ChatExport: View {
             if filled, let loaded = Cur6Chat.sample {
                 NPCChatDataExportButton(data: loaded)
                 Text(verbatim: NPCChatDataExportButton.readable(loaded, locale: locale))
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .accessibilityIdentifier("cur6.chat.readable")
             } else {
                 NPCChatDataExportButton(data: nil)

@@ -45,7 +45,7 @@ struct SettingsView: View {
                     Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
                         .accessibilityHidden(true)
                 }
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .padding(.horizontal, CYSpacing.lg)
                 .accessibilityAddTraits(homeFacts.phase == .loading ? .updatesFrequently : .isStaticText)
                 .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
@@ -218,7 +218,7 @@ struct SettingsAccountCard: View {
     var body: some View {
         HStack(alignment: .center, spacing: CYSpacing.lg) {
             Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
-                .font(.system(.title, design: .rounded, weight: .bold)).foregroundStyle(palette.textPrimary)
+                .cyText(.dataXL).foregroundStyle(palette.textPrimary)
                 .frame(width: 60, height: 60)
                 .background(Circle().fill(palette.bgRaised))
                 .overlay {
@@ -228,7 +228,7 @@ struct SettingsAccountCard: View {
                 }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale).font(.system(.title3, weight: .semibold)).foregroundStyle(palette.textPrimary)
+                PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale).cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                     .cyWrapText()
                 Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(palette.textSecondary)
                     .cyWrapText()

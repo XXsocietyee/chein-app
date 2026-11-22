@@ -57,7 +57,7 @@ import SwiftUI
                         RoamExperienceIssue(error: APIError.unauthorized)
                         if let subtitle = model.activeAvailability.statusSubtitle {
                             Text(verbatim: subtitle)
-                                .font(.footnote)
+                                .cyText(.bodyCompact)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -68,7 +68,7 @@ import SwiftUI
                         RoamExperienceIssue(error: APIError.notConfigured)
                         if let subtitle = model.activeAvailability.statusSubtitle {
                             Text(verbatim: subtitle)
-                                .font(.footnote)
+                                .cyText(.bodyCompact)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -97,7 +97,7 @@ import SwiftUI
     @ViewBuilder private var readyContent: some View {
         if let total = model.totalCount {
             Text(verbatim: "\(model.selectedTab.title) · 共 \(total) 枚")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("roam.receivedStamp.total")
         }

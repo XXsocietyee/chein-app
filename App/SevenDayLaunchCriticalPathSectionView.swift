@@ -224,7 +224,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
     private var headerView: some View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.sectionTitle)
-                .font(.headline)
+                .cyText(.cardTitle)
                 .accessibilityIdentifier("sevenDayLaunchPlan.title")
             Spacer()
             Text(verbatim: snapshot.planBadgeText)
@@ -252,7 +252,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
                 .accessibilityIdentifier("sevenDayLaunchPlan.bannerState")
 
             Text(verbatim: snapshot.bannerSummaryText)
-                .font(.caption)
+                .cyText(.meta)
                 .accessibilityIdentifier("sevenDayLaunchPlan.bannerSummary")
         }
         .accessibilityElement(children: .contain)
@@ -262,7 +262,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
     private var externalOpsChecklistCardView: some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(verbatim: "外部运维与环境核验项")
-                .font(.caption.weight(.semibold))
+                .cyText(.meta, weight: .semibold)
                 .accessibilityIdentifier("sevenDayLaunchPlan.opsHeader")
 
             Text(verbatim: "• \(snapshot.localXcconfigCheckText)")
@@ -289,7 +289,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
     private var dayMilestonesSectionView: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "7天里程碑排期 (\(snapshot.days.count) 天)")
-                .font(.subheadline.weight(.semibold))
+                .cyText(.bodyMedium)
                 .accessibilityIdentifier("sevenDayLaunchPlan.daysHeader")
 
             ForEach(snapshot.days) { milestone in
@@ -301,10 +301,10 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: milestone.title)
-                            .font(.caption.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .accessibilityIdentifier("sevenDayLaunchPlan.day.\(milestone.id).title")
                         Text(verbatim: milestone.deliverableSummary)
-                            .font(.caption2)
+                            .cyText(.caption)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("sevenDayLaunchPlan.day.\(milestone.id).summary")
                     }
@@ -312,7 +312,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
                     Spacer()
 
                     Text(verbatim: milestone.statusBadgeText)
-                        .font(.caption2.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(Color.accentColor.opacity(0.14)))

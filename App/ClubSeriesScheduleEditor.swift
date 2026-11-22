@@ -716,13 +716,13 @@ struct ClubSeriesOfferWindowField: View {
             TextField("club.gov.field.offerMinutes", text: $minutes)
                 .keyboardType(.numberPad)
                 .accessibilityIdentifier("club.gov.input.offerMinutes")
-            Text(verbatim: "5–1440").font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: "5–1440").cyText(.meta).foregroundStyle(.secondary)
                 .accessibilityIdentifier("club.schedule.offer.range")
             if let duration = presentation.duration(locale: locale) {
-                Text(verbatim: duration).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: duration).cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("club.schedule.offer.duration")
             } else {
-                Text("club.gov.invalid").font(.caption).foregroundStyle(CYColor.dangerText)
+                Text("club.gov.invalid").cyText(.meta).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.schedule.offer.invalid")
             }
         }

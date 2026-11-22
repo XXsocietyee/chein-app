@@ -16,17 +16,17 @@ import SwiftUI
                 // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one.
                 handle(.accept, label: "cooperation.detail.accept", emphasis: true)
                 handle(.reject, label: "cooperation.detail.reject")
-                Text("cooperation.detail.reply.hint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("cooperation.detail.reply.hint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             case .withdraw:
                 handle(.cancel, label: "cooperation.detail.withdraw")
-                Text("cooperation.detail.withdraw.hint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("cooperation.detail.withdraw.hint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             case .deposit:
                 // 去缴纳保证金 has no payment path in the app; the owed amount is shown in 合作条款 above.
                 Text("cooperation.detail.deposit.owedFooter").foregroundStyle(.secondary)
                 // Mini goDeposit only sends the user back to the cooperation list, where the deposit flow lives.
                 Button("cooperation.detail.deposit.backToList") { dismiss() }
                     .accessibilityIdentifier("cooperation.detail.deposit.backToList")
-                Text("cooperation.detail.deposit.unavailable").font(.footnote).foregroundStyle(.secondary)
+                Text("cooperation.detail.deposit.unavailable").cyText(.bodyCompact).foregroundStyle(.secondary)
             case .ongoing(let frozen):
                 Text(LocalizedStringKey(frozen ? "cooperation.detail.footer.ongoingFrozen" : "cooperation.detail.footer.ongoing")).foregroundStyle(.secondary)
             case .inactive: Text("cooperation.detail.footer.inactive").foregroundStyle(.secondary)
@@ -55,7 +55,7 @@ import SwiftUI
             if view.cancelLocked {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("cooperation.detail.cancelAccepted").foregroundStyle(.secondary)
-                    Text("cooperation.detail.cancelLocked").font(.footnote).foregroundStyle(.secondary)
+                    Text("cooperation.detail.cancelLocked").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.cancelLocked")
             } else {
                 NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: .cancel, currentStatus: 1) } label: {
@@ -224,7 +224,7 @@ struct CoopStarRatingControl: View {
                     Text(verbatim: MerchantAreaCopy.text("点星星打分", "Tap a star to rate", locale))
                 }
             }
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .ignore)

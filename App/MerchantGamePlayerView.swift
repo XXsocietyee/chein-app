@@ -71,7 +71,7 @@ struct MerchantGamePlayerView: View {
                         LabeledContent { Text(verbatim: "\(releaseID) · v\(version)") } label: { copy("Release and revision", "发布与内容版本") }
                         ForEach(facts.keys.sorted(), id: \.self) { key in
                             VStack(alignment: .leading, spacing: 6) {
-                                fieldLabel(key).font(.caption).foregroundStyle(.secondary)
+                                fieldLabel(key).cyText(.meta).foregroundStyle(.secondary)
                                 Text(verbatim: facts[key] ?? "").lineLimit(nil).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                             }.accessibilityElement(children: .combine)
                         }
@@ -94,7 +94,7 @@ struct MerchantGamePlayerView: View {
                 } else if !coordinator.busy && coordinator.failure == nil { (coordinator.acknowledged ? copy("The terminal result was read and its local pending marker was closed. No new request was sent.", "已回读终态并关闭本地待确认记录，没有发送新请求。") : copy("No pending request is recorded for this account and store.", "当前账号在本店没有待确认请求。")) }
                 if let result = coordinator.original {
                     status(result)
-                    if !result.safeText.isEmpty { Text(verbatim: result.safeText).font(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("merchant.game.player.originalText") }
+                    if !result.safeText.isEmpty { Text(verbatim: result.safeText).cyText(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("merchant.game.player.originalText") }
                     if result.terminal && coordinator.pending != nil {
                         Button { confirmAcknowledge = true } label: { copy("Close this pending record", "关闭该待确认记录") }
                             .disabled(!coordinator.canAcknowledge)
@@ -113,7 +113,7 @@ struct MerchantGamePlayerView: View {
             Label { message(failure) } icon: {
                 Image(systemName: failureIcon(failure))
             }
-            .font(.headline)
+            .cyText(.cardTitle)
             .fixedSize(horizontal: false, vertical: true)
         }
         .padding()

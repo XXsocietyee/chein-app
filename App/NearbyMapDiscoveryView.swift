@@ -212,7 +212,7 @@ struct NearbyMapDiscoveryControls: View {
                         Text(verbatim: filter.tag)
                         CYPillButton(verbatim: String(localized: LocalizedStringResource("nearby.map.allTags", table: "NearbyMapDiscovery", locale: locale)), style: .secondary, fullWidth: false) { filter.tag = "" }
                     }
-                    Text("nearby.map.selectedCondition", tableName: "NearbyMapDiscovery").font(.caption)
+                    Text("nearby.map.selectedCondition", tableName: "NearbyMapDiscovery").cyText(.meta)
                 }
             }
         }
@@ -240,14 +240,14 @@ struct NearbyMapDiscoveryStatusView: View {
                 if events { Text("nearby.map.eventsLoading", tableName: "NearbyMapDiscovery") }
                 else { Text("nearby.map.poisLoading", tableName: "NearbyMapDiscovery") }
             }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            .cyText(.meta).foregroundStyle(CYColor.textTertiary)
             .accessibilityElement(children: .combine)
         case .failed:
             Group {
                 if events { Text("nearby.map.eventsFailed", tableName: "NearbyMapDiscovery") }
                 else { Text("nearby.map.poisFailed", tableName: "NearbyMapDiscovery") }
             }
-            .font(CYTypography.label).foregroundStyle(CYColor.warningText)
+            .cyText(.label).foregroundStyle(CYColor.warningText)
             if let issue { RoamStatusView(issue: issue, retry: retry) }
         case .unavailable:
             if events {
@@ -276,7 +276,7 @@ struct NearbyMapDiscoveryRow: View {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     RoamItemRow(item: item, showsCurrentReadStatus: true)
                     if case .place(let place) = item, !place.tags.isEmpty {
-                        Text(verbatim: place.tags.prefix(4).joined(separator: " · ")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: place.tags.prefix(4).joined(separator: " · ")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 }
             }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)

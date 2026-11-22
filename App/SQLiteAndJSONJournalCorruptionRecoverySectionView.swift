@@ -166,7 +166,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "SQLite 与 JSON 意图日志损坏隔离恢复面板")
-                        .font(.headline)
+                        .cyText(.cardTitle)
                         .accessibilityIdentifier("journalCorruptionRecovery.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
                         .font(.subheadline)
@@ -175,7 +175,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
                 }
                 Spacer()
                 Text(verbatim: snapshot.isAllHealthy ? "存储完好" : "隔离恢复中")
-                    .font(.caption.weight(.semibold))
+                    .cyText(.meta, weight: .semibold)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
@@ -202,7 +202,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleText)
-                    .font(.subheadline.weight(.medium))
+                    .cyText(.bodyMedium)
                     .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: "v\(row.schemaVersion)")
@@ -210,20 +210,20 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).schema")
                 Text(verbatim: row.statusBadgeText)
-                    .font(.caption2.weight(.semibold))
+                    .cyText(.caption, weight: .semibold)
                     .foregroundStyle(row.isHealthy ? .green : .orange)
                     .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).status")
             }
 
             Text(verbatim: row.statusDetailText)
-                .font(.caption)
+                .cyText(.meta)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).detail")
 
             if let onSelectRow {
                 Button(action: { onSelectRow(row) }) {
                     Text(verbatim: "查看存储恢复详情")
-                        .font(.caption)
+                        .cyText(.meta)
                 }
                 .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).action")
             }

@@ -9,7 +9,7 @@ import SwiftUI
             Label("nativeNav.error.title", systemImage: "questionmark.folder")
         } description: {
             if failure == .legacyTeamLink {
-                Text("team.page.legacyLink").font(.headline)
+                Text("team.page.legacyLink").cyText(.cardTitle)
                 Text("team.page.legacyLink.detail")
             } else {
                 Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
@@ -36,7 +36,7 @@ import SwiftUI
             Section("nativeNav.team.open") {
                 TextField("nativeNav.team.code", text: $code).textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityIdentifier("nativeNav.team.code")
-                Text("nativeNav.team.notice").font(.footnote)
+                Text("nativeNav.team.notice").cyText(.bodyCompact)
                 Button("nativeNav.open") {
                     guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; return }
                     invalid = false
@@ -80,7 +80,7 @@ private struct TeamInvitationPresentation: Hashable {
         Form {
             TextField("nativeNav.badge.path", text: $text, axis: .vertical)
                 .textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("nativeNav.badge.path")
-            Text("nativeNav.badge.notice").font(.footnote)
+            Text("nativeNav.badge.notice").cyText(.bodyCompact)
             Button("nativeNav.open") {
                 guard case .badge(let parameters) = NativeNavigationContract.parseInternal(text) else { invalid = true; return }
                 invalid = false; route = BadgeRoutePresentation(parameters: parameters, scope: scope)

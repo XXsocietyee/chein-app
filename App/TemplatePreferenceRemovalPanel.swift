@@ -37,10 +37,10 @@ import SwiftUI
         NavigationStack {
             Form {
                 if controller.isCurrent(original), let document = original.document {
-                    Section { text("scope"); text("minimum"); text("recheck").font(.caption).foregroundStyle(.secondary) }
+                    Section { text("scope"); text("minimum"); text("recheck").cyText(.meta).foregroundStyle(.secondary) }
                     if let intent = controller.review, intent.presentationID == original.id {
                         Section {
-                            text("confirmTitle").font(.headline)
+                            text("confirmTitle").cyText(.cardTitle)
                             Text(verbatim: intent.label)
                             text("confirmHint")
                             Button(role: .destructive) { controller.confirm(intent, in: original) } label: { text("confirm") }
@@ -51,7 +51,7 @@ import SwiftUI
                     } else {
                         ForEach(document.questions) { question in
                             Section {
-                                Text(verbatim: question.title).font(.headline)
+                                Text(verbatim: question.title).cyText(.cardTitle)
                                 Button(role: .destructive) { controller.request(.question(question.id), in: original) } label: { text("question") }
                                     .disabled(!document.canRemoveQuestion)
                                     .accessibilityIdentifier("preferenceRemoval.question." + String(question.id))

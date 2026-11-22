@@ -11,8 +11,8 @@ struct MerchantProjectBrowserControls: View {
             }.pickerStyle(.segmented).disabled(!canSelect).accessibilityIdentifier("merchant.projectBrowser.tabs")
             LabeledContent("merchant.projectBrowser.loadedCount", value: String(browser.count(browser.tab)))
                 .accessibilityIdentifier("merchant.projectBrowser.loadedCount")
-            Text("merchant.projectBrowser.loadedOnly").font(.footnote).foregroundStyle(.secondary)
-            Text("merchant.projectBrowser.orderHint").font(.footnote).foregroundStyle(.secondary)
+            Text("merchant.projectBrowser.loadedOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
+            Text("merchant.projectBrowser.orderHint").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
     }
 }
@@ -22,16 +22,16 @@ struct MerchantProjectCardContext: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             if let role = facts.role {
-                Text(LocalizedStringKey("merchant.projectBrowser.role." + role.rawValue)).font(.caption)
+                Text(LocalizedStringKey("merchant.projectBrowser.role." + role.rawValue)).cyText(.meta)
                     .accessibilityIdentifier("merchant.projectBrowser.role." + project.id)
             }
-            if let address = facts.address { Label(address, systemImage: "mappin.and.ellipse").font(.caption) }
+            if let address = facts.address { Label(address, systemImage: "mappin.and.ellipse").cyText(.meta) }
             if let pending = facts.pendingVerifications {
                 Text("merchant.projectBrowser.pendingCount \(pending)").font(.subheadline).monospacedDigit()
                     .accessibilityIdentifier("merchant.projectBrowser.pending." + project.id)
             }
             if facts.attention {
-                Label("merchant.projectBrowser.attention", systemImage: "exclamationmark.circle").font(.caption)
+                Label("merchant.projectBrowser.attention", systemImage: "exclamationmark.circle").cyText(.meta)
                     .accessibilityIdentifier("merchant.projectBrowser.attention." + project.id)
             }
         }.fixedSize(horizontal: false, vertical: true)

@@ -137,7 +137,7 @@ import SwiftUI
             if viewModel.isVisible {
             CYCoverHeaderSection("roam.chapters.title", symbol: "book.pages.fill", seed: "chapters")
             Section {
-                if tickets.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
+                if tickets.isOfflineExample { Text("ticketWallet.offlineExample").cyText(.meta) }
             }
             if let issue = model.issue {
                 TicketWalletIssueView(issue: issue, retry: retry)
@@ -193,14 +193,14 @@ struct RoamEnrolledChapterRow: View {
                     .frame(width: 72, height: 72)
             }
             VStack(alignment: .leading, spacing: 8) {
-                TicketWalletTitle(title: ticket.title).font(CYTypography.cardTitle)
+                TicketWalletTitle(title: ticket.title).cyText(.cardTitle)
                 TicketWalletStatusBadge(status: ticket.status)
                 if let date = ticket.participateDate, !date.isEmpty {
-                    Label(date, systemImage: "calendar").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Label(date, systemImage: "calendar").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 }
                 if showsActionNotice {
                     Label(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue), systemImage: "info.circle")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
             Spacer(minLength: 0)

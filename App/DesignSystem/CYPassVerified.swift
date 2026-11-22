@@ -90,16 +90,16 @@ struct CYPassVerifiedFace: View {
                     .font(.system(.largeTitle, design: c.isChinese ? .default : .rounded).weight(c.isChinese ? .semibold : .heavy))
                     .foregroundStyle(CYNight.ink0)
                 Text(verbatim: c.t("玩得开心", "Have fun."))
-                    .font(CYTypography.cardTitle).foregroundStyle(CYNight.ink0)
+                    .cyText(.cardTitle).foregroundStyle(CYNight.ink0)
                 Text(verbatim: title.isEmpty ? "—" : title)
-                    .font(CYTypography.meta).foregroundStyle(CYNight.ink0)
+                    .cyText(.meta).foregroundStyle(CYNight.ink0)
                     .lineLimit(1).padding(.horizontal, CYSpacing.xl)
             }
             .frame(maxWidth: .infinity)
             .frame(height: notchY)
             VStack(spacing: CYSpacing.xs) {
                 Text(verbatim: c.t("已核验入场", "Checked in"))
-                    .font(CYTypography.cardTitle).foregroundStyle(CYNight.ink0)
+                    .cyText(.cardTitle).foregroundStyle(CYNight.ink0)
                 Text(verbatim: (number?.isEmpty == false) ? number! : "—")
                     .font(CYTypography.caption.monospaced()).foregroundStyle(CYNight.ink0)
             }

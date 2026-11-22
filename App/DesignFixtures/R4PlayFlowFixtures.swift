@@ -29,7 +29,7 @@ private struct R4PlayHUDFixture: View {
     var body: some View {
         NavigationStack {
             CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: {
-                Text(verbatim: "Play HUD · FIXTURE").font(CYTypography.label).foregroundStyle(.white)
+                Text(verbatim: "Play HUD · FIXTURE").cyText(.label).foregroundStyle(.white)
             }, floating: {
                 VStack(spacing: CYSpacing.md) {
                     PlayHUDNextStopCard(stop: PlayHUDNextStop(

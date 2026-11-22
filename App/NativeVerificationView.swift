@@ -33,7 +33,7 @@ extension EnvironmentValues {
     var body: some View {
         Form {
             Section {
-                Text("verification.boundary").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("verification.screen")
+                Text("verification.boundary").cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("verification.screen")
                 if let key = flow.issueKey, outcome?.isFailure != true { Text(LocalizedStringKey(key)).accessibilityIdentifier("verification.issue") }
                 if let detail = flow.issueDetail, outcome?.isFailure != true { Text(verbatim: detail).accessibilityIdentifier("verification.issue.place") }
                 if flow.phase == .loading { ProgressView("verification.loading") }
@@ -47,7 +47,7 @@ extension EnvironmentValues {
                         Text("verification.unknownBody")
                         NavigationLink { records() } label: { Label("verification.records", systemImage: "list.bullet.rectangle") }
                             .accessibilityIdentifier("verification.readback")
-                        Text("verification.readbackDoesNotUnlock").font(.footnote).foregroundStyle(.secondary)
+                        Text("verification.readbackDoesNotUnlock").cyText(.bodyCompact).foregroundStyle(.secondary)
                     }
                 } else if flow.phase == .submitting {
                     ProgressView("verification.submitting").accessibilityIdentifier("verification.submitting")
@@ -60,7 +60,7 @@ extension EnvironmentValues {
                     Section("verification.capture") {
                         Button("verification.scan", systemImage: "qrcode.viewfinder") { camera = true }
                             .disabled(!cameraEnabled).accessibilityIdentifier("verification.scan")
-                        if !cameraEnabled { Text("verification.cameraUnavailable").font(.footnote).foregroundStyle(.secondary) }
+                        if !cameraEnabled { Text("verification.cameraUnavailable").cyText(.bodyCompact).foregroundStyle(.secondary) }
                         SecureField("verification.code", text: $raw)
                             .textInputAutocapitalization(.never).autocorrectionDisabled()
                             .accessibilityIdentifier("verification.code")
@@ -92,7 +92,7 @@ extension EnvironmentValues {
                 }
                 if !flow.current { Button("verification.refreshAccess") { Task { await flow.activate() } }.disabled(flow.phase == .loading) }
                 NavigationLink { records() } label: { Label("verification.records", systemImage: "list.bullet.rectangle") }
-                if !flow.canDispatch { Text("verification.dispatchDisabled").font(.footnote).foregroundStyle(.secondary) }
+                if !flow.canDispatch { Text("verification.dispatchDisabled").cyText(.bodyCompact).foregroundStyle(.secondary) }
             }
         }
         .navigationTitle("verification.title").navigationBarTitleDisplayMode(.inline)
@@ -122,7 +122,7 @@ extension EnvironmentValues {
         Section {
             Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle")
                 .accessibilityIdentifier(NativeVerificationOutcome.failed(key).identifier)
-            if let detail = flow.issueDetail { Text(verbatim: detail).font(.footnote).accessibilityIdentifier("verification.issue.place") }
+            if let detail = flow.issueDetail { Text(verbatim: detail).cyText(.bodyCompact).accessibilityIdentifier("verification.issue.place") }
         } header: { Text("verification.result").accessibilityIdentifier("verification.result") }
     }
     @ViewBuilder private func resultSection(_ result: MerchantRedemptionResult) -> some View {
@@ -132,7 +132,7 @@ extension EnvironmentValues {
             case .redeemed:
                 Label("verification.reportedRedeemed", systemImage: "checkmark.circle")
                     .accessibilityIdentifier(NativeVerificationOutcome.redeemed.identifier)
-                Text("verification.receiptBoundary").font(.footnote)
+                Text("verification.receiptBoundary").cyText(.bodyCompact)
             case .failed:
                 Label("verification.rejected", systemImage: "exclamationmark.circle")
                     .accessibilityIdentifier(NativeVerificationOutcome.rejected.identifier)
@@ -201,12 +201,12 @@ enum NativeVerificationOutcome: Equatable {
                     LabeledContent("verification.kind") { Text(LocalizedStringKey("verification.kind." + review.kind.rawValue)) }
                     if let name = review.choiceName { LabeledContent("verification.selected") { Text(verbatim: name) } }
                     Text("verification.reviewEffect")
-                    Text("verification.reviewPrivacy").font(.footnote).foregroundStyle(.secondary)
+                    Text("verification.reviewPrivacy").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
                 Section {
                     Button("verification.confirm", action: confirm).disabled(!canConfirm)
                         .accessibilityIdentifier("verification.confirm")
-                    if !canConfirm { Text("verification.dispatchDisabled").font(.footnote) }
+                    if !canConfirm { Text("verification.dispatchDisabled").cyText(.bodyCompact) }
                 }
             }.navigationTitle("verification.review").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: cancel) } }

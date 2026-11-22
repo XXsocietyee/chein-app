@@ -23,8 +23,8 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 20) {
                 Text("playFree.title").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("playFree.pass")
                 if let title = snapshot.result.topicName { CYHeroHeader(verbatim: title, subtitle: snapshot.result.topicDescription) }
-                else if let description = snapshot.result.topicDescription { Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
-                Text("playFree.choiceHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                else if let description = snapshot.result.topicDescription { Text(verbatim: description).cyText(.body).foregroundStyle(CYColor.textSecondary) }
+                Text("playFree.choiceHint").cyText(.body).foregroundStyle(CYColor.textSecondary)
                 if let done = presentation.redeemed, let total = presentation.total {
                     // Mini-program 已核销环: one ring that fills as stores are redeemed.
                     HStack(spacing: 14) {
@@ -34,13 +34,13 @@ import SwiftUI
                         .gaugeStyle(.accessoryCircularCapacity).tint(CYColor.textPrimary)
                         .accessibilityHidden(true)
                         Text("playFree.redeemed.count \(done) \(total)").monospacedDigit()
-                            .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.label).foregroundStyle(CYColor.textPrimary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("playFree.redeemed.count")
                 }
                 if let expiry = snapshot.result.expiresAt { LabeledContent("play.expiresAt") { Text(verbatim: expiry) } }
-                if let note = snapshot.result.timeNote { Text(verbatim: note).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if let note = snapshot.result.timeNote { Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 if snapshot.availability == .registrationRequired { Text("playFree.registrationRequired") }
                 else if !packOpen && !skipsPack && !presentation.stores.isEmpty {
                     // Foil pack printed with the topic name (x-fix7 P-6). Tap tears it open: a short shake and
@@ -49,9 +49,9 @@ import SwiftUI
                         VStack(spacing: 18) {
                             Image(systemName: "rectangle.stack.fill").font(.largeTitle).foregroundStyle(CYColor.textSecondary)
                                 .symbolEffect(.bounce, value: tearing)
-                            Text(verbatim: snapshot.result.topicName ?? "").font(CYTypography.sectionTitle).cyLookTitle()
+                            Text(verbatim: snapshot.result.topicName ?? "").cyText(.sectionTitle).cyLookTitle()
                                 .foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).lineLimit(2)
-                            Text("playFree.pack.open").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                            Text("playFree.pack.open").cyText(.label).foregroundStyle(CYColor.textSecondary)
                         }.frame(maxWidth: .infinity, minHeight: 200)
                             .padding(CYSpacing.xl)
                             .background { CYCoverArt(seed: snapshot.result.topicName ?? "pack", symbol: "rectangle.stack.fill", cornerRadius: CYRadius.xl) }
@@ -68,8 +68,8 @@ import SwiftUI
                             Button { onSelect(node.id) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
                                     Image(systemName: "storefront.fill").font(.title).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
-                                    FreeExplorationStoreName(name: node.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                    if let title = node.gameTitle, !title.isEmpty { Text(verbatim: title).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                                    FreeExplorationStoreName(name: node.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                    if let title = node.gameTitle, !title.isEmpty { Text(verbatim: title).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                                     if let open = node.openStatus, !open.isEmpty { Text(verbatim: open).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
                                     CYStatusChip(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey), tone: .neutral)
                                 }.frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
@@ -153,13 +153,13 @@ struct FreeExplorationStoreName: View {
                     if let reward = model.reward {
                         if let drop = PlayRewardDrop.fromReward(reward) {
                             Label(drop.toastMessage(locale: locale), systemImage: "sparkles")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.successText)
                                 .accessibilityIdentifier("playFree.reward.drop")
                         }
                         if let dispatched = PlayRandomDispatchedTask.fromResponse(reward) {
                             Label(dispatched.revealTitle(locale: locale), systemImage: "shippingbox.fill")
-                                .font(CYTypography.meta)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .accessibilityIdentifier("playFree.reward.dispatchedTask")
                         }
@@ -248,7 +248,7 @@ struct FreeExplorationStoreName: View {
         List {
             if let node, let snapshot = model.snapshot {
                 Section {
-                    FreeExplorationStoreName(name: node.name).font(.title2.bold())
+                    FreeExplorationStoreName(name: node.name).cyText(.sheetTitle)
                     Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
                 }
                 if let dispatched = activeDispatchedTask {
@@ -259,10 +259,10 @@ struct FreeExplorationStoreName: View {
                             systemImage: "shippingbox.fill"
                         )
                         Text(verbatim: dispatched.displayName)
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                         if let rule = dispatched.ruleInstructions, !rule.isEmpty {
                             Text(verbatim: rule)
-                                .font(CYTypography.bodyCompact)
+                                .cyText(.bodyCompact)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -383,7 +383,7 @@ struct FreeExplorationVisitSteps: View {
             if let snapshot = model.visibleSnapshot, snapshot.result.mode == 2, snapshot.availability != .registrationRequired,
                let node = snapshot.visibleNodes.first(where: { $0.id == nodeID }) {
                 Section {
-                    FreeExplorationStoreName(name: node.name).font(.title2.bold())
+                    FreeExplorationStoreName(name: node.name).cyText(.sheetTitle)
                     Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey))
                 }
                 if !snapshot.isLocked(node) {

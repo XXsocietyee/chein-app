@@ -112,7 +112,7 @@ private struct NativeChannelAuditRow: View {
     let reason: String?
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
-            Text(verbatim: action).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: action).cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
             HStack(alignment: .firstTextBaseline) {
                 if let actor { Text("d7.channelAudit.byMember \(actor)") } else { Text(verbatim: "—") }
                 Spacer(minLength: Theme.Space.s2)

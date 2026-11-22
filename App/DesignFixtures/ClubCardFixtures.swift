@@ -17,7 +17,7 @@ private struct JoinMorphCard: View {
     @State private var joined = false
     var body: some View {
         VStack(spacing: CYSpacing.lg) {
-            Text(verbatim: "Synthetic: Night Market Crew").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: "Synthetic: Night Market Crew").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             CYClubPhotoCard(name: "Night Market Crew", place: "Food · Chengdu", coverURL: nil, memberCount: 12, seed: "night",
                             action: joined ? .joined : .join, morph: morph, onOpen: {}, onJoin: { morph = .working },
                             identifier: "fixture.club")
@@ -111,7 +111,7 @@ enum ClubCardFixtures {
         AnyView(
             VStack(spacing: 0) {
                 Text(verbatim: "DEBUG fixture · synthetic data")
-                    .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.caption).foregroundStyle(CYColor.textTertiary)
                     .frame(maxWidth: .infinity).padding(.vertical, 4).background(CYColor.bgRaised)
                 view
             }

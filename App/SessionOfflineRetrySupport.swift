@@ -491,14 +491,14 @@ struct SessionOfflineBannerModifier: ViewModifier {
             Image(systemName: "arrow.triangle.2.circlepath")
                 .font(CYTypography.meta.weight(.semibold))
             Text("cy.state.offline.queue.pending \(syncModel.queuedCount)")
-                .font(CYTypography.caption)
+                .cyText(.caption)
             Spacer(minLength: CYSpacing.xs)
             if !reachability.isOffline {
                 Button {
                     Task { await syncModel.flushIfOnline(session: session, isOnline: { !reachability.isOffline }) }
                 } label: {
                     Text(syncModel.isSyncing ? "cy.state.offline.queue.syncing" : "cy.state.offline.queue.syncNow")
-                        .font(CYTypography.caption.weight(.semibold))
+                        .cyText(.caption, weight: .semibold)
                 }
                 .buttonStyle(.bordered)
                 .disabled(syncModel.isSyncing)

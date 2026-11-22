@@ -16,16 +16,16 @@ public struct CYBalanceHero: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(label)
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             Text(amount)
-                .font(CYTypography.dataXL)
+                .cyText(.dataXL)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(typeSize.isAccessibilitySize ? 0.4 : 0.6)
             if let delta {
                 Text(delta)
-                    .font(CYTypography.caption.monospacedDigit())
+                    .cyText(.caption, monospacedDigit: true)
                     .foregroundStyle(CYColor.textSecondary)
                     .padding(.horizontal, CYSpacing.sm)
                     .padding(.vertical, CYSpacing.xs)

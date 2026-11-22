@@ -41,8 +41,8 @@ struct MerchantExportFileDocument: FileDocument {
     var body: some View {
         VStack(alignment: .leading) {
             Button("merchant.engagement.saveWorkbook") { Task { if deviceExportAllowed, await authorize() { presenting = true } } }.disabled(!deviceExportAllowed)
-            if !deviceExportAllowed { Text("merchant.engagement.deviceExportDisabled").font(.footnote).foregroundStyle(.secondary) }
-            if let outcome { Text(LocalizedStringKey(outcome)).font(.footnote) }
+            if !deviceExportAllowed { Text("merchant.engagement.deviceExportDisabled").cyText(.bodyCompact).foregroundStyle(.secondary) }
+            if let outcome { Text(LocalizedStringKey(outcome)).cyText(.bodyCompact) }
         }
         .onDisappear { presenting = false }
         .onChange(of: deviceExportAllowed) { _, allowed in if !allowed { presenting = false } }

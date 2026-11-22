@@ -58,7 +58,7 @@ import SwiftUI
                 .frame(maxWidth: .infinity, minHeight: 44)
             NavigationStack {
                 CooperationFlowWorkbench(reader: reader)
-                    .safeAreaInset(edge: .top) { Text("cooperation.offline").font(.caption).padding(8) }
+                    .safeAreaInset(edge: .top) { Text("cooperation.offline").cyText(.meta).padding(8) }
             }.id(reader.session == nil)
         }
     }
