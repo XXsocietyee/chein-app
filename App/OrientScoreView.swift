@@ -12,12 +12,37 @@ import QuestifyCore
 @MainActor final class OrientScoreModel: ObservableObject {
     @Published private(set) var state: OrientScoreLoadState = .loading
     @Published private(set) var loadedScore: OrientSessionScore?
-    /// Returns the player's own score, or nil when there is no round to show.
-    private let loader: () async throws -> OrientSessionScore?
+    /// The player's own current rounds when there is more than one and none is chosen (mini-program chooser).
+    @Published private(set) var choices: [OrientSessionView]?
+    /// True after the read was refused for lack of a signed-in owner (mini-program no-permission state).
+    @Published private(set) var needsSignIn = false
+    /// More than one round was listed, so 「选择其他对局」 is offered on a loaded score.
+    @Published private(set) var canChooseOther = false
+    /// Returns the chosen round's score, the rounds to choose from, or nothing.
+    private let loader: (Int?) async throws -> OrientScoreLoad
+    private var chosenSessionID: Int?
     private var generation = 0
 
     init(loader: @escaping () async throws -> OrientSessionScore?) {
-        self.loader = loader
+        self.loader = { _ in try await loader().map(OrientScoreLoad.score) ?? .none }
+    }
+
+    /// PLY-25-1: several current rounds become a choice instead of a false empty.
+    /// `initialSessionID` is the mini-program `sessionId` query: it skips the chooser when the server lists that round.
+    init(rounds: @escaping (Int?) async throws -> OrientScoreLoad, initialSessionID: Int? = nil) {
+        self.loader = rounds
+        self.chosenSessionID = initialSessionID
+    }
+
+    func choose(_ sessionID: Int) async {
+        chosenSessionID = sessionID
+        canChooseOther = true
+        await load()
+    }
+
+    func chooseAnother() async {
+        chosenSessionID = nil
+        await load()
     }
 
     /// `OrientScorePage` over the same state: capability present, so nothing here is hidden. Unknown numbers are an em dash.
@@ -36,16 +61,31 @@ import QuestifyCore
         let stamp = generation
         state = .loading
         loadedScore = nil
+        choices = nil
+        needsSignIn = false
         do {
-            let score = try await loader()
+            let result = try await loader(chosenSessionID)
             guard stamp == generation else { return }
-            loadedScore = score
-            readyFacts = score.map(OrientScorePage.facts(from:))
-            state = score.map { .ready(OrientScorePresentation.summary(from: $0)) } ?? .empty
+            switch result {
+            case .score(let score):
+                loadedScore = score
+                readyFacts = OrientScorePage.facts(from: score)
+                state = .ready(OrientScorePresentation.summary(from: score))
+            case .choose(let rounds):
+                chosenSessionID = nil
+                canChooseOther = true
+                choices = rounds
+                readyFacts = nil
+                state = .empty
+            case .none:
+                readyFacts = nil
+                state = .empty
+            }
         } catch is CancellationError {
             return
         } catch {
             guard stamp == generation else { return }
+            needsSignIn = (error as? APIError) == .unauthorized || (error as? OrientSessionFailure)?.isUnauthorized == true
             state = OrientScorePresentation.failure(for: error)
         }
     }
@@ -67,11 +107,25 @@ import QuestifyCore
                 .padding(.vertical, CYSpacing.lg)
         }
         .cyDomainScreen(.game)
-        .cyHideTabBar(true)
-        .navigationTitle(Text("orientScore.title"))
+        .cyPushedChrome(domain: .game)
+        .cyPageTitle("orientScore.title")
+        .toolbar {
+            // Mini-program 「选择其他对局」: only when this player has more than one round here.
+            if model.canChooseOther, model.loadedScore != nil {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("orientScore.choose.other") { Task { await model.chooseAnother() } }
+                        .accessibilityIdentifier("orientScore.chooseOther")
+                }
+            }
+        }
+        .sheet(isPresented: $showsSignIn, onDismiss: { Task { await model.load() } }) {
+            if let orientScoreSession { LoginView(intent: .player).environmentObject(orientScoreSession) }
+        }
         .task { await model.load() }
         .refreshable { await model.load() }
     }
+
+    @State private var showsSignIn = false
 
     @ViewBuilder private var content: some View {
         switch model.page.phase {
@@ -79,10 +133,20 @@ import QuestifyCore
             CYLoadingState("orientScore.loading", messageIdentifier: "orientScore.loading")
                 .frame(maxWidth: .infinity, minHeight: 240)
         case .empty?:
-            CYEmptyState(systemImage: "list.number", "orientScore.empty.title", detail: "orientScore.empty.detail",
-                         messageIdentifier: "orientScore.empty")
+            if let rounds = model.choices, !rounds.isEmpty {
+                OrientScoreRoundChooser(rounds: rounds) { id in Task { await model.choose(id) } }
+            } else {
+                CYEmptyState(systemImage: "list.number", "orientScore.empty.title", detail: "orientScore.empty.detail",
+                             messageIdentifier: "orientScore.empty")
+            }
         case .error?:
-            if case .failed(let message, let retryable) = model.state {
+            if model.needsSignIn {
+                // PLY-25-6: mini-program no-permission state 「请登录本人账号查看对局」 with a way to sign in.
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "orientScore.signIn.title",
+                             messageIdentifier: "orientScore.signIn",
+                             actionTitle: orientScoreSession == nil ? nil : "orientScore.signIn.action",
+                             actionIdentifier: "orientScore.signIn.action") { showsSignIn = true }
+            } else if case .failed(let message, let retryable) = model.state {
                 CYEmptyState(systemImage: "exclamationmark.triangle", "orientScore.error.title",
                              detailVerbatim: message, messageIdentifier: "orientScore.error",
                              actionTitle: retryable ? "orientScore.error.retry" : nil, actionIdentifier: "orientScore.retry",
@@ -121,15 +185,9 @@ import QuestifyCore
             timelineCard
             reviewsCard(title: "orientScore.appeals", emptyText: "orientScore.appeals.empty", rows: summary.appeals)
             reviewsCard(title: "orientScore.disputes", emptyText: "orientScore.disputes.empty", rows: summary.disputes)
+            // X11: no read-only boundary note for players; the form appears only when a submitter exists.
             if let score, let session, reviewSubmitter != nil {
                 OrientScoreReviewSection(session: session, score: score, entries: summary.timeline)
-            } else {
-                CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
-                    Text("orientScore.readOnly")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
             }
         }
     }
@@ -257,18 +315,83 @@ import QuestifyCore
 }
 
 
+/// Mini-program `state === 'choosing'`: the player's own current rounds, each with 「查看此局计分」 (PLY-25-1).
+@available(macOS 14.0, *)
+@MainActor struct OrientScoreRoundChooser: View {
+    let rounds: [OrientSessionView]
+    let onChoose: (Int) -> Void
+
+    var body: some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("orientScore.choose.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                ForEach(rounds, id: \.sessionID) { round in
+                    HStack(alignment: .center, spacing: CYSpacing.md) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            Text(phaseKey(round.phase)).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                            Text("orientScore.choose.round \(String(round.sessionID))").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            if let started = round.startedAt {
+                                Text(Date(timeIntervalSince1970: TimeInterval(started) / 1000), format: .dateTime.month().day().hour().minute())
+                                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            }
+                        }
+                        .accessibilityElement(children: .combine)
+                        Spacer(minLength: CYSpacing.sm)
+                        CYPillButton("orientScore.choose.view", style: .secondary, fullWidth: false, compact: true) { onChoose(round.sessionID) }
+                            .accessibilityIdentifier("orientScore.choose.\(round.sessionID)")
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                }
+            }
+        }
+        .accessibilityIdentifier("orientScore.chooser")
+    }
+
+    private func phaseKey(_ phase: OrientSessionPhase) -> LocalizedStringKey {
+        switch phase {
+        case .prepared, .running: return "orientScore.phase.progress"
+        case .disqualified: return "orientScore.phase.disqualified"
+        case .finished, .abandoned: return "orientScore.phase.ended"
+        }
+    }
+}
+
+/// `subpackageMember/orient-score/index?topicId=&activityId=&sessionId=` for the page router. A missing provider
+/// (no regional configuration) shows the same empty state as a round-less player.
+@available(macOS 14.0, *)
+@MainActor struct OrientScoreDeepLinkScreen: View {
+    let session: AppSession
+    let topicID: Int
+    var activityID: Int = 0
+    var sessionID: Int? = nil
+
+    var body: some View {
+        if let rounds = session.orientScoreRoundsLoader(topicID: topicID, activityID: activityID) {
+            OrientScoreView(model: OrientScoreModel(rounds: rounds, initialSessionID: sessionID))
+                .environment(\.orientScoreSession, session)
+        } else {
+            CYEmptyState(systemImage: "list.number", "orientScore.empty.title", detail: "orientScore.empty.detail",
+                         messageIdentifier: "orientScore.empty")
+                .cyDomainScreen(.game)
+                .cyPushedChrome(domain: .game)
+                .cyPageTitle("orientScore.title")
+        }
+    }
+}
+
 /// subpackageMember/orient-score entry from the participation/activity detail (source `participation-result-entry`).
 @available(macOS 14.0, *)
 @MainActor struct OrientScoreEntryLink: View {
-    let loader: () async throws -> OrientSessionScore?
+    let rounds: (Int?) async throws -> OrientScoreLoad
     var session: AppSession? = nil
     var body: some View {
         Section {
             NavigationLink {
-                OrientScoreView(model: OrientScoreModel(loader: loader))
+                OrientScoreView(model: OrientScoreModel(rounds: rounds))
                     .environment(\.orientScoreSession, session)
             } label: {
-                CYListRow("orientScore.title", trailing: .none) { CYRowIcon(systemImage: "list.number") }
+                // PLY-25-7: one entry label, mini-program 「定向成绩」.
+                CYListRow("orientScore.entry", trailing: .none) { CYRowIcon(systemImage: "list.number") }
             }
             .accessibilityIdentifier("activity.openOrientScore")
         }

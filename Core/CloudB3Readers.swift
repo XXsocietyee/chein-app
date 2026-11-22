@@ -96,10 +96,29 @@ extension ProfileSessionReader: ProfileParticipantListFactsReading {}
 @MainActor public protocol OrientScoreEntryProviding: AnyObject {
     /// Nil hides the entry. The loader returns nil when this player has no single round here.
     func orientScoreLoader(topicID: Int, activityID: Int) -> (() async throws -> OrientSessionScore?)?
+    /// Nil hides the entry. Given an optional chosen session id, returns one score, the player's own rounds to choose
+    /// from (mini-program `state === 'choosing'`), or nothing (PLY-25-1).
+    func orientScoreRoundsLoader(topicID: Int, activityID: Int) -> ((Int?) async throws -> OrientScoreLoad)?
 }
 
-/// `current` then `score` for the player's own round. More than one session is not a choice:
-/// the loader returns nil instead of picking a row. Sync, settle, appeal, and dispute are not called.
+/// One round's score, the player's own rounds to choose from, or no round at all.
+public enum OrientScoreLoad {
+    case score(OrientSessionScore)
+    case choose([OrientSessionView])
+    case none
+}
+
+public extension OrientScoreEntryProviding {
+    /// Providers without session discovery keep the single-round loader; a chosen id is ignored.
+    func orientScoreRoundsLoader(topicID: Int, activityID: Int) -> ((Int?) async throws -> OrientScoreLoad)? {
+        guard let single = orientScoreLoader(topicID: topicID, activityID: activityID) else { return nil }
+        return { _ in try await single().map(OrientScoreLoad.score) ?? .none }
+    }
+}
+
+/// `current` then `score` for the player's own round. `orientScoreLoader` never picks a row when there is more
+/// than one session; `orientScoreRoundsLoader` returns the rows so the player chooses (mini-program chooser).
+/// Sync, settle, appeal, and dispute are not called.
 @MainActor public final class OrientScoreEntryProvider: OrientScoreEntryProviding {
     private let service: OrientSessionService?
     private let token: () -> String?
@@ -117,6 +136,26 @@ extension ProfileSessionReader: ProfileParticipantListFactsReading {}
             let list = try await service.current(topicID: topicID, activityID: activityID, token: token)
             guard list.sessions.count == 1, let session = list.sessions.first else { return nil }
             return try await service.score(sessionID: session.sessionID, scope: session.scope, token: token)
+        }
+    }
+
+    public func orientScoreRoundsLoader(topicID: Int, activityID: Int) -> ((Int?) async throws -> OrientScoreLoad)? {
+        guard let service, service.supportsSessionDiscovery, topicID > 0, activityID >= 0 else { return nil }
+        let token = self.token
+        return { chosen in
+            guard let token = token(), AuthRequestBuilder.isValidToken(token) else { throw APIError.unauthorized }
+            let list = try await service.current(topicID: topicID, activityID: activityID, token: token)
+            // Only a session the server listed for this player is read; a stale choice goes back to the chooser.
+            if let chosen, let session = list.sessions.first(where: { $0.sessionID == chosen }) {
+                return .score(try await service.score(sessionID: session.sessionID, scope: session.scope, token: token))
+            }
+            switch list.sessions.count {
+            case 0: return .none
+            case 1:
+                let session = list.sessions[0]
+                return .score(try await service.score(sessionID: session.sessionID, scope: session.scope, token: token))
+            default: return .choose(list.sessions)
+            }
         }
     }
 }

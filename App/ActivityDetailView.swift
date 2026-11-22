@@ -553,8 +553,8 @@ struct ActivityDetailView: View {
         }
         if let topicID = detail.summary.linkedTopicID, topicID > 0,
            let provider = reader as? OrientScoreEntryProviding,
-           let loader = provider.orientScoreLoader(topicID: topicID, activityID: id) {
-            OrientScoreEntryLink(loader: loader, session: reader as? AppSession)
+           let rounds = provider.orientScoreRoundsLoader(topicID: topicID, activityID: id) {
+            OrientScoreEntryLink(rounds: rounds, session: reader as? AppSession)
         }
         if let session = reader as? AppSession, session.playExperience(for: .activity(id)) != nil {
             Section {

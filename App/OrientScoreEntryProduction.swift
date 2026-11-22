@@ -8,8 +8,9 @@ import QuestifyCore
 /// `AppSession` orient-score provider for `current` then `score`. It does not call
 /// sync, settle, appeal, or dispute.
 @MainActor enum OrientScoreEntryProduction {
-    static func loader(detail: ParticipationDetail, session: AppSession) -> (() async throws -> OrientSessionScore?)? {
+    /// Several current rounds come back as a choice, never as an empty page (PLY-25-1).
+    static func loader(detail: ParticipationDetail, session: AppSession) -> ((Int?) async throws -> OrientScoreLoad)? {
         guard let request = ParticipationOrientScoreEntry.request(detail, accountID: session.account?.id) else { return nil }
-        return session.orientScoreLoader(topicID: request.topicID, activityID: request.activityID)
+        return session.orientScoreRoundsLoader(topicID: request.topicID, activityID: request.activityID)
     }
 }
