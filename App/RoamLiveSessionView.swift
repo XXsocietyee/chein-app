@@ -699,8 +699,11 @@ import QuestifyCore
             Section("roam.live.ruleArrivalTitle") { Text("roam.live.ruleArrival") }
             Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
             Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
-        }.navigationTitle("roam.live.rules").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            CYSheetHeader(title: Text("roam.live.rules"), style: .player, onClose: { dismiss() })
+        }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
 

@@ -302,13 +302,12 @@ struct RoamEntryCover: View {
                     }
                 }
             }
-            .navigationTitle(Text(verbatim: card.activity.title))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("roam.w208.entry.close") { dismiss() }.accessibilityIdentifier("roam.home.sheet.close")
-                }
+            // ROAM-11: one sheet header (22 pt title + ✕), no nav-bar title and no text close button.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                CYSheetHeader(title: Text(verbatim: card.activity.title), style: .player, onClose: { dismiss() })
+                    .accessibilityIdentifier("roam.home.sheet.close")
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
