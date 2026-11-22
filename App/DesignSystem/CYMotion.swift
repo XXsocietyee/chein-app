@@ -303,13 +303,24 @@ private struct CYHeroSource<ID: Hashable>: ViewModifier {
     let namespace: Namespace.ID
     var cornerRadius: CGFloat = CYRadius.lg
     @QuestifyReduceMotion private var reduceMotion
+    @State private var size: CGSize = .zero
+    /// The clip never exceeds half the source's shorter side. The pill token (`CYRadius.pill`, 499.5) on a 44 pt button
+    /// left the resting source invisible on iOS 27 (activity footer 立即报名, integ-r3 verify): the configuration also
+    /// clips the resting source, and a radius that far past the shape does not clamp to a capsule there.
+    private var clampedRadius: CGFloat {
+        guard size.width > 0, size.height > 0 else { return min(cornerRadius, CYRadius.xl) }
+        return min(cornerRadius, min(size.width, size.height) / 2)
+    }
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 18.0, *), !reduceMotion {
-            // matchedTransitionSource only accepts RoundedRectangle clips (not CYFoilClip): the .circular corner style clamps an oversize radius to a true circle (a .continuous one turns into a diamond).
+            // matchedTransitionSource only accepts RoundedRectangle clips (not CYFoilClip): the .circular corner style
+            // keeps radius = side / 2 a true circle (a .continuous one turns into a diamond).
             // No `.background` here: the configuration also applies to the resting source and replaced the seal's own fill.
-            content.matchedTransitionSource(id: id, in: namespace) { source in
-                source.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .circular))
-            }
+            content
+                .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+                .matchedTransitionSource(id: id, in: namespace) { source in
+                    source.clipShape(RoundedRectangle(cornerRadius: clampedRadius, style: .circular))
+                }
         } else {
             content
         }
