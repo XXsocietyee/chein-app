@@ -10,23 +10,20 @@ struct ParticipationStatusBadge: View {
     }
 }
 
+/// One status tag for the member pages (X8 / MC-36): the shared `CYStatusChip`, tone mapped from the source variant.
 struct ParticipationTag: View {
     let key: String
     let tone: ParticipationStatus.Tone
-    private var color: Color {
+    private var chipTone: CYStatusTone {
         switch tone {
-        case .info: return .blue
-        case .success: return .green
-        case .warning: return .orange
-        case .neutral: return .secondary
+        case .info: return .info
+        case .success: return .success
+        case .warning: return .warning
+        case .neutral: return .neutral
         }
     }
     var body: some View {
-        Text(LocalizedStringKey(key)).cyText(.meta, weight: .semibold)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 8).padding(.vertical, 3)
-            .foregroundStyle(color)
-            .background(color.opacity(0.12), in: Capsule())
+        CYStatusChip(LocalizedStringKey(key), tone: chipTone)
     }
 }
 

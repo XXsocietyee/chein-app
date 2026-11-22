@@ -38,7 +38,7 @@ class W204P2OrdersParticipationChecks(unittest.TestCase):
             self.assertNotIn(forbidden, support)
 
     def test_start_falls_back_to_ticket_wallet_route(self):
-        self.assertIn('verification, support, ticketWallet }', self.journey)
+        self.assertIn('verification, support, ticketWallet\n', self.journey)
         self.assertIn('Button("playerJourney.start", systemImage: "ticket") { open(.ticketWallet) }', self.journey)
         # One shared wallet host (PLY-21-3): play entry, pending order and sign-in on every wallet entry.
         self.assertIn('SessionTicketWalletHost(isPushed: true)', self.journey)

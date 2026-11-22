@@ -47,14 +47,14 @@ class ParticipationParityChecks(unittest.TestCase):
         for text in ['URLSession', 'transport.send', 'HTTPTransport', 'Task {', 'UserDefaults', 'func cancel(', 'func refund(']:
             self.assertNotIn(text, self.core)
             self.assertNotIn(text, self.views)
-        detail = self.journey.split('@MainActor private struct ParticipationDetailView: View {', 1)[1].split('@MainActor struct CompletedPlayHistoryView', 1)[0]
+        detail = self.journey.split('@MainActor struct ParticipationDetailView: View {', 1)[1].split('@MainActor struct CompletedPlayHistoryView', 1)[0]
         self.assertIn('OrderLifecycleView(id: id, coordinator: lifecycle).id(lifecycle.scope)', detail)
         self.assertIn('detail.sourceCanCancel() ? "playerJourney.cancellation" : "playerJourney.orderProgress"', detail)
         self.assertIn('if detail.showsContactService() {', detail)
         self.assertIn('order.refundable == true', self.core)
 
     def test_detail_header_stats_and_fixed_rules(self):
-        detail = self.journey.split('@MainActor private struct ParticipationDetailView: View {', 1)[1].split('@MainActor struct CompletedPlayHistoryView', 1)[0]
+        detail = self.journey.split('@MainActor struct ParticipationDetailView: View {', 1)[1].split('@MainActor struct CompletedPlayHistoryView', 1)[0]
         self.assertIn('ParticipationDetailHeader(detail: detail)', detail)
         self.assertIn('ProgressView("playerJourney.parity.detailLoading")', detail)
         self.assertIn('Text("playerJourney.parity.fixedRules")', detail)
@@ -67,14 +67,15 @@ class ParticipationParityChecks(unittest.TestCase):
     def test_fragment_bilingual_and_merged(self):
         fragment = json.loads(read('Resources/W204ParticipationLocalizations.fragment.json'))['strings']
         catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
-        self.assertEqual(len(fragment), 20)
+        self.assertEqual(len(fragment), 22)
         for key, entry in fragment.items():
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'})
             self.assertEqual(catalog.get(key), entry, key)
         zh = lambda key: fragment[key]['localizations']['zh-Hans']['stringUnit']['value']
         self.assertEqual(zh('playerJourney.parity.listFailed'), '参与记录没能打开')
         self.assertEqual(zh('playerJourney.parity.filteredEmpty'), '当前筛选暂无参与记录')
-        self.assertTrue(zh('playerJourney.parity.fixedRules').startswith('退出与暂停规则说明：'))
+        # MP player-facing rules sentence (component wxml:113, PLY-23-5).
+        self.assertTrue(zh('playerJourney.parity.fixedRules').startswith('退出与暂停规则：'))
         used = set(re.findall(r'"(playerJourney\.parity\.[A-Za-z.]+)"', self.core + self.views + self.journey))
         used = {key for key in used if not key.endswith('.')}
         self.assertFalse(used - {key.split(' ')[0] for key in fragment}, used)

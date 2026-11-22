@@ -1,6 +1,12 @@
 import SwiftUI
 
-enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(PlaySessionScope), memberTemplate(MemberPlayTemplateID), verification, support, ticketWallet }
+enum PlayerJourneyRoute: Hashable {
+    case play(ParticipationPlayEntry), history(PlaySessionScope), memberTemplate(MemberPlayTemplateID), verification, support, ticketWallet
+    /// MP mycanyu「查看报名凭证」→ `signup/index?focusId=` (PLY-22-1).
+    case ticket(registrationID: Int)
+    /// MP mycanyuinfo「我的角色卡」→ `character/index?topicId=` (PLY-23-2). Activity id 0 / nil is a topic registration.
+    case characterCard(topicID: Int, activityID: Int?)
+}
 
 @MainActor struct PlayerJourneyAccountLinks: View {
     var body: some View {
@@ -30,7 +36,35 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                 CompletedPlayHistoryView(reader: session.playerJourneyReader, open: { route = .history($0) }, signIn: { login = true })
             }
         }.id(session.sessionRevision).privacySensitive()
-        .navigationDestination(item: $route) { route in
+        .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
+        .sheet(isPresented: $login) { LoginView(intent: .player) }
+        .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
+        .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
+    }
+}
+
+/// MP deep link `subpackageMember/mycanyuinfo/mycanyuinfo?id=` (PLY-23-1): the participation detail as a pushed page,
+/// with the same routes as the 我的参与 sheet.
+@MainActor struct SessionParticipationDetailHost: View {
+    let id: Int
+    @EnvironmentObject private var session: AppSession
+    @State private var route: PlayerJourneyRoute?
+    var body: some View {
+        ParticipationDetailView(id: id, reader: session.playerJourneyReader, lifecycle: session.orderLifecycleCoordinator,
+                                open: { route = $0 })
+            .id(session.sessionRevision).privacySensitive()
+            .cyPushedChrome(domain: .player)
+            .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
+            .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
+            .onChange(of: session.sessionRevision) { _, _ in route = nil }
+    }
+}
+
+/// One destination table for every participation route (list sheet, deep-linked detail).
+@MainActor struct PlayerJourneyRouteDestination: View {
+    let route: PlayerJourneyRoute
+    @EnvironmentObject private var session: AppSession
+    var body: some View {
             switch route {
             case .play(let entry):
                 SessionPlayRuntimeView(session: session, destination: .journey(entry.scope))
@@ -57,11 +91,18 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                 case .topic(let id): SessionTopicDetailView(id: id, session: session)
                 case .activity(let id): ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
                 }
+            case .ticket(let registrationID):
+                SessionTicketWalletHost(isPushed: true, focusRegistrationID: registrationID)
+            case .characterCard(let topicID, let activityID):
+                let scoped = (activityID ?? 0) > 0 ? activityID : nil
+                if let card = session.characterCardReadback(topicID: topicID, activityID: scoped,
+                                                            scope: scoped.map { PlaySessionScope.activity($0) } ?? PlaySessionScope.topic(topicID)) {
+                    CharacterCardReadbackView(session: session, model: card)
+                } else {
+                    CYEmptyState(systemImage: "person.text.rectangle", "characterCard.unavailable", messageIdentifier: "characterCard.unavailable")
+                        .cyPageTitle("characterCard.title")
+                }
             }
-        }
-        .sheet(isPresented: $login) { LoginView(intent: .player) }
-        .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
-        .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
     }
 }
 
@@ -95,8 +136,8 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                     ForEach(ParticipationFilter.allCases) { value in Text(LocalizedStringKey("playerJourney.filter." + value.rawValue)).tag(value) }
                 }.pickerStyle(.segmented).accessibilityIdentifier("playerJourney.filter")
             }
-            if !reader.isAuthenticated { PlayerJourneyLogin(signIn: signIn) }
-            else if loading && (rows == nil || rowsScope != reader.scope) { ProgressView("playerJourney.loading") }
+            if !reader.isAuthenticated { PlayerJourneyLogin(key: "playerJourney.parity.login", signIn: signIn) }
+            else if loading && (rows == nil || rowsScope != reader.scope) { ProgressView("playerJourney.parity.loading") }
             else if let rows, rowsScope == reader.scope {
                 let visible = rows.filter { filter.matches($0) }
                 if loading {
@@ -108,15 +149,25 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                         .listRowBackground(Color.clear)
                 }
                 ForEach(visible) { row in
-                    Button { returnFocusID = row.id; selected = Selection(record: row, scope: reader.scope) } label: { ParticipationRow(record: row) }
-                        .buttonStyle(.plain).accessibilityIdentifier("playerJourney.participation.\(row.id)")
-                        .accessibilityFocused($focusedParticipationID, equals: row.id)
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Button { returnFocusID = row.id; selected = Selection(record: row, scope: reader.scope) } label: { ParticipationRow(record: row) }
+                            .buttonStyle(.plain).accessibilityIdentifier("playerJourney.participation.\(row.id)")
+                            .accessibilityFocused($focusedParticipationID, equals: row.id)
+                        // MP mycanyu「查看报名凭证」→ 票夹 focused on this registration (PLY-22-1).
+                        Button { open(.ticket(registrationID: row.id)) } label: {
+                            Text("playerJourney.viewVoucher").cyText(.label, weight: .semibold)
+                                .padding(.horizontal, CYSpacing.md)
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .background(CYColor.bgRaised, in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("playerJourney.viewVoucher.\(row.id)")
+                    }
                 }
             } else if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
         }.cyGroupedSurface()
         .cyDomainScreen(.player)
-        .navigationTitle("playerJourney.participations")
-        .navigationBarTitleDisplayMode(.inline)
+        .cyPageTitle("playerJourney.participations")
         .task(id: reader.scope) { resetPresentation(); rows = nil; await load() }
         .onChange(of: reader.scope) { _, _ in resetPresentation() }
         .refreshable { await load() }
@@ -181,22 +232,38 @@ private struct ParticipationRow: View {
             .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : 150)
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 ParticipationStatusBadge(status: record.participationStatus(), detail: false)
-                if let name = record.name { Text(verbatim: name).cyText(.cardTitle) } else { Text("playerJourney.sourceUntitled").cyText(.cardTitle) }
+                Group {
+                    if let name = record.name { Text(verbatim: name) } else { Text("playerJourney.sourceUntitled") }
+                }
+                .cyText(.cardTitle).lineLimit(typeSize.isAccessibilitySize ? nil : 2)
                 Label {
                     if let range = ParticipationDateText.range(start: record.order.ownerStartDate, end: record.order.ownerEndDate) { Text(verbatim: range).monospacedDigit() }
                     else { Text("playerJourney.timeTBD") }
                 } icon: { Image(systemName: "clock") }
-                .font(.subheadline).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
                 Label {
                     Text(LocalizedStringKey(record.modeKey))
                         + Text(verbatim: " · ")
                         + (record.address.map { Text(verbatim: $0) } ?? Text("playerJourney.placeTBD"))
                 } icon: { Image(systemName: "mappin.and.ellipse") }
-                .font(.subheadline).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(.secondary)
+                // MP verification badge 已核销 / 未核销 / — (mycanyu.js:113-114, PLY-22-2).
+                CYStatusChip(LocalizedStringKey(record.verificationKey))
+                    .accessibilityIdentifier("playerJourney.row.verification")
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+        .accessibilityElement(children: .combine)
+    }
+}
+private extension ParticipationRecord {
+    var verificationKey: String {
+        switch order.verificationStatus {
+        case 1?: return "playerJourney.verification.done"
+        case 0?: return "playerJourney.verification.pending"
+        default: return "playerJourney.verification.unknown"
+        }
     }
 }
 /// Never invented artwork: a fixed symbol when the source cover is absent or not https.
@@ -208,7 +275,8 @@ private struct ParticipationCoverPlaceholder: View {
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")
     }
 }
-@MainActor private struct ParticipationDetailView: View {
+/// Internal so the `mycanyuinfo?id=` deep link can push it through `SessionParticipationDetailHost`.
+@MainActor struct ParticipationDetailView: View {
     let id: Int
     let reader: any PlayerJourneyReading
     let lifecycle: OrderLifecycleCoordinator
@@ -233,6 +301,16 @@ private struct ParticipationCoverPlaceholder: View {
                 }
                 // Source result cards sit above the verification stats.
                 OrientScoreParticipationEntry(detail: detail)
+                // MP「我的角色卡」card → character/index?topicId (PLY-23-2). The card page reads and gates itself.
+                if let topicID = detail.topicID, topicID > 0, (detail.record.order.memberID ?? 0) > 0 {
+                    Section {
+                        Button { open(.characterCard(topicID: topicID, activityID: detail.activityID)) } label: {
+                            Label("characterCard.title", systemImage: "person.text.rectangle")
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .accessibilityIdentifier("playerJourney.characterCard.entry")
+                    }
+                }
                 if detail.showOrderStats {
                     Section("playerJourney.verification") {
                         // Source shows two cells in 人 and 0 for unknown statistics.
@@ -273,7 +351,7 @@ private struct ParticipationCoverPlaceholder: View {
                     }
                 }
             }
-        }.cyGroupedSurface().navigationTitle("playerJourney.detail").navigationBarTitleDisplayMode(.inline)
+        }.cyGroupedSurface().cyPageTitle("playerJourney.detail")
         // Source mycanyuinfo: 开始游戏 is the one filled action, pinned to the bottom of the page.
         .safeAreaInset(edge: .bottom) {
             if let detail {
@@ -367,8 +445,9 @@ private struct PlayerJourneyCount: View {
     var body: some View { LabeledContent(label) { if let value { Text(verbatim: String(value)) } else { Text("playerJourney.unknown") } } }
 }
 private struct PlayerJourneyLogin: View {
+    var key: LocalizedStringKey = "playerJourney.login"
     let signIn: () -> Void
-    var body: some View { ContentUnavailableView { Label("playerJourney.login", systemImage: "lock") } actions: { Button("auth.signIn", action: signIn) } }
+    var body: some View { ContentUnavailableView { Label(key, systemImage: "lock") } actions: { Button("auth.signIn", action: signIn) } }
 }
 private struct PlayerJourneyIssue: View {
     let key: String

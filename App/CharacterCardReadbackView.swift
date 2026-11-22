@@ -6,6 +6,7 @@ import SwiftUI
 @MainActor struct CharacterCardReadbackView: View {
     @ObservedObject var session: AppSession
     let model: CharacterCardReadback
+    @State private var login = false
     var body: some View {
         let _ = session.account?.id
         let card = model.cardIfCurrent()
@@ -18,8 +19,12 @@ import SwiftUI
             case .error:
                 CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failureKey),
                              messageIdentifier: "characterCard.error",
-                             actionTitle: model.issue == .unauthorized ? nil : "characterCard.refresh",
-                             actionIdentifier: "characterCard.refresh", kind: .failure) { Task { await model.load() } }
+                             // MP offers 登录 on the signed-out state (character/index.js:84-91, PLY-24-3).
+                             actionTitle: model.issue == .unauthorized ? "auth.signIn" : "characterCard.refresh",
+                             actionIdentifier: model.issue == .unauthorized ? "characterCard.signIn" : "characterCard.refresh",
+                             kind: .failure) {
+                    if model.issue == .unauthorized { login = true } else { Task { await model.load() } }
+                }
             case .unknown:
                 CYEmptyState(systemImage: "person.text.rectangle", "characterCard.unavailable",
                              detailVerbatim: CharacterCardPageModel.unknownStat, messageIdentifier: "characterCard.unknown",
@@ -42,8 +47,8 @@ import SwiftUI
             }
         }
         .cyAnimation(CYMotion.standard, value: page.phase)
-        .appNavigationTitle("characterCard.title")
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("characterCard.title")
+        .sheet(isPresented: $login, onDismiss: { Task { await model.load() } }) { LoginView(intent: .player) }
         .task { await model.load() }
         .onDisappear { model.dismiss() }
     }
