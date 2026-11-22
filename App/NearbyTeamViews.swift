@@ -64,7 +64,6 @@ import CoreLocation
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 20) {
-                CYHeroHeader("nearby.title")
                 Picker("nearby.section", selection: $tab) {
                     Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
                 }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
@@ -119,7 +118,8 @@ import CoreLocation
             }.padding()
         }
         .refreshable { if coordinator.authenticated && !model.running { await refresh() } }
-        .cyHeroScreen()
+        // RNEAR-3 / RTEAMS-2: one inline bar title, no page-type header in the content.
+        .cyPageTitle(tab == 1 ? String.LocalizationValue(stringLiteral: "nearby.mine") : String.LocalizationValue(stringLiteral: "nearby.title"))
             .toolbar {
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
                 ToolbarItem(placement: .topBarTrailing) {

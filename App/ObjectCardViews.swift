@@ -24,7 +24,6 @@ extension EnvironmentValues {
     private var effectiveMedia: (any ObjectCardImageLoading)? { media ?? envMedia }
     var body: some View {
         List {
-            Section { CYHeroHeader("objects.title") }.listRowBackground(Color.clear)
             if !reader.isAuthenticated { CYEmptyState(systemImage: "person.crop.circle", "objects.login") }
             else if !reader.isConfigured { CYEmptyState(systemImage: "rectangle.stack", "objects.disabled") }
             else {

@@ -39,11 +39,6 @@ import UIKit
         let _ = revision
         Form {
             Section {
-                CYHeroHeader("media.stamp.title")
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
-            }
-            Section {
                 if !cameraEnabled { Label("media.stamp.disabled", systemImage: "camera.fill") }
                 if cameraDenied {
                     VStack(alignment: .leading, spacing: 6) {
@@ -120,6 +115,8 @@ import UIKit
                 }
             }
         }
+        // SCAM-3: the title lives in the bar (inline), not as a hero header in the Form.
+        .cyPageTitle("media.stamp.title")
         // Mini-program viewfinder shutter: one round capture button pinned at the bottom.
         .safeAreaInset(edge: .bottom) {
             if cameraEnabled, coordinator?.canCapture == true {
