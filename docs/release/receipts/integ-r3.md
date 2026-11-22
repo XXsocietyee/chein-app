@@ -60,31 +60,57 @@ mid frames per run, not a frame-by-frame scrub; where the mid frame was missed i
 | 消息 row → chat (c-cont-im) | pass: system push, inbox title into Back, chat bar title (avatar + name) at rest by the next frame; transcript skeleton then content | `comb-im-row-to-chat` |
 | IM send: spinner in the button, ghost → bubble, receipt in the field | pass with one **defect, fixed**: the field's own 输入消息 placeholder showed under the ghost while sending and under the receipt while it faded in (two texts overlapping). Both now sit on an opaque field ground from the first frame (only the words fade); re-checked on device ("test 31"). Remaining small artifact: during its 0.12 s fade the ghost's words drift down out of the field (the matched-position flight pulls them toward the inserted bubble). TEST messages "test 30" / "test 31" sent to 玩家小城 | `comb-im-send` (before), `comb-im-send-fixed` (after) |
 
-Not verified on the device (honest list): Reduce Motion, light mode and VoiceOver focus for each transition; fast
-repeated taps and mid-animation reversal (MCP tap latency is ≈ 1–2 s, so taps cannot be placed inside a 0.4 s
-animation); long/short text and missing-image variants beyond the TEST data; the points-ledger zoom (通行证与礼品),
-the activity footer zoom, the inbox unread count-down (the list reload re-creates rows, per the c-cont-im receipt),
-and C2's in-place results / chapter delete with undo / reorder / pinned wizard bar / refund pair on the simulator
-(covered by their AppUnit tests, which pass: `CodeR3OpsTests` 10/10).
+### 3b · Second verify pass (task_82f07ede4735, build 7e9e57443 → b1c7eed71)
+
+Method additions: three interleaved capture loops (~0.13 s between frames); MCP `batch` taps (several taps ~0.1–0.6 s
+apart in one call) for repeated taps and close-then-reopen; short edge swipes and short sheet drags for gestures
+released half-way. A simulator-wide slow-animation switch was tried (`-UIAnimationDragCoefficient 10` as a launch
+argument) and has no effect, so true mid-animation taps are still not possible. Reduce Motion = the app's
+`--uitesting-reduce-motion` switch (the same path `@QuestifyReduceMotion` reads). Bursts in `integ-r3-shots/burst/`,
+stills in `combined-r4-shots/` (12–40).
+
+| Check | Result | Evidence |
+|---|---|---|
+| Topic bar sheet: zoom path | **pass**: frame 5 catches the sheet as a small card growing out of 查看场次 (bottom-left) while the page behind fades back | `zoom-sessions` |
+| Topic bar sheet: drag released early | **pass**: a short downward drag leaves the sheet presented (settles back) | `combined-r4-shots/12-…` |
+| Activity footer 立即报名 → registration sheet | **FAILED, fixed (23a1fa233)**: the footer pill was **invisible at rest** (only "0 人已报名" showed; it drew over that line only while pressed), on TEST activity 993036 and in the `activity-collapsed` fixture; the 11-16 shots still show it. Cause: `cyHeroSource(…, cornerRadius: CYRadius.pill)`; the pill token is 499.5 and the `matchedTransitionSource` clip, which also applies to the resting source, does not clamp such a radius on iOS 27. `CYHeroSource` now measures the source and clips at most `min(w, h) / 2` (every other source already passed a real radius). After: pill visible. The zoom itself (the sheet opens) was not caught mid-frame. The fixture cannot open the registration sheet (it crashes: `SessionRegistrationSheet` needs `AppSession`, a fixture limit present on ui/main too) | `zoom-activity-test`, `combined-r4-shots/21-…` |
+| Points ledger zoom (c-cont-sheets) | **pass on the pop**: frame 8 catches the 积分明细 page shrinking back into the balance card; the push lands with balance header, chips and history (the zoom-in fell between frames). 通行证与礼品 is **not reachable on TEST** (the pass-market binding is not injected for this session: not in 我的 or 设置), so this ran on a new DEBUG fixture `--design-fixture t5-pass-market-points` (7e9e57443) | `zoom-ledger`, `zoom-ledger-back` |
+| Reduce Motion: search | **pass**: no travel; the layer switches inside one frame gap (a 0.2 s cross-fade) | `rm-search-open` |
+| Reduce Motion: topic bar sheet | **pass**: plain slide-up, no zoom, page behind keeps full size (no recede) | `rm-topic-sessions` |
+| Repeated taps: search 取消 then 🔍 (one batch, 0.15 s apart) | **pass**: the close completed before the re-open landed (~0.6 s), so this is close-then-immediate-reopen, not a mid-close retarget; no hidden field, no stuck layer | `int-search-close-reopen` |
+| Repeated taps: topic tabs 路线→详情→故事, then on the pinned row 故事→详情→故事 | **pass**: ends on the last tapped tab, indicator under it, no stuck stretch | `combined-r4-shots/13-, 14-` |
+| Back swipe released early (topic page) | **pass**: page and pinned tabs unchanged | `combined-r4-shots/15-` |
+| C2 chapter delete with undo (`t11-fabu`) | **pass**: a chapter with nodes asks once (copy says it can be undone), deletes at once with the toast 已删除「The first clue」 撤销 and the quiet empty line; 撤销 within 5 s restores it with its node. (The first try missed the 5 s window and tapped the row under it, which opened the mode sheet: expected) | `combined-r4-shots/30–32-` |
+| C2 reorder | **not testable on device**: the fixture has one chapter and 创建章节 needs a live lease (`starter.createChapter`), so ⋯ shows only 删除 and there is nothing to move; covered by `CodeR3OpsTests` / the list `onMove` | — |
+| C2 pinned wizard bar (`d4-ops-create`, and TEST 俱乐部 → 创建俱乐部) | **pass** for the bar (开始创建 → 下一步 in one pinned bar, 第1步，共4步). Found and **fixed (a18105699, b1c7eed71)**: the step-0 title 建一个俱乐部 sat in the system List row fill, a white capsule under a light system appearance; with the fill cleared it took the system primary colour (black on the dark page), so it now uses the form palette's `textPrimary` and carries `.isHeader` like the step titles. Checked in light and dark, fixture and TEST. Pre-existing on ui/main | `combined-r4-shots/33-35-, 40-` |
+| C2 refund pair (`--uitesting-merchant-business-fixture`) | **pass**: 不同意 · 同意退款 ¥12.00 pinned, equal widths; 同意 opens the response editor preset to 商家意见 · 同意申请. **Finding, not fixed:** inside that editor sheet the heading and form text are near-white on the white merchant sheet in both system appearances (unreadable). The presenter's sheet theming is unchanged from ui/main and `MerchantBusinessEditor.swift` is hash-protected (and back to its reviewed bytes), so this looks pre-existing (theme arbitration: Form text follows the host's dark scheme while `cyDomainSheet` paints the merchant light ground); not verified on a ui/main build | `combined-r4-shots/37-39-` |
+| Light / dark system appearance | The simulator ran in **light** system appearance for every TEST check in §3 and §3b (player shell forces its dark palette: all player screens read correctly); light-domain pages checked: editor (`t11-fabu`), merchant aftercare, club wizard. Dark system appearance: club wizard (fixed) and the merchant editor (finding above). In the fixtures (not the app) a player page's navigation title can turn black under light because the fixture host does not apply the shell's scheme | `combined-r4-shots/30-, 35-, 37-40-` |
+| VoiceOver focus | **Code review only** (VoiceOver cannot be driven from this sandbox): search moves keyboard focus into the field, marks the layer `.isModal` and returns `AccessibilityFocusState` to the 首页 field on close; sheets, pushes and the ledger rely on the system's focus hand-off; tabs keep the selected trait and label; the club wizard intro now has the header trait. Note: the automation snapshot still lists 首页 elements while search is open (it does not apply modal semantics), so "feed unreachable while search is open" is unconfirmed | — |
+
+Still not verified on the device: a true mid-animation reversal (取消 while the open is running), long/short-text and
+missing-image variants beyond the TEST data, and the inbox unread count-down (the list reload re-creates rows).
 
 ## 4 · Gates (ui/combined-r4, final tree)
 
 | Gate | Result |
 |---|---|
 | Build (Questify, Debug, Lane2, `OTHER_SWIFT_FLAGS=$(inherited) -disable-sandbox`) | BUILD SUCCEEDED; build-for-testing (QuestifyAppUnitTests) TEST BUILD SUCCEEDED |
-| `tools/check_scaffold.py` | PASS |
+| `tools/check_scaffold.py` | PASS (re-run after the second verify pass: PASS) |
 | design lint + typography ratchet | PASS (typography raw text style 1199 after the contract restores, see §2) |
-| `tools/contract_ratchet.py --check` | 185 failing, baseline 184; the one "new" id is `test_workshop_paid_professional…bounded_paging`, red on `ui/main` (same as every r3 receipt). Before the restores: 194 / new 10 |
+| `tools/contract_ratchet.py --check` | 185 failing, baseline 184 (re-run on b1c7eed71: unchanged); the one "new" id is `test_workshop_paid_professional…bounded_paging`, red on `ui/main` (same as every r3 receipt). Before the restores: 194 / new 10 |
 | Core `swift test --disable-sandbox` | 16 989 tests, **27 unique failing = baseline 27** |
 | AppUnit, 4 shards (xctestruns from the shard plans, `test_sim`) | 6 / 15 / 27 / 26 failing → **74 unique names**. Against the 72-name baseline bundles (11-17/11-18, 75 names when read from the bundles): new = `CodeR3OpsTests…HandbookDate` (test bug, fixed, 10/10 after), one `OwnAccountRefreshOrderingTests` name (the intermittent ordering class: 4 of its baseline names pass this run; run alone it crashes inside XCTest's error observation), `RoamPrivateReadDenialHostTests…ReceiptRefusal` (one of the two known intermittent hosted-roam names). Against C1's 77: 0 new besides those |
 | `RegistrationUncertainEvidenceCacheTests` (6, flagged by C1) | **pre-dates this work**: it already fails in the 11-16 r2-verify bundles (the 74-name list) and in the 11-17 bundles behind the 72-name baseline; fails again alone on this tree (XCTUnwrap of the evidence scope). Not caused by C1, C2 or the continuity branches |
 
-Lock discipline: every build and test took the lock. Two slips, stated: one rebuild ran past the end of its 15-minute
+Lock discipline: every build and test took the lock. Second pass: four full rebuilds (DerivedData deleted after each to keep the disk above 6 GB while the fix agents built), simulator batches of 15 minutes, one wait of ~10 minutes for the lock. Two slips, stated: one rebuild ran past the end of its 15-minute
 simulator hold (05:03–05:18 on 11-21), and the 17-second `CodeR3OpsTests` confirmation ran just after a release.
 
 ## 5 · Left
 
-- Reduce Motion / light / VoiceOver / interruption passes per transition (needs frame-accurate input; not possible
-  from this sandbox).
+- True mid-animation reversal and on-device VoiceOver (need frame-accurate input / VoiceOver; not possible from this
+  sandbox).
+- Merchant aftercare response editor: near-white text on the white sheet (§3b), likely pre-existing theme arbitration;
+  the fix belongs with the editor's owner (the file is hash-protected).
+- C2 reorder on device (needs a fixture with two chapters or a live lease).
 - The 14 contract-pinned files still carry raw fonts; a contract-aware sweep should move them with their pins.
 - `RegistrationUncertainEvidenceCacheTests` (pre-existing), the intermittent `OwnAccountRefreshOrderingTests` class.
