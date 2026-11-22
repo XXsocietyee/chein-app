@@ -895,15 +895,15 @@ struct ClubCommunityReviewView: View {
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                CYCard {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        factRow("club.community.clubID", String(review.evidence.clubID))
-                        if let post = review.evidence.post {
-                            factRow("club.community.postID", String(post.id))
-                        }
-                        if let comment = review.evidence.comment {
-                            factRow("club.community.commentID", String(comment.id))
-                        }
+                // X10 (parity r1): name the post / comment by its words, never by internal ids.
+                if let target = review.evidence.comment?.content ?? review.evidence.post?.content,
+                   !target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    CYCard {
+                        Text(verbatim: target)
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .lineLimit(3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
 
