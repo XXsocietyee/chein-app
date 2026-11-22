@@ -26,6 +26,10 @@ extension EnvironmentValues {
 }
 
 enum RoamDeviceFixGCJ {
+    /// Location already allowed (no prompt would appear); callers may locate on open.
+    @MainActor static var isAuthorized: Bool {
+        [.authorizedWhenInUse, .authorizedAlways].contains(CLLocationManager().authorizationStatus)
+    }
     /// One foreground fix through the standard iOS permission flow, converted to GCJ-02 exactly once (backend datum).
     @MainActor static func currentGCJ02Fix(provider: any RoamDeviceLocationProviding) async throws -> RoamDeviceFix {
         let raw: RoamDeviceFix

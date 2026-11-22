@@ -1,5 +1,4 @@
 import SwiftUI
-import CoreLocation
 
 @MainActor final class NearbyTeamScreenModel: ObservableObject {
     let coordinator: NearbyTeamCoordinator
@@ -159,7 +158,7 @@ import CoreLocation
                     latitude = String(context.latitude); longitude = String(context.longitude)
                     submitManualContext(.init(latitude: context.latitude, longitude: context.longitude, radius: radius))
                     await model.run { await coordinator.loadNearby(.init(latitude: context.latitude, longitude: context.longitude, radius: radius)) }
-                } else if [.authorizedWhenInUse, .authorizedAlways].contains(CLLocationManager().authorizationStatus) {
+                } else if RoamDeviceFixGCJ.isAuthorized {
                     // RNEAR-1: already allowed → locate straight away like the MP; otherwise wait for 使用当前位置.
                     await locateAndSearch()
                 }

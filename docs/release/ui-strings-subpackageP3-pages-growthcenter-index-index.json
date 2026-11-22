@@ -51,8 +51,8 @@
       "zh-Hans": "Lv.%lld"
     },
     "growth.mileage": {
-      "en": "Total distance (km)",
-      "zh-Hans": "累计距离（km）"
+      "en": "Total distance",
+      "zh-Hans": "累计距离"
     },
     "growth.myRank": {
       "en": "My ranking",

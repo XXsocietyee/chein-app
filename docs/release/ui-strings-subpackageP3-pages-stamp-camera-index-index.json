@@ -40,6 +40,10 @@
       "en": "Finish saving",
       "zh-Hans": "完成存入"
     },
+    "media.stamp.createDormant": {
+      "en": "Saving stamps isn’t open yet. Your photo stays on this phone and nothing is uploaded.",
+      "zh-Hans": "存入集邮册暂未开放，照片只留在本机，不会上传。"
+    },
     "media.stamp.disabled": {
       "en": "The camera can't be used here right now",
       "zh-Hans": "暂时无法在这里使用相机"
@@ -141,6 +145,7 @@
     "media.stamp.openSettings",
     "media.stamp.cameraDenied",
     "media.stamp.cameraIssue.back",
+    "media.stamp.createDormant",
     "roam.createdStamp.open",
     "media.stamp.capture",
     "media.stamp.exchange",

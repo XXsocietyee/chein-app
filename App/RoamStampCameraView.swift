@@ -74,7 +74,8 @@ import UIKit
                         // SCAM-1: upload and create are one 存入集邮册 step in the MP. While create is gated
                         // (owner ruling on RoamExperienceCapabilities.mediaUpload) nothing uploads, so no orphan photo and no dead end.
                         CYPillButton("media.stamp.upload", style: coordinator.pending == nil ? .primary : .secondary) { run { await coordinator.upload() } }
-                            .disabled(!coordinator.canUpload || (!pageContract.showsCreate && coordinator.pending == nil))
+                            .disabled(!coordinator.canUpload)
+                            .disabled(!pageContract.showsCreate && coordinator.pending == nil)
                         if !pageContract.showsCreate {
                             Text("media.stamp.createDormant").cyText(.meta).foregroundStyle(.secondary)
                                 .fixedSize(horizontal: false, vertical: true)

@@ -151,8 +151,8 @@
   },
   {
     "key": "roam.experience.historyEmpty",
-    "en": "Your first stamp is waiting",
-    "zh-Hans": "第一枚章在等你"
+    "en": "No roam records yet",
+    "zh-Hans": "还没有漫游记录"
   },
   {
     "key": "roam.experience.historyEmptyHint",
@@ -281,8 +281,8 @@
   },
   {
     "key": "roam.experience.albumEmpty",
-    "en": "Your first stamp is waiting",
-    "zh-Hans": "第一枚章在等你"
+    "en": "No stamps yet",
+    "zh-Hans": "还没有邮票"
   },
   {
     "key": "roam.experience.albumEmptyHint",
