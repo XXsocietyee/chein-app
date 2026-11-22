@@ -244,9 +244,8 @@ import SwiftUI
             }
         }
         .cyGroupedSurface()
-        }.cyHeroScreen()
-            .appNavigationTitle("social.profile")
-            .navigationBarTitleDisplayMode(.large)
+        }
+            .cyPageTitle("social.profile")
             .cyHideTabBar()
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,

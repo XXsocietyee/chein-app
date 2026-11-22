@@ -37,7 +37,7 @@ import SwiftUI
                     }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding(CYSpacing.pageHorizontal)
-        }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle("team.title")
+        }.background(CYColor.bgPage.ignoresSafeArea()).cyPageTitle("team.title")
             .toolbar { if let nearbyDestination { NavigationLink("nearby.title") { nearbyDestination(model.coordinator.currentTeams) } } }
             .task {
                 guard !Task.isCancelled else { return }
@@ -220,6 +220,7 @@ import SwiftUI
                 }
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
+            .navigationBarTitleDisplayMode(.inline)
             .task {
                 guard !Task.isCancelled else { return }
                 readOwner.activate()

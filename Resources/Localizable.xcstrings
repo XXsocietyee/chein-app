@@ -159462,7 +159462,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "编辑个人资料"
+            "value": "个人资料"
           }
         }
       }
@@ -200942,7 +200942,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "公开主页"
+            "value": "个人主页"
           }
         }
       }
@@ -201581,7 +201581,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "动态详情"
+            "value": "动态"
           }
         }
       }

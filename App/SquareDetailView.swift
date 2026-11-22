@@ -113,7 +113,7 @@ import SwiftUI
         // Mini-program `.detail.theme-dark`: ink ground, elevated post card and comment card (radius 16, 12pt apart).
         .cyMiniListScreen()
         .cyPushedChrome(domain: .player)
-        .appNavigationTitle("square.detail")
+        .cyPageTitle("square.detail")
         .cyHideTabBar()
         .toolbar {
             // Mini-program `ph-more`: edit, delete and report live in one overflow menu.
@@ -254,16 +254,9 @@ import SwiftUI
                     .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             }
             if post.generation == .communityV1 {
-                // C-S2: the star shows whether this post is saved; the action turns it on or off.
-                let saved = post.isBookmarked == 1
-                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: "", enabled: !saved) } label: {
-                    Image(systemName: saved ? "star.fill" : "star")
-                        .symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && saved)
-                }
-                    .tint(saved ? CYColor.warningText : .primary)
-                    .accessibilityLabel(Text(saved ? "square.bookmark.remove" : "square.bookmark.add"))
-                    .accessibilityAddTraits(saved ? .isSelected : [])
-                    .accessibilityIdentifier("square.detail.bookmark")
+                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: ""); editor?.enabled = post.isBookmarked != 1 } label: { Image(systemName: post.isBookmarked == 1 ? "star.fill" : "star").symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isBookmarked == 1) }
+                    .tint(post.isBookmarked == 1 ? CYColor.warningText : .primary).accessibilityAddTraits(post.isBookmarked == 1 ? .isSelected : []) // C-S2: saved state shows
+                    .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
             // Mini `act-share` sits right after the other actions (owner 2026-11-09, Threads-style).
             if let route = makeShareRoute(for: post) {

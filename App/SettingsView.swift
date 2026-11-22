@@ -137,9 +137,8 @@ struct SettingsView: View {
                 Section { ProfileComplaintPreparationLink(session: session) }
                     .environment(\.settingsTileTint, SettingsTint.teal)
                 SettingsSupportSafetyEntry().environment(\.settingsTileTint, SettingsTint.teal)
-                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator,
-                                        // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
-                                        showsNPCChatDataEntry: false)
+                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
+                    .hidingNPCChatDataEntry() // B-SZ-03: 「AI 对话记录」 above is the one NPC chat data row.
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
             .labelStyle(SettingsTileLabelStyle())

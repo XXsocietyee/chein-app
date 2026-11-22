@@ -6,7 +6,8 @@ import UIKit
 @MainActor struct SettingsSupportSections: View {
     let market: RegionalMarket?
     let complianceCoordinator: AccountComplianceCoordinator?
-    let showsNPCChatDataEntry: Bool
+    private(set) var showsNPCChatDataEntry: Bool
+    func hidingNPCChatDataEntry() -> Self { var copy = self; copy.showsNPCChatDataEntry = false; return copy }
     let soundStore: any SettingsSoundStoring
     let legalReader: any SettingsLegalReading
     let appInformation: SettingsAppInformation
@@ -108,7 +109,7 @@ import UIKit
                 }
             }
         }
-        .appNavigationTitle("settingsNative.sound.title")
+        .cyPageTitle("settingsNative.sound.title")
         .task { await model.load() }
     }
     private func soundToggle(_ key: SettingsSoundKey, preferences: SettingsSoundPreferences) -> some View {
@@ -153,6 +154,7 @@ import UIKit
             }
         }
         .navigationTitle(Text(LocalizedStringKey(feature.titleKey)))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

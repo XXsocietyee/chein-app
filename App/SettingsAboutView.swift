@@ -86,8 +86,7 @@ import UIKit
         }
         .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
-        .appNavigationTitle("settingsNative.about.title")
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("settingsNative.about.title")
         .safeAreaInset(edge: .bottom) {
             if let phone = model.contactPhone {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {

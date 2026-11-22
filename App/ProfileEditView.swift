@@ -625,26 +625,20 @@ struct ProfileEditView: View {
             }
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
-        .appNavigationTitle("profile.edit.title")
-        .navigationBarTitleDisplayMode(.large)
-        .navigationBarBackButtonHidden(true)
+        // A3-03: pushed page → inline title. A3-02 (T&C §3): the system back and its swipe while nothing is unsaved;
+        // only while the draft is dirty does the same-looking guarded back ask first.
+        .cyPageTitle("profile.edit.title")
         .interactiveDismissDisabled(model.blocksInteractiveExit)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    if model.requestExit() { dismiss() }
-                } label: { Label("action.back", systemImage: "chevron.left") }
-                .disabled(!model.canRequestExit)
-                .accessibilityIdentifier("profile.exitDiscard.back")
-                .sheet(isPresented: $showExitConfirmation) {
-                    if let value = model.exitConfirmation {
-                        MemberProfileDiscardConfirmSheet(kind: .exitDiscard, onCancel: { model.cancelExit() }) {
-                            showExitConfirmation = false
-                            if model.confirmExit(value) { dismiss() }
-                        }
-                    }
+        .cyGuardedBack(when: model.blocksInteractiveExit) {
+            guard model.canRequestExit else { return }
+            if model.requestExit() { dismiss() }
+        }
+        .sheet(isPresented: $showExitConfirmation) {
+            if let value = model.exitConfirmation {
+                MemberProfileDiscardConfirmSheet(kind: .exitDiscard, onCancel: { model.cancelExit() }) {
+                    showExitConfirmation = false
+                    if model.confirmExit(value) { dismiss() }
                 }
-                .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
             }
         }
         .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }

@@ -90,12 +90,12 @@ class ProfileExitDiscardContracts(unittest.TestCase):
     def test_custom_back_and_modal_fence_require_validated_dismissal(self):
         popups = (ROOT / 'App/MemberAreaPopupSurfaces.swift').read_text()
         for token in ['@Environment(\\.dismiss) private var dismiss',
-                      '.navigationBarBackButtonHidden(true)',
+                      # fix-parity A3-02: T&C §3 guarded back (system back while clean) replaces the hidden back.
+                      '.cyGuardedBack(when: model.blocksInteractiveExit)',
                       '.interactiveDismissDisabled(model.blocksInteractiveExit)',
                       'if model.requestExit() { dismiss() }',
                       'if model.confirmExit(value) { dismiss() }',
-                      '.disabled(!model.canRequestExit)',
-                      '.accessibilityIdentifier("profile.exitDiscard.back")',
+                      'guard model.canRequestExit else { return }',
                       'MemberProfileDiscardConfirmSheet(kind: .exitDiscard']:
             self.assertIn(token, view())
         self.assertIn('confirmIdentifier: "profile.exitDiscard.confirm"', popups)

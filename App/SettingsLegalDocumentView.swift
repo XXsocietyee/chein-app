@@ -57,7 +57,7 @@ import SwiftUI
         }
         .cyDocumentSurface()
         .navigationTitle(Text(LocalizedStringKey(type.titleKey)))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .task(id: loadID) { await model.load(type: type, market: market) }
         .onDisappear { model.invalidate() }
     }
@@ -68,9 +68,7 @@ import SwiftUI
             Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("settingsNative.legal.sourceNotice")
         }
-        Text(verbatim: SettingsLegalAgreementPage.displayText(document.title)).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
-            .fixedSize(horizontal: false, vertical: true)
-            .accessibilityAddTraits(.isHeader)
+        // B-AG-01: the inline bar carries the document title; no second page-type title in the content (MP DS §3.1).
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text("settingsNative.legal.version")
             Text(verbatim: page.versionText).accessibilityIdentifier(SettingsLegalAgreementPage.versionAccessibilityIdentifier)

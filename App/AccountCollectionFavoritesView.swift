@@ -58,8 +58,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                 })
             }
         }
-        .appNavigationTitle("accountCollection.favorites.title")
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("accountCollection.favorites.title")
         .cyHideTabBar()
         .task(id: gateKey) { await gateModel.load(reader: { reader }, gate: { communityGate }) }
         .onChange(of: gateKey) { _, _ in
@@ -141,8 +140,6 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         // mylike.js onPullDownRefresh parity: same guarded refresh as the toolbar button.
         .refreshable { await refresh() }
-        .appNavigationTitle("accountCollection.favorites.title")
-        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { Task { await refresh() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
