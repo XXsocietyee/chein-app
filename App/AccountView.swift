@@ -195,8 +195,9 @@ import SwiftUI
             }
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope).cyPushedChrome() }
             .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session).cyPushedChrome() }
-            .navigationDestination(isPresented:$showsPassportStamps) { RoamHistoryView(reader: session.roamExperienceReader).cyPushedChrome() }
-            .navigationDestination(isPresented:$showsPassportBadges) { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope).cyPushedChrome() }
+            // A1-06: 邮票 opens the stamp album and 勋章 the badge wall, as the MP 收集册 piles do.
+            .navigationDestination(isPresented:$showsPassportStamps) { RoamStampAlbumView(reader: session.roamExperienceReader).cyPushedChrome() }
+            .navigationDestination(isPresented:$showsPassportBadges) { ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader()).cyPushedChrome() }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
                     ProfileFavoriteTopicDestination(selection: selected, session: session,

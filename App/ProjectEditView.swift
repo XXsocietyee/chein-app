@@ -561,7 +561,7 @@ import SwiftUI
                     if let cloudDraftProjectsHost {
                         NavigationLink { cloudDraftProjectsHost() } label: { Text("cloud.openProjects", tableName: "ProjectCloudDraftReceipt") }
                             .accessibilityIdentifier("projectEdit.cloudDraft.myProjects")
-                    } else { Text("cloud.returnHint", tableName: "ProjectCloudDraftReceipt").font(.footnote).foregroundStyle(.secondary) }
+                    } else { Text("cloud.returnHint", tableName: "ProjectCloudDraftReceipt").cyText(.meta).foregroundStyle(.secondary) }
                 } header: { Text("cloud.title", tableName: "ProjectCloudDraftReceipt") }
             }
             if model.coordinator.hasCommittedRequestReceipt {
@@ -941,7 +941,7 @@ import SwiftUI
                     .accessibilityLabel(nodeCountLabel)
             }
             ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Group {
@@ -1096,7 +1096,7 @@ struct ProjectEditReferenceField: View {
                     // Invalid text clears selection; review must not silently send old IDs.
                     selection = invalid ? [] : ids
                 }
-            if invalid { Text("projectEdit.validation.categories").font(.footnote).foregroundStyle(CYColor.dangerText) }
+            if invalid { Text("projectEdit.validation.categories").cyText(.meta).foregroundStyle(CYColor.dangerText) }
             if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }
@@ -1144,7 +1144,7 @@ struct ProjectEditorField<Content: View>: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)
+            Text(title).cyText(.label).foregroundStyle(.secondary).accessibilityHidden(true)
             content
         }.padding(.vertical, 4)
     }

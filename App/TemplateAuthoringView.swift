@@ -323,7 +323,7 @@ extension EnvironmentValues {
             if model.coordinator.session == nil {
                 // C-T7: MP 登录后编辑玩法模板 + 去登录.
                 Section { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "templateAuthor.signIn", messageIdentifier: "templateAuthor.signIn",
-                                       actionTitle: "action.goSignIn", actionIdentifier: "templateAuthor.goSignIn", actionStyle: .primary) { showsSignIn = true }
+                                       actionTitle: "action.goSignIn", actionStyle: .primary) { showsSignIn = true }
                     .listRowBackground(Color.clear) }
             }
             restoreSection

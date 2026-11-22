@@ -1,12 +1,12 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 1181,
+  "raw text style": 1169,
   "Theme.Font": 63,
   "raw size": 67,
-  "back chevron": 15,
-  "hidden back": 15,
-  "large title": 26
+  "back chevron": 14,
+  "hidden back": 14,
+  "large title": 20
  },
  "files": {
   "App/AccessibilityReadinessSectionView.swift": {
@@ -18,11 +18,8 @@
   "App/AccountCollectionCouponDetailView.swift": {
    "raw text style": 1
   },
-  "App/AccountCollectionFavoritesView.swift": {
-   "large title": 2
-  },
   "App/AccountComplianceViews.swift": {
-   "raw text style": 16
+   "raw text style": 11
   },
   "App/AccountDeletionAndGDPRPIPLSectionView.swift": {
    "raw text style": 1
@@ -1053,10 +1050,7 @@
    "raw text style": 2
   },
   "App/ProfileEditView.swift": {
-   "raw text style": 2,
-   "back chevron": 1,
-   "hidden back": 1,
-   "large title": 1
+   "raw text style": 1
   },
   "App/ProfileOrdersView.swift": {
    "raw text style": 2
@@ -1098,9 +1092,6 @@
   },
   "App/ProjectEditRichStoryForms.swift": {
    "raw text style": 7
-  },
-  "App/ProjectEditView.swift": {
-   "raw text style": 4
   },
   "App/ProjectEditorAudioPreview.swift": {
    "raw text style": 1
@@ -1294,17 +1285,13 @@
    "raw text style": 1
   },
   "App/SettingsAboutView.swift": {
-   "raw text style": 1,
-   "large title": 1
-  },
-  "App/SettingsLegalDocumentView.swift": {
-   "large title": 1
+   "raw text style": 1
   },
   "App/SettingsSupportSections.swift": {
    "raw text style": 1
   },
   "App/SettingsView.swift": {
-   "raw text style": 2,
+   "raw text style": 1,
    "large title": 1
   },
   "App/SevenDayLaunchCriticalPathSectionView.swift": {
@@ -1332,8 +1319,7 @@
    "raw text style": 1
   },
   "App/SocialPublicProfileView.swift": {
-   "raw text style": 1,
-   "large title": 1
+   "raw text style": 1
   },
   "App/SquareBrowserView.swift": {
    "large title": 1
@@ -1346,9 +1332,6 @@
   },
   "App/SquareComponents.swift": {
    "raw text style": 2
-  },
-  "App/SquareDetailView.swift": {
-   "raw text style": 1
   },
   "App/SquarePostVideoViews.swift": {
    "raw text style": 1

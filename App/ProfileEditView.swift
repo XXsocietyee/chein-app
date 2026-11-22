@@ -727,7 +727,7 @@ struct ProfileEditView: View {
             HStack {
                 LabeledContent {
                     if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil {
-                        Text("profile.case.descriptionUnavailable").font(.caption).foregroundStyle(.secondary)
+                        Text("profile.case.descriptionUnavailable").cyText(.meta).foregroundStyle(.secondary)
                     } else if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
                     else { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) }
                 } label: { Text(LocalizedStringKey(field.titleKey)) }

@@ -239,7 +239,7 @@ struct SettingsAccountCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 PageTemplateVoiceOver.spoken(nickname.isEmpty ? "\u{2014}" : nickname, locale: locale).cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                     .cyWrapText()
-                Text("settings.account.subtitle \(level)").font(.subheadline).foregroundStyle(palette.textSecondary)
+                Text("settings.account.subtitle \(level)").cyText(.meta).foregroundStyle(palette.textSecondary)
                     .cyWrapText()
             }
             Spacer(minLength: 0)

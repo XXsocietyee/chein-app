@@ -113,7 +113,7 @@ import SwiftUI
         // Mini-program `.detail.theme-dark`: ink ground, elevated post card and comment card (radius 16, 12pt apart).
         .cyMiniListScreen()
         .cyPushedChrome(domain: .player)
-        .cyPageTitle("square.detail")
+        .appNavigationTitle("square.detail").navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .toolbar {
             // Mini-program `ph-more`: edit, delete and report live in one overflow menu.
@@ -367,7 +367,7 @@ import SwiftUI
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 HStack(spacing: 20) {
                     Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
-                        .font(.caption).foregroundStyle(.secondary)
+                        .cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
                     // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
                     if let actions, actions.identity.accountID != nil, comment.generation != .unknown {

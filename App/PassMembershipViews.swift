@@ -508,6 +508,8 @@ struct PassRevealPaidFacts: Hashable {
                 title.cyText(.display).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
                 if let line { line.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
                 CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
+                    // B-PR-01: no destination bound → the CTA says so by being disabled, never a silent no-op.
+                    .disabled(paid == nil ? bindings.membership == nil : bindings.passLibrary == nil)
                     .accessibilityIdentifier("passReveal.start")
                     .revealIn(step >= 8, reduceMotion: reduceMotion)
                     .allowsHitTesting(step >= 8)
