@@ -4,6 +4,11 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.themeDomain) private var themeDomain
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// Continuity r1: set when 首页 hosts search as a state of the page instead of a sheet.
+    @Environment(\.globalSearchInPageHost) private var inPageHost
+    @FocusState private var keywordFocused: Bool
+    /// The field's body size, so the 首页 placeholder (14 pt) scales into it rather than cross-fading.
+    @ScaledMetric(relativeTo: .body) private var fieldTextSize: CGFloat = 17
     /// Player-first: shops/merchants are not a player search target (no chip, no wording, no rows).
     private var hidesMerchants: Bool { themeDomain == .player }
     private var searchKinds: [GlobalSearchKind] { GlobalSearchKind.allCases.filter { !(hidesMerchants && $0 == .merchant) } }
@@ -98,6 +103,7 @@ import SwiftUI
                     .accessibilityIdentifier("searchMap.filters")
                 }
                 .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                .globalSearchInlineField(hidden: inPageHost != nil)
                 if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             }
@@ -136,6 +142,9 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        // Typing swaps suggestions and results; rows insert and remove on the product spring.
+        .cyAnimation(CYMotion.standard, value: listMotionKey)
+        .globalSearchInPage(inPageHost) { hostedFieldRow($0) }
         .cySkeletonTiming(isLoading: loading, visible: $skeletonShown)
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         .appNavigationTitle("searchMap.title")
@@ -189,12 +198,77 @@ import SwiftUI
             updateCategoryPresentation()
         }
         .onAppear { isVisible = true; categoryPresentationID = UUID(); updateCategoryPresentation() }
+        // In-page search: the keyboard rises with the field and drops as 取消 starts the reverse.
+        .onChange(of: inPageHost?.progress) { _, progress in keywordFocused = progress == 1 }
         .onDisappear {
             isVisible = false; retainedResults.cancelPending(); settleLoading()
             categoryRecovery.update(reader: reader, presentationID: nil, active: false)
         }
     }
     private var categoryOwner: SearchMapCategoryRecovery.Owner { .init(reader: reader) }
+    /// Changes when the list swaps suggestions, loading, a failure or result rows.
+    private var listMotionKey: [String] {
+        guard let snapshot = retainedResults.snapshot(in: resultContext) else {
+            return [loading ? "loading" : (issue ?? "suggestions")]
+        }
+        return snapshot.results.rows.filter { selectedKind == nil || $0.kind == selectedKind }.map { "\($0.id)" }
+    }
+    /// 首页's search state: the field it was tapped from, 筛选 and 取消 in one top row. Same field, spinner, clear and
+    /// filters as the inline row; only its place changes.
+    private func hostedFieldRow(_ host: GlobalSearchInPageHost) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                TextField(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
+                    .submitLabel(.search).onSubmit { Task { await search() } }
+                    .focused($keywordFocused)
+                    .accessibilityIdentifier("searchMap.keyword")
+                    .frame(minHeight: 44)
+                    .modifier(GlobalSearchTextSettle(progress: host.progress, moving: host.source != nil,
+                                                     from: Theme.length("--cy-type-body") / max(fieldTextSize, 1)))
+                // Contextual icons: spinner and clear trade places with scale, fade and blur.
+                if loading {
+                    ProgressView().controlSize(.small).tint(CYColor.resultSpinner).accessibilityLabel(Text("searchMap.loading"))
+                        .transition(.globalSearchContextualIcon)
+                }
+                if !filter.keyword.isEmpty {
+                    Button { setKeyword("") } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.textTertiary)
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel(Text("searchMap.clearKeyword"))
+                    .accessibilityIdentifier("searchMap.clearKeyword")
+                    .transition(.globalSearchContextualIcon)
+                }
+            }
+            .cyAnimation(CYMotion.standard, value: [loading, filter.keyword.isEmpty])
+            .padding(.horizontal, CYSpacing.md)
+            .modifier(GlobalSearchFieldMorph(progress: host.progress, source: host.source, onPlaced: host.onFieldPlaced))
+            // 筛选 exists only in the search state: it fades in after half the move and out in the first half back.
+            Button { openFilters() } label: {
+                Label("searchMap.filters", systemImage: "square.grid.2x2")
+                    .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                    .padding(.horizontal, CYSpacing.md)
+                    .frame(minHeight: 44)
+                    .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYNight.ink2))
+                    .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            }
+            .buttonStyle(.plain).fixedSize()
+            .pageTemplateControl(label: Text("searchMap.filters"), traits: .isButton)
+            .accessibilityIdentifier("searchMap.filters")
+            .modifier(GlobalSearchProgressFade(progress: host.progress, start: 0.5, end: 1))
+            Button("action.cancel") { keywordFocused = false; host.onCancel() }
+                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                .buttonStyle(.borderless).fixedSize()
+                .frame(minHeight: 44)
+                .accessibilityIdentifier("globalSearch.close")
+                .modifier(GlobalSearchTrailingSlide(progress: host.progress, moving: host.source != nil))
+        }
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityAction(.escape) { keywordFocused = false; host.onCancel() }
+    }
     private var categories: [DiscoveryCategory] { categoryRecovery.owns(categoryOwner) ? categoryRecovery.categories : [] }
     private var categoryFailed: Bool { categoryRecovery.owns(categoryOwner) && categoryRecovery.phase == .failed }
     private var categoryLoading: Bool { categoryRecovery.owns(categoryOwner) && categoryRecovery.phase == .loading }
@@ -514,3 +588,159 @@ import SwiftUI
 }
 
 private let globalSearchRecentRoutesKey = "globalSearch.recentRoutes.v1"
+
+// MARK: - In-page host (continuity r1)
+
+/// 首页 hosts search as a state of the page. The host owns one progress value (0 = the field sits on the 首页 field
+/// the user tapped, 1 = search at rest) and animates it on `CYMotion.standard`; every piece below derives from it, so
+/// the whole change reverses or retargets from wherever it is.
+struct GlobalSearchInPageHost {
+    /// Window frame of the tapped 首页 field. Nil (Reduce Motion, iOS 17, field scrolled away) = no travel, a cross-fade.
+    var source: CGRect?
+    var progress: CGFloat
+    var onCancel: () -> Void
+    /// The field reports its resting window frame once laid out; the host then starts the move.
+    var onFieldPlaced: (CGRect) -> Void
+}
+
+private struct GlobalSearchInPageHostKey: EnvironmentKey { static let defaultValue: GlobalSearchInPageHost? = nil }
+
+extension EnvironmentValues {
+    var globalSearchInPageHost: GlobalSearchInPageHost? {
+        get { self[GlobalSearchInPageHostKey.self] }
+        set { self[GlobalSearchInPageHostKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Content that exists only in the search state (history, suggestions, results) fades in after half the move.
+    @ViewBuilder func globalSearchInPage<Row: View>(_ host: GlobalSearchInPageHost?, @ViewBuilder row: (GlobalSearchInPageHost) -> Row) -> some View {
+        if let host {
+            modifier(GlobalSearchProgressFade(progress: host.progress, start: 0.5, end: 1))
+                .safeAreaInset(edge: .top, spacing: 0) { row(host) }
+        } else {
+            self
+        }
+    }
+
+    /// Drops the inline field row when the host draws the field in its top row.
+    @ViewBuilder fileprivate func globalSearchInlineField(hidden: Bool) -> some View {
+        if hidden { EmptyView() } else { self }
+    }
+}
+
+/// Opacity ramps 0 to 1 while `progress` runs from `start` to `end`; evaluated every frame.
+struct GlobalSearchProgressFade: ViewModifier, Animatable {
+    var progress: CGFloat
+    let start: CGFloat
+    let end: CGFloat
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+    func body(content: Content) -> some View {
+        let t = end > start ? (progress - start) / (end - start) : (progress >= end ? 1 : 0)
+        content.opacity(Double(min(max(t, 0), 1)))
+    }
+}
+
+/// The field's capsule travels between the two boxes: its top-leading corner and size interpolate from the 首页 field to
+/// the top row (a background layer, so nothing reflows), and the icon and text ride along with a transform. The map
+/// glyph that only the 首页 field has fades out in the first 30 %.
+private struct GlobalSearchFieldMorph: ViewModifier, Animatable {
+    var progress: CGFloat
+    let source: CGRect?
+    let onPlaced: (CGRect) -> Void
+    @State private var rest: CGRect?
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+    func body(content: Content) -> some View {
+        let t = progress
+        let moving = source != nil && rest != nil
+        let s = source ?? .zero
+        let r = rest ?? .zero
+        let boxX = moving ? (s.minX - r.minX) * (1 - t) : 0
+        let boxY = moving ? (s.minY - r.minY) * (1 - t) : 0
+        let midY = moving ? (s.midY - r.midY) * (1 - t) : 0
+        content
+            .background {
+                GeometryReader { proxy in
+                    Color.clear
+                        .onAppear { place(proxy.frame(in: .global)) }
+                        .onChange(of: proxy.frame(in: .global)) { _, frame in place(frame) }
+                }
+            }
+            .offset(x: boxX, y: midY)
+            .background(alignment: .topLeading) {
+                Capsule(style: .continuous).fill(CYColor.bgElevated)
+                    .frame(width: moving ? max(r.width + (s.width - r.width) * (1 - t), 1) : nil,
+                           height: moving ? max(r.height + (s.height - r.height) * (1 - t), 1) : nil)
+                    .overlay(alignment: .trailing) {
+                        if moving {
+                            Image(systemName: "map")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(CYColor.textPrimary)
+                                .frame(width: 52, height: 52)
+                                .opacity(Double(min(max(1 - t / 0.3, 0), 1)))
+                                .accessibilityHidden(true)
+                        }
+                    }
+                    .offset(x: boxX, y: boxY)
+            }
+            .opacity(rest == nil ? 0 : 1)
+    }
+    private func place(_ frame: CGRect) {
+        guard frame.width > 1, rest != frame else { return }
+        let first = rest == nil
+        rest = frame
+        if first { onPlaced(frame) }
+    }
+}
+
+/// Text that changes size scales rather than cross-fading: the 14 pt 首页 placeholder grows into the field's body size.
+private struct GlobalSearchTextSettle: ViewModifier, Animatable {
+    var progress: CGFloat
+    let moving: Bool
+    let from: CGFloat
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+    func body(content: Content) -> some View {
+        let t = min(max(progress, 0), 1)
+        content.scaleEffect(moving ? from + (1 - from) * t : 1, anchor: .leading)
+    }
+}
+
+/// 取消 slides in from the trailing edge with the field and back out with it.
+private struct GlobalSearchTrailingSlide: ViewModifier, Animatable {
+    var progress: CGFloat
+    /// False under Reduce Motion and the other no-travel cases: 取消 is simply there and fades with the layer.
+    let moving: Bool
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+    func body(content: Content) -> some View {
+        let remaining = moving ? 1 - progress : 0
+        content.visualEffect { view, proxy in
+            view.offset(x: remaining * (proxy.size.width + CYSpacing.pageHorizontal))
+        }
+    }
+}
+
+private struct GlobalSearchBlur: ViewModifier {
+    let radius: CGFloat
+    func body(content: Content) -> some View { content.blur(radius: radius) }
+}
+
+extension AnyTransition {
+    /// make-interfaces-feel-better §7: contextual icons enter from scale 0.25, opacity 0 and 4 pt blur.
+    static var globalSearchContextualIcon: AnyTransition {
+        .scale(scale: 0.25)
+            .combined(with: .opacity)
+            .combined(with: .modifier(active: GlobalSearchBlur(radius: 4), identity: GlobalSearchBlur(radius: 0)))
+    }
+}
