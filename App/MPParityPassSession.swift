@@ -318,11 +318,19 @@ struct PlatformPassReadOnlyTransport: HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         guard let url = request.url, let method = request.httpMethod?.uppercased() else { throw APIError.invalidRequest }
         let path = url.path
-        let refused = [PlatformPass.purchasePath, PlatformPass.quotePath, PlatformPass.orderPath, PlatformPass.claimPath]
+        let refused = [PlatformPass.quotePath, PlatformPass.orderPath, PlatformPass.claimPath]
         if refused.contains(where: { Self.matches(path, $0) }) { throw PlatformPassWriteRefusal.unreachable }
+        // The purchase URL doubles as the GET list of the viewer's pass orders: only the POST is a write.
+        if method != "GET", Self.matches(path, PlatformPass.purchasePath) { throw PlatformPassWriteRefusal.unreachable }
+        if method != "GET", Self.isPassOrderChild(path) { throw PlatformPassWriteRefusal.unreachable }
         let reads = [PlatformPass.overviewPath, PlatformPass.libraryPath, PlatformPass.productListPath,
-                     PlatformPass.ordersPath, PlatformPass.giftsBoughtPath, PlatformPass.giftsReceivedPath]
-        if method == "GET", reads.contains(where: { Self.matches(path, $0) }) {
+                     PlatformPass.ordersPath, PlatformPass.giftsBoughtPath, PlatformPass.giftsReceivedPath,
+                     PlatformPass.passOrdersPath]
+        if method == "GET", reads.contains(where: { Self.matches(path, $0) }) || Self.isPassOrderDetail(path) || Self.isProductDetail(path) {
+            return try await underlying.send(request)
+        }
+        // Theme library: the public catalog list, a read sent as POST with a JSON filter body.
+        if method == "POST", Self.matches(path, PlatformPass.publicCatalogListPath), request.httpBody != nil {
             return try await underlying.send(request)
         }
         if method == "POST", Self.matches(path, PlatformPass.pointsPath),
@@ -330,6 +338,25 @@ struct PlatformPassReadOnlyTransport: HTTPTransport {
             return try await underlying.send(request)
         }
         throw APIError.notConfigured
+    }
+
+    /// `…/api/platform-pass/orders/{orderNo}` with one safe segment (pay, confirm, cancel and refund have two).
+    private static func isPassOrderDetail(_ path: String) -> Bool {
+        let prefix = "/" + PlatformPass.passOrdersPath + "/"
+        guard let range = path.range(of: prefix, options: .backwards) else { return false }
+        return PlatformPassSubscriptionOrder.orderNoAllowed(String(path[range.upperBound...]))
+    }
+
+    /// Anything below `…/api/platform-pass/orders/`: pay, confirm, cancel, refund-apply.
+    private static func isPassOrderChild(_ path: String) -> Bool {
+        path.contains("/" + PlatformPass.passOrdersPath + "/")
+    }
+
+    /// `…/api/marketing/product/{id}` where the id normalises like the route table (never list, quote, order, orders).
+    private static func isProductDetail(_ path: String) -> Bool {
+        let prefix = "/" + PlatformPass.productDetailPrefix
+        guard let range = path.range(of: prefix, options: .backwards) else { return false }
+        return G6CapabilitySource.productIDAllowed(String(path[range.upperBound...]))
     }
 
     private static func matches(_ path: String, _ relative: String) -> Bool {
@@ -361,6 +388,7 @@ extension AppSession {
         bindings.passGift = { [weak self] _ in MPParityPassGiftModel(session: self) }
         bindings.membership = { [weak self] in MPParityPassMembershipModel(session: self) }
         bindings.passLibrary = { [weak self] in MPParityPassLibraryModel(session: self) }
+        bindings.passOrder = { [weak self] orderNo in MPParityPassOrderModel(session: self, orderNo: orderNo) }
         bindings.passStoreCard = { [weak self] in await self?.loadPassStoreCard() ?? nil }
         bindings.passCheckoutCover = { [weak self] topicID in await self?.loadPassCheckoutCover(topicID: topicID) ?? nil }
         bindings.orderDetail = { [weak self] id in
@@ -439,35 +467,41 @@ struct MPParityRegistrationOrder: View {
 
     private func reload(quiet: Bool, ticket: Int) async {
         guard ticket == generation else { return }
-        guard let session else { state.content = .failed(nil); return }
-        if session.mpViewerIsMerchant {
-            state.content = .ready(PassMarketContent(products: [], orders: [], giftsBought: [], giftsReceived: []))
-            state.member = nil
-            state.pointBalance = nil
-            state.refreshFailed = false
-            return
-        }
-        guard let reader = session.makePlatformPassReader(), let token = session.passReadToken() else {
-            state.content = .failed(nil)
-            return
-        }
+        guard let session, let reader = session.makePlatformPassReader() else { state.content = .failed(nil); return }
+        // Mini-program `market/passes`: the on-sale list is public; orders, gifts and pass orders need a session.
+        // Points, the member overview and pass orders are optional: their failure never blanks the page.
+        let token = session.passReadToken()
+        let merchant = session.mpViewerIsMerchant
+        state.signedIn = token != nil
         do {
             let products = try await reader.productList(token: token)
-            let orders = try await reader.orders(token: token)
-            let gifts = try await reader.gifts(token: token)
-            let points = try await reader.points(token: token)
-            let overview = try await reader.overview(token: token, viewerIsMerchant: false)
+            var orders: [PlatformPassOrder] = []
+            var gifts = PlatformPassGifts.empty
+            var passOrders: [PlatformPassSubscriptionOrder] = []
+            var points: Double?
+            var overview: PlatformPassOverview?
+            if let token {
+                orders = try await reader.orders(token: token)
+                gifts = try await reader.gifts(token: token)
+                passOrders = (try? await reader.passOrders(token: token)) ?? []
+                if !merchant {
+                    points = try? await reader.points(token: token)
+                    overview = try? await reader.overview(token: token, viewerIsMerchant: false)
+                }
+            }
             guard ticket == generation else { return }
             assert(gifts.claimReachable == false)
             assert(gifts.bought.allSatisfy { $0.claimReachable == false })
             var names: [String: String] = [:]
             for product in products where !product.name.isEmpty { names[product.id] = product.name }
             state.content = .ready(PassMarketContent(
-                products: products.map(MPParityBindings.productCard),
+                // Buyer walk 1122: an extra seat is bought from its original order, so it is not listed as on sale.
+                products: products.filter { !$0.isExtraSeat }.map(MPParityBindings.productCard),
                 orders: orders.map { MPParityBindings.orderRow($0, names: names) },
                 giftsBought: gifts.bought.map(MPParityBindings.giftRow),
-                giftsReceived: gifts.received.map(MPParityBindings.giftRow)))
-            state.member = MPParityBindings.memberSide(viewerIsMerchant: false, overview: overview)
+                giftsReceived: gifts.received.map(MPParityBindings.giftRow),
+                passOrders: passOrders))
+            state.member = overview.flatMap { MPParityBindings.memberSide(viewerIsMerchant: false, overview: $0) }
             state.pointBalance = MPParityBindings.wholePoints(points)
             state.refreshFailed = false
         } catch is CancellationError {
@@ -501,12 +535,13 @@ struct MPParityRegistrationOrder: View {
     private func reload() async {
         state.unlockSteps = []
         state.giftShare = nil
-        guard let session, !productID.isEmpty, let reader = session.makePlatformPassReader(),
-              let token = session.passReadToken() else {
+        guard let session, !productID.isEmpty, let reader = session.makePlatformPassReader() else {
             state.product = .failed(nil)
             state.buy = .unavailable(reason: nil)
             return
         }
+        // A guest sees the product (the read is public) and a 购买 button that asks to sign in.
+        let token = session.passReadToken()
         // G6: the detail page reads `GET /api/marketing/product/{id}` like `subpackageMember/market/pass`.
         if let source = session.g6Source(), let g6Token = session.g6Token(), G6CapabilitySource.productIDAllowed(productID) {
             let envelope = try? await source.marketingProduct(id: productID, token: g6Token)
@@ -521,13 +556,11 @@ struct MPParityRegistrationOrder: View {
             return
         }
         do {
-            let products = try await reader.productList(token: token)
-            guard let product = products.first(where: { $0.id == productID }) else {
-                state.product = .failed(nil)
-                state.buy = .unavailable(reason: nil)
-                return
-            }
+            // `GET /api/marketing/product/{id}` like the mini-program, so an off-sale or older product still opens.
+            let product = try await reader.product(id: productID, token: token)
+            if Task.isCancelled { return }
             await apply(product)
+            if token == nil, case .buyable = state.buy { state.buy = .signIn }
         } catch is CancellationError {
             return
         } catch {
@@ -540,6 +573,8 @@ struct MPParityRegistrationOrder: View {
     private func apply(_ product: PlatformPassProduct) async {
         let card = MPParityBindings.productCard(product)
         state.product = .ready(card)
+        // A gift-only product (kind 7) is always bought for a friend: 使用人 reads 领取礼品的好友.
+        state.forGift = card.giftOnly
         state.activateTopicID = product.topicIDs.first
         guard card.kind == .group || card.kind == .schoolGroup else {
             state.groupQuote = nil
@@ -573,6 +608,10 @@ struct MPParityRegistrationOrder: View {
         guard MPParityBindings.moneyEnabled == false, MPCommerceGate.purchasesEnabled == false else {
             return .unavailable(reason: nil)
         }
+        // market-view.js: an extra seat is added from its original order and cannot be bought here.
+        if product.isExtraSeat {
+            return .unavailable(reason: String(localized: LocalizedStringResource("mp.pass.buy.extraSeat", locale: .current)))
+        }
         var modes: [PassPayMode] = []
         if let cash = product.cashPrice, cash.isFinite {
             modes.append(PassPayMode(mode: .cash, amountText: MPParityBindings.yuan(cash)))
@@ -584,16 +623,15 @@ struct MPParityRegistrationOrder: View {
         return .buyable(payModes: modes, cashReason: nil)
     }
 
+    /// Before a quote the mini-program shows one 价格 row, "¥x / y 积分" (`market-view.js` 156-160).
     private static func checkout(_ product: PlatformPassProduct) -> [PassCheckoutRow] {
-        var rows: [PassCheckoutRow] = []
-        if let cash = product.cashPrice, cash.isFinite {
-            rows.append(PassCheckoutRow(kind: .price, valueText: MPParityBindings.yuanFixed(cash), note: nil, off: false))
-        }
+        var parts: [String] = []
+        if let cash = product.cashPrice, cash.isFinite { parts.append(MPParityBindings.yuanFixed(cash)) }
         if let points = MPParityBindings.wholePoints(product.pointsPrice) {
-            let text = String(localized: LocalizedStringResource("mp.pass.points.amount \(points)", locale: .current))
-            rows.append(PassCheckoutRow(kind: .points, valueText: text, note: nil, off: false))
+            parts.append(String(localized: LocalizedStringResource("mp.pass.points.amount \(points)", locale: .current)))
         }
-        return rows
+        guard !parts.isEmpty else { return [] }
+        return [PassCheckoutRow(kind: .price, valueText: parts.joined(separator: " / "), note: nil, off: false)]
     }
 }
 
@@ -660,23 +698,52 @@ struct MPParityRegistrationOrder: View {
 
     private func reload(kind: PassLibraryKind, ticket: Int) async {
         guard ticket == generation else { return }
-        guard let session else { phase = .failed(nil); return }
-        if session.mpViewerIsMerchant { phase = .merchant; return }
-        guard let reader = session.makePlatformPassReader(), let token = session.passReadToken() else {
-            phase = .failed(nil)
-            return
-        }
+        // Mini-program `market/library` reads the public catalog: no pass switch, no account view, no session needed.
+        guard let session, let reader = session.makePlatformPassReader() else { phase = .failed(nil); return }
         do {
-            let library = try await reader.library(kind: kind.rawValue, token: token, viewerIsMerchant: false)
+            let cards = try await reader.publicLibrary(kind: kind.rawValue, token: session.passReadToken())
             guard ticket == generation else { return }
-            if library.merchantBlocked { phase = .merchant; return }
-            if !library.enabled { phase = .off; return }
-            phase = .ready(library.cards.map(MPParityBindings.libraryCard))
+            phase = .ready(cards.map(MPParityBindings.libraryCard))
         } catch is CancellationError {
             return
         } catch {
             guard ticket == generation else { return }
             phase = .failed(nil)
+        }
+    }
+}
+
+/// `market/pass-order`: `GET /api/platform-pass/orders/{orderNo}`. A guest gets the shared sign-in request.
+@MainActor @Observable final class MPParityPassOrderModel: PassOrderDetailBinding {
+    private(set) var phase: MPLoad<PlatformPassSubscriptionOrder> = .loading
+    private weak var session: AppSession?
+    let orderNo: String
+
+    init(session: AppSession?, orderNo: String) {
+        self.session = session
+        self.orderNo = orderNo
+    }
+
+    func load() {
+        if phase.value == nil { phase = .loading }
+        Task { [weak self] in await self?.reload() }
+    }
+
+    private func reload() async {
+        guard let session, let reader = session.makePlatformPassReader() else { phase = .failed(nil); return }
+        guard let token = session.passReadToken() else {
+            PlayerJourneySignInBridge.shared.request()
+            phase = .failed(nil)
+            return
+        }
+        do {
+            let order = try await reader.passOrderDetail(orderNo: orderNo, token: token)
+            phase = .ready(order)
+        } catch is CancellationError {
+            return
+        } catch {
+            // Keep a row already on screen; only a first load turns into the error state.
+            if phase.value == nil { phase = .failed(nil) }
         }
     }
 }

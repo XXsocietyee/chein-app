@@ -30,6 +30,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
             "subpackageMember/market/gift/index": .init(allowed: ["token"], required: ["token"], ids: []),
             "subpackageMember/market/membership/index": .init(allowed: [], required: [], ids: []),
             "subpackageMember/market/library/index": .init(allowed: ["kind"], required: [], ids: []),
+            "subpackageMember/market/pass-order/index": .init(allowed: ["orderNo"], required: ["orderNo"], ids: []),
             "subpackagePass/reveal/index": .init(allowed: [], required: [], ids: []),
             "subpackageJourney/pages/landing/index": .init(allowed: ["k", "t", "aid", "tid"], required: ["k", "t"], ids: ["aid", "tid"]),
             "subpackageJourney/pages/seats/index": .init(allowed: ["registrationId"], required: ["registrationId"], ids: ["registrationId"]),

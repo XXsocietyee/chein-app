@@ -46,6 +46,7 @@ struct MPParityBindings {
     var passGift: (@MainActor (_ token: String) -> any PassGiftClaimBinding)?
     var membership: (@MainActor () -> any PassMembershipBinding)?
     var passLibrary: (@MainActor () -> any PassLibraryBinding)?
+    var passOrder: (@MainActor (_ orderNo: String) -> any PassOrderDetailBinding)?
     var journeyLanding: (@MainActor (_ link: JourneyLandingLink) -> any JourneyLandingBinding)?
     var journeySeats: (@MainActor (_ registrationID: String) -> any JourneySeatsBinding)?
     var journeyPromo: (@MainActor () -> any JourneyPromoBinding)?
@@ -101,6 +102,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case gift(token: String)
     case membership
     case library(kind: PassLibraryKind)
+    /// `subpackageMember/market/pass-order/index?orderNo=`: one city-pass order, read only.
+    case passOrder(orderNo: String)
     case reveal(paid: PassRevealPaidFacts?)
     case journeyLanding(JourneyLandingLink)
     case journeySeats(registrationID: String)
@@ -164,6 +167,9 @@ enum MPParityRoute: Hashable, Identifiable {
             self = .membership
         case "subpackageMember/market/library/index":
             self = .library(kind: query["kind"].flatMap(PassLibraryKind.init(rawValue:)) ?? .all)
+        case "subpackageMember/market/pass-order/index":
+            guard let orderNo = nonEmpty("orderNo"), PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { return nil }
+            self = .passOrder(orderNo: orderNo)
         case "subpackagePass/reveal/index":
             // Paid reveal facts come only from verified in-app purchase flow, never from URL query params.
             self = .reveal(paid: nil)
@@ -232,6 +238,8 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.membership { PassMembershipHost(binding: make()) } else { unavailable }
         case .library(let kind):
             if let make = bindings.passLibrary { PassLibraryHost(binding: make(), initialKind: kind) } else { unavailable }
+        case .passOrder(let orderNo):
+            if let make = bindings.passOrder { PassOrderDetailHost(binding: make(orderNo)) } else { unavailable }
         case .reveal(let paid):
             PassRevealView(paid: paid, accountKey: bindings.revealAccountKey?(), isMerchant: bindings.isMerchant)
         case .journeyLanding(let link):

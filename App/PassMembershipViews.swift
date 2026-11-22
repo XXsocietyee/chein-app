@@ -287,8 +287,17 @@ enum PassLibraryPhase: Equatable {
     let binding: any PassLibraryBinding
     var initialKind: PassLibraryKind = .all
     var onOpenTopic: ((String) -> Void)? = nil
+    @State private var route: MPParityRoute?
     var body: some View {
-        PassLibraryView(phase: binding.phase, initialKind: initialKind, onLoad: { binding.load(kind: $0) }, onOpenTopic: onOpenTopic)
+        PassLibraryView(phase: binding.phase, initialKind: initialKind, onLoad: { binding.load(kind: $0) },
+                        onOpenTopic: onOpenTopic ?? openTopic)
+            .mpParityRouteDestination($route)
+    }
+
+    /// `market/library` card → `pages/topic/index/index?id=` (the topic detail).
+    private func openTopic(_ id: String) {
+        guard let value = Int(id), value > 0, String(value) == id else { return }
+        route = .screen(page: "pages/topic/index/index", query: ["id": id])
     }
 }
 
@@ -350,8 +359,7 @@ struct PassLibraryView: View {
         }
         .refreshable { onLoad(kind) }
         .cyPushedChrome(domain: .player)
-        .navigationTitle(Text("mp.library.title"))
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("mp.library.title")
         .onAppear { if !started { kind = initialKind; loadedKind = initialKind; started = true; onLoad(initialKind) } }
         .onChange(of: kind) { _, new in if started && new != loadedKind { loadedKind = new; onLoad(new) } }
     }
