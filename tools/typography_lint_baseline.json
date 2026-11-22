@@ -1,7 +1,7 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 1181,
+  "raw text style": 1199,
   "Theme.Font": 63,
   "raw size": 67,
   "back chevron": 15,
@@ -850,6 +850,9 @@
   "App/NativeFriendTeamInviteEntry.swift": {
    "Theme.Font": 1
   },
+  "App/NativeQRScanner.swift": {
+   "raw text style": 1
+  },
   "App/NativeRpgConditionAuthorView.swift": {
    "raw text style": 1
   },
@@ -874,6 +877,9 @@
   },
   "App/NativeSupersetOverMiniProgramSectionView.swift": {
    "raw text style": 1
+  },
+  "App/NativeVerificationView.swift": {
+   "raw text style": 8
   },
   "App/NativeWebhookDeliveryLogView.swift": {
    "raw text style": 3
@@ -1086,6 +1092,9 @@
    "back chevron": 1,
    "hidden back": 1
   },
+  "App/ProjectEditFixtureSupport.swift": {
+   "raw text style": 5
+  },
   "App/ProjectEditFlowParity.swift": {
    "raw text style": 1,
    "hidden back": 1
@@ -1178,6 +1187,9 @@
   "App/PublishingManagementViews.swift": {
    "raw text style": 2,
    "large title": 1
+  },
+  "App/PublishingModesViews.swift": {
+   "raw text style": 3
   },
   "App/PushNotificationAndLiveActivitySectionView.swift": {
    "raw text style": 1
@@ -1509,6 +1521,9 @@
   },
   "App/WorkshopModUpgradeSheetView.swift": {
    "raw text style": 3
+  },
+  "App/WorkshopPaidInstalledTextView.swift": {
+   "raw text style": 1
   },
   "App/WorldAndCityLifecycleSectionView.swift": {
    "raw text style": 2

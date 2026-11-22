@@ -115,7 +115,7 @@ struct NativeQRScanner: View {
         .id(attempt)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             Text("scanner.instructions")
-                .cyText(.body)
+                .font(.callout)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding()

@@ -26,11 +26,11 @@ import SwiftUI
                 Section { CloseW5dStateView(state: pageState, emptyTitle: "closew5d.state.empty.title", emptyMessage: "closew5d.state.empty.message") { Task { await model.load() } } }
             }
             Section {
-                if reader.isSyntheticEnabled { Text("merchant.engagement.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
-                if let name = model.access?.identity?.name { Text(name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                if let issue = model.issue { Text(LocalizedStringKey(issue)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                if let failure = state.failure { Text(LocalizedStringKey(failure.key)).cyText(.meta).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("merchant.engagement.error") }
-                if state.locked { Text("merchant.business.unknownResult").cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.engagement.locked") }
+                if reader.isSyntheticEnabled { Text("merchant.engagement.synthetic").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                if let name = model.access?.identity?.name { Text(name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if let issue = model.issue { Text(LocalizedStringKey(issue)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let failure = state.failure { Text(LocalizedStringKey(failure.key)).font(CYTypography.meta).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("merchant.engagement.error") }
+                if state.locked { Text("merchant.business.unknownResult").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.engagement.locked") }
                 if model.loading || state.busy { CYSkeleton(variant: .row) }
             }
             if allowed("merchant:crm:read") {

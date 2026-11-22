@@ -288,10 +288,10 @@ struct MerchantContentFields: View {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     if case .query(.recruiting) = kind, let focusedTopicID, row["id"].integer == focusedTopicID {
                         Label("merchant.insightNavigation.located", systemImage: "scope")
-                            .cyText(.label)
+                            .font(CYTypography.meta.weight(.medium))
                             .accessibilityIdentifier("merchant.insightNavigation.located." + String(focusedTopicID))
                     }
-                    Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").cyText(.cardTitle)
+                    Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").font(CYTypography.cardTitle)
                     MerchantContentFields(value: row, names: fields)
                     actions(row)
                 }
@@ -412,7 +412,7 @@ struct MerchantContentFields: View {
                     Text(verbatim: row["name"].text ?? "—").font(.headline)
                     MerchantContentFields(value: row, names: ["description", "category", "required"])
                     MerchantContentFields(value: row["recruitStatus"], names: ["termsMode", "perkMinValue", "allowedValidationMethods", "maxNodeXp", "maxMerchant", "remainingMerchantCount", "state"])
-                    if row["recruitStatus"]["remainingMerchantCount"] == .null { Text("merchant.content.unlimitedSlots").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                    if row["recruitStatus"]["remainingMerchantCount"] == .null { Text("merchant.content.unlimitedSlots").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                     if let id = row["id"].integer, id > 0 { NavigationLink("merchant.content.apply") { MerchantContentEditView(service: service, query: snapshot.query, kind: .apply(id)) }.accessibilityIdentifier("merchant.content.apply") }
                 }.cyDomainCard()
             }
@@ -515,7 +515,7 @@ struct MerchantContentRowLinkStyle: ButtonStyle {
             ForEach(Array(projection.stations.enumerated()), id: \.offset) { _, station in
                 if let node = station["nodeId"].safeInteger {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(verbatim: station["nodeName"].text ?? "—").cyText(.cardTitle)
+                        Text(verbatim: station["nodeName"].text ?? "—").font(CYTypography.cardTitle)
                         MerchantContentFields(value: station, names: ["stationCode", "status", "merchantInstruction", "hiddenInfoReminder", "capacity", "serviceStartAt", "serviceEndAt", "pendingVerificationCount"])
                         if let prompt = station["playerTask"]["prompt"].text { Text(verbatim: prompt) }
                         ForEach(MerchantStationAction.allCases) { action in
@@ -648,7 +648,7 @@ private struct MerchantChapterReplacementContextKey: EnvironmentKey {
     @State private var error = false
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("merchant.content.actualSupply").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("merchant.content.actualSupply").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let snapshot, snapshot.scope == service.scope {
                 ForEach(Array(snapshot.rows.filter { $0["topicId"].integer == topicID }.enumerated()), id: \.offset) { _, row in
                     if let context = try? MerchantContentSupplyContext(application: row, recruitmentChapters: chapters) {
@@ -660,7 +660,7 @@ private struct MerchantChapterReplacementContextKey: EnvironmentKey {
                             if (context.canEnroll || context.canReconfirmOrPause), let destination {
                                 NavigationLink { destination(context) } label: { Text("merchant.content.manageSupply") }
                             } else if !context.offerActive && context.termsMode == nil {
-                                Text("merchant.content.supplyTermsUnknown").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                                Text("merchant.content.supplyTermsUnknown").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                             }
                             if context.offerActive, context.offerID != nil, let withdrawalDestination {
                                 NavigationLink { withdrawalDestination(context) } label: { Text("merchant.offerWithdrawal.title") }
@@ -669,9 +669,9 @@ private struct MerchantChapterReplacementContextKey: EnvironmentKey {
                         }
                     }
                 }
-            } else if error { Text("merchant.content.supplyLoadFailed").cyText(.meta).foregroundStyle(CYColor.dangerText) }
+            } else if error { Text("merchant.content.supplyLoadFailed").font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
             else { CYSkeleton(variant: .row) }
-            Text("merchant.content.supplyBoundary").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+            Text("merchant.content.supplyBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
         }.task(id: service.scope) {
             let captured = service.scope; snapshot = nil; error = false
             do { let result = try await service.load(.applications); guard !Task.isCancelled, captured == service.scope else { return }; snapshot = result }

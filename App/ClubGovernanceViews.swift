@@ -655,7 +655,7 @@ struct ClubGovernanceReadView: View {
                             .disabled(page <= 1 || loading)
                             .accessibilityIdentifier("club.gov.previous")
                         Spacer(minLength: CYSpacing.sm)
-                        Text(page, format: .number).cyText(.numericBody)
+                        Text(page, format: .number).font(CYTypography.numericBody)
                         Spacer(minLength: CYSpacing.sm)
                         Button("club.gov.next") { page += 1; Task { await load() } }
                             .frame(minHeight: CYSpacing.minTouchTarget)
@@ -1322,7 +1322,7 @@ struct ClubGovernanceReadView: View {
             } else {
                 // Source club/apply intro: one large two-line title over the 成为主理人 CTA, nothing else.
                 Section {
-                    Text("club.host.intro.title").cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
+                    Text("club.host.intro.title").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
                 }.listRowBackground(Color.clear)
                 Section {
@@ -1368,7 +1368,7 @@ struct ClubGovernanceReadView: View {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(verbatim: value["name"].string ?? value["title"].string ?? "—")
-                        .cyText(.cardTitle)
+                        .font(CYTypography.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let status = value["status"].string, ["reviewing", "rejected", "confirmed", "preparing", "running", "ended"].contains(status) {
@@ -1495,7 +1495,7 @@ struct ClubGovernanceReadView: View {
                     ClubOpsCustomerMetricTile(value: metrics.pending, label: "clubOps.customer.pending")
                     ClubOpsCustomerMetricTile(value: metrics.refunded, label: "clubOps.customer.refunded")
                     if let paid = customerPage.paidAmount?.displayText {
-                        Text(verbatim: paid).cyText(.numericBody).monospacedDigit().accessibilityIdentifier(ClubCustomerDetailPage.Accessibility.paidAmount)
+                        Text(verbatim: paid).font(CYTypography.numericBody).monospacedDigit().accessibilityIdentifier(ClubCustomerDetailPage.Accessibility.paidAmount)
                     }
                 }
             } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customer.malformed") }
@@ -1660,7 +1660,7 @@ struct ClubGovernanceEventView: View {
             NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
                 Label {
                     Text("clubOpsEvent.entry.event", tableName: "ClubOpsEvent")
-                        .cyText(.cardTitle)
+                        .font(CYTypography.cardTitle)
                         .fixedSize(horizontal: false, vertical: true)
                 } icon: { CYRowIcon(systemImage: "person.crop.circle.badge.checkmark") }
             }.accessibilityIdentifier("clubOpsEvent.open.event")
@@ -1854,7 +1854,7 @@ struct ClubGovernanceEventView: View {
                         selectedChapter = chapter.id; invalidateSelection()
                     } label: {
                         ClubStoryChapterTitle(chapter: chapter)
-                            .cyText(.meta, weight: .semibold)
+                            .font(CYTypography.meta.weight(.semibold))
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, CYSpacing.md)
                             .padding(.vertical, CYSpacing.sm)

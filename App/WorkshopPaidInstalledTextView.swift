@@ -23,7 +23,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
             presentation.open(makeReference: makeReference, makeController: makeController)
         } label: { Label { paidText("entry") } icon: { Image(systemName: "doc.text.magnifyingglass") } }
         .accessibilityIdentifier("workshopPaidInstalledText.entry")
-        if presentation.unavailable { paidText("notConfigured").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true) }
+        if presentation.unavailable { paidText("notConfigured").font(.footnote).fixedSize(horizontal: false, vertical: true) }
         Color.clear.frame(height: 0)
             .sheet(item: presented) { captured in
                 WorkshopPaidInstalledTextView(controller: captured.controller, appearance: captured.appearance) {

@@ -65,7 +65,7 @@ struct MerchantOperationsHomeView: View {
                         }
                     }
                 }
-                if !access.identity.active { Text("merchant.access.inactive").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                if !access.identity.active { Text("merchant.access.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             } else if let issue, loadedScope == reader.scope {
                 VStack(spacing: CYSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
@@ -410,7 +410,7 @@ private struct MerchantOperationsCityView: View {
                 if catalog.applications.isEmpty { Text("merchant.operations.empty") }
                 ForEach(catalog.applications) { application in
                     VStack(alignment: .leading, spacing: 8) {
-                        if let name = application.name { Text(verbatim: name).cyText(.cardTitle) }
+                        if let name = application.name { Text(verbatim: name).font(CYTypography.cardTitle) }
                         Text(LocalizedStringKey(application.applicationType == 2 ? "merchant.operations.claim" : application.applicationType == 1 ? "merchant.operations.placement" : "merchant.operations.review.unknown"))
                         Text(LocalizedStringKey(application.reviewKey))
                         if application.status == 2, let reason = application.reason { Text(verbatim: reason).foregroundStyle(CYColor.textTertiary) }
