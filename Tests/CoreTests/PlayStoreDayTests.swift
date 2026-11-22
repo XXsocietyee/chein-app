@@ -51,7 +51,9 @@ final class PlayStoreDayPresentationTests: XCTestCase {
     func testTagCrowdPrimaryAndPopupPriority() throws {
         var node = try XCTUnwrap(PlayStoreDayNode(row: wire(listRow)))
         XCTAssertEqual(PlayStoreDayHeaderTag(node), .pending); XCTAssertEqual(PlayStoreDayCrowd(node), .queue)
-        XCTAssertEqual(PlayStoreDayPrimaryAction.resolve(node, receipt: .ready), .scan)
+        XCTAssertEqual(PlayStoreDayPrimaryAction.resolve(node, receipt: .ready), .arrive)
+        XCTAssertEqual(PlayStoreDayPrimaryAction.resolve(node, receipt: .ready, arriveRetry: .locate), .relocate)
+        XCTAssertEqual(PlayStoreDayPrimaryAction.resolve(node, receipt: .ready, arriveRetry: .scan), .scanUnlock)
         XCTAssertEqual(PlayStoreDayPrimaryAction.resolve(node, receipt: .unknown), .confirmPending)
         XCTAssertEqual(PlayStoreDayPopup.resolve(node), PlayStoreDayPopup.none)
         node = node.merging(wire(#"{"arrived":true}"#))
