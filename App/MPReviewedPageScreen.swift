@@ -164,6 +164,14 @@ import SwiftUI
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
             SettingsView().environmentObject(session)
+        case "pages/gerenziliao/gerenziliao":
+            // JSEAT-3: the lobby's 编辑 opens the same own-profile editor as 我的 → 编辑资料.
+            if session.account != nil {
+                ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision,
+                                categoryReader: session, currentReviewReader: session.profileCurrentReviewReader,
+                                nicknameReader: session.profileNicknameReader, savedMedia: session.profileSavedMediaReaders)
+                    .cyPushedChrome()
+            } else { unavailable }
         case "pages/shezhi/about/index":
             SettingsAboutView(market: session.operationalMarket, appInformation: .current(), legalReader: session.legalReader)
         case "pages/address/address":
