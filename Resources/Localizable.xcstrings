@@ -183393,13 +183393,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your first stamp is waiting"
+            "value": "No roam records yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "第一枚章在等你"
+            "value": "还没有漫游记录"
           }
         }
       }
@@ -279610,6 +279610,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "完成一次城市探索即可累计%@"
+          }
+        }
+      }
+    },
+    "roamSub.w208.history.emptyCTA": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start your first roam"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出发第一次漫游"
+          }
+        }
+      }
+    },
+    "roam.historyLocal.backToMap": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to the map"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回到地图"
           }
         }
       }
