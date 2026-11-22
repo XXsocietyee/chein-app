@@ -43,7 +43,7 @@ final class ClubActionCoordinatorTests: XCTestCase {
             (["myJoinStatus": 0], false, .pending), (["myJoinStatus": 9], false, .unsupportedStatus),
             (["isJoined": true], false, .available(.leave)), (["isJoined": true], true, .available(.leave)),
             (["isOwner": true, "isJoined": true], false, .owner), (["isOwner": true], true, .owner),
-            ([:], true, .merchant), (["viewerIsAdmin": true], false, .available(.join)),
+            ([:], true, .available(.join)), (["joinPolicy": 1], true, .available(.apply)), (["viewerIsAdmin": true], false, .available(.join)),
             (["viewerIsAdmin": true, "isJoined": true], false, .available(.leave))
         ]
         for (fields, merchant, expected) in cases {

@@ -24,7 +24,9 @@ public enum ClubActionAvailability: Equatable {
         guard !club.viewerIdentityUnavailable else { return .unsupportedStatus }
         if club.isOwner { return .owner }
         if club.isJoined { return .available(.leave) }
-        if viewerIsMerchant { return .merchant }
+        // Owner ruling 2026-10-22 (MP detail wxml:63-64): merchants may join a club; only
+        // activity signup stays blocked for them. `.merchant` is kept for older readers.
+        _ = viewerIsMerchant
         if club.joinPending { return .pending }
         if let status = club.myJoinStatus, ![1, 2].contains(status) { return .unsupportedStatus }
         return .available(club.needsApproval ? .apply : .join)

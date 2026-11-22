@@ -95,7 +95,6 @@ public final class ClubActionSessionWriter: ClubActionWriting {
             throw ClubActionWriteError.eligibilityChanged
         }
         guard original == nil || (grant == approval() && ordinaryAdmissionApproved) else { throw ClubActionWriteError.notSent(.notConfigured) }
-        if snapshot.viewerIsMerchant && action != .leave && !ordinaryAdmissionApproved { throw ClubActionWriteError.eligibilityChanged }
         do {
             let receipt = try await service.perform(action, clubID: clubID, token: snapshot.token, joinMessage: joinMessage, original: original)
             guard currentSession() == snapshot, original == nil || (grant == approval() && ordinaryAdmissionApproved) else { throw ClubActionWriteError.outcomeUnknown(.accountChanged) }

@@ -45,7 +45,7 @@ import FoundationNetworking
             var explicit = fields; explicit["viewerIdentityUnavailable"] = false
             XCTAssertEqual(ClubActionAvailability.resolve(try record(explicit), viewerIsMerchant: false), expected)
         }
-        XCTAssertEqual(ClubActionAvailability.resolve(try record(), viewerIsMerchant: true), .merchant)
+        XCTAssertEqual(ClubActionAvailability.resolve(try record(), viewerIsMerchant: true), .available(.join), "merchants may join (owner ruling 2026-10-22)")
     }
 
     func testPrepareFreshUnavailableReadCannotStageOrReserveAndKnownReentryWorks() async throws {
