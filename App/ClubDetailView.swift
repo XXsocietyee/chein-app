@@ -287,7 +287,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .cyDomainPageBackground()
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
-            .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.club")
+            .cyHeroChrome(heroScrolledAway: heroScrolledAway, domain: .player)
             .navigationDestination(isPresented: $showsApprovals) {
                 if let management {
                     ClubManagementView(clubID: id, identity: reader.clubIdentity, access: management.access, coordinator: management.coordinator,
@@ -447,6 +447,19 @@ private struct ClubDetailHeader: View {
                 .frame(height: typeSize.isAccessibilitySize ? 96 : bannerHeight)
                 .frame(maxWidth: .infinity)
                 .clipped()
+                // type-and-chrome §3: the hero's glass back and share ride the image and scroll away with it;
+                // the system bar (back, inline name, share) returns once the hero has scrolled off.
+                .overlay(alignment: .top) {
+                    HStack {
+                        CYHeroBackButton().accessibilityIdentifier("heroBack.club")
+                        Spacer()
+                        ClubHeaderShareButton(clubName: club.name)
+                            .foregroundStyle(Color.white)
+                            .background(Circle().fill(.ultraThinMaterial).frame(width: 32, height: 32))
+                    }
+                    .padding(.horizontal, CYSpacing.sm)
+                    .padding(.top, CYSpacing.xs)
+                }
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     if !typeSize.isAccessibilitySize {
