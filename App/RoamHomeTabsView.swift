@@ -378,6 +378,9 @@ struct RoamToolUnavailableView: View {
     @Environment(\.roamPassportHistoryReader) private var serverReader
     @State private var serverSummary: Result<RoamPassportServerSummary, Error>?
     @State private var serverScope: UUID?
+    /// ROAM-5: pages/roam `_loadActiveOfficial` — GET /api/official/active-for-roam decides where 官方活动 goes.
+    @Environment(\.playerGapService) private var gapService
+    @State private var activeOfficial: OfficialRoamActiveCard?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private struct OpenedTile: Identifiable, Hashable {
         let id = UUID()
@@ -405,6 +408,7 @@ struct RoamToolUnavailableView: View {
         .onDisappear { isPassportVisible = false }
         .refreshable { load(); await loadServerSummary() }
         .task(id: serverReader?.scope) { await loadServerSummary() }
+        .task { activeOfficial = await gapService?.activeOfficialForRoam() }
         .onChange(of: readerScope) { _, _ in
             openedTile = nil
             home = nil; homeScope = nil
@@ -580,14 +584,23 @@ struct RoamToolUnavailableView: View {
             Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(play.titleKey)).cyText(.cardTitle)
-                Text(LocalizedStringKey(play.subtitleKey)).cyText(.meta).foregroundStyle(.secondary)
+                if play == .event, let activeOfficial {
+                    Group {
+                        if activeOfficial.count > 1 { Text("playerGap.roamEvents.many \(activeOfficial.firstTitle) \(activeOfficial.count)") }
+                        else { Text("playerGap.roamEvents.one \(activeOfficial.firstTitle)") }
+                    }
+                    .cyText(.meta).foregroundStyle(.secondary).lineLimit(2)
+                } else {
+                    Text(LocalizedStringKey(play.subtitleKey)).cyText(.meta).foregroundStyle(.secondary)
+                }
             }
             Spacer(minLength: 0)
         }
         switch play {
         case .event:
             if let reader {
-                NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { label }
+                // One open event → its detail; several or none → the official roam tasks (MP onPassportPlayTap('event')).
+                NavigationLink { RoamActiveOfficialEventDestination(roamReader: reader, eventID: activeOfficial?.count == 1 ? activeOfficial?.eventID : nil) } label: { label }
                     .accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
             }
         case .discover:
