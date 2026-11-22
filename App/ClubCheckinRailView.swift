@@ -152,11 +152,17 @@ struct ClubCheckinDetailRows: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if let phone = text("phoneText") {
-                    Text(verbatim: phone)
-                        .cyText(.bodyCompact)
-                        .foregroundStyle(palette.textSecondary)
-                        .monospacedDigit()
-                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: CYSpacing.sm) {
+                        Text(verbatim: phone)
+                            .cyText(.bodyCompact)
+                            .foregroundStyle(palette.textSecondary)
+                            .monospacedDigit()
+                            .fixedSize(horizontal: false, vertical: true)
+                        // CLB-checkin-detail-02: MP checkin-detail wxml:29 (phoneCallable from the server).
+                        if let url = ClubPhoneCall.url(phoneText: phone, callable: value["phoneCallable"] == .bool(true)) {
+                            ClubPhoneCallButton(url: url, name: text("displayName"))
+                        }
+                    }
                 }
             }
         }

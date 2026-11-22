@@ -275,4 +275,13 @@ final class ClubOpsCustomerPresentationTests: XCTestCase {
         XCTAssertEqual(fields["pageNum"], .integer(2)); XCTAssertEqual(fields["pageSize"], .integer(size))
         XCTAssertEqual(try ClubGovernanceRead.customers.fields(scope: .init(clubID: 81), options: [:])["pageNum"], .integer(1))
     }
+
+    func testPhoneCallNeedsServerGrantAndMobileNumber() {
+        // CLB-customer-detail-01 / CLB-checkin-detail-02: MP utils/club-phone-call.js.
+        XCTAssertEqual(ClubPhoneCall.url(phoneText: " 13800138000 ", callable: true)?.absoluteString, "tel:13800138000")
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "13800138000", callable: false))
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "138****8000", callable: true))
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "仅主理人可见", callable: true))
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "23800138000", callable: true))
+    }
 }

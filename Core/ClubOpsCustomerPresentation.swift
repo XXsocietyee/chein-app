@@ -97,6 +97,8 @@ public struct ClubOpsCustomerDetailPresentation: Equatable {
     public let memberID: Int
     public let displayName: String?
     public let phoneText: String?
+    /// 2026-11-02 owner decision: the server alone decides whether this viewer may call.
+    public let phoneCallable: Bool
     public let lastInteraction: (month: Int, day: Int)?
     public let remark: String?
     /// nil means the server withheld the amount for this role; never rendered as zero.
@@ -135,6 +137,7 @@ public struct ClubOpsCustomerDetailPresentation: Equatable {
         self.memberID = memberID
         displayName = ClubOpsCustomerText.trimmed(summary["displayName"])
         phoneText = ClubOpsCustomerText.trimmed(summary["phoneText"])
+        phoneCallable = summary["phoneCallable"] == .bool(true)
         lastInteraction = ClubOpsCustomerText.dateParts(summary["lastInteractionTime"]).map { (month: $0.month, day: $0.day) }
         remark = ClubOpsCustomerText.trimmed(value["remark"])
         arrivedCount = arrived; pendingCount = pending; refundedCount = refunded
@@ -146,7 +149,7 @@ public struct ClubOpsCustomerDetailPresentation: Equatable {
         return "¥" + String(format: "%.2f", amount)
     }
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.memberID == rhs.memberID && lhs.displayName == rhs.displayName && lhs.phoneText == rhs.phoneText &&
+        lhs.memberID == rhs.memberID && lhs.displayName == rhs.displayName && lhs.phoneText == rhs.phoneText && lhs.phoneCallable == rhs.phoneCallable &&
         lhs.lastInteraction?.month == rhs.lastInteraction?.month && lhs.lastInteraction?.day == rhs.lastInteraction?.day &&
         lhs.remark == rhs.remark && lhs.paidAmountText == rhs.paidAmountText && lhs.arrivedCount == rhs.arrivedCount &&
         lhs.pendingCount == rhs.pendingCount && lhs.refundedCount == rhs.refundedCount && lhs.records == rhs.records &&
@@ -593,5 +596,20 @@ public struct ClubCustomersIndexModel: Equatable {
             return (.unknown, dash, dash)
         }
         return (.error(copy), dash, dash)
+    }
+}
+
+/// MP pages/club/utils/club-phone-call.js: a call is offered only when the server grants
+/// `phoneCallable` and the rendered text is an 11-digit mainland mobile number. No
+/// permission is inferred here and the number is never logged.
+public enum ClubPhoneCall {
+    public static func callableNumber(_ value: String?) -> String? {
+        let phone = (value ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        guard phone.count == 11, phone.first == "1", phone.allSatisfy({ $0.isASCII && $0.isNumber }) else { return nil }
+        return phone
+    }
+    public static func url(phoneText: String?, callable: Bool) -> URL? {
+        guard callable, let number = callableNumber(phoneText) else { return nil }
+        return URL(string: "tel:" + number)
     }
 }

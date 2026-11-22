@@ -259,10 +259,18 @@ struct ClubOpsCustomerRowView: View {
             }
             .accessibilityIdentifier("clubOps.customer.paidAmount")
             if let phone = detail.phoneText {
-                Text(verbatim: phone)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: CYSpacing.sm) {
+                    Text(verbatim: phone)
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .monospacedDigit()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    // CLB-customer-detail-01: call button only when the server grants phoneCallable.
+                    if let url = ClubPhoneCall.url(phoneText: phone, callable: detail.phoneCallable) {
+                        ClubPhoneCallButton(url: url, name: detail.displayName)
+                    }
+                }
             }
         }
         Section {
@@ -510,5 +518,23 @@ struct ClubOpsCustomerTagRemarkEditor: View {
         var draft = ClubOpsCustomerTagRemarkDraft(tagsText: tagsText)
         if let problem = draft.add(input) { issue = problem; return }
         tagsText = draft.tagsText; input = ""; issue = nil
+    }
+}
+
+/// 44 pt tel: link shared by customer and check-in detail (CLB-customer-detail-01, CLB-checkin-detail-02).
+struct ClubPhoneCallButton: View {
+    let url: URL
+    let name: String?
+    var body: some View {
+        Link(destination: url) {
+            Image(systemName: "phone.fill")
+                .imageScale(.medium)
+                .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(CYColor.brand)
+        .accessibilityLabel(Text("club.phoneCall.label \(name ?? "—")"))
+        .accessibilityIdentifier("club.phoneCall")
     }
 }
