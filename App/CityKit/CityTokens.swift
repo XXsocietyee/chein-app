@@ -44,10 +44,10 @@ struct CityCopy {
     func level(_ level: Int) -> String { "\(CityMonopolyLevel.name(level, chinese: chinese)) Lv\(level)" }
     func tier(_ tier: CityMonopolyTier?) -> String? { tier.map { $0.name(chinese: chinese) } }
 
-    /// The server's district name when it sends one (hook `CityPlace.districtName`, fix/city-gaps-r3); until then
-    /// "街区 1" by colour slot (missing read, see the receipt).
+    /// The server's district name (fix/city-gaps-r3, live on TEST). District names are public board metadata, so fogged
+    /// tiles show them too. Without a real name: "街区 1" by colour slot.
     func district(_ place: CityPlace) -> String? {
-        if let name = place.districtName, place.ownership != .fogged { return name }
+        if let name = place.districtName { return name }
         guard place.districtIndex > 0 else { return nil }
         return chinese ? "街区 \(place.districtIndex)" : "District \(place.districtIndex)"
     }

@@ -39,6 +39,11 @@ public struct RoamTerritoryItem: Decodable, Equatable, Identifiable, Sendable {
     public let upgradeLevel: Int?
     public let districtId: String?
     public let decayState: String?
+    /// fix/city-gaps-r3 (live on TEST): the district's display name and colour key (`district.cN`) and the deed
+    /// serial (`地契 · No. N`). Nil on older servers and for places outside a board district.
+    public let districtName: String?
+    public let districtColorToken: String?
+    public let deedSerial: Int?
 
     public var id: String {
         territoryId ?? propertyId ?? pointId ?? (poiId.map { "poi-\($0)" } ?? "\(latitude),\(longitude)")
@@ -51,11 +56,15 @@ public struct RoamTerritoryNearbyResponse: Decodable, Equatable, Sendable {
     public let seasonId: String?
     public let revenueMode: String
     public let items: [RoamTerritoryItem]
+    /// fix/city-gaps-r3: board district metadata (name, colour key) for the resolved board; empty on older servers.
+    public let districts: [CityDistrictInfo]
 
-    private enum CodingKeys: String, CodingKey { case boardId, regionId, seasonId, revenueMode, items, territories }
+    private enum CodingKeys: String, CodingKey { case boardId, regionId, seasonId, revenueMode, items, territories, districts }
 
-    public init(boardId: String?, regionId: String?, seasonId: String?, revenueMode: String, items: [RoamTerritoryItem]) {
+    public init(boardId: String?, regionId: String?, seasonId: String?, revenueMode: String, items: [RoamTerritoryItem],
+                districts: [CityDistrictInfo] = []) {
         self.boardId = boardId; self.regionId = regionId; self.seasonId = seasonId; self.revenueMode = revenueMode; self.items = items
+        self.districts = districts
     }
 
     /// The live server sends the spaces as `territories`; older fixtures as `items`.
@@ -67,6 +76,7 @@ public struct RoamTerritoryNearbyResponse: Decodable, Equatable, Sendable {
         revenueMode = try c.decode(String.self, forKey: .revenueMode)
         items = try c.decodeIfPresent([RoamTerritoryItem].self, forKey: .items)
             ?? c.decode([RoamTerritoryItem].self, forKey: .territories)
+        districts = (try? c.decodeIfPresent([CityDistrictInfo].self, forKey: .districts)) ?? []
     }
 }
 

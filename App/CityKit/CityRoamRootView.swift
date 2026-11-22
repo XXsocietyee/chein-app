@@ -17,6 +17,8 @@ struct CityRoamRootDependencies {
     var photoUploader: CityClaimPhotoUploading?
     /// The live roam session (hold to start).
     var liveDestination: (() -> AnyView)?
+    /// The same retained live controller the live page drives; only read when `CityLiveOnMap.isEnabled`.
+    var liveController: (@MainActor () -> RoamLiveSessionController)? = nil
     /// The shipped roam list page with its passport and tools.
     var passportDestination: (() -> AnyView)?
     var onChooseArea: (() -> Void)?
@@ -66,6 +68,14 @@ struct CityRoamRootView: View {
     @State private var showsPassport = false
     /// The tapped pin's centre in the window, for the pin → deed flight.
     @State private var pinOrigin: (id: String, point: CGPoint)?
+    /// The cityTerritory inbox card's deep link (open this place's property sheet on the map).
+    @ObservedObject private var links = CityDeepLinks.shared
+    /// Hold to start → the live controls over this map (flagged, see `CityLiveOnMap`).
+    @State private var liveOnMap = false
+    @State private var liveSession: CityLiveMapSession?
+    @Namespace private var liveSpace
+    @AppStorage(CityLiveOnMap.purposeKey) private var livePurposeAccepted = false
+    @Environment(\.offlineWriteSession) private var offlineWriteSession
 
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
@@ -80,18 +90,27 @@ struct CityRoamRootView: View {
                 map
                 header
             }
-            .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: drawer == .peek && !isPropertyOpen ? 196 : 0) }
+            .safeAreaInset(edge: .bottom, spacing: 0) { Color.clear.frame(height: drawer == .peek && !isPropertyOpen && !liveOnMap ? 196 : 0) }
             .overlay(alignment: .bottom) {
-                CityNearbyDrawer(detent: $drawer, places: store.places, origin: center, phase: store.phase,
-                    holdEnabled: dependencies.liveDestination != nil,
-                    onHold: { path.append(CityRoamPush.live) },
-                    onSelect: { open($0) },
-                    onRetry: { Task { await reload() } },
-                    onChooseArea: dependencies.onChooseArea)
-                // The 附近 drawer slides away while a property is open over the map.
-                .offset(y: isPropertyOpen ? 320 : 0)
-                .opacity(isPropertyOpen ? 0 : 1)
-                .animation(reduceMotion ? CityTokens.reducedFade : CYMotion.sheet, value: isPropertyOpen)
+                ZStack(alignment: .bottom) {
+                    CityNearbyDrawer(detent: $drawer, places: store.places, origin: center, phase: store.phase,
+                        holdEnabled: dependencies.liveDestination != nil,
+                        onHold: { startLive() },
+                        onSelect: { open($0) },
+                        onRetry: { Task { await reload() } },
+                        onChooseArea: dependencies.onChooseArea,
+                        liveSpace: reduceMotion ? nil : liveSpace,
+                        holdHidden: liveOnMap)
+                    // The 附近 drawer slides away while a property is open over the map, or a walk runs on it.
+                    .offset(y: drawerAway ? 320 : 0)
+                    .opacity(drawerAway ? 0 : 1)
+                    .allowsHitTesting(!drawerAway)
+                    .animation(reduceMotion ? CityTokens.reducedFade : CYMotion.sheet, value: drawerAway)
+                    if liveOnMap, let liveSession {
+                        CityLiveMapControls(session: liveSession, space: reduceMotion ? nil : liveSpace,
+                                            onEnded: { endLive(openLivePage: $0) })
+                    }
+                }
             }
             .overlay {
                 if case .property(let id) = route, let place = store.place(id: id) {
@@ -102,7 +121,7 @@ struct CityRoamRootView: View {
                         .transition(.identity)
                 }
             }
-            .cyHideTabBar(isPropertyOpen)
+            .cyHideTabBar(isPropertyOpen || liveOnMap)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: CityRoamPush.self) { push in
                 switch push {
@@ -129,10 +148,13 @@ struct CityRoamRootView: View {
             }
             .onChange(of: selection) { _, id in if let id { open(id) } }
             .onChange(of: route) { _, value in if value == nil { selection = nil } }
+            .onAppear { reattachLive() }
             .task {
                 await locateAndLoad()
                 if let initialRoute, store.place(id: initialRoute.placeID) != nil { route = initialRoute }
+                await openDeepLink()
             }
+            .onChange(of: links.pendingProperty) { _, id in if id != nil, store.phase != .idle { Task { await openDeepLink() } } }
             .onChange(of: store.places) { _, _ in Task { await CityNotifications.sync(store: store, locale: locale) } }
             .onChange(of: store.lost) { _, lost in
                 guard let first = lost.first else { return }
@@ -145,6 +167,56 @@ struct CityRoamRootView: View {
     }
 
     private var isPropertyOpen: Bool { if case .property = route { return true }; return false }
+    private var drawerAway: Bool { isPropertyOpen || liveOnMap }
+
+    // MARK: Live on the map (flagged)
+
+    /// Hold committed. With the flag off, or when the live page has something to ask first (consent, location
+    /// priming, recovery), this is the old push. Otherwise the capsule becomes the live controls on this map.
+    private func startLive() {
+        guard CityLiveOnMap.isEnabled, let makeController = dependencies.liveController else {
+            path.append(CityRoamPush.live); return
+        }
+        let session = liveSession ?? CityLiveMapSession(controller: makeController())
+        liveSession = session
+        guard session.canRunInPlace(purposeAccepted: livePurposeAccepted) else { path.append(CityRoamPush.live); return }
+        route = nil
+        withAnimation(reduceMotion ? CityTokens.reducedFade : CYMotion.hero) { liveOnMap = true }
+        let owner = session.controller
+        Task {
+            await SessionOfflineSyncModel.shared.performWriteOptIn(environmentSession: offlineWriteSession.session,
+                                                                   routes: CityLiveOnMap.writeRoutes) {
+                switch owner.phase {
+                case .ready: await owner.start(purposeAccepted: true)
+                case .paused: await owner.resume(purposeAccepted: true)
+                default: break
+                }
+            }
+            // A start refused before it left `.ready` never changes the phase: fold back here.
+            if !session.isRunning { endLive(openLivePage: owner.phase != .ready) }
+        }
+    }
+
+    /// Ending reverses the move: the controls fold into the capsule and the drawer comes back. The live page opens
+    /// afterwards only when it has something to show (the finish report, recovery, a denied location).
+    private func endLive(openLivePage: Bool) {
+        guard liveOnMap else { return }
+        withAnimation(reduceMotion ? CityTokens.reducedFade : CYMotion.hero) { liveOnMap = false }
+        guard openLivePage else { return }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(reduceMotion ? 200 : 450))
+            path.append(CityRoamPush.live)
+        }
+    }
+
+    /// Back on the root (e.g. from the live page, which pauses the walk when it closes): observe the controller again
+    /// and show a running walk's controls in place.
+    private func reattachLive() {
+        guard CityLiveOnMap.isEnabled, let makeController = dependencies.liveController else { return }
+        let session = liveSession ?? CityLiveMapSession(controller: makeController())
+        if liveSession == nil { liveSession = session } else { session.attach() }
+        if session.isRunning && !liveOnMap { liveOnMap = true }
+    }
     /// Every route but `.property` is a system sheet; the property opens in `CityPropertyDrawer` over the map.
     private var sheetRoute: Binding<CitySheetRoute?> {
         Binding(get: { isPropertyOpen ? nil : route }, set: { route = $0 })
@@ -252,6 +324,17 @@ struct CityRoamRootView: View {
         }
     }
 
+    /// The inbox card's link: back to the map (pop pushes, close the open sheet or moment), then the place's property
+    /// sheet over the SAME map. A place outside the loaded window is located through its property read first.
+    private func openDeepLink() async {
+        guard let id = links.consume() else { return }
+        path = NavigationPath()
+        moment = nil
+        route = nil
+        guard let place = await store.locate(territoryId: id) else { return }
+        open(place.id)
+    }
+
     private func locateAndLoad(recenter: Bool = false) async {
         if let captureFix = dependencies.captureFix, let latest = try? await captureFix() { fix = latest }
         guard let center else { return }
@@ -286,6 +369,10 @@ struct CityNearbyDrawer: View {
     let onSelect: (CityPlace) -> Void
     let onRetry: () -> Void
     var onChooseArea: (() -> Void)?
+    /// The live-on-map namespace: the hold capsule grows into the pause pill (nil = no matched move).
+    var liveSpace: Namespace.ID? = nil
+    /// While a walk runs on the map the capsule lives in the controls; its slot keeps the drawer's height.
+    var holdHidden = false
 
     @GestureState private var dragOffset: CGFloat = 0
     /// Height of the hold button + 附近 heading block, so the resting detent always shows the top of the first row.
@@ -305,8 +392,13 @@ struct CityNearbyDrawer: View {
                 grabber
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    CityHoldButton(title: copy("按住 0.8 秒开始漫游", "Hold 0.8 s to start roaming"),
-                                   holdingTitle: copy("松手取消", "Release to cancel"), enabled: holdEnabled, onCommit: onHold)
+                    if holdHidden {
+                        Color.clear.frame(height: 52).accessibilityHidden(true)
+                    } else {
+                        CityHoldButton(title: copy("按住 0.8 秒开始漫游", "Hold 0.8 s to start roaming"),
+                                       holdingTitle: copy("松手取消", "Release to cancel"), enabled: holdEnabled, onCommit: onHold)
+                            .cityMatched(CityLiveOnMap.capsuleID, in: liveSpace)
+                    }
                     HStack {
                         Text(verbatim: copy("附近 · \(visible.count)", "Nearby · \(visible.count)"))
                             .font(Font.title3.weight(.bold)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)

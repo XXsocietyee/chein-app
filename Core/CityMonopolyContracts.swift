@@ -429,9 +429,10 @@ public struct CityTerritoryProperty: Decodable, Equatable, Identifiable, Sendabl
     public let invested: Int64?
     public let baseYield: Int64?
     public let levelMultiplier: Double?
-    /// HOOK (fix/city-gaps-r3): the district's display name and the deed serial (`地契 · No. N`). The live server does
-    /// not send them yet; when it does, the deed band shows the name instead of "街区 N" and the serial appears (Q10).
+    /// fix/city-gaps-r3 (live on TEST): the district's display name and colour key (also on fogged items) and the deed
+    /// serial (`地契 · No. N`, visible items only). Nil when the server has no district row or issued no serial.
     public let districtName: String?
+    public let districtColorToken: String?
     public let deedSerial: Int?
 
     public var id: String { propertyId ?? pointId ?? geohash7 ?? "\(districtId ?? "?")-\(tier?.code ?? "?")" }
@@ -441,18 +442,49 @@ public struct CityTerritoryProperty: Decodable, Equatable, Identifiable, Sendabl
     public var isMine: Bool { holder?.isMe == true }
 }
 
+/// fix/city-gaps-r3: one board district (`districts[]` on the map and nearby reads). Names and colours are public board
+/// metadata. `colorIndex` is N for a `district.cN` token and nil otherwise (the client then keeps its own slot).
+public struct CityDistrictInfo: Decodable, Equatable, Sendable {
+    public let boardId: String?
+    public let districtId: String?
+    public let name: String?
+    public let colorToken: String?
+    public let colorIndex: Int?
+    public let ownableCount: Int?
+    public let safetyBlocked: Bool?
+
+    public init(boardId: String? = nil, districtId: String?, name: String?, colorToken: String? = nil, colorIndex: Int? = nil,
+                ownableCount: Int? = nil, safetyBlocked: Bool? = nil) {
+        self.boardId = boardId; self.districtId = districtId; self.name = name; self.colorToken = colorToken
+        self.colorIndex = colorIndex; self.ownableCount = ownableCount; self.safetyBlocked = safetyBlocked
+    }
+
+    /// The colour slot 1…6 for this district: `colorIndex`, else the N of a `district.cN` token; nil = keep the client slot.
+    public var colorSlot: Int? { CityDistrictInfo.slot(index: colorIndex, token: colorToken) }
+
+    /// `district.c3` → 3. Values outside 1…6 wrap into the six band colours; anything else is nil.
+    public static func slot(index: Int?, token: String?) -> Int? {
+        if let index, index > 0 { return (index - 1) % 6 + 1 }
+        guard let token = token?.trimmingCharacters(in: .whitespaces).lowercased(), token.hasPrefix("district.c"),
+              let n = Int(token.dropFirst("district.c".count)), n > 0 else { return nil }
+        return (n - 1) % 6 + 1
+    }
+}
+
 public struct CityTerritoryMapResponse: Decodable, Equatable, Sendable {
     public let boardId: String?
     public let seasonId: String?
     public let currency: String?
     public let properties: [CityTerritoryProperty]
+    /// fix/city-gaps-r3: district metadata for every board in the result; empty on older servers.
+    public let districts: [CityDistrictInfo]
 
-    private enum CodingKeys: String, CodingKey { case boardId, seasonId, currency, properties, items }
+    private enum CodingKeys: String, CodingKey { case boardId, seasonId, currency, properties, items, districts }
 
     /// Accepts a bare array or an object with `properties` / `items`.
     public init(from decoder: Decoder) throws {
         if let single = try? decoder.singleValueContainer(), let list = try? single.decode([CityTerritoryProperty].self) {
-            boardId = nil; seasonId = nil; currency = nil; properties = list
+            boardId = nil; seasonId = nil; currency = nil; properties = list; districts = []
             return
         }
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -461,6 +493,7 @@ public struct CityTerritoryMapResponse: Decodable, Equatable, Sendable {
         currency = try container.decodeIfPresent(String.self, forKey: .currency)
         properties = try container.decodeIfPresent([CityTerritoryProperty].self, forKey: .properties)
             ?? container.decodeIfPresent([CityTerritoryProperty].self, forKey: .items) ?? []
+        districts = (try? container.decodeIfPresent([CityDistrictInfo].self, forKey: .districts)) ?? []
     }
 }
 
@@ -494,6 +527,10 @@ public struct CityTerritoryPropertyCard: Decodable, Equatable, Sendable {
     public let version: Int64?
     /// Rent multiplier breakdown, keyed as the server names them (e.g. `U`, `S_set`, `T_time`).
     public let multipliers: [String: Double]?
+    /// fix/city-gaps-r3: district name and colour key, and the deed serial; nil when not issued.
+    public let districtName: String?
+    public let districtColorToken: String?
+    public let deedSerial: Int?
 
     public var decay: CityDecayState? { CityDecayState(wire: decayState) }
     /// The claim photo, whichever name the server used.

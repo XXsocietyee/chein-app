@@ -523,8 +523,9 @@ struct CityDiceMoment: View {
             ) { beat in
                 ZStack(alignment: .bottomTrailing) {
                     if won {
-                        let taken = store.place(id: result.property?.propertyId)
-                            ?? place.handedOver(to: .mine, level: max(0, place.level - 1), protectedUntil: Date().addingTimeInterval(24 * 3600))
+                        let taken = (store.place(id: result.property?.propertyId)
+                            ?? place.handedOver(to: .mine, level: max(0, place.level - 1), protectedUntil: Date().addingTimeInterval(24 * 3600)))
+                            .withDeedSerial(result.property?.deedSerial)
                         CityDeedCard(place: taken, size: .full, heldDays: 1)
                             .opacity(beat >= .seal ? 1 : 0)
                             .offset(y: beat >= .seal || reduceMotion ? 0 : 40)

@@ -332,12 +332,14 @@ struct CityClaimSheet: View {
             return
         }
         // The store reloaded the layer after the command, so the claimed place carries its server state.
-        let claimedPlace = store.place(id: result.property?.propertyId)
+        // The command's `property.deedSerial` (fix/city-gaps-r3) fills 地契 · No. N if the reload has not caught up.
+        let claimedPlace = (store.place(id: result.property?.propertyId)
             ?? store.mine.first { $0.poiId != nil ? $0.poiId == place.poiId : ($0.pointId != nil && $0.pointId == place.pointId) }
             ?? CityPlace(id: place.id, title: place.title, coordinate: place.coordinate, poiId: place.poiId, boardId: place.boardId,
                          pointId: place.pointId, districtId: place.districtId, districtIndex: place.districtIndex, tier: place.tier,
                          level: 0, ownership: .mine, protectedUntil: Date().addingTimeInterval(TimeInterval((quote?.protectionHours ?? 24) * 3600)),
-                         photoURL: photoRef)
+                         photoURL: photoRef, districtName: place.districtName))
+            .withDeedSerial(result.property?.deedSerial)
         let hours = quote?.protectionHours ?? result.protectionHours ?? 24
         // Done in place first (check + 已圈下, the balance rolls), then the moment grows out of the photo.
         phase = .done
