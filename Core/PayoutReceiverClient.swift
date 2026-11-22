@@ -253,6 +253,12 @@ public struct ClubSettlementSummaryView: Equatable, Sendable {
     public let personal: Bool
     public var isEmpty: Bool { topics.isEmpty && sessions.isEmpty }
 
+    /// The governance read of the same endpoint (管理 → 结算) decodes through the same fail-closed rules.
+    public init?(governanceValue value: ClubGovernanceValue) {
+        guard let data = try? JSONEncoder().encode(value), let object = try? JSONSerialization.jsonObject(with: data) else { return nil }
+        self.init(data: object)
+    }
+
     public init?(data: Any?) {
         guard let object = data as? [String: Any], let unverified = object["unverifiedSettledCount"] as? Int, unverified >= 0 else { return nil }
         let settledText = Self.text(object["settledAmountText"])

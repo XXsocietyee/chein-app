@@ -282,25 +282,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 .accessibilityIdentifier("clubSettlement.settledCard")
             }
         }
-        if !summary.sessions.isEmpty {
-            Section {
-                ForEach(summary.sessions) { row in
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        HStack { Text(verbatim: row.name).cyText(.cardTitle); Spacer(); Text(verbatim: row.netText).monospacedDigit() }
-                        Text(verbatim: row.dateText).cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        if let gross = row.grossText { Text("clubSettlement.gross \(gross)", tableName: "PayoutReceiver").cyText(.meta) }
-                        if let fee = row.feeText {
-                            if let rate = row.feeRateText { Text("clubSettlement.feeWithRate \(rate) \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
-                            else { Text("clubSettlement.fee \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
-                        }
-                        if let merchantFee = row.merchantFeeText { Text("clubSettlement.merchantFee \(merchantFee)", tableName: "PayoutReceiver").cyText(.meta) }
-                        Text(verbatim: row.payeeText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("clubSettlement.session.\(row.activityID)")
-                }
-            } header: { Text("clubSettlement.sessions", tableName: "PayoutReceiver") }
-        }
+        ClubSettlementSessionsSection(sessions: summary.sessions)
         if !summary.topics.isEmpty {
             Section {
                 ForEach(summary.topics) { row in
@@ -337,6 +319,33 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             let summary = try await PayoutReceiverBridge.call(session) { try await $0.settlementSummary(clubID: clubID, personal: personal, token: $1) }
             state = .ready(summary)
         } catch { state = .failed(error as? PayoutReceiverIssue ?? .network) }
+    }
+}
+
+/// 各场次结算 (F-16 session money, paid straight to the owner). Shared by the personal settlement page and the
+/// 管理 → 结算 read (CLB-settlement-01), so both show the same rows.
+struct ClubSettlementSessionsSection: View {
+    let sessions: [ClubSettlementSummaryView.Session]
+    var body: some View {
+        if !sessions.isEmpty {
+            Section {
+                ForEach(sessions) { row in
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        HStack { Text(verbatim: row.name).cyText(.cardTitle); Spacer(); Text(verbatim: row.netText).monospacedDigit() }
+                        Text(verbatim: row.dateText).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        if let gross = row.grossText { Text("clubSettlement.gross \(gross)", tableName: "PayoutReceiver").cyText(.meta) }
+                        if let fee = row.feeText {
+                            if let rate = row.feeRateText { Text("clubSettlement.feeWithRate \(rate) \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
+                            else { Text("clubSettlement.fee \(fee)", tableName: "PayoutReceiver").cyText(.meta) }
+                        }
+                        if let merchantFee = row.merchantFeeText { Text("clubSettlement.merchantFee \(merchantFee)", tableName: "PayoutReceiver").cyText(.meta) }
+                        Text(verbatim: row.payeeText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("clubSettlement.session.\(row.activityID)")
+                }
+            } header: { Text("clubSettlement.sessions", tableName: "PayoutReceiver") }
+        }
     }
 }
 

@@ -1438,6 +1438,8 @@ struct ClubGovernanceReadView: View {
         } else if operation == .settlement {
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
+            // CLB-settlement-01: the same /settlement/summary carries F-16 sessions; show 各场次结算 here too.
+            if let sessions = ClubSettlementSummaryView(governanceValue: value)?.sessions { ClubSettlementSessionsSection(sessions: sessions) }
             // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).
             if let clubID = scope.clubID, clubID > 0 {
                 ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil))
