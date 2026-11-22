@@ -25,7 +25,7 @@ public enum MerchantOperationsDraft: Equatable {
         switch self {
         case .npcMapPoint(let value): return value.blocker
         case .businessStatus: return nil
-        case .profile(let value): return value.benefitsBlocker ?? value.hoursBlocker
+        case .profile(let value): return value.benefitsBlocker ?? value.hoursBlocker ?? value.contactBlocker
         case .decor(let value): return value.blocker
         case .gallery(let value): return value.gallery.count > 9 ? "merchant.operations.galleryLimit" : nil
         case .story(let value): return value.profile.description.utf16.count > 300 ? "merchant.operations.storyLimit" : nil

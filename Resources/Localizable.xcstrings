@@ -96991,13 +96991,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Address"
+            "value": "Store address"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地址"
+            "value": "店铺地址"
           }
         }
       }
@@ -98895,13 +98895,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This editor includes name, introduction, merchandise, derivative benefits, website, preferences and the existing logo. Contact and eligibility fields are not edited here."
+            "value": "This editor covers name, introduction, merchandise, derivative benefits, website, preferences, the logo, contact phone and store WeChat ID. Eligibility fields are not edited here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此编辑器包含名称、简介、衍生品、衍生权益、网站、偏好及原有标志；不编辑联系资料或商家资格。"
+            "value": "此编辑器包含名称、简介、衍生品、衍生权益、网站、偏好、标志、联系电话与门店微信号；不编辑商家资格。"
           }
         }
       }
@@ -279372,6 +279372,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前版本暂不支持在此提交合作操作。"
+          }
+        }
+      }
+    },
+    "merchant.operations.contact": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系方式"
+          }
+        }
+      }
+    },
+    "merchant.operations.phone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact phone"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系电话"
+          }
+        }
+      }
+    },
+    "merchant.operations.wechat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store WeChat ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店微信号"
+          }
+        }
+      }
+    },
+    "merchant.operations.wechatQrcode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store WeChat QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店二维码"
+          }
+        }
+      }
+    },
+    "merchant.operations.wechatQrcode.set": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已上传"
+          }
+        }
+      }
+    },
+    "merchant.operations.wechatQrcode.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not uploaded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未上传"
+          }
+        }
+      }
+    },
+    "merchant.operations.phoneInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an 11-digit mobile number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写 11 位手机号"
+          }
+        }
+      }
+    },
+    "merchant.operations.wechatInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WeChat ID: letters, digits, _ or -, up to 20"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "微信号只能包含字母、数字、下划线或减号，最多 20 位"
           }
         }
       }
