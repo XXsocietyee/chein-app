@@ -51,7 +51,7 @@ import QuestifyCore
                     detail: coordinator.errorMessage.isEmpty ? Text("playx.poi.checkNetwork") : Text(verbatim: readable(coordinator.errorMessage)),
                     primary: (title: "playx.poi.retry", action: { _ = Task { await onRefresh() } }),
                     primaryStyle: .secondary,
-                    secondaryVerbatim: onBackToMap.map { back in (title: String(localized: "playx.poi.backToMap"), action: back) }
+                    secondaryVerbatim: onBackToMap.map { back in (title: appLocalized("playx.poi.backToMap", locale: locale), action: back) }
                 )
 
             case .photo, .quiz:
@@ -212,7 +212,7 @@ import QuestifyCore
                 note(readable(submitFeedback), symbol: "exclamationmark.triangle.fill", tone: .danger)
                     .accessibilityIdentifier("playx.poi.feedback")
             } else if readyButBlocked {
-                note(String(localized: "playx.poi.readyBlocked"),
+                note(appLocalized("playx.poi.readyBlocked", locale: locale),
                      symbol: "paperplane.circle", tone: .neutral)
                     .accessibilityIdentifier("playx.poi.readyBlocked")
             }
@@ -338,6 +338,7 @@ import QuestifyCore
     var reader: (any RoamReading)? = nil
     @Environment(\.playEmergencyLocationProvider) private var locationProvider
     @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
+    @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @State private var coordinator: ChallengePOICoordinator?
     @State private var feedback: String?
@@ -416,7 +417,7 @@ import QuestifyCore
 
     private func load(_ model: ChallengePOICoordinator) async {
         guard let reader else {
-            if let seed { apply(seed, to: model) } else { model.applyLoadError(String(localized: "playx.poi.notFound")) }
+            if let seed { apply(seed, to: model) } else { model.applyLoadError(appLocalized("playx.poi.notFound", locale: locale)) }
             return
         }
         do {
@@ -425,7 +426,7 @@ import QuestifyCore
         } catch is CancellationError {
             return
         } catch {
-            model.applyLoadError(String(localized: "playx.poi.checkNetwork"))
+            model.applyLoadError(appLocalized("playx.poi.checkNetwork", locale: locale))
         }
     }
 
@@ -445,8 +446,8 @@ import QuestifyCore
             optionIDs: quiz ? node.quizOptions.map(\.id) : nil,
             photoRequireDesc: node.photoRequireDesc, badgeCode: node.badgeCode))
         guard !node.completed else { return }
-        if node.status != 1 { model.applyLoadError(String(localized: "playx.poi.notOpen")); return }
-        if !quiz && !node.photoRequired { model.applyLoadError(String(localized: "playx.poi.notConfigured")) }
+        if node.status != 1 { model.applyLoadError(appLocalized("playx.poi.notOpen", locale: locale)); return }
+        if !quiz && !node.photoRequired { model.applyLoadError(appLocalized("playx.poi.notConfigured", locale: locale)) }
     }
 
     private func currentGCJ02Coordinate() async -> (latitude: Double, longitude: Double)? {

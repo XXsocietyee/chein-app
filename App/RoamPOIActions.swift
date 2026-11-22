@@ -105,6 +105,7 @@ struct RoamPOIActionRows: View {
     @ObservedObject var model: RoamPOIActionModel
     @Environment(\.openURL) private var openURL
     @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
+    @Environment(\.locale) private var locale
     @State private var answerPrompt = false
     @State private var answerText = ""
     @State private var choiceSheet = false
@@ -157,7 +158,7 @@ struct RoamPOIActionRows: View {
             Button("roam.poi.answer.submit") { submit(.init(answer: answerText, photoURL: challengePhoto)) }
         }
         .sheet(isPresented: $choiceSheet) {
-            CYOptionSheet(title: node.questionName ?? String(localized: "roam.poi.answer.title"),
+            CYOptionSheet(title: node.questionName ?? appLocalized("roam.poi.answer.title", locale: locale),
                           items: node.quizOptions.map { CYOptionSheetItem(id: $0.id, title: $0.id + ". " + $0.text) },
                           selectedID: nil,
                           onSelect: { id in choiceSheet = false; submit(.init(answer: id, photoURL: challengePhoto)) },
