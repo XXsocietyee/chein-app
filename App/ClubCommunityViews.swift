@@ -483,7 +483,10 @@ struct ClubCommunityPostTile: View {
         return target != nil && identity.isSignedIn && !model.busy && model.context.coordinator?.permitsInjectedWrites == true
     }
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
-        guard let evidence, evidence.identity == identity, evidence.post == post, Date().timeIntervalSince(evidence.observedAt) < 60 else { return false }
+        // CLB-detail-04: the menu only decides which rows to show. Freshness (< 60 s) is
+        // enforced again in `ClubCommunityCoordinator.prepare`, which re-reads evidence, so
+        // a page left open for a minute keeps edit / pin / delete / report visible.
+        guard let evidence, evidence.identity == identity, evidence.post == post else { return false }
         return evidence.allows(operation)
     }
     var body: some View {

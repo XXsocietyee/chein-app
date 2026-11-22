@@ -133,11 +133,11 @@ public struct ClubCommunityEvidence: Equatable {
         case .create: return joined || owner
         case .update: return post != nil && (post?.type == 2 ? manager : mine)
         case .pin: return post?.type == 2 && manager
-        case .delete: return post != nil && mine
+        case .delete: return post != nil && (mine || manager)
         case .report: return post != nil && !mine
         case .toggleLike, .comment: return post != nil
         case .deleteComment: return comment != nil && (comment?.memberID == viewer || manager)
-        case .reportComment: return comment != nil && !(comment?.memberID == viewer || manager)
+        case .reportComment: return comment != nil && comment?.memberID != viewer
         }
     }
 }
