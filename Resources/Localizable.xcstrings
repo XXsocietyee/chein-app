@@ -278678,6 +278678,74 @@
           }
         }
       }
+    },
+    "media.stamp.createDormant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving stamps isn’t open yet. Your photo stays on this phone and nothing is uploaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "存入集邮册暂未开放，照片只留在本机，不会上传。"
+          }
+        }
+      }
+    },
+    "roam.checkin.sticker": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City sticker"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市贴纸"
+          }
+        }
+      }
+    },
+    "roam.checkin.sign": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today’s city note"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日城市签"
+          }
+        }
+      }
+    },
+    "roam.checkin.sub %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked in %@ · Leave something here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已打卡 %@ · 在这儿留下点什么"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -214,6 +214,8 @@ struct RoamItemDetailView: View {
                         .accessibilityIdentifier("roam.poiChallenge.open")
                 }
                 NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") }
+                // ROAM-2 / RSTAMP-1: the citystamp 投一张换一张 flow (城市贴纸 / 今日城市签) for this place.
+                RoamCheckinStampRows(place: node.name.isEmpty ? nil : node.name)
             }
             Section("roam.about") {
                 if let text = node.description ?? place.description { Text(verbatim: text) }
