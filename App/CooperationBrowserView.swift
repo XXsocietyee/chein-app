@@ -18,6 +18,8 @@ import SwiftUI
         _direction = State(initialValue: initialDirection)
     }
     @State private var topicFilter: CooperationInboxTopicFilter?
+    /// Parity coop/list P0: the row's two-button `inv-acts` open the reviewed submit page (X1) as a sheet.
+    @State private var rowAction: CoopListRowAction?
     private var selectedTopicID: Int? {
         guard reader.isConfigured, reader.isAuthenticated else { return nil }
         return topicFilter?.selectedTopic(owner: ObjectIdentifier(reader), scope: reader.scope)
@@ -80,6 +82,9 @@ import SwiftUI
             .onChange(of: ObjectIdentifier(reader)) { _, _ in topicFilter = nil }
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
+            .sheet(item: $rowAction) { action in
+                NavigationStack { CoopFlowRequestPreview(operation: action.operation) }
+            }
         }
         .id(CooperationProjectNavigationHost(scope: reader.scope, authenticated: reader.isAuthenticated, reader: ObjectIdentifier(reader)))
     }
@@ -218,6 +223,16 @@ import SwiftUI
                             CooperationField(key: "cooperation.message", value: message)
                         } else { Text("cooperation.application.intent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                         if direction == .received { CooperationCandidateLink(topicID: row.topicId, reader: reader) }
+                        // MP inv-acts: received + pending → 拒绝 (pool/decline); sent + pending → 撤回申请 (pool/withdraw).
+                        if peerReader != nil, row.status == 0 {
+                            if direction == .received {
+                                CoopListRowActions(secondary: ("cooperation.list.apply.decline", .decline(applyID: row.applyId, scope: row.scope)),
+                                                   primary: nil, identifier: "cooperation.list.apply.\(row.applyId)") { rowAction = .init(operation: $0) }
+                            } else {
+                                CoopListRowActions(secondary: ("cooperation.list.apply.withdraw", .withdraw(topicID: row.topicId)),
+                                                   primary: nil, identifier: "cooperation.list.withdraw.\(row.topicId)") { rowAction = .init(operation: $0) }
+                            }
+                        }
                         if let linked = replied?.linkedInviteID {
                             NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader)
                                 .environment(\.cooperationProjectDestination, topicDestination) } label: {
@@ -260,6 +275,12 @@ import SwiftUI
                         if let topic = row.topicId {
                             CooperationTopicReference(id: topic)
                             CooperationCandidateLink(topicID: topic, reader: reader)
+                        }
+                        // MP inv-acts: a pending registration (audit 0) → 确认占槽 (candidates/confirm), 婉拒 secondary.
+                        if peerReader != nil, row.auditStatus == 0 {
+                            CoopListRowActions(secondary: ("cooperation.list.registration.reject", .reject(registrationID: row.id)),
+                                               primary: ("cooperation.list.registration.confirm", .confirm(registrationID: row.id)),
+                                               identifier: "cooperation.list.registration.\(row.id)") { rowAction = .init(operation: $0) }
                         }
                     }.padding(.vertical, CYSpacing.xs)
                 }
@@ -316,5 +337,32 @@ struct CoopCloudCoverThumb: View {
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityHidden(true)
+    }
+}
+
+struct CoopListRowAction: Identifiable {
+    let id = UUID()
+    let operation: CoopFlowMutation
+}
+
+/// Source coop/list `.inv-acts`: at most one secondary and one primary per card (MR-35).
+struct CoopListRowActions: View {
+    let secondary: (LocalizedStringKey, CoopFlowMutation)?
+    let primary: (LocalizedStringKey, CoopFlowMutation)?
+    let identifier: String
+    let open: (CoopFlowMutation) -> Void
+    var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            if let secondary {
+                CYPillButton(secondary.0, style: .secondary) { open(secondary.1) }
+                    .accessibilityIdentifier(identifier + ".secondary")
+            }
+            if let primary {
+                CYPillButton(primary.0) { open(primary.1) }
+                    .accessibilityIdentifier(identifier + ".primary")
+            }
+        }
+        .buttonStyle(.borderless)
+        .frame(maxWidth: .infinity, alignment: .trailing)
     }
 }
