@@ -111,7 +111,7 @@ cancelOccurrence|Cancel this occurrence|取消本场
 correctAttendance|Correct attendance|更正考勤
 ban|Ban member|封禁成员
 unban|Remove club ban|解除俱乐部封禁
-transferOwner|Transfer ownership|移交主理人
+transferOwner|Transfer owner|转让主理人
 report|Submit a platform report|提交平台举报
 appeal|Appeal a platform case|提交封禁申诉
 assignRole|Assign|分配

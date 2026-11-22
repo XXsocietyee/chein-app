@@ -1792,13 +1792,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transfer ownership"
+            "value": "Transfer owner"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移交主理人"
+            "value": "转让主理人"
           }
         }
       }

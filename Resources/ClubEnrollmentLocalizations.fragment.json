@@ -406,13 +406,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in unknown · View details"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "核销状态未知 · 查看详情"
+            "value": "—"
           }
         }
       }

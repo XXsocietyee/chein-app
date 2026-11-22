@@ -14109,17 +14109,18 @@
       }
     },
     "club.enroll.checkin.unknown": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "View check-in"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看核销"
+            "value": "—"
           }
         }
       }
@@ -15070,13 +15071,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Transfer ownership"
+            "value": "Transfer owner"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "移交主理人"
+            "value": "转让主理人"
           }
         }
       }
@@ -20102,13 +20103,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Muted members"
+            "value": "Banned members"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "被禁言的成员"
+            "value": "被封禁的成员"
           }
         }
       }
@@ -24903,6 +24904,7 @@
       }
     },
     "club.ops.owner": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -24913,7 +24915,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建者"
+            "value": "主理人"
           }
         }
       }
@@ -279049,6 +279051,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "我的治理记录"
+          }
+        }
+      }
+    },
+    "club.rolePicker.eventScopeOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Role for this session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本场活动的角色"
+          }
+        }
+      }
+    },
+    "club.rolePicker.unnamed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unnamed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名"
           }
         }
       }
