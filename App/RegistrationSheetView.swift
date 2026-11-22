@@ -876,17 +876,48 @@ private struct RegistrationOperationSections: View {
                 if let orderReader { RegistrationUncertainOrdersCheck(flow: flow, reader: orderReader) }
             }
         case .responseReceived(_, let result):
-            Section("registration.form.createdResponse") {
-                LabeledContent("registration.form.registrationID", value: String(result.registrationID))
-                if let number = result.registrationNo, !number.isEmpty {
-                    LabeledContent("registration.form.registrationNumber", value: number)
+            // PC-C-2-1: a result in user terms (MP baoming.js:1932-1975 报名成功 / 待支付) that lands on the order
+            // (MP redirects to orderinfo?id=<registrationId>). Engineering facts stay in DEBUG builds only.
+            let awaitingPayment = (result.payableAmount ?? .zero) > .zero || result.hasPaymentParameters
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Label {
+                        Text(LocalizedStringKey(awaitingPayment ? "registration.result.submitted" : "registration.result.success"))
+                            .cyText(.sectionTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                    } icon: {
+                        Image(systemName: awaitingPayment ? "clock.badge.checkmark" : "checkmark.circle.fill")
+                            .foregroundStyle(awaitingPayment ? CYColor.textSecondary : CYColor.successText)
+                    }
+                    Text(LocalizedStringKey(awaitingPayment ? "registration.result.payHint" : "registration.result.successHint"))
+                        .cyText(.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                RegistrationAmountRow(key: "registration.form.total", amount: result.payableAmount)
-                Text(LocalizedStringKey(result.hasPaymentParameters ? "registration.form.paymentNotStarted" : "registration.form.noPaymentProof"))
-                    .foregroundStyle(.secondary)
-                CYPillButton("registration.form.readStatus", style: .secondary) { Task { await flow.readKnownStatus() } }
-                    .disabled(!flow.canReadStatus).accessibilityIdentifier("registration.form.readStatus")
-                Text("registration.form.retainedIntentHint").cyText(.meta).foregroundStyle(.secondary)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("registration.result")
+                if awaitingPayment { RegistrationAmountRow(key: "registration.form.total", amount: result.payableAmount) }
+                if let orderReader {
+                    NavigationLink {
+                        ProfileOrderDetailView(id: result.registrationID, reader: orderReader)
+                    } label: {
+                        Text("registration.result.viewOrder").cyText(.button)
+                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("registration.result.viewOrder")
+                }
+                #if DEBUG
+                // DEBUG only (UI tests read these): the raw create response and the status read.
+                Group {
+                    Text("registration.form.createdResponse").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    LabeledContent("registration.form.registrationID", value: String(result.registrationID))
+                    if let number = result.registrationNo, !number.isEmpty {
+                        LabeledContent("registration.form.registrationNumber", value: number)
+                    }
+                    CYPillButton("registration.form.readStatus", style: .secondary) { Task { await flow.readKnownStatus() } }
+                        .disabled(!flow.canReadStatus).accessibilityIdentifier("registration.form.readStatus")
+                }
+                #endif
             }
             .onAppear {
                 guard !result.hasPaymentParameters else { return }
@@ -923,9 +954,11 @@ private struct RegistrationOperationSections: View {
                 LabeledContent("registration.form.registrationStatus") {
                     Text(LocalizedStringKey(RegistrationUIStatus.registrationKey(snapshot.registrationStatus)))
                 }
+                #if DEBUG
                 statusRow("registration.form.registrationCode", snapshot.registrationStatus)
                 statusRow("registration.form.paymentCode", snapshot.paymentStatus)
                 statusRow("registration.form.verificationCode", snapshot.verificationStatus)
+                #endif
             }.accessibilityIdentifier("registration.form.statusSnapshot")
         }
     }

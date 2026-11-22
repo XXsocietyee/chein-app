@@ -246,16 +246,18 @@ extension EnvironmentValues {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 CYStatusChip(
                     verbatim: response.message ?? (response.hasPaymentParameters
-                        ? c.t("已获取支付参数，等待拉起支付或核验", "Payment parameters received")
-                        : c.t("支付确认已提交，请核验订单状态", "Payment check submitted; inspect status")),
+                        ? c.t("订单已创建，请完成支付", "Order created. Complete the payment.")
+                        : c.t("支付成功，票已放入票夹", "Paid. Your ticket is in the wallet.")),
                     tone: .success
                 )
                 .accessibilityIdentifier("registration.pay.succeeded")
+                #if DEBUG
                 if let params = response.payParams, !params.isEmpty {
                     Text(c.t("支付通道参数已就绪 (\(params.count) 项)", "Payment channel ready (\(params.count) fields)"))
                         .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
+                #endif
             }
         case .expiredNeedsRebuild(let message):
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
