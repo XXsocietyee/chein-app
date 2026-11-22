@@ -176,7 +176,16 @@ import SwiftUI
         case "subpackageMember/free-explore/index":
             freeExplore
         case "subpackageMember/complaint/index":
-            complaint
+            ProfileComplaintDeepLinkScreen(session: session)
+        case "subpackageMember/orient-score/index":
+            if let topic = reviewedID(query, key: "topicId") {
+                OrientScoreDeepLinkScreen(session: session, topicID: topic, activityID: reviewedID(query, key: "activityId") ?? 0,
+                                          sessionID: reviewedID(query, key: "sessionId"))
+            } else { unavailable }
+        case "subpackageMember/report-detail/index":
+            if let id = reviewedID(query, key: "reportId") {
+                MemberReportProgressDeepLinkScreen(reportID: Int64(id), session: session)
+            } else { unavailable }
         case "subpackageMember/coupon/coupon", "subpackageMember/couponInfo/couponInfo":
             SessionCouponManagementView().environmentObject(session)
         case "subpackageMember/tixian/tixian":
@@ -252,17 +261,6 @@ import SwiftUI
             .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
             .environment(\.roamPlaceExtrasProvider, { poiID in poiID > 0 ? RoamPlaceExtrasProduction(poiID: poiID, session: session) : nil })
             .environment(\.inGameChannelHost, session.inGameChannelHost)
-    }
-
-    /// Same composition as the 我的 → 投诉与建议 row (`ProfileComplaintPreparationLink`).
-    private var complaint: some View {
-        let _ = WP06ComplaintWrite.install()
-        let revision = session.sessionRevision
-        let owner = session.cooperationFlowReader.session
-        return ProfileComplaintPreparationView(reader: session.cooperationFlowReader,
-            isCurrent: { session.sessionRevision == revision && session.cooperationFlowReader.session == owner },
-            submitter: ProfileComplaintPreparationLink.submitterFactory?(session))
-            .id(revision)
     }
 
     private func signIn() { PlayerJourneySignInBridge.shared.request() }
