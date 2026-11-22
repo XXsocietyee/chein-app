@@ -43,7 +43,7 @@ import SwiftUI
         }
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.standard), value: stateKey)
         .navigationTitle(Text("officialRoute.title"))
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.player)
         .task { await load() }
         .cyRefreshable { await load(refreshing: true) }

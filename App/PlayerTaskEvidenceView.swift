@@ -32,7 +32,7 @@ import UIKit
                     PlayerTaskEvidenceReviewCard(owner: reviewOwner, offered: offered) { clear(); dismiss() }.id(offered.id)
                 }
                 if reviewOwner.working { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
-            }.cyGroupedSurface().navigationTitle(target.kind == .scan ? "playerEvidence.scan.title" : "playerEvidence.photo.title")
+            }.cyGroupedSurface().navigationTitle(target.kind == .scan ? "playerEvidence.scan.title" : "playerEvidence.photo.title").navigationBarTitleDisplayMode(.inline)
                 .scrollDismissesKeyboard(.interactively)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("nativeNav.close") { clear(); dismiss() } }

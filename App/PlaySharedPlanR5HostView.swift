@@ -51,7 +51,7 @@ import SwiftUI
             }
             Button("核对原记录") { Task { await host.load() } }.disabled(host.busy)
         }.cyGroupedSurface()
-        .navigationTitle("原题组")
+        .cyPageTitle("原题组")
         .task { await host.load() }
         .cyModalConfirm(
             isPresented: startConfirmation,

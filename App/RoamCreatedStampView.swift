@@ -93,7 +93,7 @@ struct RoamCreatedStampReadOwner: Hashable {
             }.padding(CYSpacing.pageHorizontal)
         }
         .background(CYColor.bgPage.ignoresSafeArea())
-        .navigationTitle("roam.createdStamp.title")
+        .cyPageTitle("roam.createdStamp.title")
         .onAppear { presentation.appear() }
         .onDisappear { presentation.disappear() }
         .accessibilityIdentifier("roam.createdStamp.result")

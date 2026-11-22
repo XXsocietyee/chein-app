@@ -239,7 +239,7 @@ enum PlayOfflinePackEnvironment {
                 if let manifest = model.manifest { content(manifest) }
             }
         }
-        .navigationTitle(Text("pack.title", tableName: table))
+        .navigationTitle(Text("pack.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .task { if model.phase == .idle { await model.load() } }
         .refreshable { await model.load() }
     }

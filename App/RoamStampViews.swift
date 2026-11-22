@@ -219,8 +219,7 @@ struct RoamAlbumReadOwner: Hashable {
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.cyDomainPageBackground()
-            .navigationTitle("roam.experience.album")
-            .navigationBarTitleDisplayMode(.large)
+            .cyAlbumChildTitle("roam.experience.album")
             .overlay(alignment: .bottomTrailing) {
                 // B62 al-fab: the camera is a round + once the album has stamps (the empty state has its own CTA).
                 if hosted, allowsCapture, canShowAlbum, (pager.total ?? pager.stamps.count) > 0 {

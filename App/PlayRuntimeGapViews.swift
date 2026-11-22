@@ -198,7 +198,7 @@ import SwiftUI
                     }
                 }
             }
-            .navigationTitle(Text(verbatim: CYKitCopy(locale: locale)("Pre-game prep", "开局前准备")))
+            .navigationTitle(Text(verbatim: CYKitCopy(locale: locale)("Pre-game prep", "开局前准备"))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button { showing = false } label: { Text(verbatim: CYKitCopy(locale: locale)("Done", "完成")) } } }
         }
     }

@@ -166,7 +166,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                 } else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
             } else { Color.clear }
         }
-        .navigationTitle(receivedStampText("title"))
+        .navigationTitle(receivedStampText("title")).navigationBarTitleDisplayMode(.inline)
         .onAppear { mounted = true; if !didAttach { attach() } }
         .onDisappear { mounted = false }
         .onChange(of: scenePhase) { _, phase in
@@ -300,7 +300,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     }.accessibilityIdentifier("roam.receivedMetadata.hide")
                 } footer: { Text("roam.stamp.hide.footer") }
             } else { receivedStampText("changed") }
-        }.cyGroupedSurface().navigationTitle(receivedStampText("detail"))
+        }.cyGroupedSurface().navigationTitle(receivedStampText("detail")).navigationBarTitleDisplayMode(.inline)
             .privacySensitive().accessibilityIdentifier("roam.receivedMetadata.detail")
     }
 }

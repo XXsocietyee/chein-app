@@ -80,7 +80,7 @@ extension EnvironmentValues {
                 }
             }
         }.cyGroupedSurface()
-        .appNavigationTitle("objects.title").navigationBarTitleDisplayMode(.inline)
+        .cyAlbumChildTitle("objects.title")
         .themeDomain(.player).privacySensitive()
         .task(id: scope) {
             if model.loadedScope != scope { model.invalidate() }

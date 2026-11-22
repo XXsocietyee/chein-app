@@ -160,7 +160,7 @@ import SwiftUI
                     Button("确认：" + review.command.action.title, role: [.withdraw, .change, .rejectAll, .cancel].contains(review.command.action) ? .destructive : nil) {
                         Task { await model.commit(review); offered = nil }
                     }.buttonStyle(.borderedProminent).disabled(!model.canInteract || !model.writesEnabled || model.review != review)
-                }.cyGroupedSurface().modifier(SharedPlanFormAppearance()).navigationTitle("核对原动作").interactiveDismissDisabled(model.busy)
+                }.cyGroupedSurface().modifier(SharedPlanFormAppearance()).cyPageTitle("核对原动作").interactiveDismissDisabled(model.busy)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { offered = nil } } }
             }
             .cyDomainSheet(detents: [.half, .full])

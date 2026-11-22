@@ -63,7 +63,7 @@ extension EnvironmentValues {
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.title")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

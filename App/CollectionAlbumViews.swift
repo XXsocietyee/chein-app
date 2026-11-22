@@ -23,6 +23,19 @@ extension EnvironmentValues {
     }
 }
 
+/// A 收集册 segment screen sets its own inline title only when opened on its own; inside 收集册 the album's
+/// 收集册 title is the one title on screen.
+private struct CollectionAlbumChildTitle: ViewModifier {
+    let key: String.LocalizationValue
+    @Environment(\.collectionAlbumHosted) private var hosted
+    func body(content: Content) -> some View {
+        if hosted { content } else { content.cyPageTitle(key) }
+    }
+}
+extension View {
+    func cyAlbumChildTitle(_ key: String.LocalizationValue) -> some View { modifier(CollectionAlbumChildTitle(key: key)) }
+}
+
 /// `album-head`: the segment chips (R2 204:30158). The page title 收集册 is the system inline title (type-and-chrome
 /// §2: a pushed page draws no second page-type title in its content). The selected chip is the neutral solid capsule
 /// and slides to the picked segment in place (`standard`; a cross-fade under Reduce Motion). Chips scroll sideways when

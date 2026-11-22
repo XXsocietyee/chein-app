@@ -84,7 +84,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.board.title")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

@@ -23,7 +23,7 @@ import SwiftUI
                 }
                 Text("verificationCode.city.authority").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
-        }.cyGroupedSurface().navigationTitle("roam.experience.voucher")
+        }.cyGroupedSurface().cyPageTitle("roam.experience.voucher")
             .accessibilityIdentifier("roam.experience.voucher")
         .cyDomainScreen(.player)
     }
@@ -31,7 +31,7 @@ import SwiftUI
 struct RoamHangoutUnavailableView: View {
     var body: some View {
         CYEmptyState(systemImage: "person.3", "roam.experience.hangoutUnavailable", detail: "roam.experience.hangoutHint")
-            .navigationTitle("roam.experience.hangout")
+            .cyPageTitle("roam.experience.hangout")
             .accessibilityIdentifier("roam.experience.hangout.unavailable")
         .cyDomainScreen(.player)
     }

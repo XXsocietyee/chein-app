@@ -21,7 +21,7 @@ struct RoamShareAlbumGuideView: View {
                         .accessibilityIdentifier("roam.albumGuide.copy")
                     Text("roam.albumGuide.copyHint").cyText(.meta).foregroundStyle(.secondary)
                 }.padding()
-            }.navigationTitle(LocalizedStringKey(guide.destination == .moments ? "roam.albumGuide.moments" : "roam.albumGuide.xiaohongshu"))
+            }.navigationTitle(LocalizedStringKey(guide.destination == .moments ? "roam.albumGuide.moments" : "roam.albumGuide.xiaohongshu")).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) {
                     Button("action.done") { dismiss() }.accessibilityIdentifier("roam.albumGuide.done")
                 } }

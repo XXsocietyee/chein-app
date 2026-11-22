@@ -13,7 +13,7 @@ import FoundationNetworking
             CurA11yLink(title: Text("playGap.product", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapProductPage(session: session) }
             CurA11yLink(title: Text("playGap.sms", tableName: "PlayGapMisc"), hint: Text("curA11y.playGap.open.hint", tableName: "CurA11y")) { PlayGapSmsPage(session: session) }
         }
-        .navigationTitle(Text("playGap.title", tableName: "PlayGapMisc"))
+        .navigationTitle(Text("playGap.title", tableName: "PlayGapMisc")).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("playGap.surfaces")
     }
 }

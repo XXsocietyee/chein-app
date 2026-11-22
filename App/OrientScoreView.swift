@@ -68,7 +68,7 @@ import QuestifyCore
         }
         .cyDomainScreen(.game)
         .cyHideTabBar(true)
-        .navigationTitle(Text("orientScore.title"))
+        .cyPageTitle("orientScore.title")
         .task { await model.load() }
         .refreshable { await model.load() }
     }
