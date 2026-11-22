@@ -57,6 +57,8 @@ struct MPParityBindings {
     /// Merchant view (`roleGuard.isMerchantView`): merchants have no pass, so the 我的 row, the Explore store card and the
     /// checkout city-pass rows hide, and the reveal shows the one-sentence merchant state. Nil = player.
     var viewerIsMerchant: (@MainActor () -> Bool)?
+    /// True when a player session can read private pass data (gift claim, pass orders).
+    var isSignedIn: (@MainActor () -> Bool)?
     /// Explore store card (`utils/discover-store-card.js`): nil result = nothing on sale, card hidden.
     var passStoreCard: (@MainActor () async -> PassStoreCard?)?
     /// Theme checkout (`self-play-checkout`): pass coverage of one topic + on-sale city passes that cover it.
@@ -161,7 +163,9 @@ enum MPParityRoute: Hashable, Identifiable {
             guard let id = safeIdentifier("id") else { return nil }
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
-            guard let token = nonEmpty("token"), !token.contains(".."), !token.contains("://") else { return nil }
+            // A missing token still opens the page, which shows the shared missing-link state (MKT-3-2).
+            let token = nonEmpty("token") ?? ""
+            if token.contains("..") || token.contains("://") { return nil }
             self = .gift(token: token)
         case "subpackageMember/market/membership/index":
             self = .membership
@@ -233,7 +237,16 @@ enum MPParityRoute: Hashable, Identifiable {
         case .pass(let id):
             if let make = bindings.passDetail { PassDetailHost(binding: make(id)) } else { unavailable }
         case .gift(let token):
-            if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
+            if token.isEmpty {
+                CYStateLayout(kind: .generic, title: Text("mp.gift.linkInvalid"))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier("passGift.missing")
+            } else if bindings.isSignedIn?() == false {
+                CYStateLayout(kind: .generic, title: Text("mp.gift.signIn"),
+                              primary: (title: "mp.pass.signIn.action", action: { PlayerJourneySignInBridge.shared.request() }),
+                              primaryStyle: .primary, primaryIdentifier: "passGift.signIn")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
         case .membership:
             if let make = bindings.membership { PassMembershipHost(binding: make()) } else { unavailable }
         case .library(let kind):

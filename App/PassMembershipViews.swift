@@ -44,6 +44,8 @@ struct PassMembershipContent: Equatable {
     var plans: [PassPlanCard]
     var selectedPlan: String?
     var buyBlock: PassBuyBlock?
+    /// Plan code → server `validDays`, for the 有效期 fact of the selected plan.
+    var validDays: [String: Int] = [:]
 }
 
 enum PassMembershipPhase: Equatable {
@@ -97,8 +99,7 @@ struct PassMembershipView: View {
             }
         }
         .cyPushedChrome(domain: .player)
-        .navigationTitle(Text("mp.member.title"))
-        .navigationBarTitleDisplayMode(.inline)
+        .cyPageTitle("mp.member.title")
     }
 
     private func ready(_ content: PassMembershipContent) -> some View {
@@ -119,10 +120,7 @@ struct PassMembershipView: View {
                 }
                 if !content.plans.isEmpty { plans(content) }
                 if content.active && !content.plans.isEmpty { renewNote(content) }
-                if !content.plans.isEmpty {
-                    Text("mp.member.terms").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                }
+                if !content.plans.isEmpty { termFacts(content) }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.bottom, CYSpacing.jumbo)
@@ -144,6 +142,28 @@ struct PassMembershipView: View {
                 }
             }
         }
+    }
+
+    /// `platform-pass.js` `factRows`: 购买前须知 from server facts; a missing fact is left out, never invented.
+    /// 续费 / 退款规则 are the fixed OR-024 lines (不自动续费 / 退款为整单).
+    private func termFacts(_ content: PassMembershipContent) -> some View {
+        var rows: [(Text, Text)] = []
+        if let count = content.themeCount { rows.append((Text("mp.member.fact.themes"), Text("mp.member.fact.themes.value \(count)"))) }
+        if let code = content.selectedPlan, let days = content.validDays[code] {
+            rows.append((Text("mp.member.fact.period"), Text("mp.member.plan.days \(days)")))
+        }
+        rows.append((Text("mp.member.fact.renewal"), Text("mp.member.fact.renewal.value")))
+        rows.append((Text("mp.member.fact.refund"), Text("mp.member.fact.refund.value")))
+        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            MPSectionHeader(title: "mp.member.fact.title")
+            MPCard {
+                ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                    if index > 0 { MPDivider() }
+                    MPRow(title: row.0, value: row.1)
+                }
+            }
+        }
+        .accessibilityIdentifier("membership.terms")
     }
 
     private func buyLabel(_ content: PassMembershipContent) -> Text {

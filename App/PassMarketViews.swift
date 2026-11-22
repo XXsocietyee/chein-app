@@ -907,7 +907,7 @@ struct PassGiftClaimView: View {
                 else if let failedReason { Text(verbatim: failedReason) }
                 else { Text("mp.gift.title") }
             }
-            .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
             .padding(.horizontal, CYSpacing.xxl)
             .accessibilityAddTraits(.updatesFrequently)
             .accessibilityIdentifier("passGift.status")

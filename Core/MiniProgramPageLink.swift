@@ -27,7 +27,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
             "subpackageA/pages/video-bounty/index": .init(allowed: ["campaignKey", "topicId"], required: [], ids: ["topicId"]),
             "subpackageMember/market/passes/index": .init(allowed: ["tab"], required: [], ids: []),
             "subpackageMember/market/pass/index": .init(allowed: ["id"], required: ["id"], ids: []),
-            "subpackageMember/market/gift/index": .init(allowed: ["token"], required: ["token"], ids: []),
+            "subpackageMember/market/gift/index": .init(allowed: ["token"], required: [], ids: []),
             "subpackageMember/market/membership/index": .init(allowed: [], required: [], ids: []),
             "subpackageMember/market/library/index": .init(allowed: ["kind"], required: [], ids: []),
             "subpackageMember/market/pass-order/index": .init(allowed: ["orderNo"], required: ["orderNo"], ids: []),

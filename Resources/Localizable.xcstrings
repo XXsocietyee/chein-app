@@ -246620,13 +246620,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Result pending. Tap again to check the original result."
+            "value": "Still confirming — tap again to check"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结果待确认，再点一次查询原结果"
+            "value": "还在确认结果，再点一次看看"
           }
         }
       }
@@ -247334,13 +247334,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pass"
+            "value": "30-day Chengyin pass"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "通行证"
+            "value": "城瘾30天通行证"
           }
         }
       }
@@ -247351,13 +247351,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "CHENGYIN PASS"
+            "value": "30-DAY CHENGYIN PASS"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾通行证"
+            "value": "城瘾30天通行证"
           }
         }
       }
@@ -247402,13 +247402,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Playable themes"
+            "value": "See included themes"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可玩主题库"
+            "value": "查看包含主题"
           }
         }
       }
@@ -247419,13 +247419,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld themes · ¥0 with the pass"
+            "value": "%lld themes"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%lld 个主题 · 持证 ¥0"
+            "value": "%lld 个主题"
           }
         }
       }
@@ -278981,6 +278981,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "链接缺少必要参数"
+          }
+        }
+      }
+    },
+    "mp.member.fact.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before you buy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买须知"
+          }
+        }
+      }
+    },
+    "mp.member.fact.themes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Playable themes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可玩主题"
+          }
+        }
+      }
+    },
+    "mp.member.fact.themes.value %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld themes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个主题"
+          }
+        }
+      }
+    },
+    "mp.member.fact.period": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valid for"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效期"
+          }
+        }
+      }
+    },
+    "mp.member.fact.renewal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renewal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "续费"
+          }
+        }
+      }
+    },
+    "mp.member.fact.renewal.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No auto-renewal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不自动续费"
+          }
+        }
+      }
+    },
+    "mp.member.fact.refund": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refunds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款规则"
+          }
+        }
+      }
+    },
+    "mp.member.fact.refund.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Whole-order refund"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款为整单"
+          }
+        }
+      }
+    },
+    "mp.gift.linkInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This link has expired"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接已失效"
+          }
+        }
+      }
+    },
+    "mp.gift.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to claim this gift"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后领取礼品"
           }
         }
       }

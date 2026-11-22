@@ -42,9 +42,10 @@ extension MPParityBindings {
     }
 
     static func membershipContent(_ overview: PlatformPassOverview) -> PassMembershipContent {
-        let bestIndex = overview.plans.enumerated().min { lhs, rhs in
+        // platform-pass.js `bestCode`: 最划算 only when there is more than one plan to compare.
+        let bestIndex = overview.plans.count > 1 ? overview.plans.enumerated().min { lhs, rhs in
             pricePerDay(lhs.element) < pricePerDay(rhs.element)
-        }?.offset
+        }?.offset : nil
         let plans = overview.plans.enumerated().map { index, plan in
             planCard(plan, best: index == bestIndex)
         }
@@ -60,7 +61,9 @@ extension MPParityBindings {
             themeCount: overview.libraryCount,
             plans: plans,
             selectedPlan: plans.first { $0.best }?.code ?? plans.first?.code,
-            buyBlock: block)
+            buyBlock: block,
+            validDays: Dictionary(overview.plans.compactMap { plan in plan.validDays.map { (plan.code, $0) } },
+                                  uniquingKeysWith: { first, _ in first }))
     }
 
     /// Explore feed card: city, period, and year passes that have a cash price and covered works.
@@ -382,6 +385,7 @@ extension AppSession {
     func mpParityPassBindings() -> MPParityBindings {
         var bindings = MPParityBindings.none
         bindings.viewerIsMerchant = { [weak self] in self?.mpViewerIsMerchant ?? false }
+        bindings.isSignedIn = { [weak self] in self?.passReadToken() != nil }
         bindings.revealAccountKey = { [weak self] in self?.account.map { String($0.id) } }
         bindings.passMarket = { [weak self] in MPParityPassMarketModel(session: self) }
         bindings.passDetail = { [weak self] id in MPParityPassDetailModel(session: self, productID: id) }
