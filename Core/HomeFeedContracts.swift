@@ -9,7 +9,7 @@ public struct HomeFeedQuery: Hashable {
     public var keyword: String
     public var categoryID: Int?
     public var pageSize: Int
-    public init(kind: HomeFeedKind = .topics, keyword: String = "", categoryID: Int? = nil, pageSize: Int = 10) {
+    public init(kind: HomeFeedKind = .topics, keyword: String = "", categoryID: Int? = nil, pageSize: Int = 20) {
         self.kind = kind; self.keyword = keyword; self.categoryID = categoryID; self.pageSize = pageSize
     }
 }

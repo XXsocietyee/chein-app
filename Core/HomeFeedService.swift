@@ -23,10 +23,11 @@ public struct HomeFeedService {
         let items: [HomeFeedItem]
         switch query.kind {
         case .topics:
-            let page = try await topics.list(query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: category, pageSize: query.pageSize), pageNumber: number, token: token)
+            let page = try await topics.list(query: TopicQuery(keyword: keyword.isEmpty ? nil : keyword, categoryID: category, pageSize: query.pageSize, sortType: "1"), pageNumber: number, token: token)
             items = page.rows.map(HomeFeedItem.topic)
         case .activities:
-            var fields = ["is_my": "0", "pageNum": String(number), "pageSize": String(query.pageSize)]
+            // MP index.js:1364-1377: 活动 stream lists open activities (`status:1`) in `sort_type:1` order.
+            var fields = ["is_my": "0", "status": "1", "sort_type": "1", "pageNum": String(number), "pageSize": String(query.pageSize)]
             if !keyword.isEmpty { fields["keyword"] = keyword }
             if let category { fields["category_id"] = category }
             items = try await activities(fields: fields, token: token).map(HomeFeedItem.activity)
@@ -36,12 +37,13 @@ public struct HomeFeedService {
     public func section(_ section: HomeFeedSection, token: String?) async throws -> [HomeFeedItem] {
         switch section {
         case .recommended:
-            return try await topics.list(query: TopicQuery(recommend: true), token: token).rows.map(HomeFeedItem.topic)
+            return try await topics.list(query: TopicQuery(recommend: true, pageSize: 5), token: token).rows.map(HomeFeedItem.topic)
         case .nearby:
             // Source's no-GPS fallback is time ordering; do not claim distance/proximity.
-            return try await activities(fields: ["is_my": "0", "sort_type": "2", "pageNum": "1", "pageSize": "6"], token: token).map(HomeFeedItem.activity)
+            return try await activities(fields: ["is_my": "0", "sort_type": "2", "pageNum": "1", "pageSize": "4"], token: token).map(HomeFeedItem.activity)
         case .upcoming:
-            return try await activities(fields: ["is_my": "2", "pageNum": "1", "pageSize": "6"], token: token).map(HomeFeedItem.activity)
+            // MP index.js:773-779: 即将上线 = `is_my:2, status:2, sort_type:2`, four rows.
+            return try await activities(fields: ["is_my": "2", "status": "2", "sort_type": "2", "pageNum": "1", "pageSize": "4"], token: token).map(HomeFeedItem.activity)
         }
     }
     private func activities(fields: [String: String], token: String?) async throws -> [ActivitySummary] {
