@@ -342,8 +342,8 @@ private struct CoopRelationContextLabel: View {
         // returns posts from clubs this merchant joined or cooperated with; MP's site-wide scope=all is a
         // follow-up in the club community reader.
         CoopRelationDiscoveryView(reader: reader, profiles: profiles, squareReader: session.squareReader)
-            .environment(\.cooperationRelationPostFeed,
-                         CoopRelationPostFeedFactory.make(community: session.clubCommunityContext, identity: { session.clubIdentity }))
+            .environment(\.cooperationRelationPostFeed, CoopRelationPostFeedFactory.make(
+                community: session.clubCommunityContext, identity: { session.clubIdentity }))
     }
 }
 

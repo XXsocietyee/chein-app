@@ -14,7 +14,8 @@ import XCTest
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let host = try String(contentsOf: root.appendingPathComponent("App/CoopRelationDiscoveryView.swift"), encoding: .utf8)
         // Parity relation P0 (MP W2-17): the session host injects the club post feed (帖子 default tab).
-        XCTAssertTrue(host.contains("CoopRelationPostFeedFactory.make(community: session.clubCommunityContext"))
+        XCTAssertTrue(host.contains("community: session.clubCommunityContext"))
+        XCTAssertTrue(host.contains("CoopRelationPostFeedFactory.make("))
         XCTAssertTrue(host.contains("cooperationRelationPostFeed,"))
         XCTAssertNil(CoopRelationPostFeedFactory.make(community: nil, identity: { nil }))
     }
