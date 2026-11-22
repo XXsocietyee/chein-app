@@ -5,19 +5,17 @@ import XCTest
     func testNoCommunityContextMeansNoPostsSegment() {
         let hook = CoopRelationPostFeedFactory.make(community: nil, identity: { nil })
         XCTAssertNil(hook)
-        XCTAssertEqual(CoopRelationSection.effective(selected: nil, feedAvailable: hook != nil), .merchants)
-        XCTAssertEqual(CoopRelationSection.available(feedAvailable: hook != nil), [.merchants, .clubs])
+        XCTAssertEqual(CoopRelationSection.effective(selected: nil, feedAvailable: hook != nil), .clubs)
+        XCTAssertEqual(CoopRelationSection.available(feedAvailable: hook != nil), [.clubs])
     }
 
     func testSessionHostCallsPostFeedFactory() throws {
         let root = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
         let host = try String(contentsOf: root.appendingPathComponent("App/CoopRelationDiscoveryView.swift"), encoding: .utf8)
-        // Audit 2026-11-14 (ui/h-audit-bugs): the general club community feed is not this relation's posts, so the
-        // session host no longer injects it and the Posts segment stays hidden until a relation-scoped source exists.
-        XCTAssertFalse(host.contains("CoopRelationPostFeedFactory.make"))
-        XCTAssertFalse(host.contains("session.clubCommunityContext"))
-        XCTAssertFalse(host.contains("cooperationRelationPostFeed,"))
+        // Parity relation P0 (MP W2-17): the session host injects the club post feed (帖子 default tab).
+        XCTAssertTrue(host.contains("CoopRelationPostFeedFactory.make(community: session.clubCommunityContext"))
+        XCTAssertTrue(host.contains("cooperationRelationPostFeed,"))
         XCTAssertNil(CoopRelationPostFeedFactory.make(community: nil, identity: { nil }))
     }
 }

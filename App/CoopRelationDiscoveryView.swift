@@ -92,7 +92,7 @@ extension EnvironmentValues {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .cyDomainPageBackground()
-            .themeDomain(.player)
+            .themeDomain(.merchant)
             .cyHeroScreen()
             .cyHaptic(.selection, trigger: section)
         } else { relationList }
@@ -105,11 +105,7 @@ extension EnvironmentValues {
                     .listRowInsets(EdgeInsets())
                     .listRowSeparator(.hidden)
             }
-            if let squareReader {
-                CreativeSquareAuthorDeleteSection(signedIn: squareReader.isSignedIn, load: { try await squareReader.ownCreativeSquareIDs() }, remove: { try await squareReader.deleteOwnCreativeSquare(postID: $0) })
-            } else {
-                Text(verbatim: "—").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading).accessibilityIdentifier("cooprelation.authorSquare.missing")
-            }
+            // Parity relation P1: no stray author-delete section or lone "—" on the relation list.
             CoopRelationContextLabel(context: displayContext)
             Section { sectionPicker.padding(.vertical, CYSpacing.xs) }
             if reader.session == nil {
@@ -190,7 +186,7 @@ extension EnvironmentValues {
         }
         .cyGroupedSurface()
         .cyHeroScreen()
-        .themeDomain(.player)
+        .themeDomain(.merchant)
         .cyHaptic(.selection, trigger: section)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -342,9 +338,12 @@ private struct CoopRelationContextLabel: View {
                 return AnyView(CoopRelationClubProfileHost(id: id, base: session, isCurrent: { current() && selectionCurrent() }))
             }
         }, image: home.image, identityChanges: session.objectWillChange.eraseToAnyPublisher())
-        // Audit 2026-11-14: the general club community feed is not this relation's posts (it showed the player
-        // feed on the merchant relation page). Without a relation-scoped source the Posts segment stays hidden.
+        // Parity relation P0 (MP 帖子 default tab, W2-17): inject the club post feed. Without `scope` the server
+        // returns posts from clubs this merchant joined or cooperated with; MP's site-wide scope=all is a
+        // follow-up in the club community reader.
         CoopRelationDiscoveryView(reader: reader, profiles: profiles, squareReader: session.squareReader)
+            .environment(\.cooperationRelationPostFeed,
+                         CoopRelationPostFeedFactory.make(community: session.clubCommunityContext, identity: { session.clubIdentity }))
     }
 }
 
