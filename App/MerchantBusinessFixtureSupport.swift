@@ -78,6 +78,12 @@ import UIKit
                     .frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)
             }
         }
+        // The app shows these pages under the merchant role root (`HomeSearchTabParityViews`); without it the host
+        // defaulted to the player role, so `cyDomainSheet` themed the aftercare editor sheet dark (near-white text)
+        // over the merchant page's light ground (combined-r4 verify). `cyScreenStyle` installs the merchant bar
+        // chrome as the merchant root does (the sheet's large title was white on white without it).
+        .cyScreenStyle()
+        .roleTheme(.merchant)
     }
 }
 /// Opt-in observation of real SwiftUI ownership for AppUnit tests only. It adds
