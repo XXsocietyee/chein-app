@@ -233333,7 +233333,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前账号无法查看提现记录"
+            "value": "当前身份不能查看提现记录"
           }
         }
       }
@@ -233469,7 +233469,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提现记录没加载出来"
+            "value": "提现记录加载失败"
           }
         }
       }
@@ -279454,6 +279454,125 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在加载参与记录…"
+          }
+        }
+      }
+    },
+    "profile.orderExit.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel order"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消订单"
+          }
+        }
+      }
+    },
+    "profile.orderExit.refund": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request refund"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请退款"
+          }
+        }
+      }
+    },
+    "profile.orderExit.cancelSignup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel sign-up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消报名"
+          }
+        }
+      }
+    },
+    "profile.orderExit.viaSupport": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To cancel or get a refund, contact support."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如需取消或退款，请联系客服"
+          }
+        }
+      }
+    },
+    "profile.refreshFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't refresh. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新失败，稍后再试"
+          }
+        }
+      }
+    },
+    "profile.orders.payElsewhere": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete payment in the mini-program"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在小程序完成支付"
+          }
+        }
+      }
+    },
+    "wallet.points.empty.all": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points records yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有积分记录"
           }
         }
       }

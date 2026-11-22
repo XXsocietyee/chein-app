@@ -10,7 +10,10 @@ struct ProfileReadScreen<Value, Content: View>: View {
     let content: (Value) -> Content
     /// Nil keeps the shared Profile copy; a screen may supply its source-specific copy.
     let issueCopy: ProfileReadIssueCopy?
+    /// Sign-in action for the signed-out state (MP 登录). Nil keeps the state without a button.
+    let onSignIn: (() -> Void)?
     @State private var value: Value?
+    @State private var refreshToast: LocalizedStringKey?
     @State private var isLoading = true
     @State private var issue: ProfileLoadIssue?
     @State private var generation: UInt64 = 0
@@ -18,11 +21,13 @@ struct ProfileReadScreen<Value, Content: View>: View {
 
     init(reader: any ProfileReading, accessibilityPrefix: String,
          issueCopy: ProfileReadIssueCopy? = nil,
+         onSignIn: (() -> Void)? = nil,
          load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader
         self.accessibilityPrefix = accessibilityPrefix
         self.issueCopy = issueCopy
+        self.onSignIn = onSignIn
         self.load = load
         self.content = content
     }
@@ -34,10 +39,10 @@ struct ProfileReadScreen<Value, Content: View>: View {
                    identifier: accessibilityPrefix + ".loading", announces: true) {
             readBody
         }
-        .refreshable { await loadOwner.run { await reload() } }
+        .refreshable { await loadOwner.run { await reload(keepingValue: true) } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload() } }
+                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload(keepingValue: true) } }
                     .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
                     .accessibilityIdentifier(accessibilityPrefix + ".refresh")
             }
@@ -49,11 +54,14 @@ struct ProfileReadScreen<Value, Content: View>: View {
             // Account replacement destroys the root; a new appearance refreshes the data.
             loadOwner.deactivate(); generation &+= 1
         }
+        .cyToast(message: $refreshToast, tone: .warning)
     }
     @ViewBuilder private var readBody: some View {
         ZStack {
             if reader.identity == nil {
-                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), detail: LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired"), messageIdentifier: accessibilityPrefix + ".signIn")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), detail: LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired"), messageIdentifier: accessibilityPrefix + ".signIn",
+                             actionTitle: onSignIn == nil ? nil : "auth.signIn", actionIdentifier: onSignIn == nil ? nil : accessibilityPrefix + ".signIn.action",
+                             action: onSignIn)
             } else if !reader.isConfigured {
                 CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: accessibilityPrefix + ".unavailable")
             } else if isLoading {
@@ -75,11 +83,15 @@ struct ProfileReadScreen<Value, Content: View>: View {
             }
         }
     }
-    private func reload() async {
+    /// First load and account change clear the page. A pull or toolbar refresh keeps what is on screen
+    /// (FIN-16-3, MP 订单刷新失败): a retryable failure shows a toast; sign-in / not-configured still clear it.
+    private func reload(keepingValue: Bool = false) async {
         generation &+= 1
         let request = generation
-        value = nil; issue = nil; isLoading = true
-        guard reader.isConfigured, reader.identity != nil else { isLoading = false; return }
+        let keeps = keepingValue && value != nil
+        if !keeps { value = nil; isLoading = true }
+        issue = nil
+        guard reader.isConfigured, reader.identity != nil else { value = nil; isLoading = false; return }
         defer { if generation == request { isLoading = false } }
         do {
             let result = try await load()
@@ -90,6 +102,12 @@ struct ProfileReadScreen<Value, Content: View>: View {
         } catch {
             guard generation == request, !Task.isCancelled else { return }
             issue = issueCopy.map { ProfileLoadIssue(error, copy: $0) } ?? ProfileLoadIssue(error)
+            if keeps, issue?.canRetry == true {
+                issue = nil
+                refreshToast = "profile.refreshFailed"
+            } else {
+                value = nil
+            }
         }
     }
 }

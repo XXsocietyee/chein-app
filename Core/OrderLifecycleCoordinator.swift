@@ -149,6 +149,9 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         return dispatcher
     }
     public var canDispatch: Bool { !reader.isOfflineExample && (review.map { currentProduction()?.canDispatch($0) == true } ?? false) }
+    /// A reviewed writer is mounted and bound to this reader. It says nothing about any single action:
+    /// each review is still checked by `canDispatch` before the confirm button is enabled.
+    public var hasReviewedWriter: Bool { !reader.isOfflineExample && currentProduction() != nil }
     public var paymentReturn: PaymentProviderReturnFlow? { visibleScope == reader.scope ? storedPaymentReturn : nil }
     public var canSimulate: Bool {
         #if DEBUG

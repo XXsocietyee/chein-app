@@ -5394,7 +5394,7 @@ final class AppSession: ObservableObject {
               configuration.externalCheckoutApproved, configuration.devicePaymentApproved else { return false }
         return configuration.approvals.contains { $0.action == .payment && $0.expiresAt > Date() }
     }
-    private func makeOrderLifecycleDispatcher() -> OrderLifecycleProductionDispatcher? {
+    func makeOrderLifecycleDispatcher() -> OrderLifecycleProductionDispatcher? {
         guard let api = regionalConfiguration?.apiConfiguration, let journal = orderLifecycleJournal else { return nil }
         return OrderLifecycleProductionFactory.make(configuration: runtimeDependencies.orderLifecycleConfiguration,
             api: api, transport: runtimeHTTPTransport, journal: journal,
