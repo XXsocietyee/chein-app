@@ -36,7 +36,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         return heroScrolledAway ? loadedClubName : ""
     }
     var body: some View {
-        ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, onSignIn: onSignIn,
+        ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, showsToolbarRefresh: false, onSignIn: onSignIn,
                        load: {
                            detailGeneration &+= 1
                            let revision = detailGeneration, identity = reader.clubIdentity
