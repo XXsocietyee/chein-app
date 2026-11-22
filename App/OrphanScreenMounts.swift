@@ -144,7 +144,13 @@ private struct MyProjectMutationModelKey: EnvironmentKey {
     static let defaultValue: MyProjectMutationModel? = nil
 }
 
+private struct MyProjectTopicCancelKey: EnvironmentKey { static let defaultValue: ((Int) -> Void)? = nil }
 extension EnvironmentValues {
+    /// PC-D-1-2: opens the topic's publisher cancel-and-refund flow. Nil (no publisher host) hides the row.
+    var myProjectTopicCancel: ((Int) -> Void)? {
+        get { self[MyProjectTopicCancelKey.self] }
+        set { self[MyProjectTopicCancelKey.self] = newValue }
+    }
     /// Present only when `MyProjectMutationFactory.isLive`; nil keeps the row menu empty.
     var myProjectMutation: MyProjectMutationModel? {
         get { self[MyProjectMutationModelKey.self] }

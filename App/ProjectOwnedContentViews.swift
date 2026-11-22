@@ -54,12 +54,19 @@ import SwiftUI
     @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     @State private var listRefreshGeneration: UInt64 = 0
     @State private var listRefresh: MyProjectListRefreshRequest?
+    @State private var cancellingTopic: PublishedResource?
     var body: some View {
         let presented = navigation.selection
         CreatorContentProjectsView(reader: reader, entryScope: entryScope, canManageProjects: canManageProjects, onOpenProject: { project, scope, _ in
             navigation.open(project, scope: scope, reader: reader,
                 merchantScopeAccess: MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects))
         }, onOpen: { _ in }, listRefresh: listRefresh)
+        .environment(\.myProjectTopicCancel, publisherHost == nil ? nil : { id in
+            cancellingTopic = try? PublishedResource(kind: .topic, value: id)
+        })
+        .navigationDestination(item: $cancellingTopic) { resource in
+            if let publisherHost { publisherHost(resource) }
+        }
         .navigationDestination(item: navigation.presentation(presented)) { value in
             if reader.scope == value.scope, reader.isAuthenticated {
                 switch value.decision {
