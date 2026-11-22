@@ -974,6 +974,10 @@ private struct ClubOperationsProfileForm: View {
             Section {
                 Text(verbatim: ClubPlayerCopy.createIntroTitle(formLocale))
                     .cyText(.pageTitle)
+                    // The domain's ink, like the step titles: the system primary was black on the dark page once the
+                    // row fill was cleared (light system appearance).
+                    .foregroundStyle(formPalette.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("club.player.create.intro")
                     // A Section's own onAppear does not fire inside a List; the row's does.
                     .onAppear { publishCreateBar() }
