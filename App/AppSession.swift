@@ -6406,12 +6406,12 @@ final class AppSession: ObservableObject {
                 guard let self, let service = self.roamWriteService, let token = self.token else { throw APIError.unauthorized }
                 return try await service.toggleFavorite(poiID: poiID, token: token)
             },
-            complete: { [weak self] poiID in
+            complete: { [weak self] poiID, evidence in
                 guard let self, let service = self.roamWriteService, self.token != nil else { throw APIError.unauthorized }
                 let fix = try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: location)
                 // Re-read the token after the permission prompt: the account may have changed meanwhile.
                 guard let token = self.token else { throw APIError.unauthorized }
-                return try await service.completeNode(poiID: poiID, fix: fix, token: token)
+                return try await service.completeNode(poiID: poiID, fix: fix, answer: evidence.answer, photoURL: evidence.photoURL, code: evidence.code, token: token)
             })
     }
     private let roamService: RoamService?

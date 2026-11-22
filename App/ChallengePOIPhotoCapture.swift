@@ -128,10 +128,10 @@ extension EnvironmentValues {
 }
 
 extension AppSession {
-    /// PLAYPOI-1: the challenge photo uses the same reviewed live-write approval as the stamp upload, and only exists
-    /// when the challenge submit writer is live, so a photo never uploads for a submit that cannot be sent.
+    /// PLAYPOI-1 / RPOI-1: a POI photo uses the same reviewed live-write approval as the stamp upload. Callers pass it
+    /// only where the matching submit is live, so a photo never uploads for a submit that cannot be sent.
     func makeChallengePOIPhotoUploader(poiID: Int) -> (any RetainedImageUploading)? {
-        guard poiID > 0, ChallengePOIWriterFactory.isLive, stampCameraEnabled,
+        guard poiID > 0, stampCameraEnabled,
               let mediaScope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
               let credentials = currentRetainedImageCredentials,
               let scope = try? RetainedImageScope(accountID: mediaScope.accountID, epoch: mediaScope.epoch,

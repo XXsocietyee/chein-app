@@ -5,7 +5,16 @@ import CoreLocation
 /// nil in the environment hides the controls, e.g. for signed-out or preview hosts.
 struct RoamPOIActions {
     var toggleFavorite: @MainActor (Int) async throws -> Bool
-    var complete: @MainActor (Int) async throws -> RoamNodeCompletion
+    /// RPOI-1: `POST api/city/nodes/{id}/complete` with the evidence the node's validationMethod asks for.
+    var complete: @MainActor (Int, RoamPOICheckInEvidence) async throws -> RoamNodeCompletion
+}
+
+/// Body fields of the MP `completeNode(answer, photoUrl, code)`; empty strings when a method does not use them.
+struct RoamPOICheckInEvidence: Equatable {
+    var answer = ""
+    var photoURL = ""
+    var code = ""
+    static let none = RoamPOICheckInEvidence()
 }
 
 private struct RoamPOIActionsKey: EnvironmentKey { static let defaultValue: RoamPOIActions? = nil }
@@ -43,6 +52,8 @@ enum RoamDeviceFixGCJ {
     @Published private(set) var favoritePhase: Phase = .idle
     @Published private(set) var checkInPhase: Phase = .idle
     @Published private(set) var checkInSuccess: RoamNodeCompletion?
+    /// Retry resends the same answer / photo / code instead of asking again.
+    private(set) var lastEvidence = RoamPOICheckInEvidence.none
     private var token = 0
 
     func reset() { favoriteOverride = nil; completedOverride = nil; needRedeemOverride = nil; favoritePhase = .idle; checkInPhase = .idle; checkInSuccess = nil; token += 1 }
@@ -61,13 +72,13 @@ enum RoamDeviceFixGCJ {
         }
     }
 
-    func checkIn(poiID: Int, actions: RoamPOIActions) {
+    func checkIn(poiID: Int, evidence: RoamPOICheckInEvidence = .none, actions: RoamPOIActions) {
         guard checkInPhase != .working else { return }
-        checkInPhase = .working; checkInSuccess = nil
+        checkInPhase = .working; checkInSuccess = nil; lastEvidence = evidence
         let mine = token
         Task {
             do {
-                let receipt = try await actions.complete(poiID)
+                let receipt = try await actions.complete(poiID, evidence)
                 guard mine == token else { return }
                 completedOverride = !receipt.needRedeem; needRedeemOverride = receipt.needRedeem
                 checkInSuccess = receipt; checkInPhase = .idle
@@ -93,6 +104,14 @@ struct RoamPOIActionRows: View {
     let actions: RoamPOIActions
     @ObservedObject var model: RoamPOIActionModel
     @Environment(\.openURL) private var openURL
+    @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
+    @State private var answerPrompt = false
+    @State private var answerText = ""
+    @State private var choiceSheet = false
+    @State private var photoSheet = false
+    @State private var scanSheet = false
+    /// MP `challengePhoto`: a photoRequired node shoots first, then continues with its method.
+    @State private var challengePhoto = ""
 
     private var favorited: Bool { model.favoriteOverride ?? node.favorited }
     private var completed: Bool { model.completedOverride ?? node.completed }
@@ -113,7 +132,7 @@ struct RoamPOIActionRows: View {
             failureRow(failure, retry: { model.toggleFavorite(poiID: node.poiId, current: favorited, actions: actions) })
         }
         if node.isPublished && !completed {
-            Button { model.checkIn(poiID: node.poiId, actions: actions) } label: {
+            Button { startCheckIn() } label: {
                 HStack {
                     Label(LocalizedStringKey(needRedeem ? "roam.poi.action.checkIn.redeem" : "roam.poi.action.checkIn"), systemImage: "mappin.and.ellipse")
                     if model.checkInPhase == .working { Spacer(); ProgressView() }
@@ -124,7 +143,7 @@ struct RoamPOIActionRows: View {
             Text("roam.poi.checkIn.footer").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
         if case .failed(let failure) = model.checkInPhase {
-            failureRow(failure, retry: { model.checkIn(poiID: node.poiId, actions: actions) })
+            failureRow(failure, retry: { model.checkIn(poiID: node.poiId, evidence: model.lastEvidence, actions: actions) })
         }
         if let receipt = model.checkInSuccess {
             Label(LocalizedStringKey(receipt.needRedeem ? "roam.poi.checkIn.needRedeem" : (receipt.alreadyClaimed ? "roam.poi.checkIn.already" : "roam.poi.checkIn.success")),
@@ -132,11 +151,57 @@ struct RoamPOIActionRows: View {
                 .accessibilityIdentifier("roam.poi.checkin.success")
         }
         }
+        .alert("roam.poi.answer.title", isPresented: $answerPrompt) {
+            TextField("roam.poi.answer.placeholder", text: $answerText)
+            Button("action.cancel", role: .cancel) {}
+            Button("roam.poi.answer.submit") { submit(.init(answer: answerText, photoURL: challengePhoto)) }
+        }
+        .sheet(isPresented: $choiceSheet) {
+            CYOptionSheet(title: node.questionName ?? String(localized: "roam.poi.answer.title"),
+                          items: node.quizOptions.map { CYOptionSheetItem(id: $0.id, title: $0.id + ". " + $0.text) },
+                          selectedID: nil,
+                          onSelect: { id in choiceSheet = false; submit(.init(answer: id, photoURL: challengePhoto)) },
+                          onClose: { choiceSheet = false })
+                .cyDomainSheet(detents: [.half])
+        }
+        .sheet(isPresented: $photoSheet) {
+            NavigationStack {
+                ScrollView {
+                    ChallengePOIPhotoCapture(lead: node.photoRequireDesc, uploader: makePhotoUploader?(node.poiId), confirmed: false) { url in
+                        photoSheet = false; challengePhoto = url
+                        if node.validationMethod == 2 { submit(.init(photoURL: url)) } else { startCheckIn() }
+                    }
+                    .padding(CYSpacing.pageHorizontal)
+                }
+                .cyPageTitle("roam.poi.photo.title")
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { photoSheet = false } } }
+            }
+        }
+        .fullScreenCover(isPresented: $scanSheet) {
+            NativeQRScanner { code in scanSheet = false; submit(.init(photoURL: challengePhoto, code: code)) }
+        }
         .cyHapticEvent(.checkInSuccess, trigger: model.checkInSuccess != nil) { old, new in !old && new }
         .cyHapticEvent(.wrongAnswer, trigger: model.checkInPhase) { _, next in
             if case .failed = next { return true }
             return false
         }
+    }
+
+    /// RPOI-1: route the check-in by `validationMethod`, as scene-roam-poi-detail `startInteraction` does:
+    /// photoRequired shoots first; 1 answer / 暗号, 3 A–D choice (sends the letter), 2 photo, 4 QR code, else plain.
+    private func startCheckIn() {
+        guard model.checkInPhase != .working else { return }
+        if node.photoRequired && challengePhoto.isEmpty { photoSheet = true; return }
+        switch node.validationMethod {
+        case 1: answerText = ""; answerPrompt = true
+        case 3 where !node.quizOptions.isEmpty: choiceSheet = true
+        case 2: if challengePhoto.isEmpty { photoSheet = true } else { submit(.init(photoURL: challengePhoto)) }
+        case 4: scanSheet = true
+        default: submit(.init(photoURL: challengePhoto))
+        }
+    }
+    private func submit(_ evidence: RoamPOICheckInEvidence) {
+        model.checkIn(poiID: node.poiId, evidence: evidence, actions: actions)
     }
 
     @ViewBuilder private func failureRow(_ failure: RoamPOIActionModel.Failure, retry: @escaping () -> Void) -> some View {

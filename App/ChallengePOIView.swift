@@ -381,7 +381,7 @@ import QuestifyCore
                         onWriteCitySlip: { showingCitySign = true },
                         onOpenBadgeWall: { showingBadgeWall = true },
                         onBackToMap: { dismiss() },
-                        photoUploader: makePhotoUploader?(poiID)
+                        photoUploader: ChallengePOIWriterFactory.isLive ? makePhotoUploader?(poiID) : nil
                     )
                 } else {
                     CYSkeleton()
