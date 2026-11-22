@@ -1,12 +1,12 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 1181,
+  "raw text style": 1169,
   "Theme.Font": 63,
   "raw size": 67,
   "back chevron": 15,
   "hidden back": 15,
-  "large title": 26
+  "large title": 22
  },
  "files": {
   "App/AccessibilityReadinessSectionView.swift": {
@@ -104,9 +104,6 @@
    "raw text style": 1,
    "back chevron": 1,
    "hidden back": 1
-  },
-  "App/CharacterCardReadbackView.swift": {
-   "large title": 1
   },
   "App/CityAcquisitionPresentationStyle.swift": {
    "Theme.Font": 2
@@ -270,8 +267,7 @@
    "raw text style": 1
   },
   "App/CouponCodeView.swift": {
-   "raw text style": 4,
-   "large title": 1
+   "raw text style": 1
   },
   "App/CouponManagementView.swift": {
    "raw text style": 1
@@ -942,12 +938,6 @@
   "App/ParticipantManagementDetailView.swift": {
    "hidden back": 1
   },
-  "App/PassMarketViews.swift": {
-   "large title": 1
-  },
-  "App/PassMembershipViews.swift": {
-   "large title": 1
-  },
   "App/PassportView.swift": {
    "raw text style": 2
   },
@@ -1026,7 +1016,7 @@
    "raw text style": 1
   },
   "App/PlayerJourneyViews.swift": {
-   "raw text style": 3
+   "raw text style": 1
   },
   "App/PrivacyAndSecurityRedactionSectionView.swift": {
    "raw text style": 1
@@ -1041,7 +1031,7 @@
    "raw text style": 3
   },
   "App/ProfileComplaintPreparationView.swift": {
-   "raw text style": 3
+   "raw text style": 2
   },
   "App/ProfileContactQREditor.swift": {
    "raw text style": 1
@@ -1384,9 +1374,6 @@
    "back chevron": 1,
    "hidden back": 1
   },
-  "App/TemplateAuthoringMineView.swift": {
-   "raw text style": 3
-  },
   "App/TemplateAuthoringPublishResultPresentation.swift": {
    "raw text style": 1
   },
@@ -1433,7 +1420,7 @@
    "raw text style": 1
   },
   "App/TicketWalletView.swift": {
-   "raw text style": 5
+   "raw text style": 2
   },
   "App/TopicComponents.swift": {
    "raw text style": 1
