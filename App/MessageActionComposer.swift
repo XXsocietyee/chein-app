@@ -247,23 +247,32 @@ private struct MessageComposerFieldSlot: View {
     let fill: Color
     var body: some View {
         if let ghost = flight.ghost, fieldIsEmpty {
-            IMSendGhost(text: ghost, key: flight.ghostKey, namespace: flight.namespace)
+            IMSendGhost(text: ghost, key: flight.ghostKey, namespace: flight.namespace, fill: fill)
         } else if showsReceipt, fieldIsEmpty {
-            // Server receipt, not a read receipt. Same words and identifier as the former status row.
-            Text("message.send.accepted").cyText(.bodyCompact).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.vertical, 11).padding(.leading, 16).padding(.trailing, 4)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(fill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                .allowsHitTesting(false)
-                .accessibilityIdentifier("message.send.receipt")
-                .transition(arrival)
+            MessageComposerReceipt(fill: fill)
         }
     }
-    /// End-only content: fades in from the middle of the bubble's move; leaves at once when typing starts.
-    private var arrival: AnyTransition {
-        .asymmetric(
-            insertion: AnyTransition.opacity.animation(.easeOut(duration: CYMotion.Duration.quick).delay(CYMotion.Duration.standard * 0.5)),
-            removal: AnyTransition.opacity.animation(.easeOut(duration: CYMotion.Duration.instant)))
+}
+
+/// Server receipt, not a read receipt. Same words and identifier as the former status row. Its ground is opaque from
+/// the first frame (the field's placeholder never shows through); only the words fade in, from the middle of the
+/// bubble's move (end-only content). It leaves at once when typing starts.
+private struct MessageComposerReceipt: View {
+    let fill: Color
+    @State private var wordsIn = false
+    var body: some View {
+        Text("message.send.accepted").cyText(.bodyCompact).foregroundStyle(.secondary)
+            .opacity(wordsIn ? 1 : 0)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 11).padding(.leading, 16).padding(.trailing, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(fill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .allowsHitTesting(false)
+            .accessibilityIdentifier("message.send.receipt")
+            .transition(.asymmetric(insertion: .identity,
+                                    removal: AnyTransition.opacity.animation(.easeOut(duration: CYMotion.Duration.instant))))
+            .onAppear {
+                withAnimation(.easeOut(duration: CYMotion.Duration.quick).delay(CYMotion.Duration.standard * 0.5)) { wordsIn = true }
+            }
     }
 }

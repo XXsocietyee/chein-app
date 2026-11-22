@@ -282,6 +282,9 @@ struct IMSendGhost: View {
     let text: String
     let key: Int
     let namespace: Namespace.ID?
+    /// The field's own ground, so the field's placeholder never shows through the ghost (integ: the two texts
+    /// overlapped while sending). Applied after the matched position, so it stays in the field while the text flies.
+    var fill: Color = .clear
     var body: some View {
         Text(verbatim: text)
             .lineLimit(1...5)
@@ -289,6 +292,7 @@ struct IMSendGhost: View {
             .padding(.vertical, 11).padding(.leading, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .imSendFlight(key, in: namespace)
+            .background(fill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
             .allowsHitTesting(false)
             .accessibilityHidden(true)
             .transition(leaving)
