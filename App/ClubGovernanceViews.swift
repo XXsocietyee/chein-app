@@ -222,12 +222,6 @@ struct ClubGovernanceReadView: View {
     @State private var page = 1
     @State private var editor: ClubGovernanceFormRoute?
     private var title: LocalizedStringKey { LocalizedStringKey("club.gov." + operation.rawValue) }
-    /// Host apply is the one filled action on that screen, so refresh stays secondary there.
-    private var showsHostApply: Bool {
-        guard operation == .hostStatus, let snapshot, snapshotContext == readContext, identity == access.identity else { return false }
-        let role = snapshot.value["accountRole"]
-        return role != .string("merchant") && role != .string("club")
-    }
     // Split into stages so the type checker handles the long modifier chain;
     // the modifiers apply in exactly the same order as one chain.
 
@@ -669,9 +663,10 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-            if !loading {
-                Button("club.gov.refresh") { Task { await load() } }
-                    .buttonStyle(CYPillButtonStyle(style: showsHostApply ? .secondary : .primary, fullWidth: true))
+            // X2 (parity r1): pull-to-refresh already reloads; a button is offered only to retry a failed read.
+            if !loading, failure != nil, failure != .forbidden {
+                Button("action.retry") { Task { await load() } }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
                     .accessibilityIdentifier("club.gov.refresh")
             }
         }
