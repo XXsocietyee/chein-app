@@ -28,7 +28,7 @@ import SwiftUI
     @State private var toastMessage: LocalizedStringKey?
     var body: some View {
         List {
-            Section { CYHeroHeader("templateAuthor.mine") }.e1HeroRow()
+            // PLY-26-3: the title is the bar's inline title. X12: no 刷新 pill next to pull-to-refresh.
             Section {
                 readStateCopy
                 TextField("templateAuthor.shelf.keyword", text: $keyword)
@@ -43,8 +43,6 @@ import SwiftUI
                         Task { await refreshClearedKeyword(stamp: stamp, refreshUnfiltered: true) }
                     }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.clearSearch").e1ActionRow()
                 }
-                CYPillButton("templateAuthor.shelf.refresh", style: .secondary, systemImage: "arrow.clockwise") { Task { await refresh() } }
-                    .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.refresh").e1ActionRow()
             }
             ForEach(appliedKeyword == keyword ? rows : []) { row in
                 Section {
@@ -54,7 +52,7 @@ import SwiftUI
                             HStack {
                                 Text(verbatim: row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                                 Spacer()
-                                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                                Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary)
                             }
                         }
                         .accessibilityLabel(Text(verbatim: row.title))
@@ -85,15 +83,15 @@ import SwiftUI
                             .accessibilityIdentifier("templateShelfState.feedback.\(row.id)")
                     }
                     TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)
-                    LabeledContent("templateAuthor.shelf.libraryTitle") {
-                        Text(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.inLibrary" : "templateAuthor.shelf.outLibrary"))
-                            .accessibilityIdentifier("templateAuthor.shelf.libraryState.\(row.id)")
+                    // PLY-26-1: the marketplace action comes from the mini-program marketView over the server's
+                    // review and square columns, never from the personal publishStatus.
+                    if let market = TemplateOwnShelfMarketPlan(state).action {
+                        Button(LocalizedStringKey(market.labelKey)) {
+                            prepare(row.id, market.shelfAction, marketStatusTarget: market.statusTarget)
+                        }.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateOwnShelf.market.\(row.id)")
+                            .disabled(readSnapshot)
                     }
-                    Button(LocalizedStringKey(row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary")) {
-                        prepare(row.id, .libraryStatus)
-                    }.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.library.\(row.id)")
-                        .disabled(readSnapshot)
-                    Button(role: .destructive) { prepare(row.id, .remove) } label: { Text("templateAuthor.shelf.delete").foregroundStyle(.red) }
+                    Button(role: .destructive) { prepare(row.id, .remove) } label: { Text("templateAuthor.shelf.delete") }
                         .disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
                         .disabled(readSnapshot)
                 }
@@ -103,7 +101,8 @@ import SwiftUI
                 Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus")
             }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(.player).cyHeroScreen()
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyDomainScreen(.player)
+            .cyPushedChrome(domain: .player).cyPageTitle("templateAuthor.mine")
             .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in
@@ -143,26 +142,35 @@ import SwiftUI
                                     .cyText(.sectionTitle)
                                     .accessibilityIdentifier("templateOwnShelf.delete.title")
                                 Text("templateOwnShelf.delete.irreversible")
+                            } else if let question = Self.marketQuestion(value) {
+                                question
+                                    .cyText(.cardTitle)
+                                    .accessibilityIdentifier("templateAuthor.shelf.question")
                             } else if value.desiredPublishStatus == 1 {
                                 Text("templateAuthor.shelf.addQuestion \(value.title)")
-                                    .font(.headline)
+                                    .cyText(.cardTitle)
                                     .accessibilityIdentifier("templateAuthor.shelf.question")
                             } else {
                                 Text("templateAuthor.shelf.removeQuestion \(value.title)")
-                                    .font(.headline)
+                                    .cyText(.cardTitle)
                                     .accessibilityIdentifier("templateAuthor.shelf.question")
                             }
                         }
                         if coordinator.canSimulate { Text("templateAuthor.fixtureNotice") }
                         if coordinator.canSubmit {
                             Section {
-                                Button(LocalizedStringKey(coordinator.canSimulate ? "templateAuthor.confirmSimulation" : value.action == .remove ? "templateOwnShelf.delete.confirm" : value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addConfirm" : "templateAuthor.shelf.removeConfirm"), role: value.action == .remove ? .destructive : nil) {
+                                Button(LocalizedStringKey(coordinator.canSimulate ? "templateAuthor.confirmSimulation" : value.action == .remove ? "templateOwnShelf.delete.confirm" : Self.marketActionLabel(value) ?? (value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addConfirm" : "templateAuthor.shelf.removeConfirm")), role: value.action == .remove || value.marketStatusTarget == 3 ? .destructive : nil) {
                                     busy = true; locked = true
                                     Task {
                                         let stamp = viewRequest
                                         await coordinator.confirmShelf(value)
                                         guard stamp == viewRequest, !Task.isCancelled else { return }
-                                        toastMessage = value.action == .remove ? "templateOwnShelf.delete.confirm" : (value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addConfirm" : "templateAuthor.shelf.removeConfirm")
+                                        if let done = Self.marketKey(value, "done") {
+                                            // Mini-program toast says what happened and how to undo it; only after a verified write.
+                                            if coordinator.shelfMessageKey == "templateAuthor.shelf.verified" { toastMessage = LocalizedStringKey(done) }
+                                        } else {
+                                            toastMessage = value.action == .remove ? "templateOwnShelf.delete.confirm" : (value.desiredPublishStatus == 1 ? "templateAuthor.shelf.addConfirm" : "templateAuthor.shelf.removeConfirm")
+                                        }
                                         review = nil
                                         await coordinator.shelfReader.refresh(keyword: keyword)
                                         guard stamp == viewRequest, !Task.isCancelled else { return }
@@ -190,6 +198,31 @@ import SwiftUI
                 .cyDomainSheet(detents: [.half, .full])
             }
             .cyToast(message: $toastMessage, tone: .success)
+    }
+    /// Marketplace review wording (mini-program `tplSubmitMarket` / `tplToggle`); nil for library and delete reviews.
+    private static func marketSuffix(_ value: TemplateOwnShelfReview) -> String? {
+        switch (value.action, value.marketStatusTarget) {
+        case (.marketSubmit, _): return "submit"
+        case (.marketStatus, 2?): return "withdraw"
+        case (.marketStatus, 3?): return "delist"
+        case (.marketStatus, 1?): return "list"
+        default: return nil
+        }
+    }
+    private static func marketKey(_ value: TemplateOwnShelfReview, _ kind: String) -> String? {
+        marketSuffix(value).map { "templateOwnShelf.market.\(kind).\($0)" }
+    }
+    private static func marketActionLabel(_ value: TemplateOwnShelfReview) -> String? {
+        marketSuffix(value).map { "templateOwnShelf.market.\($0)" }
+    }
+    private static func marketQuestion(_ value: TemplateOwnShelfReview) -> Text? {
+        switch marketSuffix(value) {
+        case "submit"?: return Text("templateOwnShelf.market.question.submit \(value.title)")
+        case "withdraw"?: return Text("templateOwnShelf.market.question.withdraw \(value.title)")
+        case "delist"?: return Text("templateOwnShelf.market.question.delist \(value.title)")
+        case "list"?: return Text("templateOwnShelf.market.question.list \(value.title)")
+        default: return nil
+        }
     }
     private static func replacesReadKey(_ key: String) -> Bool {
         key == "templateAuthor.signIn" || key == "templateAuthor.listUnavailable" || key == "templateAuthor.shelf.empty" || key == "templateAuthor.shelf.moreFailed" || key == "templateOwnShelf.read.denied"
@@ -229,9 +262,9 @@ import SwiftUI
         readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot
         readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
-    private func prepare(_ id: Int, _ action: TemplateOwnShelfAction) {
+    private func prepare(_ id: Int, _ action: TemplateOwnShelfAction, marketStatusTarget: Int? = nil) {
         guard !busy, appliedKeyword == keyword, !coordinator.shelfReader.isShowingRefreshSnapshot else { return }
-        coordinator.prepareShelf(templateID: id, action: action); review = coordinator.shelfReview; sync()
+        coordinator.prepareShelf(templateID: id, action: action, marketStatusTarget: marketStatusTarget); review = coordinator.shelfReview; sync()
     }
     private func loadMore() async {
         guard !busy, appliedKeyword == keyword else { return }

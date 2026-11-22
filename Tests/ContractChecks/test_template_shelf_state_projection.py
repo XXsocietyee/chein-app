@@ -160,10 +160,14 @@ class TemplateShelfStateProjectionContracts(unittest.TestCase):
             text = read(path)
             self.assertNotIn('TemplateOwnShelfStateProjection', text)
             self.assertNotIn('rowStates', text)
-            self.assertNotIn('/market-submit', text)
+            # PLY-26-1: only the contract names 提交广场审核; the writer and journal see a built descriptor.
+            if not path.endswith('TemplateAuthoringContract.swift'):
+                self.assertNotIn('/market-submit', text)
         core = read(CORE)
         pending = core.split('/// Display-only projection')[0]
-        self.assertNotIn('marketStatus', pending)
+        # The write carries an explicit status target chosen by the view, never the projection itself.
+        self.assertNotIn('TemplateOwnShelfStateProjection', pending)
+        self.assertNotIn('marketStatus ==', pending)
         self.assertIn('guard acknowledged else { return false }', pending)
         self.assertIn('rows.count < 100 && matches.isEmpty', pending)
         self.assertIn('"pageNum": "1", "pageSize": "100"', read('Core/TemplateAuthoringContract.swift'))

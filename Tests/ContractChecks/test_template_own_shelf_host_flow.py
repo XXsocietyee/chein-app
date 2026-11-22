@@ -32,12 +32,12 @@ class TemplateOwnShelfHostFlow(unittest.TestCase):
         self.assertNotIn('MERCHANT', self.shelf)
 
     def test_personal_library_stays_separate_from_the_undispatchable_plan(self):
-        self.assertIn('public var isDispatchable: Bool { false }', self.plan)
-        self.assertIn('row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary"', self.view)
-        self.assertIn('templateAuthor.shelf.inLibrary', self.view)
-        self.assertIn('templateAuthor.shelf.outLibrary', self.view)
-        # The card no longer renders the (never dispatchable) marketplace plan at all: no dead action or caption.
-        self.assertIn('`isDispatchable` stays false', self.card)
+        # PLY-26-1: the square action follows the mini-program plan, not the personal publishStatus.
+        self.assertIn('public var isDispatchable: Bool { action != nil }', self.plan)
+        self.assertNotIn('row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary"', self.view)
+        self.assertIn('prepare(row.id, market.shelfAction, marketStatusTarget: market.statusTarget)', self.view)
+        # The card renders facts only; the host row owns the plan's action.
+        self.assertIn('the host row owns the action', self.card)
         self.assertNotIn('plan.', self.card.split('var body: some View', 1)[1])
         self.assertNotIn('Button', self.card)
         self.assertNotIn('confirmShelf', self.card)

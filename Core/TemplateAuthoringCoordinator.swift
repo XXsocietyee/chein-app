@@ -275,13 +275,13 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
     private func validateShelfRows(_ values: [DiscoveryPlayTemplate]) throws {
         guard values.count <= 100, values.allSatisfy({ $0.id > 0 }), Set(values.map(\.id)).count == values.count else { throw TemplateAuthoringError.invalidContract }
     }
-    public func prepareShelf(templateID: Int, action: TemplateOwnShelfAction) {
+    public func prepareShelf(templateID: Int, action: TemplateOwnShelfAction, marketStatusTarget: Int? = nil) {
         synchronizeSession(); guard let session = captured, !shelfLocked,
             let row = rows.first(where: { $0.id == templateID }) else { return }
         do {
             shelfPending = try store.shelfPending(session: session)
             guard shelfPending == nil else { shelfMessageKey = "templateAuthor.shelf.unknown"; return }
-            shelfReview = try .init(row: row, action: action, session: session, generation: shelfGeneration)
+            shelfReview = try .init(row: row, action: action, session: session, generation: shelfGeneration, marketStatusTarget: marketStatusTarget)
         } catch { shelfBlocked = true; shelfMessageKey = "templateAuthor.storageFailed" }
     }
     public func cancelShelfReview() { shelfReview = nil }

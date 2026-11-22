@@ -89,8 +89,23 @@ final class TemplateAuthoringTests: XCTestCase {
     }
     func testLibraryToggleUsesTemplateIDAndInvertsKnownOneOnly() throws {
         let id = try XCTUnwrap(AuthoringPlayTemplateID(rawValue: 42))
-        XCTAssertEqual(TemplateAuthoringContract.libraryStatus(id: id, current: 1).body, .form(["template_id": "42", "publish_status": "0"]))
-        XCTAssertEqual(TemplateAuthoringContract.libraryStatus(id: id, current: nil).body, .form(["template_id": "42", "publish_status": "1"]))
+        // Backend reads `status` (1 上架, 2 撤回, 3 下架), never `publish_status`.
+        XCTAssertEqual(TemplateAuthoringContract.libraryStatus(id: id, current: 1).body, .form(["template_id": "42", "status": "3"]))
+        XCTAssertEqual(TemplateAuthoringContract.libraryStatus(id: id, current: nil).body, .form(["template_id": "42", "status": "1"]))
+    }
+    func testMarketplaceWritesFollowTheMiniProgramPlan() throws {
+        let id = try XCTUnwrap(AuthoringPlayTemplateID(rawValue: 42))
+        XCTAssertEqual(TemplateAuthoringContract.marketSubmit(id: id), .init(path: "/api/template/42/market-submit", body: .form([:]), mutates: true))
+        XCTAssertTrue(TemplateAuthoringContract.isMarketSubmitPath("/api/template/42/market-submit"))
+        XCTAssertFalse(TemplateAuthoringContract.isMarketSubmitPath("/api/template/0/market-submit"))
+        for target in [1, 2, 3] {
+            XCTAssertEqual(TemplateAuthoringContract.marketStatus(id: id, target: target)?.body, .form(["template_id": "42", "status": String(target)]))
+        }
+        XCTAssertNil(TemplateAuthoringContract.marketStatus(id: id, target: 0))
+        XCTAssertEqual(TemplateOwnShelfMarketPlan.Action.withdrawReview.statusTarget, 2)
+        XCTAssertEqual(TemplateOwnShelfMarketPlan.Action.delist.statusTarget, 3)
+        XCTAssertEqual(TemplateOwnShelfMarketPlan.Action.list.statusTarget, 1)
+        XCTAssertEqual(TemplateOwnShelfMarketPlan.Action.submitReview.shelfAction, .marketSubmit)
     }
     func testDeleteDoesNotUseTopicOrActivityID() throws {
         XCTAssertEqual(TemplateAuthoringContract.remove(id: try XCTUnwrap(.init(rawValue: 7))).body, .form(["template_id": "7"]))

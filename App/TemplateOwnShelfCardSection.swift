@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Card facts and the marketplace plan, mounted on the own shelf.
-/// The plan is review copy only: `isDispatchable` stays false, so this view
-/// has no button and builds no market request. A preview is not a publish.
+/// Card facts, mounted on the own shelf. The marketplace plan's one action is a row button on
+/// `TemplateAuthoringMineView`: the host row owns the action, so this view
+/// has no button and builds no market request.
 struct TemplateOwnShelfCardSection: View {
     let facts: TemplateOwnShelfCardFacts?
     let state: TemplateOwnShelfStateProjection
@@ -14,7 +14,7 @@ struct TemplateOwnShelfCardSection: View {
         if let facts {
             TemplateOwnShelfCardFactLines(facts: facts, zh: zh, rowID: rowID)
         }
-        // The marketplace plan is never dispatchable here, so it isn't shown: no dead action, no "preview only" caption.
+        // The marketplace plan is never dispatchable here: the host row shows its one action, so this card adds none.
     }
 }
 

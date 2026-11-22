@@ -14,8 +14,23 @@ public enum TemplateAuthoringContract {
     public static func listMine() -> TemplateAuthoringRequest {
         .init(path: "/api/template/my-list", body: .form(["is_quote": "", "keyword": "", "category_id": "", "pageNum": "1", "pageSize": "100"]), mutates: false)
     }
+    /// Backend `ApiTemplateController#updateLibraryStatus` reads `status` (1 上架, 2 撤回待审, 3 下架); a
+    /// `publish_status` field is ignored and the call fails with 发布状态参数错误 (PLY-26-1).
     public static func libraryStatus(id: AuthoringPlayTemplateID, current: Int?) -> TemplateAuthoringRequest {
-        .init(path: "/api/template/updateLibraryStatus", body: .form(["template_id": String(id.rawValue), "publish_status": current == 1 ? "0" : "1"]), mutates: true)
+        marketStatus(id: id, target: current == 1 ? 3 : 1)!
+    }
+    /// Mini-program `utils/template-market.js` `_marketStatusTarget`: 1 上架广场, 2 撤回广场审核, 3 从广场下架.
+    public static func marketStatus(id: AuthoringPlayTemplateID, target: Int) -> TemplateAuthoringRequest? {
+        guard [1, 2, 3].contains(target) else { return nil }
+        return .init(path: "/api/template/updateLibraryStatus", body: .form(["template_id": String(id.rawValue), "status": String(target)]), mutates: true)
+    }
+    /// 提交广场审核: `POST /api/template/{memberTemplateId}/market-submit` (`@RequestParam scope` optional, omitted for a player).
+    public static func marketSubmit(id: AuthoringPlayTemplateID) -> TemplateAuthoringRequest {
+        .init(path: "/api/template/\(id.rawValue)/market-submit", body: .form([:]), mutates: true)
+    }
+    /// Exact `/api/template/{positive id}/market-submit` shape, as `marketSubmit(id:)` builds it.
+    public static func isMarketSubmitPath(_ path: String) -> Bool {
+        path.range(of: "^/api/template/[1-9][0-9]{0,17}/market-submit$", options: .regularExpression) != nil
     }
     public static func remove(id: AuthoringPlayTemplateID) -> TemplateAuthoringRequest {
         .init(path: "/api/template/delete", body: .form(["template_id": String(id.rawValue)]), mutates: true)

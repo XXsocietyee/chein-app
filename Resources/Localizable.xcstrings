@@ -279695,6 +279695,159 @@
           }
         }
       }
+    },
+    "templateOwnShelf.market.question.submit %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交「%@」到模板广场审核？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit “%@” for square review?"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.question.withdraw %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回「%@」的广场审核？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw “%@” from square review?"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.question.delist %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下架后，其他人不能再从广场选用「%@」。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once delisted, others can't pick “%@” from the square."
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.question.list %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把「%@」重新上架到模板广场？"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "List “%@” on the template square again?"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.done.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已提交广场审核"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submitted for square review"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.done.withdraw": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已撤回广场审核，可重新提交"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review withdrawn; you can submit again"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.done.delist": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已从广场下架，可随时重新上架"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delisted; you can list it again anytime"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.market.done.list": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已上架广场"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listed on the square"
+          }
+        }
+      }
+    },
+    "templateOwnShelf.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多操作"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More actions"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

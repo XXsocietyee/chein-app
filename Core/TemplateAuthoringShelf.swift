@@ -1,21 +1,35 @@
 import Foundation
 
-public enum TemplateOwnShelfAction: String, Codable { case libraryStatus, remove }
+/// `marketSubmit` / `marketStatus` follow the mini-program marketplace plan (`utils/template-market.js`), not the
+/// personal `publishStatus` (PLY-26-1). `libraryStatus` is kept for stored pending writes.
+public enum TemplateOwnShelfAction: String, Codable { case libraryStatus, remove, marketSubmit, marketStatus }
 public struct TemplateOwnShelfReview: Equatable, Identifiable {
     public let id: UUID
     public let templateID: AuthoringPlayTemplateID
     public let title: String
     public let action: TemplateOwnShelfAction
     public let desiredPublishStatus: Int?
+    /// Library-status target for `.marketStatus`: 1 上架广场, 2 撤回广场审核, 3 从广场下架.
+    public let marketStatusTarget: Int?
     public let request: TemplateAuthoringRequest
     let session: TemplateAuthoringSession
     let baseline: DiscoveryPlayTemplate
     let generation: Int
-    init(row: DiscoveryPlayTemplate, action: TemplateOwnShelfAction, session: TemplateAuthoringSession, generation: Int) throws {
+    init(row: DiscoveryPlayTemplate, action: TemplateOwnShelfAction, session: TemplateAuthoringSession, generation: Int,
+         marketStatusTarget: Int? = nil) throws {
         guard let identity = AuthoringPlayTemplateID(rawValue: row.id) else { throw TemplateAuthoringError.invalidContract }
         id = UUID(); templateID = identity; title = row.title; self.action = action
         desiredPublishStatus = action == .libraryStatus ? (row.publishStatus == 1 ? 0 : 1) : nil
-        request = action == .remove ? TemplateAuthoringContract.remove(id: identity) : TemplateAuthoringContract.libraryStatus(id: identity, current: row.publishStatus)
+        self.marketStatusTarget = action == .marketStatus ? marketStatusTarget : nil
+        switch action {
+        case .remove: request = TemplateAuthoringContract.remove(id: identity)
+        case .libraryStatus: request = TemplateAuthoringContract.libraryStatus(id: identity, current: row.publishStatus)
+        case .marketSubmit: request = TemplateAuthoringContract.marketSubmit(id: identity)
+        case .marketStatus:
+            guard let target = marketStatusTarget,
+                  let built = TemplateAuthoringContract.marketStatus(id: identity, target: target) else { throw TemplateAuthoringError.invalidContract }
+            request = built
+        }
         self.session = session; baseline = row; self.generation = generation
     }
 }
@@ -41,6 +55,8 @@ public struct TemplateOwnShelfPending: Codable, Equatable {
         switch action {
         case .libraryStatus: return matches.count == 1 && matches[0].publishStatus == desiredPublishStatus
         case .remove: return rows.count < 100 && matches.isEmpty
+        // The marketplace columns are not on the shared DTO; an acknowledged write whose row is still listed is settled.
+        case .marketSubmit, .marketStatus: return matches.count == 1
         }
     }
 }
@@ -83,15 +99,20 @@ public struct TemplateOwnShelfStateProjection: Decodable, Equatable {
         else if draft == 1, status == 2 || check == 2 { personal = .rejected }
         else if draft == 1, status == 0 || check == 0 { personal = .reviewing }
         else { personal = .unknown }
-        let marketStatus = Self.code(values, .marketStatus)
+        // Mini-program marketView: 0 审核中, 1 已上架, 2 需重新提交, 3 已下架. An older row that still says
+        // status 1 with `marketPublishStatus` 0 is also off the square.
+        let rawMarketStatus = try? values.decode(Int64.self, forKey: .marketStatus)
+        let textMarketStatus = try? values.decode(String.self, forKey: .marketStatus)
+        let marketStatus = Self.code(values, .marketStatus) ?? ((rawMarketStatus == 3 || textMarketStatus == "3") ? 3 : nil)
         let marketPublishStatus = Self.code(values, .marketPublishStatus)
         switch Self.marketIdentity(values) {
         case .absent: market = .notSubmitted
         case .unknown: market = .unknown
         case .present:
             if marketStatus == 0 { market = .reviewing }
-            else if marketStatus == 1, marketPublishStatus == 1 { market = .listed }
             else if marketStatus == 1, marketPublishStatus == 0 { market = .unlisted }
+            else if marketStatus == 1 { market = .listed }
+            else if marketStatus == 3 { market = .unlisted }
             else if marketStatus == 2 { market = .rejected }
             else { market = .unknown }
         }

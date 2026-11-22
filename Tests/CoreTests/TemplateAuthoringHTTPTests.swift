@@ -74,8 +74,17 @@ import FoundationNetworking
         XCTAssertNil(c.shelfPending); XCTAssertEqual(c.shelfMessageKey, "templateAuthor.shelf.verified")
         XCTAssertEqual(http.requests.map { $0.url!.path }, ["/api/template/my-list", "/api/template/my-list", "/api/template/updateLibraryStatus", "/api/template/my-list"])
         let body = String(decoding: try XCTUnwrap(http.requests[2].httpBody), as: UTF8.self)
-        XCTAssertTrue(body.contains("name=\"template_id\"\r\n\r\n42\r\n")); XCTAssertTrue(body.contains("name=\"publish_status\"\r\n\r\n1\r\n")); XCTAssertFalse(body.contains("name=\"id\""))
+        XCTAssertTrue(body.contains("name=\"template_id\"\r\n\r\n42\r\n")); XCTAssertTrue(body.contains("name=\"status\"\r\n\r\n1\r\n")); XCTAssertFalse(body.contains("name=\"id\""))
         await c.confirmShelf(review); XCTAssertEqual(http.requests.count, 4)
+    }
+    func testMarketSubmitPostsToTheTemplatePathAndSettlesOnReadback() async throws {
+        let http = HTTP(); http.replies = [response(shelf()), response(shelf()), response(okay), response(shelf())]
+        let c = try coordinator(http, credentials: Credentials(try session())); await c.loadMine()
+        c.prepareShelf(templateID: 42, action: .marketSubmit)
+        await c.confirmShelf(try XCTUnwrap(c.shelfReview))
+        XCTAssertNil(c.shelfPending); XCTAssertEqual(c.shelfMessageKey, "templateAuthor.shelf.verified")
+        XCTAssertEqual(http.requests[2].url!.path, "/api/template/42/market-submit")
+        c.prepareShelf(templateID: 42, action: .marketStatus); XCTAssertNil(c.shelfReview)
     }
     func testDeleteReviewUsesImmutableIDAndReadback() async throws {
         let http = HTTP(); http.replies = [response(shelf()), response(shelf()), response(okay), response(#"{"code":200,"data":[]}"#)]
