@@ -183083,13 +183083,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your first stamp is waiting"
+            "value": "No stamps yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "第一枚章在等你"
+            "value": "还没有邮票"
           }
         }
       }

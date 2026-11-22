@@ -204,9 +204,7 @@ struct RoamAnniversaryReadIntent {
     var body: some View {
         let retry = readIntent(state.retryIntent), more = readIntent(.more), refresh = readIntent(.refresh)
         List {
-            CYCoverHeaderSection("roam.tools.anniversary", symbol: "party.popper.fill", seed: "anniv")
-                .overlay { CYConfettiBurst(fireOnAppear: true, pieces: 36).frame(height: 220).allowsHitTesting(false) }
-                .sensoryFeedback(.success, trigger: isVisible) { _, new in new }
+            // TANNIV-1: no second 那年今日 under the bar title (the cover header drew the page-type title again).
             Section {
                 HStack(alignment: .firstTextBaseline) {
                     Text(verbatim: dateLabel).cyText(.pageTitle).monospacedDigit()
@@ -634,7 +632,7 @@ struct RoamAnniversaryReadIntent {
     var body: some View {
         List {
             if lifetime.canPresent(reader) {
-            CYCoverHeaderSection("roam.tools.recap", symbol: "chart.bar.fill", seed: "recap")
+            // TRECAP-1: the bar already says 月度回顾; no cover header repeating it.
             Section {
                 HStack {
                     Button { lifetime.run(reader) { await $0.shiftMonth(by: -1) } } label: { Image(systemName: "chevron.left") }
