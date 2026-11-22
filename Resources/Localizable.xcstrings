@@ -278696,7 +278696,7 @@
         }
       }
     },
-    "club.phoneCall.label": {
+    "club.phoneCall.label %@": {
       "extractionState": "manual",
       "localizations": {
         "en": {
