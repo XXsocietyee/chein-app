@@ -5,7 +5,7 @@
   "Theme.Font": 63,
   "raw size": 67,
   "back chevron": 15,
-  "hidden back": 15,
+  "hidden back": 14,
   "large title": 26
  },
  "files": {
@@ -619,8 +619,7 @@
    "raw text style": 1
   },
   "App/MerchantContentEditor.swift": {
-   "raw text style": 12,
-   "hidden back": 1
+   "raw text style": 12
   },
   "App/MerchantContentViews.swift": {
    "raw text style": 17

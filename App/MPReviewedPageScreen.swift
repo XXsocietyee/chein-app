@@ -69,7 +69,9 @@ import SwiftUI
                                       onClose: { session.dismissNativeEntry() }, onLogin: signIn)
         case "pages/activity/official-detail/index":
             if let id = reviewedID(query) {
-                OfficialEventDetailView(id: id, reader: session.officialEventReader, actions: session.officialActionCoordinator)
+                // PC-C-4-5: guests get a working 登录; THEME missions open their topic (same wiring as 首页).
+                OfficialEventDetailView(id: id, reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn,
+                                        topicLinks: OfficialTopicLinks(reader: session.topicReader, destination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }))
             } else { unavailable }
         case "pages/activity/official-inbox/index":
             OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator)

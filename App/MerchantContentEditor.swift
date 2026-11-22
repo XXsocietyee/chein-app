@@ -129,8 +129,8 @@ import SwiftUI
         .onChange(of: service.scope) { _, _ in addressChoice.invalidate() }
         .appNavigationTitle(key: "merchant.content." + query.key)
         .task(id: service.scope) { addressGeneration = UUID(); addressConfirmation = nil; placementTemplateReturnReadback = false; placementTemplateProtectedReadback = nil; text = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false; addressGeneration = UUID(); await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
-        .navigationBarBackButtonHidden(dirty)
-        .toolbar { if dirty { ToolbarItem(placement: .topBarLeading) { Button("action.cancel") { discard = true }.accessibilityIdentifier("merchant.content.close") } } }
+        // type-and-chrome §3: one exit guard — system back while clean; the same-looking guarded back asks first while dirty.
+        .cyGuardedBack(when: dirty) { discard = true }
         .interactiveDismissDisabled(dirty || c.busy)
         .cyModalConfirm(
             isPresented: $discard,
