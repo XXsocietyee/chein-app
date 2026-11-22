@@ -135,7 +135,16 @@ import SwiftUI
         case "subpackageMember/order/order":
             SessionOwnedOrdersView(session: session)
         case "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo", "subpackageMember/signupInfo2/signupInfo2":
-            TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator)
+            // One shared wallet host: 开始游戏, pending orders, sign-in; `focusId` lands on that registration.
+            SessionTicketWalletHost(isPushed: true, focusTopicID: reviewedID(query, key: "topicId"),
+                                    focusRegistrationID: reviewedID(query, key: "focusId"))
+                .environmentObject(session)
+        case "subpackageMember/mycanyuinfo/mycanyuinfo":
+            if let id = reviewedID(query) { SessionParticipationDetailHost(id: id).environmentObject(session) } else { unavailable }
+        case "subpackageMember/character/index":
+            if let id = reviewedID(query, key: "topicId") {
+                PlayerJourneyRouteDestination(route: .characterCard(topicID: id, activityID: nil)).environmentObject(session)
+            } else { unavailable }
         case "subpackageMember/mycanyu/mycanyu":
             SessionPlayerJourneyView(destination: .participations).environmentObject(session)
         case "subpackageMember/myinvite/myinvite":
