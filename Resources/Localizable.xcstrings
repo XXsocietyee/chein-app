@@ -279426,6 +279426,74 @@
           }
         }
       }
+    },
+    "roam.shareLink.send": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send footprint link"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送足迹链接"
+          }
+        }
+      }
+    },
+    "roam.shareLink.ready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Friends who open the link see this walk (coarse, no exact start or end)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "朋友点开链接直接看这条足迹（位置已模糊，不含起终点）。"
+          }
+        }
+      }
+    },
+    "roam.shareLink.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The footprint link wasn’t created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "足迹链接没生成"
+          }
+        }
+      }
+    },
+    "roam.shareLink.publishing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creating the footprint link…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在生成足迹链接"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

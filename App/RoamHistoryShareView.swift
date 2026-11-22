@@ -52,7 +52,7 @@ import UIKit
                     actionsSection
                         .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: machine.state)
                 }
-                RoamShareLinkDormantNotice()
+                RoamShareLinkRow(record: record, includeRoute: includeRoute, routeName: record.meaningfulZone)
                 RoamShareRevokeEntry()
             }.padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xxxl)
         }
