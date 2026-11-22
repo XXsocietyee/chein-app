@@ -78,7 +78,7 @@ import SwiftUI
                 NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { CYListRow("roam.experience.tileMemory", trailing: .none) { CYRowIcon(systemImage: "map") } }
                     .accessibilityIdentifier("roam.experience.tiles.open")
                 NavigationLink {
-                    if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
+                    if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader, stampDestination: stampDestination).id(albumMetadataReader.scope) }
                     else { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
                 } label: { CYListRow("roam.experience.album", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") } }
                     .accessibilityIdentifier("roam.experience.album.open")

@@ -569,7 +569,7 @@ struct RoamToolUnavailableView: View {
         }
     }
     private var albumStampDestination: (() -> AnyView)? {
-        if let albumMetadataReader { return { AnyView(RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope)) } }
+        if let albumMetadataReader { return { AnyView(RoamAlbumMetadataDestination(reader: albumMetadataReader, stampDestination: stampDestination).id(albumMetadataReader.scope)) } }
         if let reader { return { AnyView(RoamStampAlbumView(reader: reader, stampDestination: stampDestination)) } }
         return nil
     }

@@ -19,7 +19,9 @@ import UIKit
         self.reader = reader
     }
     var canShowAlbum: Bool { readOnlyScope?.matches(reader) ?? true }
-    var allowsCapture: Bool { readOnlyScope == nil && !roamStampIsMetadataOnly(reader) }
+    /// SALBUM-1: a metadata-scope album still offers the camera when the host passes its session camera destination
+    /// (the camera itself stays behind `stampCameraEnabled`); remote images keep the read-only scope's policy.
+    var allowsCapture: Bool { (readOnlyScope == nil && !roamStampIsMetadataOnly(reader)) || (readOnlyScope != nil && stampDestination != nil) }
     var allowsRemoteImages: Bool { readOnlyScope?.allowsRemoteImages ?? !roamStampIsMetadataOnly(reader) }
     @ViewBuilder var captureDestination: some View {
         if allowsCapture {
@@ -593,17 +595,18 @@ private struct RoamStampReadOnlyUnavailable: View {
 /// Stable whole-page read scope. Only metadata is loaded; remote pictures and capture stay absent.
 @MainActor struct RoamAlbumMetadataDestination: View {
     let reader: RoamAlbumMetadataReader
+    var stampDestination: (() -> AnyView)? = nil
     @Environment(\.scenePhase) private var scenePhase
     @State private var scope: RoamStampAlbumReadOnlyScope?
     @StateObject private var pageOwner = RoamAlbumPageOwner()
     @State private var mounted = false
-    init(reader: RoamAlbumMetadataReader, scope: RoamStampAlbumReadOnlyScope? = nil) {
-        self.reader = reader; _scope = State(initialValue: scope)
+    init(reader: RoamAlbumMetadataReader, scope: RoamStampAlbumReadOnlyScope? = nil, stampDestination: (() -> AnyView)? = nil) {
+        self.reader = reader; _scope = State(initialValue: scope); self.stampDestination = stampDestination
     }
     var body: some View {
         Group {
             if let scope {
-                RoamStampAlbumView(reader: reader, readOnlyScope: scope)
+                RoamStampAlbumView(reader: reader, stampDestination: stampDestination, readOnlyScope: scope)
                     .background { RoamAlbumMetadataLifetime(scope: scope).id(scope.id) }
             } else if reader.identity == nil {
                 RoamExperienceIssue(error: APIError.unauthorized)
