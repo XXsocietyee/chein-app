@@ -260,6 +260,7 @@ import SwiftUI
                     .modifier(GlobalSearchProgressFade(progress: search.progress, start: 0, end: travels ? 0.3 : 1))
                 NavigationStack {
                     SessionGlobalSearchView(onSignIn: { search = HomeInPageSearch(returnFocus: search.returnFocus); onSignIn?() })
+                        .environment(\.globalTemplateSearch, .session(session))
                         .toolbar(.hidden, for: .navigationBar)
                         .modifier(HomeSearchClearStackBackground())
                 }

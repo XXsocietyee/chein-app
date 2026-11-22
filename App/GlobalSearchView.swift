@@ -24,6 +24,7 @@ import SwiftUI
     @State private var initialQueryApplied = false
     /// PC-A-4-1: 主题模板 / 玩法模板 results for the same keyword (nil = not searched or not available).
     @State private var templateResults: GlobalTemplateSearchResults?
+    @Environment(\.globalTemplateSearch) private var templateLanes
     @State private var filter = GlobalSearchQuery()
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
@@ -184,6 +185,17 @@ import SwiftUI
             .onDisappear {
                 guard presentationID == filterPresentationID, categoryRecovery.owns(categoryOwner) else { return }
                 filterSheetVisible = false; updateCategoryPresentation()
+            }
+        }
+        // PC-A-4-1: every content search also runs the two template lanes; their failure never fails the page.
+        .onChange(of: loading) { _, isLoading in
+            guard isLoading, let templateLanes else { return }
+            let query = filter, scope = reader.scope
+            templateResults = nil
+            Task { @MainActor in
+                let templates = await templateLanes.search(query)
+                guard isVisible, filter == query, reader.scope == scope else { return }
+                templateResults = templates
             }
         }
         .task(id: readOwner) {
@@ -525,7 +537,7 @@ import SwiftUI
         if selectedKind == nil, let templateResults, !templateResults.rows.isEmpty {
             Section {
                 ForEach(templateResults.rows) { row in
-                    NavigationLink { destination(row.destination) } label: { GlobalTemplateResultRow(row: row) }
+                    NavigationLink { templateLanes?.destination(row) } label: { GlobalTemplateResultRow(row: row) }
                         .disabled(row.previewOnly)
                         .accessibilityIdentifier("searchMap.templateResult.\(row.id)")
                 }
@@ -594,14 +606,6 @@ import SwiftUI
         let captured = resultContext
         let ticket = retainedResults.begin(in: captured)
         phase = .loading
-        templateResults = nil
-        // Templates are a separate lane pair; their failure never fails the content search.
-        let templateScope = reader.scope
-        Task { @MainActor in
-            let templates = try? await reader.templateSearch(query)
-            guard isVisible, filter == query, reader.scope == templateScope else { return }
-            templateResults = templates
-        }
         do {
             let value = try await reader.search(query)
             guard !Task.isCancelled, isVisible, filter == query, retainedResults.accepts(ticket, in: resultContext) else { return }

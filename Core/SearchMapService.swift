@@ -50,32 +50,6 @@ public struct SearchMapService {
             failedKinds: failures.compactMap { $0.1 != nil && $0.1 != .unauthorized ? $0.0 : nil },
             gatedKinds: failures.compactMap { $0.1 == .unauthorized ? $0.0 : nil })
     }
-    /// PC-A-4-1, MP discover-search.js:161-167,200-201: `api/template/topic-template/list {}` filtered on the client by
-    /// name / subtitle (as `matchesTemplateKeyword`), and `api/template/list {keyword}`. A lane failure is reported, not thrown.
-    public func templateSearch(_ query: GlobalSearchQuery, token: String? = nil) async throws -> GlobalTemplateSearchResults {
-        try query.validate(); try validate(token)
-        let keyword = query.keyword.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !keyword.isEmpty else { return GlobalTemplateSearchResults(rows: []) }
-        let discovery = DiscoveryService(configuration: configuration, transport: transport)
-        async let topics = attemptGlobalSearch { try await discovery.topicTemplates(token: token) }
-        async let plays = attemptGlobalSearch { try await discovery.playTemplates(keyword: keyword, token: token) }
-        let (topicResult, playResult) = try await (topics, plays)
-        try Task.checkCancellation()
-        let needle = keyword.lowercased()
-        let topicRows = topicResult.rows.filter { row in
-            [row.name, row.subtitle].contains { $0.lowercased().contains(needle) } && row.matchesCategory(query.categoryID)
-        }.map {
-            GlobalTemplateSearchRow(kind: .topicTemplate, sourceID: $0.id, title: $0.name, detail: $0.subtitle.isEmpty ? nil : $0.subtitle,
-                                    imageURL: $0.imgUrl, previewOnly: $0.previewOnly)
-        }
-        let playRows = playResult.rows.prefix(12).map {
-            GlobalTemplateSearchRow(kind: .playTemplate, sourceID: $0.id, title: $0.title, detail: $0.description, imageURL: $0.imgUrl)
-        }
-        var failed: [GlobalTemplateKind] = []
-        if topicResult.failure != nil { failed.append(.topicTemplate) }
-        if playResult.failure != nil { failed.append(.playTemplate) }
-        return GlobalTemplateSearchResults(rows: Array(topicRows.prefix(12)) + playRows, failedKinds: failed)
-    }
     public func citySearch(_ query: CityNodeSearchQuery, token: String? = nil) async throws -> CityNodeSearchResults {
         try query.filter.validate(); try validate(token)
         guard query.sortType == 1 || query.sortType == 2 else { throw APIError.invalidRequest }

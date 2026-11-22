@@ -14,10 +14,6 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
-    /// PC-B-1-2: 收藏. Nil (guest, no configuration) hides the bookmark.
-    var favorites: TopicFavoriteAccess? = nil
-    @State private var favorited: Bool?
-    @State private var favoriteBusy = false
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
@@ -55,27 +51,6 @@ struct TopicDetailView: View {
     /// The top of the list in the window: tabs that scroll above it pin.
     @State private var pinLine: CGFloat = 0
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
-    /// MP toggleFav: optimistic flip, roll back with a toast when the server does not confirm.
-    private func toggleFavorite(_ topicID: Int) {
-        guard let favorites, let current = favorited, !favoriteBusy else { return }
-        let next = !current
-        favoriteBusy = true
-        withAnimation(CYMotion.release) { favorited = next }
-        Task { @MainActor in
-            let outcome = await favorites.set(topicID, next)
-            favoriteBusy = false
-            switch outcome {
-            case .acknowledged:
-                topicToastMessage = next ? appLocalized("topic.favorite.saved", locale: locale) : appLocalized("topic.favorite.removed", locale: locale)
-            case .rejected(let message):
-                withAnimation(CYMotion.release) { favorited = current }
-                topicToastMessage = message.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("topic.favorite.failed", locale: locale)
-            case .unauthorized, .unknown:
-                withAnimation(CYMotion.release) { favorited = current }
-                topicToastMessage = appLocalized("topic.favorite.networkFailed", locale: locale)
-            }
-        }
-    }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
         Group {
@@ -95,9 +70,7 @@ struct TopicDetailView: View {
         .toolbar {
             if let value = detail {
                 ToolbarItem(placement: .topBarTrailing) {
-                    TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name,
-                                           isFavorited: favorited,
-                                           onToggleFavorite: favorites != nil && favorited != nil ? { toggleFavorite(value.id) } : nil)
+                    TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     UGCSafetyMenuButton(
@@ -114,10 +87,6 @@ struct TopicDetailView: View {
         .environment(\.ugcSafetySubjectID, detail?.id ?? id)
         .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.topic")
         .task(id: key) { await loads.run { await load() } }
-        .task(id: key) {
-            guard let favorites else { favorited = nil; return }
-            favorited = await favorites.load(id)
-        }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }

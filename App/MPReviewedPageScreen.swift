@@ -58,8 +58,7 @@ import SwiftUI
         case "pages/activity/baoming/baoming":
             // PC-C-2 routing: MP baoming is the registration step of one activity; land on its detail with the sheet open.
             if let id = reviewedID(query, key: "activityId") {
-                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) },
-                                   registrationEnabled: true, opensRegistrationOnLoad: true)
+                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true)
             } else { unavailable }
         case "pages/activity/official-organizer/index":
             if let id = reviewedID(query), let access = session.officialActionCoordinator?.organizer {
@@ -169,9 +168,9 @@ import SwiftUI
             SessionCoopRelationDiscoveryView(session: session, reader: session.cooperationFlowReader)
         case "pages/search2/index", "pages/search2/result/index", "pages/talent/search/index":
             // PC-A-3-2: the MP keyword / filters run the search at once.
-            SessionGlobalSearchView(initialQuery: MPSearchLinkQuery.query(query)).environmentObject(session)
+            SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.query(query), onSignIn: signIn).environmentObject(session)
         case "pages/searchmap/index":
-            SessionGlobalSearchView(initialQuery: MPSearchLinkQuery.mapQuery(query["params"]), startsOnMap: true).environmentObject(session)
+            SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.mapQuery(query["params"]), startsOnMap: true, onSignIn: signIn).environmentObject(session)
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":

@@ -4,32 +4,6 @@ public enum GlobalSearchKind: String, CaseIterable, Hashable { case topic, activ
 /// IDs from unrelated domains never cross detail routes, even when their numeric values match.
 public enum SearchMapDestination: Hashable {
     case topic(Int), activity(Int), club(Int), merchant(Int), cityNode(Int)
-    /// PC-A-4-1: template results (MP discover-search.js:200-201 `topicTemplate` / `gameTemplate`).
-    case topicTemplate(Int), playTemplate(Int)
-}
-/// The two template lanes of the one search (owner ruling 2026-10-22: templates are a result type of global search).
-/// Kept apart from `GlobalSearchKind` so the four content lanes' counts, gates and all-failed rule stay unchanged.
-public enum GlobalTemplateKind: String, CaseIterable, Hashable { case topicTemplate, playTemplate }
-public struct GlobalTemplateSearchRow: Identifiable, Equatable {
-    public let kind: GlobalTemplateKind
-    public let sourceID: Int
-    public let title: String
-    public let detail: String?
-    public let imageURL: String?
-    public let previewOnly: Bool
-    public var id: String { "\(kind.rawValue)-\(sourceID)" }
-    public var destination: SearchMapDestination {
-        kind == .topicTemplate ? .topicTemplate(sourceID) : .playTemplate(sourceID)
-    }
-    public init(kind: GlobalTemplateKind, sourceID: Int, title: String, detail: String? = nil, imageURL: String? = nil, previewOnly: Bool = false) {
-        self.kind = kind; self.sourceID = sourceID; self.title = title; self.detail = detail
-        self.imageURL = imageURL; self.previewOnly = previewOnly
-    }
-}
-public struct GlobalTemplateSearchResults: Equatable {
-    public let rows: [GlobalTemplateSearchRow]
-    public let failedKinds: [GlobalTemplateKind]
-    public init(rows: [GlobalTemplateSearchRow], failedKinds: [GlobalTemplateKind] = []) { self.rows = rows; self.failedKinds = failedKinds }
 }
 public struct GlobalSearchQuery: Equatable, Hashable {
     public var keyword: String
