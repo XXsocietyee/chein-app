@@ -402,9 +402,18 @@ import CoreLocation
     }
     private var mineSection: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // RTEAMS-4: MP cy-access-gate — 登录后查看 + 登录, not a red error chip with 重试.
+            if !coordinator.authenticated {
+                CYEmptyState(systemImage: "person.crop.circle", "nearby.mine.signInTitle",
+                             actionTitle: onSignIn == nil ? nil : "nearby.mine.signIn", actionIdentifier: "nearby.mine.signIn",
+                             actionStyle: .primary, action: onSignIn)
+                    .accessibilityIdentifier("nearby.mine.signedOut")
+            }
             switch joinedTeamsStatus {
             case .loading:
                 CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")).accessibilityIdentifier("nearby.mine.owned.loading")
+            case .failed where !coordinator.authenticated:
+                EmptyView()
             case .failed(let key):
                 CYStatusChip(LocalizedStringKey(key), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("nearby.mine.owned.error")
                 if let retryJoinedTeams {
@@ -416,7 +425,7 @@ import CoreLocation
             if mine.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.w208.mine.loading")) }
             else if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.loading")) }
             if mine.failed && !model.running, let mineIssue = NearbyLoadIssue(messageKey: coordinator.messageKey), !mineIssue.offersRetry {
-                NearbyLoadIssueCard(issue: mineIssue, onSignIn: nil) {}
+                NearbyLoadIssueCard(issue: mineIssue, onSignIn: onSignIn) {}
             } else if mine.failed && !model.running {
                 CYPillButton("nearby.w208.mine.failed", style: .secondary) { Task { await loadMine() } }
                     .accessibilityIdentifier("nearby.w208.mine.retry")
