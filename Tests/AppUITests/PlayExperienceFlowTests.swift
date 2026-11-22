@@ -87,6 +87,6 @@ final class PlayExperienceFlowTests: XCTestCase {
     func testChineseJourneyLabels() {
         let app = launch(language: "zh-Hans"); let node = app.buttons["playx.node.701"]
         reveal(node, app: app); XCTAssertTrue(node.waitForExistence(timeout: 5))
-        XCTAssertTrue(app.navigationBars["旅程"].exists)
+        XCTAssertTrue(app.navigationBars["城市定向"].exists)
     }
 }

@@ -137029,13 +137029,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journey"
+            "value": "City orienteering"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "游玩"
+            "value": "城市定向"
           }
         }
       }
@@ -155241,13 +155241,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Journey"
+            "value": "City orienteering"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "旅程"
+            "value": "城市定向"
           }
         }
       }
