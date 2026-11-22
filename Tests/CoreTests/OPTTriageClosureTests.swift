@@ -382,7 +382,7 @@ final class OPTTriageClosureTests: XCTestCase {
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/commerce/order"))
         XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/claims/status"))
         let home = try source("App/MerchantBusinessViews.swift")
-        XCTAssertTrue(home.contains("MerchantOpsWp03Panel(page: .team)"))
+        XCTAssertFalse(home.contains("MerchantOpsWp03Panel(page:"), "parity X0: probe panel stays out of product views")
     }
 
     func testChapterInviteRevokeCitesOWNOPT062() throws {
@@ -392,9 +392,9 @@ final class OPTTriageClosureTests: XCTestCase {
         XCTAssertEqual(call.kind, .merchantWrite)
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/merchant/chapter-application/invite/revoke"))
         let content = try source("App/MerchantContentViews.swift")
-        XCTAssertTrue(content.contains("MerchantOpsWp03Panel(page: .chapter)"))
+        XCTAssertFalse(content.contains("MerchantOpsWp03Panel(page:"), "parity X0: probe panel stays out of product views")
         let team = try source("App/MerchantBusinessViews.swift")
-        XCTAssertTrue(team.contains("struct MerchantBusinessHomeView") || team.contains("MerchantOpsWp03Panel(page: .team)"))
+        XCTAssertTrue(team.contains("struct MerchantBusinessHomeView"))
     }
 
     func testSimplePublishAIDraftCitesOWNOPT082() throws {
