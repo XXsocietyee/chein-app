@@ -68,22 +68,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         .cyHideTabBar(true)
         .appNavigationTitle("merchant.onboarding.title")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(hasUnsavedChanges)
-        .toolbar {
-            if hasUnsavedChanges {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showsDiscardModal = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.backward")
-                            Text(verbatim: MemberPopupCopy.text("返回", "Back", locale: locale))
-                        }
-                    }
-                    .accessibilityIdentifier("merchant.onboarding.back")
-                }
-            }
-        }
+        // type-and-chrome §3: one exit guard (system back until there are edits, then the discard confirm).
+        .cyGuardedBack(when: hasUnsavedChanges) { showsDiscardModal = true }
         .task(id: session.sessionRevision) {
             // Returning from a transient sheet may restart .task without a new account.
             guard loadedRevision != session.sessionRevision else { return }

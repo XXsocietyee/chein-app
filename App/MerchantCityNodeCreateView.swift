@@ -60,10 +60,7 @@ import SwiftUI
         .onChange(of: service.scope) { _, _ in addressChoice.invalidate() }
         .onAppear { addressChoice.appear(active: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in addressChoice.sceneChanged(active: phase == .active) }
-        .navigationBarBackButtonHidden(dirty || submitting)
-        .toolbar { if dirty || submitting { ToolbarItem(placement: .topBarLeading) {
-            Button { back() } label: { MerchantCityNodeCopy.text("merchantCityNode.create.back") }.accessibilityIdentifier("cityNodeCreate.back")
-        } } }
+        .cyGuardedBack(when: dirty || submitting) { back() }
         .interactiveDismissDisabled(dirty || submitting)
         .cyModalConfirm(
             isPresented: leave,

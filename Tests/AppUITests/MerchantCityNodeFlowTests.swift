@@ -218,7 +218,7 @@ final class MerchantCityNodeFlowTests: XCTestCase {
         launch("cityNodeCreate", "configured")
         XCTAssertTrue(element("cityNodeCreate.address.confirm").waitForExistence(timeout: 10))
         element("cityNodeCreate.address.confirm").tap()
-        element("cityNodeCreate.back").tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap() // cyGuardedBack bare back (type-and-chrome §3)
         confirmSheet("Discard the unsubmitted draft?", button: "Keep editing")
         XCTAssertTrue(element("cityNodeCreate.submit").exists)
         app.terminate(); launch("cityNodeCreate", "noCoordinates")

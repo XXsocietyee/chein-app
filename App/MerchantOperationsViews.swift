@@ -278,7 +278,7 @@ struct MerchantOperationsDocumentView: View {
                     imageHost: imageHost, templateAssistFactory: templateAssistFactory).id(route.id)
             } else { Text("merchant.business.stale") }
         }
-        .navigationBarBackButtonHidden(coordinator.isDirty)
+        .cyGuardedBack(when: coordinator.isDirty) { confirmDiscard = true }
         .toolbar {
             if destination == .decor {
                 ToolbarItemGroup(placement: .bottomBar) {
@@ -301,12 +301,6 @@ struct MerchantOperationsDocumentView: View {
                 Button("merchant.operations.reloadSource", systemImage: "arrow.clockwise") {
                     if coordinator.isDirty { confirmReload = true } else { Task { await model.load() } }
                 }.disabled(coordinator.isBusy).accessibilityIdentifier("merchant.operations.reload")
-            }
-            if coordinator.isDirty {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("action.cancel") { confirmDiscard = true }
-                        .accessibilityIdentifier("merchant.operations.close")
-                }
             }
         }
         .interactiveDismissDisabled(coordinator.isDirty || coordinator.isBusy)

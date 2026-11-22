@@ -103,7 +103,7 @@ final class MerchantStoreCharacterFlowTests: XCTestCase {
         app.buttons["aiNPC.avatar.presets"].tap()
         XCTAssertTrue(app.buttons["aiNPC.preset.p23"].waitForExistence(timeout: 5)); app.buttons["aiNPC.preset.p23"].tap()
         app.buttons["aiNPC.preset.use"].tap()
-        app.buttons["aiNPC.back"].tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap() // cyGuardedBack bare back (type-and-chrome §3)
         XCTAssertTrue(app.staticTexts["Not saved yet"].waitForExistence(timeout: 5))
         app.buttons["Discard changes"].tap()
         XCTAssertTrue(app.navigationBars["AI Store Character"].waitForExistence(timeout: 5))

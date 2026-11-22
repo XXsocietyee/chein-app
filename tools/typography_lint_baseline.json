@@ -4,8 +4,8 @@
   "raw text style": 1181,
   "Theme.Font": 63,
   "raw size": 67,
-  "back chevron": 15,
-  "hidden back": 15,
+  "back chevron": 14,
+  "hidden back": 11,
   "large title": 26
  },
  "files": {
@@ -609,8 +609,7 @@
    "raw text style": 1
   },
   "App/MerchantCityNodeCreateView.swift": {
-   "raw text style": 4,
-   "hidden back": 1
+   "raw text style": 4
   },
   "App/MerchantCityNodeHubView.swift": {
    "raw text style": 8
@@ -701,16 +700,13 @@
    "raw text style": 2
   },
   "App/MerchantOnboardingView.swift": {
-   "raw text style": 3,
-   "back chevron": 1,
-   "hidden back": 1
+   "raw text style": 3
   },
   "App/MerchantOperationsEditor.swift": {
    "raw text style": 37
   },
   "App/MerchantOperationsViews.swift": {
-   "raw text style": 1,
-   "hidden back": 1
+   "raw text style": 1
   },
   "App/MerchantOperatorInvitationReceiptView.swift": {
    "raw text style": 7
@@ -737,8 +733,7 @@
    "raw text style": 4
   },
   "App/MerchantStoreCharacterView.swift": {
-   "raw text style": 5,
-   "hidden back": 1
+   "raw text style": 5
   },
   "App/MerchantTemplateAssistSheet.swift": {
    "raw text style": 5
