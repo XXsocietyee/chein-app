@@ -94,31 +94,48 @@ struct EditorDragReorderStack<Item: Identifiable, Row: View>: View {
     private var measured: [CGFloat] { items.indices.map { heights[$0] ?? 0 } }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: spacing) {
-            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                row(item, index)
-                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { heights[index] = $0 }
-                    .scaleEffect(dragging == index && !reduceMotion ? EditorDragReorderMotion.liftScale : 1)
-                    .shadow(color: dragging == index ? palette.floatShadowColor : .clear, radius: 12, y: 8)
-                    .offset(y: offset(for: index))
-                    .zIndex(dragging == index || settling == index ? 1 : 0)
-                    .overlay(alignment: .top) {
-                        if let dragging, let landing, landing != dragging, lineIndex(dragging: dragging, landing: landing) == index {
-                            EditorDropLine().offset(y: -(spacing / 2) - 1 + offset(for: index))
-                        }
-                    }
-                    .overlay(alignment: .bottom) {
-                        if let dragging, let landing, landing != dragging, landing == items.count - 1, index == items.count - 1 {
-                            EditorDropLine().offset(y: spacing / 2 + 1 + offset(for: index))
-                        }
-                    }
-                    .gesture(dragGesture(index), including: isEnabled ? .all : .subviews)
+        // Typed pieces: the one-expression form did not type-check in reasonable time (integ build).
+        let enumerated: [(offset: Int, element: Item)] = Array(items.enumerated())
+        let lifts: (Int?, Int?) -> Bool = { old, new in old == nil && new != nil }
+        let moves: (Int?, Int?) -> Bool = { old, new in old != nil && new != nil }
+        let motion: Animation = CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)
+        return VStack(alignment: .leading, spacing: spacing) {
+            ForEach(enumerated, id: \.element.id) { pair in
+                reorderRow(pair.element, pair.offset)
             }
         }
-        .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: landing)
-        .sensoryFeedback(.impact(weight: .medium), trigger: dragging) { old, new in old == nil && new != nil }
-        .sensoryFeedback(.selection, trigger: landing) { old, new in old != nil && new != nil }
+        .animation(motion, value: landing)
+        .sensoryFeedback(.impact(weight: .medium), trigger: dragging, condition: lifts)
+        .sensoryFeedback(.selection, trigger: landing, condition: moves)
         .sensoryFeedback(.impact(weight: .light), trigger: drops)
+    }
+
+    /// One row with its lift, shift, drop lines and gesture. Split out of `body` so the type checker stays fast
+    /// (integ: "unable to type-check this expression in reasonable time"); behaviour unchanged.
+    private func reorderRow(_ item: Item, _ index: Int) -> some View {
+        let lifted = dragging == index
+        let shift = offset(for: index)
+        return row(item, index)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { heights[index] = $0 }
+            .scaleEffect(lifted && !reduceMotion ? EditorDragReorderMotion.liftScale : 1)
+            .shadow(color: lifted ? palette.floatShadowColor : Color.clear, radius: 12, y: 8)
+            .offset(y: shift)
+            .zIndex(lifted || settling == index ? 1 : 0)
+            .overlay(alignment: .top) { topDropLine(index, shift: shift) }
+            .overlay(alignment: .bottom) { bottomDropLine(index, shift: shift) }
+            .gesture(dragGesture(index), including: isEnabled ? .all : .subviews)
+    }
+
+    @ViewBuilder private func topDropLine(_ index: Int, shift: CGFloat) -> some View {
+        if let dragging, let landing, landing != dragging, lineIndex(dragging: dragging, landing: landing) == index {
+            EditorDropLine().offset(y: -(spacing / 2) - 1 + shift)
+        }
+    }
+
+    @ViewBuilder private func bottomDropLine(_ index: Int, shift: CGFloat) -> some View {
+        if let dragging, let landing, landing != dragging, landing == items.count - 1, index == items.count - 1 {
+            EditorDropLine().offset(y: spacing / 2 + 1 + shift)
+        }
     }
 
     /// The row whose top edge carries the insertion line for a landing slot.

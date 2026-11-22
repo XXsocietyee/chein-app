@@ -567,7 +567,7 @@ struct CYBadgeUnlockCover: View {
     static let settled: Double = 1.5
 
     @ViewBuilder private func buttons(_ copy: CYCelebrationCopy, at e: Double) -> some View {
-        let u = reduceMotion ? 1 : Self.span(e, 1.3, settled)
+        let u = reduceMotion ? 1 : Self.span(e, 1.3, Self.settled)
         VStack(spacing: CYSpacing.sm) {
             if shareEnabled {
                 CYPillButton(verbatim: copy.shareBadge) { onShare?(); sharing = true }

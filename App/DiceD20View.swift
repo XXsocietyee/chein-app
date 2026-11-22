@@ -118,8 +118,10 @@ import QuestifyCore
             let labelColor = item.gold ? Color(red: 0.17, green: 0.11, blue: 0.02) : Color.white
             let baseSize = max(Theme.length("--cy-type-body"), 1)
             let scale = max(12, radius * 0.36) / baseSize
+            // Drawn into a GraphicsContext, which needs a `Text` (not a View): the static token font, scaled by the
+            // layer below.
             let text = Text("\(frontVal)")
-                .cyText(.numericBody)
+                .font(CYTypography.numericBody)
                 .foregroundStyle(labelColor.opacity(item.alpha))
             context.drawLayer { layer in
                 layer.translateBy(x: cx, y: cy)
