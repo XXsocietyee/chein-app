@@ -278661,6 +278661,23 @@
           }
         }
       }
+    },
+    "roam.w208.passport.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t read your roam passport"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "漫游护照读取失败"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
