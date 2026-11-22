@@ -133,7 +133,7 @@ import XCTest
         reveal(picker, in: app, towardTop: towardTop); XCTAssertTrue(picker.isEnabled); picker.tap()
         let choice = app.buttons.matching(NSPredicate(format: "label == %@", label)).firstMatch
         XCTAssertTrue(choice.waitForExistence(timeout: 5), app.debugDescription)
-        XCTAssertTrue(choice.isHittable); choice.tap()
+        XCTAssertTrue(choice.isHittable); choice.tap(); confirmGameplay(in: app)
     }
     private func hintsEnabled(_ enabled: Bool, in app: XCUIApplication, editable: Bool = true, towardTop: Bool = false) {
         let toggle = app.switches["templateLegacyHints.enabled"]
@@ -238,5 +238,11 @@ import XCTest
         XCTAssertFalse(app.switches["templateLegacyHints.enabled"].exists)
         XCTAssertFalse(app.descendants(matching: .any)["templateAuthor.field.hint1"].firstMatch.exists)
         XCTAssertFalse(app.staticTexts["templateRules.original"].exists)
+    }
+
+    /// Screens r4 (Figma 237:71933): the gameplay is picked in a sheet whose one confirm is 完成 in the header.
+    private func confirmGameplay(in app: XCUIApplication) {
+        let done = app.buttons["editorKit.sheet.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription); done.tap()
     }
 }

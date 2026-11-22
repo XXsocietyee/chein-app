@@ -107,7 +107,7 @@ final class WorkflowJourneyGoldenPath2UITests: XCTestCase {
         let failed = element("externalGame.catalog.error", in: app)
         XCTAssertTrue(revealFixtureElement(failed, in: app), app.debugDescription)
         XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "externalGame.install.")).count, 0)
-        XCTAssertTrue(element("externalGame.submitReview", in: app).exists)
+        XCTAssertTrue(element("externalGame.more", in: app).exists) // 提交审核 is in the "⋯" menu (Figma 247:17370)
         tap("externalGame.submissions", in: app)
         XCTAssertTrue(element("externalGame.submissions.root", in: app).waitForExistence(timeout: 5))
         XCTAssertTrue(element("externalGame.submissions.error", in: app).waitForExistence(timeout: 5))

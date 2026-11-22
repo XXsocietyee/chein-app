@@ -446,7 +446,10 @@ import QuestifyCore
                     }
                     Picker(W8Text.t("定价模式", "Pricing Mode"), selection: $pricingMode) {
                         Text(W8Text.t("仅流量激励", "Traffic Only")).tag("TRAFFIC_ONLY")
-                        Text(W8Text.t("付费购买（测试）", "Paid (test)")).tag("PAID")
+                        // Owner Q6: the external-game price stays hidden unless the TEST money switch is on.
+                        if moneyOn || pricingMode == "PAID" {
+                            Text(W8Text.t("付费购买（测试）", "Paid (test)")).tag("PAID")
+                        }
                         Text(W8Text.t("免费无激励", "Free")).tag("FREE")
                     }
                     .accessibilityIdentifier("externalGame.monetization.pricingMode")

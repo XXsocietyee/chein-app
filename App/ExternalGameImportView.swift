@@ -24,6 +24,13 @@ import WebKit
     @State private var ageTarget: InstalledExternalGame?
     @State private var reportGame: InstalledExternalGame?
     @State private var importError: String?
+    // Screens r4 · Figma 247:17370 (CF-62): delete is immediate with C2's undo toast; the files go when the toast does.
+    @State private var importMode = "url"
+    @State private var pendingRemoval: [String: UUID] = [:]
+    @StateObject private var undoCenter = ProjectEditUndoCenter()
+    @Environment(\.undoManager) private var undoManager
+    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
 
     init(store: ExternalGameStore, session: ExternalGameSessionBridge? = nil) {
         _store = Bindable(wrappedValue: store)
@@ -35,34 +42,43 @@ import WebKit
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
+            // Screens r4 · Figma 247:17370 (CF-62): title 小游戏库, one "＋" pull-down (链接 / 扫码 / 文件) and "⋯"
+            // (提交审核 / 我的提交) as 44 pt circles in the app's own neutral tint; no blue text actions.
             HStack(alignment: .center, spacing: CYSpacing.sm) {
-                Label(
-                    String(localized: LocalizedStringResource("playx.externalGame.sectionTitle", defaultValue: "Extended Mini-Game Library (Sandbox)", locale: locale)),
-                    systemImage: "puzzlepiece.extension"
-                )
-                .font(CYTypography.cardTitle)
-                .foregroundStyle(CYColor.textPrimary)
-                .accessibilityAddTraits(.isHeader)
+                ConfigR4Text.text("config.games.title")
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: CYSpacing.sm)
                 Menu {
-                    Button {
-                        showingImportSheet = true
-                    } label: {
-                        Label(String(localized: LocalizedStringResource("playx.externalGame.importUrlOrQr", defaultValue: "Link / Scan to Import", locale: locale)), systemImage: "qrcode.viewfinder")
+                    Button { importMode = "url"; showingImportSheet = true } label: {
+                        Label { ConfigR4Text.text("config.games.importLink") } icon: { Image(systemName: "link") }
                     }
-                    Button {
-                        showingFileImporter = true
-                    } label: {
+                    Button { importMode = "qr"; showingImportSheet = true } label: {
+                        Label { ConfigR4Text.text("config.games.importScan") } icon: { Image(systemName: "qrcode.viewfinder") }
+                    }
+                    Button { showingFileImporter = true } label: {
                         Label(String(localized: LocalizedStringResource("playx.externalGame.importFile", defaultValue: "Import from File (.json)", locale: locale)), systemImage: "folder")
                     }
                 } label: {
-                    Label(String(localized: LocalizedStringResource("playx.externalGame.importAction", defaultValue: "Import Game", locale: locale)), systemImage: "square.and.arrow.down")
-                        .font(CYTypography.label)
-                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    headerCircle("plus")
                 }
+                .accessibilityLabel(String(localized: LocalizedStringResource("playx.externalGame.importAction", defaultValue: "Import Game", locale: locale)))
+                .accessibilityHint(String(localized: LocalizedStringResource("playx.externalGame.importUrlOrQr", defaultValue: "Link / Scan to Import", locale: locale)))
                 .accessibilityIdentifier("externalGameImportButton")
-                Button(W8Text.t("提交审核", "Submit for review")) { submitForReview = true }
+                Menu {
+                    Button { submitForReview = true } label: {
+                        Label { ConfigR4Text.text("config.games.submit") } icon: { Image(systemName: "paperplane") }
+                    }
                     .accessibilityIdentifier("externalGame.submitReview")
+                    Button { showSubmissions = true } label: {
+                        Label { ConfigR4Text.text("config.games.mySubmissions") } icon: { Image(systemName: "tray.full") }
+                    }
+                } label: {
+                    headerCircle("ellipsis")
+                }
+                .accessibilityLabel(ConfigR4Text.text("config.games.more"))
+                .accessibilityIdentifier("externalGame.more")
             }
             ExternalGameCatalogSection(model: review, session: session) { showSubmissions = true }
             CYScreenOfflineWriteBanner(
@@ -92,13 +108,21 @@ import WebKit
                     title: LocalizedStringKey(W8Text.t("还没有导入的游戏", "No imported games yet")),
                     description: LocalizedStringKey("playx.externalGame.emptyHint"))
             } else {
-                ForEach(store.installedGames) { game in
+                ForEach(store.installedGames.filter { pendingRemoval[$0.manifest.id] == nil }) { game in
                     installedRow(game)
+                        .transition(reduceMotion ? .opacity : .move(edge: .leading).combined(with: .opacity))
                 }
             }
         }
+        .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: pendingRemoval)
+        .animation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion), value: store.installedGames.map(\.manifest.id))
+        .editorToast($undoCenter.toast)
+        // CF-62: a confirmed install lands as a new row (slides in on `CYMotion.standard`) with one success tap.
+        .sensoryFeedback(.success, trigger: store.installedGames.count) { old, new in new > old }
+        .onAppear { undoCenter.attach(undoManager) }
+        .onDisappear { for id in Array(pendingRemoval.keys) { commitRemoval(id, token: pendingRemoval[id]) } }
         .sheet(isPresented: $showingImportSheet) {
-            ExternalGameImportInputSheet(store: store, onError: { importError = $0 })
+            ExternalGameImportInputSheet(store: store, initialMode: importMode, onError: { importError = $0 })
         }
         .sheet(item: $store.pendingConfirmation) { confirmation in
             ExternalGamePermissionConfirmationSheet(
@@ -180,45 +204,101 @@ import WebKit
         }
     }
 
-    private func installedRow(_ game: InstalledExternalGame) -> some View {
-        CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
-            HStack(alignment: .center, spacing: CYSpacing.md) {
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    Text(game.manifest.name)
-                        .font(CYTypography.cardTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                    Text("v\(game.manifest.version) · \(game.manifest.contentRating)")
-                        .font(CYTypography.meta)
-                        .foregroundStyle(CYColor.textTertiary)
-                    Text("\(game.manifest.id) · \(game.source.sourceKindLabel)")
-                        .font(CYTypography.meta)
-                        .foregroundStyle(CYColor.textTertiary)
-                }
-                Spacer(minLength: CYSpacing.sm)
-                Button(String(localized: LocalizedStringResource("playx.externalGame.launch", defaultValue: "Run", locale: locale))) {
-                    if store.ageGateNeedsConfirmation(game.manifest) {
-                        ageTarget = game
-                    } else {
-                        store.activeLaunchingGame = game
-                    }
-                }
-                .buttonStyle(.cyPrimary(fullWidth: false))
+    private func headerCircle(_ symbol: String) -> some View {
+        Image(systemName: symbol)
+            .font(CYTypography.bodyMedium)
+            .foregroundStyle(palette.textPrimary)
+            .frame(width: EditorKitMetric.closeVisual, height: EditorKitMetric.closeVisual)
+            .background(Circle().fill(palette.brandSoft))
+            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
+    }
 
-                Button(role: .destructive) {
-                    do {
-                        try store.remove(id: game.manifest.id)
-                        importError = nil
-                    } catch {
-                        importError = error.localizedDescription
-                    }
-                } label: {
-                    Image(systemName: "trash")
-                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                }
-                .accessibilityLabel(String(localized: LocalizedStringResource("playx.externalGame.remove", defaultValue: "Remove Game", locale: locale)))
+    /// One row: glyph tile, name, `v1.2 · 分级 12+` (no package id or source code), 运行 as the secondary pill, and
+    /// "⋯" (举报, 删除游戏 in red, last). The same actions are on the row's context menu.
+    private func installedRow(_ game: InstalledExternalGame) -> some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            Image(systemName: "puzzlepiece.extension")
+                .font(CYTypography.bodyMedium)
+                .foregroundStyle(palette.textSecondary)
+                .frame(width: 44, height: 44)
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgRaised))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(verbatim: game.manifest.name)
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("config.games.meta \(game.manifest.version) \(game.manifest.contentRating)", tableName: ConfigR4Text.table)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textTertiary)
             }
+            Spacer(minLength: CYSpacing.sm)
+            Button(String(localized: LocalizedStringResource("playx.externalGame.launch", defaultValue: "Run", locale: locale))) {
+                if store.ageGateNeedsConfirmation(game.manifest) {
+                    ageTarget = game
+                } else {
+                    store.activeLaunchingGame = game
+                }
+            }
+            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+            .accessibilityIdentifier("externalGame.run.\(game.manifest.id)")
+            Menu { rowActions(game) } label: {
+                Image(systemName: "ellipsis")
+                    .font(CYTypography.bodyMedium)
+                    .foregroundStyle(palette.textSecondary)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(ConfigR4Text.text("config.games.more"))
+            .accessibilityIdentifier("externalGame.rowMenu.\(game.manifest.id)")
         }
+        .padding(CYSpacing.md)
+        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgElevated))
+        .contentShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .contextMenu { rowActions(game) }
         .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder private func rowActions(_ game: InstalledExternalGame) -> some View {
+        Button { reportGame = game } label: {
+            Label { ConfigR4Text.text("config.games.report") } icon: { Image(systemName: "exclamationmark.bubble") }
+        }
+        Divider()
+        Button(role: .destructive) { remove(game) } label: {
+            Label { ConfigR4Text.text("config.games.delete") } icon: { Image(systemName: "trash") }
+        }
+        .accessibilityLabel(String(localized: LocalizedStringResource("playx.externalGame.remove", defaultValue: "Remove Game", locale: locale)))
+    }
+
+    /// C2's one delete rule: the row goes at once with 已删除「X」 撤销 (5 s, shake / ⌘Z). The package and its save
+    /// are removed only when the undo window closes (or the library goes away), so 撤销 really brings it back.
+    private func remove(_ game: InstalledExternalGame) {
+        let id = game.manifest.id, token = UUID()
+        pendingRemoval[id] = token
+        undoCenter.recordDelete(
+            message: String(format: OpsR3Text.string("editor.deleted.item", locale: locale), game.manifest.name),
+            actionName: ConfigR4Text.string("config.games.delete", locale: locale)
+        ) {
+            guard pendingRemoval[id] == token else { return false }
+            pendingRemoval[id] = nil
+            return true
+        }
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64((EditorMotionSpec.toastSeconds * 2.5 + 0.4) * 1_000_000_000))
+            commitRemoval(id, token: token)
+        }
+    }
+
+    private func commitRemoval(_ id: String, token: UUID?) {
+        guard let token, pendingRemoval[id] == token else { return }
+        pendingRemoval[id] = nil
+        do {
+            try store.remove(id: id)
+            importError = nil
+        } catch {
+            importError = error.localizedDescription
+        }
     }
 }
 
@@ -226,9 +306,16 @@ import WebKit
 @MainActor private struct ExternalGameImportInputSheet: View {
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyPalette) private var palette
     let store: ExternalGameStore
     let onError: (String) -> Void
-    @State private var mode: String = "url"
+    @State private var mode: String
+
+    init(store: ExternalGameStore, initialMode: String = "url", onError: @escaping (String) -> Void) {
+        self.store = store
+        self.onError = onError
+        _mode = State(initialValue: initialMode == "qr" ? "qr" : "url")
+    }
     @State private var linkInput: String = ""
     @State private var check: ExternalGameLinkCheck?
 
@@ -282,6 +369,8 @@ import WebKit
                 }
             }
         }
+        // CF-62: the app's own neutral tint (white on dark), not the stock blue.
+        .tint(palette.textPrimary)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
@@ -290,6 +379,7 @@ import WebKit
 @available(macOS 14.0, *)
 @MainActor struct ExternalGamePermissionConfirmationSheet: View {
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     let confirmation: ExternalGamePendingConfirmation
     let onConfirm: () -> Void
     let onCancel: () -> Void
@@ -317,8 +407,24 @@ import WebKit
                         Text(String(localized: LocalizedStringResource("playx.externalGame.noPermissions", defaultValue: "No extra permissions (offline static content only)", locale: locale)))
                             .foregroundStyle(CYColor.textSecondary)
                     } else {
+                        // CF-62: permissions as icon rows (存档 / 触感 / 声音) with a check, not sentences in brackets.
                         ForEach(confirmation.permissionsList, id: \.rawValue) { perm in
-                            Label(perm.displayName, systemImage: "checkmark.shield")
+                            HStack(spacing: CYSpacing.md) {
+                                Image(systemName: Self.symbol(perm))
+                                    .foregroundStyle(palette.textSecondary)
+                                    .frame(width: 24)
+                                    .accessibilityHidden(true)
+                                Text(verbatim: perm.displayName)
+                                    .font(CYTypography.body)
+                                    .foregroundStyle(palette.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: CYSpacing.sm)
+                                Image(systemName: "checkmark")
+                                    .font(CYTypography.label)
+                                    .foregroundStyle(palette.textPrimary)
+                                    .accessibilityHidden(true)
+                            }
+                            .accessibilityElement(children: .combine)
                         }
                     }
                 }
@@ -348,13 +454,29 @@ import WebKit
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("common.cancel", defaultValue: "Cancel", locale: locale)), action: onCancel)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(confirmation.isUpdate
-                        ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdate", defaultValue: "Confirm Update", locale: locale))
-                        : String(localized: LocalizedStringResource("playx.externalGame.confirmInstall", defaultValue: "Confirm Install", locale: locale)),
-                        action: onConfirm)
+            }
+            // CF-62: the confirm is the one white pill, pinned at the bottom; 取消 stays in the bar in the neutral tint.
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                CYFooterBar {
+                    Button(action: onConfirm) {
+                        Text(verbatim: confirmation.isUpdate
+                            ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdate", defaultValue: "Confirm Update", locale: locale))
+                            : String(localized: LocalizedStringResource("playx.externalGame.confirmInstall", defaultValue: "Confirm Install", locale: locale)))
+                    }
+                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                    .accessibilityIdentifier("externalGame.confirmInstall")
                 }
             }
+        }
+        .tint(palette.textPrimary)
+        .presentationDetents([.large])
+    }
+
+    static func symbol(_ permission: ExternalGamePermission) -> String {
+        switch permission {
+        case .storage: return "externaldrive"
+        case .haptics: return "iphone.radiowaves.left.and.right"
+        case .audio: return "speaker.wave.2"
         }
     }
 }

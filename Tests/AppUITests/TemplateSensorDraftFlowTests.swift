@@ -45,7 +45,7 @@ import XCTest
         XCTAssertTrue(picker.isEnabled); picker.tap()
         let choice = app.buttons["Sensor challenge (local)"]
         XCTAssertTrue(choice.waitForExistence(timeout: 5), app.debugDescription)
-        XCTAssertTrue(choice.isHittable); choice.tap()
+        XCTAssertTrue(choice.isHittable); choice.tap(); confirmGameplay(in: app)
         return app
     }
 
@@ -201,5 +201,11 @@ import XCTest
             XCTAssertNil(try inspect(app, type: type, raw: raw).working)
             app.terminate(); application = nil
         }
+    }
+
+    /// Screens r4 (Figma 237:71933): the gameplay is picked in a sheet whose one confirm is 完成 in the header.
+    private func confirmGameplay(in app: XCUIApplication) {
+        let done = app.buttons["editorKit.sheet.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5), app.debugDescription); done.tap()
     }
 }

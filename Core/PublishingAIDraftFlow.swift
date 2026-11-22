@@ -201,5 +201,12 @@ public struct PublishingAIThemeDraft: Equatable {
         quotaTask?.cancel(); quotaTask = nil; quotaTaskID = nil
         storedQuota = nil; storedQuotaReadAt = nil; storedQuotaState = .unavailable; onChange?()
     }
+    /// Screens r4 · Figma 239:24018 (CF-59): while generating, the send button is 停止生成. Stopping retires the
+    /// in-flight request (its late result is dropped by the generation stamp) but keeps the idea, the last candidate
+    /// and the quota, so the person can edit and send again. No-op when nothing is generating.
+    public func stop() {
+        guard busy else { return }
+        generation += 1; client?.cancel(); busy = false; messageKey = nil; serverMessage = nil; onChange?()
+    }
     public func close() { closed = true; generation += 1; clearQuota(); client?.cancel(); clearCandidate(); idea = ""; busy = false; serverMessage = nil; onChange?() }
 }

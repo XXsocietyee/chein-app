@@ -4,6 +4,9 @@ import SwiftUI
 /// the "正在同步最新内容…" refresh line, and the empty-state "刷新试试" action.
 struct DiscoveryTopicCoverThumb: View {
     let urlString: String?
+    /// Screens r4 · Figma 243:1964 (CF-61): a theme with no cover shows the default art seeded by its name, not a
+    /// 图片暂不可用 glyph tile. The unavailable tile is kept for a cover that exists but fails to load.
+    var seed: String = ""
     /// The square tracks body type size. The caption is not given a fixed height.
     @ScaledMetric(relativeTo: .body) private var side: CGFloat = 72
 
@@ -22,7 +25,9 @@ struct DiscoveryTopicCoverThumb: View {
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityHidden(true)
             } else {
-                DiscoveryCoverUnavailable(side: side)
+                CYCoverArt(seed: seed.isEmpty ? "discovery.untitledTopic" : seed, showsDebugLabel: false, cornerRadius: CYRadius.sm)
+                    .frame(width: side, height: side)
+                    .accessibilityHidden(true)
             }
         }
         .accessibilityElement(children: .contain)

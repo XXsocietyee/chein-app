@@ -342,7 +342,7 @@ struct DiscoveryTemplateBrowserView: View {
                             CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
                         } else {
                             HStack(alignment: .top, spacing: CYSpacing.md) {
-                                DiscoveryTopicCoverThumb(urlString: item.imgUrl)
+                                DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name)
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                     DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle)
                                         .foregroundStyle(palette.textPrimary)

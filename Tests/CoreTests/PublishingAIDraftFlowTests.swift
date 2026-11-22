@@ -25,6 +25,18 @@ import XCTest
         flow.idea = "Walk"; await flow.generate(); XCTAssertNotNil(flow.candidate)
         flow.close(); XCTAssertNil(flow.accept()); XCTAssertEqual(flow.idea, "")
     }
+    func testStopRetiresInFlightDraftAndKeepsIdea() async {
+        let client = Stub(); client.delayNanoseconds = 200_000_000
+        let flow = PublishingAIDraftFlow(client: client, product: .city)
+        flow.idea = "Walk"
+        let running = Task { await flow.generate() }
+        while !flow.busy { await Task.yield() }
+        flow.stop()
+        XCTAssertFalse(flow.busy); XCTAssertEqual(flow.idea, "Walk")
+        await running.value
+        XCTAssertNil(flow.candidate); XCTAssertFalse(flow.busy)
+        flow.stop(); XCTAssertEqual(flow.idea, "Walk")
+    }
     func testKnownExhaustedQuotaBlocksAIOnly() async {
         let client = Stub(); client.exhausted = true
         let flow = PublishingAIDraftFlow(client: client, product: .city)
@@ -41,9 +53,12 @@ import XCTest
         "nodes": .array([.object(["merchantName": .string("Stop"), "task": .string("Observe")])])])])
     private final class Stub: PublishingAIDraftServing {
         var session: PublishingSession? = PublishingSession(namespace: "fixture", accountID: 1, epoch: UUID(), role: "player", region: .china)
-        var canGenerate = true; var exhausted = false; var calls = 0
+        var canGenerate = true; var exhausted = false; var calls = 0; var delayNanoseconds: UInt64 = 0
         func quota() async throws -> PublishingAIQuota { try PublishingAIQuota(.object(["limited": .bool(true), "remaining": .number(exhausted ? 0 : 2)])) }
-        func generate(idea: String, product: ProjectEditProduct) async throws -> PublishingAIThemeDraft { calls += 1; return try PublishingAIThemeDraft(PublishingAIDraftFlowTests.response, product: product) }
+        func generate(idea: String, product: ProjectEditProduct) async throws -> PublishingAIThemeDraft {
+            calls += 1
+            if delayNanoseconds > 0 { try? await Task.sleep(nanoseconds: delayNanoseconds) }
+            return try PublishingAIThemeDraft(PublishingAIDraftFlowTests.response, product: product) }
         func cancel() {}
     }
 }

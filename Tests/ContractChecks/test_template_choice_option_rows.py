@@ -44,7 +44,8 @@ class ChoiceOptionRowsContracts(unittest.TestCase):
         app = (ROOT / "App/TemplateChoiceOptionRowsEditor.swift").read_text()
         for token in ["templateChoiceRows.add", "templateChoiceRows.remove.", "templateChoiceRows.correctAnswer",
                       "templateAuthor.optionMedia.", "templateAuthor.optionMedia.unsupported", "templateAuthor.optionMedia.limit",
-                      ".disabled(!editor.rows.canRemove)", ".disabled(!editor.rows.canAdd)"]:
+                      "editor.rows.canRemove ? [.moveUp, .moveDown, .delete]", ".disabled(!editor.rows.canAdd)",
+                      ".move(from: from, to: to)", "undoCenter.recordDelete("]:
             self.assertIn(token, app)
 
     def test_fragments_are_bilingual_and_register_only_this_feature(self):

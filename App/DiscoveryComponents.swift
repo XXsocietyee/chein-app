@@ -150,8 +150,9 @@ struct DiscoveryTopicMetadata: View {
             if item.chapterCount > 0 { Text("discovery.chapters \(item.chapterCount)") }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.totalStops.\(item.id)")
             if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds", value: String(seconds)) }
-            if item.previewOnly { Label("discovery.preview", systemImage: "flask") }
-            else if !item.isVerified { Label("discovery.experimental", systemImage: "flask") }
+            // Screens r4 · Figma 243:1964 (SR2-20): monochrome, text-only status in the meta line (no flask glyph).
+            if item.previewOnly { Text("discovery.preview").foregroundStyle(CYColor.textTertiary) }
+            else if !item.isVerified { Text("discovery.experimental").foregroundStyle(CYColor.textTertiary) }
         }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
     }
 }

@@ -4,7 +4,11 @@ import Foundation
 /// Constructing this projection never normalizes or writes a historical draft.
 public struct TemplateChoiceOptionRows {
     public typealias Letter = TemplateChoiceOptionMedia.Letter
-    public enum Edit { case add, remove(Letter) }
+    public enum Edit {
+        case add, remove(Letter)
+        /// Screens r4 (Figma 238:16749, CF-46 / CF-60): drag or "⋯" reorder. `to` uses `onMove` destination semantics.
+        case move(from: Int, to: Int)
+    }
     public let letters: [Letter]
     public let supportsReordering: Bool
     private let originalFields: [Data?]
@@ -63,6 +67,33 @@ public struct TemplateChoiceOptionRows {
             let oldCorrect = letters.firstIndex { $0.rawValue == draft.correctAnswer }
             let newCorrect = oldCorrect.map { $0 == removed ? 0 : $0 - ($0 > removed ? 1 : 0) } ?? 0
             next.correctAnswer = Letter.allCases[newCorrect].rawValue
+            if shiftedMedia != media {
+                if shiftedMedia.isEmpty { next.questionOptionMediaJson = "" }
+                else {
+                    let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+                    guard let bytes = try? encoder.encode(shiftedMedia),
+                          let raw = String(data: bytes, encoding: .utf8), raw.utf16.count <= TemplateChoiceOptionMedia.maximumJSONLength else { return nil }
+                    next.questionOptionMediaJson = raw
+                }
+            }
+        case .move(let from, let to):
+            guard letters.indices.contains(from), (0...letters.count).contains(to), to != from, to != from + 1 else { return nil }
+            var order = Array(letters.indices)
+            EditorReorder.move(&order, fromOffsets: IndexSet(integer: from), toOffset: to)
+            var shiftedMedia: [String: TemplateAuthoringJSON] = [:]
+            for (index, source) in order.enumerated() {
+                let previous = letters[source], target = Letter.allCases[index]
+                next[keyPath: Self.path(target)] = draft[keyPath: Self.path(previous)]
+                if let attachment = media[previous.rawValue] { shiftedMedia[target.rawValue] = attachment }
+            }
+            // Keep the visible row count: the last row stays present even when it is blank.
+            let last = Letter.allCases[letters.count - 1]
+            if next[keyPath: Self.path(last)] == nil { next[keyPath: Self.path(last)] = "" }
+            // The correct answer follows its option.
+            if let oldCorrect = letters.firstIndex(where: { $0.rawValue == draft.correctAnswer }),
+               let newCorrect = order.firstIndex(of: oldCorrect) {
+                next.correctAnswer = Letter.allCases[newCorrect].rawValue
+            }
             if shiftedMedia != media {
                 if shiftedMedia.isEmpty { next.questionOptionMediaJson = "" }
                 else {
