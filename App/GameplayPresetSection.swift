@@ -54,6 +54,8 @@ import SwiftUI
                             Text(verbatim: row.purpose ?? WP09Copy.unknown).cyText(.meta).foregroundStyle(palette.textSecondary)
                             Text(verbatim: row.templateSourceLabel(chinese: W8Text.isChinese)).cyText(.meta).foregroundStyle(palette.textTertiary)
                         }
+                        // A button label centres wrapped lines; a two-line purpose read as a ragged centred block.
+                        .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .accessibilityIdentifier("preset.gameplay.row.\(row.presetKey)")
