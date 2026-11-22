@@ -210,7 +210,7 @@ struct RoamItemDetailView: View {
                 NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
                     .accessibilityIdentifier("media.poster.open")
                 if node.isPublished && !node.completed {
-                    NavigationLink { ChallengePOIHostView(node: node) } label: { Label(W8Text.t("地标挑战", "Landmark challenge"), systemImage: "flag.checkered") }
+                    NavigationLink { ChallengePOIHostView(node: node, reader: reader) } label: { Label("playx.poi.title", systemImage: "flag.checkered") }
                         .accessibilityIdentifier("roam.poiChallenge.open")
                 }
                 NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") }

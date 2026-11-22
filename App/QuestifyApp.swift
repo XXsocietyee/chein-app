@@ -462,6 +462,7 @@ struct SessionRootView: View {
         }
         .modifier(ExternalGameCatalogLaunch())
         .environmentObject(session)
+        .environment(\.challengePOIPhotoUploader, { session.makeChallengePOIPhotoUploader(poiID: $0) })
         .environment(\.externalGameSession, ExternalGameSessionRead.bridge(session))
         .modifier(MPParityPassEnvironment(session: session))
         .modifier(SocialRoamCapabilityRoot(session: session)) // G4/G5 entries (mount-g45)

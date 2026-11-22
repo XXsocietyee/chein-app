@@ -19,6 +19,12 @@ import QuestifyCore
     var readyButBlocked: Bool = false
     /// Optional action to open the city-slip / stamp flow after completing the challenge.
     var onWriteCitySlip: (() -> Void)? = nil
+    /// PLAYPOI-4: MP 查看徽章墙 (badgeCode) secondary on the medal screen.
+    var onOpenBadgeWall: (() -> Void)? = nil
+    /// PLAYPOI-5: MP 返回地图 on the error state.
+    var onBackToMap: (() -> Void)? = nil
+    /// PLAYPOI-1: scoped uploader for the camera photo step; nil keeps the step disabled with a note.
+    var photoUploader: (any RetainedImageUploading)? = nil
     @Environment(\.cyPalette) private var palette
     @Environment(\.openURL) private var openURL
     @Environment(\.locale) private var locale
@@ -42,11 +48,10 @@ import QuestifyCore
                 CYStateLayout(
                     kind: .failure,
                     title: Text("playx.poi.loadFailed"),
-                    detail: Text(verbatim: readable(coordinator.errorMessage.isEmpty
-                        ? W8Text.t("请检查网络连接后重试", "Check your connection and try again")
-                        : coordinator.errorMessage)),
+                    detail: coordinator.errorMessage.isEmpty ? Text("playx.poi.checkNetwork") : Text(verbatim: readable(coordinator.errorMessage)),
                     primary: (title: "playx.poi.retry", action: { _ = Task { await onRefresh() } }),
-                    primaryStyle: .secondary
+                    primaryStyle: .secondary,
+                    secondaryVerbatim: onBackToMap.map { back in (title: String(localized: "playx.poi.backToMap"), action: back) }
                 )
 
             case .photo, .quiz:
@@ -126,9 +131,8 @@ import QuestifyCore
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 ProgressView(value: ChallengePOIChecklist.progress(items))
                     .tint(palette.textPrimary)
-                    .accessibilityLabel(Text(verbatim: W8Text.t("挑战进度", "Challenge progress")))
+                    .accessibilityLabel(Text("playx.poi.progress"))
                     .accessibilityValue(Text(verbatim: ChallengePOIChecklist.progress(items) == 0 ? "0" : "\(ChallengePOIChecklist.progress(items))"))
-                    .accessibilityHint(Text(verbatim: W8Text.t("挑战进度", "Challenge progress")))
                 ChallengePOIChecklistView(items: items)
             }
             .cyDomainCard()
@@ -136,30 +140,12 @@ import QuestifyCore
     }
 
     private var photoCard: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playx.poi.photoStep")
-                .cyText(.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .accessibilityAddTraits(.isHeader)
-                .fixedSize(horizontal: false, vertical: true)
-            TextField(LocalizedStringKey("playx.poi.photoUrlPlaceholder"), text: $coordinator.uploadedPhotoUrl)
-                .cyText(.body)
-                .textContentType(.URL)
-                .keyboardType(.URL)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
-                .cyField()
-                .accessibilityLabel(Text("playx.poi.photoUrlPlaceholder"))
-                .accessibilityValue(Text(verbatim: coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.uploadedPhotoUrl))
-                .accessibilityHint(Text("playx.poi.photoStep"))
-            CYPillButton("playx.poi.confirmPhoto", style: .secondary, systemImage: "camera") {
-                coordinator.confirmPhotoUploaded(coordinator.uploadedPhotoUrl)
-            }
-            .accessibilityLabel(Text("playx.poi.confirmPhoto"))
-            .accessibilityValue(Text(verbatim: coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : coordinator.uploadedPhotoUrl))
-            .accessibilityHint(Text("playx.poi.photoStep"))
-        }
-        .cyDomainCard()
+        ChallengePOIPhotoCapture(
+            lead: coordinator.node?.photoRequireDesc,
+            uploader: photoUploader,
+            confirmed: !coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            onUploaded: { coordinator.confirmPhotoUploaded($0) }
+        )
     }
 
     @ViewBuilder
@@ -226,7 +212,7 @@ import QuestifyCore
                 note(readable(submitFeedback), symbol: "exclamationmark.triangle.fill", tone: .danger)
                     .accessibilityIdentifier("playx.poi.feedback")
             } else if readyButBlocked {
-                note(W8Text.t("答案已通过本机校验，但没有发送。", "Your attempt passed the local check but was not sent."),
+                note(String(localized: "playx.poi.readyBlocked"),
                      symbol: "paperplane.circle", tone: .neutral)
                     .accessibilityIdentifier("playx.poi.readyBlocked")
             }
@@ -262,11 +248,9 @@ import QuestifyCore
     private var doneCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Label(
-                coordinator.alreadyClaimed
-                    ? W8Text.t("已完成该地标挑战", "Landmark challenge already completed")
-                    : W8Text.t("挑战通关！", "Challenge complete!"),
+                coordinator.alreadyClaimed ? "playx.poi.alreadyClaimed" : "playx.poi.medalDone",
                 systemImage: "medal.fill")
-                .font(CYTypography.sectionTitle)
+                .cyText(.sectionTitle)
                 .foregroundStyle(palette.warning)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
@@ -281,9 +265,18 @@ import QuestifyCore
                     imageURL: coverURL
                 )
             }
+            if !coordinator.alreadyClaimed {
+                Text("playx.poi.medalStored").cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            // MP medal screen: primary 写一张城市签 (citystamp kind=sign), secondary 查看徽章墙.
             if let onWriteCitySlip {
-                CYPillButton("playx.poi.writeCitySlip", style: .secondary, systemImage: "camera", action: onWriteCitySlip)
+                CYPillButton("playx.poi.writeCitySlip", style: .primary, systemImage: "signature", action: onWriteCitySlip)
                     .accessibilityIdentifier("playx.poi.writeCitySlip")
+            }
+            if let onOpenBadgeWall {
+                CYPillButton("playx.poi.openBadgeWall", style: .secondary, systemImage: "medal", action: onOpenBadgeWall)
+                    .accessibilityIdentifier("playx.poi.openBadgeWall")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -335,30 +328,43 @@ import QuestifyCore
     }
 }
 
-/// Mini-program `subpackageRoam/nearby` opens `pages/play/poi-challenge` from a nearby place.
-/// Built from the already-read roam node; submissions run through `ChallengePOIWriterFactory.makeWriter()`
-/// using foreground WGS-84 coordinates projected to GCJ-02 when authorized.
+/// `pages/play/poi-challenge?poiId=`. PLAYPOI-2: the node is read from `GET /api/city/nodes/{id}` (status, photo,
+/// quiz A–D, badge code) when a roam reader is present; the already-read roam node only seeds the first frame.
+/// Submissions run through `ChallengePOIWriterFactory.makeWriter()` with foreground GCJ-02 coordinates.
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIHostView: View {
-    let node: RoamNodeDetail
+    let poiID: Int
+    var seed: RoamNodeDetail? = nil
+    var reader: (any RoamReading)? = nil
     @Environment(\.playEmergencyLocationProvider) private var locationProvider
+    @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
+    @Environment(\.dismiss) private var dismiss
     @State private var coordinator: ChallengePOICoordinator?
     @State private var feedback: String?
     @State private var readyButBlocked = false
-    @State private var showingStampCamera = false
+    @State private var showingCitySign = false
+    @State private var showingBadgeWall = false
+    @State private var placeName: String?
+    @State private var badgeCode: String?
     @StateObject private var submitModel = ChallengePOISubmitModel(writer: ChallengePOIWriterFactory.makeWriter())
+
+    init(node: RoamNodeDetail, reader: (any RoamReading)? = nil) {
+        poiID = node.poiId; seed = node; self.reader = reader
+    }
+    init(poiID: Int, reader: (any RoamReading)?) {
+        self.poiID = poiID; self.reader = reader
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                CYHeroHeader(verbatim: W8Text.t("地标挑战", "Landmark challenge"))
                 if let coordinator {
                     ChallengePOIView(
                         coordinator: coordinator,
                         onRefresh: {
                             feedback = nil
                             readyButBlocked = false
-                            load(coordinator)
+                            await load(coordinator)
                         },
                         onSubmit: {
                             let coords = await currentGCJ02Coordinate()
@@ -372,7 +378,10 @@ import QuestifyCore
                         },
                         submitFeedback: feedback,
                         readyButBlocked: readyButBlocked,
-                        onWriteCitySlip: { showingStampCamera = true }
+                        onWriteCitySlip: { showingCitySign = true },
+                        onOpenBadgeWall: { showingBadgeWall = true },
+                        onBackToMap: { dismiss() },
+                        photoUploader: makePhotoUploader?(poiID)
                     )
                 } else {
                     CYSkeleton()
@@ -387,27 +396,57 @@ import QuestifyCore
         .scrollDismissesKeyboard(.interactively)
         .cyDomainPageBackground()
         .themeDomain(.player)
-        .cyHeroScreen()
-        .sheet(isPresented: $showingStampCamera) {
-            NavigationStack {
-                RoamStampCameraView()
-            }
-            .cyPlayerSheetGlass()
-            .cyDomainSheet(detents: [.half, .full])
+        // PLAYPOI-3: one inline bar title, the place name once it is known.
+        .modifier(ChallengePOITitle(name: placeName))
+        .navigationDestination(isPresented: $showingCitySign) {
+            // PLAYPOI-4: MP 写一张城市签 → subpackageRoam/citystamp?kind=sign&place=
+            SessionRoamCityStampFlowView(kind: "sign", place: placeName)
+        }
+        .navigationDestination(isPresented: $showingBadgeWall) {
+            ChallengePOIBadgeWallDestination(badgeCode: badgeCode)
         }
         .task {
             guard coordinator == nil else { return }
-            let model = ChallengePOICoordinator(nodeId: node.poiId)
-            load(model)
+            let model = ChallengePOICoordinator(nodeId: poiID)
+            if let seed { apply(seed, to: model) }
             coordinator = model
+            await load(model)
         }
     }
 
-    private func load(_ model: ChallengePOICoordinator) {
+    private func load(_ model: ChallengePOICoordinator) async {
+        guard let reader else {
+            if let seed { apply(seed, to: model) } else { model.applyLoadError(String(localized: "playx.poi.notFound")) }
+            return
+        }
+        do {
+            let node = try await reader.roamNodeDetail(id: poiID)
+            apply(node, to: model)
+        } catch is CancellationError {
+            return
+        } catch {
+            model.applyLoadError(String(localized: "playx.poi.checkNetwork"))
+        }
+    }
+
+    /// MP `_load`: completed → medal (已收藏); status ≠ 1 → 暂未开放; quiz = validationMethod 3 with options;
+    /// photoRequired → photo step; neither → 还没有配置挑战.
+    private func apply(_ node: RoamNodeDetail, to model: ChallengePOICoordinator) {
+        placeName = node.name.isEmpty ? nil : node.name
+        badgeCode = node.badgeCode
+        let quiz = node.isQuiz
         model.applyLoadedNode(ChallengePOINode(
             id: node.poiId, name: node.name, title: node.name, description: node.description ?? "",
             latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude,
-            radiusM: Double(node.radiusM ?? 100), photoRequired: node.validationMethod == 2, completed: node.completed))
+            radiusM: Double(node.radiusM ?? 100), photoRequired: node.photoRequired,
+            question: quiz ? (node.questionName ?? "") : "",
+            options: quiz ? node.quizOptions.map(\.text) : [],
+            completed: node.completed,
+            optionIDs: quiz ? node.quizOptions.map(\.id) : nil,
+            photoRequireDesc: node.photoRequireDesc, badgeCode: node.badgeCode))
+        guard !node.completed else { return }
+        if node.status != 1 { model.applyLoadError(String(localized: "playx.poi.notOpen")); return }
+        if !quiz && !node.photoRequired { model.applyLoadError(String(localized: "playx.poi.notConfigured")) }
     }
 
     private func currentGCJ02Coordinate() async -> (latitude: Double, longitude: Double)? {
@@ -422,6 +461,22 @@ import QuestifyCore
     }
 }
 
+private struct ChallengePOITitle: ViewModifier {
+    let name: String?
+    func body(content: Content) -> some View {
+        if let name { content.cyPageTitle(verbatim: name) } else { content.cyPageTitle("playx.poi.title") }
+    }
+}
+
+/// 查看徽章墙 with the earned badge focused; uses the session profile reader when the app session is present.
+@MainActor private struct ChallengePOIBadgeWallDestination: View {
+    let badgeCode: String?
+    @EnvironmentObject private var session: AppSession
+    var body: some View {
+        ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader(), focusBadgeCode: badgeCode)
+    }
+}
+
 #if DEBUG
 #Preview("Challenge · photo + quiz") {
     let model = ChallengePOICoordinator(nodeId: 7)
@@ -430,7 +485,6 @@ import QuestifyCore
         radiusM: 100, photoRequired: true, question: "Which year was it built?", options: ["1921", "1934"]))
     return ScrollView {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            CYHeroHeader(verbatim: W8Text.t("地标挑战", "Landmark challenge"))
             ChallengePOIView(coordinator: model, onRefresh: {}, onSubmit: {}, readyButBlocked: true)
         }
         .padding(.horizontal, CYSpacing.pageHorizontal)

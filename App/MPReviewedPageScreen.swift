@@ -103,6 +103,9 @@ import SwiftUI
             } else { unavailable }
         case "subpackageRoam/official-route/index":
             if let reader = session.officialRouteReader, let id = query["id"] { OfficialRouteDetailView(reader: reader, routeID: id) } else { unavailable }
+        case "pages/play/poi-challenge/index":
+            // PLAYPOI-2: the challenge reads its node by poiId.
+            if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader) } else { unavailable }
         case "subpackageRoam/citynode-code/index":
             RoamCityVoucherCodeView(poiID: positiveID(query["poiId"]), name: query["name"])
         case "subpackageP3/pages/stamp-album/index/index":
