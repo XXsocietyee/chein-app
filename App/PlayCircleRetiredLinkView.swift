@@ -6,7 +6,7 @@ import SwiftUI
     let goHome: () -> Void
     var body: some View {
         CYEmptyState(
-            systemImage: "link.badge.plus",
+            systemImage: "exclamationmark.triangle",
             "playx.circleLink.title",
             detail: "playx.circleLink.subtitle",
             messageIdentifier: "playx.circleLink.missing",
