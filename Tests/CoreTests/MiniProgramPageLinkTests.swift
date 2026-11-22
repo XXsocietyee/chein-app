@@ -109,8 +109,10 @@ final class MiniProgramPageLinkTests: XCTestCase {
         let rejected = [
             "/subpackageMember/market/checkout/index?id=1",                 // no native screen
             "/pages/index/index?id=1",                                      // open pages take no query
-            "/pages/club/governance/index",                                  // sections only, no page view
-            "/pages/club/roles/index",
+            "/pages/club/governance/index",                                  // clubId required (MP governance onLoad)
+            "/pages/club/roles/index?clubId=abc",                            // non-canonical id
+            "/pages/club/customer-detail/index?clubId=7",                    // memberId required
+            "/pages/club/topic-detail/index?topicId=1&foo=2",                // unknown key
             "/pages/club/settlement/index",
             "/pages/merchant/customer/detail/index",
             "/pages/team/join/index",                                        // team invitation keeps this path
@@ -137,6 +139,31 @@ final class MiniProgramPageLinkTests: XCTestCase {
         XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/market/pass/index", query: ["id": String(repeating: "a", count: 513)]))
         XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/market/pass/index", query: ["id": "a\u{7}"]))
         XCTAssertNil(PushTapRouter().intent(userInfo: ["page": "subpackageJourney/pages/promo/index"]))
+    }
+
+    func testEveryClubPageOpensWithItsMiniProgramKeys() {
+        // CLB-*-01 / CLB-workbench-01 (parity r1): the keys each pages/club page reads in onLoad.
+        let accepted: [(String, [String: String])] = [
+            ("pages/club/detail/index", ["id": "7", "tab": "manage", "postId": "9", "scan": "1"]),
+            ("pages/club/detail/index", ["owner": "1"]),
+            ("pages/club/workbench/index", ["id": "7"]), ("pages/club/workbench/index", ["clubId": "7"]), ("pages/club/workbench/index", [:]),
+            ("pages/club/apply/index", [:]), ("pages/club/create/index", [:]),
+            ("pages/club/edit/index", ["clubId": "7"]), ("pages/club/badges/index", ["id": "7"]),
+            ("pages/club/customers/index", ["clubId": "7"]), ("pages/club/customer-detail/index", ["clubId": "7", "memberId": "8"]),
+            ("pages/club/checkin-detail/index", ["clubId": "7", "registrationId": "8"]),
+            ("pages/club/enroll/index", ["clubId": "7", "topicId": "3", "clubName": "夜跑团"]),
+            ("pages/club/event-ops/index", ["clubId": "7", "activityId": "4", "topicId": "3", "recurrence": "1"]),
+            ("pages/club/group-code/index", ["activityId": "4", "activityName": "夜跑", "topicId": "3", "topicName": "城市"]),
+            ("pages/club/join-requests/index", ["clubId": "7"]),
+            ("pages/club/notify/index", ["clubId": "7", "activityId": "4", "silent": "1"]),
+            ("pages/club/topic-detail/index", ["topicId": "3", "clubId": "7", "activityId": "4"]),
+            ("pages/club/topic-story/index", ["topicId": "3", "clubId": "7", "scope": "club"]),
+            ("pages/club/governance/index", ["clubId": "7", "mode": "report", "targetType": "MEMBER", "targetId": "8", "targetName": "A"]),
+            ("pages/club/roles/index", ["clubId": "7", "activityId": "4", "activityLabel": "夜跑"]),
+        ]
+        for (page, query) in accepted {
+            XCTAssertEqual(MiniProgramPageLink(path: page, query: query)?.query, query, page)
+        }
     }
 
     func testEmptyValuesAreAbsent() {

@@ -102,12 +102,63 @@ import SwiftUI
                                       memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0).environmentObject(session)) },
                                       ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0).environmentObject(session)) },
                                       creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0).environmentObject(session)) })
-        case "pages/club/detail/index", "pages/club/workbench/index":
+        case "pages/club/detail/index":
+            // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {
-                ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
-                               management: session.clubManagementContext, community: session.clubCommunityContext,
-                               publicRoster: session.clubPublicRosterReader)
+                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil })
+            } else if query["owner"] != nil { ownedClubs } else { unavailable }
+        case "pages/club/workbench/index":
+            // CLB-workbench-01/02: the workbench is the club page's 管理 tab; no id → my own club.
+            if let id = clubQueryID(query) { clubDetail(id, tab: .manage) } else { ownedClubs }
+        case "pages/club/apply/index":
+            clubGovernance { g in ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+        case "pages/club/create/index":
+            clubOperations(.create)
+        case "pages/club/edit/index":
+            if let id = clubQueryID(query) { clubOperations(.club(id)) } else { unavailable }
+        case "pages/club/badges/index":
+            if let id = clubQueryID(query), let host = badgeHost(id) { ClubBadgeManagementView(host: host).id(host.id) } else { unavailable }
+        case "pages/club/customers/index":
+            clubRead(.customers, .init(clubID: clubQueryID(query)), needsClub: true)
+        case "pages/club/customer-detail/index":
+            clubRead(.customer, .init(clubID: clubQueryID(query), memberID: queryID(query, "memberId")), needsClub: true)
+        case "pages/club/checkin-detail/index":
+            clubRead(.checkin, .init(clubID: clubQueryID(query), registrationID: queryID(query, "registrationId")), needsClub: true)
+        case "pages/club/enroll/index":
+            if let id = clubQueryID(query) {
+                clubGovernance { g in ClubEnrollmentView(clubID: id, focusTopicID: queryID(query, "topicId"), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
             } else { unavailable }
+        case "pages/club/event-ops/index":
+            if let id = clubQueryID(query) {
+                clubGovernance { g in ClubOpsEventView(scope: .init(clubID: id, topicID: queryID(query, "topicId"), activityID: queryID(query, "activityId")), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+            } else { unavailable }
+        case "pages/club/group-code/index":
+            if let activity = queryID(query, "activityId") {
+                clubGovernance { g in ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: .init(topicID: queryID(query, "topicId"), activityID: activity)), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+            } else { unavailable }
+        case "pages/club/join-requests/index":
+            if let id = clubQueryID(query) {
+                let management = session.clubManagementContext
+                ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision)
+            } else { unavailable }
+        case "pages/club/notify/index":
+            clubRead(.audienceCounts, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+        case "pages/club/topic-detail/index", "pages/club/topic-story/index":
+            // MP topic-detail reads topicId (or id); the story opens one row down from the topic page.
+            if let topic = queryID(query, "topicId") ?? reviewedID(query) {
+                clubRead(.topicOverview, .init(clubID: queryID(query, "clubId"), topicID: topic, activityID: queryID(query, "activityId")), needsClub: false)
+            } else { unavailable }
+        case "pages/club/governance/index":
+            // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
+            switch ClubGovernanceEntryRoute.resolve(query) {
+            case .success(let route):
+                if case .manage = route.mode {
+                    clubGovernance { g in ClubGovernanceWorkspaceView(clubID: route.clubID, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+                } else { clubRead(.cases, .init(clubID: route.clubID), needsClub: true) }
+            case .failure: unavailable
+            }
+        case "pages/club/roles/index":
+            clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
         case "pages/topic/index/index":
             if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
         case "pages/templatedetail/templatedetail":
@@ -179,6 +230,47 @@ import SwiftUI
         }
     }
 
+    @Environment(\.clubBadgeHostFactory) private var badgeHost
+
+    private func clubDetail(_ id: Int, tab: ClubDetailTab?) -> some View {
+        ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
+                       management: session.clubManagementContext, community: session.clubCommunityContext,
+                       publicRoster: session.clubPublicRosterReader, requestedTab: tab)
+    }
+
+    private var ownedClubs: some View {
+        ClubOwnedView(reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
+                      management: session.clubManagementContext, community: session.clubCommunityContext,
+                      publicRoster: session.clubPublicRosterReader)
+    }
+
+    /// Club governance screens carry the same environment the 管理 workspace sheet sets.
+    @ViewBuilder private func clubGovernance<Content: View>(@ViewBuilder _ content: (ClubGovernanceContext) -> Content) -> some View {
+        if let g = session.clubManagementContext.governance {
+            content(g)
+                .environment(\.clubEnrollmentProfile, g.enrollmentProfile)
+                .environment(\.clubOwnerRefundCoordinator, g.ownerRefund)
+                .environment(\.clubOpsTimeFactory, g.opsTimeFactory)
+                .environment(\.clubCustomerTopics, g.customerTopics)
+                .environment(\.clubStoryTemplates, g.storyTemplates)
+                .environment(\.clubTerminalSessions, g.terminalSessions)
+                .environment(\.clubOwnerFunds, g.ownerFunds)
+        } else { unavailable }
+    }
+
+    @ViewBuilder private func clubRead(_ operation: ClubGovernanceRead, _ scope: ClubGovernanceScope, needsClub: Bool) -> some View {
+        if needsClub && scope.clubID == nil { unavailable } else {
+            clubGovernance { g in ClubGovernanceReadView(operation: operation, scope: scope, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+        }
+    }
+
+    @ViewBuilder private func clubOperations(_ target: ClubOperationsTarget) -> some View {
+        let management = session.clubManagementContext
+        if let operations = management.operations {
+            ClubOperationsWorkspaceView(target: target, identity: session.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management.governance)
+        } else { unavailable }
+    }
+
     private var roam: some View {
         RoamBrowserView(reader: session.roamReader, nearbyEventsReader: session.roamNearbyEventsReader, nearbyPlayersReader: session.roamNearbyPlayersReader,
                         onChooseArea: {}, onOpenAccount: {}, experienceReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader,
@@ -229,6 +321,15 @@ import SwiftUI
 }
 
 /// Canonical positive decimal id, the same shape `MiniProgramPageLink` already required.
+/// MP club pages read `clubId` first and fall back to `id`.
+private func clubQueryID(_ query: [String: String]) -> Int? { queryID(query, "clubId") ?? reviewedID(query) }
+
+private func queryID(_ query: [String: String], _ key: String) -> Int? {
+    guard let text = query[key], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
+          let value = Int(text), value > 0, String(value) == text else { return nil }
+    return value
+}
+
 private func reviewedID(_ query: [String: String]) -> Int? {
     guard let text = query["id"], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }
