@@ -409,6 +409,7 @@ import SwiftUI
 }
 
 @MainActor struct MerchantBusinessPage: View {
+    @State private var aftercareDetailReturnPending = false
     @Environment(\.merchantCustomerQueryDestination) private var customerQueryDestination
     @Environment(\.merchantCoopCenterDestination) private var coopCenterDestination
     @Environment(\.locale) private var locale
@@ -782,6 +783,7 @@ import SwiftUI
                     captured: capturedCustomerRoute, destination: customerQueryDestination).id(capturedCustomerRoute.id)
             }
         }
+        .onAppear { if aftercareDetailReturnPending { aftercareDetailReturnPending = false; Task { await reload() } } }
         .onAppear { model.teamPageAppeared(active: scenePhase == .active); model.ledgerPreviewAppeared(active: scenePhase == .active); aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
             if let retired = aftercareReturn.synchronize(), editor?.id == retired { editor = nil }
@@ -984,7 +986,11 @@ import SwiftUI
                     }.buttonStyle(.borderless).accessibilityLabel(Text("merchant.business.selectCustomer"))
                         .accessibilityValue(selection.contains(id) ? Text("merchant.business.selected") : Text("merchant.business.unselected"))
                 }
-                NavigationLink { MerchantBusinessPage(reader: reader, journal: journal, query: destination) } label: {
+                NavigationLink {
+                    MerchantBusinessPage(reader: reader, journal: journal, query: destination)
+                        // Parity aftercare P1 (MP _refreshAfterDetail): a decision on the detail must not leave a stale 待回应 row.
+                        .onDisappear { if case .aftercare = query { aftercareDetailReturnPending = true } }
+                } label: {
                     if row.kind == .refund, let line = MerchantAftercareParity.ListRow(row) {
                         VStack(alignment: .leading, spacing: 4) {
                             if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }

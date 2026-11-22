@@ -68,7 +68,13 @@ struct MerchantBusinessEditorContext: Identifiable {
                     }
                 case .tag:
                     TextField("merchant.business.tagName", text: $name).accessibilityIdentifier("merchant.business.editor.tagName")
-                    TextField("merchant.business.tagColor", text: $color).textInputAutocapitalization(.characters).autocorrectionDisabled()
+                    // Parity customer-detail P1: a named colour choice, not a hex text field (wire value stays #RRGGBB).
+                    Picker("merchant.business.tagColor", selection: $color) {
+                        ForEach(MerchantTagColorChoice.all, id: \.hex) { choice in
+                            Label { Text(choice.titleKey) } icon: { Image(systemName: "circle.fill").foregroundStyle(choice.color) }.tag(choice.hex)
+                        }
+                        if !color.isEmpty, !MerchantTagColorChoice.all.contains(where: { $0.hex == color }) { Text(verbatim: color).tag(color) }
+                    }
                 case .aftercare(let row):
                     Picker("merchant.business.decision", selection: Binding(get: { decision }, set: requestAftercareDecision)) {
                         ForEach(MerchantAftercareDecision.allCases, id: \.self) { choice in
@@ -78,9 +84,11 @@ struct MerchantBusinessEditorContext: Identifiable {
                         }
                     }
                     TextField("merchant.business.responseContent", text: $content, axis: .vertical).lineLimit(3...8)
-                    TextField("merchant.business.evidenceKey", text: $evidence).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    Text("merchant.business.evidenceHint").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    // Parity aftercare-detail P1: no raw storage-key field; evidence is added through 补充凭证 below.
                     if !evidence.isEmpty {
+                        Label("merchant.business.evidenceAttached", systemImage: "paperclip")
+                            .cyText(.body).foregroundStyle(CYColor.textPrimary)
+                            .accessibilityIdentifier("merchant.business.evidenceAttached")
                         let removalDraft = aftercareEvidenceDraft
                         let removalOwner = aftercareEvidenceOwner?()
                         Button("merchant.aftercareRemoveEvidence.remove") {
@@ -403,4 +411,15 @@ private struct MerchantNoteCorrectionTargetSummary: View {
                 .font(.subheadline).accessibilityIdentifier("merchant.noteCorrection.targetSummary")
         }
     }
+}
+
+/// Preset tag colours for 客户 tags; the wire palette lives in Core (`MerchantTagColorPalette`).
+struct MerchantTagColorChoice {
+    let hex: String
+    let titleKey: LocalizedStringKey
+    var color: Color {
+        let value = Int(hex.dropFirst(), radix: 16) ?? 0
+        return Color(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
+    }
+    static let all: [MerchantTagColorChoice] = MerchantTagColorPalette.entries.map { .init(hex: $0.hex, titleKey: LocalizedStringKey($0.titleKey)) }
 }
