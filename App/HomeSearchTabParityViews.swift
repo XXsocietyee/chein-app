@@ -17,6 +17,7 @@ struct HomeHeroHeaderSectionView: View {
     @Environment(\.homeMoreMenuContent) private var moreMenuContent
     /// Continuity r1: the in-page search state borrows this field's box while it stands in for it.
     @Environment(\.homeSearchSource) private var searchSource
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @AccessibilityFocusState private var searchEntryFocused: Bool
     /// The fixed banners, plus Mini games for a signed-in session where the external-games switch is open.
     private var actionBanners: [HomeIndexParityPresentation.ActionBanner] {
@@ -134,7 +135,16 @@ struct HomeHeroHeaderSectionView: View {
                         .cyText(.bodyMedium)
                     }
                     Spacer(minLength: 0)
-                    HomeHeroAvatar(source: avatarSource)
+                    // PC-A-1-4: MP `goUser` — the avatar opens 我的 (a control, not decoration).
+                    if rootTabSwitch.isAvailable {
+                        Button { rootTabSwitch(.mine) } label: { HomeHeroAvatar(source: avatarSource) }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text(LocalizedStringKey(RootTab.mine.titleKey)))
+                            .accessibilityAddTraits(.isButton)
+                            .accessibilityIdentifier("homeIndex.hero.avatar")
+                    } else {
+                        HomeHeroAvatar(source: avatarSource)
+                    }
                 }
                 // The three fixed action banners are demoted into one quiet menu row; every banner stays reachable.
                 Menu {
