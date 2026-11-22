@@ -10,6 +10,8 @@ public struct ClubCommunityPost: Equatable, Identifiable {
     public let clubName: String
     public let liked: Bool, pinned: Bool, edited: Bool, viewerCanManage: Bool
     public let likeCount: Int, commentCount: Int
+    /// CLB-detail-03: MP utils/club-post-repost.js `viewerReposted` / `repostCount`.
+    public let reposted: Bool, repostCount: Int
     public let refType: Int?, refID: Int?, sportTopicID: Int?
     public let sportName: String, sportCover: String
     public let isTopicTemplate: Bool
@@ -27,6 +29,7 @@ public struct ClubCommunityPost: Equatable, Identifiable {
         liked = CCWire.bool(json["isLiked"] ?? json["liked"]); pinned = CCWire.bool(json["isPinned"])
         edited = CCWire.bool(json["edited"]); viewerCanManage = CCWire.bool(json["viewerCanManage"])
         likeCount = (json["likeCount"] as? Int) ?? 0; commentCount = (json["commentCount"] as? Int) ?? 0
+        reposted = CCWire.bool(json["viewerReposted"] ?? json["reposted"]); repostCount = max(0, (json["repostCount"] as? Int) ?? 0)
         refType = json["refType"] as? Int; refID = json["refId"] as? Int; sportTopicID = json["sportTopicId"] as? Int
         sportName = CCWire.text(json["sportName"]); sportCover = CCWire.text(json["sportCover"]); isTopicTemplate = CCWire.bool(json["isTopicTemplate"])
         let linkedType = (json["dataType"] as? Int) ?? (refType == 1 ? 1 : 0)
@@ -108,12 +111,14 @@ public enum ClubCommunityOperation: Equatable {
     case create(content: String, images: [String], notice: Bool = false)
     case update(content: String, images: [String], requestID: String)
     case pin(Bool, requestID: String), delete, report, toggleLike
+    /// CLB-detail-03: `true` reposts (api/club/post/repost), `false` undoes it (repost/undo); body `{ postId }`.
+    case repost(Bool)
     case comment(String), deleteComment, reportComment
     public var labelKey: String {
-        switch self { case .create: return "create"; case .update: return "edit"; case .pin: return "pin"; case .delete: return "delete"; case .report: return "report"; case .toggleLike: return "like"; case .comment: return "comment"; case .deleteComment: return "deleteComment"; case .reportComment: return "reportComment" }
+        switch self { case .create: return "create"; case .update: return "edit"; case .pin: return "pin"; case .delete: return "delete"; case .report: return "report"; case .toggleLike: return "like"; case .repost(let on): return on ? "repost" : "unrepost"; case .comment: return "comment"; case .deleteComment: return "deleteComment"; case .reportComment: return "reportComment" }
     }
     var suffix: String {
-        switch self { case .create: return "create"; case .update: return "update"; case .pin: return "pin"; case .delete: return "delete"; case .report: return "report"; case .toggleLike: return "like"; case .comment: return "comment/create"; case .deleteComment: return "comment/delete"; case .reportComment: return "comment/report" }
+        switch self { case .create: return "create"; case .update: return "update"; case .pin: return "pin"; case .delete: return "delete"; case .report: return "report"; case .toggleLike: return "like"; case .repost(let on): return on ? "repost" : "repost/undo"; case .comment: return "comment/create"; case .deleteComment: return "comment/delete"; case .reportComment: return "comment/report" }
     }
 }
 /// Must come from a fresh host membership read plus exact post/comment read under this epoch.
@@ -137,6 +142,7 @@ public struct ClubCommunityEvidence: Equatable {
         case .delete: return post != nil && (mine || manager)
         case .report: return post != nil && !mine
         case .toggleLike, .comment: return post != nil
+        case .repost: return post != nil
         case .deleteComment: return comment != nil && (comment?.memberID == viewer || manager)
         case .reportComment: return comment != nil && comment?.memberID != viewer
         }
@@ -169,7 +175,7 @@ public struct ClubCommunityReview: Equatable, Identifiable {
             guard !key.isEmpty else { throw ClubCommunityFailure.invalid }
             return ["id": postID, "pinned": pinned, "version": evidence.post!.version, "requestId": key]
         case .delete, .report: return ["id": postID]
-        case .toggleLike: return ["postId": postID]
+        case .toggleLike, .repost: return ["postId": postID]
         case let .comment(content):
             guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw ClubCommunityFailure.invalid }
             return ["postId": postID, "content": content]

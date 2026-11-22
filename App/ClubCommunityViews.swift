@@ -495,6 +495,7 @@ struct ClubCommunityPostTile: View {
     var openDetail: (() -> Void)? = nil
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
+    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     private var canLike: Bool {
         let target = clubID ?? post.clubID
@@ -515,7 +516,7 @@ struct ClubCommunityPostTile: View {
                     card: post.activityCard,
                     title: post.sportName.isEmpty ? nil : post.sportName,
                     onDoubleTapLike: canLike ? { Task { await model.prepare(.toggleLike, clubID: clubID ?? post.clubID ?? 0, post: post) } } : nil,
-                    onRepost: nil)
+                    onRepost: canLike ? { Task { await model.prepare(.repost(!post.reposted), clubID: clubID ?? post.clubID ?? 0, post: post) } } : nil)
             }
             ClubPostDiscussionBody(post: post, expanded: commentsExpanded, open: canOpenComments ? openComments : nil)
             ClubPostImageGallery(post: post, clubID: clubID, identity: identity, model: model)
@@ -537,6 +538,16 @@ struct ClubCommunityPostTile: View {
                     Button(action: openComments) { Label(commentsExpanded ? "club.discussion.collapse" : "club.community.comments", systemImage: "bubble") }
                         .disabled(!canOpenComments)
                         .accessibilityIdentifier("club.community.comments.\(post.id)")
+                    // CLB-detail-03: MP show-repost / show-share on club posts (repost through the reviewed write path).
+                    Button { Task { await model.prepare(.repost(!post.reposted), clubID: clubID, post: post) } } label: {
+                        Label(post.reposted ? "club.community.unrepost" : "club.community.repost", systemImage: "arrow.2.squarepath")
+                    }
+                    .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
+                    .accessibilityIdentifier("club.community.repost.\(post.id)")
+                    ShareLink(item: ClubPostShareText.text(post: post, locale: locale)) {
+                        Label("club.community.share", systemImage: "square.and.arrow.up")
+                    }
+                    .accessibilityIdentifier("club.community.share.\(post.id)")
                 }
                 Menu {
                     if allows(.update(content: post.content, images: post.images, requestID: "display")) { Button("club.community.edit") { editing = true } }
@@ -826,6 +837,17 @@ struct ClubCommunityComposer: View {
     }
 }
 
+/// Share text for a club post: the club name and the first line of the post. Club posts have no
+/// universal link yet, so this is plain text (MP shares a card to `pages/club/detail?id=&postId=`).
+enum ClubPostShareText {
+    static func text(post: ClubCommunityPost, locale: Locale) -> String {
+        let excerpt = post.content.split(separator: "\n").first.map(String.init).map { String($0.prefix(60)) } ?? ""
+        let club = post.clubName.isEmpty ? locale.pick("俱乐部", "Club") : post.clubName
+        return excerpt.isEmpty ? locale.pick("来看看「\(club)」的帖子", "A post from \(club)")
+            : locale.pick("「\(club)」：\(excerpt)", "\(club): \(excerpt)")
+    }
+}
+
 private enum ClubCommunityToast {
     static func message(for operation: ClubCommunityOperation) -> LocalizedStringKey? {
         switch operation {
@@ -897,7 +919,7 @@ struct ClubCommunityReviewView: View {
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
-                case .toggleLike:
+                case .toggleLike, .repost:
                     Text("club.community.toggleWarning")
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)

@@ -54,6 +54,11 @@ final class ClubCommunityTests: XCTestCase {
         XCTAssertTrue(evidence(admin: true).allows(.create(content: "a", images: [], notice: true)))
         XCTAssertEqual(try ClubCommunityReview(operation: .create(content: "a", images: [], notice: true), evidence: evidence(admin: true)).fields()["type"] as? Int, 2)
         XCTAssertNil(try ClubCommunityReview(operation: .create(content: "a", images: []), evidence: evidence()).fields()["type"])
+        // CLB-detail-03: repost / undo share the like body and route under api/club/post/.
+        XCTAssertTrue(evidence(post: item).allows(.repost(true)))
+        XCTAssertEqual(try ClubCommunityReview(operation: .repost(true), evidence: evidence(post: item)).fields()["postId"] as? Int, 20)
+        XCTAssertEqual(ClubCommunityOperation.repost(true).suffix, "repost"); XCTAssertEqual(ClubCommunityOperation.repost(false).suffix, "repost/undo")
+        XCTAssertTrue(try post(["viewerReposted": true, "repostCount": 3]).reposted)
         let others = try post(["authorMemberId": 6])
         XCTAssertTrue(evidence(post: others, admin: true).allows(.delete), "CLB-detail-06: moderators delete any post")
         XCTAssertFalse(evidence(post: others).allows(.delete))
