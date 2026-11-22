@@ -191,7 +191,12 @@ import SwiftUI
         case "subpackageRoam/nearby/index":
             SessionRoamNearbyTeamsView().environmentObject(session)
         case "subpackageRoam/my-teams/index":
-            SessionRoamNearbyTeamsView(initialTab: 1).environmentObject(session)
+            // RTEAMS-1: a topic team card opens 本场招募 by owner; otherwise the 我的队伍 tab.
+            if let ownerID = positiveID(query["ownerId"]), let ownerType = positiveID(query["ownerType"]), ownerType <= 2 {
+                OrientLobbyTeamsView(ownerType: ownerType, ownerID: ownerID, scopeTitle: query["scope"]).environmentObject(session)
+            } else {
+                SessionRoamNearbyTeamsView(initialTab: query["tab"] == "open" ? 0 : 1).environmentObject(session)
+            }
         case "subpackageRoam/official-routes/index":
             if let reader = session.officialRouteReader { OfficialRouteListView(reader: reader) } else { unavailable }
         case "subpackageTools/capsule/index":

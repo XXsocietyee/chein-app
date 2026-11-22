@@ -60,6 +60,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["subpackageRoam/citystamp/index"] = Rule(allowed: ["kind", "place"], required: [], ids: [])
         pages["subpackageRoam/official-route/index"] = optionalID
         pages["subpackageRoam/session/index"] = Rule(allowed: ["id", "shareToken", "sessionId", "ts"], required: [], ids: ["id"])
+        pages["subpackageRoam/my-teams/index"] = Rule(allowed: ["tab", "ownerType", "ownerId", "scope"], required: [], ids: ["ownerType", "ownerId"])
         pages["subpackageRoam/citynode-code/index"] = Rule(allowed: ["poiId", "name"], required: [], ids: ["poiId"])
         return pages
     }()
@@ -194,7 +195,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "subpackageMember/tixianjilu/tixianjilu",
         "subpackageRoam/history/index",
         "subpackageRoam/nearby/index",
-        "subpackageRoam/my-teams/index",
         "subpackageRoam/official-routes/index",
         "subpackageTools/capsule/index",
         "subpackageTools/monthly-recap/index",

@@ -96,12 +96,17 @@ public struct OrientSessionTeam: Decodable, Equatable {
     public let maxMembers: Int?
     public let joinedCount: Int?
     public let leaderMemberID: Int?
-    private enum CodingKeys: String, CodingKey { case teamId, title, maxMembers, joinedCount, leaderMemberId }
+    /// RTEAMS-1 lobby rows (MP `nameOf(t)` / 队长 leaderName); absent → the row falls back.
+    public let name: String?
+    public let leaderName: String?
+    private enum CodingKeys: String, CodingKey { case teamId, title, maxMembers, joinedCount, leaderMemberId, name, teamName, leaderName }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         teamID = try c.orientInt(.teamId); title = try c.decodeIfPresent(String.self, forKey: .title)
         maxMembers = try c.orientOptionalInt(.maxMembers); joinedCount = try c.orientOptionalInt(.joinedCount)
         leaderMemberID = try c.orientOptionalInt(.leaderMemberId)
+        name = ((try? c.decodeIfPresent(String.self, forKey: .name)) ?? nil) ?? ((try? c.decodeIfPresent(String.self, forKey: .teamName)) ?? nil)
+        leaderName = (try? c.decodeIfPresent(String.self, forKey: .leaderName)) ?? nil
         guard teamID > 0, maxMembers == nil || maxMembers! >= 0, joinedCount == nil || joinedCount! >= 0,
               leaderMemberID == nil || leaderMemberID! > 0 else { throw APIError.malformedResponse }
     }
