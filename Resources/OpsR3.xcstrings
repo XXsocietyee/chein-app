@@ -641,6 +641,70 @@
         }
       }
     },
+    "r3club.consequence.endTopic.confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束主题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End topic"
+          }
+        }
+      }
+    },
+    "r3club.consequence.endTopic.line1": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未开始的场次全部取消，不再接受报名"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upcoming sessions are cancelled and sign-ups close"
+          }
+        }
+      }
+    },
+    "r3club.consequence.endTopic.line2": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已付款的报名自动退款，个别订单转人工处理"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paid sign-ups are refunded; some orders may need manual handling"
+          }
+        }
+      }
+    },
+    "r3club.consequence.endTopic.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束主题"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End topic"
+          }
+        }
+      }
+    },
     "r3club.consequence.revokeRole.confirm": {
       "localizations": {
         "zh-Hans": {
@@ -909,6 +973,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Verify %lld players"
+          }
+        }
+      }
+    },
+    "editor.map.open": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开地图"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open map"
+          }
+        }
+      }
+    },
+    "editor.map.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Map"
           }
         }
       }

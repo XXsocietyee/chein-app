@@ -115,7 +115,9 @@ import UIKit
                 // Mini-program invite detail lists the two parties first (utils/coop-invite-view.js typeText).
                 LabeledContent { CooperationInvitePartyText(view: view) } label: { Text("cooperation.parties") }
                     .accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.parties")
+                // MR-36 (`186:6119`): the terms read as a table; the split is the one bold row.
                 LabeledContent { CooperationInviteTermsText(terms: view.terms) } label: { Text("cooperation.detail.share") }
+                    .fontWeight(.semibold)
                     .accessibilityIdentifier("cooperation.detail.terms")
                 let slotPage = CooperationInviteDetailPage.project(key: key, result: .success(detail))
                 if case .text(let slotCount) = slotPage.slotCount, case .text(let slotCapacity) = slotPage.slotCapacity, let kind = detail.slotLine?.kind {

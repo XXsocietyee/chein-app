@@ -74,6 +74,7 @@ extension EnvironmentValues {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     @ScaledMetric(relativeTo: .headline) private var coverSide: CGFloat = 56
     @StateObject private var navigation = ClubEnrollmentNavigation()
     private var liveHost: ClubEnrollmentHostContext {
@@ -285,7 +286,8 @@ extension EnvironmentValues {
     }
     private func signupLine(_ team: ClubEnrollmentTeam) -> some View {
         HStack(spacing: CYSpacing.xs) {
-            title(team.date, fallback: "club.enroll.dateUnknown")
+            // r4 · MC-25 / handbook dates: 「11月15日 周六」, not 2026-11-15 (unparseable source text stays as sent).
+            title(team.date.map { ClubR4Date.day($0, locale: locale) }, fallback: "club.enroll.dateUnknown")
             Text(verbatim: "·").accessibilityHidden(true)
             // Source team-meta: 已报名 N 人, or 已报名 — when the count is unknown.
             if let count = team.signupCount, count >= 0 { Text("u9cde.clubEnroll.signups \(count)").monospacedDigit() }

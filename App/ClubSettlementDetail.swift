@@ -230,24 +230,33 @@ import UIKit
                         guard current(target) else { return }
                         owner.open(target, source: source, current: currentSource(), active: active())
                     } label: {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack(alignment: .firstTextBaseline) {
-                                Text(verbatim: row.name).font(.headline)
-                                Spacer()
-                                if let amount = row.amountText { Text(verbatim: amount).font(.headline).monospacedDigit() }
-                                else { Text("clubOps.settlement.rowUnverified", tableName: "ClubOpsCustomer").font(.headline) }
+                        // r4 · MC-29: a settlement row is title, status, date line and one amount; 原始 / 调整 / 净额 live
+                        // behind the row on the detail page. An unverified amount is "—" with a 待核验 tag, never 0.
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                                Text(verbatim: row.name).font(CYTypography.cardTitle)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer(minLength: CYSpacing.sm)
+                                if let amount = row.amountText { Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit() }
+                                else {
+                                    Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).font(CYTypography.numericBody).monospacedDigit()
+                                        .accessibilityHidden(true)
+                                }
                                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                                     .accessibilityHidden(true)
                             }
-                            Text(LocalizedStringKey(row.status.localizationKey)).font(.caption)
-                                .padding(.horizontal, 8).padding(.vertical, 2)
-                                .background(Capsule().fill(row.status == .credited ? CYColor.successSoft : CYColor.textSecondary.opacity(0.15)))
-                            LabeledContent("club.settlementDetail.original") { Text(verbatim: row.originalAmountText) }
-                            LabeledContent("club.settlementDetail.adjustment") { Text(verbatim: row.executedAdjustmentText) }
-                            LabeledContent("club.settlementDetail.net") { Text(verbatim: row.netAmountText) }
-                            Text(verbatim: row.arrivedText).font(.subheadline).foregroundStyle(.secondary)
-                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText).font(.subheadline).foregroundStyle(.secondary) }
-                        }.foregroundStyle(.primary)
+                            HStack(spacing: CYSpacing.sm) {
+                                CYStatusChip(LocalizedStringKey(row.status.localizationKey), tone: row.status == .credited ? .success : .neutral)
+                                if row.amountText == nil {
+                                    CYStatusChip("clubOps.settlement.rowUnverified", tone: .warning, systemImage: "questionmark.circle", tableName: "ClubOpsCustomer")
+                                }
+                            }
+                            Text(verbatim: row.arrivedText).font(CYTypography.meta).foregroundStyle(.secondary)
+                            if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText).font(CYTypography.meta).foregroundStyle(.secondary) }
+                        }
+                        .frame(minHeight: 52, alignment: .leading)
+                        .contentShape(Rectangle())
+                        .foregroundStyle(.primary)
                     }.buttonStyle(.plain).accessibilityIdentifier("club.settlementDetail.open.\(row.id)")
                         .accessibilityHint(Text("club.settlementDetail.open"))
                 }

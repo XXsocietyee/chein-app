@@ -85,6 +85,8 @@ enum DesignFixtureRegistry {
         case "d4-tab-posts": return AnyView(D4ClubFixture(.tab(.posts)))
         case "d4-tab-events": return AnyView(D4ClubFixture(.tab(.events)))
         case "d4-tab-overview": return AnyView(D4ClubFixture(.tab(.overview)))
+        // r4 · club workbench head (`170:1744`): the owner fixture on the 管理 tab (counts unread → "—").
+        case "d4-tab-manage": return AnyView(D4ClubFixture(.tab(.manage)))
         case "d4-members": return AnyView(D4ClubFixture(.members))
         case "d4-confirm": return AnyView(D4ClubFixture(.confirm))
         case "d4-settings": return AnyView(D4MeFixture(screen: .settings))
