@@ -32,6 +32,26 @@ public enum PublicContentShareLink {
         universalLink(path: "/pages/templatedetail/topic-detail/index", id: id)
     }
 
+    /// Mini-program `subpackageJourney/pages/landing/index?k=r|g|s&t=` plus optional `aid` / `tid`: the link a
+    /// seat invite (or an issued referral) is shared as. Nil when the token or ids would not parse back to the same
+    /// landing. Building the URL issues nothing; the token comes from the server's own answer.
+    public static func journeyLanding(_ intake: JourneyLinkIntake) -> URL? {
+        let link = MiniProgramPageLink(journey: intake)
+        guard let origin, MiniProgramPageLink(path: link.page, query: link.query) == link else { return nil }
+        var components = URLComponents(string: origin)
+        components?.path = "/" + link.page
+        // Unreserved characters only, so `+`, `/`, `=` and `&` in a token survive the round trip.
+        let unreserved = CharacterSet(charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+        components?.percentEncodedQuery = ["k", "t", "aid", "tid"].compactMap { key -> String? in
+            guard let value = link.query[key], let encoded = value.addingPercentEncoding(withAllowedCharacters: unreserved) else { return nil }
+            return key + "=" + encoded
+        }.joined(separator: "&")
+        guard let url = components?.url,
+              let intent = UniversalLinkParser(verifiedHTTPSOrigins: [origin]).parse(url),
+              case .miniProgramPage(let parsed) = intent, parsed == link else { return nil }
+        return url
+    }
+
     /// Path text for a topic template whose route is not a universal link. Not a URL and not a referral.
     public static func topicTemplateCopyText(id: Int) -> String? {
         guard canonicalID(String(id)) != nil, topicTemplate(id: id) == nil else { return nil }

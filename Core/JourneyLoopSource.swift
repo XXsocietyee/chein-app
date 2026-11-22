@@ -140,14 +140,26 @@ public struct JourneyLoopSource {
         ], token: token)
     }
 
-    public func referral(token credential: String, sessionToken: String) async throws -> JourneyEnvelope {
+    /// `@Anonymous` on the server (`ApiReferralLandingController`): a signed-out invitee reads the landing too.
+    /// A nil session sends no Authorization header; a present one must still be a valid token.
+    public func referral(token credential: String, sessionToken: String?) async throws -> JourneyEnvelope {
         guard Self.acceptableToken(credential) else { throw JourneyRefusal.invalidRequest }
-        return try await postJSON(.referral, body: ["token": credential], token: sessionToken, receiptReread: false)
+        return try await postLanding(.referral, credential: credential, sessionToken: sessionToken)
     }
 
-    public func gift(token credential: String, sessionToken: String) async throws -> JourneyEnvelope {
+    public func gift(token credential: String, sessionToken: String?) async throws -> JourneyEnvelope {
         guard Self.acceptableToken(credential) else { throw JourneyRefusal.invalidRequest }
-        return try await postJSON(.gift, body: ["token": credential], token: sessionToken, receiptReread: false)
+        return try await postLanding(.gift, credential: credential, sessionToken: sessionToken)
+    }
+
+    /// Form `POST /api/topic/info-to-user` (`id=`), the read the seats and settle pages use for the topic name and cover.
+    /// `@Anonymous` on the server; a nil session sends no Authorization header. Not a write.
+    public func topicInfo(id: String, token: String?) async throws -> JourneyEnvelope {
+        guard Self.isID(id) else { throw JourneyRefusal.invalidRequest }
+        if let token, !AuthRequestBuilder.isValidToken(token) { throw JourneyRefusal.invalidRequest }
+        let request = try make(method: "POST", path: "/api/topic/info-to-user", query: [], token: token,
+                               body: Data("id=\(id)".utf8), contentType: "application/x-www-form-urlencoded;")
+        return await perform(request, receiptReread: false)
     }
 
     public func affiliate(token: String) async throws -> JourneyEnvelope {
@@ -348,6 +360,19 @@ public struct JourneyLoopSource {
         return await perform(request, receiptReread: receiptReread)
     }
 
+    private func postLanding(_ name: Self.Journey, credential: String, sessionToken: String?) async throws -> JourneyEnvelope {
+        guard let sessionToken else {
+            let binding = Self.journey(name)
+            if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
+            guard !binding.money, binding.json else { throw JourneyRefusal.moneyOff }
+            let data = try JSONSerialization.data(withJSONObject: ["token": credential], options: [.sortedKeys])
+            let request = try make(method: "POST", path: try resolve(binding, invitationID: nil), query: [], token: nil,
+                                   body: data, contentType: "application/json")
+            return await perform(request, receiptReread: false)
+        }
+        return try await postJSON(name, body: ["token": credential], token: sessionToken, receiptReread: false)
+    }
+
     private func postForm(_ name: Self.Journey, fields: [String: String], token: String) async throws -> JourneyEnvelope {
         let binding = Self.journey(name)
         if productionLease != nil, JourneyProductionLease.refused.contains(name) { throw JourneyRefusal.moneyOff }
@@ -395,7 +420,7 @@ public struct JourneyLoopSource {
         return binding.path.replacingOccurrences(of: "{invitationId}", with: invitationID)
     }
 
-    private func make(method: String, path: String, query: [URLQueryItem], token: String, body: Data?, contentType: String?) throws -> URLRequest {
+    private func make(method: String, path: String, query: [URLQueryItem], token: String?, body: Data?, contentType: String?) throws -> URLRequest {
         var url = path.split(separator: "/").reduce(configuration.baseURL) { partial, part in
             partial.appendingPathComponent(String(part))
         }
@@ -410,7 +435,7 @@ public struct JourneyLoopSource {
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.timeoutInterval = 20
         request.httpShouldHandleCookies = false
-        request.setValue(token, forHTTPHeaderField: "Authorization")
+        if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let contentType { request.setValue(contentType, forHTTPHeaderField: "Content-Type") }
         request.httpBody = body
