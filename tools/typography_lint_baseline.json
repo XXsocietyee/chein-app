@@ -4,9 +4,9 @@
   "raw text style": 1181,
   "Theme.Font": 63,
   "raw size": 67,
-  "back chevron": 15,
-  "hidden back": 15,
-  "large title": 26
+  "back chevron": 14,
+  "hidden back": 13,
+  "large title": 21
  },
  "files": {
   "App/AccessibilityReadinessSectionView.swift": {
@@ -101,9 +101,7 @@
    "raw text style": 2
   },
   "App/ChapterStoryView.swift": {
-   "raw text style": 1,
-   "back chevron": 1,
-   "hidden back": 1
+   "raw text style": 1
   },
   "App/CharacterCardReadbackView.swift": {
    "large title": 1
@@ -513,12 +511,10 @@
    "raw text style": 7
   },
   "App/GrowthCenterView.swift": {
-   "raw text style": 5,
-   "large title": 1
+   "raw text style": 5
   },
   "App/GrowthLeaderboardView.swift": {
-   "raw text style": 5,
-   "large title": 1
+   "raw text style": 5
   },
   "App/HomeFeedView.swift": {
    "large title": 1
@@ -900,8 +896,7 @@
    "Theme.Font": 1
   },
   "App/ObjectBadgeViews.swift": {
-   "raw text style": 1,
-   "large title": 1
+   "raw text style": 1
   },
   "App/ObjectBadgeWallParityViews.swift": {
    "Theme.Font": 2
@@ -920,9 +915,6 @@
   },
   "App/OfficialOrganizerConsoleView.swift": {
    "raw text style": 1
-  },
-  "App/OfficialRouteViews.swift": {
-   "large title": 1
   },
   "App/OfflineDurableRecoverySectionView.swift": {
    "raw text style": 3
@@ -985,8 +977,7 @@
    "raw text style": 2
   },
   "App/PlayKitScreen.swift": {
-   "raw text style": 1,
-   "hidden back": 1
+   "raw text style": 1
   },
   "App/PlayKitTimedChallengeView.swift": {
    "raw text style": 1
@@ -1263,8 +1254,7 @@
    "raw text style": 1
   },
   "App/RoamStampViews.swift": {
-   "raw text style": 5,
-   "large title": 1
+   "raw text style": 5
   },
   "App/RoamSubpageParityViews.swift": {
    "raw text style": 8
