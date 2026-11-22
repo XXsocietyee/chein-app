@@ -305,7 +305,13 @@ struct OfficialParticipationPresentation {
     var arrival: OfficialArrivalEvidence? = nil
     var onReturn: (() -> Void)? = nil
     @State private var presentation = OfficialParticipationPresentation()
+    @State private var safetyConsented = false
     @Environment(\.playerGapService) private var gapService
+    /// PC-C-4-1: a signup with a 安全须知 needs the explicit check first.
+    private var needsSafetyConsent: Bool {
+        if case .signup? = command, event.safetyNoticeTitle != nil { return true }
+        return false
+    }
     private var command: OfficialActionCommand? {
         guard !event.paused else { return nil }
         if event.signed == false && [2, 3].contains(event.status ?? -1) { return .signup(event.id) }
@@ -319,16 +325,34 @@ struct OfficialParticipationPresentation {
     var body: some View {
         let presentationID = presentation.entry?.id
         Section("officialAction.participation") {
+            if needsSafetyConsent, let title = event.safetyNoticeTitle {
+                // MP cy-consent-check: a checkbox, never pre-checked.
+                Button { safetyConsented.toggle() } label: {
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                        Image(systemName: safetyConsented ? "checkmark.square.fill" : "square")
+                            .foregroundStyle(safetyConsented ? CYColor.brand : CYColor.textSecondary)
+                        Text("official.safetyNotice.agree \(title)").cyText(.bodyCompact)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(safetyConsented ? .isSelected : [])
+                .accessibilityIdentifier("official.safetyNotice.consent")
+            }
             // The mini-program signs up through the SIGNUP command with a kept request id.
             if case .signup(let eventID)? = command, gapService != nil {
-                OfficialSignupCommandSection(eventID: eventID, onSettled: { onReturn?() })
+                OfficialSignupCommandSection(eventID: eventID, onSettled: { onReturn?() },
+                                             consented: !needsSafetyConsent || safetyConsented)
             } else if let command {
                 CYPillButton(LocalizedStringKey(command.titleKey)) {
                     // Capture the detail visit at presentation time. A late dismissal
                     // must not use a callback supplied by a newer account or page.
                     presentation.open(command: command, onReturn: onReturn)
                 }
-                    .disabled(presentation.entry != nil)
+                    .disabled(presentation.entry != nil || (needsSafetyConsent && !safetyConsented))
                     .accessibilityIdentifier("officialAction.participationReview").e1ActionRow()
             } else { Text("officialAction.noAction").foregroundStyle(.secondary) }
         }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {

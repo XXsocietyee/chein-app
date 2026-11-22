@@ -278814,6 +278814,40 @@
           }
         }
       }
+    },
+    "official.safetyNotice.agree %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have read and agree to “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已阅读并同意《%@》"
+          }
+        }
+      }
+    },
+    "official.safetyNotice.required": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the safety notice first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先勾选安全须知"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
