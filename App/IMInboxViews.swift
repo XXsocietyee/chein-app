@@ -65,7 +65,6 @@ struct IMUnreadBadge: View {
     let count: Int?
     var muted = false
     var unknownAsDash = false
-    @QuestifyReduceMotion private var reduceMotion
     private var text: String? {
         unknownAsDash ? IMListPageReady.rowUnreadBadge(count) : IMInboxSummary.badgeText(count)
     }
@@ -75,9 +74,8 @@ struct IMUnreadBadge: View {
             Text(verbatim: text)
                 .cyText(.caption, weight: .semibold).monospacedDigit()
                 // Continuity: a count that drops (read in the chat, read-all) rolls down digit by digit instead of
-                // redrawing; Reduce Motion keeps a short cross-fade.
-                .contentTransition(reduceMotion ? .opacity : .numericText(value: Double(count ?? 0)))
-                .cyAnimation(CYMotion.standard, value: text)
+                // redrawing (C1's shared `cyNumericRoll`); Reduce Motion keeps a short cross-fade.
+                .cyNumericRoll(Double(count ?? 0))
                 .padding(.horizontal, 6).padding(.vertical, 2)
                 .foregroundStyle(quiet ? CYColor.textSecondary : CYColor.textOnAccent)
                 .background(Capsule().fill(quiet ? CYColor.textSecondary.opacity(0.25) : CYColor.dangerSolid))
