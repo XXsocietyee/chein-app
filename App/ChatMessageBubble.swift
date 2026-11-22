@@ -40,6 +40,7 @@ struct ChatMessageBubble<Sender: View, Content: View>: View {
                 .multilineTextAlignment(.leading)
                 .fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
+                .environment(\.imPreviewInk, isOwn ? .sent : .page)
                 .padding(.horizontal, Theme.Space.s3 + 2).padding(.vertical, Theme.Space.s2 + 1)
                 .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: shape)
             if let timestamp, !timestamp.isEmpty {

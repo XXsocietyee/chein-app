@@ -157,12 +157,13 @@ extension EnvironmentValues {
 struct IMRecipientPreviewRow: View {
     let message: MessagingMessage
     let input: IMRecipientPreviewInput
+    @Environment(\.imPreviewInk) private var ink
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text("im.preview.section", tableName: "IMRecipientPreview")
                 .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
+                .foregroundStyle(ink.secondary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
@@ -179,6 +180,7 @@ struct IMRecipientPreviewRow: View {
 private struct IMRecipientPreviewLineView: View {
     let line: IMRecipientPreviewLine
     let messageID: Int
+    @Environment(\.imPreviewInk) private var ink
 
     var body: some View {
         CurA11yPair(leading: titleBlock, trailing: valueBlock)
@@ -192,7 +194,7 @@ private struct IMRecipientPreviewLineView: View {
     private var titleBlock: some View {
         title
             .cyText(.body)
-            .foregroundStyle(CYColor.textSecondary)
+            .foregroundStyle(ink.secondary)
             .lineLimit(nil)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -201,17 +203,17 @@ private struct IMRecipientPreviewLineView: View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             stateLabel
                 .cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
+                .foregroundStyle(ink.secondary)
                 .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
             if line.kind == .issued {
                 issuedValueText
                     .cyText(.meta)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(ink.primary)
                     .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
-                CurA11yDashText(shown: line.value, font: CYTypography.meta, color: CYColor.textPrimary)
+                CurA11yDashText(shown: line.value, font: CYTypography.meta, color: ink.primary)
             }
         }
     }
@@ -269,5 +271,24 @@ private struct IMRecipientPreviewLineView: View {
         case .issued:
             Text("im.preview.ready", tableName: "IMRecipientPreview")
         }
+    }
+}
+
+/// The ink the preview row draws with. Inside a sent bubble (light fill on the dark player page) the page's text tokens
+/// were light grey on near-white and the issued values white on near-white (combined-r4 verify), so the bubble hands
+/// its own ink down (one ink: the lint keeps opacity off text, and there is no secondary-on-sent token).
+struct IMPreviewInk {
+    let primary: Color
+    let secondary: Color
+    static let page = IMPreviewInk(primary: CYColor.textPrimary, secondary: CYColor.textSecondary)
+    static let sent = IMPreviewInk(primary: CYChat.onSent, secondary: CYChat.onSent)
+}
+
+private struct IMPreviewInkKey: EnvironmentKey { static let defaultValue = IMPreviewInk.page }
+
+extension EnvironmentValues {
+    var imPreviewInk: IMPreviewInk {
+        get { self[IMPreviewInkKey.self] }
+        set { self[IMPreviewInkKey.self] = newValue }
     }
 }
