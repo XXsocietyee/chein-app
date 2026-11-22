@@ -65,7 +65,8 @@ import SwiftUI
                                 LabeledContent("couponManagement.remaining", value: CouponInfoCount.display(row.remaining))
                                     .cyText(.caption, monospacedDigit: true)
                                 if row.state != .active {
-                                    CYStatusChip(LocalizedStringKey(row.state.key), tone: .neutral)
+                                    CYStatusChip(LocalizedStringKey(row.state.key),
+                                                 tone: row.state == .invalidated || row.state == .stopped ? .danger : .neutral)
                                 }
                                 Text("\(CouponValidityTime.display(row.startTime) ?? "—") – \(CouponValidityTime.display(row.endTime) ?? "—")")
                                     .cyText(.caption)
@@ -90,7 +91,7 @@ import SwiftUI
         .merchantM02Page()
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .navigationTitle("couponManagement.title")
+        .cyPageTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false
             if isSourceVisible, sessionKey != nil { await model.core.load(); model.revision += 1 }
@@ -168,7 +169,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
             else { Text("couponManagement.unavailable") }
         }
         .merchantM02Page()
-        .navigationTitle("couponManagement.detail")
+        .cyPageTitle("couponManagement.detail")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { model.run { await model.core.load() } } label: { Label("couponManagement.refresh", systemImage: "arrow.clockwise") }
@@ -252,7 +253,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .cyHeroScreen()
         .cyDomainScreen(.topicEditor)
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle("couponManagement.create")
+        .cyPageTitle("couponManagement.create")
         .interactiveDismissDisabled(model.core.draft.dirty || model.working)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

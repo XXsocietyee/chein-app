@@ -46,10 +46,10 @@ extension EnvironmentValues {
                     CYEmptyState(systemImage: "ticket", "couponCode.missing", detail: "couponCode.missing.detail",
                                  messageIdentifier: "couponCode.missing", kind: .orders)
                 } else { content(presentation: presentation, appearance: appearance) }
-                if model.pollDelayed { Text("couponCode.pollDelayed").font(.footnote) }
-                Text("couponCode.authority").font(.footnote).foregroundStyle(.secondary)
+                if model.pollDelayed { Text("couponCode.pollDelayed").cyText(.meta) }
+                Text("couponCode.authority").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }.padding().frame(maxWidth: .infinity)
-        }.navigationTitle("couponCode.title").navigationBarTitleDisplayMode(.large)
+        }.cyPageTitle("couponCode.title")
             .cyDomainPageBackground()
             .privacySensitive().accessibilityIdentifier("couponCode.view")
             .sheet(isPresented: $review) {
@@ -112,9 +112,9 @@ extension EnvironmentValues {
                             .animation(reduceMotion ? nil : CYMotion.standard, value: model.remainingText)
                     }
                 }
-                .cyText(.meta).foregroundStyle(.secondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("couponCode.remaining")
-                Text("couponCode.presentToMerchant").font(.subheadline).foregroundStyle(.secondary)
+                Text("couponCode.presentToMerchant").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 retryButton("couponCode.refresh", identifier: "couponCode.refresh", presentation: presentation, appearance: appearance)
                     .buttonStyle(.bordered).buttonBorderShape(.capsule)
             }

@@ -79,7 +79,7 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
-        .appNavigationTitle("accountCollection.coupons.title")
+        .cyPageTitle("accountCollection.coupons.title")
         .cyHideTabBar()
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }
@@ -125,14 +125,13 @@ import SwiftUI
             appearance.end(model: model)
             if viewPresentation === appearance { viewPresentation = OwnedCouponReadViewPresentation() }
         }
-        .cyDomainScreen(.player)
     }
 }
 
 struct AccountCollectionCouponRow: View {
     let coupon: AccountCollectionCoupon
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
                 .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
@@ -146,7 +145,11 @@ struct AccountCollectionCouponRow: View {
                 // Mini-program date line: {day} 起可用.
                 QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
             }
-            // The pill already says Invalid. Otherwise an unknown end date is an em dash, as in the mini-program.
+            // MP: an invalid coupon replaces the date line with 该券已被平台手动失效.
+            if coupon.status == .invalid {
+                Text("accountCollection.coupon.invalidHint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            // Otherwise an unknown end date is an em dash, as in the mini-program.
             if coupon.status != .invalid {
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil",
                                      value: AccountCollectionCoupon.calendarDay(coupon.endTime) ?? "—", systemImage: "calendar")
