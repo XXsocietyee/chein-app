@@ -313,7 +313,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                                 let step = firstIncompleteStep
                                 model.step = step
                                 model.errorKey = model.draft.blocker(step: step)
-                            } else if model.coordinator.identityGate != .registered {
+                            } else if model.coordinator.identityGate != .registered && !model.draft.canRegisterIdentity {
                                 model.errorKey = "merchant.onboarding.identity.required"
                             } else {
                                 model.prepare(); showSubmitConfirmation = model.confirmation != nil
@@ -342,7 +342,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     private var basicSection: some View {
         Section("merchant.onboarding.step.1") {
             TextField("merchant.onboarding.name", text: $model.draft.name).accessibilityIdentifier("merchant.onboarding.name")
-            TextField("merchant.onboarding.preference", text: $model.draft.preference)
+            // Parity apply P0 (M-16): 行业类型 picked from the MERCHANT catalog, 1–5, sent as categoryIds.
+            MerchantOnboardingCategoryRow(model: model)
             TextField("merchant.onboarding.phone", text: $model.draft.phone).keyboardType(.phonePad)
                 .accessibilityIdentifier("merchant.onboarding.phone")
         }
@@ -391,7 +392,6 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                     Button("merchant.onboarding.discardPhoto", role: .destructive) { model.selectedImage = nil }
                 }
                 Button("merchant.onboarding.chooseLicense") { showPhotos = true }
-                    .disabled(model.coordinator.identityGate != .registered)
                     .accessibilityIdentifier("merchant.onboarding.chooseLicense")
             }
             MerchantOnboardingBrandImagesEditor(model: model, pickerPresented: $showBrandPhotos,
@@ -405,7 +405,9 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             // sentence above the pinned 提交入驻申请.
             Section {
                 reviewRow("merchant.onboarding.name", model.draft.name)
-                reviewRow("merchant.onboarding.preference", model.draft.preference)
+                reviewRow("merchant.onboarding.category", model.draft.categoryNames.isEmpty
+                          ? (model.draft.categoryIDs.isEmpty ? "" : model.draft.categoryIDs.map { "#\($0)" }.joined(separator: " · "))
+                          : model.draft.categoryNames.joined(separator: " · "))
                 reviewRow("merchant.onboarding.phone", model.draft.phone)
             } header: { reviewHeader(group: 1) }
             Section {
@@ -471,7 +473,8 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             case .registered: CYStatusChip("merchant.onboarding.identity.registered", tone: .success, systemImage: "checkmark")
             case .checking: CYSkeleton().accessibilityLabel(Text("merchant.onboarding.identity.checking"))
             case .required:
-                Text("merchant.onboarding.identity.required").accessibilityIdentifier("merchant.onboarding.identityGate")
+                // Parity apply P0: not a blocker any more; the identity entered in step 4 is registered on submit.
+                Text("merchant.onboarding.identity.registerOnSubmit").accessibilityIdentifier("merchant.onboarding.identityGate")
                 Text("merchant.onboarding.identity.regionalGate").font(.footnote).foregroundStyle(.secondary)
                 Button("merchant.onboarding.identity.recheck") { Task { await model.checkIdentity() } }
             case .unchecked, .unavailable:

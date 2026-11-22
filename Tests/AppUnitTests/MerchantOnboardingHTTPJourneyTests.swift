@@ -52,7 +52,7 @@ import FoundationNetworking
             var draft = MerchantOnboardingDraft()
             draft.name = " Exact synthetic store "
             draft.phone = "2025550100"; draft.address = "Synthetic address"
-            draft.businessTime = "Stored hours"
+            draft.businessTime = "Stored hours"; draft.categoryIDs = [11]
             draft.license = try .init(serverURL: "https://fixtures.example/license.jpg")
             // Identity step (owner 2026-11-16): the GB 11643 worked example, a valid synthetic number.
             draft.realName = "示例商户"; draft.idCardNumber = MerchantIdentityNumber("11010519491231002X"); draft.identityConsent = true
@@ -82,9 +82,9 @@ import FoundationNetworking
         let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
         XCTAssertEqual(fields["name"] as? String, "Exact synthetic store")
         XCTAssertEqual(fields["businessLicense"] as? String, "https://fixtures.example/license.jpg")
-        XCTAssertEqual(fields["realName"] as? String, "示例商户")
-        XCTAssertEqual(fields["idCardNumber"] as? String, "11010519491231002X")
-        XCTAssertTrue(String(decoding: body, as: UTF8.self).contains("\"identityConsent\":true"))
+        // Parity apply P0: identity is registered separately (already registered here), never in the application body.
+        XCTAssertNil(fields["realName"]); XCTAssertNil(fields["idCardNumber"]); XCTAssertNil(fields["identityConsent"])
+        XCTAssertEqual(fields["categoryIds"] as? String, "11")
         XCTAssertNil(fields["status"]); XCTAssertNil(fields["accountStatus"]); XCTAssertNil(fields["roleCode"])
         XCTAssertEqual(h.wire.requests.compactMap { $0.url?.path }, [
             "/api/merchant/info", "/api/publisher/identity/status",

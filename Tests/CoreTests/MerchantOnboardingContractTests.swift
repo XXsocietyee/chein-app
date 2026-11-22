@@ -40,6 +40,8 @@ final class MerchantOnboardingContractTests: XCTestCase {
         var draft = MerchantOnboardingDraft()
         XCTAssertEqual(draft.blocker(step: 1), "merchant.onboarding.required.name")
         draft.name = "Example Store"
+        XCTAssertEqual(draft.blocker(step: 1), "merchant.onboarding.required.category")
+        draft.categoryIDs = [11, 61]
         XCTAssertEqual(draft.blocker(step: 1), "merchant.onboarding.required.phone")
         draft.phone = "+44 example"
         XCTAssertNil(draft.blocker(step: 1)) // Source checks nonblank, not a country-specific phone regex.
@@ -51,7 +53,8 @@ final class MerchantOnboardingContractTests: XCTestCase {
         draft.license = try .init(serverURL: "https://fixtures.example/license.jpg")
         XCTAssertNil(draft.blocker())
         let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: draft.jsonData()) as? [String: Any])
-        XCTAssertEqual(Set(fields.keys), Set(["name", "preference", "phone", "description", "address", "businessTime", "businessLicense", "wechat"]))
+        XCTAssertEqual(Set(fields.keys), Set(["name", "categoryIds", "phone", "description", "address", "businessTime", "businessLicense", "wechat"]))
+        XCTAssertEqual(fields["categoryIds"] as? String, "11,61") // Parity apply P0 (M-16): MP joins industry ids with ","
         XCTAssertNil(fields["id"]); XCTAssertNil(fields["ssn"]); XCTAssertNil(fields["ein"]); XCTAssertNil(fields["roleCode"])
     }
     // Owner 2026-11-16 (verify-r1 Q2 changed): 真实姓名 + 身份证号, GB 11643 check, masked everywhere it is shown.
@@ -93,12 +96,17 @@ final class MerchantOnboardingContractTests: XCTestCase {
         XCTAssertNil(fields["realName"]); XCTAssertNil(fields["idCardNumber"]); XCTAssertNil(fields["identityConsent"])
         draft.identityConsent = true
         XCTAssertNil(draft.blocker(step: 4))
-        let body = try draft.jsonData()
+        // Parity apply P0: identity never rides on merchant_registration; it goes to POST api/publisher/identity first.
+        fields = try XCTUnwrap(JSONSerialization.jsonObject(with: draft.jsonData()) as? [String: Any])
+        XCTAssertNil(fields["realName"]); XCTAssertNil(fields["idCardNumber"]); XCTAssertNil(fields["identityConsent"])
+        let body = try draft.identityRegistrationData()
         fields = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
+        XCTAssertEqual(Set(fields.keys), ["realName", "idCard", "consent", "source"])
         XCTAssertEqual(fields["realName"] as? String, "示例商户")
-        XCTAssertEqual(fields["idCardNumber"] as? String, "11010519491231002X")
+        XCTAssertEqual(fields["idCard"] as? String, "11010519491231002X")
+        XCTAssertEqual(fields["source"] as? String, "merchant_apply")
         // A JSON boolean, not the number 1 (Darwin bridges NSNumber 1 to Bool, so check the wire text).
-        XCTAssertTrue(String(decoding: body, as: UTF8.self).contains("\"identityConsent\":true"))
+        XCTAssertTrue(String(decoding: body, as: UTF8.self).contains("\"consent\":true"))
     }
     func testOnlyRejectedApplicationsBackfillTheirIDAndSourceFields() throws {
         for status in [0, 1] { XCTAssertThrowsError(try MerchantOnboardingDraft(reapplying: makeMerchantOnboardingApplication(status: status))) }
@@ -148,6 +156,7 @@ func makeMerchantOnboardingApplication(status: Int = 0, accountStatus: Int = 0,
 func makeMerchantOnboardingDraft() throws -> MerchantOnboardingDraft {
     var draft = MerchantOnboardingDraft()
     draft.name = " Example Store "; draft.phone = "2025550100"; draft.address = "Example address"; draft.businessTime = "Stored hours"
+    draft.categoryIDs = [11]
     draft.license = try .init(serverURL: "https://fixtures.example/license.jpg")
     return draft
 }

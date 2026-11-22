@@ -15,16 +15,26 @@ final class MerchantOnboardingCoordinatorTests: XCTestCase {
         XCTAssertThrowsError(try coordinator.prepare(makeMerchantOnboardingDraft()))
         XCTAssertTrue(server.submissions.isEmpty)
     }
-    func testIdentityRequirementGatesUploadsAndSubmissionWithoutCollectingIdentity() async throws {
+    func testUnregisteredIdentityGatesSubmissionButNotTheLicenseStep() async throws {
         let server = MerchantOnboardingFakeServer(); server.registered = false
         let coordinator = await ready(server)
         XCTAssertEqual(coordinator.identityGate, .required)
+        // No identity in the draft: nothing to register, so submission stays blocked.
         XCTAssertThrowsError(try coordinator.prepare(makeMerchantOnboardingDraft())) { XCTAssertEqual($0 as? MerchantOnboardingBlock, .identityRequired) }
-        do {
-            _ = try await coordinator.uploadLicense(.init(jpegData: Data([0xff, 0xd8, 0xff])), expectedIdentity: server.identity!)
-            XCTFail()
-        } catch { XCTAssertEqual(error as? MerchantOnboardingBlock, .identityRequired) }
-        XCTAssertEqual(server.uploads, 0); XCTAssertTrue(server.submissions.isEmpty)
+        // Parity apply P0: the step-3 license upload no longer waits for a registered identity.
+        _ = try await coordinator.uploadLicense(.init(jpegData: Data([0xff, 0xd8, 0xff])), expectedIdentity: server.identity!)
+        XCTAssertEqual(server.uploads, 1); XCTAssertTrue(server.submissions.isEmpty)
+    }
+    func testUnregisteredIdentityIsRegisteredBeforeTheApplication() async throws {
+        let server = MerchantOnboardingFakeServer(); server.registered = false
+        let coordinator = await ready(server)
+        var draft = try makeMerchantOnboardingDraft()
+        draft.realName = "示例商户"; draft.idCardNumber = MerchantIdentityNumber("11010519491231002X"); draft.identityConsent = true
+        let confirmation = try coordinator.prepare(draft)
+        await coordinator.confirm(confirmation)
+        XCTAssertEqual(server.identityRegistrations, 1)
+        XCTAssertEqual(server.submissions.count, 1)
+        XCTAssertEqual(coordinator.identityGate, .registered)
     }
     func testIdentityFailureRemainsUnknownAndCanBeRechecked() async throws {
         let server = MerchantOnboardingFakeServer(); server.identityError = APIError.malformedResponse
@@ -188,7 +198,7 @@ final class MerchantOnboardingFakeServer: MerchantOnboardingServing {
     var identityError: Error?
     var submitError: Error?
     var afterSubmit: MerchantOnboardingSnapshot?
-    var applicationReads = 0, identityReads = 0, uploads = 0
+    var applicationReads = 0, identityReads = 0, uploads = 0, identityRegistrations = 0
     var submissions: [MerchantOnboardingDraft] = []
     var onSubmit: (() -> Void)?
     var suspendSubmit = false
@@ -215,6 +225,10 @@ final class MerchantOnboardingFakeServer: MerchantOnboardingServing {
         if suspendSubmit { try await withCheckedThrowingContinuation { submitContinuation = $0 } }
         if let submitError { throw submitError }
         if let afterSubmit { snapshot = afterSubmit }
+    }
+    func registerIdentity(_ draft: MerchantOnboardingDraft, expectedIdentity: ProfileReadIdentity) async throws {
+        guard identity == expectedIdentity, draft.canRegisterIdentity else { throw MerchantOnboardingWriteError.notSent }
+        identityRegistrations += 1; registered = true
     }
     func resumeSubmit() { submitContinuation?.resume(); submitContinuation = nil }
 }

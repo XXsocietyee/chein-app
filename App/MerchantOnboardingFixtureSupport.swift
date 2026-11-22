@@ -42,6 +42,7 @@ struct MerchantOnboardingFixtureRoot: View {
 
 @MainActor
 final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnboardingServing {
+    private var identityRegisteredLocally = false
     let isConfigured = true
     @Published var isSignedIn = true
     @Published var sessionRevision: UInt64 = 1
@@ -74,7 +75,17 @@ final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnbo
     func identityRegistered(expectedIdentity: ProfileReadIdentity) async throws -> Bool {
         try validate(expectedIdentity)
         if name == "identity-error" { throw APIError.malformedResponse }
-        return name != "identity-required"
+        return name != "identity-required" || identityRegisteredLocally
+    }
+    func categories(expectedIdentity: ProfileReadIdentity) async throws -> [MerchantOnboardingCategory] {
+        try validate(expectedIdentity)
+        let rows = try JSONSerialization.data(withJSONObject: [["id": 11, "categoryName": "餐饮"], ["id": 12, "categoryName": "娱乐"], ["id": 61, "categoryName": "文创"]])
+        return try JSONDecoder().decode([MerchantOnboardingCategory].self, from: rows)
+    }
+    func registerIdentity(_ draft: MerchantOnboardingDraft, expectedIdentity: ProfileReadIdentity) async throws {
+        try validate(expectedIdentity)
+        guard draft.canRegisterIdentity else { throw MerchantOnboardingWriteError.notSent }
+        identityRegisteredLocally = true
     }
     func uploadLicense(_ image: MerchantOnboardingImage, expectedIdentity: ProfileReadIdentity) async throws -> MerchantOnboardingLicense {
         try validate(expectedIdentity)

@@ -88,7 +88,7 @@ final class MerchantOnboardingModel: ObservableObject {
         step = min(MerchantOnboardingSteps.review, step + 1)
     }
     func select(_ item: PhotosPickerItem) async {
-        guard !isBusy, coordinator.identityGate == .registered else { return }
+        guard !isBusy else { return }
         let request = generation, expectedIdentity = identity
         selectedImage = nil; isBusy = true; errorKey = nil
         do {
@@ -112,7 +112,7 @@ final class MerchantOnboardingModel: ObservableObject {
     private var pendingLicenseRemovalID: UUID?
     var canRemoveLicense: Bool {
         guard !isBusy, !coordinator.isUploading, identity != nil, identity == coordinator.identity,
-              coordinator.isConfigured, coordinator.identityGate == .registered,
+              coordinator.isConfigured,
               !coordinator.submission.isLocked, confirmation == nil,
               selectedImage == nil, selectedBrandImage == nil, draft.license != nil else { return false }
         switch coordinator.loadState {
@@ -157,7 +157,7 @@ final class MerchantOnboardingModel: ObservableObject {
     }
     var canEditBrandImages: Bool {
         !isBusy && identity != nil && identity == coordinator.identity &&
-        coordinator.identityGate == .registered && !coordinator.submission.isLocked &&
+        !coordinator.submission.isLocked &&
         !draft.brandImagesSourceUnavailable
     }
     var canUploadBrandImage: Bool {
@@ -178,7 +178,7 @@ final class MerchantOnboardingModel: ObservableObject {
         do {
             let image = try await load()
             guard request == generation, expectedIdentity == coordinator.identity, draft == original,
-                  !coordinator.submission.isLocked, coordinator.identityGate == .registered, !Task.isCancelled else { return }
+                  !coordinator.submission.isLocked, !Task.isCancelled else { return }
             selectedBrandImage = image; selectedBrandImageID = UUID(); selectedBrandDraft = original
         } catch {
             if request == generation, expectedIdentity == coordinator.identity { errorKey = "merchant.onboarding.photoFailed" }

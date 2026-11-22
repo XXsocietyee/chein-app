@@ -76,6 +76,26 @@ public struct MerchantOnboardingService {
         do { return try JSONDecoder().decode(IdentityResponse.self, from: data).data.registered }
         catch { throw APIError.malformedResponse }
     }
+    /// Source apply/index.js loadIndustryRows: POST api/category/list {type: MERCHANT, parentid: 0} (form).
+    public func categories(token: String) async throws -> [MerchantOnboardingCategory] {
+        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        let prepared = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/category/list"),
+            fields: ["type": "MERCHANT", "parentid": "0"], token: token)
+        let data = try await read(prepared)
+        struct Rows: Decodable { let data: [MerchantOnboardingCategory] }
+        do {
+            let rows = try JSONDecoder().decode(Rows.self, from: data).data
+            var seen = Set<Int>(); return rows.filter { seen.insert($0.id).inserted }
+        } catch { throw APIError.malformedResponse }
+    }
+    /// Parity apply P0: register the publisher identity BEFORE merchant_registration (the server refuses a new
+    /// registration without it: 请先登记实名信息). Body never logged; sent once per explicit submit.
+    public func registerIdentity(_ draft: MerchantOnboardingDraft, token: String) async throws {
+        let prepared: URLRequest
+        do { prepared = try request("api/publisher/identity", token: token, json: draft.identityRegistrationData()) }
+        catch { throw MerchantOnboardingWriteError.notSent }
+        _ = try await write(prepared)
+    }
     public func submit(_ draft: MerchantOnboardingDraft, token: String) async throws {
         let prepared: URLRequest
         do { prepared = try request("api/merchant/merchant_registration", token: token, json: draft.jsonData()) }

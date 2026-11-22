@@ -125,7 +125,8 @@ final class MerchantOnboardingFlowTests: XCTestCase {
         XCTAssertTrue(gate.waitForExistence(timeout: 5), app.debugDescription)
         let choose = app.buttons["merchant.onboarding.chooseLicense"]
         reveal(choose)
-        XCTAssertTrue(choose.exists); XCTAssertFalse(choose.isEnabled)
+        // Parity apply P0: the license step no longer waits for identity; identity is registered at submit.
+        XCTAssertTrue(choose.exists); XCTAssertTrue(choose.isEnabled)
         assertCount("merchant.onboarding.fixture.uploadCount", 0)
         tap(app.buttons["merchant.onboarding.next"])
         let submit = app.buttons["merchant.onboarding.submit"]
