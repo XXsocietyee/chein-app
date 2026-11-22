@@ -237,6 +237,8 @@ struct TopicXcxActionBar: View {
     var shareTitle: String? = nil
     var isFavorited: Bool? = nil
     var onToggleFavorite: (() -> Void)? = nil
+    /// Continuity r1 (6): the host's namespace. Each bar button is the zoom source of the sheet it opens; nil keeps plain buttons.
+    var heroNamespace: Namespace.ID? = nil
 
     /// The cheapest known ticket, for 「¥X 起」 / 免费 on a sign-up topic. Unknown prices are left out.
     private var lowestTicketPrice: Decimal? { topic.tickets.compactMap(\.price).min() }
@@ -268,6 +270,7 @@ struct TopicXcxActionBar: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .modifier(TopicBarHeroSource(sheet: .sessions, namespace: heroNamespace, cornerRadius: CYRadius.sm))
                 .pageTemplateControl(label: Text("topicXcx.cta.sessions"), traits: .isButton)
                 .pageTemplateReadingOrder(2)
                 .accessibilityIdentifier("topic.cta.sessions")
@@ -298,6 +301,7 @@ struct TopicXcxActionBar: View {
                                 Label("topicXcx.bar.toTickets", systemImage: "ticket").frame(minWidth: 132)
                             }
                             .buttonStyle(.cyPrimary)
+                            .modifier(TopicBarHeroSource(sheet: .tickets, namespace: heroNamespace))
                             .accessibilityLabel(Text("topicXcx.cta.ticketWallet"))
                             .accessibilityIdentifier("topic.cta.tickets")
                         } else {
@@ -306,6 +310,7 @@ struct TopicXcxActionBar: View {
                     case .locked(let lifecycle):
                         if TopicXcxFacts.opensPricing(topic), let openPricing {
                             Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .modifier(TopicBarHeroSource(sheet: .pricing, namespace: heroNamespace))
                                 .pageTemplateControl(label: Text("topicXcx.cta.confirmPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.pricing")
                         } else {
@@ -315,11 +320,13 @@ struct TopicXcxActionBar: View {
                         Button(action: openSelfPlay) {
                             Text("topicXcx.cta.selfPlayNoPrice").frame(minWidth: 132)
                         }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
+                            .modifier(TopicBarHeroSource(sheet: .selfPlay, namespace: heroNamespace))
                             .accessibilityAddTraits(.isButton)
                             .pageTemplateReadingOrder(1)
                             .accessibilityIdentifier("topic.cta.selfPlay")
                     case .signUp:
                         Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(minWidth: 132) }.buttonStyle(.cyPrimary)
+                            .modifier(TopicBarHeroSource(sheet: .sessions, namespace: heroNamespace))
                             .pageTemplateControl(label: Text("topicXcx.cta.signUp"), traits: .isButton)
                             .disabled(topic.merchantClosed)
                             .accessibilityIdentifier("topic.cta.signUp")
@@ -329,6 +336,47 @@ struct TopicXcxActionBar: View {
                 .accessibilityIdentifier("topic.actionBar")
             }
         }
+    }
+}
+
+/// The sheets the topic bottom bar opens. Each is the zoom id that pairs a bar button with its sheet (continuity r1 item 6).
+/// 立即报名 and 查看场次 both open the session sheet but never show together (sign-up vs self-play states), so one id is unique.
+enum TopicBarSheet: Hashable { case sessions, selfPlay, tickets, pricing }
+
+/// `cyHeroSource` for a bar button when the host passed a namespace. Primary buttons clip at the button radius (`CYRadius.md`).
+private struct TopicBarHeroSource: ViewModifier {
+    let sheet: TopicBarSheet
+    let namespace: Namespace.ID?
+    var cornerRadius: CGFloat = CYRadius.md
+    @ViewBuilder func body(content: Content) -> some View {
+        if let namespace { content.cyHeroSource(sheet, in: namespace, cornerRadius: cornerRadius) } else { content }
+    }
+}
+
+/// The sheet's side of the pair: `cyHeroDestination` only when the bar opened this sheet (`origin`). Other openers of the
+/// same sheet (paywall 解锁, contact save) keep the plain slide-up, so a sheet never zooms out of a button it did not come from.
+struct TopicBarHeroDestination: ViewModifier {
+    let sheet: TopicBarSheet
+    let origin: TopicBarSheet?
+    let namespace: Namespace.ID
+    @ViewBuilder func body(content: Content) -> some View {
+        if origin == sheet { content.cyHeroDestination(sheet, in: namespace) } else { content }
+    }
+}
+
+/// The topic page behind a bar sheet recedes (scale 0.96, corners to `CYRadius.xl`) while the sheet zooms out of its
+/// button. The sheets use fractional detents, so the system never recedes the page itself. Apply it to the scroll content
+/// BEFORE the bottom bar inset: the bar (the zoom source) stays still, so the zoom lands back on the real button.
+/// At rest (`active == false`) scale 1 and radius 0, identical to before. Reduce Motion: no scale; the sheet dim remains.
+struct TopicBarRecede: ViewModifier {
+    let active: Bool
+    @QuestifyReduceMotion private var reduceMotion
+    func body(content: Content) -> some View {
+        let receded = active && !reduceMotion
+        content
+            .clipShape(RoundedRectangle(cornerRadius: receded ? CYRadius.xl : 0, style: .continuous))
+            .scaleEffect(receded ? 0.96 : 1)
+            .animation(reduceMotion ? nil : CYMotion.standard, value: receded)
     }
 }
 
