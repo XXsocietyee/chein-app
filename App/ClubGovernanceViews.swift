@@ -1571,7 +1571,7 @@ struct ClubGovernanceReadView: View {
                 if checkinPage.showsContent {
                     ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind)
                 }
-                // Dispatch stays off (ClubCheckinDetailPage.showsRefundAction). The panel only explains the saved gate.
+                // CLB-checkin-detail-01: the entry follows server canRefund; dispatch stays behind the coordinator's TEST-only gate.
                 Section {
                     ClubOwnerRefundPanel(target: target, identity: identity, sourceCanRefund: checkinPage.showsRefundAction && value["canRefund"] == .bool(true), onReadback: { Task { await load() } })
                 }

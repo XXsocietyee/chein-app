@@ -132,7 +132,13 @@ public struct ClubCheckinDetailPage: Equatable {
         }
     }
     public var showsMerchantChoice: Bool { false }
-    public var showsRefundAction: Bool { false }
+    /// CLB-checkin-detail-01: the refund entry follows the server's `canRefund` (owner only).
+    /// MC-25 moves 清退并退款 behind a confirmation; it does not remove it. Dispatch stays behind
+    /// the refund coordinator's own TEST-only write gate.
+    public var showsRefundAction: Bool {
+        if case .ready(let facts)? = phase { return facts.serverCanRefund }
+        return false
+    }
     public var refundDispatchEnabled: Bool { false }
     public var paymentEnabled: Bool { false }
     public var payoutEnabled: Bool { false }
