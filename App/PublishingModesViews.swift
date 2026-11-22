@@ -223,7 +223,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         // The modifier chain is split in two stages for the type checker;
         // the modifiers keep their original order.
         // Mini-program guardPublisherRole: publish_precheck admits the form; 403 shows the server's reason.
-        ActivityPublishPrecheckGate { publishingForm(templateSelectionAction: templateSelectionAction, templateReadID: templateReadID) }
+        // C-A6: a merchant account checks /api/merchant/access/me as the MP does.
+        ActivityPublishPrecheckGate(merchantHost: account?.role == "merchant") { publishingForm(templateSelectionAction: templateSelectionAction, templateReadID: templateReadID) }
         .onChange(of: submission.receipt?.activityID) { _, id in
             guard let id, id > 0, submission.receipt?.committed == true else { return }
             MiniProgramAnalytics.track(analytics, "activity_publish_success", bizType: "activity", bizID: id,
@@ -530,13 +531,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
         .publishFormChrome()
         .cyPushedChrome(domain: .topicEditor)
         .navigationTitle(Text("publishModes.activity"))
+        // C-A3 (T&C §2): one system inline title; no second principal title drawn over it.
         .navigationBarTitleDisplayMode(.inline)
-        // Large titles truncate at accessibility sizes ("Publish an act…"): inline title, type capped, shrinks before clipping.
-        .toolbar { ToolbarItem(placement: .principal) {
-            Text("publishModes.activity").cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                .cyWrapText(alignment: .center)
-                .accessibilityAddTraits(.isHeader)
-        } }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             CYFooterBar {
                 VStack(spacing: CYSpacing.sm) {

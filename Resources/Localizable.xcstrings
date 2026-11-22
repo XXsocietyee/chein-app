@@ -30645,7 +30645,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券营销"
+            "value": "商家优惠券"
           }
         }
       }
@@ -30661,7 +30661,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用内营销"
+            "value": "站内活动消息"
           }
         }
       }
@@ -168690,7 +168690,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保存草稿"
+            "value": "存到本机"
           }
         }
       }
@@ -208058,7 +208058,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看加入队伍确认"
+            "value": "接受邀请并加入"
           }
         }
       }
@@ -208279,7 +208279,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "队员"
+            "value": "队伍成员"
           }
         }
       }
@@ -214273,7 +214273,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发布"
+            "value": "发布玩法"
           }
         }
       }
@@ -256877,7 +256877,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "版本、协议、联系与我的二维码"
+            "value": "版本、协议与联系"
           }
         }
       }
@@ -278930,6 +278930,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "去登录"
+          }
+        }
+      }
+    },
+    "settings.signOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出账号"
+          }
+        }
+      }
+    },
+    "settings.signOut.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't sign out. Check the connection and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出没有完成，请检查网络后重试"
+          }
+        }
+      }
+    },
+    "compliance.details": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "详情"
           }
         }
       }

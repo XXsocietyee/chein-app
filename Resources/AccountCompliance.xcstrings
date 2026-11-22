@@ -524,7 +524,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "应用内营销"
+            "value": "站内活动消息"
           }
         }
       }
@@ -540,7 +540,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "优惠券营销"
+            "value": "商家优惠券"
           }
         }
       }
