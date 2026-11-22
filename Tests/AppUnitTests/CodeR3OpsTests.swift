@@ -95,7 +95,8 @@ final class CodeR3OpsTests: XCTestCase {
 
     func testClubR4DateReadsTheSourceDayAsHandbookDate() {
         let zh = Locale(identifier: "zh-Hans")
-        let text = ClubR4Date.day("2026-11-15", locale: zh)
+        // The handbook frame reads 11月15日 周六, which is 2025-11-15 (2026-11-15 is a Sunday).
+        let text = ClubR4Date.day("2025-11-15", locale: zh)
         XCTAssertTrue(text.contains("11月15日"), text)
         XCTAssertTrue(text.contains("周六"), text)
         XCTAssertEqual(ClubR4Date.day("下周六", locale: zh), "下周六")
