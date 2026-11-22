@@ -57,4 +57,77 @@ import XCTest
         XCTAssertEqual(teams.basis, .wholeTeam)
         XCTAssertEqual(PlayerJourneyProjection.rankTabs(JourneyRunScope(activityID: "4", topicID: nil)).count, 0, "no quest tab without a topic id")
     }
+
+    // JLAND-3: server keys SHARED_TEAM / INDEPENDENT (+ competition), rules from the scopes, nothing when unavailable.
+    func testChoicesTilesReadServerKeys() {
+        let tiles = PlayerJourneyProjection.tiles(ok(#"""
+        {"configState":"TOPIC_DEFAULT","choices":[
+         {"key":"SHARED_TEAM","available":true,"hintScope":"PER_TEAM","progressScope":"PER_TEAM","scoreScope":"PER_TEAM","teamCapacity":{"joinedCount":2,"maxMembers":5}},
+         {"key":"INDEPENDENT","competition":true,"available":false,"unavailableReason":"TEAM_MODE_DISABLED","hintScope":"PER_MEMBER","progressScope":"PER_MEMBER","scoreScope":"PER_MEMBER"}]}
+        """#))
+        XCTAssertEqual(tiles.map(\.name), [.together, .compete])
+        XCTAssertEqual(tiles.first?.sub, .teamScore)
+        XCTAssertEqual(tiles.first?.rules.map(\.kind), [.hint, .progress, .score, .team])
+        XCTAssertEqual(tiles.first?.rules.last?.teamText, "2/5")
+        XCTAssertNotNil(tiles.last?.reason)
+        XCTAssertEqual(PlayerJourneyProjection.activeMode(nil, tiles), "SHARED_TEAM")
+        XCTAssertTrue(PlayerJourneyProjection.tiles(ok(#"{"configState":"UNAVAILABLE","choices":[{"key":"SHARED_TEAM"}]}"#)).isEmpty)
+    }
+
+    // JLAND-1 / JLAND-4: title from target, 报名已关闭, 去看看 only for VIEW_TARGET; gift claim-by from claimExpiresAt.
+    func testLandingReadsTargetAndNextAction() {
+        let referral = JourneyLandingLink(query: ["k": "r", "t": "tok"])!
+        let json = #"{"state":"VALID","inviter":{"nickname":"甲"},"target":{"type":2,"id":31,"title":"夜游"},"expiresAt":"2026-11-30 20:00:00","registrationState":"CLOSED","nextAction":"VIEW_TARGET"}"#
+        guard case .ready(let content) = PlayerJourneyProjection.landing(link: referral, envelope: ok(json), choices: nil, activeMode: nil) else { return XCTFail("ready") }
+        XCTAssertEqual(content.title, "夜游")
+        XCTAssertEqual(content.primary, .view)
+        XCTAssertEqual(content.facts.map(\.kind), [.inviteValid, .signupClosed])
+        XCTAssertEqual(content.facts.first?.value, "2026.11.30 20:00")
+        XCTAssertEqual(PlayerJourneyProjection.landingTarget(kind: .referral, envelope: ok(json)), .init(isActivity: true, id: "31"))
+        let noView = json.replacingOccurrences(of: "VIEW_TARGET", with: "NONE")
+        guard case .ready(let hidden) = PlayerJourneyProjection.landing(link: referral, envelope: ok(noView), choices: nil, activeMode: nil) else { return XCTFail("ready") }
+        XCTAssertNil(hidden.primary)
+
+        let gift = JourneyLandingLink(query: ["k": "g", "t": "tok"])!
+        let giftJSON = #"{"state":"VALID","product":{"topicId":9,"topicTitle":"城"},"claimExpiresAt":"2026-12-01 10:00","nextAction":"CLAIM_GIFT"}"#
+        guard case .ready(let present) = PlayerJourneyProjection.landing(link: gift, envelope: ok(giftJSON), choices: nil, activeMode: nil) else { return XCTFail("gift") }
+        XCTAssertEqual(present.title, "城")
+        XCTAssertEqual(present.facts.map(\.kind), [.claimBy])
+        XCTAssertEqual(present.primary, .claimGift)
+        if case .invalid(_, let success) = PlayerJourneyProjection.landing(link: gift, envelope: ok(#"{"state":"CLAIMED"}"#), choices: nil, activeMode: nil) {
+            XCTAssertTrue(success)
+        } else { XCTFail("claimed gift is the calm invalid state") }
+    }
+
+    // JSEAT-1 / JSEAT-2: upper-case seat states, buyer-only invite, invited rows with cancel only when supported.
+    func testSeatsReadServerStatesAndFlags() {
+        let json = #"""
+        {"registrationId":5,"topicId":9,"ownerType":2,"ownerId":31,"seatCount":3,"freeSeats":1,"buyerIsCaller":true,"readOnly":false,"seatCancelSupported":true,
+         "seats":[{"seatNo":1,"state":"BUYER"},{"seatNo":2,"state":"INVITED","invitationId":44,"invitationExpiresAt":"2026-11-30 20:00:00"},{"seatNo":3,"state":"AVAILABLE"}]}
+        """#
+        guard case .ready(let lobby) = PlayerJourneyProjection.seats(ok(json), choices: nil, registrationID: "5") else { return XCTFail("ready") }
+        XCTAssertEqual(lobby.circles.map(\.kind), [.me, .invited, .open])
+        XCTAssertEqual(lobby.circles.map(\.tappable), [false, false, true])
+        XCTAssertTrue(lobby.canInvite)
+        XCTAssertEqual(lobby.occupied, 1)
+        XCTAssertEqual(lobby.openCount, 1)
+        XCTAssertEqual(lobby.invited.map(\.invitationID), ["44"])
+        XCTAssertEqual(lobby.invited.first?.canCancel, true)
+        XCTAssertTrue(lobby.canGoToStart)
+        let facts = PlayerJourneyProjection.seatsFacts(ok(json))!
+        XCTAssertEqual(PlayerJourneyProjection.playRoute(facts),
+                       .screen(page: "pages/play/index", query: ["topicId": "9", "activityId": "31", "registrationId": "5"]))
+        let invite = PlayerJourneyProjection.seatInviteURL(ok(#"{"token":"seat-token","invitationId":44}"#), facts: facts)
+        XCTAssertEqual(invite?.path, "/subpackageJourney/pages/landing/index")
+        XCTAssertTrue(invite?.query?.contains("k=s") == true && invite?.query?.contains("t=seat-token") == true && invite?.query?.contains("aid=31") == true)
+    }
+
+    // JSETTLE-2: activity first (owner type 2), else topic (1); a run id is never the owner.
+    func testRatingOwnerPrefersActivity() {
+        let both = JourneyRunScope(activityID: "31", topicID: "9", runID: "77")
+        XCTAssertEqual(PlayerJourneyProjection.ratingOwner(report: nil, scope: both)?.type, 2)
+        XCTAssertEqual(PlayerJourneyProjection.ratingOwner(report: nil, scope: both)?.id, "31")
+        XCTAssertEqual(PlayerJourneyProjection.ratingOwner(report: nil, scope: JourneyRunScope(topicID: "9", runID: "77"))?.type, 1)
+        XCTAssertNil(PlayerJourneyProjection.ratingOwner(report: nil, scope: JourneyRunScope(runID: "77")))
+    }
 }

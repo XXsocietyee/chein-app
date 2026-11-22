@@ -1,0 +1,21 @@
+[
+  {"key": "mp.landing.fact.claimBy %@", "en": "Claim by %@", "zh": "%@ 前领取"},
+  {"key": "mp.landing.fact.closed", "en": "Closed", "zh": "已关闭"},
+  {"key": "mp.landing.state.inviteInvalid", "en": "This invite link isn't valid", "zh": "邀请链接无效"},
+  {"key": "mp.landing.state.inviteExpired", "en": "This invite link has expired", "zh": "邀请链接已过期"},
+  {"key": "mp.landing.state.inviteRevoked", "en": "This invite was withdrawn", "zh": "邀请已撤销"},
+  {"key": "mp.landing.state.targetUnavailable", "en": "This theme isn't visible right now", "zh": "这个主题暂不可见"},
+  {"key": "mp.landing.state.inviterUnavailable", "en": "The inviter is no longer visible", "zh": "邀请人已不可见"},
+  {"key": "mp.landing.state.giftInvalid", "en": "This gift link isn't valid", "zh": "礼物链接无效"},
+  {"key": "mp.landing.state.giftLinkExpired", "en": "This gift link has expired", "zh": "礼物链接已过期"},
+  {"key": "mp.landing.state.giftClaimed", "en": "This gift has been claimed", "zh": "礼物已被领取"},
+  {"key": "mp.landing.state.giftExpired", "en": "This gift has expired", "zh": "礼物已过期"},
+  {"key": "mp.landing.state.giftRevoked", "en": "This gift was withdrawn", "zh": "礼物已撤回"},
+  {"key": "mp.landing.state.giftProductUnavailable", "en": "The gifted item isn't available right now", "zh": "礼物商品暂不可用"},
+  {"key": "mp.journey.unavailable.teamOff", "en": "Team play is off for this theme", "zh": "本主题未开启组队"},
+  {"key": "mp.journey.unavailable.noSnapshot", "en": "This run's rules couldn't be read", "zh": "本局规则读取不到"},
+  {"key": "mp.journey.unavailable.generic", "en": "Not available", "zh": "暂不可选"},
+  {"key": "mp.seats.invite.linkFailed", "en": "Couldn't make the invite link. Try again.", "zh": "邀请链接暂未生成，请重试"},
+  {"key": "mp.settle.rate.unavailable", "en": "This run can't be rated right now", "zh": "这一局暂时不能评价"},
+  {"key": "mp.settle.rate.netKept", "en": "Network error. Your stars and text are kept; try again.", "zh": "网络异常，星级和文字已保留，请重试"}
+]

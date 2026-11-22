@@ -182,6 +182,7 @@ struct JourneyPerson: Equatable {
 struct JourneyFact: Identifiable, Equatable {
     enum Kind: String { case inviteValid, signupClosed, claimBy, seat }
     let kind: Kind
+    /// Formatted Beijing time for `inviteValid` / `claimBy`; unused for `signupClosed`.
     let value: String
     var id: String { kind.rawValue }
     var title: LocalizedStringKey {
@@ -190,6 +191,15 @@ struct JourneyFact: Identifiable, Equatable {
         case .signupClosed: "mp.landing.fact.signup"
         case .claimBy: "mp.landing.fact.claim"
         case .seat: "mp.landing.fact.seat"
+        }
+    }
+    /// Mini-program fact values: "… 前有效", "… 前领取", "已关闭".
+    var valueText: Text {
+        switch kind {
+        case .inviteValid: Text("mp.seats.validUntil \(value)")
+        case .claimBy: Text("mp.landing.fact.claimBy \(value)")
+        case .signupClosed: Text("mp.landing.fact.closed")
+        case .seat: Text(verbatim: value)
         }
     }
 }
@@ -248,6 +258,8 @@ enum JourneyLandingPhase: Equatable {
 /// Logic stub for Cursor: `/api/referral/landing/referral|gift`, `/api/play/player-journey/choices`; claims stay unbound.
 @MainActor protocol JourneyLandingBinding: AnyObject, Observable {
     var phase: JourneyLandingPhase { get }
+    /// Page the primary opens (去看看 → activity / topic). The host pushes it and clears it on back.
+    var route: MPParityRoute? { get set }
     func load()
     func selectMode(_ key: String)
     func primary()
@@ -262,6 +274,7 @@ enum JourneyLandingPhase: Equatable {
         JourneyLandingView(phase: binding.phase, onRetry: { binding.load() }, onSelectMode: { binding.selectMode($0) }, onPrimary: { binding.primary() },
                            onBrowse: onBrowse ?? (rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.home) } : nil))
             .task { binding.load() }
+            .mpParityRouteDestination(Binding(get: { binding.route }, set: { binding.route = $0 }))
     }
 }
 
@@ -311,7 +324,7 @@ struct JourneyLandingView: View {
                     JourneyModeTilesView(tiles: content.tiles, active: Binding(get: { content.activeMode }, set: { if let key = $0 { onSelectMode(key) } }))
                 }
                 if !content.facts.isEmpty {
-                    MPRows(items: content.facts) { fact in MPRow(title: Text(fact.title), value: Text(verbatim: fact.value), strong: true) }
+                    MPRows(items: content.facts) { fact in MPRow(title: Text(fact.title), value: fact.valueText, strong: true) }
                         .cyStaggerAppear(1)
                 }
             }
@@ -478,6 +491,8 @@ enum JourneySeatsPhase: Equatable {
 /// Logic stub for Cursor: `/api/play/player-journey/seats`, choices, `/api/user/info`; invite / cancel writes are not in Core yet.
 @MainActor protocol JourneySeatsBinding: AnyObject, Observable {
     var phase: JourneySeatsPhase { get }
+    /// Page 去起点 / 编辑 opens. The host pushes it and clears it on back.
+    var route: MPParityRoute? { get set }
     func load()
     func requestInvite()
     func cancelInvitation(_ id: String)
@@ -491,6 +506,7 @@ enum JourneySeatsPhase: Equatable {
         JourneySeatsView(phase: binding.phase, onRetry: { binding.load() }, onInvite: { binding.requestInvite() },
                          onCancel: { binding.cancelInvitation($0) }, onStart: { binding.goToStart() }, onEditMe: { binding.editMe() })
             .task { binding.load() }
+            .mpParityRouteDestination(Binding(get: { binding.route }, set: { binding.route = $0 }))
     }
 }
 
