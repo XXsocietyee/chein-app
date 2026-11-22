@@ -50,6 +50,8 @@ struct TopicDetailView: View {
     @State private var tabsPinned = false
     /// The top of the list in the window: tabs that scroll above it pin.
     @State private var pinLine: CGFloat = 0
+    /// The topic list is on screen (not covered by a pushed page); see the inline tabs' `onDisappear`.
+    @State private var topicPageVisible = false
     private struct Key: Hashable { let id: Int; let scope: UUID; let configured: Bool }
     private var key: Key { Key(id: id, scope: reader.scope, configured: reader.isConfigured) }
     var body: some View {
@@ -305,6 +307,13 @@ struct TopicDetailView: View {
                     .onGeometryChange(for: Bool.self) { $0.frame(in: .global).minY < pinLine } action: { pinned in
                         if tabsPinned != pinned { tabsPinned = pinned }
                     }
+                    // A tab tap scrolls with `scrollTo`, which jumps: the row leaves the list without ever reporting a
+                    // position above the pin line (integ-r3). It sits near the top of the list, so a row that leaves
+                    // while the page is still on screen has left over the top: pin. Checked a run loop later, so a
+                    // page pushed over the topic (which also ends the row's appearance) does not count.
+                    .onDisappear {
+                        Task { @MainActor in if topicPageVisible { tabsPinned = true } }
+                    }
                     .listRowBackground(Color.clear)
             }
             // verify-r1 3.1 (`169:6954`): the hero block reads as one page header, not as list rows with dividers.
@@ -511,6 +520,8 @@ struct TopicDetailView: View {
             }
         }
         .onGeometryChange(for: CGFloat.self) { $0.frame(in: .global).minY + $0.safeAreaInsets.top } action: { pinLine = $0 }
+        .onAppear { topicPageVisible = true }
+        .onDisappear { topicPageVisible = false }
         .cyTracksHeroScroll($heroScrolledAway, threshold: 280)
         .modifier(G6TopicCharactersLoader(chapters: value.chapters))
         .refreshable { await loads.run { await load() } }
