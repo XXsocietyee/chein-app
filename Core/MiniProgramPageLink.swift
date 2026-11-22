@@ -50,6 +50,20 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/coop/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
         pages["subpackageA/pages/myproject/index"] = open
         pages["pages/merchant/ledger/index"] = open
+        // fix-parity r1 (account-publish X1): the keys each MP page reads in `onLoad`. Values are checked below.
+        pages["pages/userinfo/userinfo"] = Rule(allowed: ["id", "userId", "tab"], required: [], ids: ["id", "userId"])
+        pages["pages/talent/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
+        pages["pages/gerenziliao/gerenziliao"] = Rule(allowed: ["field"], required: [], ids: [])
+        pages["pages/addressinfo/addressinfo"] = optionalID
+        pages["pages/agreement/index"] = Rule(allowed: ["type"], required: [], ids: [])
+        pages["pages/shezhi/shezhi"] = Rule(allowed: ["scene"], required: [], ids: [])
+        pages["pages/publish/fabu/index"] = Rule(allowed: ["id", "mode", "scope", "clubId"], required: [], ids: ["id", "clubId"])
+        pages["pages/publish/temp/index"] = Rule(allowed: ["id", "scope", "from"], required: [], ids: ["id"])
+        pages["pages/publish/activity/index"] = Rule(allowed: ["id", "scope"], required: [], ids: ["id"])
+        pages["pages/publish/template-intro/index"] = Rule(allowed: ["scope"], required: [], ids: [])
+        pages["pages/team/detail/index"] = Rule(allowed: ["teamId"], required: [], ids: ["teamId"])
+        // Only the manual-code form; `?code=` invitations keep the team-invitation parser (NativeNavigationCompletion).
+        pages["pages/team/join/index"] = Rule(allowed: ["entry"], required: ["entry"], ids: [])
         return pages
     }()
 
@@ -57,13 +71,10 @@ public struct MiniProgramPageLink: Equatable, Sendable {
     private static let openPages: [String] = [
         "pages/index/index",
         "pages/template/index",
-        "pages/talent/list/index",
         "pages/member/index/index",
         "pages/roam/index",
         "pages/privacy/index",
-        "pages/agreement/index",
         "pages/deregister/index",
-        "pages/team/detail/index",
         "pages/play/index",
         "pages/play/merchant/index",
         "pages/play/circle/index",
@@ -87,12 +98,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "subpackageP3/pages/object-cards/index/index",
         "subpackageB/pages/im/list/index",
         "subpackageB/pages/im/chat/index",
-        "pages/publish/fabu/index",
         "pages/publish/simple/index",
-        "pages/publish/temp/index",
-        "pages/publish/activity/index",
         "pages/publish/topicadd/topicadd",
-        "pages/publish/template-intro/index",
         "pages/club/apply/index",
         "pages/club/badges/index",
         "pages/club/create/index",
@@ -153,11 +160,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/templatedetail/topic-preview/index",
         "pages/templatedetail/topic-detail/index",
         "pages/address/address",
-        "pages/addressinfo/addressinfo",
-        "pages/shezhi/shezhi",
         "pages/shezhi/about/index",
         "pages/shezhi/marketing/index",
-        "pages/gerenziliao/gerenziliao",
         "pages/mylike/mylike",
         "pages/crop/index",
         "subpackageMember/free-explore/index",
@@ -220,8 +224,21 @@ public struct MiniProgramPageLink: Equatable, Sendable {
     /// Same `id` key, not required: a bare path still opens, and a non-canonical id still rejects the link.
     private static let optionalIDPages: [String] = [
         "pages/activity/official-detail/index",
-        "pages/userinfo/userinfo",
         "subpackageA/pages/infomationdetail/infomationdetail",
+    ]
+
+    /// Keys whose MP values are a closed set: anything else would open a state the MP page never shows.
+    private static let enumeratedValues: [String: [String: Set<String>]] = [
+        "pages/userinfo/userinfo": ["tab": ["projects", "posts", "achievements", "about"]],
+        "pages/talent/list/index": ["tab": ["feed", "club"]],
+        "pages/gerenziliao/gerenziliao": ["field": ["introduction", "category"]],
+        "pages/shezhi/shezhi": ["scene": ["settings-deregister", "settings-profile", "settings-feedback", "settings-likes",
+                                          "settings-how-to-play", "settings-identity-picker"]],
+        "pages/publish/fabu/index": ["mode": ["1", "2"], "scope": ["MERCHANT"]],
+        "pages/publish/temp/index": ["scope": ["MERCHANT", "my"], "from": ["fabu", "citynode"]],
+        "pages/publish/activity/index": ["scope": ["MERCHANT"]],
+        "pages/publish/template-intro/index": ["scope": ["MERCHANT"]],
+        "pages/team/join/index": ["entry": ["code"]],
     ]
 
     public init?(path: String, query: [String: String]) {
@@ -236,6 +253,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         }
         if page == "subpackageJourney/pages/landing/index", !["r", "g", "s"].contains(present["k"] ?? "") { return nil }
         if page == "pages/coop/list/index", let tab = present["tab"], tab != "sent", tab != "received" { return nil }
+        if let values = Self.enumeratedValues[page] {
+            for (key, value) in present { if let allowed = values[key], !allowed.contains(value) { return nil } }
+        }
         self.page = page
         self.query = present
     }

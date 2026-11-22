@@ -20,12 +20,15 @@ import SwiftUI
     var localCoverOwner: ProfileLocalCoverOwner? = nil
     var showsStartChat = true
     var isCurrent: @MainActor () -> Bool = { true }
+    /// MP `userinfo?tab=` (A2-06): `projects` is the MP key for 我的; unknown keys keep the default 帖文.
+    var initialTab: String? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.cyPalette) private var palette
     private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
     @State private var authorPostTicket: ProfileAuthorPostTicket?
     @State private var tab = Tab.posts
+    @State private var appliedInitialTab = false
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
     @StateObject private var identityShareOwner = ProfileIdentitySharePageOwner()
     private var selfEditContext: ProfileSelfEditContext? {
@@ -273,6 +276,16 @@ import SwiftUI
                         )
                         .accessibilityIdentifier("social.profile.safetyMenu")
                     }
+                }
+            }
+            .onAppear {
+                guard !appliedInitialTab else { return }
+                appliedInitialTab = true
+                switch initialTab {
+                case "projects": if selfOrdersAccess != nil || selfProjectsAccess != nil { tab = .mine }
+                case "achievements": tab = .achievements
+                case "about": tab = .about
+                default: break
                 }
             }
             .onChange(of: selfOrdersAccess?.context(memberID: memberID, social: reader, isCurrent: isCurrent())) { _, context in

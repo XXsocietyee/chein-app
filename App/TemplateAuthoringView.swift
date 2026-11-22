@@ -266,8 +266,11 @@ extension EnvironmentValues {
          onSavedDraft: ((TemplateAuthoringSavedDraft) -> Void)? = nil,
          canReturnSavedDraft: @escaping (TemplateAuthoringSavedDraft) -> Bool = { _ in false },
          makeCoverService: (() -> ActivityCoverService?)? = nil,
-         coverSession: @escaping () -> PublishingSession? = { nil }) {
+         coverSession: @escaping () -> PublishingSession? = { nil },
+         startsInEditor: Bool = false) {
         self.makeCoverService = makeCoverService; self.coverSession = coverSession
+        // MP `pages/publish/temp/index` opens on the editor (the intro is its own page, template-intro).
+        _step = State(initialValue: startsInEditor ? .edit : .intro)
         let value = TemplateAuthoringModel(coordinator: coordinator)
         value.mediaImageSelectionApproved = imageSelectionApproved; value.mediaFixtureMode = mediaFixtureMode
         _model = StateObject(wrappedValue: value)

@@ -10,6 +10,7 @@ import XCTest
             "subpackageMember/market/gift/index": ["token": "gift-token"],
             "subpackageJourney/pages/landing/index": ["k": "g", "t": "tok"],
             "subpackageJourney/pages/seats/index": ["registrationId": "9"],
+            "pages/team/join/index": ["entry": "code"],
         ]
         for (page, rule) in MiniProgramPageLink.reviewedPages where rule.required.contains("id") {
             samples[page] = ["id": "7"]

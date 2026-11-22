@@ -526,13 +526,17 @@ struct ProfileEditView: View {
     let caseImageReader: (any RetainedPublicImageReading)?
     let savedMedia: ProfileSavedMediaReaders?
     private let onSaved: (() -> Void)?
+    /// MP `gerenziliao?field=introduction|category` (A3-08): opens that editor once after the first load.
+    private let initialField: String?
+    @State private var openedInitialField = false
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
     /// Nil when the stored `tagIds` is unreadable: the count is then an em dash, never a stand-in 0.
     private var selectedPreferences: [Int]? {
         model.draft.routePreferenceIDs ?? ProfilePreferenceRemoval.parse(model.coordinator.snapshot?.tagIds ?? "")
     }
-    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, currentReviewReader: ProfileCurrentReviewReader? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, savedMedia: ProfileSavedMediaReaders? = nil, onSaved: (() -> Void)? = nil) {
+    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, currentReviewReader: ProfileCurrentReviewReader? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, savedMedia: ProfileSavedMediaReaders? = nil, onSaved: (() -> Void)? = nil, initialField: String? = nil) {
+        self.initialField = initialField
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
         _currentReviewNotice = StateObject(wrappedValue: ProfileCurrentReviewNoticeOwner())
         self.currentReviewReader = currentReviewReader
@@ -668,7 +672,7 @@ struct ProfileEditView: View {
             if phase != .active { model.retireReload(); model.suspendForBackground() } else { model.activateAvatar() }
         }
         .modifier(ProfileCurrentReviewNoticeLifecycle(model: model, reader: currentReviewReader, owner: currentReviewNotice))
-        .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad() }
+        .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad(); openInitialFieldOnce() }
         .background {
             if let edit = model.textEdit {
                 ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader, nicknameReader: nicknameReader, savedMedia: savedMedia)
@@ -739,6 +743,16 @@ struct ProfileEditView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("profile.fieldEdit.open.\(field.rawValue)")
+    }
+
+    private func openInitialFieldOnce() {
+        guard !openedInitialField, let initialField, model.coordinator.snapshot != nil else { return }
+        openedInitialField = true
+        switch initialField {
+        case "introduction": model.beginTextEdit(.introduction)
+        case "category": model.beginPreferencePicker(reader: categoryReader)
+        default: break
+        }
     }
 
     private func handleEditorDisappear() {

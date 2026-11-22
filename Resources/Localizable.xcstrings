@@ -119610,13 +119610,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation code"
+            "value": "Join code"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀请码"
+            "value": "加入码"
           }
         }
       }
@@ -119627,13 +119627,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enter the code shared by the team leader. You’ll review the team before joining."
+            "value": "Enter the code shared by the team leader. You'll review the team before joining."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "输入队长分享的邀请码，确认队伍信息后再加入。"
+            "value": "输入队长分享的加入码，确认队伍信息后再加入。"
           }
         }
       }
@@ -207939,7 +207939,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "队伍邀请"
+            "value": "加入队伍"
           }
         }
       }
@@ -278658,6 +278658,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "首页加载失败"
+          }
+        }
+      }
+    },
+    "nativeNav.team.codePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste the code from your team leader"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粘贴队长给的加入码"
+          }
+        }
+      }
+    },
+    "nativeNav.team.next": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下一步"
           }
         }
       }

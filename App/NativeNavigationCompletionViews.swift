@@ -31,20 +31,31 @@ import SwiftUI
     @State private var code = ""
     @State private var route: TeamInvitationPresentation?
     @State private var invalid = false
+    private static let maxCodeLength = 40
+    private func open() {
+        guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; return }
+        invalid = false
+        if let onOpen { onOpen(value) } else { route = TeamInvitationPresentation(route: value) }
+    }
     var body: some View {
         Form {
-            Section("nativeNav.team.open") {
-                TextField("nativeNav.team.code", text: $code).textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .accessibilityIdentifier("nativeNav.team.code")
-                Text("nativeNav.team.notice").cyText(.bodyCompact)
-                Button("nativeNav.open") {
-                    guard let value = try? TeamInvitationRoute(code: code) else { invalid = true; return }
-                    invalid = false
-                    if let onOpen { onOpen(value) } else { route = TeamInvitationPresentation(route: value) }
-                }.disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                if invalid { Text("nativeNav.invalid").foregroundStyle(.secondary) }
-            }
-        }.navigationTitle("team.invitation")
+            // MP team/join `?entry=code` (C-J1): 加入码 field (≤ 40), then 下一步 to the invitation page.
+            Section {
+                LabeledContent {
+                    TextField("nativeNav.team.codePlaceholder", text: $code)
+                        .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        .onChange(of: code) { _, value in if value.count > Self.maxCodeLength { code = String(value.prefix(Self.maxCodeLength)) } }
+                        .submitLabel(.next).onSubmit(open)
+                        .accessibilityIdentifier("nativeNav.team.code")
+                } label: { Text("nativeNav.team.code") }
+                if invalid { Text("nativeNav.invalid").cyText(.meta).foregroundStyle(CYColor.dangerText) }
+            } footer: { Text("nativeNav.team.notice").cyText(.meta) }
+            Section {
+                CYPillButton("nativeNav.team.next", action: open)
+                    .disabled(code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .accessibilityIdentifier("nativeNav.team.next")
+            }.listRowBackground(Color.clear)
+        }.cyPageTitle("team.invitation")
             .navigationDestination(item: $route) { item in
                 TeamInvitationDestination(route: item.route, makeCoordinator: makeCoordinator, onLogin: onLogin)
             }
