@@ -209,7 +209,12 @@ enum MPParityRoute: Hashable, Identifiable {
             guard club != nil || mine else { return nil }
             self = .clubSettlement(clubID: club, mine: mine, personal: query["personal"] == "1")
         case "subpackageMember/order/order":
-            self = .playerOrderList
+            if query["detailId"]?.isEmpty == false {
+                guard let id = positiveIDString("detailId") else { return nil }
+                self = .screen(page: "subpackageMember/orderinfo/orderinfo", query: ["id": id])
+            } else {
+                self = .playerOrderList
+            }
         case "pages/coop/list/index":
             self = .coopList(query["tab"] == "sent" ? .sent : .received)
         case "subpackageA/pages/myproject/index":

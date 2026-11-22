@@ -55,7 +55,10 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         for page in identifiedPages { pages[page] = identified }
         for page in optionalIDPages { pages[page] = optionalID }
         // Subscribe-message landing pages from public hengyin (cur-push). Set last: `pages/coop/list/index` keeps `tab`.
-        pages["subpackageMember/order/order"] = open
+        // `order/order?detailId=` (subscribe-message landing) opens that order; `orderinfo?outTradeNo=` (payment
+        // receipt) has no by-number read, so it lands on 我的订单.
+        pages["subpackageMember/order/order"] = Rule(allowed: ["detailId"], required: [], ids: ["detailId"])
+        pages["subpackageMember/orderinfo/orderinfo"] = Rule(allowed: ["id", "outTradeNo"], required: [], ids: ["id"])
         pages["pages/coop/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
         pages["subpackageA/pages/myproject/index"] = open
         pages["pages/merchant/ledger/index"] = open

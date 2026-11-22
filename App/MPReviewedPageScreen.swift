@@ -117,7 +117,9 @@ import SwiftUI
                 SquareDetailView(id: id, reader: session.squareReader, accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
             } else { unavailable }
         case "subpackageMember/orderinfo/orderinfo":
-            if let id = reviewedID(query) { ProfileOrderDetailView(id: id, reader: session.ownedOrderReader) } else { unavailable }
+            if let id = reviewedID(query) { ProfileOrderDetailView(id: id, reader: session.ownedOrderReader) }
+            else if query["outTradeNo"] != nil { SessionOwnedOrdersView(session: session) }
+            else { unavailable }
         case "pages/merchant/index/index":
             SessionMerchantOverviewView(session: session)
         case "pages/merchant/relation/index", "pages/merchant/relation":
