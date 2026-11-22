@@ -13,6 +13,10 @@ import SwiftUI
     @State private var pendingProof: PlayStoreDayPreparedProof?
     @State private var showingProof = false
     @State private var confirmRevoke = false
+    /// PLAYM-1: MP shows the purpose once (用一次位置确认你到店了) before the first foreground fix.
+    @State private var showingArrivePurpose = false
+    @State private var arrivePurposeShown = false
+    @State private var showingMore = false
 
     private enum Sheet: String, Identifiable { case game, task; var id: String { rawValue } }
     private var sheet: Binding<Sheet?> {
@@ -109,9 +113,12 @@ import SwiftUI
         ContentUnavailableView {
             Label { Text(L(key)) } icon: { Image(systemName: id == "signedOut" ? "person.crop.circle" : id == "failed" ? "exclamationmark.triangle" : "storefront") }
         } actions: {
-            Button { Task { await model.load() } } label: { Text("playStoreDay.refresh", tableName: "PlayStoreDay") }
-                .buttonStyle(.bordered)
+            Button { Task { await model.load() } } label: { Text("playStoreDay.state.reload", tableName: "PlayStoreDay") }
+                .buttonStyle(.cyPrimary(fullWidth: false))
                 .disabled(model.phase == .loading).accessibilityIdentifier("storeDayPage.refresh")
+            // PLAYM-4: MP 链接已失效 offers 重新加载 and 返回.
+            Button { dismiss() } label: { Text("playStoreDay.state.back", tableName: "PlayStoreDay") }
+                .buttonStyle(.cySecondary(fullWidth: false)).accessibilityIdentifier("storeDayPage.back")
         }
         .accessibilityElement(children: .contain).accessibilityIdentifier("storeDayPage.state." + id)
     }
@@ -307,17 +314,55 @@ import SwiftUI
             HStack(spacing: CYSpacing.md) {
                 mapControl(node, label: L("playStoreDay.cta.address"), id: "storeDayPage.cta.address").fixedSize()
                 primaryButton(node).frame(maxWidth: .infinity)
+                // MP 更多: 扫描门店码 / 拍摄到店凭证 fall back here once 我已到店 is the first step.
+                if !node.done {
+                    Button { showingMore = true } label: { Image(systemName: "ellipsis").frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget) }
+                        .buttonStyle(.cySecondary(fullWidth: false)).disabled(model.busy)
+                        .accessibilityLabel(Text("playStoreDay.cta.more", tableName: "PlayStoreDay"))
+                        .accessibilityIdentifier("storeDayPage.cta.more")
+                }
             }
+            .confirmationDialog(Text("playStoreDay.cta.more", tableName: "PlayStoreDay"), isPresented: $showingMore, titleVisibility: .hidden) {
+                Button(L("playStoreDay.more.scan")) { model.prepareScan() }
+                Button(L("playStoreDay.more.photo")) { model.preparePhoto() }
+                Button(L("playStoreDay.cancel"), role: .cancel) {}
+            }
+            .cyModalConfirm(
+                isPresented: showingArrivePurpose,
+                title: L("playStoreDay.arrive.purpose"),
+                cancelTitle: L("playStoreDay.cancel"),
+                confirmTitle: L("playStoreDay.arrive.confirm"),
+                onCancel: { showingArrivePurpose = false },
+                onConfirm: { showingArrivePurpose = false; arrivePurposeShown = true; Task { await locateAndArrive() } }
+            )
         }
         .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md).background(.bar)
     }
     @ViewBuilder private func primaryButton(_ node: PlayStoreDayNode) -> some View {
-        switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt) {
+        switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt, arriveRetry: model.arriveRetry) {
         case .confirmPending: primary(L("playStoreDay.cta.confirmPending"), disabled: false) { Task { await model.retryProofReadback() } }
+        case .arrive: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.arrive"), disabled: model.busy) { arriveHere() }
+        case .relocate: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.relocate"), disabled: model.busy) { arriveHere() }
+        case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { model.prepareScan() }
         case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { model.prepareScan() }
         case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
         case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
         case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
+        }
+    }
+    /// MP `arriveHere`: purpose prompt once, then one foreground GCJ-02 fix handed to /api/play/arrive.
+    private func arriveHere() {
+        guard !model.busy else { return }
+        if arrivePurposeShown { Task { await locateAndArrive() } } else { showingArrivePurpose = true }
+    }
+    private func locateAndArrive() async {
+        do {
+            let fix = try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: RuntimeNativeLocationProvider(enabled: true))
+            await model.arrive(longitude: fix.coordinate.longitude, latitude: fix.coordinate.latitude, accuracy: fix.accuracyMeters)
+        } catch is CancellationError {
+            return
+        } catch {
+            model.arriveLocationFailed(denied: error as? RoamActionFailure == .locationDenied)
         }
     }
     private func primary(_ title: String, disabled: Bool, action: @escaping () -> Void) -> some View {
@@ -438,6 +483,13 @@ import SwiftUI
     private func noticeText(_ notice: PlayStoreDayNotice) -> String {
         switch notice {
         case .server(let text): return text
+        case .arriveTooFar(let meters?): return String(format: L("playStoreDay.notice.arriveTooFar"), meters)
+        case .arriveTooFar(nil): return L("playStoreDay.notice.notArrived")
+        case .arriveAccuracyLow: return L("playStoreDay.notice.accuracyLow")
+        case .arriveLocationMissing: return L("playStoreDay.notice.locationMissing")
+        case .arriveScanRequired: return L("playStoreDay.notice.scanRequired")
+        case .locationDenied: return L("playStoreDay.notice.locationDenied")
+        case .locationFailed: return L("playStoreDay.notice.locationFailed")
         case .arrivalRecorded: return L("playStoreDay.notice.arrivalRecorded")
         case .photoRecorded: return L("playStoreDay.notice.photoRecorded")
         case .proofFailed: return L("playStoreDay.notice.proofFailed")

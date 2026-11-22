@@ -13,6 +13,8 @@ public enum PlayStoreDayNotice: Equatable {
     case preferenceUnreachable, handoffFailed, noCoordinates, noCode, noPhoto, deviceUnavailable, writesUnavailable
     case needTicket, merchantUnconfirmed, verifyOpenFailed, consentRevoked, consentDeclined
     case consentWriteFailed, consentUnconfirmed, consentWritesUnavailable
+    /// PLAYM-1 arrive refusals and location failures (MP `arriveRefusal` / getLocation fail copy).
+    case arriveTooFar(Int?), arriveAccuracyLow, arriveLocationMissing, arriveScanRequired, locationDenied, locationFailed
     case server(String)
 }
 /// Status pill above the CTA (source `degradedMessage`).
@@ -69,7 +71,9 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
         self.service = service; self.evidence = evidence; self.handoff = handoff; self.presentVerification = presentVerification
         self.onNodeChanged = onNodeChanged; self.now = now
     }
-    public var primaryAction: PlayStoreDayPrimaryAction? { node.map { PlayStoreDayPrimaryAction.resolve($0, receipt: receipt) } }
+    /// MP `arriveRetry`: '' until /arrive refuses, then 'locate' or 'scan'.
+    public private(set) var arriveRetry: PlayStoreDayArriveRetry?
+    public var primaryAction: PlayStoreDayPrimaryAction? { node.map { PlayStoreDayPrimaryAction.resolve($0, receipt: receipt, arriveRetry: arriveRetry) } }
     public var canWriteProof: Bool { service?.permitsProofWrites == true }
     private var current: Bool { loadedSession != nil && service?.session == loadedSession }
     public func openText(nowMinutes: Int) -> PlayStoreDayOpenText? {
@@ -156,6 +160,39 @@ public enum PlayStoreDayPreparedProof: Equatable { case scan(code: String), phot
         } else { game.submitting = false; game.receipt = .failed; game.error = .notRecorded }
     }
     public func retryGameReadback() async { guard game.receipt == .unknown else { return }; await resolveGameUnknown() }
+
+    // MARK: Arrive (PLAYM-1)
+    public var canArrive: Bool { canWriteProof }
+    /// The view took one foreground GCJ-02 fix after the purpose prompt; the server decides 300 m.
+    public func arrive(longitude: Double, latitude: Double, accuracy: Double?) async {
+        guard let node, let service, current, !busy, !node.arrived else { return }
+        guard canWriteProof else { notice = .writesUnavailable; return }
+        busy = true; notice = nil; degraded = nil; receipt = .submitting
+        switch await service.arrive(scope: scope, nodeID: node.id, longitude: longitude, latitude: latitude, accuracy: accuracy) {
+        case .refused(let refusal):
+            busy = false; receipt = .failed; arriveRetry = refusal.retry
+            switch refusal {
+            case .tooFar(let meters): notice = .arriveTooFar(meters)
+            case .accuracyLow: notice = .arriveAccuracyLow
+            case .locationMissing: notice = .arriveLocationMissing
+            case .scanRequired: notice = .arriveScanRequired
+            }
+        case .write(.unknown): await resolveProofUnknown(autoPopup: node.hasGame || node.hasAdvanced)
+        case .write(.rejected(let message)):
+            busy = false; receipt = .failed; arriveRetry = .locate
+            notice = message.flatMap { $0.isEmpty ? nil : .server($0) } ?? .proofFailed
+        case .write(.confirmed(_, let data)):
+            let merged = node.merging(data)
+            self.node = merged; busy = false; receipt = .confirmed; notice = .arrivalRecorded; arriveRetry = nil
+            if node.hasGame || node.hasAdvanced { maybeAutoPopup() }
+            onNodeChanged?(merged)
+        }
+    }
+    /// getLocation failed before anything was sent (MP: 定位没有开启，可在「更多」里扫码到店 / 没有取到定位，请重试).
+    public func arriveLocationFailed(denied: Bool) {
+        notice = denied ? .locationDenied : .locationFailed
+        arriveRetry = .locate
+    }
 
     // MARK: Proof
     public func prepareScan() {

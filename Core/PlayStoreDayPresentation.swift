@@ -136,10 +136,17 @@ public enum PlayStoreDayReceipt: String, Equatable {
 }
 /// Bottom primary button priority, exactly as the source wx:if chain.
 public enum PlayStoreDayPrimaryAction: String, Equatable {
-    case confirmPending, scan, photo, verify, redeemed
-    public static func resolve(_ node: PlayStoreDayNode, receipt: PlayStoreDayReceipt) -> Self {
+    /// PLAYM-1: the first step is 我已到店 (arrive); a refusal turns it into 重新定位 or 扫码解锁. Scan stays in 更多.
+    case confirmPending, arrive, relocate, scanUnlock, scan, photo, verify, redeemed
+    public static func resolve(_ node: PlayStoreDayNode, receipt: PlayStoreDayReceipt, arriveRetry: PlayStoreDayArriveRetry? = nil) -> Self {
         if receipt == .unknown { return .confirmPending }
-        if !node.arrived { return .scan }
+        if !node.arrived {
+            switch arriveRetry {
+            case .scan?: return .scanUnlock
+            case .locate?: return .relocate
+            case nil: return .arrive
+            }
+        }
         if !node.selfReported { return .photo }
         return node.done ? .redeemed : .verify
     }
