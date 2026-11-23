@@ -283335,6 +283335,23 @@
           }
         }
       }
+    },
+    "mp.vb.signedOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your video submissions and rewards"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看你的视频投稿与奖励"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -15,6 +15,8 @@ S = {
     # PC-C-1-3: MP scene-play-activity-detail noTicketText.
     'activity.cta.noSelectableTicket': ('No tickets available', '暂无可报名票种'),
     'activity.cta.noTicketOpen': ('Tickets not open yet', '暂未开放票种'),
+    # PC-D-7-1: video bounty signed-out gate.
+    'mp.vb.signedOut': ('Sign in to see your video submissions and rewards', '登录后查看你的视频投稿与奖励'),
     'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 

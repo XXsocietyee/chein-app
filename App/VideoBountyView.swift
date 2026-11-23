@@ -73,12 +73,14 @@ struct VideoBountyState: Equatable {
     var submitRevision = 0
     /// Nil until the reader asks. Counts inside a ready value are already em dashes when unconfirmed.
     var attribution: MPLoad<VideoBountyAttributionFact>? = nil
+    /// PC-D-7-1: no session token. The page shows one sign-in gate (MP cy-access-gate kind=login), not two 读取失败.
+    var signedOut = false
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.submissions == rhs.submissions && lhs.accruals == rhs.accruals && lhs.submitting == rhs.submitting
             && lhs.fieldError?.field == rhs.fieldError?.field && lhs.fieldError?.text == rhs.fieldError?.text
             && lhs.submitError == rhs.submitError && lhs.submitRevision == rhs.submitRevision
-            && lhs.attribution == rhs.attribution
+            && lhs.attribution == rhs.attribution && lhs.signedOut == rhs.signedOut
     }
 }
 
@@ -132,10 +134,21 @@ struct VideoBountyView: View {
     @State private var groupKey = ""
     @State private var appealTarget: VideoBountySubmissionRow?
     @State private var cancelTarget: VideoBountySubmissionRow?
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                if state.signedOut {
+                    // PC-D-7-1: a permission problem is not a retryable error; 登录 opens 我的, where sign-in lives.
+                    if rootTabSwitch.isAvailable {
+                        CYEmptyState(systemImage: "person.crop.circle", "mp.vb.signedOut", messageIdentifier: "videoBounty.signedOut",
+                                     actionTitle: "mp.common.signIn", actionIdentifier: "videoBounty.signIn",
+                                     actionStyle: .primary, action: { rootTabSwitch(.mine) })
+                    } else {
+                        CYEmptyState(systemImage: "person.crop.circle", "mp.vb.signedOut", messageIdentifier: "videoBounty.signedOut")
+                    }
+                } else {
                 if let campaign { form(campaign) }
                 MPChipTabs(tabs: VideoBountyTab.allCases, selection: $tab, title: { tab in
                     (tab == .submissions ? Text("mp.vb.tab.submissions") : Text("mp.vb.tab.accruals"))
@@ -149,6 +162,7 @@ struct VideoBountyView: View {
                 }
                 .transition(.opacity)
                 if tab == .submissions { campaignAttribution }
+                }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.lg)
