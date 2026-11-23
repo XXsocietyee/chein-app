@@ -1,7 +1,7 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 1173,
+  "raw text style": 1170,
   "Theme.Font": 63,
   "raw size": 67,
   "back chevron": 12,
@@ -13,9 +13,6 @@
    "raw text style": 1
   },
   "App/AccountCollectionComponents.swift": {
-   "raw text style": 1
-  },
-  "App/AccountCollectionCouponDetailView.swift": {
    "raw text style": 1
   },
   "App/AccountComplianceViews.swift": {
@@ -259,9 +256,6 @@
    "raw text style": 1
   },
   "App/CouponCodeView.swift": {
-   "raw text style": 1
-  },
-  "App/CouponManagementView.swift": {
    "raw text style": 1
   },
   "App/CrashResilienceAndMetricKitDiagnosticsSectionView.swift": {
@@ -998,9 +992,6 @@
    "raw text style": 1
   },
   "App/PlayThemeRecordsView.swift": {
-   "raw text style": 1
-  },
-  "App/PlayerJourneyViews.swift": {
    "raw text style": 1
   },
   "App/PrivacyAndSecurityRedactionSectionView.swift": {
