@@ -22,7 +22,7 @@ S = {
     # PC-D-5-3: MP scene-asset-earnings balance label.
     'wallet.earnings.balance': ('Account earnings', '账户收益'),
     # PC-D-1-4: visible row menu.
-    'myProject.more': ('More actions', '更多操作'),
+    'myProject.more': ('More', '项目操作'),
     # PC-A-7-3: MP topic-detail CTA, disabled with a reason while the copy write is gated.
     'topicTemplate.useCta': ('Use this template', '用这个模板'),
     'topicTemplate.useUnavailable': ('Copying a template is not available in this version yet.', '当前版本暂未开放复制模板'),
