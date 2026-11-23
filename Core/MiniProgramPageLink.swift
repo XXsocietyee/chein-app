@@ -79,6 +79,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["subpackageRoam/session/index"] = Rule(allowed: ["id", "shareToken", "sessionId", "ts"], required: [], ids: ["id"])
         pages["subpackageRoam/my-teams/index"] = Rule(allowed: ["tab", "ownerType", "ownerId", "scope"], required: [], ids: ["ownerType", "ownerId"])
         pages["subpackageRoam/citynode-code/index"] = Rule(allowed: ["poiId", "name"], required: [], ids: ["poiId"])
+        // Parity r1 (player-content): pages whose MP `onLoad` reads a query now carry it to the native screen.
+        for (page, rule) in queryPages { pages[page] = rule }
         return pages
     }()
 
@@ -93,11 +95,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/agreement/index",
         "pages/deregister/index",
         "pages/team/detail/index",
-        "pages/activity/baoming/baoming",
         "pages/activity/list/index",
         "pages/activity/official-inbox/index",
         "pages/activity/official-mine/index",
-        "pages/activity/official-organizer/index",
         "subpackageA/pages/myproject/index",
         "subpackageA/pages/infomation/infomation",
         "subpackageA/pages/assetcenter/income-detail/income-detail",
@@ -111,7 +111,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "subpackageP3/pages/badge-3d/index",
         "subpackageP3/pages/object-cards/index/index",
         "subpackageB/pages/im/list/index",
-        "subpackageB/pages/im/chat/index",
         "pages/publish/fabu/index",
         "pages/publish/simple/index",
         "pages/publish/temp/index",
@@ -120,10 +119,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/publish/template-intro/index",
         "pages/club/apply/index",
         "pages/club/create/index",
-        "pages/topic/merchantinfo/merchantinfo",
-        "pages/topic/merchantapply/index",
-        "pages/topic/pricing/index",
-        "pages/topic/pricing/partner/index",
         "pages/merchant/index/index",
         "pages/merchant/apply/index",
         "pages/merchant/ledger/index",
@@ -159,11 +154,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/coop/withdraw/index",
         "pages/coop/withdraw/records/index",
         "pages/square/list/index",
-        "pages/search2/index",
-        "pages/search2/result/index",
-        "pages/searchmap/index",
-        "pages/templatedetail/topic-preview/index",
-        "pages/templatedetail/topic-detail/index",
         "pages/address/address",
         "pages/addressinfo/addressinfo",
         "pages/shezhi/shezhi",
@@ -212,13 +202,36 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/talent/search/index",
     ]
 
+    /// MP `onLoad` keys per page (hengyin/chengyinhub-xcx). Ids are canonical positive decimals; nothing is required,
+    /// so a bare path still opens and the screen shows its own missing state.
+    private static let queryPages: [String: Rule] = [
+        // shelf/index.js:405-414, topic-detail/index.js:295-300
+        "pages/templatedetail/topic-preview/index": .init(allowed: ["id", "scope", "readonly"], required: [], ids: ["id"]),
+        "pages/templatedetail/topic-detail/index": .init(allowed: ["id", "scope", "readonly", "tab"], required: [], ids: ["id"]),
+        "pages/templatedetail/templatedetail": .init(allowed: ["id", "scope", "readonly"], required: ["id"], ids: ["id"]),
+        // search2/index.js:505-513, search2/result/index.js:36-50, searchmap/index.js:1175-1190
+        "pages/search2/index": .init(allowed: ["keyword"], required: [], ids: []),
+        "pages/search2/result/index": .init(allowed: ["keyword", "categoryId", "cityCode", "city_code", "startDate", "endDate", "minPrice", "maxPrice", "sortType"],
+                                            required: [], ids: ["categoryId"]),
+        "pages/searchmap/index": .init(allowed: ["params"], required: [], ids: []),
+        // baoming.js:318-327, official-organizer/index.js:87-95, im/chat/index.js:141-148
+        "pages/activity/baoming/baoming": .init(allowed: ["activityId", "ticketId"], required: [], ids: ["activityId", "ticketId"]),
+        "pages/activity/official-organizer/index": .init(allowed: ["id"], required: [], ids: ["id"]),
+        "subpackageB/pages/im/chat/index": .init(allowed: ["conversationId", "type", "name", "avatar"], required: [], ids: ["conversationId"]),
+        // merchantinfo.js:331-353, merchantapply/index.js:157-171, pricing/index.js:78-86, pricing/partner/index.js
+        "pages/topic/merchantinfo/merchantinfo": .init(allowed: ["topicId", "id", "scope", "open"], required: [], ids: ["topicId", "id"]),
+        "pages/topic/merchantapply/index": .init(allowed: ["id", "topicId", "nodeId", "templateId", "topicName", "chapterName", "nodeName"],
+                                                 required: [], ids: ["id", "topicId", "nodeId", "templateId"]),
+        "pages/topic/pricing/index": .init(allowed: ["topicId", "id", "scope", "club"], required: [], ids: ["topicId", "id"]),
+        "pages/topic/pricing/partner/index": .init(allowed: ["topicId", "toId", "toType"], required: [], ids: ["topicId", "toId"]),
+    ]
+
     /// Pages whose native screen is addressed by the existing canonical `id` query (`NativeContentTarget`, and
     /// `subpackageMember/orderinfo?id=`). No other key is accepted.
     private static let identifiedPages: [String] = [
         "pages/activity/detail/index",
         "pages/topic/index/index",
         "pages/square/detail/index",
-        "pages/templatedetail/templatedetail",
         "subpackageMember/orderinfo/orderinfo",
         "subpackageRoam/poi-detail/index",
     ]

@@ -409,9 +409,12 @@ struct TopicDetailView: View {
                 }
             }
             if let publisherDestination { publisherDestination(value) }
-            if popupCloseActions.graduateBetaTopic != nil || popupCloseActions.transferTopicToClub != nil || popupCloseActions.saveUserPhoneAndName != nil {
+            // PC-B-1-1: MP index.wxml:126,138 shows these rows only when `info.isOwner == 1` (graduate also needs Beta).
+            let ownerGraduates = value.isOwner && value.betaFlag == 1 && popupCloseActions.graduateBetaTopic != nil
+            let ownerTransfers = value.isOwner && popupCloseActions.loadTransferClubs != nil && popupCloseActions.transferTopicToClub != nil
+            if ownerGraduates || ownerTransfers || popupCloseActions.saveUserPhoneAndName != nil {
                 Section(PlayCloseCopy.text("主题运维与快捷资料", "Topic Actions & Profile", locale)) {
-                    if popupCloseActions.graduateBetaTopic != nil {
+                    if ownerGraduates {
                         Button {
                             showingGraduateBetaConfirm = true
                         } label: {
@@ -419,7 +422,7 @@ struct TopicDetailView: View {
                         }
                         .accessibilityIdentifier("topic.graduateBeta.open")
                     }
-                    if popupCloseActions.loadTransferClubs != nil, popupCloseActions.transferTopicToClub != nil {
+                    if ownerTransfers {
                         Button {
                             loadClubsForTransfer()
                         } label: {

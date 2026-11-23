@@ -30,6 +30,8 @@ struct OfficialSignupCommandSection: View {
     @Environment(\.playerGapService) private var service
     let eventID: Int
     var onSettled: () -> Void = {}
+    /// PC-C-4-1: false while a 安全须知 is shown and not yet checked (MP toast 请先勾选安全须知).
+    var consented = true
     @State private var flow: OfficialSignupCommandFlow?
 
     var body: some View {
@@ -50,7 +52,11 @@ struct OfficialSignupCommandSection: View {
             case .idle:
                 Button("playerGap.signup.submit") { run { await flow.start() } }
                     .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                    .disabled(!consented)
                     .accessibilityIdentifier("gap.signup.submit")
+                if !consented {
+                    Text("official.safetyNotice.required").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
             case .busy:
                 ProgressView()
             case .unknown:

@@ -117,6 +117,9 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
     /// Source display-only fields: CATEGORY_TEXT key and the v1 `contentJson` task cards.
     public let category: String?
     public let contentJSON: String?
+    /// MP official-detail js:482-483 / wxml:180-182: `safetyNotice{title,version}`. When a title is present, signup
+    /// waits for an explicit 我已阅读并同意《title》 (never pre-checked). Absent = no consent step, as in the MP.
+    public let safetyNoticeTitle: String?
     public var isCompleteRecord: Bool { id > 0 && !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
     public var isV2: Bool { (contractVersion ?? 1) >= 2 }
     /// Exact official_event codes from the existing task-list source. This is a
@@ -151,7 +154,10 @@ public struct OfficialEvent: Decodable, Equatable, Identifiable {
         missions = try c.list("missions")
         collective = try c.decodeIfPresent(OfficialCollectiveProgress.self, forKey: OfficialKey("collective"))
         category = c.text("category"); contentJSON = c.text("contentJson")
+        let notice = try? c.decode(OfficialSafetyNotice.self, forKey: OfficialKey("safetyNotice"))
+        safetyNoticeTitle = notice?.title.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
     }
+    private struct OfficialSafetyNotice: Decodable { let title: String? }
     private var rewardMap: [String: Any] {
         guard let data = rewardJSON?.data(using: .utf8), let value = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return [:] }
         return value

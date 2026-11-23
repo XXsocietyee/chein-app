@@ -22,8 +22,14 @@ import SwiftUI
         switch page {
         case "pages/index/index":
             SessionHomeFeedView().environmentObject(session)
-        case "pages/template/index", "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index", "pages/templatedetail2/templatedetail2":
+        case "pages/template/index", "pages/templatedetail2/templatedetail2":
             DiscoveryTemplateBrowserView(reader: session)
+        case "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index":
+            // PC-A-7-1 / PC-A-8-1: a shared topic-template link lands on that template, not the shelf root.
+            if let id = reviewedID(query) {
+                DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: id))
+                    .cyPushedChrome()
+            } else { unavailable }
         case "pages/talent/list/index":
             ClubHomeView(reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
                          management: session.clubManagementContext, community: session.clubCommunityContext,
@@ -68,12 +74,22 @@ import SwiftUI
                 ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
             } else { unavailable }
         case "pages/activity/baoming/baoming":
-            unavailable
+            // PC-C-2 routing: MP baoming is the registration step of one activity; land on its detail with the sheet open.
+            if let id = reviewedID(query, key: "activityId") {
+                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true)
+            } else { unavailable }
+        case "pages/activity/official-organizer/index":
+            if let id = reviewedID(query), let access = session.officialActionCoordinator?.organizer {
+                OfficialOrganizerConsoleView(eventID: id, access: access)
+            } else { unavailable }
         case "pages/activity/list/index":
-            OfficialEventsBrowserView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onClose: {}, onLogin: {})
+            OfficialEventsBrowserView(reader: session.officialEventReader, actions: session.officialActionCoordinator,
+                                      onClose: { session.dismissNativeEntry() }, onLogin: signIn)
         case "pages/activity/official-detail/index":
             if let id = reviewedID(query) {
-                OfficialEventDetailView(id: id, reader: session.officialEventReader, actions: session.officialActionCoordinator)
+                // PC-C-4-5: guests get a working 登录; THEME missions open their topic (same wiring as 首页).
+                OfficialEventDetailView(id: id, reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn,
+                                        topicLinks: OfficialTopicLinks(reader: session.topicReader, destination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }))
             } else { unavailable }
         case "pages/activity/official-inbox/index":
             OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
@@ -86,11 +102,13 @@ import SwiftUI
                 SocialInformationView(id: id, reader: session.socialAccountReader)
             } else { unavailable }
         case "subpackageA/pages/assetcenter/income-detail/income-detail":
-            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {})
+            // PC-D-4-1: no coop-finance grant on this host, so no 主办分润 button (same as SessionWalletCommerceView).
+            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false)
         case "subpackageA/pages/assetcenter/earnings/index":
             SessionWalletCommerceView().environmentObject(session)
         case "subpackageA/pages/assetcenter/analysis/index":
-            WalletAssetsView(reader: session.walletHistoryReader)
+            // PC-D-6-1: 分析 is the income analysis page, not 我的资产.
+            WalletIncomeAnalysisView(reader: session.walletHistoryReader)
         case "subpackageP3/pages/growthcenter/index/index":
             GrowthCenterView(reader: session.growthCenterReader)
         case "subpackageP3/pages/growthcenter/leaderboard/index":
@@ -122,6 +140,33 @@ import SwiftUI
             SessionObjectCardsView().environmentObject(session)
         case "subpackageB/pages/im/list/index":
             SessionMessagingHome(session: session)
+        case "subpackageB/pages/im/chat/index":
+            if let id = reviewedID(query, key: "conversationId") {
+                MessagingHistoryView(conversationID: id, reader: session.messagingReader, sender: session.messageSender(for: id),
+                                     mediaReader: session.socialMessageMediaReader, expanded: session.imExpandedNavigation)
+                    .id(session.messagingViewIdentity)
+            } else { SessionMessagingHome(session: session) }
+        case "pages/topic/merchantinfo/merchantinfo":
+            // PC-B-2-1, MP merchantinfo.js:339-353: topicId (± registration id) = the project/承接 view, the backend decides the role;
+            // a bare id = browsing that topic's chapters from the brand square.
+            if let topicID = reviewedID(query, key: "topicId") {
+                MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID)
+                    .cyPushedChrome()
+            } else if let id = reviewedID(query) {
+                MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: id))
+                    .cyPushedChrome()
+            } else { unavailable }
+        case "pages/topic/merchantapply/index":
+            // The application form lives on the topic's chapters screen (MerchantContentEditor is presented from there).
+            if let topicID = reviewedID(query, key: "topicId") {
+                MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: topicID))
+                    .cyPushedChrome()
+            } else { unavailable }
+        case "pages/topic/pricing/index", "pages/topic/pricing/partner/index":
+            // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
+            if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
+                PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
+            } else { unavailable }
         case "pages/publish/fabu/index", "pages/publish/topicadd/topicadd":
             ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision,
                             publisherClient: session.publisherLifecycleContext?.client,
@@ -209,8 +254,11 @@ import SwiftUI
             SessionMerchantOverviewView(session: session)
         case "pages/merchant/relation/index", "pages/merchant/relation":
             SessionCoopRelationDiscoveryView(session: session, reader: session.cooperationFlowReader)
-        case "pages/search2/index", "pages/search2/result/index", "pages/searchmap/index", "pages/talent/search/index":
-            SessionGlobalSearchView().environmentObject(session)
+        case "pages/search2/index", "pages/search2/result/index", "pages/talent/search/index":
+            // PC-A-3-2: the MP keyword / filters run the search at once.
+            SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.query(query), onSignIn: signIn).environmentObject(session)
+        case "pages/searchmap/index":
+            SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.mapQuery(query["params"]), startsOnMap: true, onSignIn: signIn).environmentObject(session)
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
@@ -362,6 +410,12 @@ import SwiftUI
             .environment(\.inGameChannelHost, session.inGameChannelHost)
     }
 
+    /// PC-C-3-1 / X7: 登录 leaves the link and opens 我的, where sign-in lives (no dead `{}`).
+    private func signIn() {
+        session.dismissNativeEntry()
+        if rootTabSwitch.isAvailable { rootTabSwitch(.mine) }
+    }
+
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -386,8 +440,8 @@ private func queryID(_ query: [String: String], _ key: String) -> Int? {
     return value
 }
 
-private func reviewedID(_ query: [String: String]) -> Int? {
-    guard let text = query["id"], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
+private func reviewedID(_ query: [String: String], key: String = "id") -> Int? {
+    guard let text = query[key], text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }
     return value
 }

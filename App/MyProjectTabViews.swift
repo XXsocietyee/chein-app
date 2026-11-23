@@ -163,10 +163,17 @@ extension EnvironmentValues {
         rows.contains { !MyProjectListPresentation.card($0, merchantScopeAccess: merchantScopeAccess).operations.isEmpty }
     }
     @Environment(\.myProjectMutation) private var mutation
+    @Environment(\.myProjectTopicCancel) private var topicCancel
     var body: some View {
         // While 上下架 / 取消 / 删除 are gated the long-press menu offers nothing rather than a column of
         // disabled rows. Once composition supplies a live mutator the list injects its model here.
         let card = MyProjectListPresentation.card(project, merchantScopeAccess: merchantScopeAccess)
+        // PC-D-1-2: MP 取消主题并退款 (myproject index.js:610-638) opens the publisher cancel flow, which reads
+        // `cancel_preview` (refund count) before the confirm. The refund write itself stays behind its grant.
+        if let topicCancel, MyProjectBiz(rawValue: project.bizType) == .topic, card.operations.contains(.cancel) {
+            Button("myProject.op.cancel", role: .destructive) { topicCancel(project.sourceID) }
+                .accessibilityIdentifier("myProject.op.cancelTopic.\(project.id)")
+        }
         if let mutation, let biz = MyProjectBiz(rawValue: project.bizType) {
             ForEach(card.operations, id: \.self) { operation in
                 switch operation {

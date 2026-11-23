@@ -570,5 +570,21 @@
   "searchMap.w208.sheet.failed.detail": {
     "en": "Check your connection and try again.",
     "zh-Hans": "检查网络后再试一次"
+  },
+  "searchMap.templates": {
+    "en": "Templates",
+    "zh-Hans": "模板"
+  },
+  "searchMap.kind.topicTemplate": {
+    "en": "Theme template",
+    "zh-Hans": "主题模板"
+  },
+  "searchMap.kind.playTemplate": {
+    "en": "Play template",
+    "zh-Hans": "玩法模板"
+  },
+  "searchMap.template.previewOnly": {
+    "en": "Not open yet",
+    "zh-Hans": "暂未开放"
   }
 }

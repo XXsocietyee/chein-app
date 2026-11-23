@@ -43,6 +43,9 @@ extension AppSession {
                 return try? await service.sendCommand(eventID: eventID, action: action, fields: fields, token: self.token)
             }
         }
+        // PC-B-1-1 / X5: offer an owner write only when its endpoint grant is issued; otherwise the row would always fail.
+        let grants = publisherLifecycleContext?.client.grants
+        if grants?.graduation != nil {
         actions.graduateBetaTopic = { [weak self] topicID in
             guard let self, let context = self.publisherLifecycleContext else {
                 return .failure(PublisherLifecycleError.unavailable)
@@ -64,6 +67,8 @@ extension AppSession {
                 return .failure(error)
             }
         }
+        }
+        if grants?.ownership != nil {
         actions.loadTransferClubs = { [weak self] in
             guard let self else { return [] }
             switch await self.loadSettingsClubEntry() {
@@ -92,6 +97,7 @@ extension AppSession {
             } catch {
                 return .failure(error)
             }
+        }
         }
         actions.saveUserPhoneAndName = { [weak self] realName, phone in
             guard let self, let config = self.regionalConfiguration?.apiConfiguration,

@@ -18,7 +18,13 @@ import SwiftUI
     var onSignIn: (() -> Void)? = nil
     var recommendedKeywords: [String] = []
     var publicLayers: MapPublicLayerCaller? = nil
+    /// MP link keyword / filters (PC-A-3-2): applied and searched once.
+    var initialQuery: GlobalSearchQuery? = nil
     let destination: (SearchMapDestination) -> Destination
+    @State private var initialQueryApplied = false
+    /// PC-A-4-1: 主题模板 / 玩法模板 results for the same keyword (nil = not searched or not available).
+    @State private var templateResults: GlobalTemplateSearchResults?
+    @Environment(\.globalTemplateSearch) private var templateLanes
     @State private var filter = GlobalSearchQuery()
     @State private var categoryRecovery = SearchMapCategoryRecovery()
     @State private var categoryPresentationID = UUID()
@@ -181,7 +187,23 @@ import SwiftUI
                 filterSheetVisible = false; updateCategoryPresentation()
             }
         }
-        .task(id: readOwner) { await prepare() }
+        // PC-A-4-1: every content search also runs the two template lanes; their failure never fails the page.
+        .onChange(of: loading) { _, isLoading in
+            guard isLoading, let templateLanes else { return }
+            let query = filter, scope = reader.scope
+            templateResults = nil
+            Task { @MainActor in
+                let templates = await templateLanes.search(query)
+                guard isVisible, filter == query, reader.scope == scope else { return }
+                templateResults = templates
+            }
+        }
+        .task(id: readOwner) {
+            await prepare()
+            if let initialQuery, !initialQueryApplied, reader.isConfigured {
+                initialQueryApplied = true; filter = initialQuery; await search()
+            }
+        }
         #if DEBUG
         .task {
             // Design fixtures only: `--design-search-keyword <text>` runs one search so the results list can be shot.
@@ -516,6 +538,17 @@ import SwiftUI
                     .questifyHidesLinkIndicator()
                     .cyStaggeredAppear(index: index, gate: stagger)
                     .questifyCardListRow()
+            }
+        }
+        if selectedKind == nil, let templateResults, !templateResults.rows.isEmpty {
+            Section {
+                ForEach(templateResults.rows) { row in
+                    NavigationLink { templateLanes?.destination(row) } label: { GlobalTemplateResultRow(row: row) }
+                        .disabled(row.previewOnly)
+                        .accessibilityIdentifier("searchMap.templateResult.\(row.id)")
+                }
+            } header: {
+                Text("searchMap.templates").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
             }
         }
         if !loading { UnifiedSearchEntry(keyword: filter.keyword, destination: destination) }

@@ -8,6 +8,28 @@ extension GlobalSearchKind {
         case .activity: return "calendar"; case .club: return "person.3"; case .merchant: return "storefront" }
     }
 }
+/// PC-A-4-1: one template result (MP discover-search.js `tplRow`): cover, title, 主题模板 / 玩法模板 label.
+struct GlobalTemplateResultRow: View {
+    let row: GlobalTemplateSearchRow
+    var body: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            DiscoveryTopicCoverThumb(urlString: row.imageURL, seed: row.title)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(row.kind == .topicTemplate ? "searchMap.kind.topicTemplate" : "searchMap.kind.playTemplate")
+                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let detail = row.detail, !detail.isEmpty {
+                    Text(verbatim: detail).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                }
+                if row.previewOnly { Text("searchMap.template.previewOnly").cyText(.caption).foregroundStyle(CYColor.textTertiary) }
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .accessibilityElement(children: .combine)
+    }
+}
 struct SearchMapIssue: View {
     let key: String
     var retry: (() -> Void)? = nil

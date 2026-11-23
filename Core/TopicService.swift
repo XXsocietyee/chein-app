@@ -8,9 +8,11 @@ public struct TopicQuery: Equatable, Hashable {
     public var categoryID: String?
     public var recommend: Bool
     public var pageSize: Int
-    public init(keyword: String? = nil, categoryID: String? = nil, recommend: Bool = false, pageSize: Int = 10) {
+    /// MP `sort_type` (首页 主题 stream sends 1). Nil is omitted.
+    public var sortType: String?
+    public init(keyword: String? = nil, categoryID: String? = nil, recommend: Bool = false, pageSize: Int = 10, sortType: String? = nil) {
         self.keyword = keyword; self.categoryID = categoryID
-        self.recommend = recommend; self.pageSize = pageSize
+        self.recommend = recommend; self.pageSize = pageSize; self.sortType = sortType
     }
 }
 public struct TopicPage: Equatable {
@@ -43,6 +45,7 @@ public struct TopicService {
         if let keyword = query.keyword { fields["keyword"] = keyword }
         if let categoryID = query.categoryID { fields["category_id"] = categoryID }
         if query.recommend { fields["is_recommend"] = "1" }
+        if let sortType = query.sortType { fields["sort_type"] = sortType }
         let data = try await post("api/topic/list", fields: fields, token: token)
         let envelope = try await PlayerFeedJSON.perform { () -> TopicRowsEnvelope in
             do { return try JSONDecoder().decode(TopicRowsEnvelope.self, from: data) }

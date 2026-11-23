@@ -62,7 +62,7 @@ final class HomeFeedTests: XCTestCase {
         _ = try await service(transport).page(query: HomeFeedQuery(kind: .activities, keyword: "river", categoryID: 2), number: 3, token: nil)
         let request = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(request.url?.path, "/test/api/activity/list"); XCTAssertNil(request.value(forHTTPHeaderField: "Authorization"))
-        for (key, value) in ["is_my": "0", "keyword": "river", "category_id": "2", "pageNum": "3", "pageSize": "10"] {
+        for (key, value) in ["is_my": "0", "status": "1", "sort_type": "1", "keyword": "river", "category_id": "2", "pageNum": "3", "pageSize": "20"] {
             XCTAssertTrue(fields(request).contains("name=\"\(key)\"\r\n\r\n\(value)\r\n"))
         }
         for key in ["latitude", "longitude", "currency", "city_keyword"] { XCTAssertFalse(fields(request).contains("name=\"\(key)\"")) }
@@ -72,7 +72,11 @@ final class HomeFeedTests: XCTestCase {
         _ = try await api.section(.nearby, token: nil); _ = try await api.section(.upcoming, token: nil)
         XCTAssertTrue(fields(transport.requests[0]).contains("name=\"sort_type\"\r\n\r\n2\r\n"))
         XCTAssertTrue(fields(transport.requests[1]).contains("name=\"is_my\"\r\n\r\n2\r\n"))
-        XCTAssertFalse(fields(transport.requests[1]).contains("name=\"sort_type\""))
+        // PC-A-1-1: 即将上线 matches MP index.js:773-779.
+        for (key, value) in ["status": "2", "sort_type": "2", "pageSize": "4"] {
+            XCTAssertTrue(fields(transport.requests[1]).contains("name=\"\(key)\"\r\n\r\n\(value)\r\n"))
+        }
+        XCTAssertTrue(fields(transport.requests[0]).contains("name=\"pageSize\"\r\n\r\n4\r\n"))
     }
     func testErrorsRemainErrorsAndInvalidQueryNeverSends() async throws {
         let transport = HomeFeedTransport(); let api = try service(transport)
