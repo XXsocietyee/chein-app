@@ -29,7 +29,7 @@ import SwiftUI
                 Menu {
                     NavigationLink {
                         List { CityFavoriteNodesSection() }
-                            .navigationTitle(Text("playerGap.cityFavorites.title"))
+                            .cyPageTitle("playerGap.cityFavorites.title")
                             .cyPushedChrome()
                     } label: {
                         Label("playerGap.cityFavorites.title", systemImage: "star")

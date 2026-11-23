@@ -50,7 +50,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     var body: some View {
         screenContainer
         .scrollDismissesKeyboard(.interactively)
-        .modifier(PlayKitScreenChrome(presentation: presentation, kind: kind, close: {
+        .modifier(PlayKitScreenChrome(presentation: presentation, kind: kind, dirty: dirty, close: {
             if dirty { leaveReview = true } else { dismiss() }
         }))
         .privacySensitive()
@@ -342,17 +342,25 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
 }
 
 private struct PlayKitScreenChrome: ViewModifier {
-    let presentation: PlayKitNativePresentation; let kind: PlayKitScreenKind; let close: () -> Void
+    let presentation: PlayKitNativePresentation; let kind: PlayKitScreenKind; let dirty: Bool; let close: () -> Void
     @ViewBuilder func body(content: Content) -> some View {
         if presentation == .inline { content }
-        else {
-            // Navigation and sheet presentations share the title and the close button.
+        else if presentation == .sheet {
+            // A sheet has no back: 关闭 is its exit (with the unsaved-answer review when dirty).
             content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + kind.rawValue)))
-                .navigationBarTitleDisplayMode(.inline).navigationBarBackButtonHidden(true)
+                .navigationBarTitleDisplayMode(.inline)
                 .cyDomainScreen(.game)
                 .tint(CYColor.gameAccent)
                 .cyHideTabBar(true)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.close", action: close).accessibilityIdentifier("playkit.close") } }
+        } else {
+            // Pushed: the system back; only unsaved answers route it through the review (cyGuardedBack).
+            content.navigationTitle(Text(LocalizedStringKey("playkit.kind." + kind.rawValue)))
+                .navigationBarTitleDisplayMode(.inline)
+                .cyGuardedBack(when: dirty, onBack: close)
+                .cyDomainScreen(.game)
+                .tint(CYColor.gameAccent)
+                .cyHideTabBar(true)
         }
     }
 }

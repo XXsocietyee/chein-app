@@ -109,7 +109,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                 }
             }
         }.cyGroupedSurface()
-        .navigationTitle(passportText("title"))
+        .navigationTitle(passportText("title")).navigationBarTitleDisplayMode(.inline)
         .task {
             guard scenePhase == .active, owner == RoamPassportHistoryOwner(reader), !Task.isCancelled else { return }
             model.activate(); await model.read(model.intent(.refresh))
@@ -208,7 +208,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                 else { Button("action.retry") { Task { await model.read(retry) } }.accessibilityIdentifier("roam.serverHistory.detail.retry") }
             }
         }.cyGroupedSurface()
-        .navigationTitle(passportText("recordTitle"))
+        .navigationTitle(passportText("recordTitle")).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.close") { dismiss() } } }
         .task {
             guard scenePhase == .active, owner == RoamPassportHistoryOwner(reader), !Task.isCancelled else { return }

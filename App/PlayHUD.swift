@@ -177,28 +177,30 @@ struct PlayHUDNextStopCard: View {
         }
     }
 
-    private var isZh: Bool { locale.language.languageCode?.identifier == "zh" }
+    // PLAY-4: HUD copy lives in the string catalog (no in-code language ternaries).
+    private func text(_ value: String.LocalizationValue) -> String {
+        appLocalized(value, locale: locale)
+    }
 
     private var caption: String? {
         var parts: [String] = []
-        if let elapsed = stop.elapsedText { parts.append(isZh ? "用时 \(elapsed)" : "Time \(elapsed)") }
-        if let clues = stop.clues { parts.append(isZh ? "线索 \(clues.done) / \(clues.total)" : "Clues \(clues.done) / \(clues.total)") }
+        if let elapsed = stop.elapsedText { parts.append(text("playHUD.caption.time \(elapsed)")) }
+        if let clues = stop.clues { parts.append(text("playHUD.caption.clues \(clues.done) \(clues.total)")) }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
     private var spoken: String {
-        var parts = [isZh ? "下一站 \(stop.name)" : "Next stop \(stop.name)"]
+        var parts = [text("playHUD.a11y.next \(stop.name)")]
         if let distance = stop.distanceText { parts.append(distance) }
-        if let degrees = stop.arrowDegrees { parts.append(Self.direction(degrees, zh: isZh)) }
+        if let degrees = stop.arrowDegrees { parts.append(text("playHUD.a11y.clock \(Self.clockPosition(degrees))")) }
         if let caption { parts.append(caption) }
         return parts.joined(separator: ", ")
     }
 
-    /// The arrow in words for VoiceOver (clock positions are unambiguous in both languages).
-    static func direction(_ degrees: Double, zh: Bool) -> String {
+    /// The arrow as a clock position for VoiceOver (unambiguous in both languages).
+    static func clockPosition(_ degrees: Double) -> Int {
         let hour = Int((PlayHUDGeometry.normalized(degrees) / 30).rounded()) % 12
-        let clock = hour == 0 ? 12 : hour
-        return zh ? "在 \(clock) 点钟方向" : "at \(clock) o'clock"
+        return hour == 0 ? 12 : hour
     }
 }
 
@@ -268,7 +270,8 @@ struct PlayHUDBar<Team: View>: View {
             name: (name?.isEmpty == false ? name : nil) ?? "—",
             distanceText: distance.map(PlayHUDGeometry.distanceText),
             arrowDegrees: zip2(bearing, heading).map { pair in PlayHUDGeometry.steppedRotation(bearing: pair.0, heading: pair.1) },
-            elapsedText: elapsedSeconds > 0 ? PlayRunElapsedText.format(elapsedSeconds) : nil,
+            // PLAY-5: the run header already shows the dataXL clock; one timer on screen.
+            elapsedText: nil,
             clues: clues)
     }
 

@@ -6,7 +6,7 @@ import SwiftUI
     let goHome: () -> Void
     var body: some View {
         CYEmptyState(
-            systemImage: "link.badge.plus",
+            systemImage: "exclamationmark.triangle",
             "playx.circleLink.title",
             detail: "playx.circleLink.subtitle",
             messageIdentifier: "playx.circleLink.missing",
@@ -17,6 +17,8 @@ import SwiftUI
         )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         .background(CYColor.bgPage)
+        // PLAYC-2: MP cy-nav-bar 自由探索 on every host (deep link and in-app).
+        .cyPageTitle("playFree.title")
     }
 }
 

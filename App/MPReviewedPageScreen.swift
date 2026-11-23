@@ -6,6 +6,12 @@ import SwiftUI
     let page: String
     let query: [String: String]
     @EnvironmentObject private var session: AppSession
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    /// RNEAR-5 / RTEAMS-4: the signed-out team pages offer 登录, which opens 我的 (the app's sign-in home).
+    private var openSignIn: (() -> Void)? {
+        guard rootTabSwitch.isAvailable else { return nil }
+        return { session.dismissNativeEntry(); rootTabSwitch(.mine) }
+    }
 
     var body: some View {
         screen
@@ -43,7 +49,20 @@ import SwiftUI
         case "pages/team/detail/index":
             SessionTeamHomeView().environmentObject(session)
         case "pages/play/circle/index":
-            PlayCircleRetiredLinkView(goHome: { session.dismissNativeEntry() })
+            // PLAYC-1: old circle links with a topicId forward to play (MP redirectTo pages/play/index).
+            switch PlayRuntimeAuxiliaryBinding.resolveCircleRetirement(query: query) {
+            case .missingParameter:
+                PlayCircleRetiredLinkView(goHome: { session.dismissNativeEntry() })
+            case .redirectToPlay(let scope, _, _, _):
+                SessionPlayRuntimeView(session: session, destination: .journey(scope))
+            }
+        case "pages/play/index":
+            // PLAY-10: shared / redirected play links (topicId or activityId).
+            if let id = positiveID(query["activityId"]) {
+                SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
+            } else if let id = positiveID(query["topicId"]) {
+                SessionPlayRuntimeView(session: session, destination: .journey(.topic(id)))
+            } else { unavailable }
         case "pages/activity/detail/index":
             if let id = reviewedID(query) {
                 ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true)
@@ -76,8 +95,25 @@ import SwiftUI
             GrowthCenterView(reader: session.growthCenterReader)
         case "subpackageP3/pages/growthcenter/leaderboard/index":
             GrowthLeaderboardView(reader: session.growthCenterReader)
-        case "subpackageP3/pages/stamp-camera/index/index", "subpackageRoam/citystamp/index":
+        case "subpackageP3/pages/stamp-camera/index/index":
             SessionRoamStampCameraView().environmentObject(session)
+        case "subpackageRoam/citystamp/index":
+            // RSTAMP-1: the 3-step 投一张换一张 flow keeps kind / place.
+            SessionRoamCityStampFlowView(kind: query["kind"], place: query["place"]).environmentObject(session)
+        case "subpackageRoam/session/index":
+            // RSESS-1: a friend's ?shareToken= link lands on the shared footprint; the owner's own id opens the record.
+            if let token = query["shareToken"], !token.isEmpty {
+                RoamSharedFootprintView(token: token, reader: session.makeRoamShareSnapshotReader(), onOpenRoam: { session.dismissNativeEntry() })
+            } else if let sessionID = query["sessionId"] ?? query["id"], !sessionID.isEmpty {
+                RoamPassportRecordView(reader: session.roamPassportHistoryReader, sessionID: sessionID, localReader: session.roamExperienceReader)
+            } else { unavailable }
+        case "subpackageRoam/official-route/index":
+            if let reader = session.officialRouteReader, let id = query["id"] { OfficialRouteDetailView(reader: reader, routeID: id) } else { unavailable }
+        case "pages/play/poi-challenge/index":
+            // PLAYPOI-2: the challenge reads its node by poiId.
+            if let id = positiveID(query["poiId"]) { ChallengePOIHostView(poiID: id, reader: session.roamReader) } else { unavailable }
+        case "subpackageRoam/citynode-code/index":
+            RoamCityVoucherCodeView(poiID: positiveID(query["poiId"]), name: query["name"])
         case "subpackageP3/pages/stamp-album/index/index":
             RoamStampAlbumView(reader: session.roamExperienceReader)
         case "subpackageP3/pages/badge-wall/index/index":
@@ -179,6 +215,14 @@ import SwiftUI
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
             SettingsView().environmentObject(session)
+        case "pages/gerenziliao/gerenziliao":
+            // JSEAT-3: the lobby's 编辑 opens the same own-profile editor as 我的 → 编辑资料.
+            if session.account != nil {
+                ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision,
+                                categoryReader: session, currentReviewReader: session.profileCurrentReviewReader,
+                                nicknameReader: session.profileNicknameReader, savedMedia: session.profileSavedMediaReaders)
+                    .cyPushedChrome()
+            } else { unavailable }
         case "pages/shezhi/about/index":
             SettingsAboutView(market: session.operationalMarket, appInformation: .current(), legalReader: session.legalReader)
         case "pages/address/address":
@@ -210,9 +254,14 @@ import SwiftUI
         case "subpackageRoam/history/index":
             RoamHistoryView(reader: session.roamExperienceReader, toolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
         case "subpackageRoam/nearby/index":
-            SessionRoamNearbyTeamsView().environmentObject(session)
+            SessionRoamNearbyTeamsView(onSignIn: openSignIn).environmentObject(session)
         case "subpackageRoam/my-teams/index":
-            SessionRoamNearbyTeamsView(initialTab: 1).environmentObject(session)
+            // RTEAMS-1: a topic team card opens 本场招募 by owner; otherwise the 我的队伍 tab.
+            if let ownerID = positiveID(query["ownerId"]), let ownerType = positiveID(query["ownerType"]), ownerType <= 2 {
+                OrientLobbyTeamsView(ownerType: ownerType, ownerID: ownerID, scopeTitle: query["scope"]).environmentObject(session)
+            } else {
+                SessionRoamNearbyTeamsView(initialTab: query["tab"] == "open" ? 0 : 1, onSignIn: openSignIn).environmentObject(session)
+            }
         case "subpackageRoam/official-routes/index":
             if let reader = session.officialRouteReader { OfficialRouteListView(reader: reader) } else { unavailable }
         case "subpackageTools/capsule/index":
@@ -318,6 +367,13 @@ import SwiftUI
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(CYNight.ink0.ignoresSafeArea())
     }
+}
+
+/// Canonical positive decimal id for a named query key (already checked by `MiniProgramPageLink`).
+private func positiveID(_ text: String?) -> Int? {
+    guard let text, text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
+          let value = Int(text), value > 0, String(value) == text else { return nil }
+    return value
 }
 
 /// Canonical positive decimal id, the same shape `MiniProgramPageLink` already required.

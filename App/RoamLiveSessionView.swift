@@ -71,6 +71,8 @@ import QuestifyCore
     @State private var showingLocationPriming = false
     @State private var locationPrimingAllowed = false
     @State private var showRules = false
+    /// ROAM-2: pages/roam `openCheckinView` after a confirmed visit → 城市贴纸 / 今日城市签.
+    @State private var checkin: RoamCheckinTarget?
     @State private var revealTick = 0
     @State private var revealToastShown = false
     @State private var revealToastTask: Task<Void, Never>?
@@ -401,6 +403,7 @@ import QuestifyCore
         .sheet(isPresented: $showRules) {
             NavigationStack { RoamLiveRulesView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
+        .sheet(item: $checkin) { target in RoamCheckinSheet(target: target) }
         .background {
             RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
         }
@@ -488,6 +491,8 @@ import QuestifyCore
                         Spacer(minLength: 0)
                         CYGoHoldPill(enabled: !owner.busy) { commitGo() }
                             .matchedGeometryEffect(id: "go", in: goNamespace)
+                            // ROAM-12 / PL-42: VoiceOver and Switch Control start without the hold gesture.
+                            .accessibilityAction(named: Text("roam.w208.intro.start")) { if !owner.busy { commitGo() } }
                         Spacer(minLength: 0)
                     }
                 } else if canStart, owner.record?.finishRequested == false {
@@ -623,7 +628,14 @@ import QuestifyCore
                         if owner.registeredShopUnresolved(shop) { Text("roam.live.unknownVisit").cyText(.meta) }
                         else if owner.registeredShopConfirmed(shop) { Label("roam.live.arrivalConfirmed", systemImage: "checkmark.circle") }
                         else {
-                            Button("roam.live.visitShop") { Task { await owner.visitRegisteredShop(shop) } }
+                            Button("roam.live.visitShop") {
+                                Task {
+                                    await owner.visitRegisteredShop(shop)
+                                    if owner.registeredShopConfirmed(shop) {
+                                        checkin = RoamCheckinTarget(place: shop.addressName.isEmpty ? nil : shop.addressName, at: Date())
+                                    }
+                                }
+                            }
                                 .disabled(owner.busy || owner.registeredShopGap(shop) != 0)
                             if let gap = owner.registeredShopGap(shop), gap > 0 { Text("roam.live.walkCloser \(gap)").cyText(.meta).foregroundStyle(.secondary) }
                         }
@@ -654,6 +666,9 @@ import QuestifyCore
                     Task {
                         let before = owner.actionConfirmed(place, shop: false)
                         if shop { await owner.visitShop(place) } else { await owner.discover(place) }
+                        if owner.actionConfirmed(place, shop: shop) {
+                            checkin = RoamCheckinTarget(place: place.name.isEmpty ? nil : place.name, at: Date())
+                        }
                         if !shop, !before, owner.actionConfirmed(place, shop: false) {
                             MiniProgramAnalytics.track(analytics, "roam_poi_found", bizType: "roam",
                                 bizID: MiniProgramAnalytics.bizID(place.id), pagePath: "/pages/roam/index")
@@ -684,8 +699,11 @@ import QuestifyCore
             Section("roam.live.ruleArrivalTitle") { Text("roam.live.ruleArrival") }
             Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
             Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
-        }.navigationTitle("roam.live.rules").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            CYSheetHeader(title: Text("roam.live.rules"), style: .player, onClose: { dismiss() })
+        }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
 
@@ -1229,4 +1247,35 @@ struct RoamPausedBrowseCopy {
 /// The live HUD clock ticks every second; with Reduce Motion on it refreshes less often.
 enum RoamLiveTick {
     static func interval(reduceMotion: Bool) -> TimeInterval { reduceMotion ? 5 : 1 }
+}
+
+/// ROAM-2: the MP `openCheckinView` half sheet. Name, 已打卡 HH:mm · 在这儿留下点什么, then the two citystamp rows.
+struct RoamCheckinTarget: Identifiable {
+    let id = UUID()
+    let place: String?
+    let at: Date
+}
+@MainActor struct RoamCheckinSheet: View {
+    let target: RoamCheckinTarget
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Text("roam.checkin.sub \(target.at.formatted(date: .omitted, time: .shortened))")
+                        .cyText(.bodyCompact).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("roam.checkin.sub")
+                    RoamCheckinStampRows(place: target.place)
+                }
+            }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                CYSheetHeader(title: target.place.map { Text(verbatim: $0) } ?? Text("roamSub.w208.stamp.defaultPlace"),
+                              style: .player, onClose: { dismiss() })
+            }
+            .toolbar(.hidden, for: .navigationBar)
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+        .accessibilityIdentifier("roam.checkin.sheet")
+    }
 }

@@ -188,13 +188,9 @@ import UIKit
         }
         .background(CYColor.bgPage.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle("chapterStory.title").navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(!dirtyNodes.isEmpty)
-        .toolbar {
-            if !dirtyNodes.isEmpty {
-                ToolbarItem(placement: .topBarLeading) { Button("chapterStory.back", systemImage: "chevron.left") { leave() } }
-            }
-        }
+        .cyPageTitle("chapterStory.title")
+        // Unsaved answers: the one exit guard (system-look back + confirm), swipe back blocked while dirty.
+        .cyGuardedBack(when: !dirtyNodes.isEmpty, onBack: leave)
         .overlay {
             if showGate {
                 let position = chapterPosition

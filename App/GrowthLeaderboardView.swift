@@ -1,6 +1,7 @@
 import SwiftUI
 
 @MainActor struct GrowthLeaderboardView: View {
+    @Environment(\.locale) private var locale
     let reader: any GrowthCenterReading
     @Environment(\.cyPalette) private var palette
     @Environment(\.growthExploreHomeAction) private var onExploreHome
@@ -38,7 +39,8 @@ import SwiftUI
                 if board.list.isEmpty {
                     VStack(spacing: CYSpacing.md) {
                         CYEmptyState(systemImage: "list.number", "growth.board.empty")
-                        Text("growth.board.emptyHint")
+                        // LEADER-4: MP 完成一次城市探索即可累计{{unit}} — the unit follows the selected board.
+                        Text("growth.board.emptyHint \(appLocalized(String.LocalizationValue(stringLiteral: "growth.unit." + board.metric.rawValue), locale: locale))")
                             .cyText(.body)
                             .foregroundStyle(palette.textSecondary)
                             .multilineTextAlignment(.center)
@@ -66,14 +68,18 @@ import SwiftUI
                     }
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     Section {
+                        // LEADER-1: the viewer's own row in the list is highlighted, and the closing 我 row is added only
+                        // when the viewer is not already listed (matched by memberId).
+                        let meID = board.me.memberID
+                        let listed = meID != nil && board.list.contains { $0.memberID == meID }
                         ForEach(Array(board.list.enumerated()), id: \.offset) { index, row in
                             if index >= 3 {
-                                GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric)
+                                GrowthLeaderboardRow(entry: row, fallback: "growth.explorer", metric: board.metric,
+                                                     isMe: meID != nil && row.memberID == meID)
                                     .accessibilityIdentifier("growth.board.row.\(index)")
                             }
                         }
-                        // My own rank closes the list, highlighted, as in the mini-program.
-                        if let rank = board.me.rank {
+                        if !listed, let rank = board.me.rank {
                             GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true)
                                 .accessibilityIdentifier("growth.board.me.\(rank)")
                         }
@@ -84,7 +90,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.board.title")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

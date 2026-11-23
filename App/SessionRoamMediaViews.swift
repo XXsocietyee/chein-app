@@ -37,3 +37,32 @@ import SwiftUI
     func currentFix() async throws -> RoamDeviceFix { throw RoamExperienceFailure.capabilityUnavailable }
     func stop() {}
 }
+
+/// `subpackageRoam/citystamp?kind=&place=` (ROAM-2 / RSTAMP-1): the live 投一张换一张 flow. The photo step
+/// opens the session stamp camera; the exchange coordinator stays nil until the owner enables
+/// `RoamExperienceCapabilities.stampExchange`, so the page shows its dormant line instead of sending.
+@MainActor struct SessionRoamCityStampFlowView: View {
+    let kind: String?
+    let place: String?
+    var body: some View {
+        RoamCityStampFlowView(kind: kind, place: place, cameraDestination: { AnyView(SessionRoamStampCameraView()) })
+    }
+}
+
+/// Check-in follow-up rows (pages/roam wxml:702-725 `onCheckinStamp` / `onCheckinSign`): 城市贴纸 and 今日城市签,
+/// each pushing the citystamp flow for the visited place.
+@MainActor struct RoamCheckinStampRows: View {
+    let place: String?
+    var body: some View {
+        NavigationLink { SessionRoamCityStampFlowView(kind: "sticker", place: place) } label: {
+            Label("roam.checkin.sticker", systemImage: "seal")
+        }
+        .frame(minHeight: 44)
+        .accessibilityIdentifier("roam.checkin.sticker")
+        NavigationLink { SessionRoamCityStampFlowView(kind: "sign", place: place) } label: {
+            Label("roam.checkin.sign", systemImage: "signature")
+        }
+        .frame(minHeight: 44)
+        .accessibilityIdentifier("roam.checkin.sign")
+    }
+}

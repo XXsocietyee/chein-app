@@ -65,10 +65,13 @@ struct PlayerJourneySignInSheet: ViewModifier {
 
 @MainActor @Observable final class PlayerJourneyLandingModel: JourneyLandingBinding {
     private(set) var phase: JourneyLandingPhase = .loading
+    /// 去看看 pushes the referral target (`pages/activity/detail/index` or `pages/topic/index/index`).
+    var route: MPParityRoute?
     private let link: JourneyLandingLink
     private let source: JourneyLoopSource
     private let token: () -> String?
     private var activeMode: String?
+    private var target: PlayerJourneyProjection.LandingTarget?
 
     init(link: JourneyLandingLink, source: JourneyLoopSource, token: @escaping () -> String?) {
         self.link = link
@@ -81,16 +84,24 @@ struct PlayerJourneySignInSheet: ViewModifier {
         Task { await reload() }
     }
 
-    func selectMode(_ key: String) { activeMode = key }
+    func selectMode(_ key: String) {
+        activeMode = key
+        guard case .ready(var content) = phase, content.tiles.contains(where: { $0.key == key }) else { return }
+        content.activeMode = key
+        phase = .ready(content)
+    }
 
-    /// Landing stays a read. Gift claim and seat claim are not sent from this screen.
-    func primary() {}
+    /// Landing stays a read. Gift claim and seat claim are not sent from this screen (`MPCommerceGate.claimsEnabled`).
+    /// 去看看 only exists when the server said `VIEW_TARGET` (JLAND-1).
+    func primary() {
+        guard case .ready(let content) = phase, content.primary == .view, let target = self.target else { return }
+        route = PlayerJourneyProjection.targetRoute(target)
+    }
 
+    /// JLAND-2: the referral and gift reads are anonymous on the server (`@Anonymous`), as in the mini-program,
+    /// so a signed-out invitee still sees the landing. Choices need a session and are skipped without one.
     private func reload() async {
-        guard let session = token(), AuthRequestBuilder.isValidToken(session) else {
-            phase = .failed
-            return
-        }
+        let session = token().flatMap { AuthRequestBuilder.isValidToken($0) ? $0 : nil }
         do {
             let envelope: JourneyEnvelope
             switch link.kind {
@@ -99,15 +110,25 @@ struct PlayerJourneySignInSheet: ViewModifier {
             case .gift:
                 envelope = try await source.gift(token: link.token, sessionToken: session)
             case .seat:
-                let choices = (link.activityID != nil || link.topicID != nil)
-                    ? try? await source.choices(activityID: link.activityID, topicID: link.topicID, token: session) : nil
+                // Seat codes have no anonymous read: the page only says what it is; the claim is the server's call.
+                var choices: JourneyEnvelope?
+                if let session, link.activityID != nil || link.topicID != nil {
+                    choices = try? await source.choices(activityID: link.activityID,
+                                                        topicID: link.activityID == nil ? link.topicID : nil, token: session)
+                }
+                let tiles = PlayerJourneyProjection.tiles(choices)
                 phase = .ready(JourneyLandingContent(headline: .seat, inviter: nil, title: nil, seatNo: nil, facts: [],
-                                                    tiles: PlayerJourneyProjection.tiles(choices), activeMode: activeMode,
+                                                    tiles: tiles, activeMode: PlayerJourneyProjection.activeMode(activeMode, tiles),
                                                     primary: .claimSeat))
                 return
             }
-            let choices = (link.activityID != nil || link.topicID != nil)
-                ? try? await source.choices(activityID: link.activityID, topicID: link.topicID, token: session) : nil
+            target = PlayerJourneyProjection.landingTarget(kind: link.kind, envelope: envelope)
+            // JLAND-3: a referral reads its modes for the read's own target, not the link's aid / tid.
+            var choices: JourneyEnvelope?
+            if link.kind == .referral, let session, let target = self.target {
+                choices = try? await source.choices(activityID: target.isActivity ? target.id : nil,
+                                                    topicID: target.isActivity ? nil : target.id, token: session)
+            }
             phase = PlayerJourneyProjection.landing(link: link, envelope: envelope, choices: choices, activeMode: activeMode)
         } catch {
             phase = .failed
@@ -117,10 +138,19 @@ struct PlayerJourneySignInSheet: ViewModifier {
 
 @MainActor @Observable final class PlayerJourneySeatsModel: JourneySeatsBinding {
     private(set) var phase: JourneySeatsPhase = .loading
+    /// 去起点 pushes play; 编辑 pushes the own-profile editor (`pages/gerenziliao/gerenziliao`).
+    var route: MPParityRoute?
     private let registrationID: String
     private let source: JourneyLoopSource
     private let token: () -> String?
     private var inviteURL: URL?
+    private var lastSeats: JourneyEnvelope?
+    private var facts: PlayerJourneyProjection.SeatsFacts?
+    /// JSEAT-5 extras: topic head, play-mode tiles and the buyer's own name / avatar. A failed read hides only its block.
+    private var head: PlayerJourneyProjection.TopicHead?
+    private var tiles: [JourneyModeTile] = []
+    private var me: JourneyPerson?
+    private var extrasRead = false
 
     init(registrationID: String, source: JourneyLoopSource, token: @escaping () -> String?) {
         self.registrationID = registrationID
@@ -129,7 +159,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
     }
 
     func load() {
-        phase = .loading
+        if phase.content == nil { phase = .loading }
         Task { await reload() }
     }
 
@@ -141,9 +171,16 @@ struct PlayerJourneySignInSheet: ViewModifier {
         Task { await cancel(id) }
     }
 
-    func goToStart() {}
+    /// JSEAT-3, mini-program `lobby-view.playUrl`: the original activity / topic plus this registration. Play still
+    /// checks admission with the server.
+    func goToStart() {
+        guard let facts = self.facts, let next = PlayerJourneyProjection.playRoute(facts) else { return }
+        route = next
+    }
 
-    func editMe() {}
+    func editMe() {
+        route = MPParityRoute(miniProgramPath: "pages/gerenziliao/gerenziliao", query: [:])
+    }
 
     private func reload() async {
         guard let session = token(), AuthRequestBuilder.isValidToken(session) else {
@@ -152,13 +189,13 @@ struct PlayerJourneySignInSheet: ViewModifier {
         }
         do {
             let seats = try await source.seats(registrationID: registrationID, token: session)
-            phase = PlayerJourneyProjection.seats(seats, choices: nil, registrationID: registrationID)
-            if case .ready(var content) = phase {
-                if content.me == nil, let profile = try? await source.playerProfile(token: session) {
-                    content.me = PlayerJourneyProjection.person(profile)
-                }
-                content.inviteShareURL = inviteURL
-                phase = .ready(content)
+            lastSeats = seats
+            facts = PlayerJourneyProjection.seatsFacts(seats)
+            render(actionError: nil)
+            if case .ready = phase, !extrasRead, let facts = self.facts {
+                extrasRead = true
+                await loadExtras(facts, session: session)
+                render(actionError: phase.content?.actionError)
             }
         } catch JourneyRefusal.invalidRequest {
             phase = .missing
@@ -167,13 +204,43 @@ struct PlayerJourneySignInSheet: ViewModifier {
         }
     }
 
+    private func loadExtras(_ facts: PlayerJourneyProjection.SeatsFacts, session: String) async {
+        if let topic = facts.topicID {
+            if let info = try? await source.topicInfo(id: topic, token: session) {
+                head = PlayerJourneyProjection.topicHead(info)
+            }
+            let activity = facts.ownerType == 2 ? facts.ownerID : nil
+            if let choices = try? await source.choices(activityID: activity, topicID: activity == nil ? topic : nil, token: session) {
+                tiles = PlayerJourneyProjection.tiles(choices)
+            }
+        }
+        if let profile = try? await source.playerProfile(token: session) {
+            me = PlayerJourneyProjection.person(profile)
+        }
+    }
+
+    private func render(actionError: String?) {
+        guard let lastSeats = self.lastSeats else { return }
+        let next = PlayerJourneyProjection.seats(lastSeats, choices: nil, registrationID: registrationID, me: me)
+        guard case .ready(var content) = next else {
+            phase = next
+            return
+        }
+        content.headName = head?.name
+        content.headCoverURL = head?.coverURL
+        content.tiles = tiles
+        content.inviteShareURL = inviteURL
+        content.actionError = actionError
+        phase = .ready(content)
+    }
+
     private func invite() async {
         guard let session = token(), AuthRequestBuilder.isValidToken(session) else { return }
         do {
             let envelope = try await source.seatInvite(registrationID: registrationID, token: session)
-            applyWrite(envelope)
+            applyWrite(envelope, invite: true)
         } catch {
-            applyWrite(nil)
+            applyWrite(nil, invite: true)
         }
     }
 
@@ -181,24 +248,34 @@ struct PlayerJourneySignInSheet: ViewModifier {
         guard let session = token(), AuthRequestBuilder.isValidToken(session) else { return }
         do {
             let envelope = try await source.seatCancel(invitationID: id, token: session)
-            applyWrite(envelope)
+            applyWrite(envelope, invite: false)
         } catch {
-            applyWrite(nil)
+            applyWrite(nil, invite: false)
         }
     }
 
     /// A confirmed answer refreshes the lobby. An unknown answer keeps the saved request id and does not draw success.
-    private func applyWrite(_ envelope: JourneyEnvelope?) {
+    /// JSEAT-4: the invite answer carries `token`; the shared link is the seat landing built from it (`k=s&t=` + aid / tid).
+    private func applyWrite(_ envelope: JourneyEnvelope?, invite: Bool) {
         guard var content = phase.content else { return }
         if let envelope, envelope.ok, !envelope.unconfirmed {
+            if invite {
+                inviteURL = facts.flatMap { PlayerJourneyProjection.seatInviteURL(envelope, facts: $0) }
+                guard inviteURL != nil else {
+                    content.inviteShareURL = nil
+                    content.actionError = appLocalized("mp.seats.invite.linkFailed", locale: .current)
+                    phase = .ready(content)
+                    return
+                }
+            }
             content.actionError = nil
-            inviteURL = PlayerJourneyProjection.httpsURL(in: envelope.dataJSON)
             content.inviteShareURL = inviteURL
             phase = .ready(content)
             load()
             return
         }
-        content.inviteShareURL = nil
+        if invite { inviteURL = nil }
+        content.inviteShareURL = inviteURL
         content.actionError = envelope?.message ?? JourneyEnvelope.networkFailure.message
         phase = .ready(content)
     }
@@ -209,7 +286,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var memory: JourneyMemoryPhase = .idle
     private(set) var rank = JourneyRankState()
     private(set) var feedback: JourneyFeedbackState = .editing(nil)
-    let shareURL: URL? = nil
+    /// JREPORT-1: set once the report is ready (topic link; the referral token stays a money write, see `PlayerJourneyShare`).
+    private(set) var shareURL: URL?
     private let scope: JourneyRunScope
     private let source: JourneyLoopSource
     private let token: () -> String?
@@ -307,6 +385,9 @@ struct PlayerJourneySignInSheet: ViewModifier {
         } catch {
             phase = .failed
         }
+        if case .ready(let report) = phase {
+            shareURL = PlayerJourneyShare.url(report: report, scope: scope, source: source, token: session)
+        }
         if case .ready(let report) = phase, !report.legacy, !teamsProbed {
             teamsProbed = true
             await probeTeams(session)
@@ -403,7 +484,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var rate: JourneyRateState = .idle
     /// One settle-rating intent. Cleared only after a confirmed write so a retry reuses it.
     private var rateRequestID: String?
-    let shareURL: URL? = nil
+    /// JSETTLE-1: set once the run is ready, so the share step always has 分享 (topic link fallback).
+    private(set) var shareURL: URL?
     private(set) var topicName: String?
     private let scope: JourneyRunScope
     private let source: JourneyLoopSource
@@ -414,8 +496,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
         self.source = source
         self.token = token
         topicName = scope.topicName
-        // Settle preset: only the whole-board tab (mini-program rank-board `preset="settle"`), no "more".
-        rank.tabs = PlayerJourneyProjection.rankTabs(scope).filter { $0.kind == .quest }
+        // Settle preset (mini-program rank-board `preset="settle"`): 全体 + 队内, no "more" (JSETTLE-5).
+        rank.tabs = PlayerJourneyProjection.rankTabs(scope).filter { $0.kind == .quest || $0.kind == .team }
         rank.scope = rank.tabs.first
         rank.phase = .loading
     }
@@ -473,6 +555,19 @@ struct PlayerJourneySignInSheet: ViewModifier {
         } catch {
             phase = .failed(gone: false)
         }
+        guard case .ready(let report) = phase else { return }
+        shareURL = PlayerJourneyShare.url(report: report, scope: scope, source: source, token: session)
+        // JSETTLE-3: a link without `topicName` reads it, so the overview and card do not fall back to 本局.
+        if topicName == nil, let topic = report.topicID ?? scope.topicID, JourneyLoopSource.isID(topic),
+           let info = try? await source.topicInfo(id: topic, token: session),
+           let name = PlayerJourneyProjection.topicHead(info)?.name, topicName == nil {
+            topicName = name
+        }
+    }
+
+    private var readyReport: JourneyReport? {
+        if case .ready(let report) = phase { return report }
+        return nil
     }
 
     private func reloadRank() async {
@@ -491,33 +586,33 @@ struct PlayerJourneySignInSheet: ViewModifier {
     }
 
     private func sendRating(stars: Int, text: String) async {
-        let owner: (Int, String)?
-        if let topic = scope.topicID, JourneyLoopSource.isID(topic) {
-            owner = (1, topic)
-        } else if let run = scope.runID, JourneyLoopSource.isID(run) {
-            owner = (2, run)
-        } else {
-            owner = nil
+        // JSETTLE-2, mini-program settle `submitRate`: owner type 2 + the activity id when the run has an activity,
+        // else owner type 1 + the topic id. A run id is never an owner.
+        guard let owner = PlayerJourneyProjection.ratingOwner(report: readyReport, scope: scope) else {
+            rate = .error(appLocalized("mp.settle.rate.unavailable", locale: .current))
+            return
         }
-        guard let owner, (1...5).contains(stars), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            rate = .error("—")
+        guard (1...5).contains(stars), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            rate = .error(MPText.unknown)
             return
         }
         guard let session = token(), AuthRequestBuilder.isValidToken(session) else {
-            rate = .error("—")
+            rate = .error(MPText.unknown)
             return
         }
         let requestID = ratingRequestID()
         do {
-            let envelope = try await source.rate(ownerType: owner.0, ownerID: owner.1, rating: stars, contents: text, requestID: requestID, token: session)
+            let envelope = try await source.rate(ownerType: owner.type, ownerID: owner.id, rating: stars, contents: text, requestID: requestID, token: session)
             if envelope.ok, !envelope.unconfirmed {
                 rateRequestID = nil
                 rate = .thanks
+            } else if envelope.netFail {
+                rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))
             } else {
-                rate = .error(envelope.message ?? JourneyEnvelope.networkFailure.message ?? "—")
+                rate = .error(envelope.message ?? appLocalized("mp.settle.rate.netKept", locale: .current))
             }
         } catch {
-            rate = .error(JourneyEnvelope.networkFailure.message ?? "—")
+            rate = .error(appLocalized("mp.settle.rate.netKept", locale: .current))
         }
     }
 
@@ -596,29 +691,138 @@ enum PlayerJourneyProjection {
             if envelope.code == "404" || envelope.httpStatus == 404 { return .missing }
             return .failed
         }
+        // JLAND-4: field paths per `journey-view.js` `referralView` / `giftView`.
         let state = string(object["state"])
-        if let state, state != "VALID" {
-            return .invalid(reason: envelope.message ?? state, success: state == "CLAIMED")
+        guard state == "VALID" else {
+            return .invalid(reason: landingStateText(kind: link.kind, state: state), success: link.kind == .gift && state == "CLAIMED")
         }
-        let inviter = object["inviter"] as? [String: Any]
-        let person = string(inviter?["nickname"]).map { JourneyPerson(name: $0, avatarURL: url(string(inviter?["avatar"]))) }
-        let primary: JourneyLandingPrimary?
         switch link.kind {
-        case .referral: primary = .view
-        case .gift: primary = .claimGift
-        case .seat: primary = .claimSeat
+        case .referral:
+            let inviter = object["inviter"] as? [String: Any]
+            let person = string(inviter?["nickname"]).map { JourneyPerson(name: $0, avatarURL: url(string(inviter?["avatar"]))) }
+            let target = object["target"] as? [String: Any]
+            var facts: [JourneyFact] = []
+            if let expires = timeText(object["expiresAt"]) { facts.append(JourneyFact(kind: .inviteValid, value: expires)) }
+            if string(object["registrationState"]) == "CLOSED" { facts.append(JourneyFact(kind: .signupClosed, value: "")) }
+            // JLAND-1: 去看看 only when the server allows viewing the target and the target id is real.
+            let canView = string(object["nextAction"]) == "VIEW_TARGET" && landingTarget(kind: .referral, envelope: envelope) != nil
+            let modes = tiles(choices)
+            return .ready(JourneyLandingContent(headline: .referral, inviter: person, title: string(target?["title"]), seatNo: nil,
+                                                facts: facts, tiles: modes, activeMode: self.activeMode(activeMode, modes),
+                                                primary: canView ? .view : nil))
+        case .gift:
+            let product = object["product"] as? [String: Any]
+            var facts: [JourneyFact] = []
+            if let claimBy = timeText(object["claimExpiresAt"]) { facts.append(JourneyFact(kind: .claimBy, value: claimBy)) }
+            return .ready(JourneyLandingContent(headline: .gift, inviter: nil,
+                                                title: string(product?["topicTitle"]) ?? string(product?["productName"]), seatNo: nil,
+                                                facts: facts, tiles: [], activeMode: nil,
+                                                primary: string(object["nextAction"]) == "CLAIM_GIFT" ? .claimGift : nil))
+        case .seat:
+            let modes = tiles(choices)
+            return .ready(JourneyLandingContent(headline: .seat, inviter: nil, title: nil, seatNo: nil, facts: [], tiles: modes,
+                                                activeMode: self.activeMode(activeMode, modes), primary: .claimSeat))
         }
-        var facts: [JourneyFact] = []
-        if let expires = string(object["expiresAt"]), expires != "UNKNOWN" {
-            facts.append(JourneyFact(kind: .inviteValid, value: expires))
-        }
-        let content = JourneyLandingContent(headline: link.kind == .gift ? .gift : (link.kind == .seat ? .seat : .referral),
-                                            inviter: person, title: string(object["title"]), seatNo: string(object["seatNo"]),
-                                            facts: facts, tiles: tiles(choices), activeMode: activeMode, primary: primary)
-        return .ready(content)
     }
 
-    static func seats(_ envelope: JourneyEnvelope, choices: JourneyEnvelope?, registrationID: String) -> JourneySeatsPhase {
+    /// Referral `target {type, id}` (type 2 = activity, else topic); gift `product.topicId` (a topic).
+    struct LandingTarget: Equatable {
+        let isActivity: Bool
+        let id: String
+    }
+
+    static func landingTarget(kind: JourneyLandingLink.Kind, envelope: JourneyEnvelope) -> LandingTarget? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON), string(object["state"]) == "VALID" else { return nil }
+        switch kind {
+        case .referral:
+            guard let target = object["target"] as? [String: Any], let id = idText(target["id"]) else { return nil }
+            return LandingTarget(isActivity: int(target["type"]) == 2, id: id)
+        case .gift:
+            guard let product = object["product"] as? [String: Any], let id = idText(product["topicId"]) else { return nil }
+            return LandingTarget(isActivity: false, id: id)
+        case .seat:
+            return nil
+        }
+    }
+
+    /// Mini-program `_goTarget`: activity detail for type 2, else the topic page.
+    static func targetRoute(_ target: LandingTarget) -> MPParityRoute? {
+        MPParityRoute(miniProgramPath: target.isActivity ? "pages/activity/detail/index" : "pages/topic/index/index", query: ["id": target.id])
+    }
+
+    /// JLAND-5: plain-language state sentence per kind, never the raw server code.
+    static func landingStateText(kind: JourneyLandingLink.Kind, state: String?) -> String {
+        if kind == .gift {
+            switch state {
+            case "TOKEN_EXPIRED": return appLocalized("mp.landing.state.giftLinkExpired", locale: .current)
+            case "CLAIMED": return appLocalized("mp.landing.state.giftClaimed", locale: .current)
+            case "GIFT_EXPIRED": return appLocalized("mp.landing.state.giftExpired", locale: .current)
+            case "GIFT_REVOKED": return appLocalized("mp.landing.state.giftRevoked", locale: .current)
+            case "PRODUCT_UNAVAILABLE": return appLocalized("mp.landing.state.giftProductUnavailable", locale: .current)
+            default: return appLocalized("mp.landing.state.giftInvalid", locale: .current)
+            }
+        }
+        switch state {
+        case "TOKEN_EXPIRED": return appLocalized("mp.landing.state.inviteExpired", locale: .current)
+        case "TOKEN_REVOKED": return appLocalized("mp.landing.state.inviteRevoked", locale: .current)
+        case "TARGET_UNAVAILABLE": return appLocalized("mp.landing.state.targetUnavailable", locale: .current)
+        case "INVITER_UNAVAILABLE": return appLocalized("mp.landing.state.inviterUnavailable", locale: .current)
+        default: return appLocalized("mp.landing.state.inviteInvalid", locale: .current)
+        }
+    }
+
+    /// Selected mode, else the first available tile, else the first tile (`join-view.modeTiles` `active`).
+    static func activeMode(_ selected: String?, _ tiles: [JourneyModeTile]) -> String? {
+        if let selected, tiles.contains(where: { $0.key == selected }) { return selected }
+        return (tiles.first(where: \.available) ?? tiles.first)?.key
+    }
+
+    /// Facts the lobby needs beyond the drawn content (mini-program `seatsView` owner / topic / registration).
+    struct SeatsFacts: Equatable {
+        let registrationID: String?
+        let topicID: String?
+        let ownerType: Int?
+        let ownerID: String?
+    }
+
+    static func seatsFacts(_ envelope: JourneyEnvelope) -> SeatsFacts? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return nil }
+        return SeatsFacts(registrationID: idText(object["registrationId"]), topicID: idText(object["topicId"]),
+                          ownerType: int(object["ownerType"]), ownerID: idText(object["ownerId"]))
+    }
+
+    /// Mini-program `lobby-view.playUrl`: needs the topic; an activity ticket (owner type 2) also carries the activity.
+    static func playRoute(_ facts: SeatsFacts) -> MPParityRoute? {
+        guard let topic = facts.topicID else { return nil }
+        var query = ["topicId": topic]
+        if facts.ownerType == 2, let activity = facts.ownerID { query["activityId"] = activity }
+        if let registration = facts.registrationID { query["registrationId"] = registration }
+        return MPParityRoute(miniProgramPath: "pages/play/index", query: query)
+    }
+
+    /// JSEAT-4: the seat invite answer's `token` as the landing link (`k=s&t=`, `aid` for an activity ticket, `tid`).
+    static func seatInviteURL(_ envelope: JourneyEnvelope, facts: SeatsFacts) -> URL? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON), let token = string(object["token"]) else { return nil }
+        let activity = facts.ownerType == 2 ? facts.ownerID.flatMap(Int.init) : nil
+        let intake = JourneyLinkIntake(kind: .seat, token: token, activityID: activity, topicID: facts.topicID.flatMap(Int.init))
+        return PublicContentShareLink.journeyLanding(intake)
+    }
+
+    /// `/api/topic/info-to-user`: name and the first cover image. A relative cover path is not drawn (no host to resolve it).
+    struct TopicHead: Equatable {
+        let name: String
+        let coverURL: String?
+    }
+
+    static func topicHead(_ envelope: JourneyEnvelope) -> TopicHead? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON), let name = string(object["name"]) else { return nil }
+        let first = (string(object["imgUrl"]) ?? string(object["imgArr"]))?
+            .split(separator: ",").first.map { $0.trimmingCharacters(in: .whitespaces) }
+        return TopicHead(name: name, coverURL: url(first)?.absoluteString)
+    }
+
+    /// JSEAT-1 / JSEAT-2: port of `journey-view.seatsView` + `lobby-view.lobbyView`. Seat states arrive upper-case.
+    static func seats(_ envelope: JourneyEnvelope, choices: JourneyEnvelope?, registrationID: String, me: JourneyPerson? = nil) -> JourneySeatsPhase {
         _ = registrationID
         if envelope.code == "401" || envelope.httpStatus == 401 || envelope.code == "403" || envelope.httpStatus == 403 {
             return .denied(envelope.message)
@@ -626,21 +830,56 @@ enum PlayerJourneyProjection {
         if envelope.unconfirmed || envelope.netFail { return .failed }
         if envelope.code == "404" || envelope.httpStatus == 404 { return .missing }
         guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return .failed }
-        let circles = (object["seats"] as? [Any] ?? []).compactMap(circle)
-        let invited = (object["invitations"] as? [Any] ?? []).compactMap(invitedRow)
+        let free = int(object["freeSeats"])
+        let canInvite = object["buyerIsCaller"] as? Bool == true && object["readOnly"] as? Bool == false && (free ?? 0) > 0
+        let cancelSupported = object["seatCancelSupported"] as? Bool == true
+        let rows = (object["seats"] as? [Any] ?? []).compactMap { $0 as? [String: Any] }
+        var circles: [JourneySeatCircle] = []
+        var invited: [JourneyInvitedRow] = []
+        for row in rows {
+            guard let no = int(row["seatNo"]), let kind = seatKind(string(row["state"])) else { continue }
+            circles.append(JourneySeatCircle(no: no, kind: kind, avatarURL: kind == .me ? me?.avatarURL : nil,
+                                             initial: kind == .me ? me.flatMap { $0.initial.isEmpty ? nil : $0.initial } : nil,
+                                             tappable: kind == .open && canInvite))
+            // The invited list: waiting seats and taken (claimed / checked-in / reserved) seats, never the buyer's own.
+            guard kind == .invited || kind == .claimed || kind == .verified || kind == .reserved else { continue }
+            let invitation = idText(row["invitationId"])
+            invited.append(JourneyInvitedRow(invitationID: invitation ?? "seat-\(no)", no: no, kind: kind,
+                                             expiresText: kind == .invited ? timeText(row["invitationExpiresAt"]) : nil,
+                                             canCancel: kind == .invited && cancelSupported && invitation != nil))
+        }
         let count = int(object["seatCount"])
-        let occupied = int(object["occupied"])
-        let open = int(object["openCount"]) ?? circles.filter { $0.kind == .open }.count
-        let content = JourneySeatsContent(headName: string(object["title"]) ?? string(object["name"]),
-                                          headCoverURL: string(object["cover"]),
-                                          me: string(object["playerName"]).map { JourneyPerson(name: $0, avatarURL: nil) },
-                                          showsParty: (count ?? circles.count) > 1,
-                                          occupied: occupied, seatCount: count, circles: circles,
-                                          canInvite: object["canInvite"] as? Bool ?? false,
-                                          openCount: open, invited: invited, multi: (count ?? 0) >= 2,
-                                          tiles: tiles(choices), canGoToStart: object["canStart"] as? Bool ?? false,
+        let taken = circles.filter { [.me, .verified, .claimed, .reserved].contains($0.kind) }.count
+        let content = JourneySeatsContent(headName: nil, headCoverURL: nil,
+                                          me: me,
+                                          showsParty: (count ?? 0) > 1,
+                                          occupied: count == nil ? nil : taken, seatCount: count, circles: circles,
+                                          canInvite: canInvite,
+                                          openCount: circles.filter { $0.kind == .open }.count, invited: invited,
+                                          multi: (count ?? 0) > 1,
+                                          tiles: tiles(choices), canGoToStart: idText(object["topicId"]) != nil,
                                           actionError: nil, inviteShareURL: nil)
         return .ready(content)
+    }
+
+    private static func seatKind(_ state: String?) -> JourneySeatKind? {
+        switch state {
+        case "BUYER": return .me
+        case "VERIFIED": return .verified
+        case "RESERVED": return .reserved
+        case "AVAILABLE": return .open
+        case "EXPIRED": return .expired
+        case "INVITED": return .invited
+        case "CLAIMED": return .claimed
+        default: return nil
+        }
+    }
+
+    /// JSETTLE-2: owner type 2 + activity id when the run has an activity, else 1 + topic id; nil when neither is an id.
+    static func ratingOwner(report: JourneyReport?, scope: JourneyRunScope) -> (type: Int, id: String)? {
+        if let activity = report?.activityID ?? scope.activityID, JourneyLoopSource.isID(activity) { return (2, activity) }
+        if let topic = report?.topicID ?? scope.topicID, JourneyLoopSource.isID(topic) { return (1, topic) }
+        return nil
     }
 
     /// U08-01: real `PlayerRunReportVO` fields through `PostGameRunReport` (mini-program `reportView`).
@@ -733,41 +972,81 @@ enum PlayerJourneyProjection {
         return JourneyPerson(name: name, avatarURL: url(string(object["avatar"])))
     }
 
-    static func httpsURL(in data: Data?) -> URL? {
-        guard let object = jsonObject(data) else { return nil }
-        return url(string(object["shareUrl"]) ?? string(object["url"]))
-    }
-
+    /// JLAND-3: port of `join-view.modeTiles` over `journey-view.choicesView`. Keys are the server's
+    /// `SHARED_TEAM` / `INDEPENDENT`; `competition` makes an independent mode 各自比. An unavailable or missing run
+    /// config draws no block at all.
     static func tiles(_ envelope: JourneyEnvelope?) -> [JourneyModeTile] {
-        guard let envelope, envelope.ok, let object = jsonObject(envelope.dataJSON),
-              let rows = object["choices"] as? [Any] else { return [] }
-        return rows.compactMap { item in
-            guard let row = item as? [String: Any], let key = string(row["key"]) ?? string(row["mode"]) else { return nil }
-            let name: JourneyModeTile.Name
-            switch key {
-            case "together": name = .together
-            case "compete": name = .compete
-            case "solo": name = .solo
-            default: return nil
+        guard let envelope, envelope.ok, let object = jsonObject(envelope.dataJSON) else { return [] }
+        let config = string(object["configState"])
+        guard config != "UNAVAILABLE", config != "RUN_CONFIG_SNAPSHOT_MISSING",
+              let rows = (object["choices"] as? [Any])?.compactMap({ $0 as? [String: Any] }), !rows.isEmpty else { return [] }
+        return rows.enumerated().map { index, row -> JourneyModeTile in
+            let key = string(row["key"]) ?? "mode-\(index)"
+            let team = key == "SHARED_TEAM"
+            let compete = !team && row["competition"] as? Bool == true
+            let scoreScope = string(row["scoreScope"]).flatMap(JourneyScopeText.init(rawValue:))
+            let sub: JourneyModeTile.Sub? = team && scoreScope == .perTeam ? .teamScore : (compete ? .rankAfter : nil)
+            var rules: [JourneyModeRule] = []
+            let scoped: [(JourneyModeRule.Kind, String)] = [(.hint, "hintScope"), (.progress, "progressScope"), (.score, "scoreScope")]
+            for (kind, field) in scoped {
+                guard let scope = string(row[field]).flatMap(JourneyScopeText.init(rawValue:)) else { continue }
+                rules.append(JourneyModeRule(kind: kind, scope: scope, teamText: nil, on: scope != .perMember))
             }
-            return JourneyModeTile(key: key, name: name, sub: nil, reason: string(row["reason"]),
-                                   available: row["available"] as? Bool ?? false, rules: [])
+            if team, let capacity = row["teamCapacity"] as? [String: Any],
+               let joined = int(capacity["joinedCount"]), let max = int(capacity["maxMembers"]) {
+                rules.append(JourneyModeRule(kind: .team, scope: nil, teamText: "\(joined)/\(max)", on: true))
+            }
+            let available = row["available"] as? Bool == true
+            return JourneyModeTile(key: key, name: team ? .together : (compete ? .compete : .solo), sub: sub,
+                                   reason: available ? nil : unavailableText(string(row["unavailableReason"])),
+                                   available: available, rules: rules)
         }
     }
 
-    private static func circle(_ value: Any) -> JourneySeatCircle? {
-        guard let row = value as? [String: Any], let no = int(row["no"]) ?? int(row["seatNo"]) else { return nil }
-        let kind = string(row["state"]).flatMap(JourneySeatKind.init(rawValue:)) ?? .reserved
-        return JourneySeatCircle(no: no, kind: kind, avatarURL: url(string(row["avatar"])), initial: string(row["initial"]),
-                                 tappable: kind == .open)
+    private static func unavailableText(_ reason: String?) -> String {
+        switch reason {
+        case "TEAM_MODE_DISABLED": return appLocalized("mp.journey.unavailable.teamOff", locale: .current)
+        case "RUN_CONFIG_SNAPSHOT_MISSING": return appLocalized("mp.journey.unavailable.noSnapshot", locale: .current)
+        default: return appLocalized("mp.journey.unavailable.generic", locale: .current)
+        }
     }
 
-    private static func invitedRow(_ value: Any) -> JourneyInvitedRow? {
-        guard let row = value as? [String: Any], let id = string(row["invitationId"]) ?? string(row["id"]),
-              let no = int(row["no"]) ?? int(row["seatNo"]) else { return nil }
-        let kind = string(row["state"]).flatMap(JourneySeatKind.init(rawValue:)) ?? .invited
-        return JourneyInvitedRow(invitationID: id, no: no, kind: kind, expiresText: string(row["expiresAt"]),
-                                 canCancel: row["canCancel"] as? Bool ?? false)
+    /// Positive id from a JSON number or a canonical digit string.
+    private static func idText(_ value: Any?) -> String? {
+        if let number = int(value) { return number > 0 ? String(number) : nil }
+        guard let text = value as? String, JourneyLoopSource.isID(text) else { return nil }
+        return text
+    }
+
+    /// Mini-program `dateText(value, true)`: Beijing `yyyy.MM.dd HH:mm` from epoch millis, `yyyy-MM-dd HH:mm[:ss]`
+    /// (Beijing) or ISO 8601. Unreadable values hide the fact instead of printing the raw server text.
+    static func timeText(_ value: Any?) -> String? {
+        let date: Date?
+        if let millis = int(value) {
+            date = Date(timeIntervalSince1970: Double(millis) / 1000)
+        } else if let text = string(value) {
+            let plain = DateFormatter()
+            plain.locale = Locale(identifier: "en_US_POSIX")
+            plain.timeZone = TimeZone(secondsFromGMT: 8 * 3600)
+            var parsed: Date?
+            for format in ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm:ss"] where parsed == nil {
+                plain.dateFormat = format
+                parsed = plain.date(from: text)
+            }
+            if parsed == nil {
+                let iso = ISO8601DateFormatter()
+                parsed = iso.date(from: text)
+                if parsed == nil {
+                    iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+                    parsed = iso.date(from: text)
+                }
+            }
+            date = parsed
+        } else {
+            date = nil
+        }
+        guard let date else { return nil }
+        return PostGameText.beijingDay(date) + " " + PostGameText.beijingClock(date)
     }
 
     private static func jsonObject(_ data: Data?) -> [String: Any]? {
@@ -792,5 +1071,29 @@ enum PlayerJourneyProjection {
     private static func url(_ value: String?) -> URL? {
         guard let value, let url = URL(string: value), url.scheme == "https" else { return nil }
         return url
+    }
+
+    /// An issued referral answer's `token` as the landing link (mini-program settle `landingPath`: `k=r&t=` only).
+    static func referralLandingURL(_ envelope: JourneyEnvelope) -> URL? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON), let token = string(object["token"]) else { return nil }
+        return PublicContentShareLink.journeyLanding(JourneyLinkIntake(kind: .referral, token: token, activityID: nil, topicID: nil))
+    }
+}
+
+/// JSETTLE-1 / JREPORT-1: one share link for the report and the settle share step (mini-program `onShareAppMessage`).
+/// The issued referral link (`/api/marketing/referral/token`, `k=r&t=`) is a money write that stays off
+/// (`JourneyLoopSource.issueReferral` refuses with `moneyOff`); until it is turned on the share falls back to the
+/// public topic link, exactly as the mini-program does when the issue fails.
+@MainActor enum PlayerJourneyShare {
+    static func url(report: JourneyReport, scope: JourneyRunScope, source: JourneyLoopSource, token: String?) -> URL? {
+        let activity = (report.activityID ?? scope.activityID).flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
+        let topic = (report.topicID ?? scope.topicID).flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
+        if let token, let target = activity ?? topic,
+           let issued = try? source.issueReferral(targetType: activity != nil ? 2 : 1, targetID: target, token: token),
+           let landing = PlayerJourneyProjection.referralLandingURL(issued) {
+            return landing
+        }
+        guard let topic, let id = Int(topic) else { return nil }
+        return PublicContentShareLink.topic(id: id)
     }
 }

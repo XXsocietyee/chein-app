@@ -32,7 +32,7 @@ import SwiftUI
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
-        .navigationTitle(Text("playx.themeRecords.title"))
+        .cyPageTitle("playx.themeRecords.title")
         .accessibilityIdentifier("playx.themeRecords")
         .task { if model.rows.isEmpty { await model.open() } }
         .onDisappear { model.close() }

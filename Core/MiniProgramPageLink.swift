@@ -67,6 +67,18 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/coop/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
         pages["subpackageA/pages/myproject/index"] = open
         pages["pages/merchant/ledger/index"] = open
+        // Play / roam pages whose MP onLoad reads a query (fix-parity play-roam: PLAY-10, PLAYC-1, RSESS-1, RSTAMP-1).
+        pages["pages/play/index"] = Rule(allowed: ["topicId", "activityId", "registrationId", "regId", "topicName", "inviteCode"],
+                                         required: [], ids: ["topicId", "activityId", "registrationId", "regId"])
+        pages["pages/play/merchant/index"] = Rule(allowed: ["nodeId"], required: [], ids: ["nodeId"])
+        // circle: the retired shim checks presence only; PlayCircleLegacyLink decides redirect vs 探索链接不完整.
+        pages["pages/play/circle/index"] = Rule(allowed: ["topicId", "inviteCode", "registrationId"], required: [], ids: [])
+        pages["pages/play/poi-challenge/index"] = Rule(allowed: ["poiId", "photo"], required: [], ids: ["poiId"])
+        pages["subpackageRoam/citystamp/index"] = Rule(allowed: ["kind", "place"], required: [], ids: [])
+        pages["subpackageRoam/official-route/index"] = optionalID
+        pages["subpackageRoam/session/index"] = Rule(allowed: ["id", "shareToken", "sessionId", "ts"], required: [], ids: ["id"])
+        pages["subpackageRoam/my-teams/index"] = Rule(allowed: ["tab", "ownerType", "ownerId", "scope"], required: [], ids: ["ownerType", "ownerId"])
+        pages["subpackageRoam/citynode-code/index"] = Rule(allowed: ["poiId", "name"], required: [], ids: ["poiId"])
         return pages
     }()
 
@@ -81,10 +93,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/agreement/index",
         "pages/deregister/index",
         "pages/team/detail/index",
-        "pages/play/index",
-        "pages/play/merchant/index",
-        "pages/play/circle/index",
-        "pages/play/poi-challenge/index",
         "pages/activity/baoming/baoming",
         "pages/activity/list/index",
         "pages/activity/official-inbox/index",
@@ -189,13 +197,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "subpackageMember/signup/index",
         "subpackageMember/tixian/tixian",
         "subpackageMember/tixianjilu/tixianjilu",
-        "subpackageRoam/citynode-code/index",
         "subpackageRoam/history/index",
         "subpackageRoam/nearby/index",
-        "subpackageRoam/citystamp/index",
-        "subpackageRoam/my-teams/index",
         "subpackageRoam/official-routes/index",
-        "subpackageRoam/official-route/index",
         "subpackageTools/capsule/index",
         "subpackageTools/monthly-recap/index",
         "subpackageTools/exploration-goals/index",
@@ -217,7 +221,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/templatedetail/templatedetail",
         "subpackageMember/orderinfo/orderinfo",
         "subpackageRoam/poi-detail/index",
-        "subpackageRoam/session/index",
     ]
 
     /// Same `id` key, not required: a bare path still opens, and a non-canonical id still rejects the link.

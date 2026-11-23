@@ -15,6 +15,7 @@ extension EnvironmentValues {
 /// Native presentation uses the exact validated server payload and never a screenshot,
 /// decorative QR, remote URL encoded as a token, or persistent credential/image cache.
 @MainActor struct VerificationCodeView: View {
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State var model: VerificationCodeCoordinator
     /// City voucher only: the node name shown as the title (mini-program `citynode-code`, default 据点).
     var title: String? = nil
@@ -103,6 +104,10 @@ extension EnvironmentValues {
             if [.review, .expired, .paused, .failed, .invalid].contains(model.phase) {
                 CYPillButton(model.phase == .review ? "verificationCode.show" : "verificationCode.retry") { run { await model.present() } }
                     .accessibilityIdentifier("verificationCode.show")
+            } else if model.phase == .login, rootTabSwitch.isAvailable {
+                // RCODE-1: MP access gate — 登录 instead of a dead-end line.
+                CYPillButton("verificationCode.signIn") { rootTabSwitch(.mine) }
+                    .accessibilityIdentifier("verificationCode.signIn")
             }
         }
     }

@@ -1,6 +1,38 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "playStoreDay.arrive.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认位置"
+          }
+        }
+      }
+    },
+    "playStoreDay.arrive.purpose": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use your location once to confirm you’re at the store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用一次位置确认你到店了"
+          }
+        }
+      }
+    },
     "playStoreDay.cancel": {
       "localizations": {
         "en": {
@@ -145,6 +177,38 @@
         }
       }
     },
+    "playStoreDay.cta.arrive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I’m here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已到店"
+          }
+        }
+      }
+    },
+    "playStoreDay.cta.arriveBusy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking location…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在确认位置"
+          }
+        }
+      }
+    },
     "playStoreDay.cta.confirmPending": {
       "localizations": {
         "en": {
@@ -157,6 +221,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "结果待确认 · 点这里核对"
+          }
+        }
+      }
+    },
+    "playStoreDay.cta.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
           }
         }
       }
@@ -209,6 +289,22 @@
         }
       }
     },
+    "playStoreDay.cta.relocate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locate again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新定位"
+          }
+        }
+      }
+    },
     "playStoreDay.cta.scan": {
       "localizations": {
         "en": {
@@ -237,6 +333,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "记录中…"
+          }
+        }
+      }
+    },
+    "playStoreDay.cta.scanUnlock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan to unlock"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫码解锁"
           }
         }
       }
@@ -769,6 +881,38 @@
         }
       }
     },
+    "playStoreDay.more.photo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take arrival proof"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍摄到店凭证"
+          }
+        }
+      }
+    },
+    "playStoreDay.more.scan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan store code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "扫描门店码"
+          }
+        }
+      }
+    },
     "playStoreDay.name.untitled": {
       "localizations": {
         "en": {
@@ -781,6 +925,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "未命名商家"
+          }
+        }
+      }
+    },
+    "playStoreDay.notice.accuracyLow": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location isn’t precise enough, try again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位不准，再试一次"
           }
         }
       }
@@ -813,6 +973,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "先扫店内码进店，再开始任务"
+          }
+        }
+      }
+    },
+    "playStoreDay.notice.arriveTooFar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %lld m to go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "离这里还有约 %lld 米"
           }
         }
       }
@@ -929,6 +1105,54 @@
         }
       }
     },
+    "playStoreDay.notice.locationDenied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location is off. You can scan in under More."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位没有开启，可在「更多」里扫码到店"
+          }
+        }
+      }
+    },
+    "playStoreDay.notice.locationFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t get a location, please retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有取到定位，请重试"
+          }
+        }
+      }
+    },
+    "playStoreDay.notice.locationMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t get a location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有取到定位"
+          }
+        }
+      }
+    },
     "playStoreDay.notice.merchantUnconfirmed": {
       "localizations": {
         "en": {
@@ -1009,6 +1233,22 @@
         }
       }
     },
+    "playStoreDay.notice.notArrived": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not at the store yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没到店"
+          }
+        }
+      }
+    },
     "playStoreDay.notice.photoRecorded": {
       "localizations": {
         "en": {
@@ -1085,6 +1325,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有提交成功，可以修改后重试"
+          }
+        }
+      }
+    },
+    "playStoreDay.notice.scanRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This store needs its code scanned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里需要扫码"
           }
         }
       }
@@ -1217,22 +1473,6 @@
         }
       }
     },
-    "playStoreDay.refresh": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Refresh"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "刷新"
-          }
-        }
-      }
-    },
     "playStoreDay.revokeConfirm.title": {
       "localizations": {
         "en": {
@@ -1356,7 +1596,23 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "预计等待(分)"
+            "value": "预计等待（分）"
+          }
+        }
+      }
+    },
+    "playStoreDay.state.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
           }
         }
       }
@@ -1398,13 +1654,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This store is not available."
+            "value": "This link has expired."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "门店暂不可用"
+            "value": "链接已失效"
+          }
+        }
+      }
+    },
+    "playStoreDay.state.reload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新加载"
           }
         }
       }
@@ -1526,13 +1798,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scan the store code"
+            "value": "I’m here"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "扫描门店码"
+            "value": "我已到店"
           }
         }
       }

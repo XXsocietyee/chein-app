@@ -54,7 +54,7 @@ final class PlayRouteMapContinuationFlowTests: XCTestCase {
         tap("playRoute.toggleMap"); tap("playRoute.stop.701")
         XCTAssertTrue(app.navigationBars["旅程任务"].waitForExistence(timeout: 5))
         backFromTask(); tap("playRoute.back")
-        XCTAssertTrue(app.navigationBars["旅程"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["城市定向"].waitForExistence(timeout: 5))
         attachFixtureScreenshot(self, app: app, name: "Chinese maximum-text route navigation")
     }
     func testFreeExplorationDoesNotGainOrientationMapEntry() {

@@ -80,7 +80,7 @@ import SwiftUI
             }
             .padding()
         }
-        .navigationTitle(Text(verbatim: model.selectedTab.title))
+        .navigationTitle(Text(verbatim: model.selectedTab.title)).navigationBarTitleDisplayMode(.inline)
         .task(id: model.selectedTab) {
             await model.loadNextIfNeeded()
         }

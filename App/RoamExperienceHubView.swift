@@ -78,7 +78,7 @@ import SwiftUI
                 NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { CYListRow("roam.experience.tileMemory", trailing: .none) { CYRowIcon(systemImage: "map") } }
                     .accessibilityIdentifier("roam.experience.tiles.open")
                 NavigationLink {
-                    if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
+                    if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader, stampDestination: stampDestination).id(albumMetadataReader.scope) }
                     else { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
                 } label: { CYListRow("roam.experience.album", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") } }
                     .accessibilityIdentifier("roam.experience.album.open")
@@ -114,7 +114,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")
             }
-        }.cyGroupedSurface().navigationTitle("roam.experience.title")
+        }.cyGroupedSurface().cyPageTitle("roam.experience.title")
             .roamPassportToolsDestinations(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
             .roamPassportPrivateDestinations(tools: privateToolsReader)
             .onAppear { passport.load(reader: reader) }
@@ -257,7 +257,7 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
                 else if !reader.isConfigured { Text("roam.notConfigured") }
                 } else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
             }
-        }.cyGroupedSurface().navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
+        }.cyGroupedSurface().navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory").navigationBarTitleDisplayMode(.inline)
             .refreshable { await refresh() }
             .onAppear { presentation.appear(foreground: scenePhase == .active) }
             .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }

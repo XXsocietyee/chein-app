@@ -48,7 +48,7 @@ enum RoamPreflightRule: String, CaseIterable, Identifiable {
                 }
             }
         }.cyGroupedSurface()
-        .navigationTitle("roam.live.rules")
+        .cyPageTitle("roam.live.rules")
         .accessibilityIdentifier("roam.preflightRules.screen")
         .cyDomainScreen(.player)
     }

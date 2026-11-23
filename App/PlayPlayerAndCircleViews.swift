@@ -118,7 +118,7 @@ import SwiftUI
                 PlayPlayerActionReviewCard(owner: actionReview, offered: offered).id(offered.id)
             }
             if actionReview.working { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
-        }.cyGroupedSurface().privacySensitive().navigationTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
+        }.cyGroupedSurface().privacySensitive().cyPageTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
             .task {
                 guard !Task.isCancelled else { return }
                 submissionReadback?.dismiss()
@@ -177,7 +177,7 @@ import SwiftUI
 
     var body: some View {
         PlayCircleRetiredLinkView(goHome: leave)
-            .navigationTitle("playx.circle.title")
+            .cyPageTitle("playx.circle.title")
             .accessibilityIdentifier("playx.circle.view")
     }
 

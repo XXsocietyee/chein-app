@@ -24,7 +24,6 @@ extension EnvironmentValues {
     private var effectiveMedia: (any ObjectCardImageLoading)? { media ?? envMedia }
     var body: some View {
         List {
-            Section { CYHeroHeader("objects.title") }.listRowBackground(Color.clear)
             if !reader.isAuthenticated { CYEmptyState(systemImage: "person.crop.circle", "objects.login") }
             else if !reader.isConfigured { CYEmptyState(systemImage: "rectangle.stack", "objects.disabled") }
             else {
@@ -80,7 +79,7 @@ extension EnvironmentValues {
                 }
             }
         }.cyGroupedSurface()
-        .appNavigationTitle("objects.title").navigationBarTitleDisplayMode(.inline)
+        .cyAlbumChildTitle("objects.title")
         .themeDomain(.player).privacySensitive()
         .task(id: scope) {
             if model.loadedScope != scope { model.invalidate() }

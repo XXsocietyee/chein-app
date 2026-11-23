@@ -84,7 +84,7 @@ import SwiftUI
         else {
             ContentUnavailableView {
                 Label("social.changed", systemImage: "person.crop.circle.badge.exclamationmark")
-            }.appNavigationTitle("growth.title")
+            }.cyPageTitle("growth.title")
         }
     }
 }

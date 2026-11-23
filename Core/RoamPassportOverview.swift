@@ -75,6 +75,21 @@ public struct RoamHomeIndexPassportPresentation: Equatable {
     }
 }
 
+public extension RoamHomeIndexPassportPresentation {
+    /// pages/roam _loadIntroPassport (ROAM-1): server-confirmed facts from `GET /api/roam/passport/summary`.
+    /// trips / shops / days / distanceM÷1000 (1 dp); an absent field stays `—`, a present zero stays numeric.
+    init(server summary: RoamPassportServerSummary) {
+        let unknown = RoamPassportSummary.unknownText
+        read = summary.trips == 0 ? .empty : .ready
+        tripsText = String(summary.trips)
+        shopsText = summary.shops.map(String.init) ?? unknown
+        daysText = summary.days.map(String.init) ?? unknown
+        kilometersText = summary.distanceM.map {
+            String(format: "%.1f", locale: Locale(identifier: "en_US_POSIX"), Double($0) / 1000)
+        } ?? unknown
+    }
+}
+
 public struct RoamPassportReadOwner: Equatable, Hashable {
     public let readerID: ObjectIdentifier
     public let scopeKey: String?

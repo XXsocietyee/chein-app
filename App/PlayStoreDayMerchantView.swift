@@ -13,6 +13,12 @@ import SwiftUI
     @State private var pendingProof: PlayStoreDayPreparedProof?
     @State private var showingProof = false
     @State private var confirmRevoke = false
+    /// PLAYM-1: MP shows the purpose once (用一次位置确认你到店了) before the first foreground fix.
+    @State private var showingArrivePurpose = false
+    @State private var arrivePurposeShown = false
+    @State private var showingMore = false
+    /// PLAYM-3: no 到店体验 page-type title over the hero; the store's name shows inline once the hero scrolls away.
+    @State private var heroScrolledAway = false
 
     private enum Sheet: String, Identifiable { case game, task; var id: String { rawValue } }
     private var sheet: Binding<Sheet?> {
@@ -34,8 +40,7 @@ import SwiftUI
         }
         .privacySensitive()
         .background(CYColor.bgPage)
-        .navigationTitle(Text("playStoreDay.title", tableName: "PlayStoreDay"))
-        .navigationBarTitleDisplayMode(.inline)
+        .modifier(PlayStoreDayTitle(hero: model.phase == .loaded && model.node != nil, name: model.node?.name, scrolledAway: heroScrolledAway))
         .task(id: model.nodeID) { await model.load() }
         .sheet(item: sheet) { item in
             switch item {
@@ -109,9 +114,12 @@ import SwiftUI
         ContentUnavailableView {
             Label { Text(L(key)) } icon: { Image(systemName: id == "signedOut" ? "person.crop.circle" : id == "failed" ? "exclamationmark.triangle" : "storefront") }
         } actions: {
-            Button { Task { await model.load() } } label: { Text("playStoreDay.refresh", tableName: "PlayStoreDay") }
-                .buttonStyle(.bordered)
+            Button { Task { await model.load() } } label: { Text("playStoreDay.state.reload", tableName: "PlayStoreDay") }
+                .buttonStyle(.cyPrimary(fullWidth: false))
                 .disabled(model.phase == .loading).accessibilityIdentifier("storeDayPage.refresh")
+            // PLAYM-4: MP 链接已失效 offers 重新加载 and 返回.
+            Button { dismiss() } label: { Text("playStoreDay.state.back", tableName: "PlayStoreDay") }
+                .buttonStyle(.cySecondary(fullWidth: false)).accessibilityIdentifier("storeDayPage.back")
         }
         .accessibilityElement(children: .contain).accessibilityIdentifier("storeDayPage.state." + id)
     }
@@ -142,6 +150,7 @@ import SwiftUI
             }
         }
         .background(CYColor.bgPage)
+        .cyTracksHeroScroll($heroScrolledAway, threshold: 200)
         .safeAreaInset(edge: .bottom) { bottomBar(node) }
     }
     @ViewBuilder private func hero(_ node: PlayStoreDayNode) -> some View {
@@ -163,7 +172,7 @@ import SwiftUI
     }
     private func header(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).cyText(.micro).tracking(1.5).foregroundStyle(CYColor.textTertiary)
+            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).cyText(.micro).foregroundStyle(CYColor.textTertiary)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                 .background(CYColor.bgRaised, in: Capsule()).accessibilityIdentifier("storeDayPage.tag")
             Group {
@@ -181,7 +190,7 @@ import SwiftUI
     /// Letter-spaced key + primary value, baseline aligned (mini-program .mp-mc).
     private func metaRow(label: Text, value: Text) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            label.cyText(.micro).tracking(1.5).foregroundStyle(CYColor.textTertiary)
+            label.cyText(.micro).foregroundStyle(CYColor.textTertiary)
             value.cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }.accessibilityElement(children: .combine)
     }
@@ -196,7 +205,7 @@ import SwiftUI
     }
     private func proofSection(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.proof", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.proof", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             step(1, done: node.arrived, title: L("playStoreDay.step.scan.title"), detail: L("playStoreDay.step.scan.detail"), id: "scan")
             step(2, done: node.selfReported, title: L("playStoreDay.step.photo.title"),
@@ -225,7 +234,7 @@ import SwiftUI
     }
     private func referenceSection(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.reference", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.reference", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             // Unknown values stay an em dash (the mini-program shows 0 here; the native app must not).
             HStack(alignment: .top, spacing: CYSpacing.sm) {
@@ -238,7 +247,7 @@ import SwiftUI
     private static func number(_ value: Double) -> String { value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value) }
     private func stat(_ value: String, _ label: String, id: String) -> some View {
         VStack(spacing: CYSpacing.xs) {
-            Text(verbatim: value).cyText(.dataXL).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
+            Text(verbatim: value).cyText(.sectionTitle, monospacedDigit: true).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
             Text(verbatim: label).cyText(.micro).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
@@ -247,7 +256,7 @@ import SwiftUI
     }
     private var consentSection: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.consent", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.consent", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             HStack(spacing: CYSpacing.md) {
                 Text(verbatim: String(format: L("playStoreDay.consent.scope"), storeName)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -263,7 +272,7 @@ import SwiftUI
     }
     private func infoSection(_ node: PlayStoreDayNode, address: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("playStoreDay.section.info", tableName: "PlayStoreDay").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("playStoreDay.section.info", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
             // Address card: pin, address, open hours, trailing navigate control (mini-program .mp-addr).
             VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -307,17 +316,55 @@ import SwiftUI
             HStack(spacing: CYSpacing.md) {
                 mapControl(node, label: L("playStoreDay.cta.address"), id: "storeDayPage.cta.address").fixedSize()
                 primaryButton(node).frame(maxWidth: .infinity)
+                // MP 更多: 扫描门店码 / 拍摄到店凭证 fall back here once 我已到店 is the first step.
+                if !node.done {
+                    Button { showingMore = true } label: { Image(systemName: "ellipsis").frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget) }
+                        .buttonStyle(.cySecondary(fullWidth: false)).disabled(model.busy)
+                        .accessibilityLabel(Text("playStoreDay.cta.more", tableName: "PlayStoreDay"))
+                        .accessibilityIdentifier("storeDayPage.cta.more")
+                }
             }
+            .confirmationDialog(Text("playStoreDay.cta.more", tableName: "PlayStoreDay"), isPresented: $showingMore, titleVisibility: .hidden) {
+                Button(L("playStoreDay.more.scan")) { model.prepareScan() }
+                Button(L("playStoreDay.more.photo")) { model.preparePhoto() }
+                Button(L("playStoreDay.cancel"), role: .cancel) {}
+            }
+            .cyModalConfirm(
+                isPresented: showingArrivePurpose,
+                title: L("playStoreDay.arrive.purpose"),
+                cancelTitle: L("playStoreDay.cancel"),
+                confirmTitle: L("playStoreDay.arrive.confirm"),
+                onCancel: { showingArrivePurpose = false },
+                onConfirm: { showingArrivePurpose = false; arrivePurposeShown = true; Task { await locateAndArrive() } }
+            )
         }
         .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md).background(.bar)
     }
     @ViewBuilder private func primaryButton(_ node: PlayStoreDayNode) -> some View {
-        switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt) {
+        switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt, arriveRetry: model.arriveRetry) {
         case .confirmPending: primary(L("playStoreDay.cta.confirmPending"), disabled: false) { Task { await model.retryProofReadback() } }
+        case .arrive: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.arrive"), disabled: model.busy) { arriveHere() }
+        case .relocate: primary(L(model.busy ? "playStoreDay.cta.arriveBusy" : "playStoreDay.cta.relocate"), disabled: model.busy) { arriveHere() }
+        case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { model.prepareScan() }
         case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { model.prepareScan() }
         case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
         case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
         case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
+        }
+    }
+    /// MP `arriveHere`: purpose prompt once, then one foreground GCJ-02 fix handed to /api/play/arrive.
+    private func arriveHere() {
+        guard !model.busy else { return }
+        if arrivePurposeShown { Task { await locateAndArrive() } } else { showingArrivePurpose = true }
+    }
+    private func locateAndArrive() async {
+        do {
+            let fix = try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: RuntimeNativeLocationProvider(enabled: true))
+            await model.arrive(longitude: fix.coordinate.longitude, latitude: fix.coordinate.latitude, accuracy: fix.accuracyMeters)
+        } catch is CancellationError {
+            return
+        } catch {
+            model.arriveLocationFailed(denied: error as? RoamActionFailure == .locationDenied)
         }
     }
     private func primary(_ title: String, disabled: Bool, action: @escaping () -> Void) -> some View {
@@ -438,6 +485,13 @@ import SwiftUI
     private func noticeText(_ notice: PlayStoreDayNotice) -> String {
         switch notice {
         case .server(let text): return text
+        case .arriveTooFar(let meters?): return String(format: L("playStoreDay.notice.arriveTooFar"), meters)
+        case .arriveTooFar(nil): return L("playStoreDay.notice.notArrived")
+        case .arriveAccuracyLow: return L("playStoreDay.notice.accuracyLow")
+        case .arriveLocationMissing: return L("playStoreDay.notice.locationMissing")
+        case .arriveScanRequired: return L("playStoreDay.notice.scanRequired")
+        case .locationDenied: return L("playStoreDay.notice.locationDenied")
+        case .locationFailed: return L("playStoreDay.notice.locationFailed")
         case .arrivalRecorded: return L("playStoreDay.notice.arrivalRecorded")
         case .photoRecorded: return L("playStoreDay.notice.photoRecorded")
         case .proofFailed: return L("playStoreDay.notice.proofFailed")
@@ -459,6 +513,20 @@ import SwiftUI
         case .consentWriteFailed: return L("playStoreDay.notice.consentWriteFailed")
         case .consentUnconfirmed: return L("playStoreDay.notice.consentUnconfirmed")
         case .consentWritesUnavailable: return L("playStoreDay.notice.consentWritesUnavailable")
+        }
+    }
+}
+
+/// PLAYM-3: states keep the 到店体验 bar title; the loaded hero page shows the store name only after the hero.
+private struct PlayStoreDayTitle: ViewModifier {
+    let hero: Bool
+    let name: String?
+    let scrolledAway: Bool
+    func body(content: Content) -> some View {
+        if hero {
+            content.cyPageTitle(verbatim: scrolledAway ? (name ?? "") : "")
+        } else {
+            content.navigationTitle(Text("playStoreDay.title", tableName: "PlayStoreDay")).navigationBarTitleDisplayMode(.inline)
         }
     }
 }

@@ -16,6 +16,13 @@ class BackendSyncSourceTests(unittest.TestCase):
     # Route-capability catalog (not a consumer): the snapshot read must stay recorded as a live, reviewed read.
     self.assertIn('"/api/roam/share/snapshot": .liveInProduction', value)
     continue
+   if p.name == 'RoamShareSnapshotPublisher.swift':
+    # fix-parity RSESS-2 adopts E06-17: the publish is built only by AppSession.makeRoamShareSnapshotPublisher,
+    # which requires the reviewed roam live-write approval for this exact path.
+    self.assertIn('public static let path = "api/roam/share/snapshot"', value)
+    self.assertIn('RoamShareSnapshotPublisher.path', (ROOT/'App/RoamShareLinkRow.swift').read_text())
+    self.assertIn('approval.allows(', (ROOT/'App/RoamShareLinkRow.swift').read_text())
+    continue
    if p.name == 'AppCompositionRoot.swift':
     # Reviewed composition gate for the anonymous read: production gates and the China market only.
     self.assertIn('reviewed?.productionGatesEnabled == true && reviewed?.regional.market == .china', value)

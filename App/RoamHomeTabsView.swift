@@ -84,14 +84,15 @@ struct RoamHomeTabPicker: View {
     let destination: () -> AnyView
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label(LocalizedStringKey(banner.titleKey), systemImage: banner == .needsCheck ? "exclamationmark.circle" : "arrow.uturn.backward.circle")
-                .fixedSize(horizontal: false, vertical: true)
             if banner == .needsCheck {
+                Label(LocalizedStringKey(banner.titleKey), systemImage: "exclamationmark.circle")
+                    .fixedSize(horizontal: false, vertical: true)
                 NavigationLink { destination() } label: { Text("roam.w208.recovery.check") }
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("roam.home.recovery.check")
             } else if let onContinue {
-                Button("roam.live.resume", action: onContinue)
+                // ROAM-6 / P-27: the MP dropped the 已找回 banner; an unfinished walk shows 继续漫游 only.
+                Button(action: onContinue) { Label("roam.w208.recovery.continue", systemImage: "figure.walk") }
                     .frame(minHeight: 44)
                     .accessibilityIdentifier("roam.home.recovery.continue")
             }
@@ -301,13 +302,12 @@ struct RoamEntryCover: View {
                     }
                 }
             }
-            .navigationTitle(Text(verbatim: card.activity.title))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("roam.w208.entry.close") { dismiss() }.accessibilityIdentifier("roam.home.sheet.close")
-                }
+            // ROAM-11: one sheet header (22 pt title + ✕), no nav-bar title and no text close button.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                CYSheetHeader(title: Text(verbatim: card.activity.title), style: .player, onClose: { dismiss() })
+                    .accessibilityIdentifier("roam.home.sheet.close")
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
@@ -356,7 +356,7 @@ struct RoamToolUnavailableView: View {
     }
 }
 
-/// 漫游护照 tab: four readings, five tiles and two play cards, all from this device's saved records.
+/// 漫游护照 tab: four readings (server summary when the owner read exists, else this device's saved records), tiles and two play cards.
 @MainActor struct RoamHomePassportView: View {
     let reader: (any RoamExperienceReading)?
     var albumMetadataReader: RoamAlbumMetadataReader? = nil
@@ -374,6 +374,13 @@ struct RoamToolUnavailableView: View {
     @State private var home: Result<RoamPassportHome, Error>?
     @State private var openedTile: OpenedTile?
     @State private var isPassportVisible = false
+    /// ROAM-1: pages/roam reads `GET /api/roam/passport/summary`; local history is only the fallback when no owner read exists.
+    @Environment(\.roamPassportHistoryReader) private var serverReader
+    @State private var serverSummary: Result<RoamPassportServerSummary, Error>?
+    @State private var serverScope: UUID?
+    /// ROAM-5: pages/roam `_loadActiveOfficial` — GET /api/official/active-for-roam decides where 官方活动 goes.
+    @Environment(\.playerGapService) private var gapService
+    @State private var activeOfficial: OfficialRoamActiveCard?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     private struct OpenedTile: Identifiable, Hashable {
         let id = UUID()
@@ -399,7 +406,9 @@ struct RoamToolUnavailableView: View {
         .roamPassportToolsDestinations(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         .onAppear { isPassportVisible = true; openedTile = nil; load() }
         .onDisappear { isPassportVisible = false }
-        .refreshable { load() }
+        .refreshable { load(); await loadServerSummary() }
+        .task(id: serverReader?.scope) { await loadServerSummary() }
+        .task { activeOfficial = await gapService?.activeOfficialForRoam() }
         .onChange(of: readerScope) { _, _ in
             openedTile = nil
             home = nil; homeScope = nil
@@ -457,7 +466,27 @@ struct RoamToolUnavailableView: View {
     }
     /// pages/roam/index 护照读数: RoamHomeIndexPassportPresentation owns the four texts. Loading keeps
     /// the same row geometry with an em dash per reading (mini-program R-02); unknown stays `—`, a known 0 stays 0.
+    private var configuredServerReader: (any RoamPassportHistoryReading)? {
+        guard let serverReader, serverReader.isConfigured else { return nil }
+        return serverReader
+    }
+    private func loadServerSummary() async {
+        guard let reader = configuredServerReader else { serverSummary = nil; serverScope = nil; return }
+        let scope = reader.scope
+        if serverScope != scope { serverSummary = nil }
+        let result: Result<RoamPassportServerSummary, Error>
+        do { result = .success(try await reader.summary()) } catch is CancellationError { return } catch { result = .failure(error) }
+        guard reader.scope == scope else { return }
+        serverScope = scope; serverSummary = result
+    }
     private var passportPresentation: RoamHomeIndexPassportPresentation {
+        if let reader = configuredServerReader {
+            guard serverScope == reader.scope, let serverSummary else { return RoamHomeIndexPassportPresentation(phase: .unloaded) }
+            switch serverSummary {
+            case .success(let summary): return RoamHomeIndexPassportPresentation(server: summary)
+            case .failure(let error): return RoamHomeIndexPassportPresentation(phase: .failed(error))
+            }
+        }
         switch currentHome {
         case .none: return RoamHomeIndexPassportPresentation(phase: .unloaded)
         case .failure(let error)?: return RoamHomeIndexPassportPresentation(phase: .failed(error))
@@ -466,7 +495,14 @@ struct RoamToolUnavailableView: View {
     }
     @ViewBuilder private func stats(reader: any RoamExperienceReading) -> some View {
         let presentation = passportPresentation
-        if presentation.read == .error, case .failure(let error)? = currentHome {
+        if presentation.read == .error, configuredServerReader != nil, case .failure(let error)? = serverSummary {
+            // MP wxml:219 漫游护照读取失败 + 重试.
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("roam.w208.passport.failed").cyText(.bodyMedium)
+                RoamExperienceIssue(error: error) { Task { await loadServerSummary() } }
+            }
+            .accessibilityIdentifier("roam.home.passport.failed")
+        } else if presentation.read == .error, case .failure(let error)? = currentHome {
             RoamExperienceIssue(error: error, retry: load)
         } else {
             HStack(spacing: 8) {
@@ -537,7 +573,7 @@ struct RoamToolUnavailableView: View {
         }
     }
     private var albumStampDestination: (() -> AnyView)? {
-        if let albumMetadataReader { return { AnyView(RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope)) } }
+        if let albumMetadataReader { return { AnyView(RoamAlbumMetadataDestination(reader: albumMetadataReader, stampDestination: stampDestination).id(albumMetadataReader.scope)) } }
         if let reader { return { AnyView(RoamStampAlbumView(reader: reader, stampDestination: stampDestination)) } }
         return nil
     }
@@ -548,14 +584,23 @@ struct RoamToolUnavailableView: View {
             Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(play.titleKey)).cyText(.cardTitle)
-                Text(LocalizedStringKey(play.subtitleKey)).cyText(.meta).foregroundStyle(.secondary)
+                if play == .event, let activeOfficial {
+                    Group {
+                        if activeOfficial.count > 1 { Text("playerGap.roamEvents.many \(activeOfficial.firstTitle) \(activeOfficial.count)") }
+                        else { Text("playerGap.roamEvents.one \(activeOfficial.firstTitle)") }
+                    }
+                    .cyText(.meta).foregroundStyle(.secondary).lineLimit(2)
+                } else {
+                    Text(LocalizedStringKey(play.subtitleKey)).cyText(.meta).foregroundStyle(.secondary)
+                }
             }
             Spacer(minLength: 0)
         }
         switch play {
         case .event:
             if let reader {
-                NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { label }
+                // One open event → its detail; several or none → the official roam tasks (MP onPassportPlayTap('event')).
+                NavigationLink { RoamActiveOfficialEventDestination(roamReader: reader, eventID: activeOfficial?.count == 1 ? activeOfficial?.eventID : nil) } label: { label }
                     .accessibilityIdentifier("roam.home.passport.play.\(play.rawValue)")
             }
         case .discover:

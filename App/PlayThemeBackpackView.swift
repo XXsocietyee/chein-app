@@ -55,7 +55,7 @@ import SwiftUI
         }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
-        .navigationTitle(Text("playx.backpack.title"))
+        .cyPageTitle("playx.backpack.title")
         .accessibilityIdentifier("playx.backpack")
         .refreshable { await model.refresh(); await syncLiveGameplay() }
         .task {
@@ -438,7 +438,7 @@ import SwiftUI
                     .accessibilityIdentifier("playx.backpack.action.confirm")
                 }
             }.cyGroupedSurface()
-            .navigationTitle(copy("确认操作", "Confirm action"))
+            .navigationTitle(copy("确认操作", "Confirm action")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(copy("取消", "Cancel")) { selection = nil }.accessibilityIdentifier("playx.backpack.action.cancel")

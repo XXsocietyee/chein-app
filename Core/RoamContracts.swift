@@ -214,10 +214,19 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
     public let needRedeem: Bool
     /// Present when completing the node grants a merchant coupon (mini-program 完成领券). Display only.
     public let couponId: Int?
+    /// pages/play/poi-challenge `_load` (PLAYPOI-2): photo step, quiz (questionName + questionA–D), badge and photo copy.
+    public let photoRequired: Bool
+    public let questionName: String?
+    public let quizOptions: [RoamNodeQuizOption]
+    public let badgeCode: String?
+    public let photoRequireDesc: String?
     public var isPublished: Bool { status == 1 }
+    /// MP: quiz = validationMethod === 3 && options.length > 0.
+    public var isQuiz: Bool { validationMethod == 3 && !quizOptions.isEmpty }
     enum CodingKeys: String, CodingKey {
         case poiId, name, description, lat, lng, radiusM, nodeLevel, tags, status, merchantId
         case merchantName, merchantAddress, templateTitle, validationMethod, completed, favorited, canInteract, needRedeem, couponId
+        case photoRequired, questionName, questionA, questionB, questionC, questionD, badgeCode, photoRequireDesc
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -237,7 +246,23 @@ public struct RoamNodeDetail: Decodable, Equatable, Identifiable {
         canInteract = try c.decodeIfPresent(Bool.self, forKey: .canInteract)
         needRedeem = try c.decodeIfPresent(Bool.self, forKey: .needRedeem) ?? false
         couponId = c.roamInteger(.couponId).flatMap { $0 > 0 ? $0 : nil }
+        photoRequired = (try? c.decode(Bool.self, forKey: .photoRequired)) ?? ((try? c.decode(Int.self, forKey: .photoRequired)).map { $0 == 1 } ?? false)
+        questionName = ((try? c.roamText(.questionName)) ?? nil).flatMap { $0.isEmpty ? nil : $0.replacingOccurrences(of: "?", with: "？") }
+        var options: [RoamNodeQuizOption] = []
+        for (id, key) in [("A", CodingKeys.questionA), ("B", .questionB), ("C", .questionC), ("D", .questionD)] {
+            if let text = (try? c.roamText(key)) ?? nil, !text.isEmpty { options.append(.init(id: id, text: text)) }
+        }
+        quizOptions = options
+        badgeCode = ((try? c.roamText(.badgeCode)) ?? nil).flatMap { $0.isEmpty ? nil : $0 }
+        photoRequireDesc = ((try? c.roamText(.photoRequireDesc)) ?? nil).flatMap { $0.isEmpty ? nil : $0 }
     }
+}
+
+/// One quiz option on a city node: the server judges by the letter id (A–D), not the text.
+public struct RoamNodeQuizOption: Equatable, Sendable {
+    public let id: String
+    public let text: String
+    public init(id: String, text: String) { self.id = id; self.text = text }
 }
 
 /// Optional recommendation has no coordinate fields in its verified contract; never make a map pin.

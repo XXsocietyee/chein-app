@@ -84,8 +84,8 @@
     "zh-Hans": "完成主题"
   },
   "growth.mileage": {
-    "en": "Total distance (km)",
-    "zh-Hans": "累计距离（km）"
+    "en": "Total distance",
+    "zh-Hans": "累计距离"
   },
   "growth.badges": {
     "en": "My badges",
@@ -157,10 +157,10 @@
   },
   "growth.unit.exp": {
     "en": "EXP",
-    "zh-Hans": "经验"
+    "zh-Hans": "EXP"
   },
   "growth.board.empty": {
-    "en": "No one on this board yet",
+    "en": "Nobody is on this board yet",
     "zh-Hans": "这张榜还没有人上榜"
   },
   "growth.board.emptyHint": {

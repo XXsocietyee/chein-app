@@ -48,14 +48,14 @@ import XCTest
     func testModelIgnoresSecondTapWhileWorkingAndUpdatesState() async throws {
         var calls = 0
         let actions = RoamPOIActions(toggleFavorite: { _ in calls += 1; try await Task.sleep(for: .milliseconds(50)); return true },
-                                     complete: { _ in RoamNodeCompletion.preview(needRedeem: false) })
+                                     complete: { _, _ in RoamNodeCompletion.preview(needRedeem: false) })
         let model = RoamPOIActionModel()
         model.toggleFavorite(poiID: 1, current: false, actions: actions); model.toggleFavorite(poiID: 1, current: false, actions: actions)
         try await Task.sleep(for: .milliseconds(200))
         XCTAssertEqual(calls, 1); XCTAssertEqual(model.favoriteOverride, true); XCTAssertEqual(model.favoritePhase, .idle)
     }
     func testModelMapsFailures() async throws {
-        let actions = RoamPOIActions(toggleFavorite: { _ in true }, complete: { _ in throw RoamActionFailure.locationDenied })
+        let actions = RoamPOIActions(toggleFavorite: { _ in true }, complete: { _, _ in throw RoamActionFailure.locationDenied })
         let model = RoamPOIActionModel(); model.checkIn(poiID: 1, actions: actions)
         try await Task.sleep(for: .milliseconds(100))
         XCTAssertEqual(model.checkInPhase, .failed(.locationDenied))

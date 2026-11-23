@@ -41,7 +41,7 @@ import SwiftUI
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
             .themeDomain(domain)
-            .navigationTitle(localized("title"))
+            .navigationTitle(localized("title")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.close") { guard scenePhase == .active else { return }; dismiss() }

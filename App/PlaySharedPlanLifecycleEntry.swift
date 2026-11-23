@@ -17,7 +17,7 @@ import SwiftUI
             else { ContentUnavailableView("共同方案暂不可用", systemImage: "person.3",
                 description: Text("需要当前活动原 PLAYER 读取、回执与安全恢复配置；公共地图和工作人员权限不能代替。")) }
         }
-        .navigationTitle("共同方案")
+        .cyPageTitle("共同方案")
         .onAppear { activate() }
         .onChange(of: session.sessionRevision) { _, _ in retire(); activate() }
         .onChange(of: phase) { _, next in retire(); if next == .active { activate() } }

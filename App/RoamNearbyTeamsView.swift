@@ -42,6 +42,8 @@ enum NearbyOwnedTeamsStatus: Equatable {
     let initialTab: Int
     let focusTeamID: NearbyTeamID?
     let onSignIn: (() -> Void)?
+    /// RNEAR-5: a host that builds the view without arguments can still supply 登录 through the environment.
+    @Environment(\.nearbyTeamsSignIn) private var environmentSignIn
     init(initialTab: Int = 0, focusTeamID: NearbyTeamID? = nil, onSignIn: (() -> Void)? = nil) {
         self.initialTab = initialTab; self.focusTeamID = focusTeamID; self.onSignIn = onSignIn
     }
@@ -53,7 +55,7 @@ enum NearbyOwnedTeamsStatus: Equatable {
                 // /team/my owns only its private rows, not the independent nearby page or its push host.
                 SessionNearbyTeamsView(context: session.nearbyTeamQueryContext,
                     joinedTeams: owned.currentRows(owner: expectedOwner), initialTab: initialTab,
-                    focusTeamID: focusTeamID, onSignIn: onSignIn,
+                    focusTeamID: focusTeamID, onSignIn: onSignIn ?? environmentSignIn,
                     joinedTeamsStatus: owned.currentStatus(owner: expectedOwner),
                     retryJoinedTeams: { Task { await load(visit: expectedVisit, owner: expectedOwner) } })
             } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
@@ -76,5 +78,13 @@ enum NearbyOwnedTeamsStatus: Equatable {
               visit == expectedVisit, session.teamViewIdentity == expectedOwner else { return }
         await owned.load(owner: expectedOwner, makeCoordinator: { session.makeTeamCoordinator() },
                          currentOwner: { session.teamViewIdentity })
+    }
+}
+
+private struct NearbyTeamsSignInKey: EnvironmentKey { static let defaultValue: (() -> Void)? = nil }
+extension EnvironmentValues {
+    var nearbyTeamsSignIn: (() -> Void)? {
+        get { self[NearbyTeamsSignInKey.self] }
+        set { self[NearbyTeamsSignInKey.self] = newValue }
     }
 }

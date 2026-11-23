@@ -27,7 +27,7 @@ import UIKit
             if let projection = model.projection {
                 projectionSections(projection)
             }
-        }.cyGroupedSurface().privacySensitive().navigationTitle("playx.director.title").accessibilityIdentifier("playx.director.view")
+        }.cyGroupedSurface().privacySensitive().cyPageTitle("playx.director.title").accessibilityIdentifier("playx.director.view")
             .task { await model.load() }
             .sheet(item: $editor) { action in
                 if let projection = model.projection {
@@ -291,7 +291,7 @@ import UIKit
                 if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
                 CYPillButton("playx.review") { prepare() }.listRowBackground(Color.clear).accessibilityIdentifier("playx.director.review")
             }
-        }.cyGroupedSurface().navigationTitle("playx.director.title")
+        }.cyGroupedSurface().cyPageTitle("playx.director.title")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
             .cyModalOverlay(isPresented: confirm) {
                 CYModal(

@@ -25,6 +25,28 @@ public enum PlayStoreDayWriteOutcome: Equatable {
     case rejected(String?)
     case unknown
 }
+/// pages/play/merchant `arriveRefusal`: why `/api/play/arrive` refused, and which retry the CTA becomes.
+public enum PlayStoreDayArriveRefusal: Equatable {
+    case tooFar(meters: Int?), accuracyLow, locationMissing, scanRequired
+    /// 重新定位 for a location refusal, 扫码解锁 when the store needs its code.
+    public var retry: PlayStoreDayArriveRetry { self == .scanRequired ? .scan : .locate }
+    static func resolve(errorCode: String?, data: PlayWireValue, root: PlayWireValue) -> Self? {
+        switch errorCode ?? "" {
+        case "ARRIVE_TOO_FAR":
+            let raw = data["distanceMeters"].double ?? root["distanceMeters"].double
+            return .tooFar(meters: raw.flatMap { $0.isFinite && $0 > 0 ? Int($0.rounded()) : nil })
+        case "ARRIVE_ACCURACY_LOW": return .accuracyLow
+        case "ARRIVE_LOCATION_MISSING": return .locationMissing
+        case "VISIT_SCAN_REQUIRED": return .scanRequired
+        default: return nil
+        }
+    }
+}
+public enum PlayStoreDayArriveRetry: String, Equatable { case locate, scan }
+public enum PlayStoreDayArriveOutcome: Equatable {
+    case write(PlayStoreDayWriteOutcome)
+    case refused(PlayStoreDayArriveRefusal)
+}
 
 /// Store-day page endpoints exactly as pages/play/merchant: GET api/play/nodes, POST api/play/checkin,
 /// api/play/photo, api/play/answer (form) and POST api/compliance/consents(/latest) (JSON).
@@ -32,6 +54,8 @@ public enum PlayStoreDayWriteOutcome: Equatable {
     public enum Execution: Equatable { case disabled, injectedOfflineHarness }
     public static let nodesPath = "api/play/nodes"
     public static let checkinPath = "api/play/checkin"
+    /// PLAYM-1: F08 「我已到店」 — one foreground GCJ-02 fix; the server judges the 300 m radius.
+    public static let arrivePath = "api/play/arrive"
     public static let photoPath = "api/play/photo"
     public static let answerPath = "api/play/answer"
     public static let actionContextPath = "api/play/action-context"
@@ -104,6 +128,19 @@ public enum PlayStoreDayWriteOutcome: Equatable {
         // refuses it without the run identity; the code still names the store server-side.
         return await proofWrite(Self.checkinPath, scope: scope, nodeID: nodeID, fields: ["nodeId": String(nodeID), "code": trimmed])
     }
+    /// MP `requestArrive`: nodeId + longitude / latitude (GCJ-02) + accuracy on the same run identity as the other proofs.
+    public func arrive(scope: PlaySessionScope, nodeID: Int, longitude: Double, latitude: Double, accuracy: Double?) async -> PlayStoreDayArriveOutcome {
+        guard nodeID > 0, longitude.isFinite, latitude.isFinite, abs(longitude) <= 180, abs(latitude) <= 90 else { return .write(.rejected(nil)) }
+        guard offline || gates.allows(Self.arrivePath, market: market) else { return .write(.rejected(nil)) }
+        var fields = ["nodeId": String(nodeID), "longitude": String(longitude), "latitude": String(latitude)]
+        if let accuracy, accuracy.isFinite, accuracy >= 0 { fields["accuracy"] = String(accuracy) }
+        var refusal: PlayStoreDayArriveRefusal?
+        let outcome = await proofWrite(Self.arrivePath, scope: scope, nodeID: nodeID, fields: fields) { root in
+            refusal = PlayStoreDayArriveRefusal.resolve(errorCode: root["errorCode"].text, data: root["data"], root: root)
+        }
+        if case .rejected = outcome, let refusal { return .refused(refusal) }
+        return .write(outcome)
+    }
     public func photo(scope: PlaySessionScope, nodeID: Int, pictureURL: String) async -> PlayStoreDayWriteOutcome {
         guard nodeID > 0, let url = URL(string: pictureURL), url.scheme == "https", url.host?.isEmpty == false else { return .rejected(nil) }
         return await proofWrite(Self.photoPath, scope: scope, nodeID: nodeID, fields: ["nodeId": String(nodeID), "picUrl": pictureURL])
@@ -120,7 +157,8 @@ public enum PlayStoreDayWriteOutcome: Equatable {
         guard let request = try? makeJSONRequest(Self.consentWritePath, body: body, session: session) else { return .rejected(nil) }
         return await dispatch(request, session: session)
     }
-    private func proofWrite(_ path: String, scope: PlaySessionScope, nodeID: Int, fields: [String: String]) async -> PlayStoreDayWriteOutcome {
+    private func proofWrite(_ path: String, scope: PlaySessionScope, nodeID: Int, fields: [String: String],
+                            inspect: ((PlayWireValue) -> Void)? = nil) async -> PlayStoreDayWriteOutcome {
         guard permitsProofWrites, scope.isValid, let session = currentSession(), let configuration else { return .rejected(nil) }
         // A1 (acceptance-r3): read the run identity first. Nothing is written when it cannot be read.
         let context: PlayBasicActionContext
@@ -135,7 +173,7 @@ public enum PlayStoreDayWriteOutcome: Equatable {
         }
         let all = scope.fields.merging(fields) { _, new in new }.merging(identity) { _, new in new }
         guard let request = try? AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: all, token: session.token) else { return .rejected(nil) }
-        return await dispatch(request, session: session)
+        return await dispatch(request, session: session, inspect: inspect)
     }
     private enum ContextRead { case success(PlayBasicActionContext), failure(PlayStoreDayWriteOutcome) }
     /// `GET api/play/action-context`. A read: every failure here is a definite "not sent".
@@ -150,10 +188,11 @@ public enum PlayStoreDayWriteOutcome: Equatable {
         guard let context = try? PlayBasicActionContext(raw: envelope.data) else { return .failure(.rejected(nil)) }
         return .success(context)
     }
-    private func dispatch(_ request: URLRequest, session: PlayStoreDaySession) async -> PlayStoreDayWriteOutcome {
+    private func dispatch(_ request: URLRequest, session: PlayStoreDaySession, inspect: ((PlayWireValue) -> Void)? = nil) async -> PlayStoreDayWriteOutcome {
         let response: (Data, Int)
         do { response = try await transport.send(request) } catch { return .unknown }
         let (bytes, status) = response
+        if let inspect, let root = try? JSONDecoder().decode(PlayWireValue.self, from: bytes) { inspect(root) }
         guard currentSession() == session else { return .unknown }
         if status == 401 { onUnauthorized(session); return .rejected(nil) }
         if status >= 500 || status == 408 { return .unknown }

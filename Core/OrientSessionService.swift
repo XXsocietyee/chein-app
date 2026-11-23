@@ -67,6 +67,15 @@ public enum OrientSessionWriteReceipt: Equatable {
         guard Set(values.map(\.teamID)).count == values.count else { throw APIError.malformedResponse }
         return values
     }
+    /// my-teams `loadLobby` (RTEAMS-1): 本场招募 by owner — ownerType 1 topic / 2 activity.
+    public func lobby(ownerType: Int, ownerID: Int, token: String) async throws -> [OrientSessionTeam] {
+        guard ownerType == 1 || ownerType == 2 else { throw APIError.invalidRequest }
+        try positive(ownerID)
+        let values: [OrientSessionTeam] = try await execute(request("api/orient/team/lobby",
+            fields: ["ownerType": String(ownerType), "ownerId": String(ownerID)], token: token))
+        guard Set(values.map(\.teamID)).count == values.count else { throw APIError.malformedResponse }
+        return values
+    }
     public func teamDetail(teamID: Int, token: String) async throws -> OrientSessionJSON {
         try positive(teamID)
         let value: OrientSessionJSON = try await execute(request("api/orient/team/detail", fields: ["teamId": String(teamID)], token: token))

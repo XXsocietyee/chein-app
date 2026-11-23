@@ -37,7 +37,7 @@ struct PlayAnswerReview: Identifiable, Equatable {
                 } else {
                     Text(verbatim: localized("expired")).accessibilityIdentifier("play.answer.review.expired")
                 }
-            }.cyGroupedSurface().navigationTitle(Text(verbatim: localized("title")))
+            }.cyGroupedSurface().navigationTitle(Text(verbatim: localized("title"))).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button(action: cancel) { Text(verbatim: localized("cancel")) }
                         .accessibilityIdentifier("play.answer.review.cancel")

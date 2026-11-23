@@ -9,6 +9,9 @@ import SwiftUI
     var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     @State private var historyRead = RoamHistoryListRead()
+    /// RHIST-3: empty / in-progress states offer the MP next step (出发第一次漫游 / 回到地图).
+    @Environment(\.dismiss) private var dismissHistory
+    @State private var startFirstWalk = false
     @State private var liveEntry = RoamHistoryLiveEntry()
     @State private var localWalk = RoamHistoryLocalWalkState()
     @Namespace private var hero
@@ -32,10 +35,16 @@ import SwiftUI
                 else if records.isEmpty {
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
                     if let keys = localWalk.noticeKeys(reader: reader) {
-                        CYEmptyState(systemImage: "pause.circle", LocalizedStringKey(keys.title), detail: LocalizedStringKey(keys.hint))
+                        CYEmptyState(systemImage: "pause.circle", LocalizedStringKey(keys.title), detail: LocalizedStringKey(keys.hint),
+                                     actionTitle: "roam.historyLocal.backToMap", actionIdentifier: "roam.history.backToMap",
+                                     action: { dismissHistory() })
                             .accessibilityIdentifier("roam.experience.history.unfinished")
                     } else {
-                        CYEmptyState(systemImage: "figure.walk", "roam.experience.historyEmpty", detail: "roam.experience.historyEmptyHint")
+                        CYEmptyState(systemImage: "figure.walk", "roam.experience.historyEmpty", detail: "roam.experience.historyEmptyHint",
+                                     actionTitle: "roamSub.w208.history.emptyCTA", actionIdentifier: "roam.history.startFirst",
+                                     actionStyle: .primary,
+                                     action: { if liveDestination != nil { startFirstWalk = true } else { dismissHistory() } })
+                            .navigationDestination(isPresented: $startFirstWalk) { liveDestination?() }
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("roam.experience.history.empty")
                     }
@@ -98,7 +107,7 @@ import SwiftUI
                     }
                 }
             }.padding(CYSpacing.pageHorizontal)
-        }.background(CYColor.bgPage.ignoresSafeArea()).navigationTitle("roam.experience.history").cyHideTabBar()
+        }.background(CYColor.bgPage.ignoresSafeArea()).cyPageTitle("roam.experience.history").cyHideTabBar()
             .task(id: RoamHistoryLiveOwner(reader: reader)) { load() }
             .onAppear { liveEntry.appear() }
             .onDisappear { liveEntry.disappear() }
@@ -354,7 +363,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
             }.padding()
         }.background(CYColor.bgPage.ignoresSafeArea())
             .modifier(RoamHistoryHeroDestination(id: timestamp, hero: hero))
-            .navigationTitle("roam.experience.session")
+            .cyPageTitle("roam.experience.session")
             .cyHideTabBar()
             .task(id: readKey) { showShare = false; selectedMedal = nil; load() }
             .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }

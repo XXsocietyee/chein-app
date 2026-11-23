@@ -175,7 +175,7 @@ import SwiftUI
                 }
             }
         }
-        .navigationTitle("playx.audioClip.title")
+        .cyPageTitle("playx.audioClip.title")
         .onChange(of: model.phase) { _, phase in
             UIKitHapticsDriver.ensureInstalled()
             switch phase {

@@ -16,7 +16,8 @@ class PlayMerchantContractChecks(unittest.TestCase):
         source = read(SERVICE)
         paths = set(re.findall(r'Path = "([^"]+)"', source))
         # A1 (acceptance-r3): proof writes first read the run identity from api/play/action-context (GET).
-        self.assertEqual(paths, {'api/play/nodes', 'api/play/checkin', 'api/play/photo', 'api/play/answer',
+        # fix-parity PLAYM-1: the MP's first step 我已到店 posts api/play/arrive (requestArrive).
+        self.assertEqual(paths, {'api/play/nodes', 'api/play/checkin', 'api/play/arrive', 'api/play/photo', 'api/play/answer',
                                  'api/play/action-context', 'api/compliance/consents/latest', 'api/compliance/consents'})
         for field in ['"routeActionId"', '"expectedRouteVersion"', '"routeSessionId"']:
             self.assertIn(field, source)

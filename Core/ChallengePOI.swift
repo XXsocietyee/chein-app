@@ -39,6 +39,12 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
     public let completed: Bool
     public let medal: ChallengePOIMedal?
     public let coverUrl: String
+    /// Server option ids (A–D) parallel to `options`; the complete call sends the id, as the MP `onPick` does.
+    public let optionIDs: [String]?
+    /// MP `photoRequireDesc`: the photo step's lead text.
+    public let photoRequireDesc: String?
+    /// MP `badgeCode`: 查看徽章墙 focuses this badge after the medal screen.
+    public let badgeCode: String?
 
     public init(
         id: Int,
@@ -53,7 +59,10 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
         options: [String] = [],
         completed: Bool = false,
         medal: ChallengePOIMedal? = nil,
-        coverUrl: String = ""
+        coverUrl: String = "",
+        optionIDs: [String]? = nil,
+        photoRequireDesc: String? = nil,
+        badgeCode: String? = nil
     ) {
         self.id = id
         self.name = name
@@ -68,6 +77,9 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
         self.completed = completed
         self.medal = medal
         self.coverUrl = coverUrl
+        self.optionIDs = optionIDs.flatMap { $0.count == options.count ? $0 : nil }
+        self.photoRequireDesc = photoRequireDesc
+        self.badgeCode = badgeCode
     }
 
     public static func decode(from raw: PlayWireValue, fallbackNodeId: Int) throws -> ChallengePOINode {
@@ -268,7 +280,7 @@ public enum ChallengePOIRules {
             guard let idx = selectedOptionIndex, node.options.indices.contains(idx) else {
                 throw NSError(domain: "ChallengePOI", code: 3, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请选择一个答案", "Choose an answer")])
             }
-            answer = node.options[idx]
+            answer = node.optionIDs?[idx] ?? node.options[idx]
         } else if !node.question.isEmpty && answer.isEmpty {
             throw NSError(domain: "ChallengePOI", code: 4, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请填写答案", "Enter an answer")])
         }

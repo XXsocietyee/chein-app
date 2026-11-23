@@ -73,7 +73,7 @@ import SwiftUI
                         }.disabled(!model.canTeamInteract || model.state?.version != captured.version)
                             .accessibilityIdentifier("advancedTeam.confirm")
                     }
-                }.cyGroupedSurface().navigationTitle("advancedTeam.review")
+                }.cyGroupedSurface().cyPageTitle("advancedTeam.review")
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil } } }
             }.privacySensitive()
         }

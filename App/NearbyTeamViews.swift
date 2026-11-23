@@ -22,6 +22,9 @@ import SwiftUI
     @StateObject private var model: NearbyTeamScreenModel
     @State private var latitude = ""
     @State private var longitude = ""
+    /// RNEAR-1: MP nearby locates the device (one foreground fix, GCJ-02) instead of asking for typed coordinates.
+    @State private var locating = false
+    @State private var locateFailure: LocalizedStringKey?
     @State private var radius = 3000
     @State private var showingRange = false
     @State private var showingMapStyle = false
@@ -60,7 +63,6 @@ import SwiftUI
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 20) {
-                CYHeroHeader("nearby.title")
                 Picker("nearby.section", selection: $tab) {
                     Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
                 }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
@@ -115,7 +117,8 @@ import SwiftUI
             }.padding()
         }
         .refreshable { if coordinator.authenticated && !model.running { await refresh() } }
-        .cyHeroScreen()
+        // RNEAR-3 / RTEAMS-2: one inline bar title, no page-type header in the content.
+        .cyPageTitle(tab == 1 ? String.LocalizationValue(stringLiteral: "nearby.mine") : String.LocalizationValue(stringLiteral: "nearby.title"))
             .toolbar {
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -155,6 +158,9 @@ import SwiftUI
                     latitude = String(context.latitude); longitude = String(context.longitude)
                     submitManualContext(.init(latitude: context.latitude, longitude: context.longitude, radius: radius))
                     await model.run { await coordinator.loadNearby(.init(latitude: context.latitude, longitude: context.longitude, radius: radius)) }
+                } else if RoamDeviceFixGCJ.isAuthorized {
+                    // RNEAR-1: already allowed → locate straight away like the MP; otherwise wait for 使用当前位置.
+                    await locateAndSearch()
                 }
             }
             .onChange(of: tab) { _, value in if value == 1 { Task { await loadMine() } } }
@@ -248,9 +254,20 @@ import SwiftUI
     private var contextControls: some View {
         VStack(alignment: .leading, spacing: 12) {
             if initialContext == nil {
-                Text("nearby.context.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("nearby.context.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                CYPillButton(LocalizedStringKey(locating ? "nearby.locating" : "nearby.useLocation"), style: .primary, systemImage: "location.fill", fullWidth: false) {
+                    Task { await locateAndSearch() }
+                }
+                .disabled(locating || model.running).accessibilityIdentifier("nearby.useLocation")
+                if let locateFailure {
+                    Text(locateFailure).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("nearby.locateFailed")
+                }
+                #if DEBUG
+                // Manual coordinates stay a DEBUG-only tool for fixtures and simulators.
                 TextField("nearby.latitude", text: $latitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.latitude")
                 TextField("nearby.longitude", text: $longitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.longitude")
+                #endif
             }
             HStack {
                 Button { showingRange = true } label: {
@@ -271,6 +288,21 @@ import SwiftUI
                 CYPillButton("nearby.search", style: .secondary, systemImage: "magnifyingglass", fullWidth: false) { Task { await refresh() } }
                     .disabled(model.running).accessibilityIdentifier("nearby.search")
             }
+        }
+    }
+    /// One foreground fix through the standard permission flow (RoamDeviceFixGCJ), then the same search as before.
+    private func locateAndSearch() async {
+        guard !locating else { return }
+        locating = true; locateFailure = nil
+        defer { locating = false }
+        do {
+            let fix = try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: RuntimeNativeLocationProvider(enabled: true))
+            latitude = String(fix.coordinate.latitude); longitude = String(fix.coordinate.longitude)
+            await refresh()
+        } catch is CancellationError {
+            return
+        } catch {
+            locateFailure = error as? RoamActionFailure == .locationDenied ? "nearby.locationDenied" : "nearby.locationFailed"
         }
     }
     private func refresh() async {
@@ -369,9 +401,18 @@ import SwiftUI
     }
     private var mineSection: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // RTEAMS-4: MP cy-access-gate — 登录后查看 + 登录, not a red error chip with 重试.
+            if !coordinator.authenticated {
+                CYEmptyState(systemImage: "person.crop.circle", "nearby.mine.signInTitle",
+                             actionTitle: onSignIn == nil ? nil : "nearby.mine.signIn", actionIdentifier: "nearby.mine.signIn",
+                             actionStyle: .primary, action: onSignIn)
+                    .accessibilityIdentifier("nearby.mine.signedOut")
+            }
             switch joinedTeamsStatus {
             case .loading:
                 CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")).accessibilityIdentifier("nearby.mine.owned.loading")
+            case .failed where !coordinator.authenticated:
+                EmptyView()
             case .failed(let key):
                 CYStatusChip(LocalizedStringKey(key), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("nearby.mine.owned.error")
                 if let retryJoinedTeams {
@@ -383,7 +424,7 @@ import SwiftUI
             if mine.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.w208.mine.loading")) }
             else if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.loading")) }
             if mine.failed && !model.running, let mineIssue = NearbyLoadIssue(messageKey: coordinator.messageKey), !mineIssue.offersRetry {
-                NearbyLoadIssueCard(issue: mineIssue, onSignIn: nil) {}
+                NearbyLoadIssueCard(issue: mineIssue, onSignIn: onSignIn) {}
             } else if mine.failed && !model.running {
                 CYPillButton("nearby.w208.mine.failed", style: .secondary) { Task { await loadMine() } }
                     .accessibilityIdentifier("nearby.w208.mine.retry")
