@@ -615,6 +615,7 @@ struct SessionRootView: View {
         .onDisappear { session.setOwnerDraftPresentationActive(false) }
         .onDisappear { session.setWorkshopOwnedPresentationActive(false) }
         .onOpenURL { session.receiveNativeURL($0) }
+        .modifier(DebugOpenURLLaunchArgument(session: session))
         .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { session.receiveUniversalLink($0) }
         // One presentation at a time: the consent gate goes first, native entry and the area picker queue behind it.
         .sheet(item: Binding(get: { presentation.allowsSecondaryRootSheet ? session.nativeEntry : nil }, set: { if $0 == nil, presentation.allowsSecondaryRootSheet { session.dismissNativeEntry() } })) { entry in

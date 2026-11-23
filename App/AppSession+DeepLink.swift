@@ -13,3 +13,27 @@ extension AppSession {
 
     func consumeDeepLink() -> CheinDeepLink? { defer { pendingDeepLink = nil }; return pendingDeepLink }
 }
+
+import SwiftUI
+
+/// DEBUG verification hook: `--debug-open-url <url>` hands one URL to the same `receiveNativeURL` intake as
+/// `onOpenURL`, once, after the session has restored. The app registers no URL scheme yet, so on-device checks of
+/// chein:// links need this; Release builds compile it to nothing.
+struct DebugOpenURLLaunchArgument: ViewModifier {
+    let session: AppSession
+    func body(content: Content) -> some View {
+        #if DEBUG
+        content.task {
+            let arguments = ProcessInfo.processInfo.arguments
+            guard let index = arguments.firstIndex(of: "--debug-open-url"), arguments.indices.contains(index + 1),
+                  let url = URL(string: arguments[index + 1]) else { return }
+            for _ in 0..<60 where !session.restorationFinished { try? await Task.sleep(nanoseconds: 100_000_000) }
+            let delay = arguments.firstIndex(of: "--debug-open-url-delay").flatMap { arguments.indices.contains($0 + 1) ? Double(arguments[$0 + 1]) : nil } ?? 0.8
+            try? await Task.sleep(nanoseconds: UInt64(max(0, delay) * 1_000_000_000))
+            session.receiveNativeURL(url)
+        }
+        #else
+        content
+        #endif
+    }
+}
