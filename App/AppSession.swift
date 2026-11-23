@@ -7612,13 +7612,13 @@ final class AppSession: ObservableObject {
         return authChannelSnapshot
     }
 
-    private var logoutServerConfirmed = false // B-SZ-02 (MP ruling #16): set once the server confirmed; logout() then skips the second send
+    private var logoutServerConfirmed = false, logoutInFlight = false // B-SZ-02 (MP ruling #16): server confirmed → logout() skips the second send; in flight → a duplicate confirmation sends nothing
     /// Return true only while the guest result of this exact sign-out remains current.
     /// A newer sign-in may replace a completed local logout while remote revocation awaits;
     /// in that case false suppresses the old presentation callback, not the new session.
     func logout(matching expected: AuthChannelSessionSnapshot) async -> Bool { // server first: 200/401 clear locally, other failures keep the session
-        guard expected.accountID != nil, authChannelSnapshot == expected, !Task.isCancelled else { return false }
-        if let accountSessionService, accountSessionService.storageScope == storageScope, let current = token { do { try await accountSessionService.logout(token: current) } catch { guard error as? APIError == .unauthorized else { return false } }
+        guard expected.accountID != nil, authChannelSnapshot == expected, !logoutInFlight, !Task.isCancelled else { return false }
+        if let accountSessionService, accountSessionService.storageScope == storageScope, let current = token { logoutInFlight = true; defer { logoutInFlight = false }; do { try await accountSessionService.logout(token: current) } catch { guard error as? APIError == .unauthorized else { return false } }
             guard authChannelSnapshot == expected, !Task.isCancelled else { return false }; logoutServerConfirmed = true }
         let signedOutEpoch = expected.epoch &+ 1; await logout(); return gate.currentStamp == signedOutEpoch && account == nil && token == nil
     }

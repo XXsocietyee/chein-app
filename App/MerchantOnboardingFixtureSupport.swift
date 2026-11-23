@@ -107,7 +107,7 @@ final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnbo
     private func application(status: Int, accountStatus: Int) throws -> MerchantOnboardingApplication {
         let fields: [String: Any] = [
             "id": 7701, "status": status, "accountStatus": accountStatus,
-            "name": "Example Store", "preference": "Example category", "phone": "2025550100",
+            "name": "Example Store", "preference": "Example category", "categoryIds": "11,61", "phone": "2025550100",
             "address": "Example address", "businessTime": "周一至周日 10:00-22:00", "description": "Offline example",
             "businessLicense": "https://fixtures.example/merchant-license.jpg",
             "reson": appLocalized("merchant.onboarding.fixture.rejection", locale: .current),

@@ -222,7 +222,9 @@ enum MPParityRoute: Hashable, Identifiable {
         case "pages/merchant/ledger/index":
             self = .merchantLedger
         default:
-            guard MiniProgramPageLink.reviewedPages[page] != nil else { return nil }
+            // The page's link rule still applies on internal paths: parity r1 gave several pages required keys
+            // (club governance `clubId`, customer-detail `memberId`, …), so a bare path must not open them.
+            guard MiniProgramPageLink.reviewedPages[page] != nil, MiniProgramPageLink(path: page, query: query) != nil else { return nil }
             self = .screen(page: page, query: query)
         }
     }
