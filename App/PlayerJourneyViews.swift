@@ -271,7 +271,7 @@ private struct ParticipationCoverPlaceholder: View {
     var body: some View {
         RoundedRectangle(cornerRadius: 14, style: .continuous).fill(CYNight.ink2)
             .frame(height: 136).frame(maxWidth: .infinity)
-            .overlay { Image(systemName: "map").font(.title2).foregroundStyle(.secondary) }
+            .overlay { Image(systemName: "map").imageScale(.large).foregroundStyle(CYColor.textSecondary) }
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")
     }
 }

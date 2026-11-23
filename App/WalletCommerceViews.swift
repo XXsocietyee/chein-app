@@ -99,10 +99,12 @@ extension WalletScreen where Value == WithdrawalBalance {
     let reader: WalletCommerceReader
     var requiresLogin = false
     var unavailable = false
+    /// FIN-18-3: the points ledger says 积分明细加载失败 (MP points-history/index.wxml:11).
+    var failedKey = "wallet.failed"
     var retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? "wallet.login" : reader.isConfigured && !unavailable ? "wallet.failed" : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? "wallet.login" : reader.isConfigured && !unavailable ? failedKey : "wallet.unavailable")).accessibilityIdentifier("wallet.issue")
             if reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable {
                 CYPillButton("wallet.retry", style: .secondary, fullWidth: false, action: retry)
             }
@@ -526,7 +528,8 @@ extension EnvironmentValues {
                     .accessibilityIdentifier(PointsHistoryPageModel.unknownIdentifier)
             }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
-                WalletIssueView(reader: reader, requiresLogin: model.pager.requiresLogin, unavailable: model.pager.unavailable) { Task { await model.load(reader, kind: kind) } }
+                WalletIssueView(reader: reader, requiresLogin: model.pager.requiresLogin, unavailable: model.pager.unavailable,
+                                failedKey: points ? "wallet.points.failed" : "wallet.failed") { Task { await model.load(reader, kind: kind) } }
             }
             if model.pager.isLoading {
                 if income { CYSkeleton().accessibilityLabel(Text("wallet.loading")) }

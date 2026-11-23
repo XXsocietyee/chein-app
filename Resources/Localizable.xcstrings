@@ -9857,13 +9857,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No character card yet"
+            "value": "This link has expired"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有角色卡"
+            "value": "链接已失效"
           }
         }
       }
@@ -139305,13 +139305,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading journeys…"
+            "value": "Loading your participation records…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载旅程…"
+            "value": "正在加载参与记录…"
           }
         }
       }
@@ -139322,13 +139322,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to see your journeys"
+            "value": "Sign in to see your participation records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看我的旅程"
+            "value": "登录后查看参与记录"
           }
         }
       }
@@ -283383,6 +283383,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "发票申请"
+          }
+        }
+      }
+    },
+    "characterCard.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "wallet.points.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load points history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分明细加载失败"
           }
         }
       }

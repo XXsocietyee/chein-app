@@ -35,10 +35,10 @@ struct ParticipationDetailHeader: View {
     var body: some View {
         let record = detail.record
         Section {
-            VStack(alignment: .leading, spacing: Theme.Space.s3) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
                 (typeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s2))
-                    : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Theme.Space.s3))) {
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                    : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.md))) {
                     Group {
                         if let name = record.name { Text(verbatim: name) }
                         else { Text("playerJourney.parity.unknownTopic") }
@@ -52,8 +52,8 @@ struct ParticipationDetailHeader: View {
                     }
                 }
                 (typeSize.isAccessibilitySize
-                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s2))
-                    : AnyLayout(HStackLayout(spacing: Theme.Space.s2))) {
+                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                    : AnyLayout(HStackLayout(spacing: CYSpacing.sm))) {
                     ParticipationTag(key: record.modeKey, tone: record.isFreeExplore ? .success : .info)
                         .accessibilityIdentifier("playerJourney.mode")
                     ParticipationStatusBadge(status: record.participationStatus(), detail: true)
