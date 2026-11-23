@@ -25,6 +25,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var requestedClubID: Binding<Int?>? = nil
     /// Author square delete on the talent list feed. Nil shows a visible not-connected line.
     var authorSquare: (any SquareReading)? = nil
+    /// MP `talent/list?tab=feed` (A8-04): opens on 帖文 once; nil keeps 俱乐部.
+    var initialTopTab: ClubTabPresentation.TopTab? = nil
+    @State private var appliedInitialTopTab = false
     @State private var locality = MerchantClubDiscoveryState()
     /// Card or inline Join pill tapped; both open the gated detail, which still owns the membership action.
     @State private var openedClubID: Int? = nil
@@ -204,6 +207,11 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
                 .cyHeroDestinationWithFallback(id, in: hero)
                 .cyPushedChrome()
+        }
+        .onAppear {
+            guard !appliedInitialTopTab else { return }
+            appliedInitialTopTab = true
+            if let initialTopTab, community != nil { topTab = initialTopTab }
         }
         .onChange(of: requestedClubID?.wrappedValue, initial: true) { _, id in
             guard let id else { return }

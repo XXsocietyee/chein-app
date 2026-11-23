@@ -41,6 +41,8 @@ public enum NativeNavigationContract {
                 guard Set(query.keys).isSubset(of: ["code"]) else { return nil }
                 return (try? TeamInvitationRoute(code: code)).map(NativeEntryIntent.teamInvitation)
             }
+            // `?entry=code` is the MP manual 加入码 entry (C-J1): the code is typed on the page, not carried by the link.
+            if query == ["entry": "code"] { return MiniProgramPageLink(path: path, query: query).map(NativeEntryIntent.miniProgramPage) }
             guard query.keys.sorted() == ["teamId"], let raw = query["teamId"], let id = Int(raw), id > 0, String(id) == raw else { return nil }
             return .routeError(.legacyTeamLink)
         }

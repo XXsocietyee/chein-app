@@ -317,7 +317,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "目前没有可管理触达授权的商户，可刷新重新查询。"
+            "value": "还没有商家消息"
           }
         }
       }

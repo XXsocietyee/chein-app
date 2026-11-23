@@ -14,6 +14,11 @@ public struct ProjectEditRemoteTarget: Equatable, Hashable, Identifiable {
         guard (try? receipt.validate(identity: receipt.identity)) != nil, let id = receipt.topicID else { return nil }
         topicID = id; owner = .merchant; self.readerScope = readerScope
     }
+    /// MP `fabu?id=` (fix-parity C-F11): selects the fresh edit-detail read for that topic; the server still decides ownership.
+    public init?(topicID: Int, owner: ProjectEditOwner, readerScope: UUID) {
+        guard topicID > 0 else { return nil }
+        self.topicID = topicID; self.owner = owner; self.readerScope = readerScope
+    }
     public init?(project: CreatorContentProject, readerScope: UUID) {
         guard project.bizType == "topic", project.sourceID > 0 else { return nil }
         switch project.ownerType {

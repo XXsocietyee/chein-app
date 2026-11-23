@@ -37,7 +37,7 @@ import SwiftUI
                     }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding(CYSpacing.pageHorizontal)
-        }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle("team.title")
+        }.background(CYColor.bgPage.ignoresSafeArea()).cyPageTitle("team.title")
             .toolbar { if let nearbyDestination { NavigationLink("nearby.title") { nearbyDestination(model.coordinator.currentTeams) } } }
             .task {
                 guard !Task.isCancelled else { return }
@@ -196,13 +196,18 @@ import SwiftUI
                             }
                         }
                     }
+                    // C-D6: MP order — 队伍进度 / 排名 before the destructive 退出 / 解散 (destructive last).
+                    if !readOnly, invitationCode == nil {
+                        TeamReformEntries(detail: detail, hooks: reformHooks) { reformSheet = $0 }.disabled(model.actionLocked)
+                    }
                     actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
                     actionButton(.disband(teamID: detail.team.id), detail: detail)
                     if TeamPagePresentation.showsRefundNote(detail) {
                         Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
                     }
-                    if !readOnly, invitationCode == nil {
-                        TeamReformEntries(detail: detail, hooks: reformHooks) { reformSheet = $0 }.disabled(model.actionLocked)
+                    // C-D3: 举报队伍 for members who are not the leader (the entry hides itself until its access is enabled).
+                    if invitationCode == nil, detail.leader != true {
+                        TeamReportEntryButton(teamID: detail.team.id)
                     }
                 }
                 if !readOnly, model.coordinator.pending != nil {
@@ -220,6 +225,7 @@ import SwiftUI
                 }
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
+            .navigationBarTitleDisplayMode(.inline)
             .task {
                 guard !Task.isCancelled else { return }
                 readOwner.activate()

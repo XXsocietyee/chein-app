@@ -31,7 +31,7 @@ MISSING_COPY = [
     "未通过审核 · 仅自己可见",
     "查看路线图",
     "转发帖文",
-    "收藏帖文",
+    # "收藏帖文" now exists: fix-parity C-S2 (square detail favourite label, square.bookmark.add).
 ]
 MISSING_FIELDS = [
     "status",

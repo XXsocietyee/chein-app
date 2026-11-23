@@ -23,7 +23,7 @@ MISSING_COPY = [
     "正在加载更多评论…",
     "回复评论",
     "转发帖文",
-    "收藏帖文",
+    # "收藏帖文" now exists: fix-parity C-S2 (square detail favourite label, square.bookmark.add).
     "打开用户主页",
     "更多操作",
     "查看大图",

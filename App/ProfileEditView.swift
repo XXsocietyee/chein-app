@@ -526,13 +526,17 @@ struct ProfileEditView: View {
     let caseImageReader: (any RetainedPublicImageReading)?
     let savedMedia: ProfileSavedMediaReaders?
     private let onSaved: (() -> Void)?
+    /// MP `gerenziliao?field=introduction|category` (A3-08): opens that editor once after the first load.
+    private let initialField: String?
+    @State private var openedInitialField = false
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
     /// Nil when the stored `tagIds` is unreadable: the count is then an em dash, never a stand-in 0.
     private var selectedPreferences: [Int]? {
         model.draft.routePreferenceIDs ?? ProfilePreferenceRemoval.parse(model.coordinator.snapshot?.tagIds ?? "")
     }
-    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, currentReviewReader: ProfileCurrentReviewReader? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, savedMedia: ProfileSavedMediaReaders? = nil, onSaved: (() -> Void)? = nil) {
+    init(coordinator: ProfileEditCoordinator, sessionRevision: UInt64, categoryReader: (any DiscoveryReading)? = nil, avatarDependencies: ProfileAvatarDependencies? = nil, caseImageReader: (any RetainedPublicImageReading)? = nil, currentReviewReader: ProfileCurrentReviewReader? = nil, nicknameReader: (any ProfileNicknameAvailabilityReading)? = nil, savedMedia: ProfileSavedMediaReaders? = nil, onSaved: (() -> Void)? = nil, initialField: String? = nil) {
+        self.initialField = initialField
         _model = StateObject(wrappedValue: ProfileEditModel(coordinator: coordinator))
         _currentReviewNotice = StateObject(wrappedValue: ProfileCurrentReviewNoticeOwner())
         self.currentReviewReader = currentReviewReader
@@ -621,26 +625,20 @@ struct ProfileEditView: View {
             }
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
-        .appNavigationTitle("profile.edit.title")
-        .navigationBarTitleDisplayMode(.large)
-        .navigationBarBackButtonHidden(true)
+        // A3-03: pushed page → inline title. A3-02 (T&C §3): the system back and its swipe while nothing is unsaved;
+        // only while the draft is dirty does the same-looking guarded back ask first.
+        .cyPageTitle("profile.edit.title")
         .interactiveDismissDisabled(model.blocksInteractiveExit)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    if model.requestExit() { dismiss() }
-                } label: { Label("action.back", systemImage: "chevron.left") }
-                .disabled(!model.canRequestExit)
-                .accessibilityIdentifier("profile.exitDiscard.back")
-                .sheet(isPresented: $showExitConfirmation) {
-                    if let value = model.exitConfirmation {
-                        MemberProfileDiscardConfirmSheet(kind: .exitDiscard, onCancel: { model.cancelExit() }) {
-                            showExitConfirmation = false
-                            if model.confirmExit(value) { dismiss() }
-                        }
-                    }
+        .cyGuardedBack(when: model.blocksInteractiveExit) {
+            guard model.canRequestExit else { return }
+            if model.requestExit() { dismiss() }
+        }
+        .sheet(isPresented: $showExitConfirmation) {
+            if let value = model.exitConfirmation {
+                MemberProfileDiscardConfirmSheet(kind: .exitDiscard, onCancel: { model.cancelExit() }) {
+                    showExitConfirmation = false
+                    if model.confirmExit(value) { dismiss() }
                 }
-                .onChange(of: showExitConfirmation) { _, showing in if !showing { model.cancelExit() } }
             }
         }
         .onChange(of: model.exitConfirmation?.id) { _, id in showExitConfirmation = id != nil }
@@ -668,7 +666,7 @@ struct ProfileEditView: View {
             if phase != .active { model.retireReload(); model.suspendForBackground() } else { model.activateAvatar() }
         }
         .modifier(ProfileCurrentReviewNoticeLifecycle(model: model, reader: currentReviewReader, owner: currentReviewNotice))
-        .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad() }
+        .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad(); openInitialFieldOnce() }
         .background {
             if let edit = model.textEdit {
                 ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader, nicknameReader: nicknameReader, savedMedia: savedMedia)
@@ -729,7 +727,7 @@ struct ProfileEditView: View {
             HStack {
                 LabeledContent {
                     if field == .caseIntroduction, model.coordinator.snapshot?.caseIntroduction == nil {
-                        Text("profile.case.descriptionUnavailable").font(.caption).foregroundStyle(.secondary)
+                        Text("profile.case.descriptionUnavailable").cyText(.meta).foregroundStyle(.secondary)
                     } else if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
                     else { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) }
                 } label: { Text(LocalizedStringKey(field.titleKey)) }
@@ -739,6 +737,16 @@ struct ProfileEditView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("profile.fieldEdit.open.\(field.rawValue)")
+    }
+
+    private func openInitialFieldOnce() {
+        guard !openedInitialField, let initialField, model.coordinator.snapshot != nil else { return }
+        openedInitialField = true
+        switch initialField {
+        case "introduction": model.beginTextEdit(.introduction)
+        case "category": model.beginPreferencePicker(reader: categoryReader)
+        default: break
+        }
     }
 
     private func handleEditorDisappear() {

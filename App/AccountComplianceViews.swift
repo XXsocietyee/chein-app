@@ -234,7 +234,10 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @ViewBuilder private var cancellation: some View {
         if let request = model.state.originalApplicationRequestID {
             Section {
-                (Text("c08.display.43", tableName: "AccountDeregistrationPresentation") + Text(verbatim: request)).font(.caption).textSelection(.enabled)
+                // B-DR-01: the request id is support detail, folded under 详情.
+                DisclosureGroup {
+                    (Text("c08.display.43", tableName: "AccountDeregistrationPresentation") + Text(verbatim: request)).cyText(.meta).textSelection(.enabled)
+                } label: { Text("compliance.details").cyText(.meta) }
                 if let receipt = model.state.originalApplication {
                     Text(receipt.outcome)
                     if receipt.reason == "ACCOUNT_IMPACT_CHANGED_REFRESH_AND_CONFIRM" { Text("c08.display.37", tableName: "AccountDeregistrationPresentation") }
@@ -251,8 +254,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             } header: { Text("c08.display.36", tableName: "AccountDeregistrationPresentation") }
         }
         if let status = model.state.status {
+            // B-DR-01: no impact list from the server shows nothing (the MP backend never sends one).
             if let impact = status.impact { AccountDeregistrationImpactSection(impact: impact) }
-            else { Text("c08.display.41", tableName: "AccountDeregistrationPresentation") }
             Section("compliance.serverStatus") {
                 statusMark(status.status).accessibilityIdentifier("compliance.serverStatus")
                 ForEach(Array(status.blockers.enumerated()), id: \.offset) { _, blocker in Text(blocker) }
@@ -357,16 +360,17 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         }
         Button("compliance.refresh") { requestCancellationRead() }
             .buttonStyle(CYPillButtonStyle(style: .tertiary))
+        // B-DR-01: the on-device consent record is support detail, folded under 详情 instead of a permanent section.
         Section {
-            Text(LocalizedStringKey(model.state.localCancellationConsent.messageKey), tableName: "AccountDeregistrationConsent")
-                .font(.footnote).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cancellationConsent.state")
-            if let request = model.state.localCancellationConsent.requestID {
-                Text("cancellationConsent.request", tableName: "AccountDeregistrationConsent").font(.caption)
-                Text(verbatim: request).font(.caption).textSelection(.enabled)
-            }
-            Text("cancellationConsent.scope", tableName: "AccountDeregistrationConsent").font(.footnote)
-        } header: {
-            Text("cancellationConsent.title", tableName: "AccountDeregistrationConsent")
+            DisclosureGroup {
+                Text(LocalizedStringKey(model.state.localCancellationConsent.messageKey), tableName: "AccountDeregistrationConsent")
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cancellationConsent.state")
+                if let request = model.state.localCancellationConsent.requestID {
+                    Text("cancellationConsent.request", tableName: "AccountDeregistrationConsent").cyText(.meta)
+                    Text(verbatim: request).cyText(.meta).textSelection(.enabled)
+                }
+                Text("cancellationConsent.scope", tableName: "AccountDeregistrationConsent").cyText(.meta)
+            } label: { Text("cancellationConsent.title", tableName: "AccountDeregistrationConsent").cyText(.meta) }
         }
         .accessibilityElement(children: .combine)
     }

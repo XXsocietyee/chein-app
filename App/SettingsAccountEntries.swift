@@ -72,6 +72,8 @@ import SwiftUI
     @Environment(\.locale) private var locale
     @State private var confirms = false
     @State private var confirmation: AuthChannelSessionSnapshot?
+    @State private var failed = false
+    @State private var working = false
     var body: some View {
         if session.account != nil {
         if let accountID = session.account?.id {
@@ -80,10 +82,16 @@ import SwiftUI
                     confirmation = session.signOutConfirmation(accountID: accountID)
                     confirms = confirmation != nil
                 } label: {
-                    Label("auth.signOut", systemImage: "rectangle.portrait.and.arrow.right")
+                    Label("settings.signOut", systemImage: "rectangle.portrait.and.arrow.right")
                         .frame(maxWidth: .infinity).foregroundStyle(CYColor.textPrimary)
                 }
+                    .disabled(working)
                     .accessibilityIdentifier("settings.signOut")
+                // B-SZ-02: the server did not confirm; the account stays signed in and the row retries.
+                if failed {
+                    Text("settings.signOut.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("settings.signOut.failed")
+                }
             }
             .sheet(isPresented: $confirms) {
                 if let expected = confirmation {
@@ -92,11 +100,14 @@ import SwiftUI
                                    confirmTitle: appLocalized("auth.signOut", locale: locale),
                                    isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
                         confirmation = nil; confirms = false
+                        working = true; failed = false
                         Task {
-                            if await session.logout(matching: expected) { onSignedOut() }
+                            let done = await session.logout(matching: expected)
+                            working = false
+                            if done { onSignedOut() } else if session.account != nil { failed = true }
                         }
                     }
-                    .presentationDetents([.height(300)])
+                    .presentationDetents([.medium])
                 }
             }
             .onChange(of: confirms) { _, visible in if !visible { confirmation = nil } }

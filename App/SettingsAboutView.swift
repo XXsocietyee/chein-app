@@ -49,10 +49,12 @@ import UIKit
                 marketRow
             } header: { Text("settingsNative.about.appSection") } footer: { AIGCFilingNumberText() }
             .labelStyle(SettingsTileLabelStyle())
-            // Source section 我的二维码: the voucher stays in its error state until a real player code exists.
-            Section {
-                playerCodeVoucher
-            } header: { Text("settingsNative.about.playerCode") }
+            // B-AB-01 (hand-off MC-43): 我的二维码 shows only once a real player code exists; no permanent error voucher.
+            if model.playerCode.imageURL != nil {
+                Section {
+                    playerCodeVoucher
+                } header: { Text("settingsNative.about.playerCode") }
+            }
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in
                     NavigationLink {
@@ -81,13 +83,21 @@ import UIKit
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("settingsNative.about.contactPhone")
                 } header: { Text("settingsNative.about.contact") } footer: { Text("settingsNative.about.contactSource") }
+            } else {
+                // B-AB-03: the MP always offers 联系我们; without a phone the support contact page is the way in.
+                Section {
+                    NavigationLink { WithdrawalSupportContactView() } label: {
+                        Label("settingsNative.about.contact", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    .accessibilityIdentifier("settingsNative.about.contactFallback")
+                }
+                .labelStyle(SettingsTileLabelStyle())
             }
             SettingsAttributionsSection(copyText: copyText)
         }
         .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
-        .appNavigationTitle("settingsNative.about.title")
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("settingsNative.about.title")
         .safeAreaInset(edge: .bottom) {
             if let phone = model.contactPhone {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {

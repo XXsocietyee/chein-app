@@ -39,7 +39,7 @@ import SwiftUI
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))) {
                 avatar
                 VStack(alignment: .leading, spacing: 6) {
-                    name.cyText(.dataXL).foregroundStyle(palette.textPrimary)
+                    name.cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("member.card.name")
                     HStack(spacing: 6) {

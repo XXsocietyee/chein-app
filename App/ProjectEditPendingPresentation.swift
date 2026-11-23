@@ -75,7 +75,7 @@ import SwiftUI
                         Section { Text("projectPending.localOnly") }
                         if controller.saveUnconfirmed { Section { Text("projectPending.saveUnconfirmed").accessibilityIdentifier("projectPending.saveUnconfirmed") } }
                         ProjectPendingNodePlacePickerEntry(model: model, pending: controller, destination: original)
-                        ProjectEditNodeFields(node: controller.node(for: original))
+                        ProjectEditNodeFields(node: controller.node(for: original)).typedCoordinates()
                             .descriptionEditing(.init(model: model, sourceID: "pending:\(original.id)",
                                 isCurrent: { controller.isCurrent(original) }))
                             .merchantDraftSelection(.init(

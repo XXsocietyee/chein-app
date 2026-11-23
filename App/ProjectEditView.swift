@@ -293,6 +293,7 @@ import SwiftUI
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var discardConfirmation = false
+    @State private var showsSignIn = false
     @State private var copiedCoordinator: ProjectEditCoordinator?
     @State private var showingCopy = false
     @State private var modeCopyFailed = false
@@ -326,6 +327,7 @@ import SwiftUI
     /// modifier in the chain (not only the Form) are light when this is pushed from the dark player shell.
     var body: some View {
         pageBody.cyDomainScreen(.topicEditor)
+            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
     }
     @ViewBuilder private var pageBody: some View {
         let opening = model.captureStarterLease()
@@ -396,7 +398,9 @@ import SwiftUI
             }
             if model.coordinator.session == nil {
                 Section {
-                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "projectEdit.signIn", messageIdentifier: "projectEdit.signIn")
+                    // C-F9: MP 登录后创建主题 + 去登录.
+                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "projectEdit.signIn", messageIdentifier: "projectEdit.signIn",
+                                 actionTitle: "action.goSignIn", actionIdentifier: "projectEdit.goSignIn", actionStyle: .primary) { showsSignIn = true }
                         .listRowBackground(Color.clear)
                 }
             } else if model.coordinator.snapshot == nil, !model.busy, !model.coordinator.isLocked,
@@ -557,7 +561,7 @@ import SwiftUI
                     if let cloudDraftProjectsHost {
                         NavigationLink { cloudDraftProjectsHost() } label: { Text("cloud.openProjects", tableName: "ProjectCloudDraftReceipt") }
                             .accessibilityIdentifier("projectEdit.cloudDraft.myProjects")
-                    } else { Text("cloud.returnHint", tableName: "ProjectCloudDraftReceipt").font(.footnote).foregroundStyle(.secondary) }
+                    } else { Text("cloud.returnHint", tableName: "ProjectCloudDraftReceipt").cyText(.meta).foregroundStyle(.secondary) }
                 } header: { Text("cloud.title", tableName: "ProjectCloudDraftReceipt") }
             }
             if model.coordinator.hasCommittedRequestReceipt {
@@ -937,7 +941,7 @@ import SwiftUI
                     .accessibilityLabel(nodeCountLabel)
             }
             ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")
-                .font(.headline)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             Group {
@@ -1092,7 +1096,7 @@ struct ProjectEditReferenceField: View {
                     // Invalid text clears selection; review must not silently send old IDs.
                     selection = invalid ? [] : ids
                 }
-            if invalid { Text("projectEdit.validation.categories").font(.footnote).foregroundStyle(CYColor.dangerText) }
+            if invalid { Text("projectEdit.validation.categories").cyText(.meta).foregroundStyle(CYColor.dangerText) }
             if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }
@@ -1140,7 +1144,7 @@ struct ProjectEditorField<Content: View>: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.subheadline).foregroundStyle(.secondary).accessibilityHidden(true)
+            Text(title).cyText(.label).foregroundStyle(.secondary).accessibilityHidden(true)
             content
         }.padding(.vertical, 4)
     }

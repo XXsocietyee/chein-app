@@ -198,6 +198,9 @@ import SwiftUI
                     if let statusReader, statusReader.isStatusAvailable {
                         OwnMediaStatusButton(reader: statusReader, assetID: row.id) { _ = controller.refresh() }
                     }
+                    if let retryReader = statusReader as? any OwnMediaRetryWriting {
+                        OwnMediaRetryButton(reader: retryReader, asset: row) { _ = controller.refresh() }
+                    }
                 }
                 if controller.moreFailed {
                     VStack(alignment: .leading, spacing: 6) {

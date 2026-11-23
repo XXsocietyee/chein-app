@@ -35,7 +35,8 @@ import SwiftUI
                          management: session.clubManagementContext, community: session.clubCommunityContext,
                          publicRoster: session.clubPublicRosterReader,
                          topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
-                         requestedClubID: .constant(nil), authorSquare: session.squareReader)
+                         requestedClubID: .constant(nil), authorSquare: session.squareReader,
+                         initialTopTab: query["tab"] == "feed" ? .feed : nil)
         case "pages/member/index/index":
             if let account = session.account {
                 AccountView(account: account).environmentObject(session)
@@ -47,13 +48,21 @@ import SwiftUI
         case "pages/privacy/index":
             PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader)
         case "pages/agreement/index":
-            SettingsLegalDocumentView(type: .userAgreement, market: session.operationalMarket, reader: session.legalReader)
+            SettingsLegalDocumentView(type: SettingsLegalType.resolve(query["type"] ?? ""), market: session.operationalMarket, reader: session.legalReader)
         case "pages/deregister/index":
             if let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
             } else { unavailable }
         case "pages/team/detail/index":
-            SessionTeamHomeView().environmentObject(session)
+            // MP `team/detail?teamId=` (C-D1) opens that team; the bare path keeps the team list.
+            if let teamID = positiveID(query["teamId"]) {
+                SessionTeamDetailView(lookup: .id(teamID)).environmentObject(session)
+            } else {
+                SessionTeamHomeView().environmentObject(session)
+            }
+        case "pages/team/join/index":
+            // MP `team/join?entry=code` (C-J1): type the 加入码, then the invitation page.
+            TeamInvitationEntryView(makeCoordinator: { session.makeTeamCoordinator() })
         case "pages/play/circle/index":
             // PLAYC-1: old circle links with a topicId forward to play (MP redirectTo pages/play/index).
             switch PlayRuntimeAuxiliaryBinding.resolveCircleRetirement(query: query) {
@@ -168,16 +177,24 @@ import SwiftUI
                 PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
             } else { unavailable }
         case "pages/publish/fabu/index", "pages/publish/topicadd/topicadd":
-            ProjectEditView(coordinator: session.projectEditor(product: .city), sessionRevision: session.sessionRevision,
-                            publisherClient: session.publisherLifecycleContext?.client,
-                            publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) },
-                            cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) })
-                .id(session.projectEditorContextID)
-        case "pages/publish/simple/index", "pages/publish/activity/index":
+            topicEditor
+        case "pages/publish/simple/index":
             SessionPublishingModesView().environmentObject(session)
+        case "pages/publish/activity/index":
+            // C-A1: the 发布活动 form itself (not the publish menu); `?id=` edits that activity.
+            SessionActivityPublishingDestination(editingID: positiveID(query["id"])).environmentObject(session)
+        case "pages/publish/template-intro/index":
+            // C-I1: the intro → name → editor flow the 发布 tab opens.
+            sessionTemplateAuthoringEntry(session)
         case "pages/publish/temp/index":
-            TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
-                                 makeCoverService: { session.makeActivityCoverService() }, coverSession: { session.publishingSession })
+            // C-T1: `?id=` opens that template's own editor; the bare path opens the editor, not the intro.
+            if let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
+                SessionOwnedTemplateConfigurationView(id: id).environmentObject(session)
+            } else {
+                TemplateAuthoringView(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
+                                     makeCoverService: { session.makeActivityCoverService() }, coverSession: { session.publishingSession },
+                                     startsInEditor: true)
+            }
         case "subpackageMember/mytemplate/mytemplate":
             TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision,
                                       memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0).environmentObject(session)) },
@@ -264,19 +281,47 @@ import SwiftUI
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
-            SettingsView().environmentObject(session)
+            // B-SZ-12: `?scene=settings-deregister` opens 账号注销; the other scenes open Settings itself.
+            if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
+                AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
+            } else {
+                SettingsView().environmentObject(session)
+            }
+        case "pages/shezhi/marketing/index":
+            // B-MK-04: 营销消息与优惠券 is a pushed page, so no close button.
+            if let coordinator = session.accountComplianceCoordinator {
+                AccountComplianceSheet(coordinator: coordinator, destination: .marketing, market: session.operationalMarket,
+                                       legalReader: session.legalReader, showsCloseButton: false)
+            } else { unavailable }
         case "pages/gerenziliao/gerenziliao":
             // JSEAT-3: the lobby's 编辑 opens the same own-profile editor as 我的 → 编辑资料.
+            // A3-08: `?field=introduction|category` opens that editor after the first load.
             if session.account != nil {
-                ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision,
-                                categoryReader: session, currentReviewReader: session.profileCurrentReviewReader,
-                                nicknameReader: session.profileNicknameReader, savedMedia: session.profileSavedMediaReaders)
-                    .cyPushedChrome()
+                ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,
+                                currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader,
+                                savedMedia: session.profileSavedMediaReaders, initialField: query["field"])
             } else { unavailable }
+        case "pages/mylike/mylike":
+            // A6 / X1: 我的收藏 from a link, with the same readers the 我的 page passes.
+            AccountCollectionFavoritesView(reader: session.profileFavoritesReader, onOpenTopic: { _ in },
+                                           favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope),
+                                           communityGate: session.squareReader)
+                .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+                .id(session.profileFavoritesReader.scope)
+        case "pages/addressinfo/addressinfo":
+            // X1: the participant form; `?id=` edits that participant.
+            NavigationStack {
+                if let id = reviewedID(query) {
+                    ParticipantFormView(id: id, reader: session.participantReader, coordinator: session.participantCoordinator)
+                } else {
+                    ParticipantFormView(reader: session.participantReader, coordinator: session.participantCoordinator)
+                }
+            }
         case "pages/shezhi/about/index":
             SettingsAboutView(market: session.operationalMarket, appInformation: .current(), legalReader: session.legalReader)
         case "pages/address/address":
-            ProfileParticipantsView(reader: session.profileReader)
+            // A5-02: the link gets the same coordinator as 我的 › 参与人信息, so add / edit / delete stay available.
+            ProfileParticipantsView(reader: session.participantReader, coordinator: session.participantCoordinator)
         case "subpackageMember/order/order":
             SessionOwnedOrdersView(session: session)
         case "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo", "subpackageMember/signupInfo2/signupInfo2":
@@ -338,8 +383,10 @@ import SwiftUI
         case "pages/coop/withdraw/index":
             CoopWithdrawNoticeView(isSignedIn: session.account != nil)
         case "pages/userinfo/userinfo":
-            if let id = reviewedID(query) {
-                SocialPublicProfileView(memberID: id, reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator)
+            // A2-01: MP share links use `userId`; `id` is the older key. `tab` picks the first tab (A2-06).
+            if let id = positiveID(query["userId"]) ?? reviewedID(query) {
+                SocialPublicProfileView(memberID: id, reader: session.socialAccountReader, squareReader: session.squareReader,
+                                        actions: session.socialActionCoordinator, initialTab: query["tab"])
             } else { unavailable }
         case "subpackageRoam/history/index":
             RoamHistoryView(reader: session.roamExperienceReader, toolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
@@ -408,6 +455,38 @@ import SwiftUI
         if let operations = management.operations {
             ClubOperationsWorkspaceView(target: target, identity: session.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management.governance)
         } else { unavailable }
+    }
+
+    /// MP `fabu?id=&mode=&scope=&clubId=` (C-F11): `id` loads that topic's edit-detail; otherwise a new topic in the
+    /// chosen mode. `scope=MERCHANT` only applies to a merchant account; the server still checks every write.
+    @ViewBuilder private var topicEditor: some View {
+        let owner: ProjectEditOwner = query["scope"] == "MERCHANT" && session.account?.effectiveRole == "merchant" ? .merchant : .personal
+        if let topicID = positiveID(query["id"]) {
+            if let target = ProjectEditRemoteTarget(topicID: topicID, owner: owner, readerScope: session.creatorContentReader.scope),
+               let coordinator = session.projectEditor(target: target) {
+                ProjectEditView(coordinator: coordinator, sessionRevision: session.sessionRevision,
+                                publisherClient: session.publisherLifecycleContext?.client,
+                                publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) })
+                    .id(target.id + ":" + session.projectEditorContextID)
+            } else {
+                CYEmptyState(systemImage: "exclamationmark.arrow.triangle.2.circlepath", "projectRemote.stale", messageIdentifier: "projectRemote.stale")
+            }
+        } else {
+            let product: ProjectEditProduct = query["mode"] == "2" ? .freeExplore : .city
+            ProjectEditView(coordinator: session.projectEditor(product: product, owner: owner), sessionRevision: session.sessionRevision,
+                            seed: topicSeed(product: product, owner: owner),
+                            publisherClient: session.publisherLifecycleContext?.client,
+                            publisherHost: { AnyView(SessionPublisherLifecycleView(session: session, resource: $0)) },
+                            cloudDraftProjectsHost: { AnyView(SessionCreatorProjectsView(session: session)) })
+                .id(session.projectEditorContextID)
+        }
+    }
+
+    /// `clubId` preselects the club the MP locks for a club topic; nil keeps the plain new draft.
+    private func topicSeed(product: ProjectEditProduct, owner: ProjectEditOwner) -> ProjectEditDraft? {
+        guard let clubID = positiveID(query["clubId"]) else { return nil }
+        var draft = ProjectEditDraft(product: product); draft.owner = owner; draft.clubID = clubID
+        return draft
     }
 
     private var roam: some View {

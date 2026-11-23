@@ -358,17 +358,26 @@ struct CityFavoriteNodesSection: View {
     @Environment(\.playerGapService) private var service
     @State private var nodes: [CityFavoriteNode]?
     @State private var failed = false
+    /// MP mylike 据点 (A4-01): 取消收藏 asks first, then drops the row only when the server says `favorited == false`.
+    @State private var pendingRemoval: CityFavoriteNode?
+    @State private var removing: Int?
+    @State private var removalFailed: Int?
 
     var body: some View {
         if service != nil {
             Section("playerGap.cityFavorites.title") {
                 if let nodes {
-                    if nodes.isEmpty { Text("playerGap.cityFavorites.empty").foregroundStyle(CYColor.textTertiary) }
+                    if nodes.isEmpty { Text("playerGap.cityFavorites.empty").cyText(.body).foregroundStyle(CYColor.textTertiary) }
                     ForEach(nodes) { node in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: node.name)
-                            if let address = node.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
-                        }
+                        row(node)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                Button("playerGap.cityFavorites.remove", role: .destructive) { pendingRemoval = node }
+                                    .disabled(removing != nil)
+                            }
+                            .contextMenu {
+                                Button("playerGap.cityFavorites.remove", systemImage: "star.slash", role: .destructive) { pendingRemoval = node }
+                                    .disabled(removing != nil)
+                            }
                     }
                 } else if failed {
                     Button("playerGap.retry") { Task { await load() } }
@@ -377,13 +386,59 @@ struct CityFavoriteNodesSection: View {
                 }
             }
             .task { await load() }
+            .confirmationDialog(Text("playerGap.cityFavorites.removeTitle"), isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }),
+                                titleVisibility: .visible, presenting: pendingRemoval) { node in
+                Button("playerGap.cityFavorites.remove", role: .destructive) { Task { await remove(node) } }
+                Button("action.cancel", role: .cancel) { pendingRemoval = nil }
+            } message: { node in Text(verbatim: node.name) }
         }
+    }
+
+    private func row(_ node: CityFavoriteNode) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Group {
+                if let cover = node.cover.flatMap(URL.init(string:)), cover.scheme == "https" {
+                    AsyncImage(url: cover) { $0.resizable().scaledToFill() } placeholder: { CYColor.bgSurfaceSubtle }
+                } else {
+                    Image(systemName: "mappin.and.ellipse").foregroundStyle(CYColor.textTertiary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity).background(CYColor.bgSurfaceSubtle)
+                }
+            }
+            .frame(width: 56, height: 56)
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: node.name.isEmpty ? "—" : node.name).cyText(.cardTitle).cyWrapText()
+                if let address = node.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if removing == node.id { ProgressView().controlSize(.small) }
+                if removalFailed == node.id {
+                    Text("playerGap.cityFavorites.removeFailed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("playerGap.cityFavorites.row.\(node.id)")
     }
 
     private func load() async {
         failed = false
         let read = await service?.favoriteCityNodes()
         nodes = read; failed = read == nil
+    }
+
+    private func remove(_ node: CityFavoriteNode) async {
+        pendingRemoval = nil
+        guard removing == nil, let service else { return }
+        removing = node.id; removalFailed = nil
+        let favorited = await service.toggleCityNodeFavorite(poiID: node.id)
+        removing = nil
+        switch favorited {
+        case false?: nodes?.removeAll { $0.id == node.id }
+        case true?:
+            // The toggle turned it back on (state had changed elsewhere): read the list again instead of guessing.
+            await load()
+        case nil: removalFailed = node.id
+        }
     }
 }
 
@@ -488,6 +543,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
     var merchantHost = false
     @ViewBuilder let content: () -> Content
     @State private var result: ActivityPublishPrecheck?
+    @State private var showsSignIn = false
 
     var body: some View {
         Group {
@@ -500,7 +556,14 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                         if let reason, !reason.isEmpty { Text(verbatim: reason) }
                     }
                 case .signInRequired?:
-                    ContentUnavailableView("playerGap.publish.signIn", systemImage: "person.crop.circle")
+                    // C-A5: MP 登录后发布活动 + 去登录.
+                    ContentUnavailableView {
+                        Label("playerGap.publish.signIn", systemImage: "person.crop.circle")
+                    } actions: {
+                        Button("action.goSignIn") { showsSignIn = true }.buttonStyle(.cyPrimary)
+                            .accessibilityIdentifier("playerGap.publish.goSignIn")
+                    }
+                    .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
                 case .failed(let message)?:
                     ContentUnavailableView { Label("playerGap.publish.failed", systemImage: "exclamationmark.triangle") } description: {
                         if let message, !message.isEmpty { Text(verbatim: message) }

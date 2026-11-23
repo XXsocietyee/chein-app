@@ -56,7 +56,12 @@ import SwiftUI
                             SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
                                               avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) }).accessibilityIdentifier("square.detailPost")
                             if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
-                            SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
+                            if post.isTopicTemplate || post.referenceTitle != nil {
+                                // C-S1: MP feed-play-card on the detail page (看看模板 / 试玩).
+                                SquareDetailPlayCard(post: post, source: .init(id: id, generation: contentGeneration), reader: reader) { relatedTopic = $0 }
+                            } else {
+                                SquareRelatedTopicLink(post: post, source: .init(id: id, generation: contentGeneration), squareReader: reader) { relatedTopic = $0 }
+                            }
                             // Mini `components/route-map`: live route only with a provider; the post's own snapshot is already in the gallery.
                             if let topicID = post.topicID, topicID > 0 { CYSquareRouteMapCard(topicID: topicID) }
                             if let actions, actions.identity.accountID != nil {
@@ -108,7 +113,7 @@ import SwiftUI
         // Mini-program `.detail.theme-dark`: ink ground, elevated post card and comment card (radius 16, 12pt apart).
         .cyMiniListScreen()
         .cyPushedChrome(domain: .player)
-        .appNavigationTitle("square.detail")
+        .appNavigationTitle("square.detail").navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .toolbar {
             // Mini-program `ph-more`: edit, delete and report live in one overflow menu.
@@ -249,9 +254,9 @@ import SwiftUI
                     .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             }
             if post.generation == .communityV1 {
-                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: "") } label: { Image(systemName: "star") }
-                    .tint(.primary)
-                    .accessibilityLabel(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
+                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: ""); editor?.enabled = post.isBookmarked != 1 } label: { Image(systemName: post.isBookmarked == 1 ? "star.fill" : "star").symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isBookmarked == 1) }
+                    .tint(post.isBookmarked == 1 ? CYColor.warningText : .primary).accessibilityAddTraits(post.isBookmarked == 1 ? .isSelected : []) // C-S2: saved state shows
+                    .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }
             // Mini `act-share` sits right after the other actions (owner 2026-11-09, Threads-style).
             if let route = makeShareRoute(for: post) {
@@ -362,7 +367,7 @@ import SwiftUI
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 HStack(spacing: 20) {
                     Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
-                        .font(.caption).foregroundStyle(.secondary)
+                        .cyText(.meta).foregroundStyle(.secondary)
                         .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
                     // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
                     if let actions, actions.identity.accountID != nil, comment.generation != .unknown {
@@ -554,5 +559,30 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
             ids = try await remove(id)
             phase = ids.isEmpty ? .empty : .ready
         } catch { phase = .failed }
+    }
+}
+
+/// MP square/detail `feed-play-card` (fix-parity C-S1): the 可直接开局的模板 badge, 看看模板 (copy the template into an
+/// editable topic, then open it in the editor) and 试玩 (the related topic, where play starts). The copy is only offered
+/// once the topic-template write is live; the topic link keeps its own access checks.
+@MainActor private struct SquareDetailPlayCard: View {
+    let post: SquarePost
+    let source: SquareContentRoute
+    let reader: any SquareReading
+    let onSelectTopic: (SquareRelatedTopicSelection) -> Void
+    @Environment(\.topicTemplateCopiedDestination) private var copiedDestination
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            if post.isTopicTemplate {
+                Text("square.xcx.templateBadge").cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
+            }
+            if let title = post.referenceTitle { Text(verbatim: title).cyText(.cardTitle).cyWrapText() }
+            if post.isTopicTemplate, let topicID = post.topicID, topicID > 0, TopicTemplateUseFactory.isLive {
+                TopicTemplateUseSection(templateID: topicID, scope: nil, readOnly: false) { copiedDestination?($0) }
+            }
+            SquareRelatedTopicLink(post: post, source: source, squareReader: reader, titleKey: "square.play.try", onSelect: onSelectTopic)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("square.detail.playCard")
     }
 }

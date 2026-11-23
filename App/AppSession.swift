@@ -7612,18 +7612,18 @@ final class AppSession: ObservableObject {
         return authChannelSnapshot
     }
 
+    private var logoutServerConfirmed = false // B-SZ-02 (MP ruling #16): set once the server confirmed; logout() then skips the second send
     /// Return true only while the guest result of this exact sign-out remains current.
     /// A newer sign-in may replace a completed local logout while remote revocation awaits;
     /// in that case false suppresses the old presentation callback, not the new session.
-    func logout(matching expected: AuthChannelSessionSnapshot) async -> Bool {
+    func logout(matching expected: AuthChannelSessionSnapshot) async -> Bool { // server first: 200/401 clear locally, other failures keep the session
         guard expected.accountID != nil, authChannelSnapshot == expected, !Task.isCancelled else { return false }
-        let signedOutEpoch = expected.epoch &+ 1
-        await logout()
-        return gate.currentStamp == signedOutEpoch && account == nil && token == nil
+        if let accountSessionService, accountSessionService.storageScope == storageScope, let current = token { do { try await accountSessionService.logout(token: current) } catch { guard error as? APIError == .unauthorized else { return false } }
+            guard authChannelSnapshot == expected, !Task.isCancelled else { return false }; logoutServerConfirmed = true }
+        let signedOutEpoch = expected.epoch &+ 1; await logout(); return gate.currentStamp == signedOutEpoch && account == nil && token == nil
     }
-
     func logout() async {
-        sessionRestorationRetry.discard()
+        let serverConfirmed = logoutServerConfirmed; logoutServerConfirmed = false; sessionRestorationRetry.discard()
         retainedPersonalLocationShareHost?.prepareLogout()
         nativeWeChatPaymentAdapter.cancelPending()
         weChatAuth.cancel()
@@ -7643,7 +7643,7 @@ final class AppSession: ObservableObject {
         clubManagementCoordinator.synchronizeSession();clubOperationsCoordinator.synchronizeSession();clubGovernanceCoordinator.cancelReview();profileEditCoordinator.synchronizeSession()
         merchantOnboardingCoordinator.synchronizeSession()
         do { try vault.clear() } catch { errorKey="auth.storageError" }
-        if let accountSessionService, accountSessionService.storageScope == storageScope, let oldToken {
+        if !serverConfirmed, let accountSessionService, accountSessionService.storageScope == storageScope, let oldToken {
             // Captured old credential only. Completion cannot mutate a newer login.
             try? await accountSessionService.logout(token:oldToken)
         }

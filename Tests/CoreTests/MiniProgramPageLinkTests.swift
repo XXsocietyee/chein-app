@@ -26,6 +26,19 @@ final class MiniProgramPageLinkTests: XCTestCase {
             ("/pages/coop/list/index?tab=sent", "pages/coop/list/index", ["tab": "sent"]),
             ("/subpackageA/pages/myproject/index", "subpackageA/pages/myproject/index", [:]),
             ("/pages/merchant/ledger/index", "pages/merchant/ledger/index", [:]),
+            // fix-parity r1 (account-publish X1): the MP query keys these pages read.
+            ("/pages/userinfo/userinfo?userId=12&tab=about", "pages/userinfo/userinfo", ["userId": "12", "tab": "about"]),
+            ("/pages/talent/list/index?tab=feed", "pages/talent/list/index", ["tab": "feed"]),
+            ("/pages/gerenziliao/gerenziliao?field=introduction", "pages/gerenziliao/gerenziliao", ["field": "introduction"]),
+            ("/pages/addressinfo/addressinfo?id=3", "pages/addressinfo/addressinfo", ["id": "3"]),
+            ("/pages/agreement/index?type=cancellation_notice", "pages/agreement/index", ["type": "cancellation_notice"]),
+            ("/pages/shezhi/shezhi?scene=settings-deregister", "pages/shezhi/shezhi", ["scene": "settings-deregister"]),
+            ("/pages/publish/fabu/index?id=5&mode=2&scope=MERCHANT&clubId=8", "pages/publish/fabu/index", ["id": "5", "mode": "2", "scope": "MERCHANT", "clubId": "8"]),
+            ("/pages/publish/temp/index?id=6&from=fabu", "pages/publish/temp/index", ["id": "6", "from": "fabu"]),
+            ("/pages/publish/activity/index?id=9", "pages/publish/activity/index", ["id": "9"]),
+            ("/pages/publish/template-intro/index?scope=MERCHANT", "pages/publish/template-intro/index", ["scope": "MERCHANT"]),
+            ("/pages/team/detail/index?teamId=41", "pages/team/detail/index", ["teamId": "41"]),
+            ("/pages/team/join/index?entry=code", "pages/team/join/index", ["entry": "code"]),
         ]
         let covered = Set(explicit.map(\.1))
         var rows = explicit
@@ -148,6 +161,12 @@ final class MiniProgramPageLinkTests: XCTestCase {
             "/subpackageJourney/pages/report/index?activityId=abc",
             "https://evil.test/subpackageMember/market/membership/index",   // internal paths carry no host
             "/pages/coop/list/index?tab=other",                             // not a sent or received list
+            "/pages/userinfo/userinfo?userId=abc",                          // ids stay canonical
+            "/pages/userinfo/userinfo?tab=wallet",                          // not an MP profile tab
+            "/pages/publish/fabu/index?mode=3",                             // MP modes are 1 and 2
+            "/pages/team/detail/index?teamId=007",
+            "/pages/team/join/index?entry=other",
+            "/pages/shezhi/shezhi?scene=unknown",
         ]
         for path in rejected {
             if case .miniProgramPage = NativeNavigationContract.parseInternal(path) { XCTFail(path) }

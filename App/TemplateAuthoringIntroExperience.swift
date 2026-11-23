@@ -149,14 +149,16 @@ import Combine
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .cyDomainCard()
-                case .empty,.ready: Text("creatorIntro.empty",tableName:"CreatorIntroExamples").cyText(.meta).foregroundStyle(palette.textSecondary)
+                // C-I3 (MP x-fix4 A-4): no examples draws nothing, no 「暂无」 sentence.
+                case .empty,.ready: EmptyView()
                 case .unavailable: EmptyView()
                 }
             }
             VStack(alignment:.leading,spacing:4) {
                 // Mini-program weight order: the lead line is the bold claim, the tail is the lighter follow-on.
-                Text("publishParity.intro.lead").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
-                Text("publishParity.intro.tail").cyText(.cardTitle).foregroundStyle(palette.textSecondary)
+                // C-I4: MP 46 rpx for both lines (23 pt) → `sheetTitle` 22 bold, both in ink.
+                Text("publishParity.intro.lead").cyText(.sheetTitle).foregroundStyle(palette.textPrimary)
+                Text("publishParity.intro.tail").cyText(.sheetTitle).foregroundStyle(palette.textPrimary)
             }
             .fixedSize(horizontal:false,vertical:true)
             .accessibilityElement(children:.combine).accessibilityIdentifier("publishParity.intro.value")
