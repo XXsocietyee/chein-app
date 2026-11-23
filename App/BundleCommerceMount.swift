@@ -7,10 +7,19 @@ private struct BundleCommerceBaseURLKey: EnvironmentKey {
     static let defaultValue: URL? = nil
 }
 
+private struct BundleCommercePublicMerchantKey: EnvironmentKey {
+    static let defaultValue: PublicMerchantHomeContext? = nil
+}
+
 extension EnvironmentValues {
     var bundleCommerceBaseURL: URL? {
         get { self[BundleCommerceBaseURLKey.self] }
         set { self[BundleCommerceBaseURLKey.self] = newValue }
+    }
+    /// MKT-7-2: the session's public merchant context (public-home → reviews/public → reviews/create).
+    var bundleCommercePublicMerchant: PublicMerchantHomeContext? {
+        get { self[BundleCommercePublicMerchantKey.self] }
+        set { self[BundleCommercePublicMerchantKey.self] = newValue }
     }
 }
 
@@ -37,7 +46,8 @@ enum BundleCommerceEntry: String, CaseIterable, Identifiable {
         case .cancel: return "/api/free-explore/bundle/reservation/{}/cancel-quote"
         case .exitSwap: return "/api/free-explore/bundle/exit-options"
         case .transfer: return "/api/free-explore/bundle/transfer"
-        case .review: return "/api/free-explore/bundle/review"
+        // MKT-7-2: the MP reviews the merchant through merchant/reviews/* (no bundle review route exists).
+        case .review: return "/api/merchant/reviews/public"
         case .renewal: return "/api/free-explore/bundle/renewal-intent"
         case .appeal: return "/api/free-explore/bundle/voucher/appeal"
         }
@@ -824,54 +834,59 @@ enum BundleCommerceFailure {
 
     var body: some View {
         BundleCommerceReady(order: order, requestedID: requestedID, origin: origin,
-                            title: BundleCommerceEntry.review.title(locale)) { host, model in
-            BundleCommerceSessionGate(host: host, title: BundleCommerceEntry.review.title(locale)) { session in
-                BundleCommerceReviewHub(topicID: model.topicID, registrationID: host.registrationID, accountID: session.accountID)
-            }
+                            title: BundleCommerceEntry.review.title(locale)) { _, model in
+            BundleCommerceReviewHub(model: model)
         }
     }
 }
 
+/// MKT-7-2. The MP reviews each merchant the player reserved with (free-explore/index.js:131-202):
+/// `POST /api/merchant/public-home {memberId}` → `POST /api/merchant/reviews/public` → `reviews/create`.
+/// Each row opens that merchant's public page, whose reviews section uses exactly that contract and
+/// keeps its own write gate. The bundle-only review client (no backend route) is no longer mounted.
 @MainActor private struct BundleCommerceReviewHub: View {
-    @StateObject private var list: BundleReviewListModel
-    @StateObject private var compose: BundleReviewComposeModel
+    let model: FreeExploreBundleLaunchModel
+    @Environment(\.bundleCommercePublicMerchant) private var publicMerchant
     @Environment(\.locale) private var locale
 
-    init(topicID: FreeExploreLaunchID, registrationID: FreeExploreLaunchID, accountID: FreeExploreLaunchID) {
-        _list = StateObject(wrappedValue: BundleReviewListModel(topicID: topicID, service: UnavailableBundleReviewClient()))
-        _compose = StateObject(wrappedValue: BundleReviewComposeModel(
-            registrationID: registrationID, accountID: accountID,
-            service: UnavailableBundleReviewClient(), pendingStore: nil,
-            makeKey: { "rv-" + UUID().uuidString }))
+    private var owners: [PublicMerchantOwnerID] {
+        var seen = Set<Int64>()
+        return (model.order?.bundle?.reservations ?? []).compactMap { row in
+            guard seen.insert(row.merchantId.value).inserted, row.merchantId.value <= Int64(Int.max) else { return nil }
+            return PublicMerchantOwnerID(Int(row.merchantId.value))
+        }
     }
 
     var body: some View {
-        List {
-            NavigationLink {
-                BundleReviewListView(model: list)
-                    .navigationTitle(Text(verbatim: ChannelCopy.text("公开评价", "Public reviews", locale: locale)))
-                    .navigationBarTitleDisplayMode(.inline)
-                    .background(CYNight.ink0.ignoresSafeArea())
-                    .themeDomain(.player)
-            } label: {
-                Text(verbatim: ChannelCopy.text("公开评价", "Public reviews", locale: locale))
+        Group {
+            if let publicMerchant, !owners.isEmpty {
+                List {
+                    Section {
+                        ForEach(owners, id: \.rawValue) { owner in
+                            NavigationLink {
+                                PublicMerchantHomeView(target: .ownerMemberID(owner), context: publicMerchant)
+                            } label: {
+                                Text(verbatim: ChannelCopy.text("评价本次预约的商家", "Review this merchant", locale: locale))
+                                    .cyText(.body)
+                            }
+                            .accessibilityIdentifier("bundle.commerce.review.merchant.\(owner.rawValue)")
+                        }
+                    } footer: {
+                        Text(verbatim: ChannelCopy.text("评价需 2～1000 字，审核通过后公开", "Reviews need 2–1000 characters and are public after moderation", locale: locale))
+                            .cyText(.caption)
+                            .foregroundStyle(CYColor.textSecondary)
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .background(CYNight.ink0.ignoresSafeArea())
+                .themeDomain(.player)
+                .cyPageTitle(verbatim: BundleCommerceEntry.review.title(locale))
+            } else {
+                BundleCommerceStatus(phase: .empty, title: BundleCommerceEntry.review.title(locale),
+                                     detail: ChannelCopy.text("完成预约后可评价商家", "Reserve a store first to review it", locale: locale))
             }
-            .accessibilityIdentifier("bundle.commerce.review.list")
-            NavigationLink {
-                BundleReviewComposeView(model: compose)
-                    .background(CYNight.ink0.ignoresSafeArea())
-                    .themeDomain(.player)
-            } label: {
-                Text(verbatim: ChannelCopy.text("写评价", "Write a review", locale: locale))
-            }
-            .accessibilityIdentifier("bundle.commerce.review.compose")
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(CYNight.ink0.ignoresSafeArea())
-        .themeDomain(.player)
-        .navigationTitle(Text(verbatim: BundleCommerceEntry.review.title(locale)))
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
