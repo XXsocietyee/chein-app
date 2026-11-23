@@ -26,6 +26,8 @@ S = {
     # PC-A-7-3: MP topic-detail CTA, disabled with a reason while the copy write is gated.
     'topicTemplate.useCta': ('Use this template', '用这个模板'),
     'topicTemplate.useUnavailable': ('Copying a template is not available in this version yet.', '当前版本暂未开放复制模板'),
+    # PC-D-5-4: MP scene-asset-earnings empty CTA.
+    'wallet.earnings.goPublish': ('Publish a route', '去发布路线'),
     'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 

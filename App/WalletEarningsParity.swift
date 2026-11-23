@@ -15,13 +15,20 @@ struct WalletIncomeDayText: View {
     }
 }
 
-/// Zero balance on 账户收益 (还没有收益). The source CTA 去发布路线 is not offered here
-/// because this screen has no route to the publish tab.
+/// Zero balance on 账户收益 (还没有收益). PC-D-5-4: the first-use empty state names its next step, the source CTA
+/// 去发布路线 (switches to the 发布 tab where the root tab switch exists).
 struct WalletEarningsEmptyNote: View {
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("member.wallet.noEarnings", tableName: "MemberProfile").cyText(.cardTitle)
-            Text("member.wallet.noEarningsHint", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.earnings.empty")
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("member.wallet.noEarnings", tableName: "MemberProfile").cyText(.cardTitle)
+                Text("member.wallet.noEarningsHint", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
+            }.accessibilityElement(children: .combine).accessibilityIdentifier("wallet.earnings.empty")
+            if rootTabSwitch.isAvailable {
+                CYPillButton("wallet.earnings.goPublish", style: .secondary, fullWidth: false) { rootTabSwitch(.publish) }
+                    .accessibilityIdentifier("wallet.earnings.goPublish")
+            }
+        }
     }
 }

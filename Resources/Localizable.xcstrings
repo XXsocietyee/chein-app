@@ -283437,6 +283437,23 @@
           }
         }
       }
+    },
+    "wallet.earnings.goPublish": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publish a route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发布路线"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
