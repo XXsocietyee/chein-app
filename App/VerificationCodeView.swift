@@ -90,7 +90,7 @@ extension EnvironmentValues {
                 Text("roamSub.w208.voucher.countdown \(model.remainingSeconds)").monospacedDigit()
                     .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roamSub.w208.voucher.countdown")
-                Text("roamSub.w208.voucher.desc").font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                Text("roamSub.w208.voucher.desc").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
             } else {
                 CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
                     .accessibilityIdentifier("verificationCode.refresh")

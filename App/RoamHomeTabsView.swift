@@ -158,7 +158,7 @@ struct RoamHomeTabPicker: View {
     @ViewBuilder private var content: some View {
         switch model.visibleState(reader: reader) {
         case .unavailable:
-            Label("roam.w208.entry.unavailable", systemImage: "lock.shield").font(.subheadline).foregroundStyle(.secondary)
+            Label("roam.w208.entry.unavailable", systemImage: "lock.shield").cyText(.body).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.home.peek.unavailable")
         case .login:
@@ -177,7 +177,7 @@ struct RoamHomeTabPicker: View {
             }.accessibilityElement(children: .contain).accessibilityIdentifier("roam.home.peek.failed")
         case .empty:
             VStack(alignment: .leading, spacing: 4) {
-                Text("roam.w208.entry.empty").font(.subheadline)
+                Text("roam.w208.entry.empty").cyText(.body)
                 if let onOpenMap {
                     NavigationLink { onOpenMap() } label: { Text("roam.w208.entry.emptyHint").cyText(.meta) }
                         .accessibilityIdentifier("roam.home.peek.openMap")
@@ -283,7 +283,7 @@ struct RoamEntryCover: View {
                         Section {
                             RoamEntryCover(source: card.activity.coverURL).frame(height: 160).listRowInsets(EdgeInsets())
                             Text(LocalizedStringKey(card.tagKey)).cyText(.meta, weight: .bold).foregroundStyle(.tint)
-                            RoamEntryMetaLine(card: card).font(.subheadline).foregroundStyle(.secondary)
+                            RoamEntryMetaLine(card: card).cyText(.body).foregroundStyle(.secondary)
                             if readOnly { detailLink("roam.w208.entry.viewDetail", identifier: "roam.home.sheet.primary") }
                             else if let key = card.primaryKey { detailLink(LocalizedStringKey(key), identifier: "roam.home.sheet.primary") }
                             if card.participantCount > 0 {

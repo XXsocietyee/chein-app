@@ -518,7 +518,7 @@ struct RoamCityStampDraftView: View {
                     }
                 }
                 Label("roam.experience.mediaUnavailable", systemImage: "camera.fill")
-                Text("roam.experience.stampHint").font(.subheadline).foregroundStyle(.secondary)
+                Text("roam.experience.stampHint").cyText(.body).foregroundStyle(.secondary)
             }.padding()
         }.cyPageTitle("roam.experience.cityStamp")
             .cyHideTabBar()

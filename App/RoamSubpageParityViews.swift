@@ -186,7 +186,7 @@ struct RoamShareCardParityFooter: View {
         VStack(alignment: .leading, spacing: 10) {
             RoamSessionRouteNameText(name: RoamSessionRouteName(record)).cyText(.cardTitle)
                 .accessibilityIdentifier("roamSub.w208.share.routeName")
-            Text("roamSub.w208.session.completeFact").font(.subheadline)
+            Text("roamSub.w208.session.completeFact").cyText(.body)
             HStack(spacing: 20) {
                 VStack(alignment: .leading) {
                     if let percent = record.explorePct { Text(verbatim: "\(percent)%").cyText(.cardTitle, monospacedDigit: true) }
@@ -403,7 +403,7 @@ struct RoamPOIMissingView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))).cyText(.sheetTitle)
                     HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt) + " ·"); placeText }
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .cyText(.body).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.stamp.header")
                 if let receipt { RoamStampSlipView(slip: RoamStampSlip(receipt), place: placeText, openedAt: openedAt) }
                 else { writeStep }

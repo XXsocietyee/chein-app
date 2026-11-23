@@ -121,7 +121,7 @@ import QuestifyCore
             if owner.phase == .unavailable {
                 Section {
                     Label("roam.live.notApproved", systemImage: "lock.shield")
-                    Text("roam.live.notApprovedHint").font(.subheadline).foregroundStyle(.secondary)
+                    Text("roam.live.notApprovedHint").cyText(.body).foregroundStyle(.secondary)
                 }
             } else {
                 status
@@ -609,7 +609,7 @@ import QuestifyCore
                     Label("roam.liveRead.shopsFailed", systemImage: "exclamationmark.triangle")
                         .accessibilityIdentifier("roam.liveRead.shopsFailed")
                 }
-                Text("roam.liveRead.failed").font(.subheadline).foregroundStyle(.secondary)
+                Text("roam.liveRead.failed").cyText(.body).foregroundStyle(.secondary)
                     .accessibilityIdentifier("roam.liveRead.failed")
                 if owner.canRetryNearbyRead {
                     Button("action.retry") { Task { await owner.retryNearbyRead() } }

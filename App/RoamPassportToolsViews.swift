@@ -237,7 +237,7 @@ struct RoamAnniversaryReadIntent {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("roam.tools.anniversary.yearsAgo \(item.yearsAgo)").cyText(.cardTitle).foregroundStyle(.tint)
                         Text(verbatim: anniversaryTitle(item.title)).cyText(.sectionTitle)
-                        Text("roam.tools.anniversary.completed \(item.completedMinuteText)").font(.subheadline).foregroundStyle(.secondary)
+                        Text("roam.tools.anniversary.completed \(item.completedMinuteText)").cyText(.body).foregroundStyle(.secondary)
                     }.accessibilityElement(children: .combine)
                         .accessibilityIdentifier("roam.tools.anniversary.row")
                     switch RoamAnniversaryRouteAvailability.resolve(memory: item, hasDestination: routeDestination != nil) {

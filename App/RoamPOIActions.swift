@@ -219,15 +219,15 @@ struct RoamPOIActionRows: View {
                     if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                 }.frame(minHeight: 44)
             case .locationUnavailable:
-                Label("roam.poi.location.unavailable", systemImage: "location.slash").font(.subheadline)
+                Label("roam.poi.location.unavailable", systemImage: "location.slash").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .rejected(let message):
                 Label { Text(verbatim: message) } icon: { Image(systemName: "exclamationmark.triangle") }.font(.subheadline)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .signIn:
-                Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").font(.subheadline)
+                Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").cyText(.body)
             case .network:
-                Label("roam.poi.action.failed", systemImage: "wifi.exclamationmark").font(.subheadline)
+                Label("roam.poi.action.failed", systemImage: "wifi.exclamationmark").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             }
         }

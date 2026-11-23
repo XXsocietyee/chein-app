@@ -123,7 +123,7 @@ struct PlaySessionView: View {
                                        let name = chapter.name, !name.isEmpty {
                                         Text(verbatim: name).cyText(.meta).foregroundStyle(.secondary)
                                     }
-                                    if let hook = node.hookText, !hook.isEmpty { Text(verbatim: hook).font(.subheadline).foregroundStyle(.secondary) }
+                                    if let hook = node.hookText, !hook.isEmpty { Text(verbatim: hook).cyText(.body).foregroundStyle(.secondary) }
                                     Text(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"))
                                         .cyText(.meta).foregroundStyle(.secondary)
                                     if !snapshot.isDone(node), snapshot.isLocked(node), node.weatherLocked == true {
