@@ -1087,13 +1087,15 @@ import UIKit
         let reader = try reader(), identity = try XCTUnwrap(reader.identity)
         let scope = RoamStampAlbumReadOnlyScope(reader: reader, identity: identity, isCurrent: { true })
         var constructions = 0
+        // SALBUM-1 (parity r1): a read-only album never builds the default camera, but the host's own session camera
+        // (passed as `stampDestination`) is the 打开集邮相机 entry.
         for injected in [false, true] {
-            let destination: (() -> AnyView)? = injected ? { constructions += 1; return AnyView(Text("Forbidden")) } : nil
+            let destination: (() -> AnyView)? = injected ? { constructions += 1; return AnyView(Text("Session camera")) } : nil
             let view = RoamStampAlbumView(reader: reader, stampDestination: destination, readOnlyScope: scope)
-            XCTAssertFalse(view.allowsCapture); XCTAssertTrue(view.canShowAlbum)
+            XCTAssertEqual(view.allowsCapture, injected); XCTAssertTrue(view.canShowAlbum)
             let host = UIHostingController(rootView: view.captureDestination)
             host.loadViewIfNeeded(); host.view.layoutIfNeeded()
-            XCTAssertEqual(constructions, 0)
+            XCTAssertEqual(constructions, injected ? 1 : 0)
         }
         XCTAssertTrue(reader.pages.isEmpty); XCTAssertEqual(reader.otherReads, 0)
     }

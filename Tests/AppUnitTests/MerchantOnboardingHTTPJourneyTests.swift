@@ -18,6 +18,9 @@ import FoundationNetworking
         var failReadback = false
         var onWrite: (() -> Void)?
         var writes: [URLRequest] { requests.filter { $0.url?.path == "/api/merchant/merchant_registration" } }
+        /// apply-P0a (parity r1): an unregistered identity is registered at submit, before the application.
+        var identityWriteBody = #"{"code":200}"#
+        var identityWrites: [URLRequest] { requests.filter { $0.url?.path == "/api/publisher/identity" } }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request)
             switch request.url?.path {
@@ -25,6 +28,7 @@ import FoundationNetworking
                 if failReadback && !writes.isEmpty { throw URLError(.networkConnectionLost) }
                 return (Data(application.utf8), 200)
             case "/api/publisher/identity/status": return (Data(identity.utf8), 200)
+            case "/api/publisher/identity": return (Data(identityWriteBody.utf8), 200)
             case "/api/merchant/merchant_registration":
                 onWrite?()
                 if loseWrite { throw URLError(.networkConnectionLost) }
@@ -107,9 +111,13 @@ import FoundationNetworking
     func testIdentityRevokedAtFinalHTTPPreflightDoesNotDispatchRegistration() async throws {
         let h = try Harness(); try await h.ready()
         h.wire.identity = #"{"code":200,"data":{"registered":false}}"#
+        // apply-P0a (parity r1): the identity step is now registered at submit; when that write is refused the
+        // application is never sent.
+        h.wire.identityWriteBody = #"{"code":500,"msg":"identity refused"}"#
         try await submit(h)
-        XCTAssertEqual(h.coordinator.identityGate, .required)
-        XCTAssertEqual(h.coordinator.submission, .notSent)
+        XCTAssertEqual(h.wire.identityWrites.count, 1)
+        XCTAssertNotEqual(h.coordinator.identityGate, .registered)
+        XCTAssertFalse(h.coordinator.submission.isLocked)
         XCTAssertTrue(h.wire.writes.isEmpty)
         XCTAssertFalse(h.model.draft.name.isEmpty)
     }

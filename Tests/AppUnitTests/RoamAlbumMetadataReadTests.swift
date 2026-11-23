@@ -137,10 +137,13 @@ import UIKit
         let scope=RoamStampAlbumReadOnlyScope(reader:reader,identity:identity,isCurrent:{true})
         let page=try await reader.album(page:1,pageSize:20),stamp=try XCTUnwrap(page.list.first)
         var captures=0
-        let view=RoamStampAlbumView(reader:reader,stampDestination:{captures += 1;return AnyView(Text("No capture"))},readOnlyScope:scope)
-        XCTAssertFalse(view.allowsCapture);XCTAssertFalse(view.allowsRemoteImages);XCTAssertFalse(scope.allowsRemoteImages)
+        // SALBUM-1 (parity r1): the host's session camera is the album's capture entry; the default camera and remote
+        // images stay off in the metadata scope.
+        let view=RoamStampAlbumView(reader:reader,stampDestination:{captures += 1;return AnyView(Text("Session camera"))},readOnlyScope:scope)
+        XCTAssertTrue(view.allowsCapture);XCTAssertFalse(view.allowsRemoteImages);XCTAssertFalse(scope.allowsRemoteImages)
         let capture=UIHostingController(rootView:view.captureDestination);capture.loadViewIfNeeded();capture.view.layoutIfNeeded()
-        XCTAssertEqual(captures,0)
+        XCTAssertEqual(captures,1)
+        XCTAssertFalse(RoamStampAlbumView(reader:reader,readOnlyScope:scope).allowsCapture)
         XCTAssertFalse(RoamStampAlbumView(reader:reader).allowsCapture)
         XCTAssertFalse(RoamStampAlbumView(reader:reader).allowsRemoteImages)
         let detail=RoamStampDetailView(stamp:stamp,offline:false,readOnlyScope:scope,allowsRemoteImages:false)

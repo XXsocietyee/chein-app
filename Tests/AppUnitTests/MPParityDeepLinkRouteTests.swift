@@ -12,8 +12,11 @@ import XCTest
             "subpackageJourney/pages/seats/index": ["registrationId": "9"],
             "pages/team/join/index": ["entry": "code"],
         ]
-        for (page, rule) in MiniProgramPageLink.reviewedPages where rule.required.contains("id") {
-            samples[page] = ["id": "7"]
+        // Every other required key gets a value too (parity r1: clubId, memberId, orderNo, topicId, reportId…).
+        for (page, rule) in MiniProgramPageLink.reviewedPages where samples[page] == nil && !rule.required.isEmpty {
+            var query = [String: String]()
+            for key in rule.required { query[key] = rule.ids.contains(key) ? "7" : "x" }
+            samples[page] = query
         }
         for page in MiniProgramPageLink.reviewedPages.keys {
             guard let link = MiniProgramPageLink(path: page, query: samples[page] ?? [:]) else { XCTFail(page); continue }

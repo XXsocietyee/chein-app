@@ -86,20 +86,23 @@ private final class ConfirmedSignOutWire: HTTPTransport {
         XCTAssertNil(h.session.signOutConfirmation(accountID: 7))
     }
 
+    // B-SZ-02 (parity r1, MP ruling #16): sign-out is server first. While the revocation is pending the session stays;
+    // a failure other than 401 keeps it (退出没有完成…), so nothing is cleared and the sheet is not dismissed.
     func testMatchingConfirmationClosesLocallyBeforeBestEffortRemoteFailure() async throws {
         let h = try await harness()
         let expected = try XCTUnwrap(h.session.signOutConfirmation(accountID: 7))
         h.wire.suspendNextLogout = true
         let task = Task { await h.session.logout(matching: expected) }
         let remote = try await pending(h)
-        XCTAssertNil(h.session.account); XCTAssertNil(h.vault.value)
-        XCTAssertTrue(h.defaults.bool(forKey: h.deployment.storageScope.restoreBlockedKey))
+        XCTAssertEqual(h.session.account?.id, 7); XCTAssertEqual(h.vault.value, "synthetic-7")
         XCTAssertEqual(h.wire.requests.last?.value(forHTTPHeaderField: "Authorization"), "synthetic-7")
         XCTAssertEqual(h.wire.requests.last?.httpMethod, "POST")
         remote.resume(returning: (Data(), 503)); h.wire.pending = nil
         let canDismiss = await task.value
-        XCTAssertTrue(canDismiss, "Remote failure cannot undo the existing local-first logout")
-        XCTAssertEqual(logoutCount(h), 1); XCTAssertEqual(h.vault.clears, 1)
+        XCTAssertFalse(canDismiss, "A failed server sign-out keeps the session")
+        XCTAssertEqual(h.session.account?.id, 7); XCTAssertEqual(h.vault.value, "synthetic-7")
+        XCTAssertFalse(h.defaults.bool(forKey: h.deployment.storageScope.restoreBlockedKey))
+        XCTAssertEqual(logoutCount(h), 1); XCTAssertEqual(h.vault.clears, 0)
     }
 
     func testOldConfirmationCannotSignOutReplacementOrSameAccountRelogin() async throws {
@@ -139,6 +142,8 @@ private final class ConfirmedSignOutWire: HTTPTransport {
         let canDismiss = await first.value; XCTAssertTrue(canDismiss)
     }
 
+    // B-SZ-02: the account stays signed in while the server call is pending, so a replacement session can only follow
+    // another local sign-out (e.g. an expiry). A late 401 for the old token must not dismiss or clear the replacement.
     func testLateRemoteCompletionCannotDismissReplacementAccountPresentation() async throws {
         for nextID in [7, 8] {
             let h = try await harness()
@@ -149,12 +154,12 @@ private final class ConfirmedSignOutWire: HTTPTransport {
                 if await h.session.logout(matching: expected) { dismissals += 1 }
             }
             let remote = try await pending(h)
-            await login(h, accountID: nextID)
+            await h.session.logout(); await login(h, accountID: nextID)
             remote.resume(returning: (Data(), 401)); h.wire.pending = nil
             await first.value
             XCTAssertEqual(dismissals, 0); XCTAssertEqual(h.session.account?.id, nextID)
             XCTAssertEqual(h.vault.value, "synthetic-\(nextID)")
-            XCTAssertNil(h.session.errorKey); XCTAssertEqual(logoutCount(h), 1)
+            XCTAssertNil(h.session.errorKey); XCTAssertEqual(logoutCount(h), 2)
             let revoked = h.wire.requests.first { $0.url?.lastPathComponent == "logout" }
             XCTAssertEqual(revoked?.value(forHTTPHeaderField: "Authorization"), "synthetic-7")
         }
@@ -166,12 +171,12 @@ private final class ConfirmedSignOutWire: HTTPTransport {
         h.wire.suspendNextLogout = true
         let first = Task { await h.session.logout(matching: expected) }
         let remote = try await pending(h)
-        await login(h, accountID: 8); await h.session.logout()
+        await h.session.logout(); await login(h, accountID: 8); await h.session.logout()
         XCTAssertNil(h.session.account)
         remote.resume(returning: (Data("{\"code\":200}".utf8), 200)); h.wire.pending = nil
         let canDismiss = await first.value
         XCTAssertFalse(canDismiss, "A later guest session is not the original logout result")
-        XCTAssertEqual(logoutCount(h), 2)
+        XCTAssertEqual(logoutCount(h), 3)
     }
 
     func testCancelledQueuedConfirmationDoesNotMutateLocalOrRemoteSession() async throws {

@@ -27,6 +27,7 @@ import XCTest
         let m=MerchantOnboardingModel(coordinator:.init(server:server));m.reset();await m.load();await m.checkIdentity()
         m.draft.name="Synthetic store";m.draft.phone="2025550100";m.draft.address="Example street";m.draft.businessTime="Stored hours"
         m.draft.license=try .init(serverURL:"https://fixtures.example/license.jpg")
+        m.draft.categoryIDs=[11] // apply-P0b (parity r1): 行业类型 from api/category/list is required
         m.draft.realName="示例商户";m.draft.idCardNumber=MerchantIdentityNumber("11010519491231002X");m.draft.identityConsent=true // identity step (synthetic, GB 11643 example)
         return(m,server)
     }
@@ -44,7 +45,9 @@ import XCTest
         let(m,s)=try await ready();let d=m.draft;try await select(m);m.discardBrandImage();XCTAssertEqual(m.draft,d);XCTAssertEqual(s.uploads,0)
     }
     func testIdentityRequirementPreventsSelectionAndUpload() async throws {
-        let(m,s)=try await ready(registered:false);try await select(m);XCTAssertNil(m.selectedBrandImage);XCTAssertFalse(m.canAddBrandImage);XCTAssertEqual(s.uploads,0)
+        // apply-P0a (parity r1): identity is registered at submit (POST api/publisher/identity), so an
+        // unregistered account can still pick a photo locally; nothing uploads until asked.
+        let(m,s)=try await ready(registered:false);try await select(m);XCTAssertNotNil(m.selectedBrandImage);XCTAssertEqual(s.uploads,0)
     }
     func testFullListPreventsSeventhSelection() async throws {
         let(m,s)=try await ready();m.draft.brandImages=try .init(urls:Array(repeating:"https://fixtures.example/a",count:6));try await select(m)
