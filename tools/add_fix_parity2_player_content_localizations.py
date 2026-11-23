@@ -8,6 +8,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 S = {
     # PC-B-1-3: MP topic-motion buildHeroCta kind 'closed'.
     'topicXcx.cta.closed': ('Closed', '已截止'),
+    # PC-C-3-2: MP official list refresh line.
+    'official.refreshing': ('Updating…', '正在更新活动列表…'),
+    'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 
 
