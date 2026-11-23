@@ -25,7 +25,8 @@ import SwiftUI
     /// RNEAR-1: MP nearby locates the device (one foreground fix, GCJ-02) instead of asking for typed coordinates.
     @State private var locating = false
     @State private var locateFailure: LocalizedStringKey?
-    @State private var radius = 3000
+    /// RNEAR-6: MP nearby starts at 1 km when the host gave no area.
+    @State private var radius = 1000
     @State private var showingRange = false
     @State private var showingMapStyle = false
     @State private var mapStyle: PlayNearbyMapStyle = .paper
