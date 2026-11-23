@@ -10,7 +10,7 @@ Swift is not installed in the cloud, so nothing here was compiled. Every change 
 |---|---|
 | `python3 -B tools/check_scaffold.py` | PASS (4942 Swift files, page route table 264, 17053 bilingual keys) |
 | `python3 -B tools/check_design_lint.py` | PASS. Typography lint: raw text style 1173 → **1154**, large title 11 → **10**, others unchanged (Theme.Font 63, raw size 67, back chevron 12, hidden back 7). Baseline lowered with `tools/check_typography_lint.py --update` only. |
-| `python3 -B tools/contract_ratchet.py --check` | RATCHET_RESULT |
+| `python3 -B tools/contract_ratchet.py --check` | 185 failing vs baseline 184: the single "new" failure is `test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`, which fails identically on a clean `origin/ui/combined-r5` (workshop area). **0 new from this branch.** |
 
 Contract mirrors updated in the same commits as the changes they mirror: `docs/release/ui-strings-subpackageP3-pages-growthcenter-index-index.json` (new identifier `growthCenter.signIn`), `docs/release/ui-strings-subpackageP3-pages-badge-wall-index-index.json` (MP partial copy), `Resources/ObjectCardLocalizations.fragment.json` (藏品册), and `Tests/ContractChecks/test_object_badge_wall_layout.py`: the badge-detail byte hash. The only change there is `appNavigationTitle` → `cyPageTitle` (inline mode); lifetimes are unchanged.
 
