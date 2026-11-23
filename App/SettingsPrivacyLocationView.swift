@@ -48,7 +48,6 @@ import SwiftUI
 
     var body: some View {
         Form {
-            Section { CYHeroHeader("member.privacy.title", tableName: "MemberProfile").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             // Mini-program privacy sheet: the location sentence, the guide, then home city, presence, roam and own media.
             Section {
                 Text("member.privacy.sheetBody", tableName: "MemberProfile")
@@ -116,7 +115,8 @@ import SwiftUI
             } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
         .cyGroupedSurface()
-        .cyHeroScreen()
+        // B-PV-03 (T&C §2): pushed page → one inline system title, no in-content hero title.
+        .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile")).navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .cyToast(message: $toastMessage, tone: toastTone)
         .onAppear {
@@ -168,7 +168,6 @@ import SwiftUI
     }
     var body: some View {
         List {
-            Section { CYHeroHeader("member.privacy.media.title", tableName: "MemberProfile").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             switch controller.phase {
             case .idle, .loading: CYLoadingStateView(rows: 3).accessibilityIdentifier("member.media.loading")
             case .signedOut: CYEmptyState(systemImage: "person.crop.circle", "member.media.signedOut", tableName: "MemberProfile", messageIdentifier: "member.media.signedOut")
@@ -217,7 +216,7 @@ import SwiftUI
             }
         }
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("member.privacy.media.title", tableName: "MemberProfile")).navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .privacySensitive()
         .toolbar {

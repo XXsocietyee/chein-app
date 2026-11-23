@@ -35,7 +35,8 @@ struct PrivacyProtectionView: View {
 
     var body: some View {
         Form {
-            Section { CYHeroHeader("authEntry.privacy.title", subtitle: "authEntry.gate.lead", tableName: "AuthEntry").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            // B-PV-03: the page title is the inline system title; the lead stays as the first line.
+            Section { Text("authEntry.gate.lead", tableName: "AuthEntry").cyText(.body).foregroundStyle(CYColor.textSecondary) }
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
@@ -89,7 +90,7 @@ struct PrivacyProtectionView: View {
             if !granted { UsageConsentSignInRequirement(market: market, policy: policy, granted: $granted) }
         }
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("authEntry.privacy.title", tableName: "AuthEntry")).navigationBarTitleDisplayMode(.inline)
         .sheet(item: $document) { sheet in
             NavigationStack {
                 SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
