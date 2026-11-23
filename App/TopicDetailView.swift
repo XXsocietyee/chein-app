@@ -87,7 +87,9 @@ struct TopicDetailView: View {
             }
         }
         .environment(\.ugcSafetySubjectID, detail?.id ?? id)
-        .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.topic")
+        // PC-B-1-8 / PC-C-1-9 (type-and-chrome §3): the hero is an inset list row, not a full-bleed image, so the page keeps
+        // the system back and its edge swipe; share / 举报 stay in the bar beside it.
+        .cyPushedChrome(domain: .player)
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
