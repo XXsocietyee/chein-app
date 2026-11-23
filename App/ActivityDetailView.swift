@@ -444,7 +444,7 @@ struct ActivityDetailView: View {
                     }.accessibilityIdentifier("activity.openTopic")
                 }
             }
-            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail))
+            ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail), organizerShopName: detail.organizerShopName)
             Section {
                 if detail.tickets.isEmpty {
                     // Source empty ticket copy: title plus host explanation.

@@ -28,6 +28,8 @@ S = {
     'topicTemplate.useUnavailable': ('Copying a template is not available in this version yet.', '当前版本暂未开放复制模板'),
     # PC-D-5-4: MP scene-asset-earnings empty CTA.
     'wallet.earnings.goPublish': ('Publish a route', '去发布路线'),
+    # PC-C-1-4: MP host label for shop-hosted activities.
+    'activity.people.organizerShop': ('Organizer', '主办方'),
     'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 

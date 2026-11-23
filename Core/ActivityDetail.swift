@@ -91,7 +91,9 @@ public struct ActivityDetail: Decodable, Equatable {
     /// Source `cancelTime`/`cancelReason`: a non-empty cancel time means the host cancelled.
     public let cancelTime: String?
     public let cancelReason: String?
-    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason }
+    /// PC-C-1-4 (MP check-1104 j1 F14): a shop-hosted activity names the shop as 主办方, not the creator member.
+    public let organizerShopName: String?
+    enum CodingKeys: String, CodingKey { case omsTicketList, memberId, memberTemplateList, isSignUp, cancelTime, cancelReason, organizerShopName }
     public init(from decoder:Decoder) throws {
         publisherAuthoritySource = try? PublisherActivityAuthoritySource(from: decoder)
         summary=try ActivitySummary(from:decoder)
@@ -104,6 +106,7 @@ public struct ActivityDetail: Decodable, Equatable {
         let flag = (try? c.decodeIfPresent(Int.self,forKey:.isSignUp)) ?? nil
         signUpFlag = flag == 0 || flag == 1 ? flag : nil
         cancelTime=Self.text(c,.cancelTime); cancelReason=Self.text(c,.cancelReason)
+        organizerShopName=Self.text(c,.organizerShopName)
     }
     private static func text(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
         // Dates may arrive as text or epoch milliseconds; either one is a present cancellation.

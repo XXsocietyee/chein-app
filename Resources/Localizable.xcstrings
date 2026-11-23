@@ -283454,6 +283454,23 @@
           }
         }
       }
+    },
+    "activity.people.organizerShop": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办方"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

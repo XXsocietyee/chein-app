@@ -11,9 +11,21 @@ import SwiftUI
 @MainActor struct ActivityPeopleSection: View {
     let people: ActivityPeople
     var onOpenProfile: ((Int) -> Void)? = nil
+    /// PC-C-1-4: shop-hosted activity → the shop is the 主办方 (no member profile link).
+    var organizerShopName: String? = nil
 
     var body: some View {
-        if let host = people.host, host.name != nil {
+        if let shop = organizerShopName {
+            Section("activity.people.organizerShop") {
+                HStack(spacing: 12) {
+                    Image(systemName: "storefront.circle.fill").cyText(.sectionTitle)
+                        .foregroundStyle(.secondary).accessibilityHidden(true)
+                    Text(verbatim: shop)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("activity.people.organizerShop")
+            }
+        } else if let host = people.host, host.name != nil {
             Section("activity.people.host") {
                 personRow(host, identifier: "activity.people.host")
             }
