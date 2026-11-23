@@ -1,12 +1,12 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 1199,
+  "raw text style": 1173,
   "Theme.Font": 63,
   "raw size": 67,
-  "back chevron": 14,
-  "hidden back": 13,
-  "large title": 21
+  "back chevron": 12,
+  "hidden back": 7,
+  "large title": 11
  },
  "files": {
   "App/AccessibilityReadinessSectionView.swift": {
@@ -18,11 +18,8 @@
   "App/AccountCollectionCouponDetailView.swift": {
    "raw text style": 1
   },
-  "App/AccountCollectionFavoritesView.swift": {
-   "large title": 2
-  },
   "App/AccountComplianceViews.swift": {
-   "raw text style": 16
+   "raw text style": 11
   },
   "App/AccountDeletionAndGDPRPIPLSectionView.swift": {
    "raw text style": 1
@@ -102,9 +99,6 @@
   },
   "App/ChapterStoryView.swift": {
    "raw text style": 1
-  },
-  "App/CharacterCardReadbackView.swift": {
-   "large title": 1
   },
   "App/CityAcquisitionPresentationStyle.swift": {
    "Theme.Font": 2
@@ -204,9 +198,6 @@
   "App/ClubGovernanceViews.swift": {
    "raw text style": 3
   },
-  "App/ClubGroupCodePresentation.swift": {
-   "raw text style": 1
-  },
   "App/ClubManagementView.swift": {
    "raw text style": 2
   },
@@ -268,8 +259,7 @@
    "raw text style": 1
   },
   "App/CouponCodeView.swift": {
-   "raw text style": 4,
-   "large title": 1
+   "raw text style": 1
   },
   "App/CouponManagementView.swift": {
    "raw text style": 1
@@ -605,8 +595,7 @@
    "raw text style": 1
   },
   "App/MerchantCityNodeCreateView.swift": {
-   "raw text style": 4,
-   "hidden back": 1
+   "raw text style": 4
   },
   "App/MerchantCityNodeHubView.swift": {
    "raw text style": 8
@@ -615,8 +604,7 @@
    "raw text style": 1
   },
   "App/MerchantContentEditor.swift": {
-   "raw text style": 12,
-   "hidden back": 1
+   "raw text style": 12
   },
   "App/MerchantContentViews.swift": {
    "raw text style": 17
@@ -697,16 +685,13 @@
    "raw text style": 2
   },
   "App/MerchantOnboardingView.swift": {
-   "raw text style": 3,
-   "back chevron": 1,
-   "hidden back": 1
+   "raw text style": 3
   },
   "App/MerchantOperationsEditor.swift": {
    "raw text style": 37
   },
   "App/MerchantOperationsViews.swift": {
-   "raw text style": 1,
-   "hidden back": 1
+   "raw text style": 1
   },
   "App/MerchantOperatorInvitationReceiptView.swift": {
    "raw text style": 7
@@ -733,8 +718,7 @@
    "raw text style": 4
   },
   "App/MerchantStoreCharacterView.swift": {
-   "raw text style": 5,
-   "hidden back": 1
+   "raw text style": 5
   },
   "App/MerchantTemplateAssistSheet.swift": {
    "raw text style": 5
@@ -940,12 +924,6 @@
   "App/ParticipantManagementDetailView.swift": {
    "hidden back": 1
   },
-  "App/PassMarketViews.swift": {
-   "large title": 1
-  },
-  "App/PassMembershipViews.swift": {
-   "large title": 1
-  },
   "App/PassportView.swift": {
    "raw text style": 2
   },
@@ -1023,7 +1001,7 @@
    "raw text style": 1
   },
   "App/PlayerJourneyViews.swift": {
-   "raw text style": 3
+   "raw text style": 1
   },
   "App/PrivacyAndSecurityRedactionSectionView.swift": {
    "raw text style": 1
@@ -1038,7 +1016,7 @@
    "raw text style": 3
   },
   "App/ProfileComplaintPreparationView.swift": {
-   "raw text style": 3
+   "raw text style": 2
   },
   "App/ProfileContactQREditor.swift": {
    "raw text style": 1
@@ -1050,10 +1028,7 @@
    "raw text style": 2
   },
   "App/ProfileEditView.swift": {
-   "raw text style": 2,
-   "back chevron": 1,
-   "hidden back": 1,
-   "large title": 1
+   "raw text style": 1
   },
   "App/ProfileOrdersView.swift": {
    "raw text style": 2
@@ -1098,9 +1073,6 @@
   },
   "App/ProjectEditRichStoryForms.swift": {
    "raw text style": 7
-  },
-  "App/ProjectEditView.swift": {
-   "raw text style": 4
   },
   "App/ProjectEditorAudioPreview.swift": {
    "raw text style": 1
@@ -1180,7 +1152,7 @@
    "large title": 1
   },
   "App/PublishingModesViews.swift": {
-   "raw text style": 3
+   "raw text style": 2
   },
   "App/PushNotificationAndLiveActivitySectionView.swift": {
    "raw text style": 1
@@ -1296,17 +1268,13 @@
    "raw text style": 1
   },
   "App/SettingsAboutView.swift": {
-   "raw text style": 1,
-   "large title": 1
-  },
-  "App/SettingsLegalDocumentView.swift": {
-   "large title": 1
+   "raw text style": 1
   },
   "App/SettingsSupportSections.swift": {
    "raw text style": 1
   },
   "App/SettingsView.swift": {
-   "raw text style": 2,
+   "raw text style": 1,
    "large title": 1
   },
   "App/SevenDayLaunchCriticalPathSectionView.swift": {
@@ -1334,8 +1302,7 @@
    "raw text style": 1
   },
   "App/SocialPublicProfileView.swift": {
-   "raw text style": 1,
-   "large title": 1
+   "raw text style": 1
   },
   "App/SquareBrowserView.swift": {
    "large title": 1
@@ -1348,9 +1315,6 @@
   },
   "App/SquareComponents.swift": {
    "raw text style": 2
-  },
-  "App/SquareDetailView.swift": {
-   "raw text style": 1
   },
   "App/SquarePostVideoViews.swift": {
    "raw text style": 1
@@ -1385,9 +1349,6 @@
   "App/TemplateAuthoringExitGuard.swift": {
    "back chevron": 1,
    "hidden back": 1
-  },
-  "App/TemplateAuthoringMineView.swift": {
-   "raw text style": 3
   },
   "App/TemplateAuthoringPublishResultPresentation.swift": {
    "raw text style": 1
@@ -1435,7 +1396,7 @@
    "raw text style": 1
   },
   "App/TicketWalletView.swift": {
-   "raw text style": 5
+   "raw text style": 2
   },
   "App/TopicComponents.swift": {
    "raw text style": 1
