@@ -9,6 +9,7 @@ import SwiftUI
     /// Hero artwork loads only from explicitly approved https hosts; otherwise a placeholder.
     var approvedImageHosts: Set<String> = []
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.locale) private var locale
     @State private var pendingProof: PlayStoreDayPreparedProof?
     @State private var showingProof = false
@@ -114,6 +115,11 @@ import SwiftUI
         ContentUnavailableView {
             Label { Text(L(key)) } icon: { Image(systemName: id == "signedOut" ? "person.crop.circle" : id == "failed" ? "exclamationmark.triangle" : "storefront") }
         } actions: {
+            // PLAYM-6: MP cy-access-gate kind=login — signed out offers 登录 (opens 我的).
+            if id == "signedOut", rootTabSwitch.isAvailable {
+                Button { rootTabSwitch(.mine) } label: { Text("auth.signIn") }
+                    .buttonStyle(.cyPrimary(fullWidth: false)).accessibilityIdentifier("storeDayPage.signIn")
+            }
             Button { Task { await model.load() } } label: { Text("playStoreDay.state.reload", tableName: "PlayStoreDay") }
                 .buttonStyle(.cyPrimary(fullWidth: false))
                 .disabled(model.phase == .loading).accessibilityIdentifier("storeDayPage.refresh")
