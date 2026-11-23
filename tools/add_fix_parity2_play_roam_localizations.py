@@ -45,7 +45,12 @@ def main():
     catalog = json.loads(path.read_text(encoding='utf-8'))
     strings = catalog['strings']
     for key, (en, zh) in S.items():
-        strings[key] = {'extractionState': 'manual', 'localizations': {'en': unit(en), 'zh-Hans': unit(zh)}}
+        if key in strings and 'localizations' in strings[key]:
+            # Existing key: replace the values only, keep the entry's other fields (and fragment mirrors) as they were.
+            strings[key]['localizations']['en'] = unit(en)
+            strings[key]['localizations']['zh-Hans'] = unit(zh)
+        else:
+            strings[key] = {'extractionState': 'manual', 'localizations': {'en': unit(en), 'zh-Hans': unit(zh)}}
     path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(f'{len(S)} parity2 play-roam strings written')
 

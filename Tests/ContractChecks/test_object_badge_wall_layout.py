@@ -13,7 +13,8 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
     def test_existing_detail_and_route_lifetimes_are_byte_identical(self):
         value = ('@MainActor struct ObjectBadgeDetailView:' + self.detail).encode()
         # ObjectBadgeWallBadgeLabel migrated medal icon to CYTypography.data2XL (cur-t7-14); detail & route lifetimes unchanged.
-        self.assertEqual(hashlib.sha256(value).hexdigest(), 'c53363ad07635a6f248a330f091f2d4c4517e37ef5275e3c0d8a32d1e60e4d84')
+        # fix/parity2-play-roam: detail + route preview titles appNavigationTitle -> cyPageTitle (inline title mode only).
+        self.assertEqual(hashlib.sha256(value).hexdigest(), 'd2b4c148b4e18e8cf259632dace2b07f41f36a639b4c2baf0d488ff9d6ee040b')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_default_list_and_current_owner_selection_are_local(self):

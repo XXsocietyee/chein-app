@@ -124705,7 +124705,6 @@
       }
     },
     "objects.login": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -125059,7 +125058,6 @@
       }
     },
     "objects.title": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
