@@ -86,6 +86,9 @@ import SwiftUI
                                 showsDiscardModal = true
                             }
                         }
+                        // The page below may set a light domain tint (merchant, topic editor); the label then drew white on
+                        // the light glass pill and vanished (combined-r5 verify: 核销记录, 发布活动 links).
+                        .tint(.primary)
                     }
                 }
                 .sheet(isPresented: $showsLogin) {
