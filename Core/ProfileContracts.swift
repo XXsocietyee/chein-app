@@ -242,6 +242,10 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
     public let orderHint: String?
     public let refundable: Bool?
     public let refundPayoutStatus: Int?
+    /// FIN-17-3: CmsRegistration invoice facts (all strings on the wire). Unknown values hide the 发票 block.
+    public let invoiceStatus: String?
+    public let invoiceApplicationID: Int64?
+    public let invoiceNo: String?
     public var registrationState: ProfileRegistrationState { .init(code: registrationStatus) }
     /// Source resolveActualPaidAmount: cash (WeChat) paid first, then the payable amount.
     public var actualPaidAmount: Decimal? { wechatPaymentAmount ?? payableAmount }
@@ -253,6 +257,7 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         case statusText, orderHint, refundInfo, refundApplication
         case pointUsed, pointDeductAmount, pointPaymentAmount, wechatPaymentAmount, paymentType, pointsReturned
         case manualRefundCaseStatus, refundDeadlineDisplay
+        case invoiceStatus, invoiceApplicationId, invoiceNo
     }
     private struct Owner: Decodable, Equatable {
         let name: String?
@@ -354,6 +359,34 @@ public struct ProfileOrder: Decodable, Equatable, Identifiable {
         refundPayoutStatus = refund?.payoutStatus?.value
         refundApplicationStatus = refund?.status?.value
         refundAmount = refund?.refundAmount
+        // Display only and lenient: a malformed invoice fact never fails the order read.
+        invoiceStatus = (try? c.decodeIfPresent(String.self, forKey: .invoiceStatus)) ?? nil
+        let application = (try? c.decodeIfPresent(String.self, forKey: .invoiceApplicationId)) ?? nil
+        invoiceApplicationID = application.flatMap { text in
+            guard let value = Int64(text), value > 0, String(value) == text else { return nil }
+            return value
+        }
+        let number = ((try? c.decodeIfPresent(String.self, forKey: .invoiceNo)) ?? nil)?.trimmingCharacters(in: .whitespacesAndNewlines)
+        invoiceNo = number?.isEmpty == false ? number : nil
+    }
+}
+
+/// FIN-17-3: the MP order detail 发票 block (scene-member-order-detail index.js:431-437).
+public enum ProfileOrderInvoiceState: Equatable {
+    case notApplied, issuing, issued, paused
+}
+
+extension ProfileOrder {
+    /// Paid (paymentStatus 2), non-free orders only; an unknown or absent status hides the block.
+    public var invoiceState: ProfileOrderInvoiceState? {
+        guard paymentStatus == 2 else { return nil }
+        switch invoiceStatus {
+        case "NONE": return .notApplied
+        case "SUBMITTED", "CLAIMED", "PROCESSING", "ISSUE_UNKNOWN": return .issuing
+        case "ISSUED": return .issued
+        case "PAUSED": return .paused
+        default: return nil
+        }
     }
 }
 
