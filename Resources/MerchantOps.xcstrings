@@ -2771,6 +2771,176 @@
           }
         }
       }
+    },
+    "merchantOps.aftercare.manualCase.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual refund case"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人工退款工单"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.status.PENDING_ASSESSMENT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund requested · platform assessing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家申请退款 · 平台评估中"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.status.MANUAL_REFUND_REQUIRED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assessed by the platform, awaiting manual handling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台已评估，待人工处理"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.status.MANUAL_REFUND_RECORDED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manual refund recorded, awaiting platform review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已登记人工退款，待平台复核"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.status.MANUAL_REFUND_EVIDENCE_VERIFIED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform verified the manual refund evidence"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台已复核人工退款凭证"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.status.NO_REFUND": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform assessed: no refund needed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台评估无需退款"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.requested": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund requested"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家申请退款"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Handled by the platform; merchants can follow the progress."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "由平台处理，商家可查看进度。"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.activity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.manualCase.progress": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "处理进度"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -16,7 +16,7 @@ import SwiftUI
 
     var body: some View {
         content
-            .appNavigationTitle("merchant.perks.title")
+            .cyPageTitle("merchant.perks.title")
             .toolbar {
                 if writesEnabled {
                     ToolbarItem(placement: .primaryAction) {
@@ -214,7 +214,7 @@ import SwiftUI
                     Text("merchant.perks.notAvailable").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
-            .appNavigationTitle("merchant.perks.form.title")
+            .cyPageTitle("merchant.perks.form.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") {

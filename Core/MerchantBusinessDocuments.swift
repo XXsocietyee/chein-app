@@ -29,6 +29,17 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
                 guard ["pending", "abnormal", "dormant", "repeat", "new"].contains(fields.mbText("tier") ?? ""),
                       ["TOPIC", "ACTIVITY", "MIXED"].contains(fields.mbText("sourceType") ?? "") else { throw MerchantBusinessFailure.malformed }
             }
+        case .refund where fields.mbText("recordType") == "MANUAL_CASE":
+            // Parity aftercare P0 (MP detail/view-model.js shapeManualCase): a platform-handled 人工退款工单 is a
+            // read-only row with its own id space; it never carries a refundId, an amount or merchant actions.
+            let caseID = try fields.mbInt("manualCaseId", minimum: 1)
+            let status = try fields.mbRequiredText("manualCaseStatus")
+            guard Self.manualCaseStatuses.contains(status), fields.mbText("processing") == status,
+                  fields.mbText("merchantOpinion") == "NOT_REQUIRED",
+                  fields["refundId"] == nil || fields["refundId"] == .null,
+                  fields["refundAmount"] == nil || fields["refundAmount"] == .null,
+                  try fields.mbBool("canRespond") == false, fields["refunded"]?.bool != true else { throw MerchantBusinessFailure.malformed }
+            id = Self.manualCasePrefix + String(caseID)
         case .refund:
             id = String(try fields.mbInt("refundId", minimum: 1))
             guard Self.processing.contains(try fields.mbRequiredText("processing")),
@@ -88,7 +99,7 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
             guard ["AGREE", "REJECT", "EVIDENCE"].contains(try fields.mbRequiredText("decision")) else { throw MerchantBusinessFailure.malformed }
         case .verification:
             // This source wrapper has no stronger shape guarantee; no fabricated detail ID.
-            id = fields["id"]?.numberText ?? fields.mbText("recordKey") ?? UUID().uuidString
+            id = fields.mbText("recordKey") ?? fields["recordId"]?.numberText ?? fields["id"]?.numberText ?? UUID().uuidString
         }
     }
     public var destination: MerchantBusinessQuery? {
@@ -100,6 +111,9 @@ public struct MerchantBusinessRecord: Equatable, Identifiable {
         default: return nil
         }
     }
+    public static let manualCasePrefix = "MANUAL_CASE:"
+    public static let manualCaseStatuses = ["PENDING_ASSESSMENT", "MANUAL_REFUND_REQUIRED", "MANUAL_REFUND_RECORDED", "MANUAL_REFUND_EVIDENCE_VERIFIED", "NO_REFUND"]
+    public var isManualCase: Bool { kind == .refund && id.hasPrefix(Self.manualCasePrefix) }
     public static let processing = ["WAITING_PLATFORM_REVIEW", "PLATFORM_REJECTED", "REFUND_PROCESSING", "MANUAL_REFUND_PENDING", "MANUAL_REFUND_REVIEW", "REFUNDED", "UNKNOWN"]
     public static func isColor(_ value: String) -> Bool { value.range(of: #"^#[0-9A-F]{6}$"#, options: .regularExpression) != nil }
     public static func safeHTTPS(_ value: String) -> Bool { guard let url = URLComponents(string: value) else { return false }; return url.scheme == "https" && !(url.host ?? "").isEmpty && url.user == nil && url.password == nil }
@@ -310,8 +324,10 @@ public struct MerchantBusinessDocument: Equatable {
             guard completeFinance || redactedFinance else { throw MerchantBusinessFailure.malformed }
             sections = [try section("redemption", [object], .redemption)]
         case .verificationRecords:
-            let values = try (payload.array ?? object.mbArray("rows"))
-            let objects = try values.map { guard let value = $0.object else { throw MerchantBusinessFailure.malformed }; return value }
+            // finance/redemptions page {rows,total}; rows carry recordKey/chapterName/topicName/storeName/fulfillmentState/occurredAt.
+            let objects = try object.mbObjects("rows")
+            total = object["total"]?.integer
+            // One 50-row page; the list marks counts "+" when total exceeds it (no prev/next pager).
             sections = [try section("verifications", objects, .verification)]
         case .operators:
             sections = [try section("operators", object.mbObjects("operators"), .operatorMember), try section("invites", object.mbObjects("invites"), .invite)]

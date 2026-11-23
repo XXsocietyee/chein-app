@@ -5,17 +5,16 @@ import Foundation
 public enum CoopRelationSection: String, CaseIterable, Hashable {
     case merchants, clubs, posts
 
-    /// Merchant relations are always the default segment so opening the page shows partner relations instead of the player feed.
+    /// Source pages/merchant/relation: tabs 帖子 (default) / 俱乐部. The 商家 tab was removed 2026-10-22
+    /// (merchants no longer browse other merchants); without a feed only 俱乐部 remains.
     public static func effective(selected: CoopRelationSection?, feedAvailable: Bool) -> CoopRelationSection {
-        if let selected {
-            if selected == .posts && !feedAvailable { return .merchants }
-            return selected
-        }
-        return .merchants
+        let tabs = available(feedAvailable: feedAvailable)
+        if let selected, tabs.contains(selected) { return selected }
+        return tabs[0]
     }
 
     public static func available(feedAvailable: Bool) -> [CoopRelationSection] {
-        feedAvailable ? [.merchants, .clubs, .posts] : [.merchants, .clubs]
+        feedAvailable ? [.posts, .clubs] : [.clubs]
     }
 
     /// Relation reads only apply to the two relation segments.

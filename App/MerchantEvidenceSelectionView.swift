@@ -35,7 +35,7 @@ import SwiftUI
                 Button("merchant.engagement.clearSelection") { generation += 1; self.selection = nil; item = nil }
             }
             if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
-        }.appNavigationTitle("merchant.engagement.evidence")
+        }.cyPageTitle("merchant.engagement.evidence")
         .sheet(isPresented: $showingCamera) {
             MerchantEvidenceCameraCapture { bytes in
                 showingCamera = false

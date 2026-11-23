@@ -56,7 +56,7 @@ import SwiftUI
                 if !draft.isValid { Text("merchant.crmDate.invalid").foregroundStyle(CYColor.dangerText) }
                 if stale { Text("merchant.crmDate.stale").foregroundStyle(.secondary) }
             }
-            .navigationTitle("merchant.crmDate.choose")
+            .navigationTitle("merchant.crmDate.choose").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: cancel) }
                 ToolbarItem(placement: .confirmationAction) {

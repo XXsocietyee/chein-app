@@ -12,6 +12,8 @@ public struct MerchantOnboardingApplication: Decodable, Equatable {
     public let accountStatus: Int
     public let name, preference, phone, address, businessTime, description, businessLicense: String
     public let derivatives, rejectReason, disableReason, createTime: String
+    /// Comma-separated MERCHANT industry ids when /merchant/info returns them (M-16); empty when absent.
+    public let categoryIds: String
     public var canReapply: Bool { status == 2 && accountStatus != 2 }
     public var statusKey: String {
         if accountStatus == 2 { return "merchant.onboarding.status.disabled" }
@@ -28,7 +30,7 @@ public struct MerchantOnboardingApplication: Decodable, Equatable {
     }
     enum CodingKeys: String, CodingKey {
         case id, status, accountStatus, name, preference, phone, address, businessTime, description, businessLicense
-        case derivatives, reson, disableReason, createTime
+        case derivatives, reson, disableReason, createTime, categoryIds
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -45,6 +47,21 @@ public struct MerchantOnboardingApplication: Decodable, Equatable {
         address = try text(.address); businessTime = try text(.businessTime); description = try text(.description)
         businessLicense = try text(.businessLicense); derivatives = try text(.derivatives)
         rejectReason = try text(.reson); disableReason = try text(.disableReason); createTime = try text(.createTime)
+        categoryIds = (try? text(.categoryIds)) ?? ""
+    }
+}
+
+/// One MERCHANT industry row from api/category/list type=MERCHANT (server merges type 1 and 6).
+public struct MerchantOnboardingCategory: Decodable, Equatable, Identifiable {
+    public let id: Int
+    public let name: String
+    private enum CodingKeys: String, CodingKey { case id, categoryName }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        guard let id = c.merchantInteger(.id), id > 0 else { throw APIError.malformedResponse }
+        let name = try c.decode(String.self, forKey: .categoryName).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { throw APIError.malformedResponse }
+        self.id = id; self.name = name
     }
 }
 
@@ -113,6 +130,10 @@ public struct MerchantOnboardingDraft: Equatable {
     public private(set) var id: Int?
     public var name = "", preference = "", phone = "", address = "", businessTime = "", description = ""
     public var wechat = ""
+    /// Parity apply P0 (M-16): 行业类型 chosen from api/category/list type=MERCHANT, 1–5 ids, sent as `categoryIds`.
+    public var categoryIDs: [Int] = []
+    public var categoryNames: [String] = []
+    public static let categoryLimit = 5
     /// Owner 2026-11-16: 真实姓名 and 身份证号 for the identity step (step 4). Not restored on reapply: the
     /// application read does not return them.
     public var realName = ""
@@ -130,6 +151,7 @@ public struct MerchantOnboardingDraft: Equatable {
         id = application.id; name = application.name; preference = application.preference
         phone = application.phone; address = application.address; businessTime = application.businessTime
         description = application.description
+        categoryIDs = application.categoryIds.split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }.filter { $0 > 0 }
         license = try? MerchantOnboardingLicense(serverURL: application.businessLicense)
         // New optional image flow admits valid historical image URLs only.
         // Unrecognized historical media stays omitted, not silently cleared.
@@ -142,6 +164,7 @@ public struct MerchantOnboardingDraft: Equatable {
     public func blocker(step: Int? = nil) -> String? {
         if step == nil || step == 1 {
             if name.merchantOnboardingTrimmed.isEmpty { return "merchant.onboarding.required.name" }
+            if categoryIDs.isEmpty || categoryIDs.count > Self.categoryLimit { return "merchant.onboarding.required.category" }
             if phone.merchantOnboardingTrimmed.isEmpty { return "merchant.onboarding.required.phone" }
         }
         if step == nil || step == 2 {
@@ -177,19 +200,23 @@ public struct MerchantOnboardingDraft: Equatable {
     public func jsonData() throws -> Data {
         guard blocker() == nil, let license else { throw APIError.invalidRequest }
         var fields: [String: Any] = [
-            "name": name.merchantOnboardingTrimmed, "preference": preference.merchantOnboardingTrimmed,
+            "name": name.merchantOnboardingTrimmed, "categoryIds": categoryIDs.map(String.init).joined(separator: ","),
             "phone": phone.merchantOnboardingTrimmed, "description": description.merchantOnboardingTrimmed,
             "address": address.merchantOnboardingTrimmed, "businessTime": businessTime.merchantOnboardingTrimmed,
             "businessLicense": license.url, "wechat": wechat.merchantOnboardingTrimmed
         ]
         if let brandImages { fields["derivatives"] = brandImages.wireValue }
         if let id { fields["id"] = id }
-        // Identity is sent only when the step is complete, valid and consented; it is never partially sent.
-        if identityBlocker() == nil, identityConsent {
-            fields["realName"] = realName.merchantOnboardingTrimmed
-            fields["idCardNumber"] = idCardNumber.normalized
-            fields["identityConsent"] = true
-        }
+        // Parity apply P0: identity is NOT part of merchant_registration (MerchantRegistrationDTO has no such fields);
+        // it is registered first through POST api/publisher/identity (`identityRegistrationData`).
+        return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+    }
+    /// MP utils/publisher-identity.js registerIdentity: {realName, idCard, consent: true, source: "merchant_apply"}.
+    public var canRegisterIdentity: Bool { identityBlocker() == nil && identityConsent }
+    public func identityRegistrationData() throws -> Data {
+        guard canRegisterIdentity else { throw APIError.invalidRequest }
+        let fields: [String: Any] = ["realName": realName.merchantOnboardingTrimmed, "idCard": idCardNumber.normalized,
+                                     "consent": true, "source": "merchant_apply"]
         return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
     }
 }

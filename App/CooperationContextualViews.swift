@@ -347,7 +347,7 @@ import SwiftUI
                 .disabled(model.contexts(permit: permit) == nil)
             }
             CoopFlowSafetyNotice()
-        }.cyMiniListScreen().navigationTitle("context.coop.new").scrollDismissesKeyboard(.interactively)
+        }.cyMiniListScreen().navigationTitle("context.coop.new").navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
             .onAppear {
                 let value = model.appear(active: scenePhase == .active)
                 Task { await model.loadInitial(value) }
@@ -396,7 +396,7 @@ import SwiftUI
                     if summary["count"].integer == 0 { Text("coopflow.reviews.empty") }
                 }
             }
-        }.navigationTitle("context.coop.peerCredit")
+        }.navigationTitle("context.coop.peerCredit").navigationBarTitleDisplayMode(.inline)
             .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") { await load() }
             .onChange(of: reader.session) { _, _ in generation += 1; credit = nil; summary = nil; busy = false }
             .onDisappear { generation += 1; busy = false }
@@ -488,7 +488,7 @@ import SwiftUI
                             }
                         }
                         CoopFlowSafetyNotice()
-                    }.navigationTitle("coopflow.reviewAction")
+                    }.navigationTitle("coopflow.reviewAction").navigationBarTitleDisplayMode(.inline)
                 } label: {
                     Text("coopflow.reviewAction").frame(maxWidth: .infinity)
                 }
@@ -498,7 +498,7 @@ import SwiftUI
                 CYListRow("coopflow.reviewAction", trailing: .value("—"))
             }
             CoopFlowSafetyNotice()
-        }.cyMiniListScreen().navigationTitle("coopflow.invite.title").scrollDismissesKeyboard(.interactively)
+        }.cyMiniListScreen().navigationTitle("coopflow.invite.title").navigationBarTitleDisplayMode(.inline).scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { if dirty { discard = true } else { dismiss() } } }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }

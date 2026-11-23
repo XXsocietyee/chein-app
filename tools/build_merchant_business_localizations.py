@@ -4,7 +4,7 @@ import json, pathlib
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 P={
 "title":("Business workspace","经营工作区"),"workspace":("Business tools","经营工具"),
-"customers":("Customers","客户"),"customer":("Customer details","客户详情"),"aftercare":("Aftercare","退款售后"),"refund":("Aftercare case","售后详情"),"reviews":("Reputation","口碑"),"overview":("Finance overview","结算概览"),"redemptions":("Redemptions and refunds","核销与退款"),"entries":("Income and adjustments","收入与调整"),"batches":("Public transfer batches","对公结算批次"),"batch":("Public-account settlement","对公结算"),"redemption":("Redemption details","核销详情"),"verifications":("Verification actions","核销动作记录"),"operators":("Operator team","经营团队"),"roles":("Assignable roles","可分配岗位"),"scan":("Code route preview","核销码路由预览"),
+"customers":("Customers","客户"),"customer":("Customer details","客户详情"),"aftercare":("Aftercare","退款售后"),"refund":("Aftercare case","售后详情"),"reviews":("Reputation","口碑"),"overview":("Finance overview","结算概览"),"redemptions":("Redemptions and refunds","核销与退款"),"entries":("Income and adjustments","收入与调整"),"batches":("Public transfer batches","对公结算批次"),"batch":("Public-account settlement","对公结算"),"redemption":("Redemption details","核销详情"),"verifications":("Redemption records","核销记录"),"operators":("Operator team","经营团队"),"roles":("Assignable roles","可分配岗位"),"scan":("Code route preview","核销码路由预览"),
 "boundary":("View records and review actions. What you can submit depends on your permissions.","查看记录并预览操作。能否提交取决于你的权限。"),
 "confirmProduction":("Confirm action","确认操作"),
 "productionSaved":("Received","已收到"),

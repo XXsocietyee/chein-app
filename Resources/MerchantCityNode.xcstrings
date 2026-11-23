@@ -625,22 +625,6 @@
         }
       }
     },
-    "merchantCityNode.create.back": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Back"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "返回"
-          }
-        }
-      }
-    },
     "merchantCityNode.create.busy": {
       "localizations": {
         "en": {

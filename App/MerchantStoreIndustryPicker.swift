@@ -106,7 +106,7 @@ import SwiftUI
                     Button("merchant.industry.reload") { Task { await model.reload() } }.accessibilityIdentifier("merchant.industry.reload")
                 }
             }
-            .appNavigationTitle("merchant.industry.choose")
+            .cyPageTitle("merchant.industry.choose")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: dismiss).accessibilityIdentifier("merchant.industry.cancel") }
                 ToolbarItem(placement: .confirmationAction) {

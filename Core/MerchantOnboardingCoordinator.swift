@@ -100,7 +100,7 @@ public final class MerchantOnboardingCoordinator {
         guard server.isConfigured else { throw MerchantOnboardingBlock.unavailable }
         guard identity == expectedIdentity else { throw MerchantOnboardingBlock.accountChanged }
         guard !submission.isLocked, !isUploading else { throw MerchantOnboardingBlock.busy }
-        guard identityGate == .registered else { throw MerchantOnboardingBlock.identityRequired }
+        // Parity apply P0: the license (step 3) no longer waits on the identity step (4); identity is registered at submit.
         guard case .loaded(let snapshot) = loadState else { throw MerchantOnboardingBlock.statusRequired }
         if case .application(let application) = snapshot, !application.canReapply { throw MerchantOnboardingBlock.statusRequired }
         let request = generation
@@ -115,7 +115,7 @@ public final class MerchantOnboardingCoordinator {
         guard server.isConfigured, let identity else { throw MerchantOnboardingBlock.unavailable }
         guard !submission.isLocked, !isUploading else { throw MerchantOnboardingBlock.busy }
         guard draft.blocker() == nil else { throw MerchantOnboardingBlock.invalidDraft }
-        guard identityGate == .registered else { throw MerchantOnboardingBlock.identityRequired }
+        guard identityGate == .registered || draft.canRegisterIdentity else { throw MerchantOnboardingBlock.identityRequired }
         guard case .loaded(let snapshot) = loadState, permits(draft, snapshot: snapshot) else {
             throw MerchantOnboardingBlock.statusRequired
         }
@@ -144,10 +144,29 @@ public final class MerchantOnboardingCoordinator {
             guard identity == confirmation.identity, pending?.id == confirmation.id else { return }
             guard !Task.isCancelled else { pending = nil; submission = .notSent; return }
             identityGate = registered ? .registered : .required
-            guard registered else { pending = nil; submission = .notSent; return }
+            guard registered || confirmation.draft.canRegisterIdentity else { pending = nil; submission = .notSent; return }
         } catch {
             guard identity == confirmation.identity, pending?.id == confirmation.id else { return }
             pending = nil; submission = .notSent; loadState = .unavailable; return
+        }
+        // Parity apply P0 (MP submit): register the identity first, then the application. A failed identity write
+        // stops here with its own outcome; the application is never sent without a registered identity.
+        if identityGate != .registered {
+            submission = .submitting
+            do {
+                try await server.registerIdentity(confirmation.draft, expectedIdentity: confirmation.identity)
+                guard identity == confirmation.identity, pending?.id == confirmation.id else { return }
+                identityGate = .registered
+            } catch {
+                guard identity == confirmation.identity, pending?.id == confirmation.id else { return }
+                pending = nil
+                switch error as? MerchantOnboardingWriteError {
+                case .rejected(let failure): submission = .rejected(failure)
+                case .outcomeUnknown: submission = .notSent; identityGate = .unchecked
+                default: submission = .notSent
+                }
+                return
+            }
         }
         // Establish the lock BEFORE awaiting a mutation. Dismissal cannot cancel a server write.
         submission = .submitting; locks[account] = .outcomeUnknown
@@ -169,6 +188,10 @@ public final class MerchantOnboardingCoordinator {
             pending = nil; submission = next
             // Unknown outcomes require an explicit status check, never an automatic retry.
         }
+    }
+    public func categories() async throws -> [MerchantOnboardingCategory] {
+        guard let identity else { throw APIError.unauthorized }
+        return try await server.categories(expectedIdentity: identity)
     }
     public func leaveScreen() {
         generation &+= 1; pending = nil; loadState = .idle; identityGate = .unchecked; isUploading = false

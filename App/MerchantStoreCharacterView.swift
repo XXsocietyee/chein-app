@@ -34,19 +34,11 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
 
     var body: some View {
         content
-            .safeAreaInset(edge: .top) {
-                MerchantOpsWp03Panel(page: .npc)
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.sm)
-                    .background(CYColor.bgPage)
-            }
             .navigationTitle(c.screen == .home ? t("storeCharacter.title.home") : t("storeCharacter.title.avatar"))
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { if c.back() == .leave { dismiss() } } label: { t("storeCharacter.action.back") }
-                        .disabled(c.saving).accessibilityIdentifier("aiNPC.back")
-                }
+            // type-and-chrome §3: the coordinator decides (avatar sub-screen, unsaved text, saving); the system back
+            // and swipe return as soon as nothing needs guarding.
+            .cyGuardedBack(when: c.screen != .home || c.saving || !c.home.sameText(c.saved)) {
+                if c.back() == .leave { dismiss() }
             }
             .task { await c.load() }
             .task(id: c.shouldPoll) { await poll() }

@@ -31,7 +31,6 @@ import SwiftUI
             else if sessionKey == nil { CYEmptyState(systemImage: "person.crop.circle", "couponManagement.signIn") }
             else {
                 List {
-                    MerchantOpsWp03Panel(page: .coupon)
                     CouponManagementNotice(model: model, surface: .list)
                     if model.core.canRecoverCommands {
                         Button("couponManagement.checkPendingResults") { model.run { await model.core.recoverPendingCommands() } }

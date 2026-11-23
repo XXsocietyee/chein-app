@@ -7,7 +7,6 @@ SOURCES = ['App/MerchantStoreCharacterView.swift', 'App/MerchantStoreCharacterFi
 ROWS = {
  'title.home': ('AI Store Character', 'AI 店铺角色'),
  'title.avatar': ('Upload Character Look', '上传角色形象'),
- 'action.back': ('Back', '返回'),
  'action.cancel': ('Cancel', '取消'),
  'action.close': ('Close', '关闭'),
  'action.save': ('Save', '保存'),

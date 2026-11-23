@@ -278,6 +278,20 @@ import SwiftUI
             SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.query(query), onSignIn: signIn).environmentObject(session)
         case "pages/searchmap/index":
             SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.mapQuery(query["params"]), startsOnMap: true, onSignIn: signIn).environmentObject(session)
+        // Parity X2 / batch A #10 / batch D #6: merchant and coop MP paths open their native screens instead of
+        // 该页面暂未开放 (query-free forms; the link rules still reject unknown keys).
+        case "pages/merchant/apply/index":
+            MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
+        case "pages/merchant/verify-records/index":
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .verificationRecords)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/team/index":
+            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .operators)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/coop-center/index":
+            session.merchantCoopCenterDestination()
+        case "pages/coop/nearby/index":
+            SessionNearbyMerchantsView(session: session)
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":

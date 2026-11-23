@@ -33,6 +33,18 @@ final class MerchantOperationsContractTests: XCTestCase {
         XCTAssertEqual(Set(profile.fields.keys), ["logo", "name", "description", "derivatives", "website", "preference"])
         XCTAssertNil(profile.fields["address"]); XCTAssertNil(profile.fields["locationLat"]); XCTAssertNil(profile.fields["id"])
     }
+    /// Parity decor P0: 联系电话 / 门店微信 go to /api/merchant/update only when edited, with the server's format rules.
+    func testContactFieldsSendOnlyWhenEditedAndValid() throws {
+        var profile = try decode(MerchantStoreProfile.self, MerchantOperationsFixtureData.storeJSON)
+        XCTAssertNil(profile.fields["phone"]); XCTAssertNil(profile.fields["wechat"])
+        profile.phone = "12345"
+        XCTAssertEqual(profile.contactBlocker, "merchant.operations.phoneInvalid")
+        profile.phone = "13800138000"; profile.wechat = "shop_id-1"
+        XCTAssertNil(profile.contactBlocker)
+        XCTAssertEqual(profile.fields["phone"] as? String, "13800138000"); XCTAssertEqual(profile.fields["wechat"] as? String, "shop_id-1")
+        profile.wechat = "not valid!"
+        XCTAssertEqual(profile.contactBlocker, "merchant.operations.wechatInvalid")
+    }
     func testDecorAcceptsJSONListAndLegacySemicolon() throws {
         let decor = try decode(MerchantStoreDecor.self, #"{"gallery":"[\"a;b\",\" c \" ]","tags":" calm ; ; evening "}"#)
         XCTAssertEqual(decor.gallery, ["a;b", "c"]); XCTAssertEqual(decor.tags, ["calm", "evening"])

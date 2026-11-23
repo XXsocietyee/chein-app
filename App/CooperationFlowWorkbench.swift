@@ -28,7 +28,7 @@ import SwiftUI
                     NavigationLink { CoopFlowNearbyGate(reader: reader) } label: { Text("coopflow.nearby") }
                         .accessibilityIdentifier("coopflow.route.coopflow.nearby")
                 }
-                CoopWithdrawEntryLinks(isSignedIn: reader.session != nil)
+                // Parity X2: MP deleted pages/coop/withdraw*; 提现 lives on 分润明细 (CoopFinanceProfitView), not the tools root.
             }
             Section("coopflow.supply") {
                 link("coopflow.templates", resource: .templates)
@@ -44,7 +44,7 @@ import SwiftUI
                 link("coopflow.registrations", resource: .registrations)
                 link("coopflow.complaints", resource: .complaintTopics)
             }
-        }.navigationTitle("coopflow.title").accessibilityIdentifier("coopflow.workbench")
+        }.navigationTitle("coopflow.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("coopflow.workbench")
             .cyDomainScreen(.merchant)
     }
     private func link(_ key: String, resource: CoopFlowRead) -> some View {
@@ -77,7 +77,7 @@ import SwiftUI
                 else { Text("coopflow.nearby.unavailable") }
             }
             Section { Text("coopflow.nearby.privacy"); CoopFlowSafetyNotice() }
-        }.navigationTitle("coopflow.nearby")
+        }.navigationTitle("coopflow.nearby").navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("coopflow.nearby.gate")
     }
 }
@@ -118,7 +118,7 @@ struct CoopFlowSafetyNotice: View {
             } else { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
         }
         .cyGroupedSurface()
-        .navigationTitle(LocalizedStringKey(title))
+        .navigationTitle(LocalizedStringKey(title)).navigationBarTitleDisplayMode(.inline)
         .background {
             if resource == .pool {
                 CoopPoolApplicationHost(reader: reader, sourcePool: { value }, sourceSession: { loadedSession },
@@ -213,7 +213,7 @@ struct CoopFlowSafetyNotice: View {
                         }
                         sourceActions(row, direction: direction)
                         Section { CoopFlowSafetyNotice() }
-                    }.navigationTitle("coopflow.details")
+                    }.navigationTitle("coopflow.details").navigationBarTitleDisplayMode(.inline)
                 } label: {
                     if resource == .invitations {
                         // Figma 186:5944 (SR2-18): invite cards hug their content — cover, a two-line title, one meta
@@ -331,7 +331,7 @@ struct CoopFlowFields: View {
                 Section { CoopFlowSafetyNotice() }
             } else if failed { Text("coopflow.read.failed") }
             else { CYSkeleton(variant: .detail).accessibilityLabel(Text("cooperation.loading")) }
-        }.navigationTitle("coopflow.settlement.detail")
+        }.navigationTitle("coopflow.settlement.detail").navigationBarTitleDisplayMode(.inline)
             .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0)") {
                 row = nil; scope = nil; failed = false
                 let captured = reader.session

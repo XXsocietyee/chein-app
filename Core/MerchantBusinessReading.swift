@@ -39,6 +39,9 @@ public struct MerchantBusinessSnapshot: Equatable {
     func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope: MerchantBusinessScope) async throws -> MerchantBusinessReceipt
     func execute(_ review: MerchantBusinessConfirmation, check: () throws -> Void) async throws -> MerchantBusinessReceipt
     func execute(_ review: MerchantBusinessConfirmation, authorization: MerchantBusinessDispatchAuthorization, check: () throws -> Void) async throws -> MerchantBusinessReceipt
+    /// pages/merchant/bundle-reservations (defaults in MerchantBundleReservations.swift: unavailable).
+    func bundleReservations(now: Date) async throws -> [MerchantBundleReservation]
+    func markBundleNoShow(_ id: Int64) async throws
 }
 public extension MerchantBusinessReading {
     func snapshot(_ query: MerchantBusinessQuery, isCurrent: () -> Bool) async throws -> MerchantBusinessSnapshot {
@@ -113,6 +116,15 @@ public extension MerchantBusinessReading {
             if query == .operators { roles = try await service.document(.roles, access: access, token: session.token) }
             return .init(access: access, document: document, roles: roles)
         }
+    }
+    public func bundleReservations(now: Date) async throws -> [MerchantBundleReservation] {
+        guard !canExecuteSyntheticMutation else { throw MerchantBusinessFailure.disabled }
+        return try await read { try await $0.bundleReservations(now: now, token: $1.token) }
+    }
+    /// Caller gates on `ReviewedAreaSwitch.merchantWrites` (TEST/DEBUG hosts only) before dispatch.
+    public func markBundleNoShow(_ id: Int64) async throws {
+        guard !canExecuteSyntheticMutation else { throw MerchantBusinessFailure.disabled }
+        try await read { try await $0.markBundleNoShow(id, token: $1.token) }
     }
     public func execute(_ mutation: MerchantBusinessMutation, requestID: String, scope expected: MerchantBusinessScope) async throws -> MerchantBusinessReceipt {
         guard scope == expected else { throw MerchantBusinessFailure.stale }

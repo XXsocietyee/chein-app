@@ -12,7 +12,6 @@ import SwiftUI
     var body: some View {
         ScrollView {
             LazyVStack(spacing: 18) {
-                MerchantOpsWp03Panel(page: .chapter)
                 MerchantContentBoundary()
                 NavigationLink { MerchantOfferWithdrawalRecoveryEntry() } label: {
                     Label("原供给撤回结果", systemImage: "clock.arrow.circlepath")
@@ -396,7 +395,6 @@ struct MerchantContentFields: View {
     let snapshot: MerchantContentSnapshot
     let topicID: Int
     var body: some View {
-        MerchantOpsWp03Panel(page: .chapter)
         Text(verbatim: snapshot.value["topic"]["name"].text ?? "—").font(.title2)
         if let message = snapshot.value["message"].text { Text(verbatim: message) }
         let wire2Facts = MerchantTopicDetailFacts(topic: snapshot.value["topic"])

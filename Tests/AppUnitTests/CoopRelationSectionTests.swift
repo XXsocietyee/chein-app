@@ -2,20 +2,22 @@ import XCTest
 @testable import Questify
 
 final class CoopRelationSectionTests: XCTestCase {
-    func testMerchantsIsAlwaysTheDefaultSegmentEvenWhenAFeedIsInjected() {
-        XCTAssertEqual(CoopRelationSection.effective(selected: nil, feedAvailable: true), .merchants)
-        XCTAssertEqual(CoopRelationSection.effective(selected: nil, feedAvailable: false), .merchants)
+    // Parity relation P0/P1: MP 帖子 (default) / 俱乐部; 商家 removed 2026-10-22.
+    func testPostsIsTheDefaultWhenAFeedIsInjectedOtherwiseClubs() {
+        XCTAssertEqual(CoopRelationSection.effective(selected: nil, feedAvailable: true), .posts)
+        XCTAssertEqual(CoopRelationSection.effective(selected: nil, feedAvailable: false), .clubs)
         XCTAssertEqual(CoopRelationSection.merchants.relationKind, .merchants)
     }
     func testExplicitSelectionWinsButPostsFallsBackWithoutAFeed() {
         XCTAssertEqual(CoopRelationSection.effective(selected: .posts, feedAvailable: true), .posts)
         XCTAssertEqual(CoopRelationSection.effective(selected: .clubs, feedAvailable: true), .clubs)
         XCTAssertEqual(CoopRelationSection.effective(selected: .clubs, feedAvailable: false), .clubs)
-        XCTAssertEqual(CoopRelationSection.effective(selected: .posts, feedAvailable: false), .merchants)
+        XCTAssertEqual(CoopRelationSection.effective(selected: .posts, feedAvailable: false), .clubs)
+        XCTAssertEqual(CoopRelationSection.effective(selected: .merchants, feedAvailable: true), .posts)
     }
     func testAvailableSegmentsAndRelationKinds() {
-        XCTAssertEqual(CoopRelationSection.available(feedAvailable: true), [.merchants, .clubs, .posts])
-        XCTAssertEqual(CoopRelationSection.available(feedAvailable: false), [.merchants, .clubs])
+        XCTAssertEqual(CoopRelationSection.available(feedAvailable: true), [.posts, .clubs])
+        XCTAssertEqual(CoopRelationSection.available(feedAvailable: false), [.clubs])
         XCTAssertNil(CoopRelationSection.posts.relationKind)
         XCTAssertEqual(CoopRelationSection.clubs.relationKind, .clubs)
         XCTAssertEqual(CoopRelationSection.merchants.relationKind, .merchants)

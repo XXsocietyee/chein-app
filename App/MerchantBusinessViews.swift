@@ -307,7 +307,6 @@ import SwiftUI
         let renderedKey = accessKey
         let queuedRequest = accessModel.request
         List {
-            MerchantOpsWp03Panel(page: .team)
             if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.synthetic") }
             // Entry does not grant report access; the destination rechecks original APP permissions.
             NavigationLink { SessionCityMerchantValueView() } label: { CityMerchantValueCopy.text("merchantTitle") }
@@ -353,7 +352,7 @@ import SwiftUI
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.business.title")
+        .cyPageTitle("merchant.business.title")
         // The destination host remains outside the access-dependent rows. Clearing
         // Home on push does not remove a destination already on the navigation stack.
         .navigationDestination(for: MerchantBusinessHomeRoute.self) { route in
@@ -410,6 +409,7 @@ import SwiftUI
 }
 
 @MainActor struct MerchantBusinessPage: View {
+    @State private var aftercareDetailReturnPending = false
     @Environment(\.merchantCustomerQueryDestination) private var customerQueryDestination
     @Environment(\.merchantCoopCenterDestination) private var coopCenterDestination
     @Environment(\.locale) private var locale
@@ -531,7 +531,7 @@ import SwiftUI
                         NavigationLink { coopCenterDestination(.plaza, nil) } label: { Text(mcc("merchantCoopCenter.customerEntry", locale)) }
                             .accessibilityIdentifier("merchant.business.customers.coopCenter")
                     }
-                } else if query != .operators, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
+                } else if query != .operators, query != .verificationRecords, snapshot.document.sections.allSatisfy({ model.unfilteredRows(in: $0, query: snapshot.document.query).isEmpty }) && (snapshot.document.summary.isEmpty || isLocalList) {
                     if case .aftercare(let bucket, _) = query {
                         CYEmptyState(systemImage: "arrow.uturn.backward.circle", LocalizedStringKey(MerchantOpsCopy.text(MerchantAftercareParity.emptyKey(bucket.rawValue))))
                             .listRowBackground(Color.clear)
@@ -547,7 +547,6 @@ import SwiftUI
                         .accessibilityIdentifier("merchant.business.list.noMatches")
                 }
                 if query == .operators {
-                    MerchantOpsWp03Panel(page: .team)
                     if let roster = try? MerchantOperatorRoster(document: snapshot.document) {
                         MerchantOperatorRosterSections(roster: roster, access: snapshot.access,
                             detailsExpanded: Binding(get: { teamAccessDetailsExpanded }, set: { expanded in
@@ -569,6 +568,9 @@ import SwiftUI
                         Section { rowActions(refund, access: snapshot.access) }
                     }
                     MerchantAftercareProgressView(progress: progress)
+                } else if query == .verificationRecords {
+                    // Parity X5: 已核销 / 已撤销 chip tabs with counts and day groups (pages/merchant/verify-records).
+                    MerchantVerifyRecordsSections(records: snapshot.document.rows, total: snapshot.document.total)
                 } else {
                     ForEach(snapshot.document.sections) { section in
                         let rows = visibleRows(section, in: snapshot.document)
@@ -667,7 +669,7 @@ import SwiftUI
             }
         }
         .cyDomainScreen(.merchant)
-        .appNavigationTitle(key: query.titleKey)
+        .appNavigationTitle(key: query.titleKey).navigationBarTitleDisplayMode(.inline)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }
         .refreshable { await reload() }
@@ -781,6 +783,7 @@ import SwiftUI
                     captured: capturedCustomerRoute, destination: customerQueryDestination).id(capturedCustomerRoute.id)
             }
         }
+        .onAppear { if aftercareDetailReturnPending { aftercareDetailReturnPending = false; Task { await reload() } } }
         .onAppear { model.teamPageAppeared(active: scenePhase == .active); model.ledgerPreviewAppeared(active: scenePhase == .active); aftercareReturn.appear(active: scenePhase == .active); customerFilterDisclosure.viewAppeared(sceneIsActive: scenePhase == .active); if scenePhase == .active { draftReturn.activate(); noteDrafts.activate() } }
         .onChange(of: model.revision) { _, _ in
             if let retired = aftercareReturn.synchronize(), editor?.id == retired { editor = nil }
@@ -966,7 +969,15 @@ import SwiftUI
     }
     @ViewBuilder private func rowView(_ row: MerchantBusinessRecord, access: MerchantBusinessAccess) -> some View {
         let isDirectory: Bool = { switch query { case .customers, .aftercare, .batches, .redemptions: return true; default: return false } }()
-        if isDirectory, let destination = row.destination {
+        if row.isManualCase, let line = MerchantAftercareParity.ListRow(row) {
+            // Parity aftercare P0: 人工退款工单 rows open a read-only platform-progress detail.
+            NavigationLink { MerchantManualCaseDetailView(row: line) } label: {
+                VStack(alignment: .leading, spacing: 4) {
+                    if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }
+                    MerchantAftercareRowLabel(row: line)
+                }
+            }.accessibilityIdentifier("merchant.business.row.manualCase.\(row.id)")
+        } else if isDirectory, let destination = row.destination {
             VStack(alignment: .leading, spacing: 8) {
             HStack {
                 if row.kind == .customer, access.allows("merchant:crm:segment"), let id = Int(row.id) {
@@ -975,7 +986,11 @@ import SwiftUI
                     }.buttonStyle(.borderless).accessibilityLabel(Text("merchant.business.selectCustomer"))
                         .accessibilityValue(selection.contains(id) ? Text("merchant.business.selected") : Text("merchant.business.unselected"))
                 }
-                NavigationLink { MerchantBusinessPage(reader: reader, journal: journal, query: destination) } label: {
+                NavigationLink {
+                    MerchantBusinessPage(reader: reader, journal: journal, query: destination)
+                        // Parity aftercare P1 (MP _refreshAfterDetail): a decision on the detail must not leave a stale 待回应 row.
+                        .onDisappear { if case .aftercare = query { aftercareDetailReturnPending = true } }
+                } label: {
                     if row.kind == .refund, let line = MerchantAftercareParity.ListRow(row) {
                         VStack(alignment: .leading, spacing: 4) {
                             if let group = aftercareDayGroup(opening: row) { MerchantAftercareDayHeader(group: group) }

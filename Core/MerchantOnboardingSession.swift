@@ -18,6 +18,13 @@ public protocol MerchantOnboardingServing: AnyObject {
     func identityRegistered(expectedIdentity: ProfileReadIdentity) async throws -> Bool
     func uploadLicense(_ image: MerchantOnboardingImage, expectedIdentity: ProfileReadIdentity) async throws -> MerchantOnboardingLicense
     func submit(_ draft: MerchantOnboardingDraft, expectedIdentity: ProfileReadIdentity) async throws
+    func categories(expectedIdentity: ProfileReadIdentity) async throws -> [MerchantOnboardingCategory]
+    func registerIdentity(_ draft: MerchantOnboardingDraft, expectedIdentity: ProfileReadIdentity) async throws
+}
+/// Defaults keep older fakes compiling: no catalog and an unsent identity write (never a fabricated success).
+public extension MerchantOnboardingServing {
+    func categories(expectedIdentity: ProfileReadIdentity) async throws -> [MerchantOnboardingCategory] { throw APIError.notConfigured }
+    func registerIdentity(_ draft: MerchantOnboardingDraft, expectedIdentity: ProfileReadIdentity) async throws { throw MerchantOnboardingWriteError.notSent }
 }
 
 @MainActor
@@ -42,6 +49,12 @@ public final class MerchantOnboardingSessionAdapter: MerchantOnboardingServing {
     }
     public func submit(_ draft: MerchantOnboardingDraft, expectedIdentity: ProfileReadIdentity) async throws {
         try await write(expectedIdentity) { service, token in try await service.submit(draft, token: token) }
+    }
+    public func categories(expectedIdentity: ProfileReadIdentity) async throws -> [MerchantOnboardingCategory] {
+        try await read(expectedIdentity) { service, token in try await service.categories(token: token) }
+    }
+    public func registerIdentity(_ draft: MerchantOnboardingDraft, expectedIdentity: ProfileReadIdentity) async throws {
+        try await write(expectedIdentity) { service, token in try await service.registerIdentity(draft, token: token) }
     }
     private func read<Value>(_ expected: ProfileReadIdentity,
                              operation: (MerchantOnboardingService, String) async throws -> Value) async throws -> Value {

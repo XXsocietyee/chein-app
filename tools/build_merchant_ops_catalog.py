@@ -6,7 +6,7 @@ The script fails when App sources use a key that is not defined here, or a defin
 """
 import json, pathlib, re
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DYNAMIC_PREFIXES = ['merchantOps.customer.tier.', 'merchantOps.aftercare.processing.', 'merchantOps.aftercare.processingHint.', 'merchantOps.aftercare.stepState.']
+DYNAMIC_PREFIXES = ['merchantOps.customer.tier.', 'merchantOps.aftercare.processing.', 'merchantOps.aftercare.processingHint.', 'merchantOps.aftercare.stepState.', 'merchantOps.aftercare.manualCase.status.']
 ROWS = {
  # pages/merchant/marketing/index.{js,wxml}
  'merchantOps.marketing.hero.label %lld': ('Sign-ups in the last %lld days', '近 %lld 天报名'),
@@ -57,6 +57,17 @@ ROWS = {
  'merchantOps.aftercare.status.returned': ('Returned', '已退回'),
  'merchantOps.aftercare.takenOver': ('Sent to platform support', '已转平台客服'),
  'merchantOps.aftercare.amountPending': ('Amount to be confirmed', '金额待确认'),
+ # pages/merchant/aftercare/detail/view-model.js shapeManualCase (人工退款工单, read-only)
+ 'merchantOps.aftercare.manualCase.title': ('Manual refund case', '人工退款工单'),
+ 'merchantOps.aftercare.manualCase.status.PENDING_ASSESSMENT': ('Refund requested · platform assessing', '玩家申请退款 · 平台评估中'),
+ 'merchantOps.aftercare.manualCase.status.MANUAL_REFUND_REQUIRED': ('Assessed by the platform, awaiting manual handling', '平台已评估，待人工处理'),
+ 'merchantOps.aftercare.manualCase.status.MANUAL_REFUND_RECORDED': ('Manual refund recorded, awaiting platform review', '已登记人工退款，待平台复核'),
+ 'merchantOps.aftercare.manualCase.status.MANUAL_REFUND_EVIDENCE_VERIFIED': ('Platform verified the manual refund evidence', '平台已复核人工退款凭证'),
+ 'merchantOps.aftercare.manualCase.status.NO_REFUND': ('Platform assessed: no refund needed', '平台评估无需退款'),
+ 'merchantOps.aftercare.manualCase.requested': ('Refund requested', '玩家申请退款'),
+ 'merchantOps.aftercare.manualCase.note': ('Handled by the platform; merchants can follow the progress.', '由平台处理，商家可查看进度。'),
+ 'merchantOps.aftercare.manualCase.activity': ('Activity', '活动'),
+ 'merchantOps.aftercare.manualCase.progress': ('Progress', '处理进度'),
  'merchantOps.aftercare.day.today': ('Today', '今天'),
  'merchantOps.aftercare.day.yesterday': ('Yesterday', '昨天'),
  'merchantOps.aftercare.day.monthDay %lld %lld': ('%1$lld/%2$lld', '%1$lld月%2$lld日'),

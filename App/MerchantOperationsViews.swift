@@ -27,7 +27,6 @@ struct MerchantOperationsHomeView: View {
     var body: some View {
         let readPermit = readLifetime.permit
         List {
-            MerchantOpsWp03Panel(page: .decor)
             MerchantOperationsBoundary(isExample: reader.isOfflineExample)
             if loadedScope == reader.scope, let access {
                 if access.identity.active && access.profileWrite && access.identity.allows(.basicRead), let cityMerchantFactory {
@@ -82,7 +81,7 @@ struct MerchantOperationsHomeView: View {
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.operations.title")
+        .cyPageTitle("merchant.operations.title")
         .refreshable { await load(readPermit) }
         .task(id: readPermit) { await load(readPermit) }
         .onAppear { readLifetime.appear(active: scenePhase == .active) }
@@ -269,7 +268,7 @@ struct MerchantOperationsDocumentView: View {
         }
         .cyDomainPageBackground()
         .themeDomain(.merchant)
-        .appNavigationTitle(key: destination.titleKey)
+        .appNavigationTitle(key: destination.titleKey).navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
             if let templateReturn { MerchantCityTemplateReturnFooter(coordinator: coordinator, action: templateReturn) }
         }
@@ -279,7 +278,7 @@ struct MerchantOperationsDocumentView: View {
                     imageHost: imageHost, templateAssistFactory: templateAssistFactory).id(route.id)
             } else { Text("merchant.business.stale") }
         }
-        .navigationBarBackButtonHidden(coordinator.isDirty)
+        .cyGuardedBack(when: coordinator.isDirty) { confirmDiscard = true }
         .toolbar {
             if destination == .decor {
                 ToolbarItemGroup(placement: .bottomBar) {
@@ -302,12 +301,6 @@ struct MerchantOperationsDocumentView: View {
                 Button("merchant.operations.reloadSource", systemImage: "arrow.clockwise") {
                     if coordinator.isDirty { confirmReload = true } else { Task { await model.load() } }
                 }.disabled(coordinator.isBusy).accessibilityIdentifier("merchant.operations.reload")
-            }
-            if coordinator.isDirty {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("action.cancel") { confirmDiscard = true }
-                        .accessibilityIdentifier("merchant.operations.close")
-                }
             }
         }
         .interactiveDismissDisabled(coordinator.isDirty || coordinator.isBusy)
@@ -400,7 +393,7 @@ private struct MerchantOperationsCityView: View {
                             Text(LocalizedStringKey(node.status == 1 ? "merchant.operations.node.online" : node.status == 0 ? "merchant.operations.node.offline" : "merchant.operations.review.unknown"))
                             if let template = node.templateTitle { LabeledContent("merchant.operations.template", value: template) }
                             if let tags = node.tagsText { LabeledContent("merchant.operations.tags", value: tags) }
-                        }.appNavigationTitle("merchant.operations.nodeDetail")
+                        }.cyPageTitle("merchant.operations.nodeDetail")
                     } label: {
                         if let name = node.name, !name.isEmpty { Text(verbatim: name) } else { Text("merchant.operations.untitled") }
                     }.accessibilityIdentifier("merchant.operations.node." + String(node.id))

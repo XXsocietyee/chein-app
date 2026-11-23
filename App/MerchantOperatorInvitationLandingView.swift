@@ -24,7 +24,7 @@ import SwiftUI
             }
             if let failure = model.coordinator.failure { Text(LocalizedStringKey(failure.key)) }
             if let receipt = model.coordinator.receipt, case .invitationAccepted = receipt { Text("merchant.engagement.membershipReceipt"); Text("merchant.engagement.refreshIdentity") }
-        }.appNavigationTitle("merchant.engagement.invitation")
+        }.cyPageTitle("merchant.engagement.invitation")
         .sheet(item: Binding(get: { model.coordinator.review }, set: { if $0 == nil { model.cancel() } })) { review in
             MerchantEngagementReviewView(review: review, enabled: reader.canExecute(review.command, merchantID: review.proof.access.merchantID ?? 0), synthetic: reader.isSyntheticEnabled, busy: model.coordinator.busy, cancel: model.cancel) {
                 Task { await model.confirm(review); if let result = model.coordinator.receipt, case .invitationAccepted = result { consumed = true } }

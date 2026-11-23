@@ -84,7 +84,7 @@ import SwiftUI
                     }.refreshable { await model.reload() }
                 }
             }
-            .appNavigationTitle("merchant.brandImages.title")
+            .cyPageTitle("merchant.brandImages.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     if session.selectedIndex != nil { Button("merchant.brandImages.back") { model.closeImage() }.accessibilityIdentifier("merchant.brandImages.back") }

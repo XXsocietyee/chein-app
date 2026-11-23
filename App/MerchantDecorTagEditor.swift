@@ -104,7 +104,7 @@ import SwiftUI
                     }.disabled(!picker.isCurrent || !picker.draft.canApply).accessibilityIdentifier("merchant.decorTags.apply")
                 }
             }.disabled(!picker.isCurrent)
-                .appNavigationTitle("merchant.decorTags.choose")
+                .cyPageTitle("merchant.decorTags.choose")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: close).accessibilityIdentifier("merchant.decorTags.cancel") } }
         }
     }

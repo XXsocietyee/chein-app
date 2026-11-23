@@ -154,7 +154,6 @@ ROWS = {
  'create.unknownBody': ('We couldn\'t confirm whether this was submitted. It won\'t be sent again; refresh to see the latest status.', '提交结果未确认，不会重复提交；请刷新查看最新状态。'),
  'create.unknownFound': ('Found your placement application in review.', '已找到审核中的投放申请。'),
  'create.unknownMissing': ('No placement application in review was found yet. The result is still unconfirmed.', '暂未找到审核中的投放申请，结果仍未确认。'),
- 'create.back': ('Back', '返回'),
  'create.leaveTitle': ('Discard the unsubmitted draft?', '放弃未提交草稿吗'),
  'create.leaveBody': ('The game or address has not been submitted. Leaving now loses this draft.', '玩法或店址还没有提交，直接离开会丢失本页草稿。'),
  'create.leaveConfirm': ('Leave', '离开'),

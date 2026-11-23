@@ -138,13 +138,13 @@ final class MerchantWorkspaceReadProofTests: XCTestCase {
         let query = MerchantBusinessQuery.verificationRecords
         let wire = MerchantProofWire(body: try okEnvelope(try MerchantBusinessSyntheticFixtures.payload(query)))
         let document = try await service(wire).document(query, access: try ownerAccess(), token: "synthetic-token")
-        XCTAssertEqual(document.rows.count, 1)
+        XCTAssertEqual(document.rows.count, 2)
         let requests = await wire.requests
         let request = try XCTUnwrap(requests.first)
         XCTAssertEqual(request.httpMethod, "POST")
-        XCTAssertEqual(request.url?.path, "/test/api/merchant/verification-records")
+        XCTAssertEqual(request.url?.path, "/test/api/merchant/finance/redemptions")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-token")
-        XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data") == true)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/json")
     }
 
     func testVerificationRecordsNeedRecordReadPermissionAndHonorServerRejection() async throws {

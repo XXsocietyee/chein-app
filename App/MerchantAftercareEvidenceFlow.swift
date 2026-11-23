@@ -316,7 +316,7 @@ struct MerchantAftercareEvidenceDraft: Equatable {
                     if let issue = model.issue ?? model.coordinator.failure?.key { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
                 }
             }
-            .navigationTitle("merchant.engagement.evidence")
+            .navigationTitle("merchant.engagement.evidence").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("action.cancel") { model.retire(); dismiss() }.disabled(model.busy)
             } }

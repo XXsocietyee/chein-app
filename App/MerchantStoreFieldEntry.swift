@@ -80,7 +80,7 @@ import SwiftUI
                         .disabled(!session.canApply).accessibilityIdentifier("merchant.storeField.apply")
                 }
             }.disabled(!session.isCurrent || session.asksDiscard)
-                .appNavigationTitle(key: session.buffer.field.titleKey)
+                .appNavigationTitle(key: session.buffer.field.titleKey).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { if session.requestClose() { close() } }.accessibilityIdentifier("merchant.storeField.cancel")
                 } }

@@ -107,7 +107,7 @@ final class MerchantOperationsFlowTests: XCTestCase {
         let app = launch(); open("gallery", app: app)
         let add = app.buttons["merchant.operations.gallery.add"]
         for _ in 0..<8 where !add.isHittable { app.swipeUp() }; add.tap()
-        XCTAssertTrue(app.buttons["merchant.operations.close"].exists)
+        XCTAssertTrue(app.navigationBars.buttons.element(boundBy: 0).exists) // cyGuardedBack while dirty
         app.buttons["merchant.operations.fixture.signOut"].tap()
         XCTAssertFalse(app.descendants(matching: .any)["merchant.operations.editor"].exists)
     }

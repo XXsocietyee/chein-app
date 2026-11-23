@@ -159,7 +159,7 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                 }
             }
         }
-        .navigationTitle(mcc("merchantCoopCenter.title", locale))
+        .navigationTitle(mcc("merchantCoopCenter.title", locale)).navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.merchant)
         .toolbar {
             if inboxDestination != nil {

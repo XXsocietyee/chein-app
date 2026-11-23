@@ -86,6 +86,19 @@ struct MerchantOperationsEditor: View {
                 profileField("merchant.operations.website", \.website, "website")
                 profileField("merchant.operations.preference", \.preference, "preference")
             }
+            // Parity decor P0: 联系电话 / 门店微信 are merchant self-service (MP decor index.wxml:359-390).
+            Section("merchant.operations.contact") {
+                contactField("merchant.operations.phone", \.phone, "phone", keyboard: .phonePad)
+                contactField("merchant.operations.wechat", \.wechat, "wechat", keyboard: .asciiCapable)
+                LabeledContent("merchant.operations.wechatQrcode") {
+                    Text(value.wechatQrcode?.isEmpty == false ? "merchant.operations.wechatQrcode.set" : "merchant.operations.wechatQrcode.none")
+                }
+                LabeledContent("merchant.operations.address") { Text(verbatim: value.address?.isEmpty == false ? value.address! : "—") }
+                if let blocker = value.contactBlocker {
+                    Text(LocalizedStringKey(blocker)).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("merchant.operations.contactBlocker")
+                }
+            }
             MerchantBrandImagesEntry(document: model)
             MerchantStoreHoursEditor(model: model)
             mediaSection("merchant.operations.logo", field: .logo)
@@ -293,6 +306,14 @@ struct MerchantOperationsEditor: View {
                 guard case .profile(var value) = coordinator.draft else { return }; value[keyPath: key] = text; model.edit(.profile(value))
             }), axis: multiline ? .vertical : .horizontal).accessibilityIdentifier("merchant.operations.field." + id)
         }
+    }
+    private func contactField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreProfile, String?>, _ id: String, keyboard: UIKeyboardType) -> some View {
+        TextField(title, text: Binding(get: { if case .profile(let value) = coordinator.draft { return value[keyPath: key] ?? "" }; return "" }, set: { text in
+            guard case .profile(var value) = coordinator.draft else { return }
+            value[keyPath: key] = text.trimmingCharacters(in: .whitespaces); model.edit(.profile(value))
+        }))
+        .keyboardType(keyboard).textInputAutocapitalization(.never).autocorrectionDisabled()
+        .accessibilityIdentifier("merchant.operations.field." + id)
     }
     @ViewBuilder private func decorField(_ title: LocalizedStringKey, _ key: WritableKeyPath<MerchantStoreDecor, String>, _ id: String) -> some View {
         if let field = MerchantStoreTextField(rawValue: id) {

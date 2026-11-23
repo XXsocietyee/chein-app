@@ -49,7 +49,10 @@ public enum MerchantBusinessQuery: Equatable, Hashable {
         switch self {
         case .customers, .customer: return ["merchant:crm:read"]
         case .aftercare, .refund: return ["merchant:aftercare:read"]
-        case .overview, .entries, .batches, .batch, .redemptions, .redemption: return ["merchant:finance:read"]
+        // Parity batch A #6 / X5: redemptions and their detail are VERIFY_RECORD_READ on the server (amounts redacted
+        // without finance:read), so a verifier can read them as in the MP.
+        case .redemptions, .redemption: return ["merchant:verify:record:read"]
+        case .overview, .entries, .batches, .batch: return ["merchant:finance:read"]
         case .verificationRecords: return ["merchant:verify:record:read"]
         case .operators, .roles: return ["merchant:operator:manage"]
         case .reviews: return [] // Source management rows supply canReply/canReport; do not invent review permissions
@@ -86,7 +89,9 @@ public enum MerchantBusinessQuery: Equatable, Hashable {
         case .redemption(let id):
             guard !id.isEmpty, id.range(of: #"^[0-9]+$"#, options: .regularExpression) != nil, id.contains(where: { $0 != "0" }) else { throw MerchantBusinessFailure.invalid }
             return .json("api/merchant/finance/redemption-detail", ["recordType": .string("redemption"), "recordId": .string(id)])
-        case .verificationRecords: return .form("api/merchant/verification-records", [:])
+        // Parity X5 / M-03: the MP reads the finance redemption source (VERIFY_RECORD_READ on the server; amounts redacted
+        // without finance:read). The retired cms_registration_scan source produced false counts.
+        case .verificationRecords: return .json("api/merchant/finance/redemptions", ["filter": .string("all"), "pageNum": .int(1), "pageSize": .int(50)])
         case .operators: return .empty("api/merchant/operators/list")
         case .roles: return .empty("api/merchant/operators/roles")
         }

@@ -68,7 +68,13 @@ public struct MerchantStoreProfile: Decodable, Equatable {
     public var displayedBusinessTime: String? { businessTimeReplacement ?? businessTime }
     public var website: String
     public var preference: String
-    private enum CodingKeys: String, CodingKey { case id, logo, name, description, derivatives, derivativeBenefits, businessTime, website, preference }
+    /// Parity decor P0 (owner 2026-10-22: contact is merchant self-service). nil = absent; sent only when edited.
+    public var phone: String?
+    public var wechat: String?
+    public let wechatQrcode: String?
+    public let address: String?
+    private var contactBaseline: [String: String] = [:]
+    private enum CodingKeys: String, CodingKey { case id, logo, name, description, derivatives, derivativeBenefits, businessTime, website, preference, phone, wechat, wechatQrcode, address }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard !c.allKeys.isEmpty else { throw APIError.malformedResponse }
@@ -81,6 +87,20 @@ public struct MerchantStoreProfile: Decodable, Equatable {
         businessTime = try c.decodeIfPresent(String.self, forKey: .businessTime)
         website = try c.decodeIfPresent(String.self, forKey: .website) ?? ""
         preference = try c.decodeIfPresent(String.self, forKey: .preference) ?? ""
+        phone = try? c.decodeIfPresent(String.self, forKey: .phone)
+        wechat = try? c.decodeIfPresent(String.self, forKey: .wechat)
+        wechatQrcode = try? c.decodeIfPresent(String.self, forKey: .wechatQrcode)
+        address = try? c.decodeIfPresent(String.self, forKey: .address)
+        contactBaseline = ["phone": phone ?? "", "wechat": wechat ?? ""]
+    }
+    /// Server rules (ApiMerchantController /update): 11-digit mainland mobile; WeChat id [A-Za-z0-9_-]{1,20} or empty.
+    public var contactBlocker: String? {
+        if let phone, phone != contactBaseline["phone"], phone.range(of: #"^1[3-9][0-9]{9}$"#, options: .regularExpression) == nil {
+            return "merchant.operations.phoneInvalid"
+        }
+        if let wechat, wechat != contactBaseline["wechat"], !wechat.isEmpty,
+           wechat.range(of: #"^[A-Za-z0-9_-]{1,20}$"#, options: .regularExpression) == nil { return "merchant.operations.wechatInvalid" }
+        return nil
     }
     public var benefitsBlocker: String? {
         (derivativeBenefits?.utf16.count ?? 0) > 100 ? "merchant.operations.benefitsLimit" : nil
@@ -90,6 +110,8 @@ public struct MerchantStoreProfile: Decodable, Equatable {
         var fields = legacyFields
         if let derivativeBenefits { fields["derivativeBenefits"] = derivativeBenefits }
         if let businessTimeReplacement { fields["businessTime"] = businessTimeReplacement }
+        if let phone, phone != contactBaseline["phone"] { fields["phone"] = phone }
+        if let wechat, wechat != contactBaseline["wechat"] { fields["wechat"] = wechat }
         return fields
     }
     public var hoursBlocker: String? {

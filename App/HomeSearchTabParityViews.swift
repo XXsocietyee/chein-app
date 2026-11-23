@@ -1370,7 +1370,18 @@ struct SessionMerchantRootContainerView: View {
             NavigationStack {
                 Group {
                     if MerchantRootModeCoordinator.allowsBusinessTab(.cooperation, access: access) {
-                        CooperationFlowWorkbench(reader: session.cooperationFlowReader, operationScope: "MERCHANT")
+                        // Parity relation P0: the 合作 tab root is MP 发现 (帖子 / 俱乐部); the cooperation tools list moves
+                        // behind the trailing toolbar item instead of being the tab's primary content.
+                        SessionCoopRelationDiscoveryView(session: session, reader: session.cooperationFlowReader)
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    NavigationLink {
+                                        CooperationFlowWorkbench(reader: session.cooperationFlowReader, operationScope: "MERCHANT")
+                                            .cyPushedChrome(domain: .merchant)
+                                    } label: { Label("cooprelation.tools", systemImage: "square.grid.2x2") }
+                                        .accessibilityIdentifier("merchant.cooperation.tools")
+                                }
+                            }
                     } else {
                         MerchantFailureView(
                             errorKey: "merchant.access.denied",

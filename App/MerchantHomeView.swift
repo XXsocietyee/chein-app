@@ -220,6 +220,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @ObservedObject var events: MerchantLoadModel<[MerchantEvent]>
     let onChildReturn: () -> Void
     @Environment(\.merchantAuthoringDestination) private var merchantAuthoringDestination
+    @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
+    @Environment(\.merchantCoopInboxDestination) private var coopInboxDestination
     @State private var operationsAccess: MerchantOperationsAccess?
     @State private var businessStatus: MerchantBusinessStatus?
 
@@ -406,6 +408,23 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         Label(LocalizedStringKey(MerchantWorkbenchBusinessShortcut.aftercare.query.titleKey), systemImage: MerchantWorkbenchBusinessShortcut.aftercare.symbol)
                     }.accessibilityIdentifier("merchant.workbench.direct.aftercare")
                 }
+                if let businessReader, let businessJournal, access.allows(.verify) || access.allows(.verifyRecordRead) {
+                    // Parity verify-records P1 / bundle-reservations P0: MP 更多 › 核销记录 and 套票到店 are one tap away.
+                    NavigationLink {
+                        MerchantBusinessPage(reader: businessReader, journal: businessJournal, query: .verificationRecords)
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.business.verifications", systemImage: "checkmark.seal") }
+                        .accessibilityIdentifier("merchant.workbench.verifyRecords")
+                    if access.allows(.verify) {
+                        NavigationLink {
+                            MerchantBundleReservationsView(reader: businessReader)
+                                .onDisappear(perform: onChildReturn)
+                                .cyPushedChrome(domain: .merchant)
+                        } label: { Label("merchant.bundleReservations.entry", systemImage: "calendar.badge.clock") }
+                            .accessibilityIdentifier("merchant.workbench.bundleReservations")
+                    }
+                }
                 if let businessReader, let businessJournal {
                     NavigationLink {
                         MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
@@ -435,7 +454,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     NavigationLink {
                         MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
                             .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
-                                { AnyView(MerchantPerkTemplatesHost(reader: flowReader)) }
+                                { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
                             })
                             .id(operationsReader.scope)
                             .onDisappear(perform: onChildReturn)
@@ -477,12 +496,21 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     } label: { Label(mcc("merchantCoopCenter.title", locale), systemImage: "person.2.wave.2") }
                         .accessibilityIdentifier("merchant.coopCenter.open")
                 }
+                // Parity coop/list P1: 协作邀请 opens the invitation list (MP pages/coop/list), not the tools workbench.
+                if let coopInboxDestination {
+                    NavigationLink {
+                        coopInboxDestination()
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
+                        .accessibilityIdentifier("merchant.coopInbox.open")
+                }
                 if let cooperationFlowReader {
                     NavigationLink {
                         CooperationFlowWorkbench(reader: cooperationFlowReader, operationScope: "MERCHANT")
                             .onDisappear(perform: onChildReturn)
                             .cyPushedChrome(domain: .merchant)
-                    } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
+                    } label: { Label("cooprelation.tools", systemImage: "square.grid.2x2") }
                         .accessibilityIdentifier("merchant.cooperationFlows.open")
                 }
             }

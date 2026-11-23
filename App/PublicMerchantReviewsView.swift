@@ -141,7 +141,7 @@ import SwiftUI
             }
         }
         .merchantM02Page()
-        .navigationTitle("merchant.publicHome.reviews")
+        .navigationTitle("merchant.publicHome.reviews").navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await load(page: 1) }
         // Pushing the editor must not delete the NavigationLink that owns it.
         // loadedKey == key still hides every retained row after a target/session change.

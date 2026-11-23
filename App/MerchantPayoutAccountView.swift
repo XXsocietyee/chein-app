@@ -27,7 +27,7 @@ import UIKit
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver"))
+        .navigationTitle(Text("payoutAccount.title", tableName: "PayoutReceiver")).navigationBarTitleDisplayMode(.inline)
         .refreshable { await load(refreshing: true) }
         .task { await load(refreshing: false) }
         .cyToast(verbatimMessage: $toastMessage)
@@ -73,6 +73,12 @@ import UIKit
             if let masked = account.maskedSubMerchantID {
                 LabeledContent { Text(verbatim: masked).cyText(.body).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
                     label: { Text("payoutAccount.row.subMchid", tableName: "PayoutReceiver").cyText(.body).foregroundStyle(CYColor.textSecondary) }
+                    // Parity payout P1 (PG-083): 商户号 is a copy-only row.
+                    .textSelection(.enabled)
+                    .contextMenu { Button("payoutAccount.copySubMchid", systemImage: "doc.on.doc") {
+                        UIPasteboard.general.setItems([["public.utf8-plain-text": masked]],
+                                                      options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
+                    } }
             }
             if let checked = account.checkedAt {
                 LabeledContent { Text(checked, format: .dateTime.month().day().hour().minute()).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
