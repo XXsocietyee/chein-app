@@ -2028,11 +2028,22 @@ struct ClubGovernanceFactRows: View {
     let value: ClubGovernanceValue
     let fields: [String]
     var showUnknown = false
+    /// Only the write review turns this on; read pages keep their current values.
+    var localizesEnums = false
+    @Environment(\.locale) private var locale
+    /// CLB-notify-02 (parity r2): a server enum (ALL_MEMBERS, IN_APP, AVAILABLE…) reads as its catalog word
+    /// (`club.gov.choice.*`) instead of the raw constant; an enum the catalog does not know stays as sent.
+    private func shown(_ text: String) -> String {
+        guard localizesEnums, text.range(of: "^[A-Z][A-Z0-9_]+$", options: .regularExpression) != nil else { return text }
+        let key = "club.gov.choice." + text
+        let word = appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale)
+        return word == key ? text : word
+    }
     static let summaryFields = ["name", "title", "topicName", "merchantName", "displayName", "nickname", "memberName", "content", "remark", "status", "statusCode", "statusText", "state", "occurrenceAt", "startDate", "signupCount", "refundedCount", "lockReason", "recurrenceType", "defaultLeadMemberId", "defaultCapacity", "offerMinutes", "waitlistEnabled", "version", "banReason", "sourceType", "expiresAt", "reason", "decisionReason", "roleCode", "topicId", "registrationId", "memberId", "total", "monthNew", "verifiedCount", "pendingCount", "score", "clearCount", "mileage", "durationMin", "hostedCount", "pace", "completionDuration", "settledAmountText", "amountText", "amountStatus", "originalAmountText", "executedAdjustmentText", "netAmountText", "arrivedText", "paidText", "depositStatus", "amount", "direction", "retryable", "orderNo", "ticketText", "orderTimeText", "paidAmountText", "verifyTimeText", "storeName", "operatorName", "railStep", "phoneText", "coopOpen", "pinned", "memberOnly", "canManage", "nodeCount", "sessionHeadcount", "pendingVerifyCount", "verifiedByMeCount", "totalCount", "successCount", "failedCount", "question", "answerReveal", "feedbackText"]
     var body: some View {
         ForEach(fields, id: \.self) { key in
             if let text = value[key].text, !text.isEmpty {
-                LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text(verbatim: text).textSelection(.enabled) }.accessibilityIdentifier("club.gov.fact." + key)
+                LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text(verbatim: shown(text)).textSelection(.enabled) }.accessibilityIdentifier("club.gov.fact." + key)
             } else if let flag = value[key].bool {
                 LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text(flag ? "club.gov.yes" : "club.gov.no") }
             } else if let values = value[key].array, values.allSatisfy({ $0.text != nil }) {

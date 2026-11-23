@@ -257,7 +257,7 @@ import SwiftUI
             if busy { ProgressView() }
             if let review {
                 Section {
-                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true)
+                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
                     if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
                         LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
                             .accessibilityIdentifier("clubOpsEvent.review.ownerDefault")
@@ -267,7 +267,7 @@ import SwiftUI
                         Text("club.schedule.customConversion", tableName: "ClubSeriesSchedule")
                             .accessibilityIdentifier("club.schedule.reviewConversion")
                     }
-                    if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"]) }
+                    if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"], localizesEnums: true) }
                     if route.operation == .sendNotification { ClubOpsNotifyPreviewSummary(value: review.snapshot.value) }
                     Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") {
                         if route.operation == .cancelOccurrence { cancelConfirmReview = review } else { Task { await confirm(review) } }
@@ -284,7 +284,22 @@ import SwiftUI
                 }
             } else if receipt == nil {
                 if route.operation == .hostApply && applyStep < 4 { applyAdvanceButton }
-                if route.operation != .hostApply || applyStep == 4 {
+                if route.operation == .hostApply && applyStep == 4 {
+                    // CLB-apply-03 (parity r2), MC-10: the last step submits directly as 提交申请; the fact-row review
+                    // stays only as the fallback when the submit could not finish.
+                    Button("club.host.submit") {
+                        Task {
+                            await prepare()
+                            if let pending = review { await confirm(pending) }
+                        }
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(busy || locked || identity == nil || !hostMaterialsReady || !ClubHostApplyPort.canReview(text: draft.text))
+                    .accessibilityIdentifier("club.gov.prepare")
+                }
+                if route.operation != .hostApply {
                 Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
                 }
             }

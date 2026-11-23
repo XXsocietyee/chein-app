@@ -1319,6 +1319,38 @@
           }
         }
       }
+    },
+    "clubOpsGov.host.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host eligibility not confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主理人资格未确认"
+          }
+        }
+      }
+    },
+    "clubOpsGov.host.recheck": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检查"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

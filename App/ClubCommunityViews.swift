@@ -276,7 +276,9 @@ struct ClubCommunityFeedView: View {
                     } else if snapshot.clubCount == 0 {
                         CYEmptyState(systemImage: "person.3", "club.community.joinFirst")
                     } else if snapshot.posts.isEmpty {
-                        CYEmptyState(systemImage: "text.bubble", "club.community.empty")
+                        // CLB-detail-15 (parity r2): MP 暂无帖文, with 入会后可发布 for viewers who cannot post yet.
+                        CYEmptyState(systemImage: "text.bubble", "club.community.empty",
+                                     detail: clubID != nil && !canCompose ? "club.community.emptyJoinHint" : nil)
                     }
                     // CLB-detail-05: MP cy-club-pinned-notice, one line + chevron for the pinned 公告, opening the post.
                     if let clubID, let pinned = snapshot.posts.first(where: { $0.pinned && $0.type == 2 }) {
@@ -301,15 +303,19 @@ struct ClubCommunityFeedView: View {
                             feedItem(item, snapshot: snapshot)
                         }
                     }
-                    if let clubID {
-                        Button("club.community.next") { Task { await model.loadMorePosts(clubID: clubID) } }
-                            .cyText(.label)
+                    // CLB-detail-15: the next page loads when the end of the list scrolls in (MP onReachBottom).
+                    if let clubID, model.canLoadMorePosts {
+                        ProgressView()
                             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                            .disabled(!model.canLoadMorePosts)
+                            .accessibilityLabel(Text("club.community.loading"))
+                            .onAppear { Task { await model.loadMorePosts(clubID: clubID) } }
                     }
                 }
-                CYPillButton("club.community.refresh", style: canCompose ? .secondary : .primary) { Task { await model.load(operation) } }
-                    .disabled(model.loading || model.busy)
+                // CLB-detail-15: pull to refresh covers a loaded feed; the button is only the retry when nothing loaded.
+                if model.snapshot == nil, !model.loading {
+                    CYPillButton("action.retry", style: canCompose ? .secondary : .primary) { Task { await model.load(operation) } }
+                        .disabled(model.busy)
+                }
                 if canCompose {
                     CYPillButton("club.community.create", systemImage: "square.and.pencil") { composing = true }
                         .disabled(model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)

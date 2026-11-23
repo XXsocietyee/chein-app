@@ -175,6 +175,10 @@ final class ClubOpsGovernancePresentationTests: XCTestCase {
         XCTAssertNil(ClubOpsPageFailureCopy(operation: .roles, failure: .forbidden))
         XCTAssertNil(ClubOpsPageFailureCopy(operation: .members, failure: .signedOut))
         XCTAssertNil(ClubOpsPageFailureCopy(operation: .customers, failure: .malformed))
+        // CLB-apply-08: the apply page's bootstrap error reads 主理人资格未确认 with 重新检查.
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .hostStatus, failure: .malformed)?.titleKey, "clubOpsGov.host.failed")
+        XCTAssertEqual(ClubOpsPageFailureCopy(operation: .hostStatus, failure: .malformed)?.retryKey, "clubOpsGov.host.recheck")
+        XCTAssertNil(ClubOpsPageFailureCopy(operation: .hostStatus, failure: .signedOut))
     }
 
 }

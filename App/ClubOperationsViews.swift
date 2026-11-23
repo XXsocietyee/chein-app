@@ -413,7 +413,10 @@ struct ClubOperationsWorkspaceView: View {
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
-            } footer: { Text("club.ops.dissolve.footer") }
+            } header: {
+                // CLB-edit-02 (parity r2): MP 危险操作 section with its consequence beside the button.
+                Text("club.ops.danger").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
+            } footer: { Text("club.ops.dissolve.consequence") }
         }
         if access.writeAvailability == .unverified, !(target == .create && !value.canCreate) {
             Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") }
@@ -1134,8 +1137,8 @@ private struct ClubOperationsProfileForm: View {
     }
     @ViewBuilder private var createProfileSection: some View {
         Section {
-            field("name", text: $draft.name).focused($createNameFocused)
-            field("description", text: $draft.description, axis: .vertical)
+            field("name", text: $draft.name, focus: $createNameFocused)
+            field("description", label: "club.ops.createDescription", text: $draft.description, axis: .vertical)
             if let createNameError {
                 Text(verbatim: createNameError).cyText(.meta).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.player.create.nameError")
@@ -1316,10 +1319,28 @@ private struct ClubOperationsProfileForm: View {
                 .accessibilityIdentifier("club.ops.counter." + key)
         }
     }
-    private func field(_ key: String, text: Binding<String>, axis: Axis = .horizontal) -> some View {
-        TextField(LocalizedStringKey("club.ops." + key), text: text, axis: axis)
-            .accessibilityLabel(Text(LocalizedStringKey("club.ops." + key)))
+    /// CLB-create-05 / CLB-edit-04 (parity r2): a persistent label (with * on required fields) above the field, and
+    /// the mini-program placeholder as the prompt, so the label does not vanish once typed.
+    private static let placeholderKeys: Set<String> = ["name", "description", "city", "keywords", "style"]
+    private static let requiredKeys: Set<String> = ["name", "city"]
+    private func field(_ key: String, label: String? = nil, text: Binding<String>, axis: Axis = .horizontal,
+                       focus: FocusState<Bool>.Binding? = nil) -> some View {
+        let labelKey = LocalizedStringKey(label ?? ("club.ops." + key))
+        let input = TextField(labelKey, text: text,
+                              prompt: Self.placeholderKeys.contains(key) ? Text(LocalizedStringKey("club.ops.placeholder." + key)) : nil,
+                              axis: axis)
+            .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
+        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            HStack(spacing: 2) {
+                Text(labelKey)
+                if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
+            }
+            .cyText(.label)
+            .foregroundStyle(CYColor.textSecondary)
+            .accessibilityHidden(true)
+            if let focus { input.focused(focus) } else { input }
+        }
     }
 }
 
