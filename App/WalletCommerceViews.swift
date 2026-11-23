@@ -753,7 +753,7 @@ private struct WalletIncomeListCard: ViewModifier {
     }
     private var incomeBody: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            CYHeroHeader("wallet.income").padding(.horizontal)
+            // PC-D-4-3 (MC-41): 收益明细 is drawn once, by the bar; no second in-content title.
             Picker("wallet.income", selection: $filter) {
                 Text("wallet.all").tag(WalletIncomeFilter.all)
                 Text("wallet.creationIncome").tag(WalletIncomeFilter.create)

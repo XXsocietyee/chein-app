@@ -36,8 +36,6 @@ import SwiftUI
     }
     var body: some View {
         Form {
-            CYHeroHeader(verbatim: text("publisherPricing.confirmFinalPrice"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             switch screen {
             case .empty:
                 CYEmptyState(systemImage: "link", "publisherPricing.missingTopic", detail: "publisherPricing.missingTopicDetail",
@@ -149,7 +147,8 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
-        .cyHeroScreen()
+        // PC-B-4-7: the page title is drawn once, inline by the bar (no in-content hero header).
+        .cyPageTitle(verbatim: text("publisherPricing.confirmFinalPrice"))
         .cyPushedChrome(domain: .merchant)
         .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
         // Mini-program pages/topic/pricing calls preview() in onLoad: load the floor without a manual tap.
@@ -282,8 +281,6 @@ import SwiftUI
     private var isClub: Bool { row.type == "club" }
     var body: some View {
         List {
-            CYHeroHeader(verbatim: isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if topicID <= 0 || row.partnerID <= 0 || !["club", "merchant"].contains(row.type) {
                 // Source invalid-link state.
                 VStack(alignment: .leading, spacing: 4) {
@@ -299,6 +296,10 @@ import SwiftUI
                     case .error:
                         Label("publisherPricing.loadFailed", systemImage: "exclamationmark.triangle")
                             .foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("publisher.partner.error")
+                        // PC-B-5-1: the error state offers recovery (MP 重新加载), not a dead end.
+                        Button { Task { await load(readKey) } } label: { Text("topic.retry") }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary)).frame(minHeight: 44)
+                            .accessibilityIdentifier("publisher.partner.retry")
                     case .unknown:
                         Text(verbatim: TopicPricingXcx.unknownMoney).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("publisher.partner.unknown")
@@ -331,7 +332,8 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .accessibilityIdentifier("publisher.partner")
-        .cyHeroScreen()
+        // PC-B-5-3: title once, inline by the bar.
+        .cyPageTitle(verbatim: isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant"))
         .cyPushedChrome(domain: .merchant)
         .task(id: readKey) { await load(readKey) }
         .onDisappear { retire() }
