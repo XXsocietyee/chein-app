@@ -67,7 +67,7 @@ struct ProfileTextFieldEditor: View {
                     TextField(LocalizedStringKey(edit.field.titleKey), text: $text)
                         .textContentType(.nickname).focused($focused)
                         .accessibilityIdentifier("profile.edit.name")
-                    ProfileFieldLimitCounter(text: text)
+                    ProfileFieldLimitCounter(text: text, limit: ProfileFieldLimit.nicknameMaxUTF16)
                     ProfileNicknameSheetSection(edit: edit, text: $text, reader: nicknameReader)
                         .id(nicknameReader?.sourceRevision)
                 } else if edit.field == .introduction {
@@ -106,18 +106,20 @@ struct ProfileTextFieldEditor: View {
                     .disabled(edit.field == .preferences)
                     .disabled(edit.field == .casePictures)
                     .disabled((edit.field == .name || edit.field == .introduction) && ProfileFieldLimit.exceeds(text))
+                    .disabled(edit.field == .name && ProfileFieldLimit.exceeds(text, limit: ProfileFieldLimit.nicknameMaxUTF16))
             }
         }
     }
 }
 
-/// N/140, as the source field counter.
+/// N/140 (N/24 for the nickname, A3-04), as the source field counter.
 struct ProfileFieldLimitCounter: View {
     let text: String
+    var limit: Int = ProfileFieldLimit.maxUTF16
     var body: some View {
-        Text(verbatim: "\(ProfileFieldLimit.count(text))/\(ProfileFieldLimit.maxUTF16)")
+        Text(verbatim: "\(ProfileFieldLimit.count(text))/\(limit)")
             .cyText(.meta, monospacedDigit: true)
-            .foregroundStyle(ProfileFieldLimit.exceeds(text) ? CYColor.dangerText : CYColor.textSecondary)
+            .foregroundStyle(ProfileFieldLimit.exceeds(text, limit: limit) ? CYColor.dangerText : CYColor.textSecondary)
             .frame(maxWidth: .infinity, alignment: .trailing)
             .accessibilityIdentifier("profile.edit.limit")
     }

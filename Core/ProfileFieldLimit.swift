@@ -4,6 +4,8 @@ import Foundation
 /// default). JavaScript counts UTF-16 code units; whole grapheme clusters are kept.
 public enum ProfileFieldLimit {
     public static let maxUTF16 = 140
+    /// A3-04: the nickname sheet's `maxlength="24"` (gerenziliao.wxml:153); 140 stays for 个人介绍 / 城市签名.
+    public static let nicknameMaxUTF16 = 24
     public static func clamp(_ text: String, limit: Int = maxUTF16) -> String {
         guard text.utf16.count > limit else { return text }
         var result = "", used = 0
