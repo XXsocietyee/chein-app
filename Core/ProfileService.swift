@@ -8,11 +8,13 @@ public struct ProfileReadFailure: Error, Equatable {
     public let httpStatus: Int?
     public let code: Int?
     public let message: String?
+    /// Server `errorCode` string (A3-07: `NICKNAME_TAKEN` / `NICKNAME_INVALID` on a profile save).
+    public let errorCode: String?
     public var isUnauthorized: Bool { httpStatus == 401 || code == 401 }
     /// Signed in but refused (当前账号无法查看): neither sign-in nor an empty wall.
     public var isDenied: Bool { !isUnauthorized && (httpStatus == 403 || code == 403) }
-    public init(httpStatus: Int? = nil, code: Int? = nil, message: String? = nil) {
-        self.httpStatus = httpStatus; self.code = code; self.message = message
+    public init(httpStatus: Int? = nil, code: Int? = nil, message: String? = nil, errorCode: String? = nil) {
+        self.httpStatus = httpStatus; self.code = code; self.message = message; self.errorCode = errorCode
     }
 }
 

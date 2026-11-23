@@ -22,7 +22,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         return try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false)
     }
-    private struct Response: Decodable { let code: Int; let msg: String? }
+    private struct Response: Decodable { let code: Int; let msg: String?; let errorCode: String? }
     public func read(token: String) async throws -> ProfileEditSnapshot {
         var request = try request("api/user/info", token: token)
         let boundary = "ProfileRead-" + UUID().uuidString
@@ -58,7 +58,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
         }
         guard (200..<300).contains(status), let envelope else { throw ProfileEditWriteError.outcomeUnknown }
         guard envelope.code == 200 else {
-            throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg))
+            throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg, errorCode: envelope.errorCode))
         }
     }
     @MainActor public func saveAvatar(_ payload: ProfileEditPayload, token: String,
@@ -84,7 +84,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
             throw ProfileEditWriteError.rejected(.init(httpStatus: status, code: envelope?.code, message: envelope?.msg))
         }
         guard (200..<300).contains(status), let envelope else { throw ProfileEditWriteError.outcomeUnknown }
-        guard envelope.code == 200 else { throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg)) }
+        guard envelope.code == 200 else { throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg, errorCode: envelope.errorCode)) }
     }
 
 }

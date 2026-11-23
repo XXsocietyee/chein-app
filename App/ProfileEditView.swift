@@ -543,10 +543,23 @@ final class ProfileEditModel: ObservableObject {
         if coordinator.messageKey == "profile.edit.saved" || coordinator.messageKey == "profile.edit.changed",
            let snapshot = coordinator.snapshot { draft = snapshot.draft }
         busy = false; revision += 1
+        if coordinator.messageKey == "profile.edit.nicknameTaken" || coordinator.messageKey == "profile.edit.nicknameInvalid" {
+            reopenNicknameAfterRejection()
+        }
         guard mayReturn, let receipt else { return nil }
         savedReturnOwner = .init(receipt: receipt, generation: generation,
             revision: savedReturnRevision, draft: draft)
         return receipt
+    }
+    /// A3-07: a save the server refused for the nickname reopens the nickname sheet (its live check then
+    /// shows 已被占用 and the suggestions), once the review sheet has finished leaving.
+    private func reopenNicknameAfterRejection() {
+        let request = generation, current = revision
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 450_000_000)
+            guard let self, self.generation == request, self.revision == current, self.textEdit == nil, self.confirmation == nil else { return }
+            self.beginTextEdit(.name)
+        }
     }
 }
 

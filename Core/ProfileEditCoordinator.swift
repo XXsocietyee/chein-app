@@ -223,6 +223,9 @@ public final class ProfileEditCoordinator {
                 pending[expected.identity.accountID] = nil
                 if active(expected, request) {
                     remoteMessage = failure.message; messageKey = "profile.edit.rejected"
+                    // A3-07 (MP gerenziliao js:752-768): the server refused the nickname itself.
+                    if failure.errorCode == "NICKNAME_TAKEN" { messageKey = "profile.edit.nicknameTaken" }
+                    else if failure.errorCode == "NICKNAME_INVALID" { messageKey = "profile.edit.nicknameInvalid" }
                     if failure.isUnauthorized { onUnauthorized(expected) }
                 }
             case .outcomeUnknown: break

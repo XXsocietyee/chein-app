@@ -283590,6 +283590,40 @@
           }
         }
       }
+    },
+    "profile.edit.nicknameTaken": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This nickname is taken. Try another one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个昵称已被占用，换一个试试"
+          }
+        }
+      }
+    },
+    "profile.edit.nicknameInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This nickname does not meet the rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昵称不符合规则"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -86,6 +86,8 @@ class AvatarContracts(unittest.TestCase):
         method=self.service[self.service.index('    public func save('):self.service.index('    @MainActor public func saveAvatar(')]
         # A3-01: any staged upload (avatar, work picture, contact QR) keeps the ordinary save away.
         method=method.replace('        guard !payload.carriesUpload else { throw ProfileEditWriteError.notSent }\n','').rstrip()
+        # A3-07: the rejection also carries the server errorCode (NICKNAME_TAKEN / NICKNAME_INVALID).
+        method=method.replace(', errorCode: envelope.errorCode', '')
         self.assertEqual(method,OLD_ORDINARY_SAVE.rstrip())
     def test_upload_and_image_save_never_fall_back_to_generic_http(self):
         self.assertIn('transport: (any ProfileAvatarDispatching)? = nil',self.upload)
