@@ -299,7 +299,10 @@ import SwiftUI
             if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
             } else {
+                // Settings reads the unread badge owner (NativeChannelNotificationSettingsEntry); the link sheet sits
+                // outside the root's badge lifecycle, so it carries its own (no push binding, reads only).
                 SettingsView().environmentObject(session)
+                    .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
             }
         case "pages/shezhi/marketing/index":
             // B-MK-04: 营销消息与优惠券 is a pushed page, so no close button.
