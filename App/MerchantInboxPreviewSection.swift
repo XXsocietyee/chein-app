@@ -108,14 +108,15 @@ struct MerchantInboxPreviewSection: View {
                 }
             }
             .textCase(nil)
-        }
-        .task(id: "\(storeKey):\(reloadToken)") { await load() }
-        .onChange(of: settled) { _, done in if done { lastItems = items(limit: MerchantInboxPreview.previewLimit) } }
-        .confirmationDialog(Text("merchant.inbox.clear.confirmTitle"), isPresented: $confirmsClear, titleVisibility: .visible) {
-            Button("merchant.inbox.clear.confirm", role: .destructive) {
-                withAnimation(.easeOut(duration: 0.2)) { markRead(items(limit: 50)) }
+            // On the single header view: modifiers on a List Section are applied to every row.
+            .task(id: "\(storeKey):\(reloadToken)") { await load() }
+            .onChange(of: settled) { _, done in if done { lastItems = items(limit: MerchantInboxPreview.previewLimit) } }
+            .confirmationDialog(Text("merchant.inbox.clear.confirmTitle"), isPresented: $confirmsClear, titleVisibility: .visible) {
+                Button("merchant.inbox.clear.confirm", role: .destructive) {
+                    withAnimation(.easeOut(duration: 0.2)) { markRead(items(limit: 50)) }
+                }
+                Button("action.cancel", role: .cancel) {}
             }
-            Button("action.cancel", role: .cancel) {}
         }
     }
 
