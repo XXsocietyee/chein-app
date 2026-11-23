@@ -58,7 +58,8 @@ struct ParticipantManagementDetailView: View {
             }
         }
         .cyHeroScreen()
-        .navigationBarBackButtonHidden(model.busy)
+        // T&C §3: the system back stays while a delete runs; the operation lives in the shared
+        // ParticipantMutationCoordinator, so leaving does not drop its outcome.
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("profile.refresh", systemImage: "arrow.clockwise") { Task { await model.load() } }
