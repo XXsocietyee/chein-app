@@ -72,13 +72,17 @@ struct SocialReadPresentationKey: Hashable {
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if loadedKey != key || busy { CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top).accessibilityElement(children: .ignore).accessibilityLabel(Text("social.loading")) }
-            else if let error { SocialIssueView(error: error) { loads.start { await reload() } } }
+            else if let error { SocialIssueView(error: error) { loadedKey = nil; loads.start { await reload() } } }
             else if let value { content(value) }
         }
         .task(id: key) { await loads.run { await reload() } }
         .onDisappear { loads.cancel(); generation += 1; busy = false }
     }
+    /// Inside a List the Group's modifiers sit on each child, so a child swap (skeleton → content) re-runs the
+    /// `.task(id:)`; reloading an answered key flipped back to the skeleton, whose disappearance cancelled the read
+    /// and left an empty page (combined-r5 verify, A2-01 个人主页). An answered key keeps its answer; 重试 clears the key first.
     private func reload() async {
+        if loadedKey == key, !busy, value != nil || error != nil { return }
         generation += 1; let run = generation, captured = key
         value = nil; error = nil; busy = false; loadedKey = captured
         guard reader.isConfigured, !requiresSignIn || captured.identity.accountID != nil else { return }
