@@ -102,7 +102,7 @@ extension EnvironmentValues {
             Text(LocalizedStringKey(phaseKey))
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")
             if [.review, .expired, .paused, .failed, .invalid].contains(model.phase) {
-                CYPillButton(model.phase == .review ? "verificationCode.show" : "verificationCode.retry") { run { await model.present() } }
+                CYPillButton(model.phase == .review ? "verificationCode.show" : (model.target.kind == .cityVoucher && autoIssue ? "roamSub.w208.voucher.retry" : "verificationCode.retry")) { run { await model.present() } }
                     .accessibilityIdentifier("verificationCode.show")
             } else if model.phase == .login, rootTabSwitch.isAvailable {
                 // RCODE-1: MP access gate — 登录 instead of a dead-end line.
@@ -112,7 +112,7 @@ extension EnvironmentValues {
         }
     }
     private var phaseKey: String {
-        if model.target.kind == .cityVoucher, autoIssue, let key = RoamCityVoucherCopy.phaseKey(model.phase) { return key }
+        if model.target.kind == .cityVoucher, autoIssue, let key = RoamCityVoucherCopy.phaseKey(model.phase, network: model.failedOnNetwork) { return key }
         return "verificationCode.phase." + model.phase.rawValue
     }
     private func run(_ work: @escaping @MainActor () async -> Void) {
