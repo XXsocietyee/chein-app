@@ -25,6 +25,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     var favoriteRemoval: ProfileFavoriteRemovalController? = nil
     var communityGate: (any SquareCommunityFeatureReading)? = nil
     @Environment(\.playerGapService) private var playerGapService
+    @Environment(\.locale) private var locale
     @State private var selectedTab: Tab = .posts
     @State private var gateModel = AccountCollectionCommunityGateModel()
     private enum Tab: Hashable { case posts, topics, cityNodes }
@@ -32,19 +33,23 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     /// Nil, signed-out, unconfigured, pending, denied, and failed all stay closed.
     private var postsAllowed: Bool { gateModel.postsAllowed(reader: reader, gate: communityGate) }
     private var showsCityNodesTab: Bool { playerGapService != nil }
+    private var favoriteTabs: [CYTabItem<Tab>] {
+        var items: [CYTabItem<Tab>] = []
+        if postsAllowed { items.append(.init(id: .posts, title: appLocalized("social.posts", locale: locale))) }
+        items.append(.init(id: .topics, title: appLocalized("searchMap.kind.topic", locale: locale)))
+        if showsCityNodesTab { items.append(.init(id: .cityNodes, title: appLocalized("roam.layer.places", locale: locale))) }
+        return items
+    }
     var body: some View {
         VStack(spacing: 0) {
-            CreativeSquareAuthorDeleteSection(signedIn: reader.isAuthenticated, load: { try await reader.ownCreativeSquareIDs() }, remove: { try await reader.deleteOwnCreativeSquare(postID: $0) })
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.vertical, CYSpacing.sm)
+            // A4-02: 删除我的帖文 lives on 我的帖文 / 帖文详情 / 俱乐部, not on 我的收藏 (MP mylike has no such block).
             if postsAllowed || showsCityNodesTab {
-                Picker("accountCollection.favorites.title", selection: $selectedTab) {
-                    if postsAllowed { Text("social.posts").tag(Tab.posts) }
-                    Text("searchMap.kind.topic").tag(Tab.topics)
-                    if showsCityNodesTab { Text("roam.layer.places").tag(Tab.cityNodes) }
-                }
-                .pickerStyle(.segmented).padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
-                .accessibilityIdentifier("accountCollection.favorites.tabs")
+                // X5 (MP owner ruling 2026-07-31): underline tabs switch content areas, as on mylike.
+                CYTabs(items: favoriteTabs, selection: $selectedTab, variant: .underline)
+                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityLabel(Text("accountCollection.favorites.title"))
+                    .accessibilityIdentifier("accountCollection.favorites.tabs")
             }
             if showsCityNodesTab && selectedTab == .cityNodes {
                 List { CityFavoriteNodesSection() }
