@@ -11,7 +11,7 @@
 |---|---|
 | `python3 -B tools/check_scaffold.py` | PASS |
 | `python3 -B tools/check_design_lint.py` | PASS. Typography: raw text style 1173, Theme.Font 63, raw size 67, back chevron 12, hidden back 7, large title 11, all equal to the base. No baseline file edited. |
-| `python3 -B tools/contract_ratchet.py --check` | No new failures from this branch (final run in the section below). The base already had one failure outside the baseline: `test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`, which is not a club test. |
+| `python3 -B tools/contract_ratchet.py --check` | Final full run: the only failure outside the baseline is the base one below. Two branch regressions found in that run were fixed in place (governance fragment key count; `docs/community-media-templates/catalogs/ClubCommunity.xcstrings` now carries 暂无帖文). The base already had one failure outside the baseline: `test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`, which is not a club test. |
 | `python3 -B tools/report_chrome.py` (club files) | Only "keep" items and fixture hosts remain in club files (calendar pager, apply wizard 上一步, `ClubFixtureSupport` / `ClubGovernanceFixtureHost` / `ClubOperationsFixtureSupport` DEBUG hosts). Channel files are untouched (channel follows the Flutter app). |
 
 ## Round-1 P0s still open (step 1)
@@ -58,7 +58,7 @@
 | CLB-apply-08 (bootstrap error) | partial | Core/ClubOpsJoinNotifyPresentation.swift, ClubOpsGovernance.xcstrings, Tests/CoreTests/ClubOpsGovernancePresentationTests.swift | Host-status read failure: 主理人资格未确认 + 重新检查. **Left:** the guest copy 登录后申请成为主理人. |
 | CLB-create-05 / CLB-edit-04 | fixed | App/ClubOperationsViews.swift, Localizable `club.ops.placeholder.*`, `club.ops.createDescription` | Create and edit fields: a persistent label above each field (* on 名称 / 城市) and the MP placeholder as the prompt. Create's description label is 一句话介绍（选填）. |
 | CLB-edit-02 (copy) | partial | App/ClubOperationsViews.swift, Localizable | Edit → 危险操作 section; footer: 成员将失去俱乐部与群聊入口，已报名不会自动退款。 **Left:** 改为转让主理人 in the consequence sheet. |
-| CLB-notify-02 | fixed | App/ClubGovernanceViews.swift (`localizesEnums`, review only), App/ClubGovernanceCommandForm.swift, Localizable + fragment `club.gov.choice.IN_APP/AVAILABLE/UNAVAILABLE` | 通知成员 review: 全体成员 / 站内通知 / 可用 / 暂不可用 instead of ALL_MEMBERS / IN_APP / AVAILABLE. Read pages keep their values (a UI test reads EVENT_CHECKIN on roles). |
+| CLB-notify-02 | fixed | App/ClubGovernanceViews.swift (`localizesEnums`, review only), App/ClubGovernanceCommandForm.swift, Localizable `club.gov.choice.IN_APP/AVAILABLE/UNAVAILABLE` (not added to the governance fragment, whose key count is pinned) | 通知成员 review: 全体成员 / 站内通知 / 可用 / 暂不可用 instead of ALL_MEMBERS / IN_APP / AVAILABLE. Read pages keep their values (a UI test reads EVENT_CHECKIN on roles). |
 
 ## Not reached (deferred)
 
