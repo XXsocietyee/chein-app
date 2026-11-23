@@ -200227,13 +200227,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No games to show here yet."
+            "value": "No ready-made games yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可展示的玩法。"
+            "value": "还没有上架的现成玩法"
           }
         }
       }
@@ -200244,13 +200244,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Game templates could not be loaded. Other guide sections are still available."
+            "value": "Couldn't load ready-made games"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "玩法模板加载失败，仍可查看指南的其他内容。"
+            "value": "现成玩法加载失败"
           }
         }
       }
