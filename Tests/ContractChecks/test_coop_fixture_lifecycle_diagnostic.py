@@ -41,7 +41,9 @@ class CoopFixtureLifecycleDiagnosticChecks(unittest.TestCase):
         # Re-pinned after the e3/UI-CLOUD-16 player-surface restyles and WP-04 square author delete mount;
         # the identity-owner/lifetime token content above is unchanged. Re-pinned again for the RM-01 relation post feed,
         # and after the Audit 2026-11-14 compile fix removing the player clubCommunityContext feed from CoopRelationContextLabel.
-        self.assertEqual('6023d92bc3d2075c882a8dfa6825fd8c320e8704130e1a789cabe014304b6c79', hashlib.sha256(normalized.encode()).hexdigest())
+        # Re-pinned for fix-parity merchant-coop (combined-r5): relation P1 merchant theme + no stray author-delete row,
+        # relation P0b club post feed through CoopRelationPostFeedFactory. Owner/lifetime tokens above unchanged.
+        self.assertEqual('c11e05b46dbf5d88e170f54aa4cbb64350f2fbad5a30833386f896e55e0ca5c6', hashlib.sha256(normalized.encode()).hexdigest())
 
     def test_failure_projection_is_small_and_does_not_change_read_count_label(self):
         source = (ROOT / 'Tests/AppUITests/CoopRelationDiscoveryFlowTests.swift').read_text()
