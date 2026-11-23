@@ -17,6 +17,8 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
     public let isFollowed: Bool?
     public let interests: [SocialInterest]
     public let workImages: [String]
+    /// A1-05: MP cy-profile 关于 › 加入时间 (`createTime`, first ten characters, `-` → `.`); nil when absent.
+    public let joinDate: String?
     public var published: Int? {
         guard let topics, let activities else { return nil }
         let sum = topics.addingReportingOverflow(activities)
@@ -35,6 +37,7 @@ public struct SocialPublicProfile: Decodable, Equatable, Identifiable {
             return SocialInterest(id: id, name: name)
         }
         workImages = (v["casePics"].text ?? "").split(separator: ";").compactMap { SocialText.nonempty(String($0)) }
+        joinDate = SocialText.nonempty(v["createTime"].text ?? "").map { String($0.prefix(10)).replacingOccurrences(of: "-", with: ".") }
     }
 }
 public struct SocialInterest: Equatable, Identifiable { public let id: Int; public let name: String }

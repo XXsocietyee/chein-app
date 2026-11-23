@@ -283624,6 +283624,23 @@
           }
         }
       }
+    },
+    "profile.about.joinDate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入时间"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

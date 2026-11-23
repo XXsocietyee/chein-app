@@ -24,6 +24,7 @@ import SwiftUI
     var initialTab: String? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     private enum Tab: String, CaseIterable { case mine, posts, achievements, about }
     @State private var authorPosts = ProfileAuthorPostsRefreshController()
     @State private var authorPostTicket: ProfileAuthorPostTicket?
@@ -31,6 +32,19 @@ import SwiftUI
     @State private var appliedInitialTab = false
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
     @StateObject private var identityShareOwner = ProfileIdentitySharePageOwner()
+    private var showsMineTab: Bool {
+        if let selfOrdersAccess, selfOrdersAccess.context(memberID: memberID, social: reader, isCurrent: isCurrent()) != nil { return true }
+        if let selfProjectsAccess, selfProjectsAccess.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) != nil { return true }
+        return false
+    }
+    private var profileTabs: [CYTabItem<Tab>] {
+        var items: [CYTabItem<Tab>] = []
+        if showsMineTab { items.append(.init(id: .mine, title: appLocalized("social.mine", locale: locale))) }
+        items.append(.init(id: .posts, title: appLocalized("social.posts", locale: locale)))
+        items.append(.init(id: .achievements, title: appLocalized("social.achievements", locale: locale)))
+        items.append(.init(id: .about, title: appLocalized("social.about", locale: locale)))
+        return items
+    }
     private var selfEditContext: ProfileSelfEditContext? {
         selfEditAccess?.context(memberID: memberID, reader: reader, isCurrent: isCurrent())
     }
@@ -150,16 +164,15 @@ import SwiftUI
                         }
                     }
                     // Mini-program cy/profile tab order: 我的 (orders, projects), 帖文, 成就, 关于.
-                    Picker("social.profileSection", selection: $tab) {
-                        if let selfOrdersAccess, selfOrdersAccess.context(memberID: memberID, social: reader, isCurrent: isCurrent()) != nil {
-                            Text("social.mine").tag(Tab.mine)
-                        } else if let selfProjectsAccess, selfProjectsAccess.context(memberID: memberID, accountReader: reader, isCurrent: isCurrent()) != nil {
-                            Text("social.mine").tag(Tab.mine)
-                        }
-                        Text("social.posts").tag(Tab.posts)
-                        Text("social.achievements").tag(Tab.achievements)
-                        Text("social.about").tag(Tab.about)
-                    }.accessibilityIdentifier("social.profile.tabs")
+                    // A2-04 / X5: MP underline tabs (owner ruling 2026-07-31), not a menu Picker row.
+                    Section {
+                        CYTabs(items: profileTabs, selection: $tab, variant: .underline)
+                            .accessibilityElement(children: .contain)
+                            .accessibilityLabel(Text("social.profileSection"))
+                            .accessibilityIdentifier("social.profile.tabs")
+                            .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.pageHorizontal, bottom: 0, trailing: CYSpacing.pageHorizontal))
+                            .listRowBackground(Color.clear)
+                    }
                     switch tab {
                     case .mine:
                         // Mini-program 我的 tab: 我的订单, then 我的项目.
@@ -230,6 +243,13 @@ import SwiftUI
                         Section("social.interests") {
                             if profile.interests.isEmpty { Text("social.noInterests").foregroundStyle(CYColor.textSecondary) }
                             ForEach(profile.interests) { item in Label { Text(verbatim: item.name) } icon: { Image(systemName: "tag") } }
+                        }
+                        // A1-05: MP 关于 › 加入时间; hidden when the server sent none.
+                        if let joinDate = profile.joinDate {
+                            Section {
+                                LabeledContent("profile.about.joinDate") { Text(verbatim: joinDate).monospacedDigit() }
+                                    .accessibilityIdentifier("profile.about.joinDate")
+                            }
                         }
                         if !profile.workImages.isEmpty {
                             Section("social.portfolio") {
