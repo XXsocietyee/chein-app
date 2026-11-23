@@ -384,7 +384,7 @@ struct DiscoveryTopicTemplatePreview: View {
         guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
         return value
     }
-    /// 详情: 剧情 (opening + each chapter with its numbered stops), stats, 节点 cards, recruitment (merchant viewers only).
+    /// 详情: 剧情 (opening + each chapter: number, name, one line), stats, 节点 cards, recruitment (merchant viewers only).
     @ViewBuilder private func topicDetails(_ item: PublicTopicTemplateDetail) -> some View {
         if nonempty(item.description) != nil || !item.chapters.isEmpty {
             Section {
@@ -400,7 +400,6 @@ struct DiscoveryTopicTemplatePreview: View {
                         .accessibilityIdentifier("discovery.topicDetail.openingToggle")
                     }
                 }
-                let numbered = Self.numberedStops(item.chapters)
                 ForEach(Array(item.chapters.enumerated()), id: \.element.id) { index, chapter in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
@@ -413,22 +412,8 @@ struct DiscoveryTopicTemplatePreview: View {
                         if !guide.isEmpty {
                             Text(verbatim: guide).cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(2)
                         }
-                        let stops = numbered.filter { $0.chapterID == chapter.id }
-                        if !stops.isEmpty {
-                            TemplateChipFlow(spacing: CYSpacing.sm) {
-                                ForEach(stops, id: \.number) { stop in
-                                    HStack(spacing: CYSpacing.xs) {
-                                        Text(verbatim: String(stop.number)).cyText(.micro, monospacedDigit: true)
-                                            .frame(width: 22, height: 22).background(CYNight.ink0, in: Circle())
-                                        stop.name.map { Text(verbatim: $0) } ?? Text("u10.template.stopNo \(stop.number)")
-                                    }
-                                    .cyText(.meta).foregroundStyle(palette.textPrimary).cyWrapText()
-                                    .padding(.trailing, CYSpacing.sm).padding(CYSpacing.xxs)
-                                    .background(CYNight.ink2, in: Capsule())
-                                }
-                            }
-                        }
-                        if let count = chapter.nodeCount { LabeledContent("discovery.publicStations", value: String(count)) }
+                        // PC-A-8-2 (owner 2026-11-14 「太复杂」): a chapter card is number + name + one line; the stop
+                        // path and the stop count live only in 能力, grouped by chapter.
                         if let status = chapter.recruitStatus {
                             VStack(alignment: .leading, spacing: 6) {
                                 Text("discovery.publicRecruitment").cyText(.cardTitle)
