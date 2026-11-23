@@ -13,7 +13,7 @@ import XCTest
     }
     func testActivityIsDistinctFromQuickRoute() {
         let app = launch(); app.buttons["Publish an activity"].tap()
-        XCTAssertTrue(app.textFields["publishModes.activity.start"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["publishModes.activity.start"].firstMatch.waitForExistence(timeout: 5)) // C-A2: read-only row
         XCTAssertFalse(app.buttons["publishModes.quick.continue"].exists)
         // Activity review follows the category, template, collaborator and local-draft
         // sections. The Form does not materialize this button in its initial viewport.

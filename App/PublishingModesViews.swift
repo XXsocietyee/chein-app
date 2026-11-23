@@ -324,7 +324,8 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                         clearButton(.name)
                     }
                     fieldError("name")
-                    TextField("publishModes.addressName", text: $draft.addressName)
+                    // C-A2 (MP activity index.wxml:43-50): the venue name comes from 选择地点, never typed.
+                    LabeledContent("publishModes.addressName", value: draft.addressName.isEmpty ? "—" : draft.addressName)
                         .foregroundStyle(palette.textPrimary)
                     fieldError("addressName")
                     Button { picker = "place" } label: {
@@ -340,11 +341,12 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
                     } label: { chooserRow("publishModes.chooseTimeRange", value: nil, icon: "calendar") }
                         .disabled(!mayEditTimeRange || !timeRange.canOpen(account: account, draftID: draftID, draft: draft, now: Date()))
                         .accessibilityIdentifier("publishModes.activity.timeRange.open")
-                    TextField("publishModes.start", text: $draft.start)
+                    // C-A2 (MP index.wxml:53-70): start / end come from 选择时间段 only; shown read-only.
+                    LabeledContent("publishModes.start", value: draft.start.isEmpty ? "—" : draft.start)
                         .foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("publishModes.activity.start")
                     fieldError("startDate")
-                    TextField("publishModes.end", text: $draft.end)
+                    LabeledContent("publishModes.end", value: draft.end.isEmpty ? "—" : draft.end)
                         .foregroundStyle(palette.textPrimary)
                     fieldError("endDate")
                 } header: { CYSectionHeader(verbatim: CoreLoopCopy(locale: locale).t("活动时间", "Schedule")) }
