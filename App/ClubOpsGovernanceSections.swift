@@ -61,7 +61,8 @@ struct ClubOpsBanSection: View {
         let list = (page?.hidden == false ? page?.bans : nil) ?? self.list
         if page?.hidden != true, capability?.manageMembers != false {
         Section {
-            if let text = countText { Text(verbatim: text).cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+            // CLB-governance-07 (parity r2): the count carries its label, never a lone number.
+            if let text = countText { Text("clubOpsGov.count.bans \(text)", tableName: "ClubOpsGovernance").cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
             if list.rows.isEmpty {
                 ClubOpsGovernanceCopy.text("clubOpsGov.bans.empty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("clubOpsGov.bans.empty")
             }
@@ -103,7 +104,7 @@ struct ClubOpsGovernanceMembersSection: View {
     var body: some View {
         Section {
             if let text = countText {
-                Text(verbatim: text).cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
+                Text("clubOpsGov.count.members \(text)", tableName: "ClubOpsGovernance").cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
             }
             if roster.members.isEmpty {
                 CYEmptyState(systemImage: "person.2", "clubOpsGov.members.empty", tableName: "ClubOpsGovernance", messageIdentifier: "clubOpsGov.members.empty")
@@ -151,8 +152,8 @@ struct ClubOpsCaseSection: View {
             }
         }
         if list.canReport, let report {
+            // CLB-governance-15 (parity r2): the 请提交可核实的事实 note stays once, in the form.
             Section {
-                ClubOpsGovernanceCopy.text("clubOpsGov.report.note").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 report
             } header: { ClubOpsGovernanceCopy.text("clubOpsGov.report.title") }
         }
@@ -161,6 +162,8 @@ struct ClubOpsCaseSection: View {
             Section {
                 ClubOpsGovernanceCopy.text("clubOpsGov.appeal.empty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("clubOpsGov.appeal.empty")
+                // CLB-governance-10: MP sub 仅限期封禁可申诉.
+                ClubOpsGovernanceCopy.text("clubOpsGov.appeal.emptyBody").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             } header: { ClubOpsGovernanceCopy.text("clubOpsGov.appeal.title") }
         case .ban(let ban):
             Section {
@@ -178,7 +181,7 @@ struct ClubOpsCaseSection: View {
         }
         Section {
             if let text = countText {
-                Text(verbatim: text).cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.caseCount)
+                Text("clubOpsGov.count.cases \(text)", tableName: "ClubOpsGovernance").cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.caseCount)
             }
             if list.rows.isEmpty {
                 ClubOpsGovernanceCopy.text("clubOpsGov.cases.empty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("clubOpsGov.cases.empty")
@@ -289,6 +292,14 @@ struct ClubOpsRoleSection: View {
 struct ClubOpsGovernanceDeniedNote: View {
     let operation: ClubGovernanceRead
     let cases: AnyView?
+    @Environment(\.dismiss) private var dismiss
+    /// Reads whose denial is this page's own note, so the generic 当前权限不允许访问此内容 is not stacked on it (X3).
+    static func covers(_ operation: ClubGovernanceRead) -> Bool {
+        switch operation {
+        case .bans, .members, .roles, .audienceCounts: return true
+        default: return false
+        }
+    }
     var body: some View {
         switch operation {
         case .bans, .members:
@@ -313,6 +324,9 @@ struct ClubOpsGovernanceDeniedNote: View {
                 ClubOpsGovernanceCopy.text(body)
                     .cyText(.bodyCompact)
                     .foregroundStyle(CYColor.textSecondary)
+                // CLB-governance-08 / CLB-roles-06 (parity r2): the MP denial offers 返回 (cta="返回").
+                CYPillButton("clubOpsGov.back", style: .secondary, tableName: "ClubOpsGovernance") { dismiss() }
+                    .accessibilityIdentifier("clubOpsGov.denied.back")
             }
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)

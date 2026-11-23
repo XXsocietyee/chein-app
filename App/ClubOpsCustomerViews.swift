@@ -2,6 +2,8 @@ import SwiftUI
 
 struct ClubOpsFailureSection: View {
     let copy: ClubOpsFailureCopy
+    /// X3 (parity r2): the one reason line under the page title when the page copy has no detail of its own.
+    var reason: Text? = nil
     let retry: () -> Void
     var body: some View {
         Section {
@@ -20,6 +22,15 @@ struct ClubOpsFailureSection: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.gov.error")
+                } else if let reason {
+                    reason
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.gov.error")
                 }
                 if let key = copy.retryKey {
                     CYPillButton(LocalizedStringKey(key), style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsCustomer", action: retry)

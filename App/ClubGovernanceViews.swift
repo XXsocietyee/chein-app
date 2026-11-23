@@ -222,6 +222,11 @@ struct ClubGovernanceReadView: View {
     @State private var page = 1
     @State private var editor: ClubGovernanceFormRoute?
     private var title: LocalizedStringKey { LocalizedStringKey("club.gov." + operation.rawValue) }
+    /// The failure's reason line: the server sentence when it sent one, else the generic key.
+    private func failureReason(_ failure: ClubGovernanceFailure) -> Text {
+        if let message = failure.message { return Text(verbatim: message) }
+        return Text(LocalizedStringKey(failure.localizationKey))
+    }
     // Split into stages so the type checker handles the long modifier chain;
     // the modifiers apply in exactly the same order as one chain.
 
@@ -579,12 +584,7 @@ struct ClubGovernanceReadView: View {
     }
     private var bodyNavigation: some View {
         List {
-            Section {
-                CYHeroHeader(title)
-            }
-            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
+            // X1 / CLB-governance-13 (parity r2): the page-type title is the inline bar title, not a hero in the content.
             if loading {
                 CYSkeleton()
                     .accessibilityElement(children: .ignore)
@@ -602,14 +602,29 @@ struct ClubGovernanceReadView: View {
                     ClubGovernanceFactRows(value: readback.receipt, fields: ["refundStatus"])
                 }
             }
+            // X3 (parity r2): one failure block per read. Page copy when the page has it, else the page's denial note,
+            // else the generic reason; the reason line keeps the `club.gov.error` id the UI tests read.
             if let failure, let copy = ClubOpsFailureCopy(operation: operation, failure: failure) {
-                ClubOpsFailureSection(copy: copy) { Task { await load() } }
-            }
-            if let failure, let copy = ClubOpsPageFailureCopy(operation: operation, failure: failure) {
-                ClubOpsPageFailureSection(copy: copy) { Task { await load() } }.disabled(loading)
-            }
-            if let failure {
-                Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.error"); if let message = failure.message { Text(verbatim: message).textSelection(.enabled) } }
+                ClubOpsFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }
+            } else if let failure, let copy = ClubOpsPageFailureCopy(operation: operation, failure: failure) {
+                ClubOpsPageFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }.disabled(loading)
+            } else if let failure, failure == .forbidden, ClubOpsGovernanceDeniedNote.covers(operation) {
+                ClubOpsGovernanceDeniedNote(operation: operation, cases: scope.clubID == nil ? nil : AnyView(link(.cases)))
+            } else if let failure {
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text(LocalizedStringKey(failure.localizationKey)).cyText(.cardTitle).accessibilityIdentifier("club.gov.error")
+                        if let message = failure.message {
+                            Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                        }
+                        // X2: pull-to-refresh already reloads; a button is offered only to retry a failed read.
+                        if !loading, failure != .forbidden {
+                            Button("action.retry") { Task { await load() } }
+                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                                .accessibilityIdentifier("club.gov.refresh")
+                        }
+                    }
+                }
                 if failure == .forbidden { ClubOpsGovernanceDeniedNote(operation: operation, cases: scope.clubID == nil ? nil : AnyView(link(.cases))) }
             }
             if operation == .customers {
@@ -663,17 +678,11 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-            // X2 (parity r1): pull-to-refresh already reloads; a button is offered only to retry a failed read.
-            if !loading, failure != nil, failure != .forbidden {
-                Button("action.retry") { Task { await load() } }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
-                    .accessibilityIdentifier("club.gov.refresh")
-            }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .cyPageTitle(String.LocalizationValue(stringLiteral: "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
             NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) }
@@ -1342,7 +1351,7 @@ struct ClubGovernanceReadView: View {
             } else { Text("club.gov.malformed").accessibilityIdentifier("club.roster.malformed") }
         } else if operation == .roles {
             ClubOpsRoleSection(roles: snapshot, context: readContext, access: access, assign: AnyView(edit(.assignRole))) { row in
-                AnyView(edit(.revokeRole, seed: row.revokeSeed))
+                AnyView(edit(.revokeRole, seed: row.revokeSeed, role: .inlineDestructive))
             }
             ClubRoleRevocationRecoverySection(recovery: coordinator.roleRevocation, context: readContext, access: access) { Task { await load() } }
             ClubRoleAssignmentRecoverySection(recovery: coordinator.roleAssignment, context: readContext, access: access) { Task { await load() } }
@@ -1355,7 +1364,7 @@ struct ClubGovernanceReadView: View {
             ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }
             Section { link(.members) }
         } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
-            ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed)) },
+            ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed, role: .inlineDestructive)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
                 scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value)
         } else if operation == .cases, let cases = try? ClubOpsCaseList(snapshot: snapshot) {
             ClubOpsCaseSection(list: cases, report: cases.canReport ? AnyView(edit(.report)) : nil, appeal: cases.canAppeal ? AnyView(edit(.appeal)) : nil,
@@ -1731,12 +1740,6 @@ struct ClubGovernanceEventView: View {
     var groupCodePage: ClubGroupCodePage? = nil
     var body: some View {
         List {
-            Section {
-                CYHeroHeader("club.gov.events")
-            }
-            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
             NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
                 Label {
                     Text("clubOpsEvent.entry.event", tableName: "ClubOpsEvent")
@@ -1759,7 +1762,7 @@ struct ClubGovernanceEventView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
-        .cyHeroScreen()
+        .cyPageTitle("club.gov.events")
     }
 }
 
@@ -1809,12 +1812,7 @@ struct ClubGovernanceEventView: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         List {
-            Section {
-                CYHeroHeader("club.gov.story")
-            }
-            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
+            // CLB-topic-story-07 (parity r2): inline bar title (MP nav-bar title), no hero in the content.
             if identity?.isSignedIn != true || identity != access.identity {
                 Text("club.gov.signedOut").accessibilityIdentifier("club.story.signedOut")
             } else if loading {
@@ -1823,7 +1821,14 @@ struct ClubGovernanceEventView: View {
                     .accessibilityLabel(Text("club.story.loading"))
                     .accessibilityIdentifier("club.story.loading")
             } else if let failure {
-                Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.story.failure")
+                // CLB-topic-story-07: one failure state with its own 重试; pull-to-refresh covers the rest.
+                CYEmptyState(systemImage: "exclamationmark.triangle", "club.story.failed",
+                             detail: LocalizedStringKey(failure.localizationKey),
+                             messageIdentifier: "club.story.failure",
+                             actionTitle: "action.retry", actionIdentifier: "club.story.refresh",
+                             kind: .failure) { Task { await reload() } }
+                    .disabled(loading)
+                    .listRowBackground(Color.clear)
             } else if let presentation {
                 Picker("club.story.sections", selection: $tab) {
                     Text("club.story.route").tag(ClubStoryTab.route).accessibilityIdentifier("club.story.tab.route")
@@ -1862,15 +1867,11 @@ struct ClubGovernanceEventView: View {
             } else {
                 Text("club.story.sourceUnavailable").accessibilityIdentifier("club.story.sourceUnavailable")
             }
-            Button("club.gov.refresh") { Task { await reload() } }
-                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
-                .disabled(loading)
-                .accessibilityIdentifier("club.story.refresh")
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .cyPageTitle("club.gov.story")
         .accessibilityIdentifier("club.gov.story")
         .navigationDestination(item: $selectedTemplate) { selection in
             Group {
@@ -2047,7 +2048,7 @@ struct ClubGovernanceFactRows: View {
     }
 }
 
-private enum ClubGovActionRole { case primary, secondary, destructive }
+private enum ClubGovActionRole { case primary, secondary, destructive, inlineDestructive }
 
 /// One filled action per screen. Other commands stay outlined; dissolve stays destructive.
 private struct ClubGovActionChrome: ViewModifier {
@@ -2060,6 +2061,15 @@ private struct ClubGovActionChrome: ViewModifier {
             content.buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
         case .destructive:
             content.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+        case .inlineDestructive:
+            // CLB-roles-08 / CLB-governance-02 (parity r2): row-level 撤销 / 封禁 / 转让 read as a red inline action
+            // (MP red link, MC-20), not a full-width secondary pill. 44 pt target.
+            content
+                .buttonStyle(.borderless)
+                .cyText(.label)
+                .foregroundStyle(CYColor.dangerText)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
         }
     }
 }

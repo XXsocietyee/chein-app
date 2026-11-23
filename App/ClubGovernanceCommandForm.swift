@@ -236,7 +236,10 @@ import SwiftUI
                     (![.cancelOccurrence, .correctAttendance].contains(route.operation) || key != "reason") &&
                     (route.operation != .sendNotification || key != "audienceType") &&
                     (route.operation != .sendNotification || !["title", "content"].contains(key)) &&
-                    (route.operation != .saveCustomer || !["tags", "remark"].contains(key))
+                    (route.operation != .saveCustomer || !["tags", "remark"].contains(key)) &&
+                    // CLB-governance-09 (parity r2): inside a club the report is anchored to that club (MP CU-C-139);
+                    // the user is never asked for a target type or a raw target id.
+                    (route.operation != .report || route.scope.clubID == nil || !["targetType", "targetId"].contains(key))
                 }, id: \.self) { key in fieldRow(key) }
                 ForEach(Array(draft.flags.keys).sorted().filter { !isSeries || $0 != "waitlistEnabled" }, id: \.self) { key in
                     flagRow(key)

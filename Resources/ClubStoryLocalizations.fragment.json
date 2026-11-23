@@ -512,6 +512,22 @@
           }
         }
       }
+    },
+    "club.story.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't open story and play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧情与玩法无法打开"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

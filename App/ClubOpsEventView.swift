@@ -19,7 +19,6 @@ import SwiftUI
     @State private var failure: ClubGovernanceFailure?
     @State private var loading = false
     @State private var generation: UInt64 = 0
-    @ScaledMetric(relativeTo: .largeTitle) private var heroArtHeight: CGFloat = 168
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
@@ -32,14 +31,7 @@ import SwiftUI
     }
     var body: some View {
         List {
-            CYHeroHeader("clubOpsEvent.title", tableName: "ClubOpsEvent") {
-                CYCoverArt(seed: "clubOpsEvent", symbol: "calendar", showsDebugLabel: false)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: heroArtHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                    .accessibilityHidden(true)
-            }
-            .e1HeroRow()
+            // CLB-event-ops-04 (parity r2): a utility page; inline bar title, no hero or decorative art.
             if loading {
                 CYSkeleton()
                     .accessibilityIdentifier("clubOpsEvent.loading")
@@ -65,12 +57,14 @@ import SwiftUI
             }
         }
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("clubOpsEvent.title", tableName: "ClubOpsEvent"))
+        .navigationBarTitleDisplayMode(.inline)
         .cyAnimation(value: phaseToken)
         .accessibilityIdentifier("clubOpsEvent.root")
         .task(id: key) { await load() }
         .refreshable { await load() }
-        .cyDomainScreen(.player)
+        // CLB-event-ops-04 / X8: inherit the workspace's domain (MP event-ops is merchant-light), not a forced dark page.
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
     }
     private var denied: some View {
         VStack(spacing: CYSpacing.sm) {
@@ -101,11 +95,8 @@ import SwiftUI
                     .accessibilityIdentifier("clubOpsEvent.roster.hidden")
                 }
                 push(.occurrenceStatus, eventScope) {
-                    CYListRow(
-                        "club.gov.action.cancelOccurrence",
-                        trailing: .none,
-                        verbatimMeta: String(localized: LocalizedStringResource("clubOpsEvent.cancel.subtitle", table: "ClubOpsEvent", locale: locale))
-                    ) { CYRowIcon(systemImage: "calendar.badge.minus") }
+                    // CLB-event-ops-07: the consequence lives in the confirm only (MP 1121), not on the row.
+                    CYListRow("club.gov.action.cancelOccurrence", trailing: .none) { CYRowIcon(systemImage: "calendar.badge.minus") }
                 }
             } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
         case .roster:

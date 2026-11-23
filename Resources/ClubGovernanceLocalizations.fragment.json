@@ -177,13 +177,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Plan a series"
+            "value": "Repeat"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建系列场次"
+            "value": "重复方式"
           }
         }
       }
@@ -245,13 +245,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cancellation status"
+            "value": "This session"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "取消状态"
+            "value": "本场管理"
           }
         }
       }
@@ -262,13 +262,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Attendance roster"
+            "value": "Session roster"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "考勤名册"
+            "value": "本场名册"
           }
         }
       }

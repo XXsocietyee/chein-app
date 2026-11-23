@@ -576,6 +576,70 @@
           }
         }
       }
+    },
+    "listError": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the badge list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "勋章列表没加载成功"
+          }
+        }
+      }
+    },
+    "refreshError": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't refresh the list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表没刷新成功"
+          }
+        }
+      }
+    },
+    "allBadges %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All badges · %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部勋章 · %lld 枚"
+          }
+        }
+      }
+    },
+    "confirmGrantNamed %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Give “%1$@” to %2$@?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把「%1$@」颁给 %2$@？"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
