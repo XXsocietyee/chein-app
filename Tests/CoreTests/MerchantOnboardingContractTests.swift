@@ -148,7 +148,9 @@ func makeMerchantOnboardingApplication(status: Int = 0, accountStatus: Int = 0,
     var fields: [String: Any] = [
         "id": 17, "status": status, "accountStatus": accountStatus, "name": "Example Store", "phone": "2025550100",
         "address": "Example address", "businessTime": "Stored hours", "businessLicense": "https://fixtures.example/license.jpg",
-        "reson": "License unreadable", "disableReason": "Platform pause", "derivatives": "not a form field"
+        "reson": "License unreadable", "disableReason": "Platform pause", "derivatives": "not a form field",
+        // apply-P0b (parity r1): a stored application carries its 行业类型 ids, which a re-application keeps.
+        "categoryIds": "11"
     ]
     fields.merge(extras) { _, new in new }
     return try JSONDecoder().decode(MerchantOnboardingApplication.self, from: JSONSerialization.data(withJSONObject: fields))

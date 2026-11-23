@@ -80,9 +80,11 @@ import FoundationNetworking
         for legacy in 0...1 { for status in 0...3 { for publish in 0...3 {
             let value = try projection(["publishStatus": legacy, "marketTemplateId": 99,
                 "marketStatus": status, "marketPublishStatus": publish])
+            // PLY-26-1 (parity r1, MP marketView): 0 审核中, 1 已上架 (an older row with marketPublishStatus 0 is off the
+            // square), 2 需重新提交, 3 已下架.
             let expected: TemplateOwnShelfStateProjection.Market = status == 0 ? .reviewing :
-                status == 1 && publish == 1 ? .listed : status == 1 && publish == 0 ? .unlisted :
-                status == 2 ? .rejected : .unknown
+                status == 1 && publish == 0 ? .unlisted : status == 1 ? .listed :
+                status == 2 ? .rejected : status == 3 ? .unlisted : .unknown
             XCTAssertEqual(value.market, expected)
         } } }
     }

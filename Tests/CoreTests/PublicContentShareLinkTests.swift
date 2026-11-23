@@ -80,7 +80,9 @@ final class PublicContentShareLinkTests: XCTestCase {
         let raw = "https://www.chengyinhub.com/pages/templatedetail/topic-detail/index?id=15"
         let url = try XCTUnwrap(URL(string: raw))
         XCTAssertNil(CheinDeepLink(url: url))
-        XCTAssertNil(UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url))
+        // PC-A-8-1 (parity r1): a verified universal link to the MP template detail opens that template.
+        XCTAssertEqual(UniversalLinkParser(verifiedHTTPSOrigins: ["https://www.chengyinhub.com"]).parse(url),
+                       .miniProgramPage(try XCTUnwrap(MiniProgramPageLink(path: "pages/templatedetail/topic-detail/index", query: ["id": "15"]))))
         XCTAssertNil(UniversalLinkParser().parse(url))
         XCTAssertEqual(PublicContentShareLink.topicTemplateCopyText(id: 15), "/pages/templatedetail/topic-detail/index?id=15")
         let text = try XCTUnwrap(PublicContentShareLink.topicTemplateCopyText(id: 15))

@@ -54,9 +54,10 @@ final class ConditionPackageClosureTests: XCTestCase {
         let claim = try XCTUnwrap(JourneyLoopSource.journey.first { $0.name == .giftClaim })
         XCTAssertEqual(claim.path, "/api/marketing/product/gifts/claim")
         XCTAssertTrue(claim.money, "gift claim is a money write and stays behind the money switch")
-        XCTAssertEqual(MiniProgramPageLink.reviewedPages["subpackageMember/market/gift/index"]?.required, ["token"])
+        // MKT-3-2 (parity r1): the token is optional on the link; without it the page shows 链接已失效 and claims nothing.
+        XCTAssertEqual(MiniProgramPageLink.reviewedPages["subpackageMember/market/gift/index"]?.required, [])
         XCTAssertNotNil(MiniProgramPageLink(path: "subpackageMember/market/gift/index", query: ["token": "g-1"]))
-        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/market/gift/index", query: [:]))
+        XCTAssertEqual(MiniProgramPageLink(path: "subpackageMember/market/gift/index", query: [:])?.query, [:])
         XCTAssertTrue(try source("App/PassMarketViews.swift").contains("@MainActor struct PassMarketHost: View"))
 
         XCTAssertEqual(hits(#"crowdfund|众筹"#), [], "OWN-EXT-04: crowdfunding is dropped")

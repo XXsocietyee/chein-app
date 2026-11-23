@@ -23,8 +23,9 @@ final class PointsHistoryPageModelTests: XCTestCase {
     }
 
     func testEmptyLedgerAndFilteredEmptyUseTheirOwnCopy() throws {
-        XCTAssertEqual(Page.load(direction: .all, loading: false, failure: nil, rows: [], total: 0, pageSize: 20), .empty(key: "wallet.empty"))
-        XCTAssertEqual(Page.load(direction: .income, loading: false, failure: nil, rows: [], total: 0, pageSize: 20), .empty(key: "wallet.empty"))
+        // FIN-18-3 (parity r1): an empty account reads 还没有积分记录 whatever the direction.
+        XCTAssertEqual(Page.load(direction: .all, loading: false, failure: nil, rows: [], total: 0, pageSize: 20), .empty(key: "wallet.points.empty.all"))
+        XCTAssertEqual(Page.load(direction: .income, loading: false, failure: nil, rows: [], total: 0, pageSize: 20), .empty(key: "wallet.points.empty.all"))
         let expenseOnly = try rows(#"[{"id":2,"changeType":2,"changePoints":3}]"#)
         XCTAssertEqual(Page.load(direction: .income, loading: false, failure: nil, rows: expenseOnly, total: 1, pageSize: 20), .empty(key: "wallet.points.empty.income"))
         let incomeOnly = try rows(#"[{"id":1,"changeType":1,"changePoints":3}]"#)

@@ -75,12 +75,13 @@ final class ClubActionSessionTests: XCTestCase {
             return (Data("{\"code\":200,\"data\":{\"id\":7,\"isJoined\":\(joined)}}".utf8), 200)
         }
         let writer = ClubActionSessionWriter(service: service, currentSession: { snapshot })
-        do { _ = try await writer.perform(.join, clubID: 7, expectedIdentity: snapshot.identity); XCTFail() }
-        catch { XCTAssertEqual(error as? ClubActionWriteError, .eligibilityChanged) }
-        XCTAssertEqual(calls, 1)
+        // CLB-detail-01 (parity r1): a merchant account joins a club like any member (MP has no merchant gate);
+        // activity signup stays merchant-blocked elsewhere. Join = one eligibility read + one write.
+        _ = try await writer.perform(.join, clubID: 7, expectedIdentity: snapshot.identity)
+        XCTAssertEqual(calls, 2)
         joined = true
         _ = try await writer.perform(.leave, clubID: 7, expectedIdentity: snapshot.identity)
-        XCTAssertEqual(calls, 3)
+        XCTAssertEqual(calls, 4)
     }
     func testOwnerCannotLeaveEvenWhenJoinedOrAdministrator() async throws {
         let snapshot = try session()

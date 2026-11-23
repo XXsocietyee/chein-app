@@ -44,8 +44,12 @@ final class MiniProgramPageLinkTests: XCTestCase {
         var rows = explicit
         for page in MiniProgramPageLink.reviewedPages.keys.sorted() where !covered.contains(page) {
             let rule = MiniProgramPageLink.reviewedPages[page]!
-            let query = rule.required.contains("id") ? ["id": "7"] : [String: String]()
-            let suffix = query.isEmpty ? "" : "?id=7"
+            // Every required key gets a value (ids `7`, other keys `x`); a content page (club detail, roam session…)
+            // is addressed by `id=7`, which parity r1 made optional on several pages.
+            var query = [String: String]()
+            for key in rule.required { query[key] = rule.ids.contains(key) ? "7" : "x" }
+            if contentPages.contains(page), rule.allowed.contains("id") { query["id"] = "7" }
+            let suffix = query.isEmpty ? "" : "?" + query.keys.sorted().map { $0 + "=" + query[$0]! }.joined(separator: "&")
             rows.append(("/" + page + suffix, page, query))
         }
         return rows
@@ -150,7 +154,6 @@ final class MiniProgramPageLinkTests: XCTestCase {
             "/pages/club/settlement/index",
             "/pages/merchant/customer/detail/index",
             "/pages/team/join/index",                                        // team invitation keeps this path
-            "/subpackageMember/market/gift/index",                          // token required
             "/subpackageMember/market/gift/index?token=a&amount=1",         // unknown key
             "/subpackageMember/market/gift/index?token=a&token=b",          // repeated key
             "/subpackagePass/reveal/index?mode=paid&count=3",               // paid facts from a link stay off

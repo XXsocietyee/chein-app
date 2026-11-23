@@ -66,8 +66,10 @@ final class AppSecParameterValidationTests: XCTestCase {
     func testPaidRevealSpoofAndEmptyGiftTokenStayClosed() throws {
         XCTAssertNil(MiniProgramPageLink(path: "/subpackagePass/reveal/index", query: ["mode": "paid", "count": "9", "until": "2099"]))
         XCTAssertEqual(MiniProgramPageLink(path: "/subpackagePass/reveal/index", query: [:])?.query, [:])
-        XCTAssertNil(MiniProgramPageLink(path: "/subpackageMember/market/gift/index", query: ["token": ""]))
-        XCTAssertNil(MiniProgramPageLink(path: "/subpackageMember/market/gift/index", query: [:]))
+        // MKT-3-2 (parity r1): an absent or empty gift token opens the gift page on 链接已失效 (MPParityRoute
+        // `.gift(token: "")`); it never reaches a claim, so the link still carries no token.
+        XCTAssertEqual(MiniProgramPageLink(path: "/subpackageMember/market/gift/index", query: ["token": ""])?.query, [:])
+        XCTAssertEqual(MiniProgramPageLink(path: "/subpackageMember/market/gift/index", query: [:])?.query, [:])
         XCTAssertEqual(
             MiniProgramPageLink(path: "/subpackageMember/market/gift/index", query: ["token": "gift-token"])?.query["token"],
             "gift-token"
@@ -78,7 +80,7 @@ final class AppSecParameterValidationTests: XCTestCase {
         XCTAssertNil(CheinDeepLink(url: url))
         XCTAssertNil(CheinDeepLink(url: try XCTUnwrap(URL(string: "chein://gift/"))))
         XCTAssertNil(CheinDeepLink(url: try XCTUnwrap(URL(string: "chein://landing?k=g&t="))))
-        XCTAssertNil(MiniProgramPageLink(cheinURL: try XCTUnwrap(URL(string: "chein://mp/subpackageMember/market/gift/index?token="))))
+        XCTAssertEqual(MiniProgramPageLink(cheinURL: try XCTUnwrap(URL(string: "chein://mp/subpackageMember/market/gift/index?token=")))?.query, [:])
         XCTAssertNil(URL(string: "chein://gift/%00").flatMap(CheinDeepLink.init(url:)))
     }
 

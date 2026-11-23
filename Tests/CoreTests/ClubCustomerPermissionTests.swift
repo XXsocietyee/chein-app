@@ -71,7 +71,9 @@ private let directoryEvent: ClubGovernanceValue = .object([
             XCTAssertEqual(payload, .object(try operation.fields(scope: scope, options: options(operation))))
             let expected: [String: ClubGovernanceValue]
             switch operation {
-            case .customers: expected = ["clubId": .integer(81), "filter": .string("remark"), "keyword": .string(" 顾客 ")]
+            // CLB-customers-01 (parity r1): the directory pages (pageNum / pageSize 50) like the MP list.
+            case .customers: expected = ["clubId": .integer(81), "filter": .string("remark"), "keyword": .string(" 顾客 "),
+                                         "pageNum": .integer(1), "pageSize": .integer(50)]
             case .customer: expected = ["clubId": .integer(81), "memberId": .integer(704)]
             case .customerCount: expected = ["clubId": .integer(81)]
             default: XCTFail("Unexpected directory operation"); return

@@ -71,8 +71,8 @@ import FoundationNetworking
     func testProtocolGrantDoesNotLiftExistingMerchantMembershipGate() async throws {
         let store = AdmissionRecoveryStore(); store.viewerIsMerchant = true
         let coordinator = ClubActionCoordinator(writer: store, reader: store, journal: AdmissionMemoryJournal())
-        do { _ = try await coordinator.prepare(clubID: 7, action: .apply, expectedIdentity: store.clubIdentity, joinMessage: "reviewed"); XCTFail() }
-        catch { XCTAssertEqual(error as? ClubActionBlock, .eligibilityChanged) }
+        // CLB-detail-01 (parity r1): merchant accounts may apply to join; preparing still sends nothing.
+        _ = try await coordinator.prepare(clubID: 7, action: .apply, expectedIdentity: store.clubIdentity, joinMessage: "reviewed")
         XCTAssertEqual(store.writes, 0)
     }
     func testLegacyMarkerCurrentMembershipNeverBecomesOriginalReceipt() async throws {
