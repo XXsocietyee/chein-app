@@ -223,7 +223,11 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     private var onboardingHero: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYHeroHeader("merchant.onboarding.title", subtitle: heroSubtitle)
+                // Parity apply P1: one title. The bar keeps 商家入驻申请; the form shows only the step headline.
+                Text(heroSubtitle)
+                    .cyText(.sectionTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
                 // Figma 182:7693: a five-segment bar; the current and earlier segments are filled.
                 MerchantOnboardingProgressBar(step: model.step, count: MerchantOnboardingSteps.count)
             }
@@ -469,6 +473,12 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             }
         }
     }
+    /// Parity apply P1: source index.wxml:246-249 offers 重新提交 in place; it re-opens the same reviewed confirm.
+    private var resubmitButton: some View {
+        CYPillButton("merchant.onboarding.resubmit", style: .secondary) { model.prepare() }
+            .disabled(model.isBusy)
+            .accessibilityIdentifier("merchant.onboarding.resubmit")
+    }
     @ViewBuilder private var submissionSection: some View {
         switch model.coordinator.submission {
         case .acknowledged:
@@ -479,8 +489,9 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             Section {
                 Text("merchant.onboarding.rejectedByServer")
                 if let message = failure.message, !message.isEmpty { Text(message) }
+                resubmitButton
             }
-        case .notSent: Section { Text("merchant.onboarding.notSent") }
+        case .notSent: Section { Text("merchant.onboarding.notSent"); resubmitButton }
         case .checking, .submitting:
             Section { CYSkeleton().accessibilityLabel(Text("merchant.onboarding.working")) }
         default: EmptyView()

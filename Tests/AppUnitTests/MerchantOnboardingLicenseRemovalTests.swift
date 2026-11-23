@@ -20,7 +20,7 @@ import XCTest
     private func ready() async throws -> (MerchantOnboardingModel, Server) {
         let server = Server()
         let m = MerchantOnboardingModel(coordinator: .init(server: server)); m.reset(); await m.load(); await m.checkIdentity()
-        m.draft.name = "Raw name "; m.draft.phone = "2025550100"; m.draft.address = "Example street"
+        m.draft.name = "Raw name "; m.draft.phone = "13800000000"; m.draft.address = "Example street"
         m.draft.businessTime = "Stored hours"; m.draft.description = "Raw\ntext"
         m.draft.license = try .init(serverURL: "https://fixtures.example/original.jpg")
         m.draft.brandImages = try .init(urls: ["https://fixtures.example/brand.jpg"])

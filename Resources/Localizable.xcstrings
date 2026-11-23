@@ -283777,6 +283777,40 @@
           }
         }
       }
+    },
+    "merchant.onboarding.invalid.phone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter an 11-digit mobile number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写11位手机号"
+          }
+        }
+      }
+    },
+    "merchant.onboarding.resubmit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新提交"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
