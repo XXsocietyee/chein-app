@@ -26,8 +26,19 @@ import Combine
     init(model: TemplateAuthoringModel, overlaysOpen: @escaping () -> Bool = { false }) {
         self.model = model; self.overlaysOpen = overlaysOpen
         observation = model.objectWillChange.sink { [weak self] _ in
-            guard let self else { return }; self.generation = UUID(); self.review = nil
+            guard let self else { return }; self.generation = UUID(); self.review = nil; self.guardCache = nil
         }
+    }
+    /// C-T4: one checkpoint read per model change, not per body evaluation.
+    private var guardCache: Bool?
+    /// C-T4 (T&C §3): the guarded back (and blocked swipe) only while the draft differs from its on-device
+    /// checkpoint, cannot be verified, or an operation / overlay is open; otherwise the system back stays.
+    var guardsExit: Bool {
+        if review != nil || !canNavigate { return true }
+        guard model.canEdit else { return false }
+        if let guardCache { return guardCache }
+        let guards = TemplateAuthoringExitDecision(draft: model.draft, checkpoint: model.coordinator.localCheckpointForExit()).status != .clean
+        guardCache = guards; return guards
     }
     private var canNavigate: Bool { !overlaysOpen() && !model.busy && model.review == nil && model.coordinator.review == nil && model.coordinator.state != .submitting }
     var canRequestBack: Bool { active && canNavigate && review == nil }
@@ -89,14 +100,9 @@ import Combine
     }
     func body(content: Content) -> some View {
         content
-            .navigationBarBackButtonHidden(true)
-            .interactiveDismissDisabled(true)
-            .toolbar { ToolbarItem(placement: .topBarLeading) {
-                Button(action: controller.backAction { dismiss() }) {
-                    Label { Text("templateAuthorExit.back", tableName: "CreatorExitGuard") } icon: { Image(systemName: "chevron.backward") }
-                }
-                    .disabled(!controller.canRequestBack).accessibilityIdentifier("templateAuthorExit.back")
-            } }
+            // C-T4 (T&C §3): system back + edge swipe while clean; the guarded back only while there is something to lose.
+            .interactiveDismissDisabled(controller.guardsExit)
+            .cyGuardedBack(when: controller.guardsExit, onBack: controller.backAction { dismiss() })
             .cyModalConfirm(
                 isPresented: controller.presentationBinding(),
                 title: String(localized: LocalizedStringResource("templateAuthorExit.title", table: "CreatorExitGuard", locale: locale)),

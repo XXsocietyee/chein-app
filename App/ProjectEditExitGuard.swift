@@ -48,6 +48,10 @@ import Combine
             model.confirmation == nil && model.coordinator.confirmation == nil && model.coordinator.state != .submitting
     }
     var canRequestBack: Bool { canNavigate && review == nil }
+    /// C-F3: the guarded back (and blocked swipe) only while unsaved bytes, a review or a running operation exist.
+    var guardsExit: Bool {
+        review != nil || model.exitNeedsGuard || model.busy || model.confirmation != nil || model.coordinator.state == .submitting
+    }
     private func snapshot() -> Snapshot {
         .init(session: model.coordinator.session, identity: model.coordinator.identity,
               incarnation: model.editorIncarnation, draftRevision: model.draftMutationRevision,
@@ -117,12 +121,9 @@ import Combine
         _owner = StateObject(wrappedValue: .init(model: model, overlaysOpen: overlaysOpen, requiresNativeRoot: true))
     }
     func body(content: Content) -> some View {
-        content.disabled(owner.review != nil).navigationBarBackButtonHidden(true).interactiveDismissDisabled(true)
-            .toolbar { ToolbarItem(placement: .topBarLeading) {
-                Button(action: owner.backAction { dismiss() }) {
-                    Label { Text("back", tableName: "ProjectEditExitGuard") } icon: { Image(systemName: "chevron.backward") }
-                }.disabled(!owner.canRequestBack).accessibilityIdentifier("projectEditExit.back")
-            } }
+        // C-F3 (T&C §3): system back + edge swipe while clean; the guarded back only while there is something to lose.
+        content.disabled(owner.review != nil).interactiveDismissDisabled(owner.guardsExit)
+            .cyGuardedBack(when: owner.guardsExit, onBack: owner.backAction { dismiss() })
             .background { ProjectEditExitRootAnchor(owner: owner).frame(width: 0, height: 0) }
             .safeAreaInset(edge: .bottom) {
                 if let original = owner.review {
