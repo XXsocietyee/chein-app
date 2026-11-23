@@ -10,6 +10,12 @@ S = {
     # RCODE-2
     'roamSub.w208.voucher.network': ('Network error. Try again later.', '网络异常，请稍后重试'),
     'roamSub.w208.voucher.retry': ('Retry', '重试'),
+    # RROUTE-3 / RROUTES-2: route copy into the catalog (noun 路线 kept until the owner glossary rules 线路/路线)
+    'officialRoute.badge': ('Official route', '官方路线'),
+    'officialRoute.openFirstStop': ('Open first stop in Maps', '在地图中打开起点'),
+    'officialRoute.stat.duration': ('Duration', '用时'),
+    'officialRoute.stat.distance': ('Distance', '距离'),
+    'officialRoute.stat.stops': ('Stops', '站点'),
 }
 
 
