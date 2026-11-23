@@ -6,7 +6,8 @@ import SwiftUI
     let topicID: Int
     let client: PublisherLifecycleHTTP
     let coordinator: PublisherLifecycleCoordinator
-    @State private var subtype = PublisherPriceSubtype.selfPlay
+    /// PC-B-4-6: MP defaults to 有人带 (`subType: 'guided'`).
+    @State private var subtype = PublisherPriceSubtype.guided
     @State private var cost = ""
     @State private var team = ""
     @State private var price = ""
@@ -63,8 +64,9 @@ import SwiftUI
             }
             if subtype == .guided {
                 Section(text("publisherPricing.leadCost")) {
-                    TextField(text("publisherPricing.totalLeadCostForThisGroup"), text: $cost).keyboardType(.decimalPad)
-                    TextField(text("publisherPricing.groupSize"), text: $team).keyboardType(.numberPad)
+                    // PC-B-4-5 (MP E24): each field keeps a standing label; a placeholder vanishes once typed.
+                    pricingField(text("publisherPricing.totalLeadCostForThisGroup"), value: $cost, keyboard: .decimalPad)
+                    pricingField(text("publisherPricing.groupSize"), value: $team, keyboard: .numberPad)
                     if (Int(team) ?? 0) <= 0 {
                         Text(text("publisherPricing.guidedPricingNeedsAGroupSize")).cyText(.meta).foregroundStyle(CYColor.dangerText)
                     }
@@ -152,7 +154,8 @@ import SwiftUI
         .cyPushedChrome(domain: .merchant)
         .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
         // Mini-program pages/topic/pricing calls preview() in onLoad: load the floor without a manual tap.
-        .task { visible = true; if preview == nil, !busy, subtype == .selfPlay { beginLoad() } }
+        // PC-B-4-6: load the floor on open whenever the inputs allow it (guided needs a group size).
+        .task { visible = true; if preview == nil, !busy, subtype == .selfPlay || (Int(team) ?? 0) > 0 { beginLoad() } }
         .onAppear { visible = true }
         .onChange(of: topicID) { _, _ in invalidate() }
         .onChange(of: client.session) { _, _ in invalidate() }
@@ -195,6 +198,13 @@ import SwiftUI
     }
     private func isCurrent(_ stamp: UUID, _ session: PublishingSession, _ key: [String]) -> Bool {
         visible && phase == .active && generation == stamp && client.session == session && coordinator.currentSession == session && formKey == key
+    }
+    private func pricingField(_ label: String, value: Binding<String>, keyboard: UIKeyboardType) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: label).cyText(.label).foregroundStyle(CYColor.textSecondary)
+            TextField(text: value, prompt: Text(verbatim: "0")) { Text(verbatim: label) }
+                .keyboardType(keyboard).cyText(.numericBody)
+        }
     }
     private func beginLoad() {
         guard visible, phase == .active, !busy, let session = client.session,
