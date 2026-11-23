@@ -423,6 +423,7 @@ extension EnvironmentValues {
 
 /// Source tab "路线": every stop in order with its walking estimate.
 struct TopicXcxRouteSection: View {
+    @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     let topic: TopicDetail
     var body: some View {
@@ -442,7 +443,11 @@ struct TopicXcxRouteSection: View {
                 if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 ForEach(TopicChapterItinerary(chapter: chapter).stops) { stop in
                     VStack(alignment: .leading, spacing: 2) {
-                        if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").cyText(.label).foregroundStyle(.secondary) }
+                        // PC-B-1-7: the API has no walking time; say only the straight-line distance (MP 直线约 X).
+                        if let meters = stop.straightLineMeters {
+                            Text("topicXcx.route.straightLine \(TopicChapterItinerary.distanceText(meters: meters, chinese: locale.language.languageCode?.identifier == "zh"))")
+                                .cyText(.label).foregroundStyle(.secondary)
+                        }
                         HStack(alignment: .top) {
                             Text(verbatim: String(stop.id + 1)).cyText(.label, weight: .bold, monospacedDigit: true).frame(minWidth: 24, minHeight: 24).background(Circle().fill(palette.bgRaised)).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 2) {

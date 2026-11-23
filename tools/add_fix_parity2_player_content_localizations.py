@@ -30,6 +30,8 @@ S = {
     'wallet.earnings.goPublish': ('Publish a route', '去发布路线'),
     # PC-C-1-4: MP host label for shop-hosted activities.
     'activity.people.organizerShop': ('Organizer', '主办方'),
+    # PC-B-1-7: MP topic route walkText.
+    'topicXcx.route.straightLine %@': ('About %@ in a straight line', '直线约 %@'),
     'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 

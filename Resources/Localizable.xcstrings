@@ -283471,6 +283471,23 @@
           }
         }
       }
+    },
+    "topicXcx.route.straightLine %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About %@ in a straight line"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "直线约 %@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
