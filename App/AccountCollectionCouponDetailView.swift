@@ -78,7 +78,7 @@ import SwiftUI
                                 .accessibilityIdentifier("accountCollection.coupon.readOnly")
                         }
                     } icon: { Image(systemName:"info.circle").accessibilityHidden(true) }
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         }
