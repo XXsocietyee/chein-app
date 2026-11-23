@@ -158,7 +158,7 @@ extension EnvironmentValues {
         if hasItems {
             Menu { MyProjectRowOperationsMenu(project: project) } label: {
                 Image(systemName: "ellipsis")
-                    .font(.body.weight(.semibold))
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textSecondary)
                     .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
