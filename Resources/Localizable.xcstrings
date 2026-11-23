@@ -283794,6 +283794,23 @@
           }
         }
       }
+    },
+    "projectEdit.quotaFull": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your shelf is full. Save a draft for now, or take an older project down."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在架已满，可先存草稿或下架旧项目"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -51,6 +51,7 @@ Legend: **fixed** · **partial** (what is left is named) · **blocked-backend** 
 | C-F13 | fixed | App/ProjectEditView.swift, Localizable | 主题编辑 chapter cards: 剧情已写 / 缺剧情, N 个待选地点, 玩法 a/b chips |
 | C-S3 | fixed | App/SquareDetailView.swift (`SquareDetailIssueView`), Localizable | 帖文详情 when the post fails: 社区暂未开放 / 没有找到这条帖文 (404) / 这条帖文暂不可用 / 动态加载失败 + 重试, each with 返回上一页 |
 | C-S4 | fixed | App/SquareDetailView.swift | comment row: heart toggles the like in place, 回复 visible; ⋯ only when it holds 屏蔽 / 删除 |
+| C-F10 | fixed | Core/ProjectEditCoordinator.swift, Localizable `projectEdit.quotaFull` | TEST club with themesRemaining 0: 主题编辑 opens, 保存草稿 works; 发布 → 在架已满，可先存草稿或下架旧项目 (other refusals keep 当前发布权限…) |
 | C-S5 | fixed | App/SquareDetailView.swift | comment 举报: 44 × 44 target |
 
 ### Not done (deferred unless marked)
@@ -59,7 +60,7 @@ owner (unchanged from the audit): A1-02, A1-08, A3-06, A6-02, A8-02, A8-03, B-SZ
 
 deferred: A1-01, A1-04, A1-07, A2-02, A2-03, A3-05, A4-04, A4-05, A5-01, A6-01, A7-01 – A7-04, A8-01,
 B-SZ-05, B-SZ-09, B-MK-01, B-MK-02 (rest), B-PV-02, B-DR-02, B-DR-03, B-DR-04, B-DR-06, B-PR-02,
-C-F4 (rest), C-F7, C-F8, C-F10, C-F12 (rest: the remaining raw fonts in ProjectEditDetailForms are pinned by contract tests), C-T5, C-T6 (rest), C-T8,
+C-F4 (rest), C-F7, C-F8, C-F12 (rest: the remaining raw fonts in ProjectEditDetailForms are pinned by contract tests), C-T5, C-T6 (rest), C-T8,
 C-A4, C-S6 (rest), C-D7 (already on tokens at this base), C-J2 (needs the detail's `viewer` blocker / join `errorCode: TICKET_REQUIRED` modelled in Core), C-J3 (rest), all P2s.
 The type codemod on `App/PublishingModesViews.swift` was reverted: that file's quick-route slice is hash-pinned by `test_activity_publishing_wizard`.
 

@@ -318,7 +318,12 @@ public struct ProjectEditContinuation {
             let check = try await service.preflight(topicID: value.baseline.topicID, session: session)
             guard active(session, stamp) else { return }
             if value.baseline.topicID == nil {
-                guard value.intent == .saveCloudDraft || check.capability.allowsCreate else { state = .blocked; messageKey = "projectEdit.capabilityBlocked"; return }
+                guard value.intent == .saveCloudDraft || check.capability.allowsCreate else {
+                    // C-F10 (MP publish-sheet js:68-72): a full shelf says so and points at 保存草稿 / 下架.
+                    state = .blocked
+                    messageKey = check.capability.canProPublish && check.capability.remaining == 0 ? "projectEdit.quotaFull" : "projectEdit.capabilityBlocked"
+                    return
+                }
             } else {
                 guard check.snapshot == value.baseline,
                       ProjectChapterRecruitmentCarryOver.matchesFresh(check.snapshot, baseline: value.baseline) else { state = .blocked; messageKey = "projectEdit.revisionConflict"; return }
