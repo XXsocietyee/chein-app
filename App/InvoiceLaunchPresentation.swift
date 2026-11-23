@@ -415,7 +415,15 @@ struct InvoiceLaunchWithdrawFlow: Equatable {
 }
 
 /// Resolved label for chips (status keys live in the InvoiceLaunchUI table).
-func invoiceString(_ key: String) -> String { String(localized: String.LocalizationValue(key), table: "InvoiceLaunchUI") }
+/// Follows the in-app language choice like `MerchantOpsCopy` (FIN-11 copy is shown as verbatim titles and chips, so a
+/// plain `String(localized:)` read the system language: "My invoices" under a 中文 app).
+func invoiceString(_ key: String) -> String {
+    if let active = AppLanguageRuntime.active, active != .system,
+       let path = Bundle.main.path(forResource: active.rawValue, ofType: "lproj"), let bundle = Bundle(path: path) {
+        return bundle.localizedString(forKey: key, value: nil, table: "InvoiceLaunchUI")
+    }
+    return String(localized: String.LocalizationValue(key), table: "InvoiceLaunchUI")
+}
 extension InvoiceLaunchStatus {
     var chipTone: CYStatusTone {
         switch playerState { case .issued: return .success; case .rejected: return .danger; case .paused: return .warning
