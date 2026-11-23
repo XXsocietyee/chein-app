@@ -5,13 +5,13 @@ public enum ProfileEditReviewField: String, CaseIterable {
 }
 /// Raw image references never enter the review presentation model.
 public enum ProfileEditReviewValue: Equatable {
-    case text(String), selection(String), imageCount(Int), present(Bool), newAvatar
+    case text(String), selection(String), imageCount(Int), present(Bool), newAvatar, newImage
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case let (.text(a), .text(b)), let (.selection(a), .selection(b)): return a.utf8.elementsEqual(b.utf8)
         case let (.imageCount(a), .imageCount(b)): return a == b
         case let (.present(a), .present(b)): return a == b
-        case (.newAvatar, .newAvatar): return true
+        case (.newAvatar, .newAvatar), (.newImage, .newImage): return true
         default: return false
         }
     }
@@ -38,7 +38,10 @@ public struct ProfileEditReviewSummary: Equatable {
         if payload.avatarReplacement != nil {
             result.append(.init(field: .avatar, before: .present(!snapshot.avatar.isEmpty), after: .newAvatar))
         }
-        if payload.removesContactQR {
+        if payload.contactQRReplacement != nil {
+            // A3-01: a newly uploaded contact QR.
+            result.append(.init(field: .contactQR, before: .present(!snapshot.wechat.isEmpty), after: .newImage))
+        } else if payload.removesContactQR {
             result.append(.init(field: .contactQR, before: .present(!snapshot.wechat.isEmpty), after: .present(false)))
         }
         if payload.changesCasePictures {

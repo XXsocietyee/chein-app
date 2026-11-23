@@ -77,10 +77,13 @@ final class ProfileEditModel: ObservableObject {
     let avatarEditorID = UUID()
     @Published private(set) var avatarLifetimeID = UUID()
     @Published private(set) var avatarPreview: RetainedSelectedImage?
+    /// A3-01: local previews of staged 探索作品 / 联系二维码 uploads, keyed by the staged replacement id.
+    @Published private(set) var mediaPreviews: [UUID: RetainedSelectedImage] = [:]
     private(set) var avatarDraftRevision: UInt64 = 0
     var avatarPresentationActive = false
     private var avatarActive = true
     private var avatarRetirement: (() -> Void)?
+    private var mediaRetirements: [ProfileMediaKind: () -> Void] = [:]
     private var generation = 0
     private var reloadContextRevision: UInt64 = 0
     private var contextIdentity: ProfileReadIdentity?
@@ -96,6 +99,7 @@ final class ProfileEditModel: ObservableObject {
         && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction)
         && lhs.removesContactQR == rhs.removesContactQR
         && lhs.removesCasePictures == rhs.removesCasePictures && lhs.casePictureSubset == rhs.casePictureSubset
+        && lhs.addedCasePictures == rhs.addedCasePictures && lhs.contactQRReplacement == rhs.contactQRReplacement
     }
     private static func sameSnapshot(_ lhs: ProfileEditSnapshot, _ rhs: ProfileEditSnapshot) -> Bool {
         lhs.id == rhs.id && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction) && zip([lhs.nickname, lhs.introduction, lhs.avatar, lhs.wechat, lhs.casePics, lhs.tagIds],
@@ -108,6 +112,7 @@ final class ProfileEditModel: ObservableObject {
             && draft.introduction.utf8.elementsEqual(snapshot.introduction.utf8)
         let samePreferences = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",").utf8.elementsEqual(snapshot.tagIds.utf8) } ?? true
         return !sameText || !samePreferences || draft.avatarReplacement != nil
+            || !draft.addedCasePictures.isEmpty || draft.contactQRReplacement != nil
             || (draft.caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false)
             || (draft.removesContactQR && !snapshot.wechat.isEmpty)
             || (draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)
@@ -293,9 +298,41 @@ final class ProfileEditModel: ObservableObject {
     }
     func discardAvatar(id: UUID) {
         guard !busy, !coordinator.isLocked, draft.avatarReplacement?.id == id else { return }
-        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures, casePictureSubset: draft.casePictureSubset)
+        draft = .init(name: draft.name, introduction: draft.introduction, routePreferenceIDs: draft.routePreferenceIDs, caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures, casePictureSubset: draft.casePictureSubset).carryingUploads(of: draft)
+    }
+    /// A3-01: a 探索作品 / 联系二维码 upload target. Unlike the avatar, a staged avatar does not block it;
+    /// 探索作品 stops at the mini-program's 9 pictures, 联系二维码 takes one staged replacement.
+    func mediaTarget(source: ProfileAvatarUploadClient, kind: ProfileMediaKind) -> ProfileAvatarTarget? {
+        guard kind != .avatar else { return avatarTarget(source: source) }
+        guard avatarActive, !busy, confirmation == nil, reloadConfirmation == nil, exitConfirmation == nil, textEdit == nil,
+              let snapshot = coordinator.snapshot,
+              kind != .casePicture || draft.casePictureCount(keeping: snapshot) < ProfileMediaKind.casePictureLimit,
+              kind != .contactQR || draft.contactQRReplacement == nil,
+              let scope = coordinator.avatarScope(source: source, editorID: avatarEditorID, lifetimeID: avatarLifetimeID) else { return nil }
+        return try? .init(mediaScope: scope, snapshot: snapshot, draft: draft, draftRevision: avatarDraftRevision)
+    }
+    func stageMedia(_ replacement: ProfileAvatarReplacement, kind: ProfileMediaKind, preview: RetainedSelectedImage?) {
+        // Flow checked this exact owner, snapshot, draft and revision immediately before calling.
+        switch kind {
+        case .avatar: stageAvatar(replacement, preview: preview); return
+        case .casePicture: draft = draft.stagingCasePicture(replacement)
+        case .contactQR: draft = draft.stagingContactQR(replacement)
+        }
+        pruneMediaPreviews()
+        if let preview { mediaPreviews[replacement.id] = preview }
+    }
+    func discardMedia(id: UUID) {
+        guard !busy, !coordinator.isLocked else { return }
+        if draft.contactQRReplacement?.id == id { draft = draft.removingContactQRReplacement() }
+        else if draft.addedCasePictures.contains(where: { $0.id == id }) { draft = draft.removingAddedCasePicture(id: id) }
+        pruneMediaPreviews()
+    }
+    private func pruneMediaPreviews() {
+        let live = Set((draft.addedCasePictures + [draft.contactQRReplacement].compactMap { $0 }).map(\.id))
+        if mediaPreviews.keys.contains(where: { !live.contains($0) }) { mediaPreviews = mediaPreviews.filter { live.contains($0.key) } }
     }
     func observeAvatarRetirement(_ action: @escaping () -> Void) { avatarRetirement = action }
+    func observeMediaRetirement(_ kind: ProfileMediaKind, _ action: @escaping () -> Void) { mediaRetirements[kind] = action }
     func retireAvatar() {
         if avatarActive { suspendForBackground() } else { retireTextEdit(); retireAvatarResources() }
     }
@@ -314,14 +351,15 @@ final class ProfileEditModel: ObservableObject {
         // The existing confirmTextEdit avatarActive guard denies late Apply while suspended.
         retireAvatarResources()
     }
-    private func retireAvatarResources() { retirePreferencePicker(); retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?() }
+    private func retireAvatarResources() { retirePreferencePicker(); retireSavedReturn(); cancelExit(); reviewedDraft = nil; avatarActive = false; avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?(); mediaPreviews = [:]; mediaRetirements.values.forEach { $0() } }
     func activateAvatar() { avatarActive = true }
     private func avatarSaveValidity(for captured: ProfileEditDraft) -> ProfileAvatarSaveValidity? {
-        guard let replacement = captured.avatarReplacement else { return nil }
+        let uploads = captured.stagedUploads
+        guard !uploads.isEmpty else { return nil }
         let revision = avatarDraftRevision, fingerprint = ProfileAvatarExact.draft(captured)
         return ProfileAvatarSaveValidity { [weak self] in
             guard let self else { return false }
-            return self.ownsAvatarScope(replacement.receipt.target.scope) && self.avatarDraftRevision == revision &&
+            return uploads.allSatisfy({ self.ownsAvatarScope($0.receipt.target.scope) }) && self.avatarDraftRevision == revision &&
                 ProfileAvatarExact.draft(self.draft) == fingerprint
         }
     }
@@ -584,9 +622,15 @@ struct ProfileEditView: View {
                             LabeledContent("profile.caseSubset.remaining", value: String(subset.retainedCount))
                                 .accessibilityIdentifier("profile.caseSubset.stagedCount")
                         }
+                        // A3-01: 添加作品图片 (≤ 9 in all) and the staged new pictures.
+                        ProfileMediaUploadRows(model: model, dependencies: avatarDependencies, kind: .casePicture)
                     }
-                    ProfileContactQRSection(wechat: model.coordinator.snapshot?.wechat ?? "", removes: model.draft.removesContactQR) {
+                    ProfileContactQRSection(wechat: model.coordinator.snapshot?.wechat ?? "", removes: model.draft.removesContactQR,
+                                            replaced: model.draft.contactQRReplacement != nil) {
                         model.beginTextEdit(.contactQR)
+                    } upload: {
+                        // A3-01: 上传二维码 / 更换二维码 and the staged new code.
+                        ProfileMediaUploadRows(model: model, dependencies: avatarDependencies, kind: .contactQR)
                     }.disabled(!model.canBeginTextEdit)
                     Section("context.preferences.title") {
                         LabeledContent("context.preferences.selected", value: selectedPreferences.map { String($0.count) } ?? "—")
@@ -696,10 +740,14 @@ struct ProfileEditView: View {
                         if let text = value.payload.caseIntroduction {
                             LabeledContent { Text(verbatim: text) } label: { Text("profile.case.description") }
                         }
-                        if value.payload.removesContactQR { Text("profile.contactQR.reviewRemoval") }
+                        if value.payload.contactQRReplacement != nil { Text("profile.contactQR.reviewReplace") }
+                        else if value.payload.removesContactQR { Text("profile.contactQR.reviewRemoval") }
                         if value.payload.removesCasePictures { Text("profile.caseRemoval.review") }
                         else if let subset = value.payload.casePictureSubset {
                             LabeledContent("profile.caseSubset.remaining", value: String(subset.retainedCount))
+                        }
+                        if !value.payload.addedCasePictures.isEmpty {
+                            LabeledContent("profile.case.reviewAdded", value: String(value.payload.addedCasePictures.count))
                         }
                         if let ids = value.payload.preferenceIDs {
                             ProfilePreferenceRemovalReview(ids: ids)

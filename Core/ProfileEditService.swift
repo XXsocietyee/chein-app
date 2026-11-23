@@ -40,7 +40,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
         catch { throw APIError.malformedResponse }
     }
     public func save(_ payload: ProfileEditPayload, token: String) async throws {
-        guard payload.avatarReplacement == nil else { throw ProfileEditWriteError.notSent }
+        guard !payload.carriesUpload else { throw ProfileEditWriteError.notSent }
         var prepared: URLRequest
         do {
             prepared = try request("api/user/update", token: token)
@@ -63,7 +63,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
     }
     @MainActor public func saveAvatar(_ payload: ProfileEditPayload, token: String,
                                      isCurrent: @escaping @MainActor () -> Bool) async throws {
-        guard payload.avatarReplacement != nil, let avatarTransport, avatarSavingAvailable, isCurrent() else { throw ProfileEditWriteError.notSent }
+        guard payload.carriesUpload, let avatarTransport, avatarSavingAvailable, isCurrent() else { throw ProfileEditWriteError.notSent }
         let prepared: URLRequest
         do {
             var request = try request("api/user/update", token: token)

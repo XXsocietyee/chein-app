@@ -129,9 +129,11 @@ public final class ProfileEditCoordinator {
         savedReturn = nil
         synchronizeSession()
         guard !isBusy, !isLocked, let expected = session, let original = snapshot else { return }
-        if let avatar = draft.avatarReplacement {
-            guard avatarSavingAvailable, avatarValidity?.isCurrent == true, avatar.permits(session: expected, snapshot: original) else {
-                messageKey = "profile.avatar.changed"; return
+        // A3-01: every staged upload (avatar, work pictures, contact QR) passes the same checked fences.
+        let uploads = draft.stagedUploads
+        if !uploads.isEmpty {
+            guard avatarSavingAvailable, avatarValidity?.isCurrent == true, uploads.allSatisfy({ $0.permits(session: expected, snapshot: original) }) else {
+                messageKey = draft.avatarReplacement == nil ? "profile.media.changed" : "profile.avatar.changed"; return
             }
         }
         guard draft.isValid else { messageKey = "profile.edit.nameRequired"; return }
@@ -146,14 +148,14 @@ public final class ProfileEditCoordinator {
                   draft.caseIntroduction == nil || ProfileCasePortfolio.sameText(latest.caseIntroduction, original.caseIntroduction),
                   !draft.removesContactQR || latest.wechat.utf8.elementsEqual(original.wechat.utf8),
                   !(draft.removesCasePictures || draft.casePictureSubset?.hasChanges == true) || latest.casePics.utf8.elementsEqual(original.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return }
-            if let avatar = draft.avatarReplacement {
-                guard avatarValidity?.isCurrent == true, avatar.permits(session: expected, snapshot: latest) else {
-                    messageKey = "profile.avatar.changed"; return
+            if !uploads.isEmpty {
+                guard avatarValidity?.isCurrent == true, uploads.allSatisfy({ $0.permits(session: expected, snapshot: latest) }) else {
+                    messageKey = draft.avatarReplacement == nil ? "profile.media.changed" : "profile.avatar.changed"; return
                 }
             }
             let payload = try ProfileEditPayload(draft: draft, preserving: latest)
             confirmation = .init(id: UUID(), payload: payload, snapshot: latest, session: expected,
-                                 avatarValidity: draft.avatarReplacement == nil ? nil : avatarValidity)
+                                 avatarValidity: uploads.isEmpty ? nil : avatarValidity)
         } catch {
             guard active(expected, request) else { return }
             remoteMessage = Self.readFailureMessage(error)
@@ -186,7 +188,7 @@ public final class ProfileEditCoordinator {
                   ProfileCasePortfolio.sameText(latest.caseIntroduction, value.snapshot.caseIntroduction),
                   !value.payload.removesContactQR || latest.wechat.utf8.elementsEqual(value.snapshot.wechat.utf8),
                   !value.payload.changesCasePictures || latest.casePics.utf8.elementsEqual(value.snapshot.casePics.utf8) else { snapshot = latest; messageKey = "profile.edit.changed"; return nil }
-            if value.payload.avatarReplacement != nil {
+            if value.payload.carriesUpload {
                 // Image-bearing full replacement preserves exact server bytes, not
                 // only Swift's canonically equivalent String values.
                 guard ProfileAvatarExact.snapshot(latest) == ProfileAvatarExact.snapshot(value.snapshot) else {
@@ -200,12 +202,13 @@ public final class ProfileEditCoordinator {
         }
         pending[expected.identity.accountID] = PendingWrite(payload: value.payload)
         do {
-            if let avatar = value.payload.avatarReplacement {
+            if value.payload.carriesUpload {
+                let uploads = value.payload.stagedUploads
                 guard let imageService = service as? any ProfileAvatarEditServing else { throw ProfileEditWriteError.notSent }
                 try await imageService.saveAvatar(value.payload, token: expected.token) { [weak self] in
                     guard let self else { return false }
                     return self.active(expected, request) && value.avatarValidity?.isCurrent == true &&
-                        avatar.permits(session: expected, snapshot: value.snapshot)
+                        uploads.allSatisfy { $0.permits(session: expected, snapshot: value.snapshot) }
                 }
             } else {
                 try await service.save(value.payload, token: expected.token)

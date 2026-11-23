@@ -18,7 +18,6 @@ import SwiftUI
                     LabeledContent("profile.case.imagesOmitted", value: String(portfolio.omittedImageCount))
                 }
             }
-            Text("profile.case.imagesReadOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
     }
 }

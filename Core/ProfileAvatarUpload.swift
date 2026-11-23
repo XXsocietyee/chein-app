@@ -64,6 +64,9 @@ public enum ProfileAvatarExact {
         if let subset = value.casePictureSubset {
             parts += ["case-picture-subset", subset.source, subset.retainedIndices.map(String.init).joined(separator: ",")]
         }
+        // A3-01: staged work-picture / contact-QR uploads are part of the bound draft.
+        if !value.addedCasePictures.isEmpty { parts += ["added-case-pictures"] + value.addedCasePictures.map(\.id.uuidString) }
+        if let qr = value.contactQRReplacement { parts += ["contact-qr-replacement", qr.id.uuidString] }
         return hash(strings(parts))
     }
 }
@@ -75,6 +78,13 @@ public struct ProfileAvatarTarget: Equatable {
     public let draftRevision: UInt64
     public init(scope: ProfileAvatarScope, snapshot: ProfileEditSnapshot, draft: ProfileEditDraft, draftRevision: UInt64) throws {
         guard snapshot.id == scope.identity.accountID, draft.avatarReplacement == nil else { throw ProfileAvatarFailure.stale }
+        id = UUID(); self.scope = scope; snapshotHash = ProfileAvatarExact.snapshot(snapshot)
+        draftHash = ProfileAvatarExact.draft(draft); self.draftRevision = draftRevision
+    }
+    /// A3-01: a work-picture or contact-QR upload binds the same snapshot/draft/revision fences, but a
+    /// staged avatar does not block it (the avatar is a separate field of the same draft).
+    public init(mediaScope scope: ProfileAvatarScope, snapshot: ProfileEditSnapshot, draft: ProfileEditDraft, draftRevision: UInt64) throws {
+        guard snapshot.id == scope.identity.accountID else { throw ProfileAvatarFailure.stale }
         id = UUID(); self.scope = scope; snapshotHash = ProfileAvatarExact.snapshot(snapshot)
         draftHash = ProfileAvatarExact.draft(draft); self.draftRevision = draftRevision
     }
@@ -164,11 +174,19 @@ extension ProfileAvatarUploadReceipt {
     }
     public func upload(_ image: RetainedSelectedImage, target: ProfileAvatarTarget, attemptID: UUID,
                        ownerCurrent: @escaping () -> Bool) async throws -> ProfileAvatarUploadReceipt {
-        guard image.width == image.height, isCurrent(target.scope), let transport, let original = credentials(),
+        guard image.width == image.height else { throw ProfileAvatarFailure.notSent }
+        return try await upload(jpeg: image.jpeg, bizType: "image_1_1", filename: "avatar.jpg", target: target,
+                                attemptID: attemptID, ownerCurrent: ownerCurrent)
+    }
+    /// One checked multipart upload. The avatar passes its square `image_1_1` route; work pictures and the
+    /// contact QR (A3-01) pass their own bizType from `ProfileMediaKind`. Every fence below is shared.
+    func upload(jpeg: Data, bizType: String, filename: String, target: ProfileAvatarTarget, attemptID: UUID,
+                ownerCurrent: @escaping () -> Bool) async throws -> ProfileAvatarUploadReceipt {
+        guard isCurrent(target.scope), let transport, let original = credentials(),
               ownerCurrent(), !Task.isCancelled else { throw ProfileAvatarFailure.notSent }
         let boundary = "ProfileAvatar-" + UUID().uuidString
-        var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\nimage_1_1\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"avatar.jpg\"\r\nContent-Type: image/jpeg\r\n\r\n".utf8)
-        body.append(image.jpeg); body.append(Data("\r\n--\(boundary)--\r\n".utf8))
+        var body = Data("--\(boundary)\r\nContent-Disposition: form-data; name=\"bizType\"\r\n\r\n\(bizType)\r\n--\(boundary)\r\nContent-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\nContent-Type: image/jpeg\r\n\r\n".utf8)
+        body.append(jpeg); body.append(Data("\r\n--\(boundary)--\r\n".utf8))
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent(Self.path))
         request.httpMethod = "POST"; request.httpBody = body; request.httpShouldHandleCookies = false
         request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 30
@@ -189,6 +207,6 @@ extension ProfileAvatarUploadReceipt {
         if (400..<500).contains(result.1), row?["code"]?.integer != 200 { throw ProfileAvatarFailure.rejected }
         guard result.1 == 200, row?["code"]?.integer == 200, let reference = row?["url"]?.text,
               permitsReference(reference, scope: target.scope) else { throw ProfileAvatarFailure.unknown }
-        return .init(id: attemptID, target: target, selectedDigest: ProfileAvatarExact.hash(image.jpeg), reference: reference)
+        return .init(id: attemptID, target: target, selectedDigest: ProfileAvatarExact.hash(jpeg), reference: reference)
     }
 }

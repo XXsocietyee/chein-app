@@ -51,6 +51,7 @@ struct ProfileDraftReviewSection: View {
         case .imageCount(let count): Text(verbatim: String(count))
         case .present(let present): Text(LocalizedStringKey(present ? "profile.reviewRestore.present" : "profile.reviewRestore.absent"))
         case .newAvatar: Text("profile.reviewRestore.newAvatar")
+        case .newImage: Text("profile.reviewRestore.newImage")
         }
     }
     private func title(_ field: ProfileEditReviewField) -> String {

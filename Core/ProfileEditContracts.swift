@@ -88,21 +88,52 @@ public struct ProfileEditDraft: Equatable {
     /// Nil preserves the complete wire string. An explicit empty selection clears preferences.
     public var routePreferenceIDs: [Int]?
     public private(set) var avatarReplacement: ProfileAvatarReplacement?
+    /// A3-01: checked uploads for 探索作品, appended after the kept pictures (mini-program `uploadCasePic`, ≤ 9 in all).
+    public private(set) var addedCasePictures: [ProfileAvatarReplacement] = []
+    /// A3-01: a checked upload that replaces the 联系二维码 (mini-program `uploadWechat`).
+    public private(set) var contactQRReplacement: ProfileAvatarReplacement?
     public init(name: String = "", introduction: String = "", routePreferenceIDs: [Int]? = nil, avatarReplacement: ProfileAvatarReplacement? = nil, caseIntroduction: String? = nil, removesContactQR: Bool = false, removesCasePictures: Bool = false, casePictureSubset: ProfileCasePictureSubset? = nil) {
         self.name = name; self.introduction = introduction; self.routePreferenceIDs = routePreferenceIDs
         self.avatarReplacement = avatarReplacement; self.caseIntroduction = caseIntroduction
         self.removesContactQR = removesContactQR; self.removesCasePictures = removesCasePictures; self.casePictureSubset = casePictureSubset
     }
     public func stagingAvatar(_ value: ProfileAvatarReplacement) -> Self {
-        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset)
+        .init(name: name, introduction: introduction, routePreferenceIDs: routePreferenceIDs, avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset).carryingUploads(of: self)
     }
-    public var normalized: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset) }
+    /// A3-01: keeps the staged 探索作品 / 联系二维码 uploads across init-based copies of a draft.
+    public func carryingUploads(of other: Self) -> Self {
+        var next = self; next.addedCasePictures = other.addedCasePictures; next.contactQRReplacement = other.contactQRReplacement; return next
+    }
+    public func stagingCasePicture(_ value: ProfileAvatarReplacement) -> Self {
+        var next = self; next.addedCasePictures.append(value); return next
+    }
+    public func removingAddedCasePicture(id: UUID) -> Self {
+        var next = self; next.addedCasePictures.removeAll { $0.id == id }; return next
+    }
+    /// A new QR replaces the old one, so a staged removal of the old one no longer applies.
+    public func stagingContactQR(_ value: ProfileAvatarReplacement) -> Self {
+        var next = self; next.contactQRReplacement = value; next.removesContactQR = false; return next
+    }
+    public func removingContactQRReplacement() -> Self { var next = self; next.contactQRReplacement = nil; return next }
+    /// Every checked upload this draft would write; any of them makes the save image-bearing.
+    public var stagedUploads: [ProfileAvatarReplacement] {
+        [avatarReplacement].compactMap { $0 } + addedCasePictures + [contactQRReplacement].compactMap { $0 }
+    }
+    /// Pictures the saved profile would hold: the kept ones plus the staged uploads.
+    public func casePictureCount(keeping snapshot: ProfileEditSnapshot) -> Int {
+        let kept = removesCasePictures ? 0
+            : (casePictureSubset.flatMap { $0.matches(source: snapshot.casePics) ? $0.retainedCount : nil }
+               ?? ProfileCasePortfolio(casePics: snapshot.casePics).imageCount)
+        return kept + addedCasePictures.count
+    }
+    public var normalized: Self { normalizedFields.carryingUploads(of: self) }
+    private var normalizedFields: Self { .init(name: name.trimmingCharacters(in: .whitespacesAndNewlines), introduction: introduction.trimmingCharacters(in: .whitespacesAndNewlines), routePreferenceIDs: routePreferenceIDs, avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset) }
     public func hasChanges(comparedTo snapshot: ProfileEditSnapshot) -> Bool {
         var ordinary = normalized; ordinary.caseIntroduction = nil; ordinary.removesContactQR = false; ordinary.removesCasePictures = false; ordinary.casePictureSubset = nil
         let caseChanged = caseIntroduction.map { !ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction) } ?? false
         let contactQRChanged = removesContactQR && !snapshot.wechat.isEmpty
         let picturesChanged = (removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0)
-            || casePictureSubset?.hasChanges == true
+            || casePictureSubset?.hasChanges == true || !addedCasePictures.isEmpty || contactQRReplacement != nil
         return ordinary != snapshot.draft.normalized || caseChanged || contactQRChanged || picturesChanged
     }
     public var isValid: Bool {
@@ -114,13 +145,22 @@ public struct ProfileEditPayload: Encodable, Equatable {
     public let name: String
     public let introduction: String
     public let avatar: String
-    public let wechat: String
+    /// `private(set) var` only so that A3-01 uploads can follow the kept value in the initializer.
+    public private(set) var wechat: String
     /// Review metadata only; deliberately excluded from CodingKeys.
     public let removesContactQR: Bool
     public let removesCasePictures: Bool
     public let casePictureSubset: ProfileCasePictureSubset?
-    public var changesCasePictures: Bool { removesCasePictures || casePictureSubset != nil }
-    public let casePics: String
+    public var changesCasePictures: Bool { removesCasePictures || casePictureSubset != nil || !addedCasePictures.isEmpty }
+    /// A3-01: staged uploads for 探索作品 and 联系二维码. Review metadata; their references are in casePics / wechat.
+    public let addedCasePictures: [ProfileAvatarReplacement]
+    public let contactQRReplacement: ProfileAvatarReplacement?
+    /// Every checked upload in this payload; any of them routes the save through the checked image transport.
+    public var stagedUploads: [ProfileAvatarReplacement] {
+        [avatarReplacement].compactMap { $0 } + addedCasePictures + [contactQRReplacement].compactMap { $0 }
+    }
+    public var carriesUpload: Bool { !stagedUploads.isEmpty }
+    public private(set) var casePics: String
     public let caseIntroduction: String?
     public let tagIds: String
     public let avatarReplacement: ProfileAvatarReplacement?
@@ -139,19 +179,25 @@ public struct ProfileEditPayload: Encodable, Equatable {
         removesContactQR = draft.removesContactQR && !snapshot.wechat.isEmpty
         removesCasePictures = draft.removesCasePictures && ProfileCasePortfolio(casePics: snapshot.casePics).imageCount > 0
         name = draft.normalized.name; introduction = draft.normalized.introduction
-        if let replacement = draft.avatarReplacement {
+        for replacement in draft.stagedUploads {
             guard replacement.receipt.target.snapshotHash == ProfileAvatarExact.snapshot(snapshot) else { throw APIError.invalidRequest }
         }
+        guard draft.addedCasePictures.isEmpty || draft.casePictureCount(keeping: snapshot) <= ProfileMediaKind.casePictureLimit else { throw APIError.invalidRequest }
         avatarReplacement = draft.avatarReplacement
+        addedCasePictures = draft.addedCasePictures; contactQRReplacement = draft.contactQRReplacement
         avatar = draft.avatarReplacement?.reference ?? snapshot.avatar
         wechat = removesContactQR ? "" : snapshot.wechat
         casePics = removesCasePictures ? "" : (casePictureSubset?.wireValue ?? snapshot.casePics)
+        // A3-01: an uploaded QR replaces the kept one; uploaded work pictures follow the kept ones,
+        // `;`-separated as in the mini-program. The kept bytes themselves are never reserialized.
+        if let qr = draft.contactQRReplacement { wechat = qr.reference }
+        casePics = ProfileCasePortfolio.appending(draft.addedCasePictures.map(\.reference), to: casePics)
         tagIds = draft.routePreferenceIDs.map { $0.map(String.init).joined(separator: ",") } ?? snapshot.tagIds
     }
     public func matches(_ snapshot: ProfileEditSnapshot) -> Bool {
         if changesCasePictures && !casePics.utf8.elementsEqual(snapshot.casePics.utf8) { return false }
         if let caseIntroduction, !ProfileCasePortfolio.sameText(caseIntroduction, snapshot.caseIntroduction) { return false }
-        if avatarReplacement != nil {
+        if carriesUpload {
             guard zip([name, introduction, avatar, wechat, casePics, tagIds],
                       [snapshot.nickname, snapshot.introduction, snapshot.avatar, snapshot.wechat, snapshot.casePics, snapshot.tagIds])
                 .allSatisfy({ $0.0.utf8.elementsEqual($0.1.utf8) }) else { return false }

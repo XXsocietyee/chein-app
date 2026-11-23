@@ -1,25 +1,39 @@
 import SwiftUI
 
-@MainActor struct ProfileContactQRSection: View {
+@MainActor struct ProfileContactQRSection<Upload: View>: View {
     let wechat: String
     let removes: Bool
+    /// A3-01: a new code is staged to replace the saved one.
+    var replaced: Bool = false
     let open: () -> Void
+    @ViewBuilder var upload: () -> Upload
+    private var statusKey: String {
+        if replaced { return "profile.contactQR.replaced" }
+        return removes ? "profile.contactQR.staged" : (wechat.isEmpty ? "profile.contactQR.empty" : "profile.contactQR.available")
+    }
     var body: some View {
         Section("profile.contactQR.title") {
             Button(action: open) {
                 HStack {
                     Label("profile.contactQR.open", systemImage: "qrcode")
                     Spacer()
-                    Text(LocalizedStringKey(removes ? "profile.contactQR.staged" : (wechat.isEmpty ? "profile.contactQR.empty" : "profile.contactQR.available")))
+                    Text(LocalizedStringKey(statusKey))
                         .foregroundStyle(.secondary)
-                    Image(systemName: "chevron.forward").font(.caption).accessibilityHidden(true)
+                    Image(systemName: "chevron.forward").cyText(.caption).accessibilityHidden(true)
                 }
             }.buttonStyle(.plain).accessibilityIdentifier("profile.contactQR.open")
+            upload()
         }
     }
 }
+extension ProfileContactQRSection where Upload == EmptyView {
+    init(wechat: String, removes: Bool, open: @escaping () -> Void) {
+        self.init(wechat: wechat, removes: removes, open: open, upload: { EmptyView() })
+    }
+}
 
-/// The only proposed change is clearing the existing QR reference. No URL entry or upload.
+/// Removal-only sheet: clearing the existing QR reference, no URL entry. A new code is uploaded from the
+/// profile page's 上传二维码 row (A3-01), not here.
 @MainActor struct ProfileContactQREditor: View {
     let edit: ProfileTextFieldEdit
     let reader: (any RetainedPublicImageReading)?
@@ -52,7 +66,7 @@ import SwiftUI
                         .accessibilityIdentifier("profile.contactQR.remove")
                 }
             } footer: { Text("profile.contactQR.hint") }
-            Text("profile.contactQR.noUpload").cyText(.bodyCompact).foregroundStyle(.secondary)
+            // A3-01: a new code is added from 上传二维码 on the profile page, next to this entry.
         }
         .appNavigationTitle("profile.contactQR.title")
         .toolbar {
