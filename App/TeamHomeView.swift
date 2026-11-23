@@ -164,21 +164,21 @@ import SwiftUI
                         // Mini leader card (公开招募): shown right after the actions, before the member list.
                         CYCard {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("team.mode.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            Text(LocalizedStringKey((model.coordinator.confirmedJoinMode ?? detail.team.joinMode).key))
-                                .cyText(.label).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("team.mode.current")
-                            Text(LocalizedStringKey(TeamPagePresentation.joinModeHelpKey(model.coordinator.confirmedJoinMode ?? detail.team.joinMode)))
-                                .cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                            if !readOnly {
-                                ForEach([TeamJoinMode.invitation, .publicApplication], id: \.rawValue) { mode in
-                                    let action = TeamAction.changeJoinMode(teamID: detail.team.id, mode: mode)
-                                    if action.isAllowed(detail: detail) {
-                                        Button { model.prepare(action) } label: { Text(LocalizedStringKey(mode.key)) }
-                                            .buttonStyle(.cySecondary(fullWidth: true)).disabled(model.actionLocked)
-                                            .accessibilityIdentifier("team.mode.change.\(mode.rawValue)")
-                                    }
-                                }
+                            let currentMode = model.coordinator.confirmedJoinMode ?? detail.team.joinMode
+                            // C-D5 (MP index.wxml:75-80): 公开招募 is one switch. Flipping it opens the same review as
+                            // before; the switch shows the confirmed mode, so a cancelled review leaves it unchanged.
+                            let target: TeamJoinMode = currentMode == .publicApplication ? .invitation : .publicApplication
+                            let action = TeamAction.changeJoinMode(teamID: detail.team.id, mode: target)
+                            Toggle(isOn: Binding(get: { currentMode == .publicApplication },
+                                                 set: { _ in if !readOnly, action.isAllowed(detail: detail) { model.prepare(action) } })) {
+                                Text("team.mode.public").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             }
+                            .disabled(readOnly || model.actionLocked || currentMode == .unknown || !action.isAllowed(detail: detail))
+                            .accessibilityValue(Text(LocalizedStringKey(currentMode.key)))
+                            .accessibilityIdentifier("team.mode.change.\(target.rawValue)")
+                            Text(LocalizedStringKey(TeamPagePresentation.joinModeHelpKey(currentMode)))
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("team.mode.current")
                         }
                         }
                     }
