@@ -10,6 +10,13 @@ import SwiftUI
     private let table = "FreeExploreBundleLaunch"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
     private func chapterName(_ id: FreeExploreLaunchID) -> String? { model.catalog?.items.first(where: { $0.chapterId == id })?.name }
+    /// MKT-7-7: the review sheet names the chapter and the store; ids stay off screen ("—" when unknown).
+    private func unitName(_ id: FreeExploreLaunchID) -> String {
+        model.order?.bundle?.units.first(where: { $0.id == id }).flatMap { chapterName($0.chapterId) } ?? "—"
+    }
+    private func storeName(_ id: FreeExploreLaunchID) -> String {
+        model.catalog?.items.lazy.flatMap(\.stores).first(where: { $0.offerId == id })?.merchantName ?? "—"
+    }
     /// Menu-picker row inside a card: label left, current choice right, 48pt tall.
     private func choice<P: View>(_ label: Text, selected: String?, @ViewBuilder picker: () -> P) -> some View {
         HStack {
@@ -38,9 +45,9 @@ import SwiftUI
             CYArtCoverHeader(title: text("title"), symbol: "shippingbox.fill", seed: "bundle") {
                 if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
                     Label { Text(verbatim: ChannelCopy.text("\(units) 个章节可预约", "\(units) chapters ready to book", locale: locale)) } icon: { Image(systemName: "ticket.fill") }
-                        .font(CYTypography.meta.weight(.semibold)).foregroundStyle(.white)
+                        .cyText(.meta, weight: .semibold).foregroundStyle(.white)
                         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(.black.opacity(0.35), in: Capsule())
+                        .background(CYColor.bgOverlay, in: Capsule())
                 }
             }
         } content: {
@@ -85,9 +92,9 @@ import SwiftUI
             NavigationStack {
                 Form {
                     text("notice")
-                    LabeledContent { Text(verbatim: review.command.registrationId.text) } label: { text("order") }
-                    LabeledContent { Text(verbatim: review.command.unitId.text) } label: { text("unit") }
-                    LabeledContent { Text(verbatim: review.command.offerId.text) } label: { text("offer") }
+                    LabeledContent { Text(verbatim: model.order?.registrationNo ?? "—").monospacedDigit() } label: { text("order") }
+                    LabeledContent { Text(verbatim: unitName(review.command.unitId)) } label: { text("unit") }
+                    LabeledContent { Text(verbatim: storeName(review.command.offerId)) } label: { text("offer") }
                     LabeledContent {
                         Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .date)
                         Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .time)
@@ -151,16 +158,19 @@ import SwiftUI
                 .disabled(!model.canReserve || unitID == nil || offerID == nil)
                 if !model.canReserve { text("disabled").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
-            if !bundle.reservations.isEmpty {
-                CYInfoCard(title: text("order"), symbol: "ticket.fill") {
-                    ForEach(bundle.reservations, id: \.id) { reservation in
-                        CYListRow(verbatim: reservation.status, meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
-                    }
-                    if let number = order.registrationNo { Text(verbatim: number).cyText(.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
-                    LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
-                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("freeBundle.paidAmount")
+            // MKT-7-6: the order card always shows (order number, 实付金额); an empty list reads 暂无预约记录.
+            CYInfoCard(title: text("order"), symbol: "ticket.fill") {
+                if bundle.reservations.isEmpty {
+                    text("reservationsEmpty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("freeBundle.reservations.empty")
                 }
+                ForEach(bundle.reservations, id: \.id) { reservation in
+                    CYListRow(verbatim: reservation.status, meta: reservation.startAt, trailing: .none) { CYRowIcon(systemImage: "calendar.badge.checkmark") }
+                }
+                if let number = order.registrationNo { Text(verbatim: number).cyText(.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled) }
+                LabeledContent { Text(verbatim: facts.paidAmountText).monospacedDigit() } label: { text("paidAmount") }
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("freeBundle.paidAmount")
             }
         } else if model.order != nil { text("legacy").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
         if let catalog = model.catalog {
