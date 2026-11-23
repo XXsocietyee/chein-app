@@ -61,6 +61,10 @@ import SwiftUI
                 }
             } else if model.issueScope == scope, let issue = model.issue {
                 issueSection(issue)
+            } else {
+                // Before the first read: an empty Group has no child, so onAppear (visible) and the read never ran
+                // and the embedded 活动 tab stayed blank (combined-r5 verify, CLB-detail-02).
+                Section { activityLoading }
             }
         }
         .task(id: readKey) {

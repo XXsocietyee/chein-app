@@ -144,7 +144,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         // MP 「发布 +」 / 发布主题 for the owner (wxml:204-213).
                         Section {
                             NavigationLink { SessionClubProjectLaunchView(session: session, club: club) } label: {
-                                CYListRow("club.detail.events.publish", trailing: .chevron) { CYRowIcon(systemImage: "plus") }
+                                CYListRow("club.detail.events.publish", trailing: .none) { CYRowIcon(systemImage: "plus") }
                             }
                             .accessibilityIdentifier("club.detail.events.publish")
                         }
