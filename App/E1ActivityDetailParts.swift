@@ -217,36 +217,42 @@ struct E1ActivityInfoCard: View {
         }
     }
 
-    private var priceSummaryText: String {
+    private var priceSummaryText: String? {
         if let amount = detail.summary.minimumAmount {
             if amount == 0 { return copy.t("免费参与", "Free") }
             if let p = E1Money.yuan(amount, locale: locale) { return copy.t("\(p) 起", "From \(p)") }
         }
-        return "—"
+        return nil
     }
 
     var body: some View {
         let facts = ActivityDetailHeaderFacts(detail: detail)
-        VStack(spacing: 0) {
-            row("tag", copy.t("体验类型", "Experience"), facts.categoryText ?? "—").accessibilityIdentifier("activity.detail.category")
-            divider
-            row("mappin.and.ellipse", copy.t("集合点", "Where"), placeText(facts)).accessibilityIdentifier("activity.detail.meetingPoint")
-            divider
-            row("calendar", copy.t("时间与时长", "When"), whenText ?? "—").accessibilityIdentifier("activity.detail.when")
-            divider
-            row("ticket", copy.t("费用", "Price"), priceSummaryText).accessibilityIdentifier("activity.detail.price")
-            divider
-            row("person.2", copy.t("适合与已报名", "Who & Joined"), facts.registrationCount.map { copy.t("\($0) 人已报名", "\($0) going") } ?? "—")
-                .accessibilityIdentifier("activity.detail.registeredCount")
+        // PC-C-1-10 (hand-off PL-24): a row whose value is unknown is hidden, never printed as "—".
+        let rows: [InfoRow] = [
+            InfoRow(id: "activity.detail.category", icon: "tag", label: copy.t("体验类型", "Experience"), value: facts.categoryText),
+            InfoRow(id: "activity.detail.meetingPoint", icon: "mappin.and.ellipse", label: copy.t("集合点", "Where"), value: placeText(facts)),
+            InfoRow(id: "activity.detail.when", icon: "calendar", label: copy.t("时间与时长", "When"), value: whenText),
+            InfoRow(id: "activity.detail.price", icon: "ticket", label: copy.t("费用", "Price"), value: priceSummaryText),
+            InfoRow(id: "activity.detail.registeredCount", icon: "person.2", label: copy.t("适合与已报名", "Who & Joined"),
+                    value: facts.registrationCount.map { copy.t("\($0) 人已报名", "\($0) going") }),
+        ].filter { $0.value?.isEmpty == false }
+        if !rows.isEmpty {
+            VStack(spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.element.id) { index, item in
+                    if index > 0 { divider }
+                    row(item.icon, item.label, item.value ?? "").accessibilityIdentifier(item.id)
+                }
+            }
+            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
     }
+    private struct InfoRow { let id: String; let icon: String; let label: String; let value: String? }
 
-    private func placeText(_ facts: ActivityDetailHeaderFacts) -> String {
+    private func placeText(_ facts: ActivityDetailHeaderFacts) -> String? {
         switch facts.meetingPoint {
         case .named(let p): return p
         case .mapOnly: return copy.t("见下方地图", "See map below")
-        case .unconfirmed: return "—"
+        case .unconfirmed: return nil
         }
     }
     private var divider: some View { Divider().overlay(palette.borderSubtle).padding(.leading, 52) }

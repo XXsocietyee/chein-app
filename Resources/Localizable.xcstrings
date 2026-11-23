@@ -283301,6 +283301,40 @@
           }
         }
       }
+    },
+    "activity.cta.noSelectableTicket": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tickets available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可报名票种"
+          }
+        }
+      }
+    },
+    "activity.cta.noTicketOpen": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tickets not open yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未开放票种"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -113,6 +113,15 @@ public struct ActivityDetail: Decodable, Equatable {
         return trimmed.isEmpty ? nil : trimmed
     }
     public var isCancelled: Bool { cancelTime != nil }
+    /// PC-C-1-3: MP `selectableTickets` — a ticket is selectable unless its stock is confirmed 0 or its window has
+    /// passed. With none selectable the sign-up pill is disabled and says why (暂无可报名票种 / 暂未开放票种).
+    public func signUpBlock(now: Date) -> ActivitySignUpBlock? {
+        let selectable = tickets.filter { ticket in
+            (ticket.remainingInventory.map { $0 > 0 } ?? true) && !ticket.registrationClosed(at: now)
+        }
+        guard selectable.isEmpty else { return nil }
+        return tickets.isEmpty ? .noTicketsOpen : .noneSelectable
+    }
     /// Mirrors the source detail CTA (scene-play-activity-detail actionFor). A missing flag keeps
     /// the existing registration entry, whose sheet and server still own eligibility checks.
     public func primaryAction(now: Date) -> ActivityPrimaryAction {
@@ -123,6 +132,11 @@ public struct ActivityDetail: Decodable, Equatable {
            let last = Calendar.chinaActivity.date(byAdding: DateComponents(day: 1, second: -1), to: end), now > last { return .viewTrace }
         return .continueExploring
     }
+}
+
+public enum ActivitySignUpBlock: Equatable {
+    case noneSelectable, noTicketsOpen
+    public var titleKey: String { self == .noneSelectable ? "activity.cta.noSelectableTicket" : "activity.cta.noTicketOpen" }
 }
 
 public enum ActivityPrimaryAction: Equatable {

@@ -12,6 +12,9 @@ S = {
     'official.refreshing': ('Updating…', '正在更新活动列表…'),
     # PC-C-7-3: MP official-organizer oo-sync line.
     'official.organizer.refreshing': ('Reading the latest platform record…', '正在读取平台最新记录…'),
+    # PC-C-1-3: MP scene-play-activity-detail noTicketText.
+    'activity.cta.noSelectableTicket': ('No tickets available', '暂无可报名票种'),
+    'activity.cta.noTicketOpen': ('Tickets not open yet', '暂未开放票种'),
     'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 

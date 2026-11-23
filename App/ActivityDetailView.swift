@@ -609,11 +609,15 @@ struct ActivityDetailView: View {
         return .signUp
     }
     /// The pill and the first tile share one action: sign up opens the registration sheet, a registered viewer opens the wallet, cancelled does nothing.
+    private var signUpBlocked: Bool {
+        if let access, case .allowed(let detail) = access { return detail.signUpBlock(now: Date()) != nil }
+        return false
+    }
     private var primaryActionEnabled: Bool {
-        primaryAction == .signUp || (primaryAction != .cancelled && reader is AppSession)
+        (primaryAction == .signUp && !signUpBlocked) || (primaryAction != .signUp && primaryAction != .cancelled && reader is AppSession)
     }
     private func performPrimaryAction() {
-        if primaryAction == .signUp { tileOpenedSheet = true; showsRegistration = true }
+        if primaryAction == .signUp { guard !signUpBlocked else { return }; tileOpenedSheet = true; showsRegistration = true }
         else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
         else if primaryAction != .cancelled, reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
     }
@@ -637,7 +641,12 @@ struct ActivityDetailView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
-            if primaryAction == .signUp {
+            if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
+                // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).
+                CYPillButton(LocalizedStringKey(block.titleKey)) {}
+                    .disabled(true)
+                    .accessibilityIdentifier("activity.openRegistration.blocked")
+            } else if primaryAction == .signUp {
                 CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { showsRegistration = true }
                     .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                     .accessibilityIdentifier("activity.openRegistration")

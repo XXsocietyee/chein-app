@@ -143,8 +143,12 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
         self.assertIn("func cyPushedChrome", screen_style)
         self.assertIn("struct CYFooterBar", screen_style)
 
-        # Full-bleed hero pushed chrome belongs ONLY on full-bleed hero cover views.
-        self.assertIn("cyHeroPushedChrome", read_swift("App/ActivityDetailView.swift"))
+        # Full-bleed hero pushed chrome belongs ONLY on full-bleed hero cover views. Parity r2 (PC-C-1-9 / PC-B-1-8):
+        # activity and topic heroes are inset list rows, so they keep the system back (no custom bar chevron).
+        for rel in ("App/ActivityDetailView.swift", "App/TopicDetailView.swift"):
+            detail = read_swift(rel)
+            self.assertNotIn(".cyHeroPushedChrome(", detail)
+            self.assertIn(".cyPushedChrome(domain: .player)", detail)
         # Parity r1 (type-and-chrome §3): the club page moved to cyHeroChrome + CYHeroBackButton in the hero overlay.
         club = read_swift("App/ClubDetailView.swift")
         self.assertIn("cyHeroChrome(heroScrolledAway: heroScrolledAway", club)
