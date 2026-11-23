@@ -61,7 +61,17 @@ struct DiscoveryTemplateDetailView: View {
                     Section {
                         TemplateXbHead(title: item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title),
                                        publisher: publisherText(parity, item: item), official: isOfficial(parity)) {
-                            E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                            // PC-A-6-1: the template's own cover first (MP coverUrl), generated art while loading or without one.
+                            if let url = TemplateBrowserPort.coverURL(item.imgUrl) {
+                                PlayerFeedRemoteImage(url: url, maxPixel: 512, placeholder: {
+                                    E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                                }, failure: {
+                                    E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                                })
+                                .accessibilityHidden(true)
+                            } else {
+                                E1CoverArt(seed: item.title, symbol: "sparkles", debugLabel: false, symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                            }
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
                         HStack(spacing: CYSpacing.md) {
@@ -316,6 +326,19 @@ struct DiscoveryTopicTemplatePreview: View {
                             TopicTemplateUseSection(templateID: item.id, scope: nil, readOnly: false,
                                                     plan: TopicTemplateAdoptionPlan(delivery: item.contentDelivery)) { topicID in
                                 copiedDestination?(topicID)
+                            }
+                        }.discoveryCardRow()
+                    } else {
+                        // PC-A-7-3: never hide the page's main action; show it disabled and say why.
+                        Section {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Button {} label: {
+                                    Text("topicTemplate.useCta").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.cyPrimary(fullWidth: true))
+                                .disabled(true)
+                                .accessibilityIdentifier("topicTemplate.use.unavailable")
+                                Text("topicTemplate.useUnavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                         }.discoveryCardRow()
                     }

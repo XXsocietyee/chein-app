@@ -283403,6 +283403,40 @@
           }
         }
       }
+    },
+    "topicTemplate.useCta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用这个模板"
+          }
+        }
+      }
+    },
+    "topicTemplate.useUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copying a template is not available in this version yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本暂未开放复制模板"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
