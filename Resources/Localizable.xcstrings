@@ -97655,7 +97655,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "封面图片"
+            "value": "封面图"
           }
         }
       }
@@ -97761,13 +97761,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Introduction"
+            "value": "Brand intro"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "简介"
+            "value": "品牌介绍"
           }
         }
       }
@@ -97905,13 +97905,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Featured type / ID"
+            "value": "Featured pick"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "精选类型 / 编号"
+            "value": "招牌主推"
           }
         }
       }
@@ -98359,7 +98359,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "店铺标志"
+            "value": "店铺 Logo"
           }
         }
       }
@@ -98545,13 +98545,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Name"
+            "value": "Store name"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "名称"
+            "value": "店铺名称"
           }
         }
       }
@@ -99185,13 +99185,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Slogan"
+            "value": "One-line intro"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标语"
+            "value": "一句话介绍"
           }
         }
       }
@@ -99377,13 +99377,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tags"
+            "value": "Feature tags"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "标签"
+            "value": "特色标签"
           }
         }
       }
@@ -283876,6 +283876,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "重新加载"
+          }
+        }
+      }
+    },
+    "merchant.operations.failed.brand": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brand center didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "品牌中心加载失败"
+          }
+        }
+      }
+    },
+    "merchant.operations.failed.gallery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gallery didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "相册加载失败"
+          }
+        }
+      }
+    },
+    "merchant.operations.failed.cooperation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partnership settings didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承接设置加载失败"
+          }
+        }
+      }
+    },
+    "merchant.operations.failed.generic": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载失败"
+          }
+        }
+      }
+    },
+    "merchant.operations.featured.set": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Featured pick selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择主推"
           }
         }
       }
