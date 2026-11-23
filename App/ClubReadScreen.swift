@@ -7,6 +7,8 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @ObservedObject var reader: Reader
     let accessibilityPrefix: String
     let refreshRevision: UInt64
+    /// CLB-detail-44: the club page drops the bar 刷新 (pull-to-refresh, as the MP); other reads keep it.
+    let showsToolbarRefresh: Bool
     private struct LoadIdentity: Equatable {
         let identity: ClubReadIdentity
         let revision: UInt64
@@ -24,10 +26,10 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @State private var generation: UInt64 = 0
 
     init(reader: Reader, accessibilityPrefix: String, requiresSignIn: Bool = false, refreshRevision: UInt64 = 0,
-         onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
+         showsToolbarRefresh: Bool = true, onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader; self.accessibilityPrefix = accessibilityPrefix
-        self.refreshRevision = refreshRevision
+        self.refreshRevision = refreshRevision; self.showsToolbarRefresh = showsToolbarRefresh
         self.requiresSignIn = requiresSignIn; self.onSignIn = onSignIn
         self.load = load; self.content = content
     }
@@ -45,10 +47,12 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
         .background(CYColor.bgPage.ignoresSafeArea())
         .refreshable { await reload() }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("club.refresh", systemImage: "arrow.clockwise") { Task { await reload() } }
-                    .disabled(isLoading || !reader.isClubConfigured || (requiresSignIn && !reader.clubIdentity.isSignedIn))
-                    .accessibilityIdentifier(accessibilityPrefix + ".refresh")
+            if showsToolbarRefresh {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("club.refresh", systemImage: "arrow.clockwise") { Task { await reload() } }
+                        .disabled(isLoading || !reader.isClubConfigured || (requiresSignIn && !reader.clubIdentity.isSignedIn))
+                        .accessibilityIdentifier(accessibilityPrefix + ".refresh")
+                }
             }
         }
         .task(id: LoadIdentity(identity: reader.clubIdentity, revision: refreshRevision)) { await reload() }

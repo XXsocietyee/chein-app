@@ -26,6 +26,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var showsApprovals = false
     @State private var heroScrolledAway = false
     @State private var loadedClubName: String?
+    @State private var openedTopicID: Int?
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -35,7 +36,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         return heroScrolledAway ? loadedClubName : ""
     }
     var body: some View {
-        ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, onSignIn: onSignIn,
+        ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, showsToolbarRefresh: false, onSignIn: onSignIn,
                        load: {
                            detailGeneration &+= 1
                            let revision = detailGeneration, identity = reader.clubIdentity
@@ -136,27 +137,22 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
                     }
                 }
-                // Public topics use their own optional viewer grant, never access/me.
+                // CLB-detail-02: 活动 lists the club's current activities inline for every viewer (MP detail
+                // wxml:163-216, /api/club/topics). Public topics use their own viewer grant, never access/me.
                 if tab == .events, let session = reader as? AppSession {
-                    Section {
-                        NavigationLink {
-                            SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn)
-                        } label: {
-                            Label { Text("publicTopics.title", tableName: "ClubPublicTopics") }
-                                  icon: { Image(systemName: "list.bullet.rectangle") }
+                    if club.isOwner {
+                        // MP 「发布 +」 / 发布主题 for the owner (wxml:204-213).
+                        Section {
+                            NavigationLink { SessionClubProjectLaunchView(session: session, club: club) } label: {
+                                CYListRow("club.detail.events.publish", trailing: .chevron) { CYRowIcon(systemImage: "plus") }
+                            }
+                            .accessibilityIdentifier("club.detail.events.publish")
                         }
-                        .accessibilityIdentifier("club.publicTopics.open")
                     }
+                    SessionClubPublicActivityListView(clubID: id, session: session, onSignIn: onSignIn, embedded: { openedTopicID = $0 })
                 }
                 // V2 governance has its own access/me model, including delegated event staff.
-                if tab == .events, management?.governance == nil {
-                    Section {
-                        CYEmptyState(systemImage: "calendar", "club.detail.events.unavailable")
-                            .accessibilityIdentifier("club.detail.events.unavailable")
-                    }
-                }
                 if tab == .events, let governance = management?.governance {
-                    ClubDetailEventsSection(club: club, identity: reader.clubIdentity, governance: governance, reader: reader)
                     Section {
                         ClubSessionQuickStartEntry(club: club, reader: reader, governance: governance)
                     }
@@ -170,7 +166,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             } label: { Label("club.statsOverview.title", systemImage: "chart.bar") }
                                 .accessibilityIdentifier("club.statsOverview.open")
                         }
-                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, terminalSessions: governance.terminalSessions, ownerFunds: governance.ownerFunds)
+                        ClubGovernanceEntryButton(clubID: id, identity: reader.clubIdentity, access: governance.access, coordinator: governance.coordinator, enrollmentProfile: governance.enrollmentProfile, ownerRefund: governance.ownerRefund, opsTimeFactory: governance.opsTimeFactory, customerTopics: governance.customerTopics, storyTemplates: governance.storyTemplates, terminalSessions: governance.terminalSessions, ownerFunds: governance.ownerFunds, titleKey: tab == .manage ? "club.gov.workspace" : "club.gov.myRecords")
                     }
                 }
                 if (club.isOwner || club.viewerIsAdmin), tab == .manage, let management {
@@ -291,7 +287,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .cyDomainPageBackground()
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
-            .cyHeroPushedChrome(domain: .player, backAccessibilityIdentifier: "heroBack.club")
+            .cyHeroChrome(heroScrolledAway: heroScrolledAway, domain: .player)
             .navigationDestination(isPresented: $showsApprovals) {
                 if let management {
                     ClubManagementView(clubID: id, identity: reader.clubIdentity, access: management.access, coordinator: management.coordinator,
@@ -301,6 +297,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
                 ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubName: club.name) }
+            }
+            .navigationDestination(item: $openedTopicID) { topicID in
+                if let session = reader as? AppSession { SessionTopicDetailView(id: topicID, session: session) }
             }
             .navigationDestination(isPresented: $reportingClub) {
                 if let governance = management?.governance {
@@ -448,6 +447,19 @@ private struct ClubDetailHeader: View {
                 .frame(height: typeSize.isAccessibilitySize ? 96 : bannerHeight)
                 .frame(maxWidth: .infinity)
                 .clipped()
+                // type-and-chrome §3: the hero's glass back and share ride the image and scroll away with it;
+                // the system bar (back, inline name, share) returns once the hero has scrolled off.
+                .overlay(alignment: .top) {
+                    HStack {
+                        CYHeroBackButton().accessibilityIdentifier("heroBack.club")
+                        Spacer()
+                        ClubHeaderShareButton(clubName: club.name)
+                            .foregroundStyle(Color.white)
+                            .background(Circle().fill(.ultraThinMaterial).frame(width: 32, height: 32))
+                    }
+                    .padding(.horizontal, CYSpacing.sm)
+                    .padding(.top, CYSpacing.xs)
+                }
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     if !typeSize.isAccessibilitySize {
@@ -488,7 +500,8 @@ private struct ClubDetailHeader: View {
                 statusTags
                 // MC-22 Member / Manager header: 邀请朋友加入 is the header's one full-width action (the visitor's 加入
                 // stays in the action panel right under the header).
-                if club.isOwner || club.isJoined {
+                // CLB-detail-24: MP gives 邀请成员 to the owner and administrators only (wxml:260, 765).
+                if club.isOwner || club.viewerIsAdmin {
                     ClubHeaderInviteButton(clubName: club.name)
                         .padding(.top, CYSpacing.xs)
                 }

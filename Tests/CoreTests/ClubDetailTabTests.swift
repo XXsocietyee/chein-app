@@ -18,15 +18,15 @@ final class ClubDetailTabTests: XCTestCase {
     }
 
     func testOwnersAndMembersDefaultToPostsGuestsToOverview() {
-        XCTAssertEqual(policy(owner: true, joined: true).defaultTab, .posts)
-        XCTAssertEqual(policy(joined: true).defaultTab, .posts)
+        XCTAssertEqual(policy(owner: true, joined: true).defaultTab, .overview)
+        XCTAssertEqual(policy(joined: true).defaultTab, .overview)
         XCTAssertEqual(policy().defaultTab, .overview)
     }
 
     func testManageDeepLinkOnlyAfterServerConfirmedGovernance() {
         XCTAssertEqual(policy(owner: true, joined: true).initialTab(requested: .manage), .manage)
         XCTAssertEqual(policy().initialTab(requested: .manage), .overview)
-        XCTAssertEqual(policy(owner: true, joined: true).initialTab(requested: nil), .posts)
+        XCTAssertEqual(policy(owner: true, joined: true).initialTab(requested: nil), .overview)
     }
 
     func testSelectionIsIdempotentAndManageCannotBeForced() {
@@ -50,7 +50,7 @@ final class ClubDetailTabTests: XCTestCase {
         XCTAssertNil(policy(joined: true, grant: foreign).grant)
         XCTAssertEqual(policy(joined: true, grant: foreign).tabs, ClubDetailTab.publicTabs)
         // A selected manage tab returns to the public default once the grant is gone.
-        XCTAssertEqual(policy(joined: true).resolve(.manage), .posts)
+        XCTAssertEqual(policy(joined: true).resolve(.manage), .overview)
         XCTAssertEqual(policy(admin: true).resolve(.manage), .manage)
         XCTAssertEqual(policy().resolve(nil), .overview)
     }

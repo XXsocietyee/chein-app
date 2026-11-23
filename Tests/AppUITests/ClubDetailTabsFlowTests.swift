@@ -20,7 +20,9 @@ final class ClubDetailTabsFlowTests: XCTestCase {
     func testOwnerLandsOnPostsAndSeesManageTab() {
         open("owner", club: "club.home.owned.81")
         for key in ["posts", "events", "overview", "manage"] { XCTAssertTrue(tab(key).waitForExistence(timeout: 5), key) }
-        XCTAssertTrue(tab("posts").isSelected)
+        // CLB-detail-13: every viewer opens on 概览 (MP owner ruling 2026-10-22).
+        XCTAssertTrue(tab("overview").isSelected)
+        tab("posts").tap()
         tab("overview").tap()
         XCTAssertTrue(tab("overview").isSelected)
         XCTAssertTrue(app.buttons["club.openMembers"].waitForExistence(timeout: 5), app.debugDescription)
@@ -33,7 +35,7 @@ final class ClubDetailTabsFlowTests: XCTestCase {
     func testMemberHasOnlyPublicTabs() {
         open("member", club: "club.home.joined.81")
         XCTAssertTrue(tab("posts").waitForExistence(timeout: 5))
-        XCTAssertTrue(tab("posts").isSelected)
+        XCTAssertTrue(tab("overview").isSelected)
         XCTAssertTrue(tab("events").exists)
         XCTAssertTrue(tab("overview").exists)
         XCTAssertFalse(tab("manage").exists)

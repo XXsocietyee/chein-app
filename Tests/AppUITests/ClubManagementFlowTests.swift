@@ -59,9 +59,9 @@ final class ClubManagementFlowTests: XCTestCase {
         let title = action == "approve" ? "Approve application" : action == "reject" ? "Reject application" : "Remove member"
         XCTAssertTrue(sheet.navigationBars[title].waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertEqual(app.staticTexts["club.management.reads"].label, String(readsBefore + 1), "Preparing review must perform one new authoritative fixture read")
-        XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Fixture club (#81)")).firstMatch.exists,app.debugDescription)
+        XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","Fixture club")).firstMatch.exists,app.debugDescription)
         let name = target == 703 ? "Fixture applicant" : "Fixture member"
-        XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@","\(name) (#\(target))")).firstMatch.exists,app.debugDescription)
+        XCTAssertTrue(sheet.staticTexts.matching(NSPredicate(format:"label CONTAINS %@",name)).firstMatch.exists,app.debugDescription)
         count(0)
         return sheet
     }

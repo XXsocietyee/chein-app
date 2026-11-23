@@ -38,10 +38,11 @@ import FoundationNetworking
               review.evidence.identity == session.identity else { throw ClubCommunityFailure.stale }
         let content: String, images: [String]
         switch review.operation {
-        case .create(let body,let refs), .update(let body,let refs,_): content=body;images=refs
+        case .create(let body,let refs,_), .update(let body,let refs,_): content=body;images=refs
         default: throw ClubCommunityFailure.invalid
         }
         var fields=identity.fields;fields["content"]=content;fields["images"]=images.joined(separator:";")
+        if case .create(_,_,true) = review.operation { fields["type"]=2 }
         let request=try request(record.operationKind == "create" ? "create" : "update",fields:fields,session:session,record:record)
         try Task.checkCancellation();try check()
         let value: ClubCommunityPendingQueryResult

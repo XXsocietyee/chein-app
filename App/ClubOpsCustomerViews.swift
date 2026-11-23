@@ -31,11 +31,50 @@ struct ClubOpsFailureSection: View {
     }
 }
 
+/// CLB-customers-01: appends server pages under the first read (MP customers onReachBottom).
+/// The first page stays owned by the read view; the pager only holds what came after it.
+@MainActor final class ClubOpsCustomerPager: ObservableObject {
+    @Published private(set) var list: ClubOpsCustomerListPresentation?
+    @Published private(set) var loadingMore = false
+    @Published private(set) var failed = false
+    private(set) var hasMore = false
+    private var base: ClubOpsCustomerListPresentation?
+    private var page = 1
+    private var epoch = 0
+    func adopt(_ first: ClubOpsCustomerListPresentation) {
+        guard first != base else { return }
+        epoch &+= 1; base = first; list = first; page = 1; hasMore = first.hasMoreAfterFirstPage; loadingMore = false; failed = false
+    }
+    func loadMore(_ read: @escaping (Int) async throws -> ClubGovernanceValue) async {
+        guard hasMore, !loadingMore, let current = list else { return }
+        let ticket = epoch, next = page + 1
+        loadingMore = true; failed = false
+        defer { if ticket == epoch { loadingMore = false } }
+        do {
+            let value = try await read(next)
+            guard ticket == epoch else { return }
+            let result = current.appending(try ClubOpsCustomerListPresentation(value: value))
+            list = result.list; hasMore = result.hasMore; page = next
+        } catch {
+            guard ticket == epoch, !(error is CancellationError) else { return }
+            failed = true
+        }
+    }
+}
+
 @MainActor struct ClubOpsCustomerListContent: View {
-    let list: ClubOpsCustomerListPresentation
+    let first: ClubOpsCustomerListPresentation
     let filtered: Bool
+    @ObservedObject var pager: ClubOpsCustomerPager
+    let readPage: (Int) async throws -> ClubGovernanceValue
     let destination: (Int) -> AnyView
+    private var list: ClubOpsCustomerListPresentation { pager.list ?? first }
     var body: some View {
+        content
+            .onAppear { pager.adopt(first) }
+            .onChange(of: first) { _, value in pager.adopt(value) }
+    }
+    @ViewBuilder private var content: some View {
         // The count is data (it follows the filter), so it heads the list rather than sitting alone.
         Section {
             if list.rows.isEmpty {
@@ -62,6 +101,19 @@ struct ClubOpsFailureSection: View {
             ForEach(list.rows) { row in
                 NavigationLink { destination(row.id) } label: { ClubOpsCustomerRowView(row: row) }
                     .accessibilityIdentifier("club.gov.route.customer")
+                    .onAppear {
+                        guard row.id == list.rows.last?.id, pager.hasMore, !pager.failed else { return }
+                        Task { await pager.loadMore(readPage) }
+                    }
+            }
+            if pager.loadingMore {
+                ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("clubOps.customers.loadingMore")
+            } else if pager.failed {
+                Button { Task { await pager.loadMore(readPage) } } label: {
+                    Text("clubOps.customers.loadMoreFailed", tableName: "ClubOpsCustomer").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityIdentifier("clubOps.customers.loadMoreRetry")
             }
         } header: {
             Text("clubOps.customers.count \(list.total) \(list.monthNew)", tableName: "ClubOpsCustomer")
@@ -96,13 +148,6 @@ struct ClubOpsCustomerRowView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                    if row.hasRemark {
-                        CYStatusChip(
-                            verbatim: String(localized: LocalizedStringResource("clubOps.customers.remarkBadge", table: "ClubOpsCustomer", locale: locale)),
-                            tone: .neutral,
-                            systemImage: "note.text"
-                        )
-                    }
                     if let name = row.displayName {
                         Text(verbatim: name)
                             .cyText(.cardTitle)
@@ -114,6 +159,14 @@ struct ClubOpsCustomerRowView: View {
                             .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
+                    }
+                    // CLB-customers-03: MP puts the 备注 tag after the name.
+                    if row.hasRemark {
+                        CYStatusChip(
+                            verbatim: String(localized: LocalizedStringResource("clubOps.customers.remarkBadge", table: "ClubOpsCustomer", locale: locale)),
+                            tone: .neutral,
+                            systemImage: "note.text"
+                        )
                     }
                 }
                 meta
@@ -207,10 +260,18 @@ struct ClubOpsCustomerRowView: View {
             }
             .accessibilityIdentifier("clubOps.customer.paidAmount")
             if let phone = detail.phoneText {
-                Text(verbatim: phone)
-                    .cyText(.meta)
-                    .foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: CYSpacing.sm) {
+                    Text(verbatim: phone)
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .monospacedDigit()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    // CLB-customer-detail-01: call button only when the server grants phoneCallable.
+                    if let url = ClubPhoneCall.url(phoneText: phone, callable: detail.phoneCallable) {
+                        ClubPhoneCallButton(url: url, name: detail.displayName)
+                    }
+                }
             }
         }
         Section {
@@ -458,5 +519,23 @@ struct ClubOpsCustomerTagRemarkEditor: View {
         var draft = ClubOpsCustomerTagRemarkDraft(tagsText: tagsText)
         if let problem = draft.add(input) { issue = problem; return }
         tagsText = draft.tagsText; input = ""; issue = nil
+    }
+}
+
+/// 44 pt tel: link shared by customer and check-in detail (CLB-customer-detail-01, CLB-checkin-detail-02).
+struct ClubPhoneCallButton: View {
+    let url: URL
+    let name: String?
+    var body: some View {
+        Link(destination: url) {
+            Image(systemName: "phone.fill")
+                .imageScale(.medium)
+                .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(CYColor.brand)
+        .accessibilityLabel(Text("club.phoneCall.label \(name ?? "—")"))
+        .accessibilityIdentifier("club.phoneCall")
     }
 }

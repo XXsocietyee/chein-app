@@ -278,10 +278,10 @@ struct ClubManagementView: View {
         }
     }
     private static let gutterInsets = EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
-    /// A blank name is unknown. The id is a real identifier and stays visible.
+    /// A blank name is unknown. CLB-join-requests-04 / X10: internal ids are never shown to people.
     private static func namedID(_ name: String, _ id: Int) -> String {
         let shown = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return "\(shown.isEmpty ? "—" : shown) (#\(id))"
+        return shown.isEmpty ? "—" : shown
     }
     private func personAvatar(raw: String?, fallback: String) -> some View {
         CYAvatarView(url: QuestifyCardArtwork.safeURL(raw), name: fallback, size: .md)

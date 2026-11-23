@@ -98,8 +98,11 @@ public struct ClubEnrollmentRoster: Equatable {
         if tickets.contains(where: { $0.teamStatus == 2 }) { return 2 }
         return !tickets.isEmpty && tickets.allSatisfy({ $0.teamStatus == 0 }) ? 0 : nil
     }
+    /// MP C-13: per-session 实收 / 已退 / 实收减退款 in fen; only the owner receives it.
+    public let sessionMoney: [ClubEnrollmentSessionMoney]
     public init(value: ClubGovernanceValue, scope: ClubGovernanceScope) throws {
         try scope.validate(); try ClubEnrollmentDecode.object(value)
+        sessionMoney = ClubEnrollmentSessionMoney.rows(value["sessionMoney"])
         clubID = try ClubEnrollmentDecode.id(value["clubId"])
         topicID = try ClubEnrollmentDecode.id(value["topicId"])
         guard clubID == scope.clubID, topicID == scope.topicID else { throw ClubGovernanceFailure.targetChanged }
@@ -139,4 +142,32 @@ private enum ClubEnrollmentDecode {
         guard let rows = value.array, rows.allSatisfy({ $0.object != nil }) else { throw ClubGovernanceFailure.malformed }; return rows
     }
     static func unique(_ ids: [Int]) throws { guard Set(ids).count == ids.count else { throw ClubGovernanceFailure.malformed } }
+}
+
+/// CLB-enroll-01: MP enroll `sessionMoneyRows` (C-13). The server sends integer fen and computes the net;
+/// the client only formats ¥ and never adds or subtracts. Rows without an activity id are dropped.
+public struct ClubEnrollmentSessionMoney: Equatable, Identifiable {
+    public let id: Int
+    public let label: String?
+    public let cancelled: Bool
+    public let paidText: String
+    public let refundedText: String
+    public let netText: String
+    public static func rows(_ value: ClubGovernanceValue) -> [Self] {
+        (value.array ?? []).compactMap { row in
+            guard row.object != nil, let id = row["activityId"].int else { return nil }
+            let label = row["label"].string?.trimmingCharacters(in: .whitespacesAndNewlines)
+            return .init(id: id, label: (label?.isEmpty ?? true) ? nil : label, cancelled: row["cancelled"] == .bool(true),
+                         paidText: yuanText(row["paidFen"]), refundedText: yuanText(row["refundedFen"]), netText: yuanText(row["netFen"]))
+        }
+    }
+    /// MP `yuanText` + utils/money-format `decimalText`: ¥0.0, ¥10.0, ¥10.5, ¥10.55; unknown is "—".
+    public static func yuanText(_ fen: ClubGovernanceValue) -> String {
+        guard let raw = fen.number, raw.isFinite else { return "—" }
+        let cents = Int(abs(raw).rounded())
+        let sign = raw < 0 && cents > 0 ? "-" : ""
+        if cents == 0 { return "¥0.0" }
+        let body = cents % 10 == 0 ? String(format: "%.1f", Double(cents) / 100) : String(format: "%.2f", Double(cents) / 100)
+        return sign + "¥" + body
+    }
 }

@@ -257,7 +257,9 @@ struct ClubCommunityFeedView: View {
         self.identity = identity; self.clubID = clubID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
-    private var canCompose: Bool { clubID != nil && identity.isSignedIn }
+    /// CLB-detail-16: compose only for members and the owner (MP wxml:100); the server still enforces memberPostAllowed.
+    @State private var canPost = false
+    private var canCompose: Bool { clubID != nil && identity.isSignedIn && canPost }
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -275,6 +277,24 @@ struct ClubCommunityFeedView: View {
                         CYEmptyState(systemImage: "person.3", "club.community.joinFirst")
                     } else if snapshot.posts.isEmpty {
                         CYEmptyState(systemImage: "text.bubble", "club.community.empty")
+                    }
+                    // CLB-detail-05: MP cy-club-pinned-notice, one line + chevron for the pinned 公告, opening the post.
+                    if let clubID, let pinned = snapshot.posts.first(where: { $0.pinned && $0.type == 2 }) {
+                        Button { destination = .init(post: pinned, clubID: pinned.clubID ?? clubID, screen: .detail) } label: {
+                            HStack(spacing: CYSpacing.sm) {
+                                Image(systemName: "pin.fill").foregroundStyle(CYColor.brand).accessibilityHidden(true)
+                                Text("club.community.pinnedNotice").cyText(.label).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: pinned.content.isEmpty ? "—" : pinned.content)
+                                    .cyText(.body).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                        .accessibilityIdentifier("club.community.pinnedNotice")
                     }
                     ForEach(snapshot.feedItems) { item in
                         UGCBlockedFilterContainer(memberID: item.post.authorMemberID, authorName: item.post.nickname) {
@@ -353,6 +373,10 @@ struct ClubCommunityFeedView: View {
             page = 1
             await model.load(operation)
             if let clubID { _ = model.recoverPendingState(clubID: clubID) }
+            canPost = false
+            if let clubID, let evidence = try? await model.context.evidence(clubID, nil, nil), evidence.identity == identity {
+                canPost = evidence.allows(.create(content: "", images: []))
+            }
         }
         .task(id: page) { await model.load(operation) }
         // Pushing a row destination must not remove the NavigationLink that owns it.
@@ -477,13 +501,17 @@ struct ClubCommunityPostTile: View {
     var openDetail: (() -> Void)? = nil
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
+    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     private var canLike: Bool {
         let target = clubID ?? post.clubID
         return target != nil && identity.isSignedIn && !model.busy && model.context.coordinator?.permitsInjectedWrites == true
     }
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
-        guard let evidence, evidence.identity == identity, evidence.post == post, Date().timeIntervalSince(evidence.observedAt) < 60 else { return false }
+        // CLB-detail-04: the menu only decides which rows to show. Freshness (< 60 s) is
+        // enforced again in `ClubCommunityCoordinator.prepare`, which re-reads evidence, so
+        // a page left open for a minute keeps edit / pin / delete / report visible.
+        guard let evidence, evidence.identity == identity, evidence.post == post else { return false }
         return evidence.allows(operation)
     }
     var body: some View {
@@ -494,7 +522,7 @@ struct ClubCommunityPostTile: View {
                     card: post.activityCard,
                     title: post.sportName.isEmpty ? nil : post.sportName,
                     onDoubleTapLike: canLike ? { Task { await model.prepare(.toggleLike, clubID: clubID ?? post.clubID ?? 0, post: post) } } : nil,
-                    onRepost: nil)
+                    onRepost: canLike ? { Task { await model.prepare(.repost(!post.reposted), clubID: clubID ?? post.clubID ?? 0, post: post) } } : nil)
             }
             ClubPostDiscussionBody(post: post, expanded: commentsExpanded, open: canOpenComments ? openComments : nil)
             ClubPostImageGallery(post: post, clubID: clubID, identity: identity, model: model)
@@ -516,6 +544,16 @@ struct ClubCommunityPostTile: View {
                     Button(action: openComments) { Label(commentsExpanded ? "club.discussion.collapse" : "club.community.comments", systemImage: "bubble") }
                         .disabled(!canOpenComments)
                         .accessibilityIdentifier("club.community.comments.\(post.id)")
+                    // CLB-detail-03: MP show-repost / show-share on club posts (repost through the reviewed write path).
+                    Button { Task { await model.prepare(.repost(!post.reposted), clubID: clubID, post: post) } } label: {
+                        Label(post.reposted ? "club.community.unrepost" : "club.community.repost", systemImage: "arrow.2.squarepath")
+                    }
+                    .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
+                    .accessibilityIdentifier("club.community.repost.\(post.id)")
+                    ShareLink(item: ClubPostShareText.text(post: post, locale: locale)) {
+                        Label("club.community.share", systemImage: "square.and.arrow.up")
+                    }
+                    .accessibilityIdentifier("club.community.share.\(post.id)")
                 }
                 Menu {
                     if allows(.update(content: post.content, images: post.images, requestID: "display")) { Button("club.community.edit") { editing = true } }
@@ -535,9 +573,12 @@ struct ClubCommunityPostTile: View {
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("club.community.detail.\(post.id)")
                 }
-                Button(action: openHistory) { Text("club.community.history") }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityIdentifier("club.community.history.\(post.id)")
+                // CLB-detail-17: MP shows 历史 only for an edited post (version > 0).
+                if post.version > 0 {
+                    Button(action: openHistory) { Text("club.community.history") }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("club.community.history.\(post.id)")
+                }
                 if post.authorMemberID != identity.accountID {
                     UGCSafetyMenuButton(
                         presentation: UGCReportPresentationTarget(
@@ -715,6 +756,8 @@ struct ClubCommunityComposer: View {
     @State private var content = ""
     @State private var images: [String] = []
     @State private var uploading = false
+    @State private var canAnnounce = false
+    @State private var asAnnouncement = false
     @StateObject private var imageBridge: ClubPostImageComposerBridge
     init(model: ClubCommunityViewModel, clubID: Int, post: ClubCommunityPost?) {
         self.model = model
@@ -758,8 +801,13 @@ struct ClubCommunityComposer: View {
                         uploading: $uploading,
                         notice: $model.notice
                     )
+                    if post == nil, canAnnounce {
+                        // MP post-compose 作为公告发布 (owner / content managers only).
+                        Toggle(isOn: $asAnnouncement) { Text("club.community.asNotice") }
+                            .accessibilityIdentifier("club.community.asNotice")
+                    }
                     CYPillButton("club.community.review") {
-                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images) : .update(content: content, images: images, requestID: UUID().uuidString)
+                        let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images, notice: canAnnounce && asAnnouncement) : .update(content: content, images: images, requestID: UUID().uuidString)
                         model.stageDraft(operation, clubID: clubID, post: post)
                         dismiss()
                     }
@@ -776,6 +824,10 @@ struct ClubCommunityComposer: View {
                         content: $content, images: $images, canExit: { !model.busy && !uploading && !imageBridge.isBusy }, close: { dismiss() })
                 } else { Button("club.community.cancel") { dismiss() } }
             }
+            .task {
+                guard post == nil, let evidence = try? await model.context.evidence(clubID, nil, nil) else { return }
+                canAnnounce = evidence.allows(.create(content: "", images: [], notice: true))
+            }
             .onAppear {
                 if content.isEmpty && images.isEmpty {
                     content = post?.content ?? ""
@@ -791,6 +843,17 @@ struct ClubCommunityComposer: View {
             model.busy || uploading || imageBridge.isBusy || ClubPostEditDraft(content: content, images: images) !=
                 ClubPostEditDraft(content: $0.content, images: $0.images)
         } ?? false)
+    }
+}
+
+/// Share text for a club post: the club name and the first line of the post. Club posts have no
+/// universal link yet, so this is plain text (MP shares a card to `pages/club/detail?id=&postId=`).
+enum ClubPostShareText {
+    static func text(post: ClubCommunityPost, locale: Locale) -> String {
+        let excerpt = post.content.split(separator: "\n").first.map(String.init).map { String($0.prefix(60)) } ?? ""
+        let club = post.clubName.isEmpty ? locale.pick("俱乐部", "Club") : post.clubName
+        return excerpt.isEmpty ? locale.pick("来看看「\(club)」的帖子", "A post from \(club)")
+            : locale.pick("「\(club)」：\(excerpt)", "\(club): \(excerpt)")
     }
 }
 
@@ -832,20 +895,20 @@ struct ClubCommunityReviewView: View {
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
 
-                CYCard {
-                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        factRow("club.community.clubID", String(review.evidence.clubID))
-                        if let post = review.evidence.post {
-                            factRow("club.community.postID", String(post.id))
-                        }
-                        if let comment = review.evidence.comment {
-                            factRow("club.community.commentID", String(comment.id))
-                        }
+                // X10 (parity r1): name the post / comment by its words, never by internal ids.
+                if let target = review.evidence.comment?.content ?? review.evidence.post?.content,
+                   !target.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    CYCard {
+                        Text(verbatim: target)
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .lineLimit(3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
 
                 switch review.operation {
-                case let .create(content, images), let .update(content, images, _):
+                case let .create(content, images, _), let .update(content, images, _):
                     Text(verbatim: content)
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
@@ -865,7 +928,7 @@ struct ClubCommunityReviewView: View {
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
-                case .toggleLike:
+                case .toggleLike, .repost:
                     Text("club.community.toggleWarning")
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)

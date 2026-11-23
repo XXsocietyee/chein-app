@@ -259,4 +259,29 @@ final class ClubOpsCustomerPresentationTests: XCTestCase {
         value["tags"] = .array([.string("Regular")])
         return .object(value)
     }
+
+    func testPagesAppendDedupedUntilTotal() throws {
+        // CLB-customers-01: MP customers/index.js:139,179-189.
+        let size = ClubOpsCustomerListPresentation.pageSize
+        func page(_ ids: ClosedRange<Int>, total: Int) throws -> ClubOpsCustomerListPresentation {
+            try .init(value: .object(["total": .integer(total), "monthNew": .integer(0), "items": .array(ids.map { item($0) })]))
+        }
+        let first = try page(1...size, total: size + 3)
+        XCTAssertTrue(first.hasMoreAfterFirstPage)
+        let second = first.appending(try page((size - 1)...(size + 3), total: size + 3))
+        XCTAssertEqual(second.list.rows.count, size + 3); XCTAssertFalse(second.hasMore)
+        XCTAssertFalse(try page(1...3, total: 3).hasMoreAfterFirstPage)
+        let fields = try ClubGovernanceRead.customers.fields(scope: .init(clubID: 81), options: ["pageNum": .integer(2), "pageSize": .integer(size)])
+        XCTAssertEqual(fields["pageNum"], .integer(2)); XCTAssertEqual(fields["pageSize"], .integer(size))
+        XCTAssertEqual(try ClubGovernanceRead.customers.fields(scope: .init(clubID: 81), options: [:])["pageNum"], .integer(1))
+    }
+
+    func testPhoneCallNeedsServerGrantAndMobileNumber() {
+        // CLB-customer-detail-01 / CLB-checkin-detail-02: MP utils/club-phone-call.js.
+        XCTAssertEqual(ClubPhoneCall.url(phoneText: " 13800138000 ", callable: true)?.absoluteString, "tel:13800138000")
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "13800138000", callable: false))
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "138****8000", callable: true))
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "仅主理人可见", callable: true))
+        XCTAssertNil(ClubPhoneCall.url(phoneText: "23800138000", callable: true))
+    }
 }

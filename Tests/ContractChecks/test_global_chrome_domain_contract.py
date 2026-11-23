@@ -144,8 +144,11 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
         self.assertIn("struct CYFooterBar", screen_style)
 
         # Full-bleed hero pushed chrome belongs ONLY on full-bleed hero cover views.
-        for rel in ("App/ActivityDetailView.swift", "App/ClubDetailView.swift"):
-            self.assertIn("cyHeroPushedChrome", read_swift(rel))
+        self.assertIn("cyHeroPushedChrome", read_swift("App/ActivityDetailView.swift"))
+        # Parity r1 (type-and-chrome §3): the club page moved to cyHeroChrome + CYHeroBackButton in the hero overlay.
+        club = read_swift("App/ClubDetailView.swift")
+        self.assertIn("cyHeroChrome(heroScrolledAway: heroScrolledAway", club)
+        self.assertIn("CYHeroBackButton()", club)
 
         # Standard L2+ non-hero pushed detail views must not wrap back chevrons in glass hero pills.
         for rel in ("App/OfficialEventDetailView.swift", "App/DiscoveryTemplateDetailView.swift", "App/ProfileEditView.swift"):

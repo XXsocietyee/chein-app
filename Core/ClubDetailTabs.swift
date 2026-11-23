@@ -55,8 +55,8 @@ public struct ClubDetailTabPolicy: Equatable, Sendable {
     public var canGovern: Bool { isOwner || viewerIsAdmin }
     public var canUseManageTab: Bool { canGovern || grant?.allowsManage == true }
     public var tabs: [ClubDetailTab] { canUseManageTab ? ClubDetailTab.publicTabs + [.manage] : ClubDetailTab.publicTabs }
-    /// Owners and members land on posts; guests (including merchant viewers) on overview.
-    public var defaultTab: ClubDetailTab { isOwner || isJoined ? .posts : .overview }
+    /// CLB-detail-13: the MP always opens on 概览 (owner ruling 2026-10-22, detail js:3414-3420).
+    public var defaultTab: ClubDetailTab { .overview }
 
     /// Initial tab after the detail read. A `manage` deep-link intent is honored only once
     /// the server has confirmed the viewer may use it; otherwise the public default wins.

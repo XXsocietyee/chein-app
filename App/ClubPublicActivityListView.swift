@@ -32,7 +32,49 @@ import SwiftUI
               source.isCurrent(snapshot), snapshot.scope.approval.clubID == clubID else { return nil }
         return snapshot
     }
+    /// CLB-detail-02: the club page's 活动 tab embeds the list (MP detail wxml:163-216). The host owns the push.
+    var embedded: ((Int) -> Void)? = nil
     var body: some View {
+        if embedded != nil { embeddedBody } else { pageBody }
+    }
+    /// Current activities only (P-14: the MP no longer lists ended ones on the club page).
+    private var embeddedBody: some View {
+        Group {
+            if scope == nil {
+                Section {
+                    CYEmptyState(systemImage: "lock.slash", "publicTopics.unavailable", tableName: "ClubPublicTopics", messageIdentifier: "club.publicTopics.unavailable")
+                }
+            } else if model.loading {
+                Section { activityLoading }
+            } else if let snapshot = accepted {
+                let renderedSnapshotID = model.snapshotID
+                let rows = snapshot.rows.filter { $0.status != .ended }
+                if rows.isEmpty {
+                    Section {
+                        CYEmptyState(systemImage: "calendar", "club.detail.events.empty", messageIdentifier: "club.detail.events.empty")
+                            .listRowBackground(Color.clear)
+                    }
+                } else {
+                    ClubActivityListContent(rows: rows, canOpen: visible && scenePhase == .active && opening == nil, open: { row in
+                        select(row, from: snapshot, snapshotID: renderedSnapshotID)
+                    })
+                }
+            } else if model.issueScope == scope, let issue = model.issue {
+                issueSection(issue)
+            }
+        }
+        .task(id: readKey) {
+            guard visible, scenePhase == .active else { return }
+            await refresh()
+        }
+        .onAppear { visible = true }
+        .onDisappear { visible = false; opening = nil; model.suspend(keepingSnapshot: false) }
+        .onChange(of: scope) { _, _ in opening = nil; selectedUnavailable = false; model.retire() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { opening = nil; selectedUnavailable = false; model.retire() }
+        }
+    }
+    private var pageBody: some View {
         List {
             Section {
                 CYHeroHeader("publicTopics.title", tableName: "ClubPublicTopics") {
@@ -128,6 +170,7 @@ import SwiftUI
             guard let fresh = await model.load(source: source, clubID: clubID, scope: snapshot.scope),
                   opening == ticket, visible, scenePhase == .active, destination == nil, accepted == fresh else { return }
             guard fresh.rows.contains(where: { $0.id == row.id }) else { selectedUnavailable = true; return }
+            if let embedded { embedded(row.id); return }
             destination = .init(topicID: row.id, scope: fresh.scope, snapshotID: model.snapshotID)
         }
     }

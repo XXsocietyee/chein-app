@@ -322,7 +322,7 @@ import UIKit
             }
         }
         .cyGroupedSurface()
-        .navigationTitle("club.settlementDetail.title")
+        .navigationTitle("club.settlementDetail.title").navigationBarTitleDisplayMode(.inline)
         .task(id: expected) {
             guard sourceIsCurrent(), let permit = model.activate(expected) else { return }
             await model.load(permit, target: target, access: access, current: sourceIsCurrent)

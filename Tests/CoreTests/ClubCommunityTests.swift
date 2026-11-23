@@ -48,6 +48,20 @@ final class ClubCommunityTests: XCTestCase {
         let comment = try ClubCommunityComment(json: ["id": 30, "postId": 20, "memberId": 6])
         XCTAssertTrue(evidence(post: item, comment: comment, admin: true).allows(.deleteComment))
         XCTAssertTrue(evidence(post: item, comment: comment).allows(.reportComment))
+        XCTAssertTrue(evidence(post: item, comment: comment, admin: true).allows(.reportComment), "MP: anyone but the comment author may report")
+        // CLB-detail-12: 公告 (type 2) only for the owner or administrators; the wire carries type 2.
+        XCTAssertFalse(evidence().allows(.create(content: "a", images: [], notice: true)))
+        XCTAssertTrue(evidence(admin: true).allows(.create(content: "a", images: [], notice: true)))
+        XCTAssertEqual(try ClubCommunityReview(operation: .create(content: "a", images: [], notice: true), evidence: evidence(admin: true)).fields()["type"] as? Int, 2)
+        XCTAssertNil(try ClubCommunityReview(operation: .create(content: "a", images: []), evidence: evidence()).fields()["type"])
+        // CLB-detail-03: repost / undo share the like body and route under api/club/post/.
+        XCTAssertTrue(evidence(post: item).allows(.repost(true)))
+        XCTAssertEqual(try ClubCommunityReview(operation: .repost(true), evidence: evidence(post: item)).fields()["postId"] as? Int, 20)
+        XCTAssertEqual(ClubCommunityOperation.repost(true).suffix, "repost"); XCTAssertEqual(ClubCommunityOperation.repost(false).suffix, "repost/undo")
+        XCTAssertTrue(try post(["viewerReposted": true, "repostCount": 3]).reposted)
+        let others = try post(["authorMemberId": 6])
+        XCTAssertTrue(evidence(post: others, admin: true).allows(.delete), "CLB-detail-06: moderators delete any post")
+        XCTAssertFalse(evidence(post: others).allows(.delete))
         let wrong = try ClubCommunityComment(json: ["id": 30, "postId": 99, "memberId": 5])
         XCTAssertFalse(evidence(post: item, comment: wrong).allows(.deleteComment))
     }

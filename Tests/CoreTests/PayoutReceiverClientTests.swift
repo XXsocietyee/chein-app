@@ -240,6 +240,9 @@ final class PayoutReceiverClientTests: XCTestCase {
         XCTAssertNil(ClubSettlementSummaryView(data: noSessions))
         var personal = base; personal["personal"] = true; personal["sessions"] = [["activityId": 3, "name": "场次", "dateText": "d", "netText": "n", "payeeText": "p"]]
         XCTAssertEqual(ClubSettlementSummaryView(data: personal)?.personal, true)
+        // CLB-settlement-01: the 管理 → 结算 governance read decodes the same sessions.
+        let governance = try? JSONDecoder().decode(ClubGovernanceValue.self, from: JSONSerialization.data(withJSONObject: base))
+        XCTAssertEqual(governance.flatMap(ClubSettlementSummaryView.init(governanceValue:))?.sessions.map(\.activityID), [3])
     }
 
     func testIssueCopyNeverShowsAMachineCode() throws {

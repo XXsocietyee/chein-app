@@ -103,5 +103,20 @@ final class ClubRoleAssignmentOptionsTests: XCTestCase {
         XCTAssertEqual(command.operation, .assignRole); XCTAssertEqual(command.fields["targetMemberId"], .integer(41))
         XCTAssertEqual(command.fields["roleCode"], .string("EVENT_LEAD")); XCTAssertEqual(command.fields["activityId"], .integer(205))
         XCTAssertEqual(command.operation.permission, "ROLES")
+        XCTAssertNil(command.fields["customerPhoneVisible"])
+    }
+    func testCheckinDelegateCanBeGrantedPhoneVisibility() throws {
+        // CLB-roles-01: MP roles/index.js:405 sends customerPhoneVisible only for EVENT_CHECKIN and only when on.
+        let result = try options(205)
+        var draft = ClubGovernanceFormDraft(operation: .assignRole, scope: result.scope)
+        draft.applyClubRolePicker(memberID: "41", roleCode: "EVENT_CHECKIN")
+        XCTAssertEqual(draft.flags["customerPhoneVisible"], false)
+        XCTAssertNil(try draft.command().fields["customerPhoneVisible"])
+        draft.flags["customerPhoneVisible"] = true
+        XCTAssertEqual(try draft.command().fields["customerPhoneVisible"], .bool(true))
+        draft.applyClubRolePicker(memberID: "41", roleCode: "EVENT_LEAD")
+        XCTAssertNil(draft.flags["customerPhoneVisible"])
+        XCTAssertNil(try draft.command().fields["customerPhoneVisible"])
+        XCTAssertThrowsError(try ClubGovernanceCommand(operation: .assignRole, scope: result.scope, values: ["targetMemberId": .integer(41), "roleCode": .string("EVENT_LEAD"), "requestId": .string("r"), "customerPhoneVisible": .bool(true)]))
     }
 }

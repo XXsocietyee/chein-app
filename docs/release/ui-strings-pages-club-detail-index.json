@@ -73,10 +73,10 @@
       "accessibilityIdentifier": "club.detail.posts.unavailable"
     },
     {
-      "key": "club.detail.events.unavailable",
-      "en": "Club events are unavailable in this build.",
-      "zh-Hans": "当前版本暂不可查看俱乐部活动",
-      "accessibilityIdentifier": "club.detail.events.unavailable"
+      "key": "club.detail.events.publish",
+      "en": "Publish a topic",
+      "zh-Hans": "发布主题",
+      "accessibilityIdentifier": "club.detail.events.publish"
     },
     {
       "key": "club.detail.tab.posts",
@@ -212,7 +212,7 @@
     "club.detail.fact.leader",
     "club.detail.fact.city",
     "club.detail.posts.unavailable",
-    "club.detail.events.unavailable",
+    "club.detail.events.publish",
     "club.detail.tab.posts",
     "club.detail.tab.events",
     "club.detail.tab.overview",

@@ -45,6 +45,23 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         for page in openPages { pages[page] = open }
         for page in identifiedPages { pages[page] = identified }
         for page in optionalIDPages { pages[page] = optionalID }
+        // Club pages (CLB-*-01 parity r1): the keys each MP page reads in onLoad. `clubId` and `id` are both
+        // accepted where the MP falls back from one to the other; the screen shows unavailable without a club.
+        let clubKeyed = Rule(allowed: ["clubId", "id"], required: [], ids: ["clubId", "id"])
+        for page in ["badges", "customers", "edit", "workbench"] { pages["pages/club/\(page)/index"] = clubKeyed }
+        pages["pages/club/detail/index"] = Rule(allowed: ["id", "tab", "postId", "scan", "owner", "scope", "topicId"], required: [], ids: ["id", "postId", "topicId"])
+        pages["pages/club/customer-detail/index"] = Rule(allowed: ["clubId", "memberId"], required: ["clubId", "memberId"], ids: ["clubId", "memberId"])
+        pages["pages/club/checkin-detail/index"] = Rule(allowed: ["clubId", "registrationId"], required: ["clubId", "registrationId"], ids: ["clubId", "registrationId"])
+        pages["pages/club/enroll/index"] = Rule(allowed: ["clubId", "clubName", "topicId"], required: ["clubId"], ids: ["clubId", "topicId"])
+        pages["pages/club/event-ops/index"] = Rule(allowed: ["clubId", "id", "activityId", "topicId", "recurrence"], required: [], ids: ["clubId", "id", "activityId", "topicId"])
+        pages["pages/club/group-code/index"] = Rule(allowed: ["activityId", "activityName", "topicId", "topicName"], required: ["activityId"], ids: ["activityId", "topicId"])
+        pages["pages/club/join-requests/index"] = Rule(allowed: ["clubId"], required: ["clubId"], ids: ["clubId"])
+        pages["pages/club/notify/index"] = Rule(allowed: ["clubId", "id", "activityId", "silent"], required: [], ids: ["clubId", "id", "activityId"])
+        pages["pages/club/topic-detail/index"] = Rule(allowed: ["topicId", "clubId", "activityId", "id"], required: [], ids: ["topicId", "clubId", "activityId", "id"])
+        pages["pages/club/topic-story/index"] = Rule(allowed: ["topicId", "clubId", "scope", "id"], required: [], ids: ["topicId", "clubId", "id"])
+        pages["pages/club/governance/index"] = Rule(allowed: ["clubId", "memberId", "mode", "targetId", "targetMemberId", "targetName", "targetType"],
+                                                    required: ["clubId"], ids: ["clubId", "memberId", "targetId", "targetMemberId"])
+        pages["pages/club/roles/index"] = Rule(allowed: ["clubId", "id", "activityId", "activityLabel", "memberId"], required: [], ids: ["clubId", "id", "activityId", "memberId"])
         // Subscribe-message landing pages from public hengyin (cur-push). Set last: `pages/coop/list/index` keeps `tab`.
         pages["subpackageMember/order/order"] = open
         pages["pages/coop/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
@@ -94,20 +111,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/publish/topicadd/topicadd",
         "pages/publish/template-intro/index",
         "pages/club/apply/index",
-        "pages/club/badges/index",
         "pages/club/create/index",
-        "pages/club/customer-detail/index",
-        "pages/club/customers/index",
-        "pages/club/edit/index",
-        "pages/club/enroll/index",
-        "pages/club/checkin-detail/index",
-        "pages/club/event-ops/index",
-        "pages/club/group-code/index",
-        "pages/club/join-requests/index",
-        "pages/club/notify/index",
-        "pages/club/topic-detail/index",
-        "pages/club/topic-story/index",
-        "pages/club/workbench/index",
         "pages/topic/merchantinfo/merchantinfo",
         "pages/topic/merchantapply/index",
         "pages/topic/pricing/index",
@@ -208,7 +212,6 @@ public struct MiniProgramPageLink: Equatable, Sendable {
     /// `subpackageMember/orderinfo?id=`). No other key is accepted.
     private static let identifiedPages: [String] = [
         "pages/activity/detail/index",
-        "pages/club/detail/index",
         "pages/topic/index/index",
         "pages/square/detail/index",
         "pages/templatedetail/templatedetail",

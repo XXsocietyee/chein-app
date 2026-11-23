@@ -186,6 +186,10 @@ import SwiftUI
                         memberID: textBinding("targetMemberId"), roleCode: textBinding("roleCode"),
                         canEdit: { !busy && !locked && review == nil },
                         applySelection: { member, role in draft.applyClubRolePicker(memberID: member, roleCode: role) })
+                    if draft.flags["customerPhoneVisible"] != nil {
+                        Text("club.rolePicker.phoneVisible.hint").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("club.rolePicker.phoneVisible.hint")
+                    }
                 }
                 if route.operation == .createSeries {
                     ClubSeriesLeadPicker(scope: route.scope, identity: identity, access: access, model: seriesLeadPicker,
@@ -306,6 +310,7 @@ import SwiftUI
                     }
                     ForEach(Array((receipt["failedSessions"].array ?? []).enumerated()), id: \.offset) { _, value in Text(verbatim: value.string ?? "") }
                 }
+                if route.operation == .hostApply { Section { ClubCreateMyClubLink(identity: identity) }.listRowBackground(Color.clear) }
             }
         }
         .background {
@@ -329,7 +334,7 @@ import SwiftUI
         }
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
-        .navigationTitle(ClubOpsEventFormCopy.title(route))
+        .navigationTitle(ClubOpsEventFormCopy.title(route)).navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
             CYConfirmSheet(
                 title: String(localized: LocalizedStringResource("clubOpsEvent.cancel.confirmTitle", table: "ClubOpsEvent", locale: locale)),

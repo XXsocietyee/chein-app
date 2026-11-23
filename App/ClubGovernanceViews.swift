@@ -56,10 +56,12 @@ struct ClubGovernanceEntryButton: View {
     var storyTemplates = ClubStoryTemplateContext()
     var terminalSessions = ClubTerminalSessionContext()
     var ownerFunds = ClubOwnerFundsContext()
+    /// CLB-detail-23: members without the 管理 tab see 我的治理记录, never a second 管理.
+    var titleKey: LocalizedStringKey = "club.gov.workspace"
     @State private var presented = false
     var body: some View {
         Button { presented = true } label: {
-            CYListRow("club.gov.workspace", trailing: .chevron) { CYRowIcon(systemImage: "person.3.sequence.fill") }
+            CYListRow(titleKey, trailing: .chevron) { CYRowIcon(systemImage: "person.3.sequence.fill") }
         }
             .accessibilityIdentifier("club.gov.open")
             .sheet(isPresented: $presented) {
@@ -174,6 +176,7 @@ struct ClubGovernanceReadView: View {
     let coordinator: ClubGovernanceCoordinator
     var expectedCreatedSeries: ClubCreatedSeriesReceipt? = nil
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var customerPager = ClubOpsCustomerPager()
     @StateObject private var attendanceReturn = ClubAttendanceCorrectionReturn()
     @StateObject private var attendanceReads = ClubAttendanceRosterRead()
     @StateObject private var roleManagementReturn = ClubRoleManagementReturn()
@@ -199,6 +202,8 @@ struct ClubGovernanceReadView: View {
     @State private var customerTopic: ClubCustomerHistoryTopicRoute?
     @State private var leaderboardMember: ClubLeaderboardMemberRoute?
     @State private var feedClub: ClubFeedClubRoute?
+    /// CLB-topic-detail-04: /api/club/crm/topic-manage-stats read beside the topic overview (MP loadManageStats).
+    @State private var topicStats: ClubGovernanceValue?
     @State private var feedMediaScope = UUID()
     private var readContext: ClubGovernanceReadContext {
         .init(operation: operation, scope: scope, identity: identity, viewerRevision: operation == .feed ? feedContext.viewerRevision : (operation == .topicOverview ? storyTemplates.viewerRevision : max(customerTopics.viewerRevision, storyTemplates.viewerRevision)),
@@ -217,12 +222,6 @@ struct ClubGovernanceReadView: View {
     @State private var page = 1
     @State private var editor: ClubGovernanceFormRoute?
     private var title: LocalizedStringKey { LocalizedStringKey("club.gov." + operation.rawValue) }
-    /// Host apply is the one filled action on that screen, so refresh stays secondary there.
-    private var showsHostApply: Bool {
-        guard operation == .hostStatus, let snapshot, snapshotContext == readContext, identity == access.identity else { return false }
-        let role = snapshot.value["accountRole"]
-        return role != .string("merchant") && role != .string("club")
-    }
     // Split into stages so the type checker handles the long modifier chain;
     // the modifiers apply in exactly the same order as one chain.
 
@@ -664,9 +663,10 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-            if !loading {
-                Button("club.gov.refresh") { Task { await load() } }
-                    .buttonStyle(CYPillButtonStyle(style: showsHostApply ? .secondary : .primary, fullWidth: true))
+            // X2 (parity r1): pull-to-refresh already reloads; a button is offered only to retry a failed read.
+            if !loading, failure != nil, failure != .forbidden {
+                Button("action.retry") { Task { await load() } }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
                     .accessibilityIdentifier("club.gov.refresh")
             }
         }
@@ -1319,6 +1319,7 @@ struct ClubGovernanceReadView: View {
                                                               allowance: value["allowance"]).allowance.displayText)
                     }
                 }
+                Section { ClubCreateMyClubLink(identity: identity) }.listRowBackground(Color.clear)
             } else {
                 // Source club/apply intro: one large two-line title over the 成为主理人 CTA, nothing else.
                 Section {
@@ -1365,25 +1366,44 @@ struct ClubGovernanceReadView: View {
             let terminalContext = readContext, terminalGeneration = snapshotGeneration
             // Mini-program club/topic-detail order: title + status → quick entries → 未通过原因 →
             // 剧情与玩法 → 接下来 (sessions) → director (terminal sessions) → rules.
+            // CLB-topic-detail-04: MP resolveStateKey on the numeric cms_topic.status, then the manage stats'
+            // sessionStatus for viewers without the director (MP applyVerifyVisibility).
+            let stats = topicStats ?? .null
+            let topicState = ClubTopicDetailPort.stateKey(value)
+            let canDirect = stats["canDirect"] == .bool(true)
+            let topicDisplay = canDirect ? ClubTopicDetailPort.Display(state: topicState, cancelled: false)
+                : ClubTopicDetailPort.display(audit: topicState, sessionStatus: stats["sessionStatus"].string)
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text(verbatim: value["name"].string ?? value["title"].string ?? "—")
                         .font(CYTypography.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
-                    if let status = value["status"].string, ["reviewing", "rejected", "confirmed", "preparing", "running", "ended"].contains(status) {
-                        CYStatusChip(LocalizedStringKey("club.topic.status." + status), tone: status == "rejected" ? .danger : (status == "running" ? .success : .neutral), systemImage: status == "rejected" ? "xmark" : "circle.fill")
+                    HStack(spacing: CYSpacing.sm) {
+                        let chipState = topicDisplay.state == .selfrun ? ClubTopicDetailPort.State.running : topicDisplay.state
+                        CYStatusChip(LocalizedStringKey(topicDisplay.cancelled ? "club.topic.status.cancelled" : "club.topic.status." + chipState.rawValue),
+                                     tone: chipState == .rejected ? .danger : (chipState == .running ? .success : .neutral),
+                                     systemImage: chipState == .rejected ? "xmark" : "circle.fill")
+                            .accessibilityIdentifier("club.topic.status")
+                        if let notOnSale = ClubTopicDetailPort.notOnSaleKey(lifecycle: value["lifecycle"].int) {
+                            Text(LocalizedStringKey(notOnSale)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        }
                     }
                 }.accessibilityElement(children: .combine)
                 ClubGovernanceFactRows(value: value, fields: ["startDate", "endDate", "playModeText"])
             }
-            // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`.
-            // Counts come from the overview payload when it carries them; missing counts render as an em dash.
-            let verifyAudit = ClubTopicDetailPort.State(rawValue: value["status"].string ?? "") ?? .confirmed
-            let verifyDisplay = ClubTopicDetailPort.display(audit: verifyAudit, sessionStatus: value["sessionStatus"].string)
-            if ClubTopicDetailPort.showsVerify(verifyDisplay, canViewVerify: value["canViewVerify"].bool) {
+            .task(id: snapshotGeneration) {
+                guard scope.clubID != nil, scope.topicID != nil else { topicStats = nil; return }
+                let expected = readContext
+                let read = try? await access.read(.topicStats, scope: scope, options: [:]).value
+                guard expected == readContext, !Task.isCancelled else { return }
+                topicStats = read
+            }
+            // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`;
+            // the counts come from topic-manage-stats. Missing counts render as an em dash.
+            if ClubTopicDetailPort.showsVerify(topicDisplay, canViewVerify: stats["canViewVerify"].bool) {
                 ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
-                    pending: value["pendingVerifyCount"].int, verifiedByMe: value["verifiedByMeCount"].int, headcount: value["sessionHeadcount"].int))
+                    pending: stats["pendingVerifyCount"].int, verifiedByMe: stats["verifiedByMeCount"].int, headcount: stats["sessionHeadcount"].int))
             }
             Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
@@ -1396,6 +1416,12 @@ struct ClubGovernanceReadView: View {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
                 if sessions.isEmpty { CYEmptyState(systemImage: "calendar", "club.topic.noSessions") }
+                // CLB-topic-detail-07: 接下来 links to event ops (MP 管理场次 → pages/club/event-ops).
+                if scope.clubID != nil {
+                    NavigationLink { ClubOpsEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID), identity: identity, access: access, coordinator: coordinator) } label: {
+                        Label("club.topic.manageSessions", systemImage: "calendar.badge.plus")
+                    }.accessibilityIdentifier("club.topic.manageSessions")
+                }
                 ForEach(Array(sessions.enumerated()), id: \.offset) { _, row in
                     if let id = row["id"].int {
                         let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
@@ -1421,6 +1447,7 @@ struct ClubGovernanceReadView: View {
                     snapshotGeneration == terminalGeneration && identity == access.identity && scenePhase == .active
                 }, presentation: terminalPresentation)
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
+            topicPrimary(state: topicState, stats: stats, sessions: value["activityList"].array ?? [])
         } else if operation == .audienceCounts {
             let notifyPage = ClubNotifyPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
             Section {
@@ -1436,6 +1463,8 @@ struct ClubGovernanceReadView: View {
         } else if operation == .settlement {
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
+            // CLB-settlement-01: the same /settlement/summary carries F-16 sessions; show 各场次结算 here too.
+            if let sessions = ClubSettlementSummaryView(governanceValue: value)?.sessions { ClubSettlementSessionsSection(sessions: sessions) }
             // WP-01: cy-club-direct-ledger and the owner's 个人收款 entry (mini-program openPayoutReceiver).
             if let clubID = scope.clubID, clubID > 0 {
                 ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil))
@@ -1509,7 +1538,13 @@ struct ClubGovernanceReadView: View {
         } else {
             if operation == .customers {
                 if let list = try? ClubOpsCustomerListPresentation(value: value) {
-                    ClubOpsCustomerListContent(list: list, filtered: snapshotCustomerFilters?.isFiltered == true) { id in
+                    let pageFilters = snapshotCustomerFilters ?? customerFilters
+                    ClubOpsCustomerListContent(first: list, filtered: snapshotCustomerFilters?.isFiltered == true, pager: customerPager,
+                        readPage: { pageNum in
+                            try await access.read(.customers, scope: scope, options: [
+                                "filter": .string(pageFilters.filter), "keyword": .string(pageFilters.keyword),
+                                "pageNum": .integer(pageNum), "pageSize": .integer(ClubOpsCustomerListPresentation.pageSize)]).value
+                        }) { id in
                         AnyView(ClubGovernanceReadView(operation: .customer, scope: .init(clubID: scope.clubID, memberID: id), identity: identity, access: access, coordinator: coordinator))
                     }
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
@@ -1564,7 +1599,7 @@ struct ClubGovernanceReadView: View {
                 if checkinPage.showsContent {
                     ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind)
                 }
-                // Dispatch stays off (ClubCheckinDetailPage.showsRefundAction). The panel only explains the saved gate.
+                // CLB-checkin-detail-01: the entry follows server canRefund; dispatch stays behind the coordinator's TEST-only gate.
                 Section {
                     ClubOwnerRefundPanel(target: target, identity: identity, sourceCanRefund: checkinPage.showsRefundAction && value["canRefund"] == .bool(true), onReadback: { Task { await load() } })
                 }
@@ -1584,6 +1619,51 @@ struct ClubGovernanceReadView: View {
             if operation == .bans { link(.members) }
             if operation == .notificationStatus && (value["failedCount"].int ?? 0) > 0 { Text("club.gov.deliveryPending"); edit(.retryNotification) }
         }
+    }
+    /// CLB-topic-detail-02: one primary per phase (MP topic-detail onPrimary / resolvePrimary). Each phase
+    /// opens the native screen that already owns it; the director itself stays in the session screen.
+    @ViewBuilder private func topicPrimary(state: ClubTopicDetailPort.State, stats: ClubGovernanceValue, sessions: [ClubGovernanceValue]) -> some View {
+        let single = sessions.count == 1 ? sessions[0]["id"].int : nil
+        let plan = ClubTopicDetailPort.primary(state: state, directorActive: false, canDirect: stats["canDirect"] == .bool(true),
+            canManageSessions: stats["canManageSessions"] == .bool(true), hasClub: scope.clubID != nil,
+            sessionCount: sessions.count, singleSessionHasValidID: single != nil)
+        let sessionScope = single.map { ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: $0) }
+        let opsScope = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID)
+        Section {
+            switch plan {
+            case .none:
+                EmptyView()
+            case .chooseSession, .openSession:
+                NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
+                    Text(plan == .chooseSession ? "club.topic.primary.chooseSession" : "club.topic.primary.openSession")
+                }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+            case .action(let phase):
+                switch phase {
+                case .reviewing:
+                    Button(LocalizedStringKey(phase.primaryKey)) {}.disabled(true)
+                        .buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                case .ended:
+                    if let clubID = scope.clubID {
+                        NavigationLink { ClubGovernanceReadView(operation: .settlement, scope: .init(clubID: clubID), identity: identity, access: access, coordinator: coordinator) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    }
+                case .confirmed, .preparing, .running, .selfrun:
+                    if let sessionScope {
+                        NavigationLink { ClubGovernanceEventView(scope: sessionScope, identity: identity, access: access, coordinator: coordinator) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    } else {
+                        NavigationLink { ClubOpsEventView(scope: opsScope, identity: identity, access: access, coordinator: coordinator) } label: {
+                            Text(LocalizedStringKey(phase.primaryKey))
+                        }.buttonStyle(CYPillButtonStyle(style: .primary)).accessibilityIdentifier("club.topic.primary")
+                    }
+                case .rejected:
+                    // 修改并重新提交 opens the topic editor (pages/publish/fabu?id=), which has no native screen yet.
+                    EmptyView()
+                }
+            }
+        }.listRowBackground(Color.clear)
     }
     @ViewBuilder private func dataRows(_ rows: [ClubGovernanceValue]) -> some View {
         if rows.isEmpty {

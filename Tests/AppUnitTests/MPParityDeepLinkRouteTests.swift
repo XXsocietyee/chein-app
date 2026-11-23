@@ -37,6 +37,11 @@ import XCTest
         let order = MiniProgramPageLink(path: "subpackageMember/orderinfo/orderinfo", query: ["id": "7"])!
         XCTAssertEqual(MPParityRoute(link: order), .screen(page: "subpackageMember/orderinfo/orderinfo", query: ["id": "7"]))
         XCTAssertNil(MPParityRoute(miniProgramPath: "pages/club/governance/index", query: [:]))
+        // CLB-topic-detail-01 / CLB-workbench-01: club pages reach their screens with their MP keys.
+        let topic = MiniProgramPageLink(path: "pages/club/topic-detail/index", query: ["topicId": "3", "clubId": "7"])!
+        XCTAssertEqual(MPParityRoute(link: topic), .screen(page: "pages/club/topic-detail/index", query: ["topicId": "3", "clubId": "7"]))
+        XCTAssertEqual(MPParityRoute(miniProgramPath: "pages/club/workbench/index", query: ["clubId": "7"]),
+                       .screen(page: "pages/club/workbench/index", query: ["clubId": "7"]))
         XCTAssertNil(MPParityRoute(miniProgramPath: "pages/merchant/customer/detail/index", query: [:]))
     }
 

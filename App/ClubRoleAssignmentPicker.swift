@@ -102,8 +102,9 @@ import SwiftUI
         let expected = context
         let permit = model.permit(in: expected)
         VStack(alignment: .leading, spacing: 12) {
-            if let activityID = scope.activityID {
-                Text("club.gov.eventID \(activityID)").cyText(.bodyCompact).accessibilityIdentifier("club.rolePicker.eventScope")
+            // CLB-roles-02: name the scope, never the activity id (MC-044).
+            if scope.activityID != nil {
+                Text("club.rolePicker.eventScopeOnly").cyText(.bodyCompact).accessibilityIdentifier("club.rolePicker.eventScope")
             } else { Text("club.rolePicker.clubScope").cyText(.bodyCompact) }
             if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.rolePicker.loading") }
             if permit != nil, let failure = model.failure {
@@ -184,9 +185,9 @@ import SwiftUI
         .onChange(of: expected) { _, _ in expanded = nil }
     }
     private func memberName(_ member: ClubRoleAssignableMember) -> some View {
+        // CLB-roles-03: the member's name only; a missing name reads 未命名, never 「用户 <id>」.
         VStack(alignment: .leading, spacing: 2) {
-            if let name = member.nickname { Text(verbatim: name) }
-            Text("club.memberNumber \(member.id)").cyText(.meta).foregroundStyle(.secondary)
+            if let name = member.nickname { Text(verbatim: name) } else { Text("club.rolePicker.unnamed") }
         }
     }
 }

@@ -245,4 +245,18 @@ final class ClubEnrollmentTests: XCTestCase {
         XCTAssertTrue(reader.hasLoaded); access.release(); await old.value
         XCTAssertEqual(reader.presentationRevision, revision); XCTAssertTrue(reader.hasLoaded); XCTAssertFalse(reader.loading)
     }
+
+    func testSessionMoneyFormatsServerFenOnly() {
+        // CLB-enroll-01: MP enroll sessionMoneyRows + money-format decimalText.
+        let rows = ClubEnrollmentSessionMoney.rows(.array([
+            .object(["activityId": .integer(5), "label": .string("周六场"), "paidFen": .integer(10000), "refundedFen": .integer(1050), "netFen": .integer(8950)]),
+            .object(["activityId": .integer(6), "cancelled": .bool(true), "paidFen": .integer(0), "refundedFen": .integer(1), "netFen": .null]),
+            .object(["label": .string("no id")]),
+        ]))
+        XCTAssertEqual(rows.map(\.id), [5, 6])
+        XCTAssertEqual(rows[0].paidText, "¥100.0"); XCTAssertEqual(rows[0].refundedText, "¥10.5"); XCTAssertEqual(rows[0].netText, "¥89.5")
+        XCTAssertEqual(rows[1].paidText, "¥0.0"); XCTAssertEqual(rows[1].refundedText, "¥0.01"); XCTAssertEqual(rows[1].netText, "—")
+        XCTAssertTrue(rows[1].cancelled); XCTAssertNil(rows[1].label)
+        XCTAssertEqual(ClubEnrollmentSessionMoney.yuanText(.integer(-255)), "-¥2.55")
+    }
 }
