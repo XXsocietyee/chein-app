@@ -968,6 +968,21 @@ import SwiftUI
             }
             .cyText(.meta)
             .foregroundStyle(nodeCount == 0 && (chapter.blocks ?? []).isEmpty ? palette.textTertiary : palette.textSecondary)
+            // C-F13 (MP fabu index.wxml:272-322): status in words, not only a red dot.
+            let hasStory = chapter.hasRealStory || !(chapter.blocks ?? []).isEmpty
+            let missingPlaces = chapter.nodes.filter { $0.longitude.isEmpty || $0.latitude.isEmpty }.count
+            let gameplayCount = chapter.nodes.filter { ($0.templateID ?? 0) > 0 }.count
+            HStack(spacing: CYSpacing.xs) {
+                CYStatusChip(hasStory ? "projectEdit.chip.storyDone" : "projectEdit.chip.storyMissing",
+                             tone: hasStory ? .success : .warning, systemImage: hasStory ? "checkmark" : "text.badge.plus")
+                if missingPlaces > 0 {
+                    CYStatusChip("projectEdit.chip.placesMissing \(missingPlaces)", tone: .danger, systemImage: "mappin.slash")
+                }
+                if nodeCount > 0 {
+                    CYStatusChip("projectEdit.chip.gameplay \(gameplayCount) \(nodeCount)", tone: .neutral, systemImage: "gamecontroller")
+                }
+            }
+            .accessibilityElement(children: .combine)
         }
         .padding(.vertical, CYSpacing.xs)
     }
