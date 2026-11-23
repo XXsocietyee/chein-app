@@ -46,6 +46,12 @@ struct PassMembershipContent: Equatable {
     var buyBlock: PassBuyBlock?
     /// Plan code → server `validDays`, for the 有效期 fact of the selected plan.
     var validDays: [String: Int] = [:]
+    /// MKT-4-4: active-pass card facts. Nil / false leaves the fact off the card.
+    var planLabel: String? = nil
+    var teammate = false
+    var expiring = false
+    var daysLeft: Int? = nil
+    var daysTotal: Int? = nil
 }
 
 enum PassMembershipPhase: Equatable {
@@ -175,16 +181,34 @@ struct PassMembershipView: View {
     }
 
     private func card(_ content: PassMembershipContent) -> some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text("mp.member.eyebrow").cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary)
-                (content.active ? Text("mp.member.active") : Text("mp.member.inactive")).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
-                if content.active, let until = content.untilText {
-                    Text("mp.pass.member.until \(until)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("mp.member.eyebrow").cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary)
+                    (content.active ? Text("mp.member.active") : Text("mp.member.inactive")).cyText(.pageTitle).foregroundStyle(CYColor.textPrimary)
+                    if content.active, let until = content.untilText {
+                        Text("mp.pass.member.until \(until)").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    // MKT-4-4: plan tag, 同行可用 and 即将到期 (membership/index.wxml:20-24).
+                    if content.planLabel != nil || content.teammate || content.expiring {
+                        HStack(spacing: CYSpacing.xs) {
+                            if let label = content.planLabel { CYStatusChip(verbatim: label) }
+                            if content.teammate { CYStatusChip("mp.member.teammate") }
+                            if content.expiring { CYStatusChip("mp.member.expiring", tone: .warning) }
+                        }
+                    }
                 }
+                Spacer()
+                PassKeyEmblem(size: 92, lit: content.active)
             }
-            Spacer()
-            PassKeyEmblem(size: 92, lit: content.active)
+            // 剩余 N 天 / 共 M 天 (membership/index.wxml:30-33); hidden when either number is unknown.
+            if let left = content.daysLeft, let total = content.daysTotal, total > 0 {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    ProgressView(value: Double(left), total: Double(total)).tint(CYColor.brand)
+                    Text("mp.member.daysLeft \(left) \(total)").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                }
+                .accessibilityIdentifier("membership.card.progress")
+            }
         }
         .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.xl)
         .accessibilityElement(children: .combine)
