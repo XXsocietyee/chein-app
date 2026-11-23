@@ -877,8 +877,7 @@ struct JourneyPromoView: View {
         }
         .refreshable { onRetry() }
         .background { MPNightGround() }
-        .navigationTitle(Text("mp.promo.title"))
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("mp.promo.title")
         .cyDomainScreen(.player)
     }
 

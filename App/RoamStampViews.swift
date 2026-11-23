@@ -483,7 +483,7 @@ private struct RoamStampImage: View {
                     RoamStampCard(stamp: stamp, offline: offline, allowsRemoteImages: allowsRemoteImages && (readOnlyScope?.allowsRemoteImages ?? true))
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
-        }.navigationTitle("roam.experience.cityStamp").cyHideTabBar()
+        }.cyPageTitle("roam.experience.cityStamp").cyHideTabBar()
         .cyDomainScreen(.player)
     }
 }
@@ -520,7 +520,7 @@ struct RoamCityStampDraftView: View {
                 Label("roam.experience.mediaUnavailable", systemImage: "camera.fill")
                 Text("roam.experience.stampHint").font(.subheadline).foregroundStyle(.secondary)
             }.padding()
-        }.navigationTitle("roam.experience.cityStamp")
+        }.cyPageTitle("roam.experience.cityStamp")
             .cyHideTabBar()
             .onChange(of: draft.caption) { _, _ in review = false }
             .accessibilityIdentifier("roam.experience.stamp.draft")

@@ -149,7 +149,7 @@ extension EnvironmentValues {
                     }
                 }
             }
-        }.cyGroupedSurface().appNavigationTitle("objects.item").privacySensitive()
+        }.cyGroupedSurface().cyPageTitle("objects.item").privacySensitive()
             .accessibilityIdentifier("objects.detail")
     }
     private var artwork: some View {

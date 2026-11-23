@@ -384,7 +384,7 @@ struct ObjectBadgeWallBadgeLabel: View {
             }
         }
         .background(palette.bgPage.ignoresSafeArea())
-        .appNavigationTitle("profile.badges.detail").privacySensitive().cyHideTabBar()
+        .cyPageTitle("profile.badges.detail").privacySensitive().cyHideTabBar()
         .sensoryFeedback(.success, trigger: celebrate)
         .cyCelebrations(celebrations)
         .onAppear { arrive() }
@@ -544,7 +544,7 @@ struct ObjectBadgeWallBadgeLabel: View {
         .cyDomainPageBackground()
         .themeDomain(.player)
         .tint(CYDomainPalette(.player).brand)
-        .appNavigationTitle("profile.badges.detail")
+        .cyPageTitle("profile.badges.detail")
         .cyHideTabBar()
         .privacySensitive()
     }

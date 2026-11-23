@@ -264,7 +264,7 @@ import QuestifyCore
                     .accessibilityIdentifier("roam.live.rules")
             }
         }
-        .navigationTitle("roam.experience.live")
+        .cyPageTitle("roam.experience.live")
     }
     /// First GO only: one inline card instead of a toggle the player must find first. Agreeing records the consent and
     /// starts the roam through the same path as the Go button (location priming still comes first when undecided).

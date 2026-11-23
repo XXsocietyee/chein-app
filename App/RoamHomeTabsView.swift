@@ -351,6 +351,7 @@ struct RoamToolUnavailableView: View {
             Text("roam.w208.tool.unavailable")
         }
         .appNavigationTitle(key: titleKey)
+        .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("roam.home.tool.unavailable")
         .cyDomainScreen(.player)
     }
