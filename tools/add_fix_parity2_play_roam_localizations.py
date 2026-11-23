@@ -16,6 +16,8 @@ S = {
     'officialRoute.stat.duration': ('Duration', '用时'),
     'officialRoute.stat.distance': ('Distance', '距离'),
     'officialRoute.stat.stops': ('Stops', '站点'),
+    # JSEAT-7
+    'mp.seats.unconfirmed': ('The result is not confirmed yet. Check again later.', '结果还没确认，请稍后查询'),
 }
 
 

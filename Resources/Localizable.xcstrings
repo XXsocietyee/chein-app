@@ -283352,6 +283352,23 @@
           }
         }
       }
+    },
+    "mp.seats.unconfirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is not confirmed yet. Check again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果还没确认，请稍后查询"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

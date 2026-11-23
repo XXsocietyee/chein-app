@@ -279,6 +279,9 @@ enum JourneyLandingPhase: Equatable {
 }
 
 struct JourneyLandingView: View {
+    @Environment(\.dismiss) private var backFromMissing
+    /// MP missing link: navigateBack (the sheet / push closes).
+    private func missingBack() { backFromMissing() }
     let phase: JourneyLandingPhase
     let onRetry: () -> Void
     let onSelectMode: (String) -> Void
@@ -293,7 +296,8 @@ struct JourneyLandingView: View {
                 CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
                     .accessibilityIdentifier("journeyLanding.loading")
             case .missing:
-                CYEmptyState(systemImage: "link", "mp.common.linkExpired", messageIdentifier: "journeyLanding.missing").frame(maxHeight: .infinity)
+                CYEmptyState(systemImage: "link", "mp.common.linkExpired", messageIdentifier: "journeyLanding.missing",
+                             actionTitle: "action.back", actionIdentifier: "journeyLanding.back", action: { missingBack() }).frame(maxHeight: .infinity)
             case .failed:
                 CYErrorState("mp.landing.error", onRetry: onRetry).frame(maxHeight: .infinity).accessibilityIdentifier("journeyLanding.error")
             case .invalid(let reason, let success):
@@ -511,6 +515,9 @@ enum JourneySeatsPhase: Equatable {
 }
 
 struct JourneySeatsView: View {
+    @Environment(\.dismiss) private var backFromMissing
+    /// MP missing link: navigateBack (the sheet / push closes).
+    private func missingBack() { backFromMissing() }
     let phase: JourneySeatsPhase
     let onRetry: () -> Void
     let onInvite: () -> Void
@@ -527,7 +534,8 @@ struct JourneySeatsView: View {
                 CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
                     .accessibilityIdentifier("journeySeats.loading")
             case .missing:
-                CYEmptyState(systemImage: "link", "mp.common.linkExpired", messageIdentifier: "journeySeats.missing").frame(maxHeight: .infinity)
+                CYEmptyState(systemImage: "link", "mp.common.linkExpired", messageIdentifier: "journeySeats.missing",
+                             actionTitle: "action.back", actionIdentifier: "journeySeats.back", action: { missingBack() }).frame(maxHeight: .infinity)
             case .denied(let message):
                 CYStateLayout(kind: .generic, title: message.map { Text(verbatim: $0) } ?? Text("mp.seats.denied"))
                     .frame(maxHeight: .infinity).accessibilityIdentifier("journeySeats.denied")
@@ -849,6 +857,8 @@ enum JourneyPromoPhase: Equatable {
     let binding: any JourneyPromoBinding
     var body: some View {
         JourneyPromoView(phase: binding.phase, onRetry: { binding.load() }, onSignIn: { binding.signIn() }).task { binding.load() }
+            // Reload once the shared sign-in sheet closes (MP onShow re-reads after login).
+            .onChange(of: PlayerJourneySignInBridge.shared.presented) { was, now in if was && !now { binding.load() } }
     }
 }
 
