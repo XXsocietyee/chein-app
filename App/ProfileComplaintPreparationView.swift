@@ -226,14 +226,14 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 // confirm sheet; the review section below only remains as the fallback after a cancel or failure.
                 CYPillButton(sending.isConfigured ? "profile.complaint.submit.action" : "profile.complaint.review") {
                     focused = nil
-                    if model.beginReview() {
-                        if sending.isConfigured, sending.canSend(review: model.review) { confirmingSend = true }
-                    } else {
+                    if !model.beginReview() {
                         switch model.validation {
                         case .reasonShort, .reasonLong: focused = .reason
                         case .contactLong: focused = .contact
                         default: break
                         }
+                    } else if sending.isConfigured, sending.canSend(review: model.review) {
+                        confirmingSend = true
                     }
                 }.accessibilityIdentifier("profile.complaint.review")
             }
