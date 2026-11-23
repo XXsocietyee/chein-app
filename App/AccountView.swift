@@ -48,7 +48,7 @@ import SwiftUI
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
                 if let invoice = session.makeInvoiceLaunchPresentation() {
                     NavigationLink {
-                        InvoiceLaunchHistoryView(model: invoice)
+                        InvoiceLaunchSessionHistory(session: session, model: invoice)
                             .cyPushedChrome()
                     } label: { invoiceText("history") }
                     .accessibilityIdentifier("account.invoices")
