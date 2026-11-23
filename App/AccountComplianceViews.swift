@@ -65,7 +65,7 @@ import SwiftUI
                 } else {
                     Button { selected = destination } label: {
                         HStack { Label(LocalizedStringKey(destination.title), systemImage: "location.fill").environment(\.settingsTileTint, SettingsTint.green)
-                            Spacer(minLength: 0); Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary) }
+                            Spacer(minLength: 0); Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary) }
                     }
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
