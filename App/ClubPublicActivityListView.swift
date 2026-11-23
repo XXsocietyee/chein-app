@@ -40,13 +40,35 @@ import SwiftUI
     /// Current activities only (P-14: the MP no longer lists ended ones on the club page).
     private var embeddedBody: some View {
         Group {
-            if scope == nil {
+            // The lifecycle lives on one stable zero-height row. Inside the club page's List a Group's modifiers sit on
+            // each child, so on the state rows every loading → content swap fired onDisappear (suspend, snapshot dropped)
+            // and onAppear (re-read) in a loop, and the first, empty state never appeared at all (combined-r5 verify,
+            // CLB-detail-02: the 活动 tab stayed blank, then hung).
+            Section {
+                Color.clear.frame(height: 0)
+                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    .accessibilityHidden(true)
+                    .task(id: readKey) {
+                        // A zero-height List row may not report onAppear; .task runs only while the row is mounted.
+                        // readKey includes visible, so this restarts once with the visible key.
+                        if !visible { visible = true; return }
+                        guard scenePhase == .active else { return }
+                        await refresh()
+                    }
+                    .onAppear { visible = true }
+                    .onDisappear { visible = false; opening = nil; model.suspend(keepingSnapshot: false) }
+                    .onChange(of: scope) { _, _ in opening = nil; selectedUnavailable = false; model.retire() }
+                    .onChange(of: scenePhase) { _, phase in
+                        if phase != .active { opening = nil; selectedUnavailable = false; model.retire() }
+                    }
+            }
+            // No issued reader, or a reader whose session no longer matches the scope (the grant is not issued in this
+            // build, or the E2E host override), reads as unavailable, not as an endless loading row.
+            if scope == nil || source == nil || source?.scope(clubID: clubID) != scope {
                 Section {
                     CYEmptyState(systemImage: "lock.slash", "publicTopics.unavailable", tableName: "ClubPublicTopics", messageIdentifier: "club.publicTopics.unavailable")
                 }
-            } else if model.loading {
-                Section { activityLoading }
-            } else if let snapshot = accepted {
+            } else if let snapshot = accepted, !model.loading {
                 let renderedSnapshotID = model.snapshotID
                 let rows = snapshot.rows.filter { $0.status != .ended }
                 if rows.isEmpty {
@@ -59,23 +81,11 @@ import SwiftUI
                         select(row, from: snapshot, snapshotID: renderedSnapshotID)
                     })
                 }
-            } else if model.issueScope == scope, let issue = model.issue {
+            } else if !model.loading, model.issueScope == scope, let issue = model.issue {
                 issueSection(issue)
             } else {
-                // Before the first read: an empty Group has no child, so onAppear (visible) and the read never ran
-                // and the embedded 活动 tab stayed blank (combined-r5 verify, CLB-detail-02).
                 Section { activityLoading }
             }
-        }
-        .task(id: readKey) {
-            guard visible, scenePhase == .active else { return }
-            await refresh()
-        }
-        .onAppear { visible = true }
-        .onDisappear { visible = false; opening = nil; model.suspend(keepingSnapshot: false) }
-        .onChange(of: scope) { _, _ in opening = nil; selectedUnavailable = false; model.retire() }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active { opening = nil; selectedUnavailable = false; model.retire() }
         }
     }
     private var pageBody: some View {
