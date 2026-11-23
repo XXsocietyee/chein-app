@@ -85,15 +85,27 @@ import SwiftUI
                     TemplateOwnShelfCardSection(facts: cardFacts[row.id], state: state, rowID: row.id)
                     // PLY-26-1: the marketplace action comes from the mini-program marketView over the server's
                     // review and square columns, never from the personal publishStatus.
-                    if let market = TemplateOwnShelfMarketPlan(state).action {
-                        Button(LocalizedStringKey(market.labelKey)) {
-                            prepare(row.id, market.shelfAction, marketStatusTarget: market.statusTarget)
-                        }.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateOwnShelf.market.\(row.id)")
-                            .disabled(readSnapshot)
+                    // PLY-26-4: one ⋯ menu per card (handoff full-member-club: destructive last), 44 pt target.
+                    // Both actions still open their own review sheet before anything is sent.
+                    let canAct = coordinator.canSubmit && !locked && !busy && coordinator.rows.contains(row) && !readSnapshot
+                    Menu {
+                        if let market = TemplateOwnShelfMarketPlan(state).action {
+                            Button(LocalizedStringKey(market.labelKey)) {
+                                prepare(row.id, market.shelfAction, marketStatusTarget: market.statusTarget)
+                            }.accessibilityIdentifier("templateOwnShelf.market.\(row.id)")
+                        }
+                        Button(role: .destructive) { prepare(row.id, .remove) } label: {
+                            Label("templateAuthor.shelf.delete", systemImage: "trash")
+                        }.accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
+                    } label: {
+                        Label("templateAuthor.shelf.more", systemImage: "ellipsis.circle")
+                            .labelStyle(.iconOnly)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
-                    Button(role: .destructive) { prepare(row.id, .remove) } label: { Text("templateAuthor.shelf.delete") }
-                        .disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row)).accessibilityIdentifier("templateAuthor.shelf.delete.\(row.id)")
-                        .disabled(readSnapshot)
+                    .disabled(!canAct)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .accessibilityIdentifier("templateAuthor.shelf.more.\(row.id)")
                 }
             }
             if hasMore, appliedKeyword == keyword { loadMoreCopy }
