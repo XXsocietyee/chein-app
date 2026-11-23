@@ -152,7 +152,6 @@ import SwiftUI
         }
         }
         .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
-        .navigationBarTitleDisplayMode(.inline) // PC-A-5-6: pushed from search; never inherit the large title
         .sheet(isPresented: $showsAllResults) {
             let renderedContext = pinSelectionContext
             SearchMapAllResultsSheet(rows: visibleCityResults == nil ? [] : pagination.rows, loading: loading,

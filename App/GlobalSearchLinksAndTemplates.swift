@@ -69,7 +69,9 @@ struct GlobalTemplateSearchLanes {
                 case .topicTemplate:
                     return AnyView(DiscoveryTopicTemplatePreview(coordinator: session.publicTopicTemplateCoordinator(id: row.sourceID)))
                 case .playTemplate:
-                    return AnyView(DiscoveryTemplateDetailView(id: row.sourceID, reader: session))
+                    return AnyView(DiscoveryTemplateDetailView(id: row.sourceID, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
+                                                       authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
+                        .id(session.templateAuthoringViewIdentity))
                 }
             })
     }
@@ -102,6 +104,9 @@ extension EnvironmentValues {
                                  initialQuery: initialQuery, destination: destination)
             }
         }
+        // PC-A-5-6 / X2: pushed search and map pages use the inline title; the map explorer it pushes follows (automatic).
+        // `SearchMapExplorerView` / `GlobalSearchView` are byte-pinned, so the mode is set on this host.
+        .navigationBarTitleDisplayMode(.inline)
         .environment(\.walkingNavigationFactory, session.walkingNavigationFactory)
         .environment(\.globalTemplateSearch, .session(session))
         .id(session.searchMapReader.scope)
