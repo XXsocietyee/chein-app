@@ -44,12 +44,12 @@
     "zh-Hans": "互动模板"
   },
   "merchant.operations.name": {
-    "en": "Name",
-    "zh-Hans": "名称"
+    "en": "Store name",
+    "zh-Hans": "店铺名称"
   },
   "merchant.operations.description": {
-    "en": "Introduction",
-    "zh-Hans": "简介"
+    "en": "Brand intro",
+    "zh-Hans": "品牌介绍"
   },
   "merchant.operations.derivatives": {
     "en": "Merchandise",
@@ -65,11 +65,11 @@
   },
   "merchant.operations.logo": {
     "en": "Store logo",
-    "zh-Hans": "店铺标志"
+    "zh-Hans": "店铺 Logo"
   },
   "merchant.operations.slogan": {
-    "en": "Slogan",
-    "zh-Hans": "标语"
+    "en": "One-line intro",
+    "zh-Hans": "一句话介绍"
   },
   "merchant.operations.cityRole": {
     "en": "Role in the city",
@@ -80,16 +80,16 @@
     "zh-Hans": "行业编号"
   },
   "merchant.operations.featured": {
-    "en": "Featured type / ID",
-    "zh-Hans": "精选类型 / 编号"
+    "en": "Featured pick",
+    "zh-Hans": "招牌主推"
   },
   "merchant.operations.tags": {
-    "en": "Tags",
-    "zh-Hans": "标签"
+    "en": "Feature tags",
+    "zh-Hans": "特色标签"
   },
   "merchant.operations.cover": {
     "en": "Cover image",
-    "zh-Hans": "封面图片"
+    "zh-Hans": "封面图"
   },
   "merchant.operations.galleryImage": {
     "en": "Gallery image",
@@ -710,5 +710,25 @@
   "merchant.operations.wechatInvalid": {
     "en": "WeChat ID: letters, digits, _ or -, up to 20",
     "zh-Hans": "微信号只能包含字母、数字、下划线或减号，最多 20 位"
+  },
+  "merchant.operations.failed.brand": {
+    "en": "Brand center didn't load",
+    "zh-Hans": "品牌中心加载失败"
+  },
+  "merchant.operations.failed.cooperation": {
+    "en": "Partnership settings didn't load",
+    "zh-Hans": "承接设置加载失败"
+  },
+  "merchant.operations.failed.generic": {
+    "en": "Didn't load",
+    "zh-Hans": "加载失败"
+  },
+  "merchant.operations.failed.gallery": {
+    "en": "Gallery didn't load",
+    "zh-Hans": "相册加载失败"
+  },
+  "merchant.operations.featured.set": {
+    "en": "Featured pick selected",
+    "zh-Hans": "已选择主推"
   }
 }
