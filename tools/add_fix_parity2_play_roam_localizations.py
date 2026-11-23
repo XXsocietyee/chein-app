@@ -23,6 +23,9 @@ S = {
     'badge3d.toggle.threeD': ('3D view', '3D 展台'),
     # BWALL-5
     'profile.badges.partial': ('Some badge data did not arrive; this list is incomplete', '部分勋章数据未到达，当前结果不完整'),
+    # OCARDS-1: MP 藏品册
+    'objects.title': ('Collection', '藏品册'),
+    'objects.login': ('Sign in to view your collection', '登录后查看你的藏品'),
     # JSEAT-7
     'mp.seats.unconfirmed': ('The result is not confirmed yet. Check again later.', '结果还没确认，请稍后查询'),
 }

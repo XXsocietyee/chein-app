@@ -19,12 +19,18 @@ extension EnvironmentValues {
     @State private var model = ObjectCardCollectionModel()
     @Environment(\.objectCardMedia) private var envMedia
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Namespace private var hero
     private var scope: UUID { reader.scope }
     private var effectiveMedia: (any ObjectCardImageLoading)? { media ?? envMedia }
     var body: some View {
         List {
-            if !reader.isAuthenticated { CYEmptyState(systemImage: "person.crop.circle", "objects.login") }
+            // OCARDS-4 (signed-out part): 去登录 opens 我的, like the MP access gate.
+            if !reader.isAuthenticated {
+                CYEmptyState(systemImage: "person.crop.circle", "objects.login",
+                             actionTitle: rootTabSwitch.isAvailable ? "auth.signIn" : nil, actionIdentifier: "objects.signIn",
+                             action: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil)
+            }
             else if !reader.isConfigured { CYEmptyState(systemImage: "rectangle.stack", "objects.disabled") }
             else {
                 Section {
