@@ -22,6 +22,7 @@ import SwiftUI
     let sessionKey: CouponManagementSession?
     let isSourceVisible: Bool
     @State private var creating = false
+    @Environment(\.dismiss) private var dismiss
     init(coordinator: CouponManagementCoordinator, sessionKey: CouponManagementSession?, isSourceVisible: Bool = false) {
         _model = StateObject(wrappedValue: CouponManagementScreenModel(coordinator)); self.sessionKey = sessionKey; self.isSourceVisible = isSourceVisible
     }
@@ -29,6 +30,14 @@ import SwiftUI
         Group {
             if !isSourceVisible { CYEmptyState(systemImage: "ticket", "couponManagement.unavailable") }
             else if sessionKey == nil { CYEmptyState(systemImage: "person.crop.circle", "couponManagement.signIn") }
+            // MKT-10-5: a refused read is the MP no-permission state with a way out (coupon.wxml:10).
+            else if model.core.issue == .forbidden, model.core.rows.isEmpty, !model.core.loading, !model.working {
+                CYStateLayout(kind: .failure, title: Text("couponManagement.denied"),
+                              primary: (title: "couponManagement.back", action: { dismiss() }),
+                              primaryIdentifier: "couponManagement.denied.back")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier("couponManagement.denied")
+            }
             else {
                 List {
                     CouponManagementNotice(model: model, surface: .list)
@@ -143,7 +152,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                 }
                 if let code = row.publishedBatchCode {
                     Section("couponManagement.batchCode.title") {
-                        Text(verbatim: code).font(.body.monospaced()).privacySensitive()
+                        Text(verbatim: code).cyText(.body).monospaced().privacySensitive()
                             .accessibilityIdentifier("couponManagement.batchCode.value")
                     }.accessibilityIdentifier("couponManagement.batchCode.section")
                 }
