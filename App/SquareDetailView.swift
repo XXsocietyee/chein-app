@@ -9,6 +9,7 @@ import SwiftUI
     var governanceContext: SquareGovernanceContext? = nil
     var workspace: SquareWorkspaceCoordinator? = nil
     @Environment(\.squareReportContext) private var reportContext
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.squareRelatedTopic) private var relatedTopicContext
     @Environment(\.squareDeletion) private var deletion
     @Environment(\.squareShareLink) private var shareLink
@@ -49,7 +50,12 @@ import SwiftUI
             else if loadedKey != key { CYSkeleton() }
             else {
                 if detailLoading { CYSkeleton() }
-                if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
+                if let detailIssue {
+                    // C-S3 (MP square/detail index.wxml:12-27): the cause decides the title; a way back is always there.
+                    if post == nil {
+                        SquareDetailIssueView(error: detailIssue, retry: { Task { await reload() } }, back: { dismiss() })
+                    } else { SquareIssueView(error: detailIssue) { Task { await reload() } } }
+                }
                 if let post {
                     UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
                         Section {
@@ -602,5 +608,48 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("square.detail.playCard")
+    }
+}
+
+/// C-S3: MP square/detail error shells — 社区暂未开放 / 没有找到这条帖文 / 这条帖文暂不可用 / 动态加载失败 (+ 重试),
+/// each with 返回上一页.
+struct SquareDetailIssueView: View {
+    let error: Error
+    let retry: () -> Void
+    let back: () -> Void
+    private enum Kind { case closed, notFound, unavailable, failed }
+    private var kind: Kind {
+        switch error as? SquareReadFailure {
+        case .communityRequired: return .closed
+        case .unavailable: return .unavailable
+        case .server(let code, _) where code == 404: return .notFound
+        default: return .failed
+        }
+    }
+    private var titleKey: LocalizedStringKey {
+        switch kind {
+        case .closed: return "square.detail.closed"
+        case .notFound: return "square.detail.notFound"
+        case .unavailable: return "square.detail.unavailable"
+        case .failed: return "square.detail.failed"
+        }
+    }
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Label(titleKey, systemImage: kind == .failed ? "exclamationmark.circle" : "doc.text.magnifyingglass")
+                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityIdentifier("square.error")
+                if kind == .failed, let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
+                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                }
+                if kind == .failed {
+                    Button("square.retry", action: retry).buttonStyle(.cySecondary(fullWidth: true)).accessibilityIdentifier("square.retry")
+                }
+                Button("square.detail.back", action: back).buttonStyle(.cySecondary(fullWidth: true))
+                    .accessibilityIdentifier("square.detail.back")
+            }
+            .padding(.vertical, CYSpacing.sm)
+        }
     }
 }
