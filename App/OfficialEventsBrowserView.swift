@@ -48,7 +48,7 @@ import SwiftUI
                     eventList(rows)
                 }
             }
-            .appNavigationTitle("official.title")
+            .cyPageTitle("official.title") // X2: pushed page, inline title
             .cyHideTabBar()
             .toolbar {
                 if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } }

@@ -39,7 +39,7 @@ import SwiftUI
             }
         }
         .cyDomainPageBackground()
-        .appNavigationTitle("social.guide.title")
+        .cyPageTitle("social.guide.title") // PC-D-2-3
         .accessibilityIdentifier("social.guide")
     }
 }
@@ -78,8 +78,7 @@ import SwiftUI
             }
         }
         .cyGroupedSurface()
-        .appNavigationTitle("guideXcx.detailTitle")
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("guideXcx.detailTitle") // PC-D-3-1: inline; the article title in the cover is the object name
         .cyDomainPageBackground()
         .themeDomain(.player)
         .tint(CYDomainPalette(.player).brand)

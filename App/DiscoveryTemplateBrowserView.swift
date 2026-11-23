@@ -102,8 +102,7 @@ struct DiscoveryTemplateBrowserView: View {
                 }.cyDomainPageBackground().refreshable { await reloadCurrent() }
             }
         }
-        .appNavigationTitle("discovery.templateTab.title")
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("discovery.templateTab.title") // PC-A-2-3: pushed / sheet-hosted page, inline title
         .cyToast(verbatimMessage: $toastMessage)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

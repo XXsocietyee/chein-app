@@ -3,6 +3,8 @@ import SwiftUI
 /// Original income-table analysis: at most ten approved 20-row reads, not an atomic snapshot.
 @MainActor struct WalletIncomeAnalysisView: View {
     let reader: WalletCommerceReader
+    /// PC-D-6-5: the signed-out state names its next step (MP 登录). Nil (in-app, already signed in) keeps the text only.
+    var onSignIn: (() -> Void)? = nil
     @StateObject private var model = WalletIncomeAnalysisReader()
     @Environment(\.scenePhase) private var phase
     @Environment(\.locale) private var locale
@@ -16,11 +18,16 @@ import SwiftUI
     private func readText(_ key: String) -> Text { Text(LocalizedStringKey("wallet.analysis.read." + key), tableName: "WalletIncomeAnalysisRead") }
     var body: some View {
         List {
-            Section {
-                CYHeroHeader(LocalizedStringKey("wallet.analysis.title"), tableName: "WalletIncomeAnalysis")
-            }.listRowBackground(Color.clear)
+            // PC-D-6-3: the page title is drawn once, by the bar (no in-content hero header).
             if !reader.isConfigured { text("unavailable") }
-            else if reader.scope == nil || model.requiresLogin { text("login") }
+            else if reader.scope == nil || model.requiresLogin {
+                text("login")
+                if let onSignIn {
+                    Button(action: onSignIn) { Text("mp.common.signIn") }
+                        .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
+                        .accessibilityIdentifier("wallet.analysis.signIn")
+                }
+            }
             else if model.loading {
                 Section {
                     CYSkeleton()
@@ -42,6 +49,7 @@ import SwiftUI
         .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
+        .navigationTitle(Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis"))
         .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .themeDomain(domain)

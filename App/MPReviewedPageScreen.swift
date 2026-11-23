@@ -117,7 +117,7 @@ import SwiftUI
             SessionWalletCommerceView().environmentObject(session)
         case "subpackageA/pages/assetcenter/analysis/index":
             // PC-D-6-1: 分析 is the income analysis page, not 我的资产.
-            WalletIncomeAnalysisView(reader: session.walletHistoryReader)
+            WalletIncomeAnalysisView(reader: session.walletHistoryReader, onSignIn: signIn)
         case "subpackageP3/pages/growthcenter/index/index":
             GrowthCenterView(reader: session.growthCenterReader)
         case "subpackageP3/pages/growthcenter/leaderboard/index":

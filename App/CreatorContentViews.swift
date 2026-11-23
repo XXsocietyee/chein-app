@@ -129,7 +129,7 @@ private struct CreatorContentIssueView: View {
         .environment(\.myProjectMerchantScopeAccess, loadedAccess)
         .environment(\.myProjectMutation, loadedAccess.isBrowseOnly ? nil : mutation)
         .task(id: entryScope) { mutation = MyProjectMutationFactory.liveModel(scope: entryScope) }
-        .appNavigationTitle("creatorContent.projects")
+        .cyPageTitle("creatorContent.projects") // PC-D-1-7
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
         .onChange(of: listRefresh) { _, request in
             guard let request, request.readerScope == reader.scope, reader.isAuthenticated else { return }

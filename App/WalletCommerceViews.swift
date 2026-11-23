@@ -170,7 +170,7 @@ enum WalletPayoutCapability {
             if visibility.income { monthIncomeSection }
             if visibility.assets { assetsSection }
         }.listStyle(.plain).scrollContentBackground(.hidden)
-            .appNavigationTitle("wallet.title")
+            .cyPageTitle("wallet.title") // PC-D-5-5
             .cyHideTabBar()
             .task(id: reader.scope) {
                 isVisible = true

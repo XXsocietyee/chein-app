@@ -157,8 +157,7 @@ struct VideoBountyView: View {
         .refreshable { onLoad() }
         .background { MPNightGround() }
         .cyDomainScreen(.player)
-        .navigationTitle(Text("mp.vb.title"))
-        .navigationBarTitleDisplayMode(.large)
+        .cyPageTitle("mp.vb.title") // PC-D-7-2: pushed page, inline title
         .onChange(of: state.submitRevision) { _, _ in
             platform = nil; sourceURL = ""; groupKey = ""; tab = .submissions
         }
