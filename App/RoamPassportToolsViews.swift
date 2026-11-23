@@ -655,7 +655,8 @@ struct RoamAnniversaryReadIntent {
                     .accessibilityIdentifier("roam.tools.recap.error")
             }
             if (loading || !lifetime.ready) && page == nil { Section { ProgressView("roam.tools.recap.loading") } }
-            if let page {
+            // TRECAP-2: an all-zero month shows no share hero (MP R11 p1 F-5).
+            if let page, page.counts.routes + page.counts.places + page.counts.stamps > 0 {
                 Section {
                     RoamRecapShareCard(month: monthDate, routes: page.counts.routes, places: page.counts.places, stamps: page.counts.stamps)
                         .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg)).listRowBackground(Color.clear)

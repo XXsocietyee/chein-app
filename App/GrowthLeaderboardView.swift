@@ -261,8 +261,11 @@ private struct GrowthLeaderboardPodiumView: View {
             }
         }
         .frame(maxWidth: .infinity)
+        // LEADER-2: the place is the label; the combined name + score stay as the value.
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text(place == 1 ? "growth.board.podium.first" : place == 2 ? "growth.board.podium.second" : "growth.board.podium.third"))
+        .accessibilityValue(Text(verbatim: (name ?? "—") + "，" + (GrowthCenterFormatting.nonnegative(entry.score).map(String.init) ?? "—") + " ")
+                                + Text(LocalizedStringKey("growth.unit." + metric.rawValue)))
         .accessibilityIdentifier("growth.board.row.\(place - 1)")
     }
 }
