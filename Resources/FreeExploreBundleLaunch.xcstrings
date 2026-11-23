@@ -2,17 +2,18 @@
   "sourceLanguage": "en",
   "strings": {
     "title": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explore bundle"
+            "value": "Free-explore pass"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "自由探索套票"
+            "value": "自由探索权益"
           }
         }
       }
@@ -50,17 +51,18 @@
       }
     },
     "error": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The request could not be verified. Refresh or recover the original request."
+            "value": "Couldn't load your pass. Please try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请求暂未核实，请刷新或回读原请求。"
+            "value": "权益加载失败，请重试"
           }
         }
       }
@@ -82,33 +84,35 @@
       }
     },
     "recover": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read original result"
+            "value": "Check again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "回读原结果"
+            "value": "重新确认"
           }
         }
       }
     },
     "retry": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retry the exact original request"
+            "value": "Try again"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按原请求重试"
+            "value": "重试"
           }
         }
       }
@@ -226,17 +230,18 @@
       }
     },
     "review": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Review reservation"
+            "value": "Confirm reservation"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "复核预约"
+            "value": "确认预约"
           }
         }
       }
@@ -290,17 +295,18 @@
       }
     },
     "notice": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm the registration, entitlement, merchant offer and time. An uncertain result will retain the exact original request for recovery."
+            "value": "Check the merchant and time before you confirm."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请核对报名、权益、商家项目与时间。结果不明时会保留原请求用于回读。"
+            "value": "请核对商家与时间后确认预约"
           }
         }
       }

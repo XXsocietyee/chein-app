@@ -73,11 +73,13 @@ class TemplateOwnShelfReadStateContract(unittest.TestCase):
         self.assertIn('if case APIError.unauthorized = error { return "templateAuthor.signIn" }', self.core)
         self.assertIn('if status == 403 { return "templateOwnShelf.read.denied" }', self.core)
         self.assertIn('return "templateAuthor.listUnavailable"', self.core)
-        self.assertIn('row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary"', self.view)
+        # PLY-26-1: the square action comes from the mini-program market plan, never from publishStatus.
+        self.assertIn('if let market = TemplateOwnShelfMarketPlan(state).action {', self.view)
+        self.assertNotIn('row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary"', self.view)
         self.assertIn('guard !busy, appliedKeyword == keyword, !coordinator.shelfReader.isShowingRefreshSnapshot else { return }', self.view)
         self.assertEqual(self.view.count('.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row))'), 2)
         self.assertIn('Text("templateAuthor.unavailable")', self.view)
-        self.assertNotIn('TemplateOwnShelfMarketPlan', self.view)
+        # Request paths stay in TemplateAuthoringContract; the shelf reader and the view build none.
         self.assertNotIn('/market-submit', self.core + self.view)
         self.assertIn('var opens: Bool { topicID > 0 }', read('App/CooperationProjectNavigation.swift'))
 

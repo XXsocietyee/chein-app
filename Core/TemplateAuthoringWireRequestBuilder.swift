@@ -11,9 +11,16 @@ public enum TemplateAuthoringWireRequestBuilder {
         guard TemplateAuthoringContract.permitsRemoteConfiguration(descriptor),
               AuthRequestBuilder.isValidToken(token), descriptor.method == "POST" else { throw APIError.invalidRequest }
         let jsonPaths = Set(["/api/template/draft", "/api/template/publish"])
-        let formPaths = Set(["/api/template/my-list", "/api/template/updateLibraryStatus", "/api/template/delete", "/api/common/dict"])
+        var formPaths = Set(["/api/template/my-list", "/api/template/updateLibraryStatus", "/api/template/delete", "/api/common/dict"])
+        // 提交广场审核 has the template id in the path and an empty form (PLY-26-1).
+        if TemplateAuthoringContract.isMarketSubmitPath(descriptor.path) {
+            guard descriptor.mutates, descriptor.body == .form([:]) else { throw APIError.invalidRequest }
+            formPaths.insert(descriptor.path)
+        }
         guard jsonPaths.contains(descriptor.path) || formPaths.contains(descriptor.path) else { throw APIError.invalidRequest }
         switch descriptor.path {
+        case _ where TemplateAuthoringContract.isMarketSubmitPath(descriptor.path):
+            break
         case "/api/template/my-list":
             if descriptor != TemplateAuthoringContract.listMine() {
                 guard case .form(let fields) = descriptor.body,
@@ -24,10 +31,10 @@ public enum TemplateAuthoringWireRequestBuilder {
         case "/api/template/delete", "/api/template/updateLibraryStatus":
             guard descriptor.mutates, case .form(let fields) = descriptor.body,
                   let raw = fields["template_id"], let id = Int(raw), id > 0, raw == String(id) else { throw APIError.invalidRequest }
-            let expected: Set<String> = descriptor.path.hasSuffix("delete") ? ["template_id"] : ["template_id", "publish_status"]
+            let expected: Set<String> = descriptor.path.hasSuffix("delete") ? ["template_id"] : ["template_id", "status"]
             guard Set(fields.keys) == expected else { throw APIError.invalidRequest }
-            if expected.contains("publish_status") {
-                guard ["0", "1"].contains(fields["publish_status"] ?? "") else { throw APIError.invalidRequest }
+            if expected.contains("status") {
+                guard ["1", "2", "3"].contains(fields["status"] ?? "") else { throw APIError.invalidRequest }
             }
         case "/api/template/draft", "/api/template/publish":
             // Existing-template edit/hydration has no audited private contract.

@@ -20,7 +20,11 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
         self.assertIn('.environment(\\.ticketWalletPlayProvider, ticketPlayProvider)', line)
         self.assertIn('TicketWalletPlayProvider(reader: session.ticketWalletReader, revision: session.sessionRevision', self.account)
         self.assertIn('currentRevision: { session.sessionRevision }', self.account)
-        self.assertEqual(self.account.count('.environment(\\.ticketWalletPlayProvider, ticketPlayProvider)'), 1)
+        # PLY-21-3: the pass sheet gets the same provider, and every other wallet entry uses SessionTicketWalletHost.
+        self.assertEqual(self.account.count('.environment(\\.ticketWalletPlayProvider, ticketPlayProvider)'), 2)
+        host = (ROOT / 'App/SessionTicketWalletHost.swift').read_text()
+        self.assertIn('.environment(\\.ticketWalletPlayProvider, SessionTicketWalletProviders.play(session))', host)
+        self.assertIn('currentRevision: { session.sessionRevision }', host)
 
     def test_existing_generic_runtime_and_registration_toolbar_are_preserved(self):
         self.assertIn('SessionPlayRuntimeView(session: session, destination: .journey(entry.scope))', self.account)
@@ -81,7 +85,7 @@ class TicketWalletPlayEntryContracts(unittest.TestCase):
             self.assertNotIn(forbidden, self.detail)
         self.assertIn('OrderLifecycleView(id: id, coordinator: lifecycleCoordinator)', self.screen)
         # The em-dash noCode placeholder is gone: the pass code is now only presented on explicit action for a ready ticket, via the injected factory.
-        self.assertIn('if ticket.status == .ready {', self.screen)
+        self.assertIn('if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {', self.screen)
         self.assertIn('.accessibilityIdentifier("ticketWallet.present.open")', self.screen)
         self.assertNotIn('ticketWallet.noCode', self.screen)
 

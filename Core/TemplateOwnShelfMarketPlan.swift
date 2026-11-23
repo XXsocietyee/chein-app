@@ -1,25 +1,28 @@
 import Foundation
 
-/// Mini-program `utils/template-market.js` marketView, as display-only review copy.
-/// It builds no request and grants no write: the marketplace submit/toggle endpoints are
-/// not in any reviewed allowlist, so the plan is shown for review and never dispatched.
+/// Mini-program `utils/template-market.js` marketView: the one marketplace action a row offers.
+/// It builds no request itself; the shelf review turns `shelfAction` + `statusTarget` into the
+/// 提交广场审核 or library-status write through `TemplateAuthoringContract` (PLY-26-1).
 public struct TemplateOwnShelfMarketPlan: Equatable {
     public enum Action: Equatable {
-        /// 提交广场审核.
+        /// 提交广场审核 (`_canSubmitMarket`).
         case submitReview
-        /// 撤回广场审核 (pending, target 0).
+        /// 撤回广场审核 (pending, `_marketStatusTarget` 2).
         case withdrawReview
-        /// 从广场下架 (listed, target 0).
+        /// 从广场下架 (online, target 3).
         case delist
-        /// 上架广场 (approved and unlisted, target 1).
+        /// 上架广场 (approved and delisted, target 1).
         case list
-        public var publishTarget: Int? {
+        /// Library-status target; nil for 提交广场审核, which is its own route.
+        public var statusTarget: Int? {
             switch self {
             case .submitReview: return nil
-            case .withdrawReview, .delist: return 0
+            case .withdrawReview: return 2
+            case .delist: return 3
             case .list: return 1
             }
         }
+        public var shelfAction: TemplateOwnShelfAction { self == .submitReview ? .marketSubmit : .marketStatus }
         public var labelKey: String {
             switch self {
             case .submitReview: return "templateOwnShelf.market.submit"
@@ -30,8 +33,8 @@ public struct TemplateOwnShelfMarketPlan: Equatable {
         }
     }
     public let action: Action?
-    /// Always false: no reviewed endpoint allowlist entry exists for these writes.
-    public var isDispatchable: Bool { false }
+    /// The action is offered once the server columns resolve it; an unknown state offers nothing.
+    public var isDispatchable: Bool { action != nil }
     public init(_ state: TemplateOwnShelfStateProjection) {
         let approved = state.personal == .approved
         // The source menu offers submission first when both could apply.

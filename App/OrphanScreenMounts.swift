@@ -19,7 +19,7 @@ import QuestifyCore
 /// `scene-member-participation-detail` shows "定向成绩" only when `_resultEntry()` resolves the signed-in
 /// member's topic/activity pair and `productType == 1`. Return nil for every other participation.
 @MainActor enum OrientScoreEntryBinding {
-    static var makeLoader: @MainActor (ParticipationDetail, AppSession) -> (() async throws -> OrientSessionScore?)? = { detail, session in
+    static var makeLoader: @MainActor (ParticipationDetail, AppSession) -> ((Int?) async throws -> OrientScoreLoad)? = { detail, session in
         OrientScoreEntryProduction.loader(detail: detail, session: session)
     }
 }
@@ -91,7 +91,7 @@ extension EnvironmentValues {
         if let loader = OrientScoreEntryBinding.makeLoader(detail, session) {
             Section {
                 NavigationLink {
-                    OrientScoreView(model: OrientScoreModel(loader: loader))
+                    OrientScoreView(model: OrientScoreModel(rounds: loader))
                         .environment(\.orientScoreSession, session)
                 } label: {
                     Label {

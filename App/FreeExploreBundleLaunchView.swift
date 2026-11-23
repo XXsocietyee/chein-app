@@ -141,7 +141,7 @@ import SwiftUI
                         CYChoiceRow(label: store.merchantName ?? store.offerId.text, selected: offerID == store.offerId) { offerID = store.offerId }
                     }
                 }
-                DatePicker(selection: $date) { text("date").cyText(.bodyCompact) }
+                DatePicker(selection: $date, in: Date()...) { text("date").cyText(.bodyCompact) }
                 CYPillButton(LocalizedStringKey("review"), style: .primary, tableName: table) {
                     guard let unitID, let offerID else { return }
                     let millis = date.timeIntervalSince1970 * 1_000

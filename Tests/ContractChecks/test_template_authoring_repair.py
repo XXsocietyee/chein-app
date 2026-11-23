@@ -17,8 +17,10 @@ def read(path):
 class ExactOwnShelfRepair(unittest.TestCase):
     def test_exact_own_shelf_fields_are_audited(self):
         contract = read('Core/TemplateAuthoringContract.swift')
-        for key in ['is_quote','keyword','category_id','pageNum','pageSize','template_id','publish_status']:
+        # Backend updateLibraryStatus reads `status` (1/2/3), not `publish_status` (PLY-26-1).
+        for key in ['is_quote','keyword','category_id','pageNum','pageSize','template_id','status']:
             self.assertIn('"'+key+'"',contract)
+        self.assertNotIn('"publish_status"', contract)
         for path in ['/api/template/my-list','/api/template/draft','/api/template/publish','/api/template/delete','/api/template/updateLibraryStatus']:
             self.assertIn(path, contract)
         self.assertIn('"pageNum": "1", "pageSize": "100"', contract)
@@ -58,7 +60,7 @@ class ExactOwnShelfRepair(unittest.TestCase):
         ui=read('App/TemplateAuthoringMineView.swift')
         for call in ['coordinator.prepareShelf(', 'coordinator.confirmShelf(', 'coordinator.loadMine()', 'coordinator.leaveShelfScreen()']:
             self.assertIn(call,ui)
-        self.assertIn('coordinator.prepareShelf(templateID: id, action: action)',ui)
+        self.assertIn('coordinator.prepareShelf(templateID: id, action: action, marketStatusTarget: marketStatusTarget)',ui)
         self.assertNotIn('PublishingService',ui)
     def test_review_requires_fresh_identity_and_no_title_reconciliation(self):
         core=read('Core/TemplateAuthoringCoordinator.swift')

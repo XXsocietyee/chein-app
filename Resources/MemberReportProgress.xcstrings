@@ -17,22 +17,6 @@
         }
       }
     },
-    "report.read.boundary": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "仅查看本人的举报及公开进度，不提交举报或申诉，也不替代原请求回执。"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Read your reports and public progress. This does not submit a report or appeal, or replace an original request receipt."
-          }
-        }
-      }
-    },
     "report.filter.title": {
       "localizations": {
         "zh-Hans": {
@@ -118,13 +102,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "再显示20条"
+            "value": "加载更多"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show 20 more"
+            "value": "Load more"
           }
         }
       }
@@ -737,18 +721,274 @@
         }
       }
     },
-    "report.detail.boundary": {
+    "report.history.empty.all": {
+      "extractionState": "manual",
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "结论和预计时间均来自原案件。首响时限不是解决期限；本页不下载证据、不发起申诉。"
+            "value": "还没有举报记录"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Decisions and estimates come from the original case. A first-response target is not a resolution deadline. This page does not download evidence or submit an appeal."
+            "value": "No reports yet"
+          }
+        }
+      }
+    },
+    "report.history.empty.active": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有处理中的举报"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No reports in progress"
+          }
+        }
+      }
+    },
+    "report.history.empty.decided": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有已出结论的举报"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No decided reports yet"
+          }
+        }
+      }
+    },
+    "report.eta %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预计 %@ 前给出结论"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decision expected by %@"
+          }
+        }
+      }
+    },
+    "report.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        }
+      }
+    },
+    "report.signIn.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看你的举报"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to see your reports"
+          }
+        }
+      }
+    },
+    "report.signIn.action": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        }
+      }
+    },
+    "report.stageHint.SUBMITTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台已收到举报，等待受理"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received; waiting to be accepted"
+          }
+        }
+      }
+    },
+    "report.stageHint.TRIAGED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台已受理，等待调查"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accepted; waiting for investigation"
+          }
+        }
+      }
+    },
+    "report.stageHint.INVESTIGATING": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台正在调查相关事实"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform is investigating"
+          }
+        }
+      }
+    },
+    "report.stageHint.RESOLVED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台已给出处理结论"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The platform has reached a decision"
+          }
+        }
+      }
+    },
+    "report.stageHint.CLOSED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次举报已关闭"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This report is closed"
+          }
+        }
+      }
+    },
+    "report.stageHint.APPEALED": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申诉已受理，平台会重新调查"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appeal accepted; the platform will re-investigate"
+          }
+        }
+      }
+    },
+    "report.appealed.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申诉已受理，复核结果会更新在这里"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your appeal was accepted; the review result will show here"
+          }
+        }
+      }
+    },
+    "report.detail.notFound": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时不能查看这条举报 · 仅举报人可查看"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't view this report. Only the reporter can."
+          }
+        }
+      }
+    },
+    "report.detail.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报进度加载失败"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the report progress"
           }
         }
       }

@@ -10,7 +10,8 @@ import SwiftUI
     var body: some View {
         switch route {
         case .playerOrderList:
-            ProfileOrdersView(reader: session.profileReader, lifecycleCoordinator: session.orderLifecycleCoordinator, ticketReader: session.ticketWalletReader)
+            // FIN-16-4: one host for 我的订单, whatever the entry (account row, notification, deep link).
+            SessionOwnedOrdersView(session: session)
         case .coopList(let direction):
             CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
                                    peerReader: session.cooperationFlowReader, initialDirection: direction,

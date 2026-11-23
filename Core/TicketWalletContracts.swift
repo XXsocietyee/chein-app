@@ -42,6 +42,19 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let verificationTime: String?
     /// Decoded from the same list (and detail) object. Never synthesized.
     public let topicCompletion: TicketWalletTopicCompletion
+    /// Source `paymentStatus` (2 = paid). Nil on older responses that do not carry it.
+    public let paymentStatus: Int?
+    /// Source `usableState` (`UPCOMING` / `USABLE` / `EXPIRED`). Nil on older responses.
+    public let usableState: String?
+    /// Source `usableFrom` / `usableUntil`, `yyyy-MM-dd HH:mm:ss` Beijing time. Text only, never parsed into a status.
+    public let usableFrom: String?
+    public let usableUntil: String?
+    /// Source `clearState` (`CLEARED` / `NOT_CLEARED`). Nil falls back to `topicCompleted`.
+    public let clearState: String?
+    /// Source `refundApplication` facts that decide 退款中 / refunded. No amounts are shown from it.
+    public let refund: TicketWalletRefund?
+    /// Source `manualRefundCaseStatus`: any value means a manual after-sale case is open (退款中).
+    public let hasManualRefundCase: Bool
 
     /// `true` / `false` are the 已通关 / 即将开始 buckets. Absent and unknown stay nil (全部 only).
     public var topicCompletedFlag: Bool? {
@@ -109,6 +122,94 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         entitlements = try c.decodeIfPresent([TicketWalletEntitlement].self, forKey: TicketWalletKey("entitlements")) ?? []
         verificationTime = try c.text("verificationTime")
         topicCompletion = ticketWalletTopicCompletion(c)
+        paymentStatus = try? c.integer("paymentStatus")
+        usableState = (try? c.text("usableState")) ?? nil
+        usableFrom = (try? c.text("usableFrom")) ?? nil
+        usableUntil = (try? c.text("usableUntil")) ?? nil
+        clearState = (try? c.text("clearState")) ?? nil
+        refund = try? c.decodeIfPresent(TicketWalletRefund.self, forKey: TicketWalletKey("refundApplication"))
+        let manual = TicketWalletKey("manualRefundCaseStatus")
+        hasManualRefundCase = c.contains(manual) && (try? c.decodeNil(forKey: manual)) == false
+    }
+}
+
+/// Source `refundApplication`. Unknown numbers stay nil; nothing here is a money write.
+public struct TicketWalletRefund: Decodable, Equatable {
+    public let status: Int?
+    public let payoutStatus: Int?
+    public let refundAmount: Decimal?
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: TicketWalletKey.self)
+        status = try? c.integer("status"); payoutStatus = try? c.integer("payoutStatus")
+        refundAmount = try? c.decodeIfPresent(Decimal.self, forKey: TicketWalletKey("refundAmount"))
+    }
+}
+
+/// Mini-program 票夹 rule F13 (`subpackageMember/signup/index.js` usableTicket / walletOrder / refundingTicket):
+/// the wallet holds only tickets the player can use. Unpaid, cancelled, expired and refunded tickets live in 我的订单.
+public extension TicketWalletTicket {
+    /// Money already returned (payout 1 / 4): the ticket leaves the wallet.
+    var isRefunded: Bool { refund.map { $0.payoutStatus == 1 || $0.payoutStatus == 4 } ?? false }
+    /// A refund in flight (review, paying out, manual case). The card stays and reads 退款中; it is locked.
+    var isRefunding: Bool {
+        if hasManualRefundCase { return true }
+        guard let refund, !isRefunded else { return false }
+        if refund.status == 2 { return false } // rejected: the ticket stays usable
+        if let amount = refund.refundAmount, !(amount > 0) { return false }
+        return true
+    }
+    /// `usableState == UPCOMING`: shown last, locked, tagged「M月D日开始」.
+    var isUpcoming: Bool { usableState == "UPCOMING" }
+    /// MP `usableTicket`. A response without `paymentStatus` (older server) is not dropped on that fact alone.
+    var isWalletUsable: Bool {
+        guard registrationStatus == 2, paymentStatus == nil || paymentStatus == 2, !isRefunded else { return false }
+        if let usableState, !usableState.isEmpty { return usableState != "EXPIRED" }
+        guard let until = TicketWalletTicket.sourceDate(usableUntil ?? endDate) else { return true }
+        return until >= Date()
+    }
+    /// 已通关 / 未通关 from `clearState`, else the older `topicCompleted` (true only).
+    var clearedFlag: Bool? {
+        switch clearState {
+        case "CLEARED"?: return true
+        case "NOT_CLEARED"?: return false
+        default: return clearState == nil && topicCompletion == .completed ? true : nil
+        }
+    }
+    /// MP `startTag`:「M月D日开始」from `usableFrom`; nil when the date is unreadable (the caller shows 即将开始).
+    var upcomingStartMonthDay: (month: Int, day: Int)? {
+        guard let text = usableFrom, text.count >= 10 else { return nil }
+        let parts = text.prefix(10).split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 3, (1...12).contains(parts[1]), (1...31).contains(parts[2]) else { return nil }
+        return (parts[1], parts[2])
+    }
+    /// MP `walletOrder`: usable first by `usableUntil` ascending (no date last), upcoming after by `usableFrom`.
+    /// Stable for equal keys.
+    static func walletOrder(_ tickets: [TicketWalletTicket]) -> [TicketWalletTicket] {
+        func key(_ t: TicketWalletTicket) -> Date { sourceDate(t.isUpcoming ? t.usableFrom : (t.usableUntil ?? t.endDate)) ?? .distantFuture }
+        return tickets.enumerated().sorted { a, b in
+            let ua = a.element.isUpcoming ? 1 : 0, ub = b.element.isUpcoming ? 1 : 0
+            if ua != ub { return ua < ub }
+            let ka = key(a.element), kb = key(b.element)
+            return ka != kb ? ka < kb : a.offset < b.offset
+        }.map(\.element)
+    }
+    /// Server `yyyy-MM-dd[ HH:mm[:ss]]`, Beijing time.
+    static func sourceDate(_ text: String?) -> Date? {
+        guard let text = text?.trimmingCharacters(in: .whitespaces), text.count >= 10 else { return nil }
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX"); f.timeZone = TimeZone(identifier: "Asia/Shanghai")
+        for format in ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd"] {
+            f.dateFormat = format
+            if let d = f.date(from: text) { return format == "yyyy-MM-dd" ? d.addingTimeInterval(86_399) : d }
+        }
+        return nil
+    }
+}
+
+public extension TicketWalletSnapshot {
+    /// The wallet view of a read: usable tickets only, in MP `walletOrder`. The lane failure is kept.
+    var walletUsable: TicketWalletSnapshot {
+        TicketWalletSnapshot(tickets: TicketWalletTicket.walletOrder(tickets.filter(\.isWalletUsable)), partialFailure: partialFailure)
     }
 }
 

@@ -10,7 +10,7 @@ import SwiftUI
 /// retired; otherwise the first row. Pure, so fixtures and tests can call it.
 enum CYPassCardPick {
     static func index(in tickets: [TicketWalletTicket]) -> Int? {
-        if let i = tickets.firstIndex(where: { $0.status == .ready && $0.action == .detail }) { return i }
+        if let i = tickets.firstIndex(where: { $0.status == .ready && $0.action == .detail && !$0.isWalletLocked }) { return i }
         if let i = tickets.firstIndex(where: { !CYPassState($0.status).isRetired && $0.action == .detail }) { return i }
         return tickets.isEmpty ? nil : 0
     }
@@ -106,7 +106,7 @@ enum CYPassCardPick {
 
     private var emptyContent: CYStateContent {
         .empty(glyph: "ticket", title: c.t("还没有票", "No tickets yet"),
-               body: c.t("报名活动后，票会出现在这里。", "Register for an activity and its ticket lands here."),
+               body: "",
                actionTitle: c.t("查看全部票券", "All tickets"))
     }
 
@@ -160,7 +160,9 @@ enum CYPassCardPick {
         // A refresh over a loaded pass keeps the card on screen, so a status flip (ready to verified) can animate.
         if phase.value == nil { phase = .loading }
         do {
-            let snapshot = try await reader.ticketWallet()
+            // MP F13 (PLY-21-1): the pass shows usable tickets only, in walletOrder; a locked (upcoming / refunding)
+            // ticket never leads the card.
+            let snapshot = try await reader.ticketWallet().walletUsable
             guard !Task.isCancelled else { return }
             phase = snapshot.tickets.isEmpty && snapshot.partialFailure == nil ? .empty : .loaded(snapshot)
         } catch {
@@ -317,7 +319,8 @@ enum CYPassCardPick {
 
     @ViewBuilder private var tile: some View {
         VStack(spacing: CYSpacing.md) {
-            if let codeFactory, ticket.status == .ready {
+            // MP k4 (j2 F-22): a cleared ticket or a locked (upcoming / refunding) one issues no entry code (PLY-21-4).
+            if let codeFactory, ticket.status == .ready, ticket.clearedFlag != true, !ticket.isWalletLocked {
                 VerificationCodeView(model: codeFactory(.init(kind: .ticket, id: ticket.id)), embeddedQRSide: Self.qrSide)
                     .id(ticket.id)
             } else {

@@ -92,8 +92,8 @@ class NativeDesignMotionGuards(unittest.TestCase):
         # 即将开始 / 已通关 filters the same enumerated array. Offset identity still keeps repeated server ids.
         self.assertIn("ForEach(Array(snapshot.tickets.enumerated()).filter { shown.contains($0.element) }, id: \\.offset)", wallet)
         self.assertIn("if ticket.action == .detail", wallet)
-        # Check the native destination and arguments inside the detail-only branch.
-        route = re.search(r"if ticket.action == \.detail\s*\{\s*NavigationLink\s*\{\s*TicketWalletDetailView\(([^()]*)\)\s*\} label:", wallet)
+        # Check the native destination and arguments inside the detail-only branch (locked MP cards never open).
+        route = re.search(r"if ticket.action == \.detail && !ticket.isWalletLocked\s*\{\s*NavigationLink\s*\{\s*TicketWalletDetailView\(([^()]*)\)\s*\} label:", wallet)
         self.assertIsNotNone(route)
         arguments = dict(part.strip().split(":", 1) for part in route[1].split(","))
         self.assertEqual({key: value.strip() for key, value in arguments.items()}, {
@@ -153,10 +153,11 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertNotIn(".currency(code:", home)
         self.assertNotIn(".currency(code:", card)
         self.assertIn("public var currencyCode: String? { nil }", (ROOT / "Core/HomeFeedContracts.swift").read_text())
-        self.assertIn('Text("ticketWallet.readOnly")', app("TicketWalletView.swift"))
+        # X11: the developer read-only footnote is no longer shown to players (MP has none).
+        self.assertNotIn('Text("ticketWallet.readOnly")', app("TicketWalletView.swift"))
         # The em-dash noCode placeholder is gone: the pass is only offered when ready, and the code comes from the injected factory.
         detail = app("TicketWalletDetailView.swift")
-        self.assertIn("if ticket.status == .ready {", detail)
+        self.assertIn("if ticket.status == .ready && ticket.clearedFlag != true && !ticket.isWalletLocked {", detail)
         self.assertIn('.accessibilityIdentifier("ticketWallet.present.open")', detail)
 
     def test_dynamic_type_and_semantic_color_are_explicit(self):
@@ -172,7 +173,9 @@ class NativeDesignMotionGuards(unittest.TestCase):
 
     def test_titles_resolve_explicit_locale(self):
         for filename, key in (("HomeFeedView.swift", "homeFeed.title"), ("TicketWalletView.swift", "ticketWallet.title"), ("TicketWalletDetailView.swift", "ticketWallet.detail")):
-            self.assertIn('.appNavigationTitle("' + key + '")', app(filename))
+            # `cyPageTitle` is `appNavigationTitle` + inline (type-and-chrome §2), so the locale stays explicit.
+            source = app(filename)
+            self.assertTrue('.appNavigationTitle("' + key + '")' in source or '.cyPageTitle("' + key + '")' in source, key)
 
     def test_new_copy_is_bilingual_and_does_not_require_catalog_write(self):
         additions = json.loads((ROOT / "docs/native-design-motion-localizations.json").read_text())

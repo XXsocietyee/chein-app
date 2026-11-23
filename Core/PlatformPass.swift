@@ -22,6 +22,13 @@ public struct PlatformPass: Sendable {
     public static let giftsReceivedPath = "api/marketing/product/gifts/received"
     public static let pointsPath = "api/user/info"
     public static let purchasePath = "api/platform-pass/orders"
+    /// GET on the purchase URL lists the viewer's own pass orders (`market/passes` 我的订单). POST stays refused.
+    public static let passOrdersPath = "api/platform-pass/orders"
+    /// GET `api/marketing/product/{id}` (`market/pass` detail).
+    public static let productDetailPrefix = "api/marketing/product/"
+    /// POST `api/public-catalog/list`: the theme library (`market/library`) reads the public catalog, not the pass
+    /// switch, so guests, merchants and everyone while the pass is off still see the catalog.
+    public static let publicCatalogListPath = "api/public-catalog/list"
     public static let quotePath = "api/marketing/product/quote"
     public static let orderPath = "api/marketing/product/order"
     public static let claimPath = "api/marketing/product/gifts/claim"
@@ -55,7 +62,8 @@ public struct PlatformPass: Sendable {
     }
 
     /// GET `/api/marketing/product/list?limit=20`.
-    public func productList(token: String) async throws -> [PlatformPassProduct] {
+    /// The on-sale list is public in the mini-program: a guest (nil token) reads it without a session.
+    public func productList(token: String?) async throws -> [PlatformPassProduct] {
         let data = try await get(Self.productListPath, query: [URLQueryItem(name: "limit", value: "20")], token: token)
         return try PlatformPassProduct.decodeList(data)
     }
@@ -71,6 +79,64 @@ public struct PlatformPass: Sendable {
         let bought = try await get(Self.giftsBoughtPath, query: [URLQueryItem(name: "limit", value: "20")], token: token)
         let received = try await get(Self.giftsReceivedPath, query: [URLQueryItem(name: "limit", value: "20")], token: token)
         return try PlatformPassGifts.decode(bought: bought, received: received)
+    }
+
+    /// GET `/api/marketing/product/{id}`, the detail read `market/pass` uses. Ids the route table would not
+    /// normalise to `/api/marketing/product/{}` (for example `order`, `quote`, `list`) are refused before sending.
+    public func product(id: String, token: String?) async throws -> PlatformPassProduct {
+        guard G6CapabilitySource.productIDAllowed(id) else { throw APIError.invalidRequest }
+        let data = try await get(Self.productDetailPrefix + id, query: [], token: token)
+        guard let row = PlatformPassJSON.dictionary(data), let product = PlatformPassProduct.decode(row) else {
+            throw APIError.malformedResponse
+        }
+        return product
+    }
+
+    /// POST `/api/public-catalog/list` `{locale, sort, product_type?, pageNum: 1, pageSize: 100}` (`pass-library.js`).
+    /// The token is optional: the catalog is public. "¥0 可玩" only when a row says `passCovered === true`.
+    public func publicLibrary(kind: String, token: String?) async throws -> [PlatformPassLibraryCard] {
+        var body: [String: Any] = ["locale": "zh-CN", "sort": "NEWEST", "pageNum": 1, "pageSize": 100]
+        switch kind {
+        case "all": break
+        case "city": body["product_type"] = "1"
+        case "free": body["product_type"] = "2"
+        default: throw APIError.invalidRequest
+        }
+        if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
+        var request = URLRequest(url: try url(Self.publicCatalogListPath, query: []))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 20
+        request.httpShouldHandleCookies = false
+        if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        let (bytes, status) = try await transport.send(request)
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let object = try PlatformPassJSON.object(bytes)
+        guard PlatformPassJSON.isBizOK(object) else { throw APIError.businessCode(PlatformPassJSON.code(object["code"]) ?? -1) }
+        guard let page = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)),
+              let rows = PlatformPassJSON.rows(page["rows"]) else { throw APIError.malformedResponse }
+        return rows.compactMap { PlatformPassJSON.dictionary($0).flatMap(PlatformPassLibraryCard.catalog) }
+    }
+
+    /// GET `/api/platform-pass/orders?limit=20`: the viewer's own city-pass subscription orders.
+    public func passOrders(token: String) async throws -> [PlatformPassSubscriptionOrder] {
+        let data = try await get(Self.passOrdersPath, query: [URLQueryItem(name: "limit", value: "20")], token: token)
+        guard let rows = PlatformPassJSON.rows(data) else { throw APIError.malformedResponse }
+        return rows.compactMap { PlatformPassJSON.dictionary($0).flatMap(PlatformPassSubscriptionOrder.decode) }
+    }
+
+    /// GET `/api/platform-pass/orders/{orderNo}` (`market/pass-order`). Read only: pay, cancel and refund stay off.
+    public func passOrderDetail(orderNo: String, token: String) async throws -> PlatformPassSubscriptionOrder {
+        guard PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { throw APIError.invalidRequest }
+        let data = try await get(Self.passOrdersPath + "/" + orderNo, query: [], token: token)
+        guard let row = PlatformPassJSON.dictionary(data), let order = PlatformPassSubscriptionOrder.decode(row) else {
+            throw APIError.malformedResponse
+        }
+        return order
     }
 
     /// POST `/api/user/info` and read `point`. Missing or non-numeric stays nil, never 0.
@@ -115,20 +181,20 @@ public struct PlatformPass: Sendable {
         return query
     }
 
-    private func get(_ path: String, query: [URLQueryItem], token: String) async throws -> Any {
+    private func get(_ path: String, query: [URLQueryItem], token: String?) async throws -> Any {
         let object = try await send(path, method: "GET", query: query, token: token)
         guard let data = PlatformPassJSON.dataValue(object) else { throw APIError.malformedResponse }
         return data
     }
 
-    private func send(_ path: String, method: String, query: [URLQueryItem], token: String) async throws -> [String: Any] {
-        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+    private func send(_ path: String, method: String, query: [URLQueryItem], token: String?) async throws -> [String: Any] {
+        if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
         var request = URLRequest(url: try url(path, query: query))
         request.httpMethod = method
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.timeoutInterval = 20
         request.httpShouldHandleCookies = false
-        request.setValue(token, forHTTPHeaderField: "Authorization")
+        if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let (bytes, status) = try await transport.send(request)
         if status == 401 { throw APIError.unauthorized }
@@ -272,6 +338,22 @@ extension PlatformPassLibraryCard {
             id: id, title: name, cover: PlatformPassJSON.text(row["imgUrl"]) ?? "", city: city, kind: kind,
             data: [kind, minutes].filter { !$0.isEmpty }.joined(separator: " · "),
             free: covered, tags: [kind, city].filter { !$0.isEmpty },
+            productType: productType, minuteCount: minuteCount)
+    }
+
+    /// `pass-library.js` `passLibraryCard`: a public-catalog row (`id`, `name`, `imgUrl`, `productType`, `cityName`,
+    /// `totalTime`). Free only on a real JSON `passCovered: true`.
+    static func catalog(_ row: [String: Any]) -> PlatformPassLibraryCard? {
+        guard let id = PlatformPassJSON.text(row["id"]), let name = PlatformPassJSON.text(row["name"]) else { return nil }
+        let productType = PlatformPassJSON.int(row["productType"])
+        let kind = Self.kind(productType)
+        let city = PlatformPassJSON.text(row["cityName"]) ?? ""
+        let minuteCount = Self.minuteCount(PlatformPassJSON.number(row["totalTime"]))
+        let minutes = minuteCount.map { "约 \($0) 分钟" } ?? ""
+        return PlatformPassLibraryCard(
+            id: id, title: name, cover: PlatformPassJSON.text(row["imgUrl"]) ?? "", city: city, kind: kind,
+            data: [kind, minutes].filter { !$0.isEmpty }.joined(separator: " · "),
+            free: PlatformPassJSON.flag(row["passCovered"]), tags: [kind, city].filter { !$0.isEmpty },
             productType: productType, minuteCount: minuteCount)
     }
 
@@ -469,6 +551,110 @@ enum PlatformPassNumber {
     }
 }
 
+/// One city-pass subscription order (`PlatformPassService.orderView`), shaped like `platform-pass.js` `orderRow`.
+/// Every word comes from the server status; an unknown status reads 状态确认中, never a guess.
+public struct PlatformPassSubscriptionOrder: Equatable, Sendable {
+    public enum Status: String, Sendable { case pending = "PENDING", paid = "PAID", cancelled = "CANCELLED",
+                                                refunding = "REFUNDING", refunded = "REFUNDED", unknown = "" }
+    public enum RefundDetail: Equatable, Sendable {
+        case refunded(amount: String, time: String)
+        case rejected(reason: String, time: String)
+    }
+
+    public let orderNo: String
+    /// `城瘾30天通行证` for MONTH, else `城瘾通行证 · N 天`.
+    public let name: String
+    /// `30天 · 2026.11.02`.
+    public let sub: String
+    public let status: Status
+    /// Order status word (待付款 / 已开通 / 已取消 / 退款处理中 / 已退款 / 状态确认中).
+    public let stateText: String
+    /// Refund progress word, empty when there is no application.
+    public let refundText: String
+    public let refundDetail: RefundDetail?
+    /// `¥19.9`, empty when the price is unknown.
+    public let amount: String
+    /// Paid day `yyyy.MM.dd`, empty when unknown.
+    public let time: String
+    /// Valid-to day, only for a paid order.
+    public let validTo: String
+    public let canResume: Bool
+    public let canCancel: Bool
+    public let canRefund: Bool
+
+    public static func orderNoAllowed(_ orderNo: String) -> Bool {
+        !orderNo.isEmpty && orderNo.utf8.count <= 64
+            && orderNo.utf8.allSatisfy { ($0 >= 48 && $0 <= 57) || ($0 >= 65 && $0 <= 90) || ($0 >= 97 && $0 <= 122) || $0 == 45 || $0 == 95 }
+    }
+
+    static func decode(_ row: [String: Any]) -> PlatformPassSubscriptionOrder? {
+        guard let orderNo = PlatformPassJSON.text(row["orderNo"]), orderNoAllowed(orderNo) else { return nil }
+        let status = Status(rawValue: PlatformPassJSON.text(row["status"]) ?? "") ?? .unknown
+        let validDays = PlatformPassJSON.int(row["validDays"])
+        let name: String
+        if PlatformPassJSON.text(row["planCode"]) == "MONTH" { name = "城瘾30天通行证" }
+        else { name = "城瘾通行证" + (validDays.map { " · \($0) 天" } ?? "") }
+        let paid = day(row["paidTime"])
+        let time = paid.isEmpty ? day(row["createdTime"]) : paid
+        let sub = [validDays.map { "\($0)天" } ?? "", time].filter { !$0.isEmpty }.joined(separator: " · ")
+        let refund = PlatformPassJSON.dictionary(row["refund"]) ?? [:]
+        let review = PlatformPassJSON.text(refund["reviewStatus"]) ?? "NONE"
+        let stateText: String
+        switch status {
+        case .pending: stateText = "待付款"
+        case .paid: stateText = "已开通"
+        case .cancelled: stateText = "已取消"
+        case .refunding: stateText = "退款处理中"
+        case .refunded: stateText = "已退款"
+        case .unknown: stateText = "状态确认中"
+        }
+        let refundText: String
+        if review == "NONE" || status == .refunded { refundText = "" }
+        else {
+            switch review {
+            case "PENDING": refundText = "退款审核中"
+            case "APPROVED": refundText = "退款处理中"
+            case "REJECTED": refundText = "退款申请未通过"
+            default: refundText = "状态确认中"
+            }
+        }
+        var detail: RefundDetail?
+        if let fen = PlatformPassJSON.int(refund["refundedFen"]), status == .refunded || review == "APPROVED" {
+            detail = .refunded(amount: yuanFen(fen), time: day(refund["decidedTime"]))
+        } else if review == "REJECTED" {
+            let reason = (refund["decision"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            detail = .rejected(reason: reason, time: day(refund["decidedTime"]))
+        }
+        return PlatformPassSubscriptionOrder(
+            orderNo: orderNo, name: name, sub: sub, status: status, stateText: stateText, refundText: refundText,
+            refundDetail: detail, amount: PlatformPassJSON.int(row["priceFen"]).map(yuanFen) ?? "", time: time,
+            validTo: status == .paid ? day(row["validTo"]) : "",
+            canResume: status == .pending, canCancel: status == .pending,
+            canRefund: status == .paid && (review == "NONE" || review == "REJECTED"))
+    }
+
+    /// `platform-pass.js` `yuanFen`: ¥ plus the decimal yuan without trailing zeros.
+    static func yuanFen(_ fen: Int) -> String {
+        let sign = fen < 0 ? "-" : ""
+        let whole = abs(fen) / 100
+        let frac = abs(fen) % 100
+        if frac == 0 { return "\(sign)¥\(whole)" }
+        if frac % 10 == 0 { return "\(sign)¥\(whole).\(frac / 10)" }
+        return "\(sign)¥\(whole)." + (frac < 10 ? "0" : "") + "\(frac)"
+    }
+
+    /// Server dates arrive as `yyyy-MM-dd HH:mm:ss` (China time), ISO text or epoch numbers.
+    private static func day(_ value: Any?) -> String {
+        if let text = value as? String { return MPParityChinaClock.dotDay(text) }
+        if let ms = PlatformPassJSON.number(value) { return MPParityChinaClock.dotDay(String(Int64(ms))) }
+        return ""
+    }
+}
+
+extension PlatformPassSubscriptionOrder: Identifiable {
+    public var id: String { orderNo }
+}
+
 public struct PlatformPassOrderRow: Equatable, Sendable {
     public let key: String
     public let name: String
@@ -516,6 +702,9 @@ public struct PlatformPassGifts: Equatable, Sendable {
     public let bought: [PlatformPassGift]
     public let received: [PlatformPassGift]
     public let claimReachable: Bool
+
+    /// A guest has no gifts to read.
+    public static let empty = PlatformPassGifts(bought: [], received: [], claimReachable: false)
 
     static func decode(bought: Any, received: Any) throws -> PlatformPassGifts {
         PlatformPassGifts(bought: try PlatformPassGift.decodeList(bought, side: "bought"),

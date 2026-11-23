@@ -34,6 +34,10 @@ extension AppSession: OrientScoreEntryProviding {
     func orientScoreLoader(topicID: Int, activityID: Int) -> (() async throws -> OrientSessionScore?)? {
         CloudB3SessionBridge.orientLoader(session: self, topicID: topicID, activityID: activityID)
     }
+
+    func orientScoreRoundsLoader(topicID: Int, activityID: Int) -> ((Int?) async throws -> OrientScoreLoad)? {
+        CloudB3SessionBridge.orientRoundsLoader(session: self, topicID: topicID, activityID: activityID)
+    }
 }
 
 /// Holds the per-session readers outside `AppSession` so that glue file does not grow.
@@ -102,6 +106,13 @@ extension AppSession: OrientScoreEntryProviding {
         let service = OrientSessionService(configuration: configuration, transport: session.runtimeHTTPTransport, contract: .currentC6)
         let access = session.squareGovernanceAccess()
         return OrientScoreEntryProvider(service: service, token: { access.token }).orientScoreLoader(topicID: topicID, activityID: activityID)
+    }
+
+    static func orientRoundsLoader(session: AppSession, topicID: Int, activityID: Int) -> ((Int?) async throws -> OrientScoreLoad)? {
+        guard let configuration = session.regionalConfiguration?.apiConfiguration else { return nil }
+        let service = OrientSessionService(configuration: configuration, transport: session.runtimeHTTPTransport, contract: .currentC6)
+        let access = session.squareGovernanceAccess()
+        return OrientScoreEntryProvider(service: service, token: { access.token }).orientScoreRoundsLoader(topicID: topicID, activityID: activityID)
     }
 
     static func installSweepWriters(for session: AppSession) {

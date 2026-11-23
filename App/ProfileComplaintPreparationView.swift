@@ -21,6 +21,20 @@ import SwiftUI
     }
 }
 
+/// `subpackageMember/complaint/index` for the page router (PLY-27-1): the same screen the 我的 row pushes.
+@MainActor struct ProfileComplaintDeepLinkScreen: View {
+    @ObservedObject var session: AppSession
+    var body: some View {
+        let _ = WP06ComplaintWrite.install()
+        let revision = session.sessionRevision
+        let owner = session.cooperationFlowReader.session
+        ProfileComplaintPreparationView(reader: session.cooperationFlowReader,
+            isCurrent: { session.sessionRevision == revision && session.cooperationFlowReader.session == owner },
+            submitter: ProfileComplaintPreparationLink.submitterFactory?(session))
+            .id(revision)
+    }
+}
+
 private struct ProfileComplaintPresentationKey: Hashable {
     let reader: ObjectIdentifier
     let accountID: Int?
@@ -50,6 +64,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
     @State private var model: ProfileComplaintPreparationController
     @State private var progress: ProfileComplaintProgressController
     @State private var confirmingSend = false
+    @State private var submittedToast: LocalizedStringKey?
     @State private var sending: ProfileComplaintSubmissionController
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -63,20 +78,12 @@ private struct ProfileComplaintPresentationKey: Hashable {
     }
     var body: some View {
         Form {
+            // PLY-27-2: the page title is the bar's inline title (投诉与建议); only the subtitle stays in the content.
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Image(systemName: "text.bubble.fill").font(CYTypography.sheetTitle).foregroundStyle(.white)
-                        .frame(width: 52, height: 52)
-                        .background(SettingsTint.teal.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
-                        .accessibilityHidden(true)
-                    Text("profile.complaint.pageTitle").font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-                    Text("profile.complaint.pageSubtitle").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityIdentifier("profile.complaint.pageSubtitle")
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
+                EmptyView()
+            } footer: {
+                Text("profile.complaint.pageSubtitle").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("profile.complaint.pageSubtitle")
             }
             if !model.contextMatches {
                 Text("profile.complaint.retired").accessibilityIdentifier("profile.complaint.retired")
@@ -123,19 +130,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
         }
         .cyPushedChrome(domain: .player)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("action.close") { model.retire(); dismiss() }
-                    .accessibilityIdentifier("profile.complaint.close")
-            }
-            ToolbarItem(placement: .primaryAction) {
-                if model.review == nil {
-                    Button("profile.refresh", systemImage: "arrow.clockwise") { focused = nil; Task { await model.load() } }
-                        .disabled(!model.contextMatches || model.isLoading)
-                        .accessibilityIdentifier("profile.complaint.refresh")
-                }
-            }
+        .cyPageTitle("profile.complaint.pageTitle")
+        // PLY-27-2 / X12: pushed page keeps the system back only; pull-down refresh replaces the toolbar ↻.
+        .refreshable {
+            guard model.review == nil, model.contextMatches, !model.isLoading else { return }
+            focused = nil
+            await model.load()
+            await progress.load()
         }
         .task { await model.load() }
         .task { await progress.load() }
@@ -148,6 +149,18 @@ private struct ProfileComplaintPresentationKey: Hashable {
         .onDisappear { progress.retire() }
         .onChange(of: scenePhase) { _, phase in if phase == .background { progress.retire() } }
         .privacySensitive()
+        // PLY-27-4: mini-program toasts 投诉已提交, refreshes 我的处理进展 and goes back after 1.2 s.
+        .onChange(of: sending.state == .succeeded) { _, succeeded in
+            guard succeeded else { return }
+            submittedToast = "profile.complaint.submit.done"
+            Task {
+                await progress.load()
+                try? await Task.sleep(nanoseconds: 1_200_000_000)
+                guard sending.state == .succeeded else { return }
+                model.retire(); sending.reset(); dismiss()
+            }
+        }
+        .cyToast(message: $submittedToast, tone: .success)
         .sheet(isPresented: $confirmingSend) {
             MemberComplaintSubmitConfirmSheet {
                 confirmingSend = false

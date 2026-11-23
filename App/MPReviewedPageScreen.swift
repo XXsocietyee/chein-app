@@ -249,7 +249,9 @@ import SwiftUI
                 SquareDetailView(id: id, reader: session.squareReader, accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
             } else { unavailable }
         case "subpackageMember/orderinfo/orderinfo":
-            if let id = reviewedID(query) { ProfileOrderDetailView(id: id, reader: session.ownedOrderReader) } else { unavailable }
+            if let id = reviewedID(query) { ProfileOrderDetailView(id: id, reader: session.ownedOrderReader) }
+            else if query["outTradeNo"] != nil { SessionOwnedOrdersView(session: session) }
+            else { unavailable }
         case "pages/merchant/index/index":
             SessionMerchantOverviewView(session: session)
         case "pages/merchant/relation/index", "pages/merchant/relation":
@@ -278,7 +280,16 @@ import SwiftUI
         case "subpackageMember/order/order":
             SessionOwnedOrdersView(session: session)
         case "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo", "subpackageMember/signupInfo2/signupInfo2":
-            TicketWalletView(reader: session.ticketWalletReader, orderLifecycleCoordinator: session.orderLifecycleCoordinator)
+            // One shared wallet host: 开始游戏, pending orders, sign-in; `focusId` lands on that registration.
+            SessionTicketWalletHost(isPushed: true, focusTopicID: reviewedID(query, key: "topicId"),
+                                    focusRegistrationID: reviewedID(query, key: "focusId"))
+                .environmentObject(session)
+        case "subpackageMember/mycanyuinfo/mycanyuinfo":
+            if let id = reviewedID(query) { SessionParticipationDetailHost(id: id).environmentObject(session) } else { unavailable }
+        case "subpackageMember/character/index":
+            if let id = reviewedID(query, key: "topicId") {
+                PlayerJourneyRouteDestination(route: .characterCard(topicID: id, activityID: nil)).environmentObject(session)
+            } else { unavailable }
         case "subpackageMember/mycanyu/mycanyu":
             SessionPlayerJourneyView(destination: .participations).environmentObject(session)
         case "subpackageMember/myinvite/myinvite":
@@ -287,6 +298,37 @@ import SwiftUI
             SquareReportProgressView(session: session)
         case "subpackageMember/appeal-mine/index":
             MemberScoreAppealListView(session: session)
+        case "subpackageMember/invoice/index":
+            invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+        case "subpackageMember/invoice-detail/index":
+            if let id = reviewedID(query) {
+                invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
+            } else { unavailable }
+        case "subpackageMember/invoice-apply/index":
+            invoice { InvoiceLaunchApplyView(model: $0, onSignIn: signIn) }
+        case "subpackageMember/invoice-titles/index":
+            invoice { InvoiceLaunchTitlesView(model: $0, onSignIn: signIn) }
+        case "subpackageMember/invoice-title-edit/index":
+            invoice { InvoiceLaunchTitleEditor(model: $0, title: nil, onSignIn: signIn) }
+        case "subpackageMember/points-history/index":
+            PassMarketPointsBridge.destination(for: session)()
+        case "subpackageMember/coupon-wallet/index", "subpackageMember/coupon-qr/index":
+            // coupon-qr needs the owner-scoped coupon selection to mint a code; the link lands on the wallet,
+            // one tap from the code (the code page itself re-checks the owner).
+            AccountCollectionCouponsView(reader: session.accountCollectionReader)
+        case "subpackageMember/free-explore/index":
+            freeExplore
+        case "subpackageMember/complaint/index":
+            ProfileComplaintDeepLinkScreen(session: session)
+        case "subpackageMember/orient-score/index":
+            if let topic = reviewedID(query, key: "topicId") {
+                OrientScoreDeepLinkScreen(session: session, topicID: topic, activityID: reviewedID(query, key: "activityId") ?? 0,
+                                          sessionID: reviewedID(query, key: "sessionId"))
+            } else { unavailable }
+        case "subpackageMember/report-detail/index":
+            if let id = reviewedID(query, key: "reportId") {
+                MemberReportProgressDeepLinkScreen(reportID: Int64(id), session: session)
+            } else { unavailable }
         case "subpackageMember/coupon/coupon", "subpackageMember/couponInfo/couponInfo":
             SessionCouponManagementView().environmentObject(session)
         case "subpackageMember/tixian/tixian":
@@ -414,6 +456,25 @@ import SwiftUI
     private func signIn() {
         session.dismissNativeEntry()
         if rootTabSwitch.isAvailable { rootTabSwitch(.mine) }
+    }
+
+    @ViewBuilder private func invoice<V: View>(@ViewBuilder _ make: (InvoiceLaunchPresentation) -> V) -> some View {
+        if let model = session.makeInvoiceLaunchPresentation() { make(model) } else { unavailable }
+    }
+
+    /// `free-explore?registrationId=` opens that order (its 自由探索权益 entry hosts the bundle read);
+    /// `?topicId=` opens the topic (the catalog entry before purchase); `?requestId=` (purchase receipt) opens 我的订单.
+    @ViewBuilder private var freeExplore: some View {
+        if let id = reviewedID(query, key: "registrationId") {
+            ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
+        } else if let id = reviewedID(query, key: "topicId") {
+            SessionTopicDetailView(id: id, session: session)
+        } else if query["requestId"] != nil {
+            SessionOwnedOrdersView(session: session)
+        } else {
+            CYStateLayout(kind: .generic, title: Text("mp.route.missingParam"))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
     }
 
     private var unavailable: some View {

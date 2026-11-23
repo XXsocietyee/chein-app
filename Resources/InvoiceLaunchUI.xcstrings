@@ -129,6 +129,22 @@
         }
       }
     },
+    "addTitleLong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add invoice title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增发票抬头"
+          }
+        }
+      }
+    },
     "all": {
       "localizations": {
         "en": {
@@ -150,13 +166,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Amount"
+            "value": "Invoice amount"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "金额"
+            "value": "开票金额"
+          }
+        }
+      }
+    },
+    "appliedAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请于"
           }
         }
       }
@@ -177,6 +209,22 @@
         }
       }
     },
+    "applyLoadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load invoicing details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开票信息加载失败"
+          }
+        }
+      }
+    },
     "applyUnavailable": {
       "localizations": {
         "en": {
@@ -189,6 +237,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "暂不支持在应用内申请开票，你仍可查看抬头与订单。"
+          }
+        }
+      }
+    },
+    "blockedGroup": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not available yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不可申请"
           }
         }
       }
@@ -225,6 +289,38 @@
         }
       }
     },
+    "chooseTitleSheet": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an invoice title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择发票抬头"
+          }
+        }
+      }
+    },
+    "contactSupport": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contact support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系客服"
+          }
+        }
+      }
+    },
     "created": {
       "localizations": {
         "en": {
@@ -237,6 +333,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "申请时间"
+          }
+        }
+      }
+    },
+    "defaultShort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认"
           }
         }
       }
@@ -278,13 +390,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete this title? Submitted applications are not affected."
+            "value": "Delete invoice title"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "删除该抬头？不影响已提交的申请。"
+            "value": "删除发票抬头"
           }
         }
       }
@@ -301,6 +413,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "发票详情"
+          }
+        }
+      }
+    },
+    "detailLoadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load the invoice application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票申请加载失败"
           }
         }
       }
@@ -342,13 +470,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No invoices"
+            "value": "No invoice applications yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无发票"
+            "value": "还没有发票申请"
           }
         }
       }
@@ -385,6 +513,38 @@
         }
       }
     },
+    "historyLoadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load invoice records"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票记录加载失败"
+          }
+        }
+      }
+    },
+    "includedOrders": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Included orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含订单"
+          }
+        }
+      }
+    },
     "information": {
       "localizations": {
         "en": {
@@ -397,6 +557,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "发票信息"
+          }
+        }
+      }
+    },
+    "invoiceAmount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开票金额"
           }
         }
       }
@@ -429,6 +605,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "开具时间"
+          }
+        }
+      }
+    },
+    "issuer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issuer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开票单位"
+          }
+        }
+      }
+    },
+    "issuerGroup %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issuer · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开票单位 · %@"
           }
         }
       }
@@ -481,6 +689,38 @@
         }
       }
     },
+    "manageTitles": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage invoice titles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理发票抬头"
+          }
+        }
+      }
+    },
+    "manageTitlesShort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage titles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理抬头"
+          }
+        }
+      }
+    },
     "noOrders": {
       "localizations": {
         "en": {
@@ -502,13 +742,45 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No invoice titles"
+            "value": "No invoice titles yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无发票抬头"
+            "value": "还没有发票抬头"
+          }
+        }
+      }
+    },
+    "notFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This application wasn't found yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂未查到这次申请"
+          }
+        }
+      }
+    },
+    "notFound.sub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again later, or contact support"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请稍后再查，或联系客服"
           }
         }
       }
@@ -625,6 +897,22 @@
         }
       }
     },
+    "orderCountFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%ld orders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%ld 笔订单"
+          }
+        }
+      }
+    },
     "orders": {
       "localizations": {
         "en": {
@@ -641,6 +929,102 @@
         }
       }
     },
+    "pendingTag": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pending"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "待确认"
+          }
+        }
+      }
+    },
+    "personalTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Individual title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人抬头"
+          }
+        }
+      }
+    },
+    "pickAll": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select all from this issuer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全选本单位"
+          }
+        }
+      }
+    },
+    "reapply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新申请"
+          }
+        }
+      }
+    },
+    "recheck": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再查一次"
+          }
+        }
+      }
+    },
+    "refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
+      }
+    },
     "rejectReason": {
       "localizations": {
         "en": {
@@ -653,6 +1037,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "驳回原因"
+          }
+        }
+      }
+    },
+    "requiredHint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fields marked * are required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "带 * 为必填"
+          }
+        }
+      }
+    },
+    "reselect": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新选择"
           }
         }
       }
@@ -717,6 +1133,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "请重新登录"
+          }
+        }
+      }
+    },
+    "setDefault": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set as default"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设为默认"
           }
         }
       }
@@ -801,6 +1233,22 @@
         }
       }
     },
+    "taxNo.reenter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the full tax number again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新填写完整税号"
+          }
+        }
+      }
+    },
     "titleName": {
       "localizations": {
         "en": {
@@ -813,6 +1261,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "抬头名称"
+          }
+        }
+      }
+    },
+    "titleSave.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last save is not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上次保存结果未确认"
+          }
+        }
+      }
+    },
+    "titleSave.unknown.sub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't change titles until it's confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认前请勿修改抬头"
           }
         }
       }
@@ -849,6 +1329,22 @@
         }
       }
     },
+    "titlesLoadFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load invoice titles"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票抬头加载失败"
+          }
+        }
+      }
+    },
     "titlesReadOnly": {
       "localizations": {
         "en": {
@@ -865,18 +1361,66 @@
         }
       }
     },
-    "unavailable": {
+    "toast.cancelUnknown": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invoices are unavailable"
+            "value": "Withdraw not confirmed. Refresh to check."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发票暂不可用"
+            "value": "撤回结果未确认，请刷新查看"
+          }
+        }
+      }
+    },
+    "toast.deleteUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete not confirmed. Refresh to check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除结果未确认，请刷新查看"
+          }
+        }
+      }
+    },
+    "total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "总计"
+          }
+        }
+      }
+    },
+    "unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoices are not available yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票功能暂未开放"
           }
         }
       }
@@ -886,13 +1430,29 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The previous result is not yet confirmed"
+            "value": "The last invoice application is not confirmed yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次操作结果尚未确认"
+            "value": "上次的开票申请结果未确认"
+          }
+        }
+      }
+    },
+    "unknown.sub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't submit again until it's confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认前请勿重复提交"
           }
         }
       }
@@ -918,13 +1478,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw this application?"
+            "value": "Withdraw invoice application"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤回这次申请？"
+            "value": "撤回发票申请"
           }
         }
       }
@@ -941,6 +1501,230 @@
           "stringUnit": {
             "state": "translated",
             "value": "申请已撤回"
+          }
+        }
+      }
+    },
+    "write.apply.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application not submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请未提交"
+          }
+        }
+      }
+    },
+    "write.apply.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This application is not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这次申请结果未确认"
+          }
+        }
+      }
+    },
+    "write.apply.unknown.sub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't submit again until it's confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认前请勿重复提交"
+          }
+        }
+      }
+    },
+    "write.cancel.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw didn't finish"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回未完成"
+          }
+        }
+      }
+    },
+    "write.cancel.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The withdraw is not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回结果未确认"
+          }
+        }
+      }
+    },
+    "write.delete.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete didn't finish"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除未完成"
+          }
+        }
+      }
+    },
+    "write.delete.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The delete is not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除结果未确认"
+          }
+        }
+      }
+    },
+    "write.maxOrders": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can combine up to 50 orders at a time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一次最多合并 50 笔订单"
+          }
+        }
+      }
+    },
+    "write.orderChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your orders changed. Select them again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单有变化，请重新选择"
+          }
+        }
+      }
+    },
+    "write.save.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice title not saved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票抬头未保存"
+          }
+        }
+      }
+    },
+    "write.save.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The save is not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存结果未确认"
+          }
+        }
+      }
+    },
+    "write.save.unknown.sub": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Don't save again until it's confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认前请勿重复保存"
+          }
+        }
+      }
+    },
+    "write.titleLimit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You've reached the invoice title limit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票抬头数量已达上限"
+          }
+        }
+      }
+    },
+    "write.titleNotFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This title no longer exists"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "抬头不存在"
           }
         }
       }

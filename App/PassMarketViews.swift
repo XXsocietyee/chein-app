@@ -131,6 +131,8 @@ struct PassMarketContent: Equatable {
     var orders: [PassOrderRow]
     var giftsBought: [PassGiftRow]
     var giftsReceived: [PassGiftRow]
+    /// City-pass subscription orders (`GET /api/platform-pass/orders`), listed first in 我的订单.
+    var passOrders: [PlatformPassSubscriptionOrder] = []
 }
 
 struct PassMarketState: Equatable {
@@ -140,6 +142,8 @@ struct PassMarketState: Equatable {
     var member: PassMemberEntrySide? = nil
     /// Quiet refresh failed while content stays on screen.
     var refreshFailed = false
+    /// False for a guest: the on-sale tab still loads; 我的订单 and 礼品 ask to sign in.
+    var signedIn = true
 }
 
 /// Logic stub for Cursor: `/api/marketing/product/list|orders|gifts/bought|gifts/received`, `/api/platform-pass`, `/api/user/info`.
@@ -163,7 +167,9 @@ struct PassMarketState: Equatable {
                        onOpenProduct: bindings.passDetail == nil ? nil : { route = .pass(productID: $0) },
                        onOpenMembership: { route = .reveal(paid: nil) },
                        onOpenLibrary: bindings.passLibrary == nil ? nil : { route = .library(kind: .all) },
-                       pointsDestination: pointsDestination)
+                       pointsDestination: pointsDestination,
+                       onOpenPassOrder: bindings.passOrder == nil ? nil : { route = .passOrder(orderNo: $0) },
+                       onSignIn: { PlayerJourneySignInBridge.shared.request() })
             // Mini-program onShow: the first appearance loads with a skeleton; coming back (from detail, reveal,
             // membership) refreshes quietly so a list already on screen never flashes back to loading.
             .task {
@@ -183,6 +189,10 @@ struct PassMarketView: View {
     let onOpenLibrary: (() -> Void)?
     /// Points history destination (mini-program `points-history`); nil keeps the balance card read-only.
     let pointsDestination: (() -> AnyView)?
+    /// City-pass order row → `market/pass-order?orderNo=`. Nil keeps the rows read-only.
+    var onOpenPassOrder: ((String) -> Void)? = nil
+    /// Guest on 我的订单 / 礼品: `ensureLoginFor('登录后查看自己的订单和礼品')`.
+    var onSignIn: (() -> Void)? = nil
 
     @State private var tab: PassMarketTab = .shop
     @State private var didSetTab = false
@@ -201,7 +211,8 @@ struct PassMarketView: View {
                     Group {
                         switch tab {
                         case .shop: shop(content)
-                        case .orders: orders(content.orders)
+                        case .orders where !state.signedIn, .gifts where !state.signedIn: signInPrompt
+                        case .orders: orders(content)
                         case .gifts: gifts(content)
                         }
                     }
@@ -213,10 +224,16 @@ struct PassMarketView: View {
         }
         .cyAnimation(value: tab)
         .refreshable { onReload(true) }
-        .cyDomainScreen(.player)
-        .navigationTitle(Text("mp.pass.title"))
-        .navigationBarTitleDisplayMode(.large)
+        .cyPushedChrome(domain: .player)
+        .cyPageTitle("mp.pass.title")
         .onAppear { if !didSetTab { tab = initialTab; didSetTab = true } }
+    }
+
+    private var signInPrompt: some View {
+        CYStateLayout(kind: .orders, title: Text("mp.pass.signIn.orders"),
+                      primary: onSignIn.map { action -> (title: LocalizedStringKey, action: () -> Void) in (title: "mp.pass.signIn.action", action: action) },
+                      primaryStyle: .primary, primaryIdentifier: "passMarket.signIn")
+            .accessibilityIdentifier("passMarket.signInPrompt")
     }
 
     // r2-store balance card: read-only server balance; points are earned, never sold (no top-up packs here).
@@ -304,27 +321,54 @@ struct PassMarketView: View {
         .accessibilityElement(children: .combine)
     }
 
-    @ViewBuilder private func orders(_ rows: [PassOrderRow]) -> some View {
-        if rows.isEmpty {
+    @ViewBuilder private func orders(_ content: PassMarketContent) -> some View {
+        let rows = content.orders
+        if rows.isEmpty && content.passOrders.isEmpty {
             CYEmptyState(systemImage: "doc.text", "mp.pass.empty.orders", messageIdentifier: "passMarket.orders.empty")
         } else {
-            MPRows(items: rows) { row in
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        (row.name.map { Text(verbatim: $0) } ?? Text("mp.pass.order.fallbackName")).cyText(.bodyMedium)
-                        row.state.text.cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
-                        if let amount = row.amountText { Text(verbatim: amount).cyText(.bodyMedium).monospacedDigit() }
-                        if let time = row.timeText { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    }
-                }
-                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("passMarket.order.\(row.id)")
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                if !content.passOrders.isEmpty { passOrders(content.passOrders) }
+                if !rows.isEmpty { catalogOrders(rows) }
             }
         }
+    }
+
+    /// `market/passes` 通行证订单 group: name + sub, status (and refund progress), amount. Tap opens the order.
+    private func passOrders(_ rows: [PlatformPassSubscriptionOrder]) -> some View {
+        MPRows(items: rows) { row in
+            let line = MPRow(title: Text(verbatim: row.name),
+                             sub: Text(verbatim: [row.sub, row.refundText.isEmpty ? row.stateText : row.refundText]
+                                .filter { !$0.isEmpty }.joined(separator: " · ")),
+                             value: Text(verbatim: row.amount.isEmpty ? MPText.unknown : row.amount),
+                             chevron: onOpenPassOrder != nil)
+            Group {
+                if let onOpenPassOrder {
+                    Button { onOpenPassOrder(row.orderNo) } label: { line }.buttonStyle(.cyPressable)
+                } else {
+                    line
+                }
+            }
+            .accessibilityIdentifier("passMarket.passOrder.\(row.orderNo)")
+        }
+    }
+
+    private func catalogOrders(_ rows: [PassOrderRow]) -> some View {
+        MPRows(items: rows) { row in
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    (row.name.map { Text(verbatim: $0) } ?? Text("mp.pass.order.fallbackName")).cyText(.bodyMedium)
+                    row.state.text.cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                Spacer()
+                VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+                    if let amount = row.amountText { Text(verbatim: amount).cyText(.bodyMedium).monospacedDigit() }
+                    if let time = row.timeText { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                }
+            }
+            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("passMarket.order.\(row.id)")
+            }
     }
 
     @ViewBuilder private func gifts(_ content: PassMarketContent) -> some View {
@@ -426,6 +470,8 @@ enum PassBuyState: Equatable {
     case checkout(activityID: String?, ticketID: String?)
     /// Quote allows these pay modes. Drawn read-only while `MPCommerceGate.purchasesEnabled` is false.
     case buyable(payModes: [PassPayMode], cashReason: String?)
+    /// Guest: 购买 asks to sign in first (`market/pass` index.js:80).
+    case signIn
 }
 
 struct PassPayMode: Identifiable, Equatable {
@@ -494,13 +540,22 @@ extension PassDetailBinding {
     @State private var route: MPParityRoute?
 
     var body: some View {
-        PassDetailView(state: binding.state, onRetry: { binding.load() }, onSetForGift: { binding.setForGift($0) }, onOpenCheckout: onOpenCheckout,
+        PassDetailView(state: binding.state, onRetry: { binding.load() }, onSetForGift: { binding.setForGift($0) },
+                       onOpenCheckout: onOpenCheckout ?? openActivitySignup,
                        onResultDone: { gift in
                            binding.dismissResult()
                            route = .passes(tab: gift ? .gifts : .orders)
-                       })
+                       },
+                       onSignIn: { PlayerJourneySignInBridge.shared.request() })
             .task { binding.load() }
             .mpParityRouteDestination($route)
+    }
+
+    /// Group / school product 去报名: the activity page, where signup picks the ticket (`pages/activity/baoming`
+    /// has no native screen of its own). The ticket id is not carried; signup asks for it.
+    private func openActivitySignup(_ activityID: String, _ ticketID: String?) {
+        guard let id = Int(activityID), id > 0, String(id) == activityID else { return }
+        route = .screen(page: "pages/activity/detail/index", query: ["id": activityID])
     }
 }
 
@@ -512,6 +567,8 @@ struct PassDetailView: View {
     let onOpenCheckout: ((String, String?) -> Void)?
     /// Unlock steps finished (false) or gift sheet closed (true).
     var onResultDone: (Bool) -> Void = { _ in }
+    /// Guest 购买 → sign in.
+    var onSignIn: (() -> Void)? = nil
 
     private enum ForWhom: String, CaseIterable, Identifiable { case me, gift; var id: String { rawValue } }
 
@@ -621,6 +678,9 @@ struct PassDetailView: View {
                     .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("passDetail.unavailable")
+            case .signIn:
+                CYPillButton("mp.pass.buy.signIn") { onSignIn?() }
+                    .accessibilityIdentifier("passDetail.signIn")
             case .checkout(let activityID, let ticketID):
                 if let activityID, let onOpenCheckout {
                     CYPillButton("mp.pass.buy.checkout") { onOpenCheckout(activityID, ticketID) }
@@ -846,7 +906,7 @@ struct PassGiftClaimView: View {
                 else if let failedReason { Text(verbatim: failedReason) }
                 else { Text("mp.gift.title") }
             }
-            .cyText(.pageTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+            .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
             .padding(.horizontal, CYSpacing.xxl)
             .accessibilityAddTraits(.updatesFrequently)
             .accessibilityIdentifier("passGift.status")
@@ -873,5 +933,104 @@ struct PassGiftClaimView: View {
             withAnimation(CYMotion.resolve(.spring(response: 0.45, dampingFraction: 0.6), reduceMotion: reduceMotion)) { popped = true }
             glowing = true
         }
+    }
+}
+
+// MARK: - Pass order (`subpackageMember/market/pass-order`)
+
+/// Read-only city-pass order: status, refund progress, validity, paid day, copy the order number. 继续付款 stays gated;
+/// 取消订单 and 申请退款 are platform-pass writes that are not wired here (see the receipt), so they show the gate note.
+@MainActor protocol PassOrderDetailBinding: AnyObject, Observable {
+    var phase: MPLoad<PlatformPassSubscriptionOrder> { get }
+    func load()
+}
+
+@MainActor struct PassOrderDetailHost: View {
+    let binding: any PassOrderDetailBinding
+    var body: some View {
+        PassOrderDetailView(phase: binding.phase, onRetry: { binding.load() })
+            .task { binding.load() }
+    }
+}
+
+struct PassOrderDetailView: View {
+    let phase: MPLoad<PlatformPassSubscriptionOrder>
+    let onRetry: () -> Void
+    @State private var copied = false
+    @State private var openAssistant = false
+
+    var body: some View {
+        ScrollView {
+            MPLoadSwitch(load: phase, errorTitle: "mp.common.loadFailed", identifier: "passOrder", onRetry: onRetry) { order in
+                content(order)
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .refreshable { onRetry() }
+        .cyPushedChrome(domain: .player)
+        .cyPageTitle("mp.passOrder.title")
+        .navigationDestination(isPresented: $openAssistant) { MPReviewedPageScreen(page: "subpackageB/pages/im/list/index", query: [:]) }
+    }
+
+    private func content(_ order: PlatformPassSubscriptionOrder) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            MPCard {
+                MPRow(title: Text(verbatim: order.name), sub: order.sub.isEmpty ? nil : Text(verbatim: order.sub),
+                      value: Text(verbatim: order.amount.isEmpty ? MPText.unknown : order.amount), strong: true)
+                MPDivider()
+                MPRow(title: Text("mp.passOrder.state"), value: Text(verbatim: order.stateText))
+                if !order.refundText.isEmpty {
+                    MPDivider()
+                    MPRow(title: Text("mp.passOrder.refund"), value: Text(verbatim: order.refundText))
+                }
+                switch order.refundDetail {
+                case .refunded(let amount, let time):
+                    MPDivider()
+                    MPRow(title: Text("mp.passOrder.refundAmount"), value: Text(verbatim: amount))
+                    if !time.isEmpty {
+                        MPDivider()
+                        MPRow(title: Text("mp.passOrder.refundTime"), value: Text(verbatim: time))
+                    }
+                case .rejected(let reason, _):
+                    if !reason.isEmpty {
+                        MPDivider()
+                        MPRow(title: Text("mp.passOrder.rejectReason"), value: Text(verbatim: reason))
+                    }
+                    MPDivider()
+                    Button { openAssistant = true } label: {
+                        MPRow(title: Text("mp.passOrder.review"), value: Text("mp.passOrder.review.assistant"), chevron: true)
+                    }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("passOrder.review")
+                case nil:
+                    EmptyView()
+                }
+                if !order.validTo.isEmpty {
+                    MPDivider()
+                    MPRow(title: Text("mp.passOrder.validTo"), value: Text(verbatim: order.validTo))
+                }
+                if !order.time.isEmpty {
+                    MPDivider()
+                    MPRow(title: Text("mp.passOrder.paidTime"), value: Text(verbatim: order.time))
+                }
+                MPDivider()
+                Button {
+                    LocalPasteboard.copy(order.orderNo)
+                    copied = true
+                } label: {
+                    MPRow(title: Text("mp.passOrder.number"),
+                          value: copied ? Text("mp.passOrder.copied") : Text("mp.passOrder.copy"))
+                }
+                .buttonStyle(.cyPressable)
+                .sensoryFeedback(.success, trigger: copied)
+                .accessibilityIdentifier("passOrder.copy")
+            }
+            .accessibilityIdentifier("passOrder.rows")
+            if order.canResume || order.canCancel || order.canRefund {
+                MPGatedNote(text: Text("mp.passOrder.gated"), identifier: "passOrder.gated")
+            }
+        }
+        .transition(.opacity)
     }
 }

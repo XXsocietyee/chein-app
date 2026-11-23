@@ -18,9 +18,11 @@ class TemplateAuthoringContracts(unittest.TestCase):
     def test_exact_template_endpoint_set(self):
         native=self.read('Core/TemplateAuthoringContract.swift')
         paths=set(re.findall(r'"(/api/[^\"]+)"',native))
-        self.assertEqual(paths, {'/api/template/my-list','/api/template/draft','/api/template/publish','/api/template/delete','/api/template/updateLibraryStatus','/api/common/dict'})
+        # PLY-26-1: 提交广场审核 follows the mini-program (`utils/template-market.js`), not Flutter.
+        market='/api/template/\\(id.rawValue)/market-submit'
+        self.assertEqual(paths, {'/api/template/my-list','/api/template/draft','/api/template/publish','/api/template/delete','/api/template/updateLibraryStatus','/api/common/dict',market})
         source=self.source('lib/data/api/template_api.dart')+self.source('lib/data/api/registration_api.dart')
-        for path in paths:self.assertIn("'"+path+"'",source)
+        for path in paths-{market}:self.assertIn("'"+path+"'",source)
     def test_payload_field_names_match_all_source_fields(self):
         source=self.source('lib/data/models/template_draft.dart').split('Map<String, dynamic> toJson()')[1].split('class TemplatePublishException')[0]
         expected=set(re.findall(r"'([^']+)'\s*:",source))

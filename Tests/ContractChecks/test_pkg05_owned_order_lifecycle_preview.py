@@ -8,7 +8,7 @@ class Pkg05LifecyclePreview(unittest.TestCase):
     def test_account_orders_inject_fenced_read_only_coordinator_with_top_level_buyer_member_id_check(self):
         s = self.host()
         self.assertIn('struct OwnedOrdersLifecycleHost', s)
-        self.assertIn('OrderLifecycleCoordinator(\n            reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader))', s)
+        self.assertIn('OrderLifecycleCoordinator(\n            reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader),\n            production: { [weak session] in session?.makeOrderLifecycleDispatcher() }))', s)
         self.assertIn('lifecycleCoordinator: coordinator', s)
         self.assertIn('final class OwnedOrderLifecycleReader: OrderLifecycleReading', s)
         self.assertIn('var isOfflineExample: Bool { false }', s)
@@ -29,11 +29,20 @@ class Pkg05LifecyclePreview(unittest.TestCase):
         app_tests = self.read('Tests/AppUnitTests/OwnedOrderCompositionTests.swift')
         self.assertIn('func testOwnedOrderLifecycleReaderEnforcesTopLevelBuyerMemberIdGrantAccountAndKeepsWritesClosed(', app_tests)
 
-    def test_no_dispatch_path_is_opened(self):
+    def test_only_the_reviewed_session_factory_can_dispatch(self):
+        # fix-parity-member FIN-16-1 / FIN-17-1: cancel and cancel-refund reuse the session's reviewed factory.
+        # Payment stays behind ReleaseMoneyWriteSwitch inside that factory; no simulator, no direct transport.
         s = self.host()
-        for forbidden in ['production:', 'fixtureSimulator', 'OrderLifecycleProductionFactory', 'OrderLifecycleProductionDispatcher',
-                          'orderLifecycleCoordinator', 'makeOrderLifecycleDispatcher', 'URLSession', 'transport.send', 'api/']:
+        self.assertEqual(s.count('production:'), 1)
+        self.assertIn('production: { [weak session] in session?.makeOrderLifecycleDispatcher() }', s)
+        self.assertIn('var scope: UUID { current ? base.scope : retiredScope }', s)
+        self.assertIn('var replayContext: OrderLifecycleReplayContext? { current ? base.replayContext : nil }', s)
+        for forbidden in ['fixtureSimulator', 'OrderLifecycleProductionFactory', 'OrderLifecycleProductionDispatcher(',
+                          'orderLifecycleCoordinator', 'URLSession', 'transport.send', 'api/']:
             self.assertNotIn(forbidden, s)
+        sess = self.read('App/AppSession.swift')
+        self.assertIn('    func makeOrderLifecycleDispatcher() -> OrderLifecycleProductionDispatcher? {', sess)
+        self.assertIn('provider: ReleaseMoneyWriteSwitch.paymentEnabled', sess)
     def test_no_shared_integration_file_or_gate_changed(self):
         sess = self.read('App/AppSession.swift')
         self.assertIn('production: { [weak self] in self?.makeOrderLifecycleDispatcher() })', sess)

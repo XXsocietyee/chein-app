@@ -46,6 +46,7 @@ struct MPParityBindings {
     var passGift: (@MainActor (_ token: String) -> any PassGiftClaimBinding)?
     var membership: (@MainActor () -> any PassMembershipBinding)?
     var passLibrary: (@MainActor () -> any PassLibraryBinding)?
+    var passOrder: (@MainActor (_ orderNo: String) -> any PassOrderDetailBinding)?
     var journeyLanding: (@MainActor (_ link: JourneyLandingLink) -> any JourneyLandingBinding)?
     var journeySeats: (@MainActor (_ registrationID: String) -> any JourneySeatsBinding)?
     var journeyPromo: (@MainActor () -> any JourneyPromoBinding)?
@@ -56,6 +57,8 @@ struct MPParityBindings {
     /// Merchant view (`roleGuard.isMerchantView`): merchants have no pass, so the 我的 row, the Explore store card and the
     /// checkout city-pass rows hide, and the reveal shows the one-sentence merchant state. Nil = player.
     var viewerIsMerchant: (@MainActor () -> Bool)?
+    /// True when a player session can read private pass data (gift claim, pass orders).
+    var isSignedIn: (@MainActor () -> Bool)?
     /// Explore store card (`utils/discover-store-card.js`): nil result = nothing on sale, card hidden.
     var passStoreCard: (@MainActor () async -> PassStoreCard?)?
     /// Theme checkout (`self-play-checkout`): pass coverage of one topic + on-sale city passes that cover it.
@@ -101,6 +104,8 @@ enum MPParityRoute: Hashable, Identifiable {
     case gift(token: String)
     case membership
     case library(kind: PassLibraryKind)
+    /// `subpackageMember/market/pass-order/index?orderNo=`: one city-pass order, read only.
+    case passOrder(orderNo: String)
     case reveal(paid: PassRevealPaidFacts?)
     case journeyLanding(JourneyLandingLink)
     case journeySeats(registrationID: String)
@@ -158,12 +163,17 @@ enum MPParityRoute: Hashable, Identifiable {
             guard let id = safeIdentifier("id") else { return nil }
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
-            guard let token = nonEmpty("token"), !token.contains(".."), !token.contains("://") else { return nil }
+            // A missing token still opens the page, which shows the shared missing-link state (MKT-3-2).
+            guard let token = nonEmpty("token") else { self = .gift(token: ""); return }
+            guard !token.contains(".."), !token.contains("://") else { return nil }
             self = .gift(token: token)
         case "subpackageMember/market/membership/index":
             self = .membership
         case "subpackageMember/market/library/index":
             self = .library(kind: query["kind"].flatMap(PassLibraryKind.init(rawValue:)) ?? .all)
+        case "subpackageMember/market/pass-order/index":
+            guard let orderNo = nonEmpty("orderNo"), PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { return nil }
+            self = .passOrder(orderNo: orderNo)
         case "subpackagePass/reveal/index":
             // Paid reveal facts come only from verified in-app purchase flow, never from URL query params.
             self = .reveal(paid: nil)
@@ -199,7 +209,12 @@ enum MPParityRoute: Hashable, Identifiable {
             guard club != nil || mine else { return nil }
             self = .clubSettlement(clubID: club, mine: mine, personal: query["personal"] == "1")
         case "subpackageMember/order/order":
-            self = .playerOrderList
+            if query["detailId"]?.isEmpty == false {
+                guard let id = positiveIDString("detailId") else { return nil }
+                self = .screen(page: "subpackageMember/orderinfo/orderinfo", query: ["id": id])
+            } else {
+                self = .playerOrderList
+            }
         case "pages/coop/list/index":
             self = .coopList(query["tab"] == "sent" ? .sent : .received)
         case "subpackageA/pages/myproject/index":
@@ -227,11 +242,22 @@ enum MPParityRoute: Hashable, Identifiable {
         case .pass(let id):
             if let make = bindings.passDetail { PassDetailHost(binding: make(id)) } else { unavailable }
         case .gift(let token):
-            if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
+            if token.isEmpty {
+                CYStateLayout(kind: .generic, title: Text("mp.gift.linkInvalid"))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityIdentifier("passGift.missing")
+            } else if bindings.isSignedIn?() == false {
+                CYStateLayout(kind: .generic, title: Text("mp.gift.signIn"),
+                              primary: (title: "mp.pass.signIn.action", action: { PlayerJourneySignInBridge.shared.request() }),
+                              primaryStyle: .primary, primaryIdentifier: "passGift.signIn")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let make = bindings.passGift { PassGiftClaimHost(binding: make(token)) } else { unavailable }
         case .membership:
             if let make = bindings.membership { PassMembershipHost(binding: make()) } else { unavailable }
         case .library(let kind):
             if let make = bindings.passLibrary { PassLibraryHost(binding: make(), initialKind: kind) } else { unavailable }
+        case .passOrder(let orderNo):
+            if let make = bindings.passOrder { PassOrderDetailHost(binding: make(orderNo)) } else { unavailable }
         case .reveal(let paid):
             PassRevealView(paid: paid, accountKey: bindings.revealAccountKey?(), isMerchant: bindings.isMerchant)
         case .journeyLanding(let link):

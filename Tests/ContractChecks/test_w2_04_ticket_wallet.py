@@ -22,7 +22,7 @@ class W204TicketWalletParity(unittest.TestCase):
         return self.catalog[key]['localizations']['zh-Hans']['stringUnit']['value']
 
     def test_source_copy_is_exact(self):
-        expected = {'ticketWallet.loading': '加载中…', 'ticketWallet.empty': '票夹还是空的。报名活动后，票会放在这里。',
+        expected = {'ticketWallet.loading': '加载中…', 'ticketWallet.empty': '还没有票',
                     'ticketWallet.issue.login': '登录后查看票夹', 'ticketWallet.parity.error.title': '票夹没能打开',
                     'ticketWallet.parity.login.detail': '登录后可查看你报名的路线票和场次票',
                     'ticketWallet.parity.empty.detail': '去首页发现路线或报名场次，票会在这里出现。',
@@ -40,14 +40,19 @@ class W204TicketWalletParity(unittest.TestCase):
     def test_full_failure_title_and_empty_hint_do_not_claim_partial_empty(self):
         self.assertIn('Text("ticketWallet.parity.error.title")', self.view)
         empty = self.view.split('if snapshot.tickets.isEmpty {', 1)[1].split('ForEach(', 1)[0]
-        self.assertIn('if snapshot.partialFailure == nil {', empty)
-        self.assertIn('Text("ticketWallet.parity.empty.detail")', empty)
-        partial = self.view.split('if let partial = snapshot.partialFailure {', 1)[1].split('if snapshot.tickets.isEmpty {', 1)[0]
+        # MP empty is「还没有票」with no sub line (PLY-21-11); a partial read still never claims the wallet is empty.
+        self.assertIn('snapshot.partialFailure == nil ? "ticketWallet.empty" : "ticketWallet.partialEmpty"', empty)
+        self.assertNotIn('ticketWallet.parity.empty.detail', empty)
+        # MP F-R2U-01 (PLY-21-10): the failed lane is a quiet meta note, never the full-failure title.
+        partial = self.view.split('if let partial = model.value(owner: key)?.partialFailure {', 1)[1].split('}', 1)[0]
+        self.assertIn('.cyText(.meta)', partial)
         self.assertNotIn('ticketWallet.parity.error.title', partial)
 
     def test_hint_and_title_are_presentation_only(self):
         self.assertIn('TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)', self.view)
-        self.assertIn('if let hint = ticket.statusHintKey, ticket.action == .detail {', self.view)
+        # Owner rule: no status on the card; the stub carries the MP sub-line (类型 · 剩 N 天) instead (PLY-21-5).
+        self.assertIn('if let type = ticket.walletTypeKey {', self.view)
+        self.assertNotIn('TicketWalletStatusBadge(status: ticket.status)', self.view)
         body = self.copy.split('public extension TicketWalletTicket {', 1)[1]
         for forbidden in ['action', 'Task {', 'transport', 'URLRequest', 'send(']:
             self.assertNotIn(forbidden, body)
@@ -55,7 +60,8 @@ class W204TicketWalletParity(unittest.TestCase):
 
     def test_ready_rows_still_open_detail_first(self):
         # Direct play would bypass the tested fresh-detail gate; parity records this gap.
-        self.assertIn('if ticket.action == .detail {\n                            NavigationLink {\n                                TicketWalletDetailView(', self.view)
+        # Upcoming / refunding tickets are locked (MP wLocked) and do not open.
+        self.assertIn('if ticket.action == .detail && !ticket.isWalletLocked {\n                            NavigationLink {\n                                TicketWalletDetailView(', self.view)
         self.assertNotIn('ticketWalletPlayProvider', self.view)
 
     def test_list_request_body_is_unchanged(self):

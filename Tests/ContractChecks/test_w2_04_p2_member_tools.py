@@ -26,7 +26,8 @@ class W204P2MemberToolsChecks(unittest.TestCase):
     def test_wallet_notices_are_display_only(self):
         # The restyled card names the state through the status badge and the schedule-sync/status-hint lines; the
         # per-row source-notice strip is mounted again for rows that do not open (cancelled/expired/unknown/payment).
-        self.assertIn('TicketWalletStatusBadge(status: ticket.status)', self.wallet)
+        # Owner rule (MP 2026-10-28): no status badge on a wallet card; only the MP tag (PLY-21-5).
+        self.assertIn('TicketWalletCardTag(ticket: ticket)', self.wallet)
         self.assertIn('Text("ticketWallet.p2.notice.scheduleSync")', self.wallet)
         self.assertIn('Text(LocalizedStringKey(ticket.sourceNoticeKey))', self.wallet)
         self.assertIn('if ticket.action != .detail {', self.wallet)
@@ -63,15 +64,14 @@ class W204P2MemberToolsChecks(unittest.TestCase):
             self.assertEqual(self.catalog[key], entry)
 
     def test_pinned_template_files_untouched_by_this_pass(self):
-        # The host now shows the plan through the card section. It stays a preview.
+        # PLY-26-1: the host row offers the plan's one action through the reviewed shelf write; the card stays facts only.
         view = read('App/TemplateAuthoringMineView.swift')
         self.assertIn('TemplateOwnShelfCardSection', view)
         self.assertNotIn('/market-submit', view)
-        self.assertNotIn('TemplateOwnShelfMarketPlan', view)
-        self.assertIn('public var isDispatchable: Bool { false }', read('Core/TemplateOwnShelfMarketPlan.swift'))
-        # The card section only displays the plan: it states the preview-only rule and has no control or request.
+        self.assertIn('if let market = TemplateOwnShelfMarketPlan(state).action {', view)
+        self.assertIn('public var isDispatchable: Bool { action != nil }', read('Core/TemplateOwnShelfMarketPlan.swift'))
         card = read('App/TemplateOwnShelfCardSection.swift')
-        self.assertIn('`isDispatchable` stays false, so this view', card)
+        self.assertIn('the host row owns the action, so this view', card)
         for token in ['Button', 'NavigationLink', 'URLSession', 'Task {', 'market-submit']:
             self.assertNotIn(token, card)
 

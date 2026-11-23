@@ -234,6 +234,7 @@ import SwiftUI
                 TicketPassSheet(reader: session.ticketWalletReader, onClose: { showsTicketPass = false },
                                 onOpenWallet: { opensWalletAfterPass = true; showsTicketPass = false },
                                 lifecycleCoordinator: session.orderLifecycleCoordinator, makeTeamCoordinator: { session.makeTeamCoordinator() })
+                    .environment(\.ticketWalletPlayProvider, ticketPlayProvider)
                     .id(session.ticketWalletReader.scope)
                     .cyPlayerSheetGlass()
             }

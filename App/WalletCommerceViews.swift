@@ -213,8 +213,9 @@ enum WalletPayoutCapability {
         var out: [WalletQuickAction] = []
         if WalletPayoutCapability.isOn, visibility.withdrawalRecords, showsWithdrawalSupport {
             out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportLandingView(reader: reader)) })
-        } else if WalletPayoutCapability.isOn, visibility.withdrawalRecords {
-            out.append(.init(title: "wallet.withdrawals", icon: "arrow.up.right", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
+        } else if visibility.withdrawalRecords {
+            // FIN-19-2: 提现记录 is a read; only the apply entry follows the withdrawal switch.
+            out.append(.init(title: "wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
         }
         if visibility.income { out.append(.init(title: "wallet.income", icon: "list.bullet.indent", id: "wallet.income.open") { AnyView(incomeDestination) }) }
         // Source assetcenter/earnings quick row: 提现 / 明细 / 分析 / 更多. Points history moves into 更多.
@@ -336,9 +337,10 @@ enum WalletPayoutCapability {
                             .id(invitationHistory.reader.identity)
                     }
                 }
-                if visibility.points { walletRow("wallet.points", icon: "star.circle", id: "wallet.points.open") { WalletLedgerView(reader: reader, kind: .points) } }
+                // FIN-18-1: one 积分明细 contract on every entry, the MP points-history read (`api/points/list`).
+                if visibility.points { walletRow("wallet.points", icon: "star.circle", id: "wallet.points.open") { WalletLedgerView(reader: reader, kind: .assetPoints) } }
                 if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
-                if WalletPayoutCapability.isOn, visibility.withdrawalRecords {
+                if visibility.withdrawalRecords {
                     walletRow("wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { WithdrawalHistoryView(reader: reader) }
                 }
                 if visibility.assets {
@@ -477,16 +479,18 @@ extension EnvironmentValues {
             balanceHero
             // Everything below the balance header exists only at the end of the zoom: it fades in from about 50% of it.
             Group {
+            if !(points && model.pager.hasLoadedPage && model.pager.rows.isEmpty) {
             Picker("wallet.direction", selection: $direction) {
                 // Source points-history chips read 全部 / 获得 / 使用; money ledgers keep 收入 / 支出.
                 Text("wallet.all").tag("all")
                 Text(points ? "u9cde.points.earned" : "wallet.inflow").tag("income")
                 Text(points ? "u9cde.points.used" : "wallet.outflow").tag("expense")
             }.pickerStyle(.segmented)
+            }
             if points { NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
-                    if income {
+                    if income || points {
                         CYEmptyState(systemImage: "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
                             .accessibilityIdentifier("wallet.ledger.empty")
                     } else {
@@ -611,6 +615,11 @@ extension EnvironmentValues {
         }
     }
     @ViewBuilder private func ledgerRowButton(_ row: WalletLedgerRow) -> some View {
+        if points {
+            // FIN-18-4: MP 积分明细 rows are plain records, with no detail sheet.
+            ledgerRow(row).frame(minHeight: 44).accessibilityElement(children: .combine)
+                .accessibilityIdentifier("wallet.ledger.row.\(row.id)")
+        } else {
         Button {
             incomeDetail = income ? model.pager.incomeDetail(rowID: row.id, reader: reader)
                                   : model.pager.ledgerTransactionDetail(rowID: row.id, reader: reader)
@@ -620,6 +629,7 @@ extension EnvironmentValues {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(income ? "wallet.income.detail.open.\(row.id)" : "wallet.ledger.detail.open.\(row.id)")
+        }
     }
     /// Mini-program 积分明细 row: reason and time on the left, signed amount on the right.
     private func ledgerRow(_ row: WalletLedgerRow) -> some View {

@@ -11,7 +11,7 @@ public enum WalletPointsLedgerEmptyState {
         switch direction {
         case "income": return "wallet.points.empty.income"
         case "expense": return "wallet.points.empty.expense"
-        default: return "wallet.empty"
+        default: return "wallet.points.empty.all"
         }
     }
 }

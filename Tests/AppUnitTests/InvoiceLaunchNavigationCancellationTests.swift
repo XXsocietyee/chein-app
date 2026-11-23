@@ -124,7 +124,12 @@ import Foundation
         XCTAssertFalse(ok)
         XCTAssertEqual(h.wire.paths.filter { $0 == "cancel" }.count, 1)
         XCTAssertTrue(h.model.unresolved)
-        XCTAssertEqual(h.model.issue, "unknown")
+        // X5 / FIN-11-2: an unconfirmed write keeps the list and states the result in place.
+        XCTAssertNil(h.model.issue)
+        XCTAssertNotNil(h.model.overview)
+        XCTAssertEqual(h.model.writeNotice?.kind, .unknown)
+        XCTAssertEqual(h.model.writeNotice?.action, .cancel)
+        XCTAssertFalse(h.model.allows(.cancel))
         XCTAssertFalse(h.memory.values.isEmpty)
     }
     func testApplySendsExactBodyAndSucceedsOnlyAfterReadback() async throws {

@@ -3,6 +3,56 @@ import SwiftUI
 /// Host-owned capabilities. These only hide UI; the existing service still authorizes every request.
 enum InvoiceLaunchUIAction: Hashable { case apply, saveTitle, deleteTitle, cancel }
 
+/// A write the server refused (proven rollback) or left unconfirmed. The page keeps what it shows and states the
+/// result in place, as the mini-program's `cy-inline-error` / toast do (X5, FIN-11-2, FIN-13-2, FIN-14-1, FIN-15-3).
+struct InvoiceLaunchWriteNotice: Equatable {
+    enum Kind: Equatable { case rejected, unknown, tooMany }
+    let action: InvoiceLaunchUIAction
+    let kind: Kind
+    let code: String?
+    /// Source `ORDER_CHANGED` (invoice-apply/index.js:7): the selection is stale, pick again.
+    static let orderChangedCodes: Set<String> = ["INVOICE_ORDER_NOT_ELIGIBLE", "INVOICE_ORDER_ALREADY_INVOICED", "INVOICE_STATE_CONFLICT"]
+    /// InvoiceLaunchUI key of the first line.
+    var titleKey: String {
+        switch (action, kind) {
+        case (_, .tooMany): return "write.maxOrders"
+        case (.apply, .unknown): return "write.apply.unknown"
+        case (.apply, _): return "write.apply.failed"
+        case (.saveTitle, .unknown): return "write.save.unknown"
+        case (.saveTitle, _): return "write.save.failed"
+        case (.deleteTitle, .unknown): return "write.delete.unknown"
+        case (.deleteTitle, _): return "write.delete.failed"
+        case (.cancel, .unknown): return "write.cancel.unknown"
+        case (.cancel, _): return "write.cancel.failed"
+        }
+    }
+    /// InvoiceLaunchUI key of the second line, when the code is one the source explains.
+    var detailKey: String? {
+        switch kind {
+        case .tooMany: return nil
+        case .unknown:
+            switch action {
+            case .apply: return "write.apply.unknown.sub"
+            case .saveTitle: return "write.save.unknown.sub"
+            case .deleteTitle, .cancel: return nil
+            }
+        case .rejected:
+            guard let code else { return nil }
+            if Self.orderChangedCodes.contains(code) { return "write.orderChanged" }
+            switch code {
+            case "INVOICE_TAX_NO_INVALID": return "taxInvalid"
+            case "INVOICE_TITLE_LIMIT": return "write.titleLimit"
+            case "INVOICE_TITLE_NOT_FOUND": return "write.titleNotFound"
+            case "INVOICE_TITLE_NAME_INVALID", "INVOICE_TITLE_TYPE_INVALID", "INVOICE_ARGUMENT_INVALID": return "notSaved"
+            case "INVOICE_FEATURE_OFF": return "unavailable"
+            default: return nil
+            }
+        }
+    }
+    /// Apply rejections offer 重新选择 (source `reselect`); other writes offer nothing (the page is still there).
+    var offersReselect: Bool { action == .apply && kind != .unknown }
+}
+
 @MainActor final class InvoiceLaunchPresentation: ObservableObject {
     let coordinator: InvoiceLaunchCoordinator
     private let isCurrent: () -> Bool
@@ -12,6 +62,10 @@ enum InvoiceLaunchUIAction: Hashable { case apply, saveTitle, deleteTitle, cance
     @Published private(set) var busy = false
     @Published private(set) var issue: String?
     @Published private(set) var unresolved = false
+    /// Inline result of the last refused or unconfirmed write. The overview stays on screen (X5).
+    @Published private(set) var writeNotice: InvoiceLaunchWriteNotice?
+    /// A manual 查询结果 that still found nothing: source 暂未查到这次申请 · 再查一次 (FIN-11-4).
+    @Published private(set) var recheckMissed = false
     @Published private(set) var identityRevision = UUID()
     private var generation: UUID { identityRevision }
     private var detailIntent = UUID()
@@ -55,25 +109,33 @@ enum InvoiceLaunchUIAction: Hashable { case apply, saveTitle, deleteTitle, cance
     func invalidate() {
         identityRevision = UUID(); detailIntent = UUID()
         wakeIdleWaiters()
-        overview = nil; detail = nil; issue = nil; unresolved = false
+        overview = nil; detail = nil; issue = nil; unresolved = false; writeNotice = nil; recheckMissed = false
         // An outstanding request retains serialization until its own defer runs.
     }
 
-    func refresh() async {
+    func dismissWriteNotice() { writeNotice = nil }
+
+    /// `manual` is the 查询结果 tap: a recovery that still cannot find the original shows 暂未查到这次申请.
+    func refresh(manual: Bool = false) async {
         guard !busy else { return }
         guard isCurrent() else { invalidate(); issue = "session"; return }
         let visit = generation
         busy = true; issue = nil
+        if writeNotice?.kind != .unknown { writeNotice = nil }
         defer { finishOperation() }
         do {
             // Recover before admitting another intent. Recovery is read-only and never resends a write.
             if try coordinator.store.load() != nil {
-                do { _ = try await coordinator.recover() }
-                catch { guard accept(visit) else { return } }
-            }
+                do { _ = try await coordinator.recover(); recheckMissed = false; writeNotice = nil }
+                catch {
+                    guard accept(visit) else { return }
+                    if manual { recheckMissed = true }
+                }
+            } else { recheckMissed = false }
             let result = try await coordinator.overview()
             guard accept(visit) else { return }
             overview = result; unresolved = result.pending != nil
+            if !unresolved, writeNotice?.kind == .unknown { writeNotice = nil }
         } catch { fail(error, visit: visit) }
     }
 
@@ -118,7 +180,7 @@ enum InvoiceLaunchUIAction: Hashable { case apply, saveTitle, deleteTitle, cance
     private func perform(_ action: InvoiceLaunchUIAction, operation: () async throws -> Void) async -> Bool {
         guard allows(action) else { return false }
         let visit = generation
-        busy = true; issue = nil
+        busy = true; issue = nil; writeNotice = nil
         defer { finishOperation() }
         do {
             // The coordinator persists the original request before sending. No UI retry creates a second intent.
@@ -132,7 +194,32 @@ enum InvoiceLaunchUIAction: Hashable { case apply, saveTitle, deleteTitle, cance
             } catch { fail(error, visit: visit) }
             // The mutation was confirmed even if refreshing the list subsequently failed.
             return generation == visit && isCurrent()
-        } catch { fail(error, visit: visit); return false }
+        } catch { await failWrite(error, action: action, visit: visit); return false }
+    }
+
+    /// A refused or unconfirmed write keeps the page: last overview stays, the list is re-read in place, and the
+    /// result is stated inline. Session, switch and storage failures still take the page-level path.
+    private func failWrite(_ error: Error, action: InvoiceLaunchUIAction, visit: UUID) async {
+        guard accept(visit) else { return }
+        let kind: InvoiceLaunchWriteNotice.Kind
+        var code: String?
+        switch error as? InvoiceLaunchIssue {
+        case .rejected(let value)?:
+            code = value; kind = value == "INVOICE_ORDERS_TOO_MANY" ? .tooMany : .rejected
+        case .invalid?: kind = .rejected
+        case .outcomeUnknown?, .pendingConflict?, .originalReadUnavailable?: kind = .unknown
+        default: fail(error, visit: visit); return
+        }
+        guard overview != nil else { fail(error, visit: visit); return }
+        writeNotice = InvoiceLaunchWriteNotice(action: action, kind: kind, code: code)
+        unresolved = kind == .unknown || journalPending()
+        // Source reloads eligible orders after a refused apply; a failed re-read keeps the last list.
+        if let result = try? await coordinator.overview(), accept(visit) {
+            overview = result; unresolved = unresolved || result.pending != nil
+        }
+    }
+    private func journalPending() -> Bool {
+        do { return try coordinator.store.load() != nil } catch { return true }
     }
 
     private func accept(_ visit: UUID) -> Bool {
@@ -146,6 +233,8 @@ enum InvoiceLaunchUIAction: Hashable { case apply, saveTitle, deleteTitle, cance
     }
     private func fail(_ error: Error, visit: UUID) {
         guard accept(visit) else { return }
+        // A plain read failure keeps the last list on screen with an inline retry (X5); anything else clears it.
+        let shown = overview
         overview = nil; detail = nil
         do { unresolved = try coordinator.store.load() != nil }
         catch { unresolved = true }
@@ -155,7 +244,7 @@ enum InvoiceLaunchUIAction: Hashable { case apply, saveTitle, deleteTitle, cance
         case .outcomeUnknown, .originalReadUnavailable, .pendingConflict: unresolved = true; issue = "unknown"
         case .storageUnavailable: unresolved = true; issue = "storage"
         case .invalid, .rejected: issue = "notSaved"
-        default: issue = "loadFailed"
+        default: issue = "loadFailed"; overview = shown
         }
     }
 }
@@ -172,15 +261,34 @@ func invoiceLaunchDisplayedAmount(_ value: Decimal, locale: Locale) -> String {
     if amount.literal == nil { return amount.displayText }
     return invoiceAmount(value, locale: locale)
 }
+/// Source base.js `timeText`: 「10月27日 10:30」. A server wall-clock string keeps its clock; unparseable text is shown as is.
 func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
+    let date: Date
     switch time {
-    case .text(let value): return value
+    case .text(let value):
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "—" }
+        let parser = DateFormatter(); parser.locale = Locale(identifier: "en_US_POSIX")
+        var parsed: Date?
+        for format in ["yyyy-MM-dd HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd HH:mm", "yyyy-MM-dd'T'HH:mm"] where parsed == nil {
+            parser.dateFormat = format
+            parsed = parser.date(from: String(trimmed.prefix(format.replacingOccurrences(of: "'", with: "").count)))
+        }
+        guard let parsed else { return trimmed }
+        date = parsed
     case .epochMilliseconds(let value):
-        let formatter = DateFormatter(); formatter.locale = locale
-        formatter.dateStyle = .medium; formatter.timeStyle = .short
-        return formatter.string(from: Date(timeIntervalSince1970: Double(value) / 1000))
+        date = Date(timeIntervalSince1970: Double(value) / 1000)
     case nil: return "—"
     }
+    let formatter = DateFormatter(); formatter.locale = locale
+    formatter.setLocalizedDateFormatFromTemplate("MMMdHHmm")
+    return formatter.string(from: date)
+}
+/// Source base.js `titleLine`: 单位/个人 · 部分税号 · 默认.
+func invoiceTitleLine(_ title: InvoiceLaunchTitle) -> String {
+    let type = title.titleType == "COMPANY" || title.titleType == "PERSONAL" ? invoiceString(title.titleType) : ""
+    return [type, title.taxNoMasked ?? "", title.isDefault ? invoiceString("defaultShort") : ""]
+        .filter { !$0.isEmpty }.joined(separator: " · ")
 }
 
 @MainActor struct InvoiceLaunchStateSection: View {
@@ -188,32 +296,85 @@ func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
     var retry: (() async -> Void)? = nil
     /// Source signed-out state title per page (登录后查看发票 / 登录后申请开票 / 登录后管理发票抬头).
     var sessionTitle: LocalizedStringKey = "u9cde.invoice.login.view"
+    /// Source 微信登录 CTA. Nil hides the button (the host has no sign-in entry here).
+    var onSignIn: (() -> Void)? = nil
+    /// Page-level load-failure title (source 发票记录加载失败 / 发票申请加载失败 / 开票信息加载失败 / 发票抬头加载失败).
+    var loadFailedKey: String = "loadFailed"
     var body: some View {
         if model.unresolved {
             Section {
-                Label { invoiceText("unknown") } icon: { Image(systemName: "clock.badge.questionmark") }
-                    .font(CYTypography.body).accessibilityIdentifier("invoice.pending")
-                CYPillButton("checkResult", style: .secondary, tableName: "InvoiceLaunchUI") { Task { await model.refresh() } }
+                // Source cy-inline-error: 上次的开票申请结果未确认 · 确认前请勿重复提交 · 查询结果,
+                // and after a miss 暂未查到这次申请 · 请稍后再查，或联系客服 · 再查一次 (FIN-11-4, FIN-11-6).
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Label { invoiceText(model.recheckMissed ? "notFound" : "unknown") } icon: { Image(systemName: "clock.badge.questionmark") }
+                        .cyText(.bodyMedium)
+                    invoiceText(model.recheckMissed ? "notFound.sub" : "unknown.sub")
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                .accessibilityElement(children: .combine).accessibilityIdentifier("invoice.pending")
+                CYPillButton(model.recheckMissed ? "recheck" : "checkResult", style: .secondary, tableName: "InvoiceLaunchUI") { Task { await model.refresh(manual: true) } }
                     .disabled(model.busy).accessibilityIdentifier("invoice.recover")
                     .listRowBackground(Color.clear)
             }
         }
         if model.issue == "session" {
-            // Source cy-empty kind="no-permission": lock icon and the page's 登录后… title.
+            // Source cy-empty kind="no-permission": lock icon, the page's 登录后… title and 微信登录 (FIN-11-7).
             ContentUnavailableView {
                 Label { Text(sessionTitle) } icon: { Image(systemName: "lock") }
-            } description: { invoiceText("session") }
+            } description: { invoiceText("session") } actions: {
+                if let onSignIn {
+                    CYPillButton("auth.wechat.signIn", style: .primary, fullWidth: false, action: onSignIn)
+                        .accessibilityIdentifier("invoice.signIn")
+                }
+            }
                 .accessibilityIdentifier("invoice.signedOut")
+        } else if model.issue == "unavailable" {
+            // Source 发票功能暂未开放 has no retry: a retry cannot turn the switch on (FIN-11-7).
+            ContentUnavailableView {
+                Label { invoiceText("unavailable") } icon: { Image(systemName: "lock") }
+            }
+                .accessibilityIdentifier("invoice.unavailable")
+        } else if model.issue == "loadFailed", model.overview != nil {
+            // The last list stays; the failed refresh is stated in place with a retry (X5).
+            Section {
+                CYInlineError(verbatim: invoiceString(loadFailedKey)) { Task { if let retry { await retry() } else { await model.refresh() } } }
+            }
+                .listRowBackground(Color.clear)
         } else if let issue = model.issue {
             ContentUnavailableView {
-                Label { invoiceText(issue) } icon: { Image(systemName: "exclamationmark.circle") }
+                Label { invoiceText(issue == "loadFailed" ? loadFailedKey : issue) } icon: { Image(systemName: "exclamationmark.circle") }
             } actions: {
                 CYPillButton("retry", style: .secondary, fullWidth: false, tableName: "InvoiceLaunchUI") { Task { if let retry { await retry() } else { await model.refresh() } } }
                     .disabled(model.busy)
             }
-        } else if model.busy {
+        } else if model.busy && model.overview == nil {
             CYLoadingStateView(rows: 3).listRowBackground(Color.clear).accessibilityLabel(invoiceText("loading"))
         }
+    }
+}
+
+/// In-place result of a refused or unconfirmed write (source `cy-inline-error` in the footer / toast). The page keeps its content.
+@MainActor struct InvoiceLaunchWriteNoticeView: View {
+    let notice: InvoiceLaunchWriteNotice
+    var onReselect: (() -> Void)? = nil
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Label { invoiceText(notice.titleKey) } icon: {
+                Image(systemName: notice.kind == .unknown ? "clock.badge.questionmark" : "exclamationmark.circle.fill")
+                    .foregroundStyle(notice.kind == .unknown ? CYColor.textSecondary : CYColor.dangerText)
+            }
+            .cyText(.bodyMedium)
+            if let detail = notice.detailKey {
+                invoiceText(detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            }
+            if notice.offersReselect, let onReselect {
+                CYPillButton("reselect", style: .secondary, fullWidth: false, tableName: "InvoiceLaunchUI", action: onReselect)
+                    .accessibilityIdentifier("invoice.reselect")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("invoice.writeNotice")
     }
 }
 

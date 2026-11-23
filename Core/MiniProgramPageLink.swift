@@ -27,9 +27,21 @@ public struct MiniProgramPageLink: Equatable, Sendable {
             "subpackageA/pages/video-bounty/index": .init(allowed: ["campaignKey", "topicId"], required: [], ids: ["topicId"]),
             "subpackageMember/market/passes/index": .init(allowed: ["tab"], required: [], ids: []),
             "subpackageMember/market/pass/index": .init(allowed: ["id"], required: ["id"], ids: []),
-            "subpackageMember/market/gift/index": .init(allowed: ["token"], required: ["token"], ids: []),
+            "subpackageMember/market/gift/index": .init(allowed: ["token"], required: [], ids: []),
             "subpackageMember/market/membership/index": .init(allowed: [], required: [], ids: []),
             "subpackageMember/market/library/index": .init(allowed: ["kind"], required: [], ids: []),
+            "subpackageMember/market/pass-order/index": .init(allowed: ["orderNo"], required: ["orderNo"], ids: []),
+            "subpackageMember/free-explore/index": .init(allowed: ["registrationId", "topicId", "requestId"], required: [],
+                                                         ids: ["registrationId", "topicId"]),
+            "subpackageMember/invoice-detail/index": .init(allowed: ["id"], required: ["id"], ids: ["id"]),
+            "subpackageMember/signup/index": .init(allowed: ["focusId", "topicId", "arrive"], required: [], ids: ["focusId", "topicId"]),
+            "subpackageMember/mycanyuinfo/mycanyuinfo": .init(allowed: ["id"], required: ["id"], ids: ["id"]),
+            "subpackageMember/character/index": .init(allowed: ["topicId"], required: ["topicId"], ids: ["topicId"]),
+            "subpackageMember/orient-score/index": .init(allowed: ["topicId", "activityId", "sessionId"], required: ["topicId"],
+                                                         ids: ["topicId", "sessionId"]),  // activityId may be "0" (MP scope)
+            "subpackageMember/report-detail/index": .init(allowed: ["reportId"], required: ["reportId"], ids: ["reportId"]),
+            "subpackageMember/coupon-qr/index": .init(allowed: ["couponHistoryId", "historyId", "id"], required: [],
+                                                      ids: ["couponHistoryId", "historyId", "id"]),
             "subpackagePass/reveal/index": .init(allowed: [], required: [], ids: []),
             "subpackageJourney/pages/landing/index": .init(allowed: ["k", "t", "aid", "tid"], required: ["k", "t"], ids: ["aid", "tid"]),
             "subpackageJourney/pages/seats/index": .init(allowed: ["registrationId"], required: ["registrationId"], ids: ["registrationId"]),
@@ -63,7 +75,10 @@ public struct MiniProgramPageLink: Equatable, Sendable {
                                                     required: ["clubId"], ids: ["clubId", "memberId", "targetId", "targetMemberId"])
         pages["pages/club/roles/index"] = Rule(allowed: ["clubId", "id", "activityId", "activityLabel", "memberId"], required: [], ids: ["clubId", "id", "activityId", "memberId"])
         // Subscribe-message landing pages from public hengyin (cur-push). Set last: `pages/coop/list/index` keeps `tab`.
-        pages["subpackageMember/order/order"] = open
+        // `order/order?detailId=` (subscribe-message landing) opens that order; `orderinfo?outTradeNo=` (payment
+        // receipt) has no by-number read, so it lands on 我的订单.
+        pages["subpackageMember/order/order"] = Rule(allowed: ["detailId"], required: [], ids: ["detailId"])
+        pages["subpackageMember/orderinfo/orderinfo"] = Rule(allowed: ["id", "outTradeNo"], required: [], ids: ["id"])
         pages["pages/coop/list/index"] = Rule(allowed: ["tab"], required: [], ids: [])
         pages["subpackageA/pages/myproject/index"] = open
         pages["pages/merchant/ledger/index"] = open
@@ -162,29 +177,21 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/gerenziliao/gerenziliao",
         "pages/mylike/mylike",
         "pages/crop/index",
-        "subpackageMember/free-explore/index",
-        "subpackageMember/character/index",
-        "subpackageMember/orient-score/index",
         "subpackageMember/invoice/index",
-        "subpackageMember/invoice-detail/index",
         "subpackageMember/invoice-apply/index",
         "subpackageMember/invoice-titles/index",
         "subpackageMember/invoice-title-edit/index",
         "subpackageMember/complaint/index",
         "subpackageMember/coupon-wallet/index",
-        "subpackageMember/coupon-qr/index",
         "subpackageMember/coupon/coupon",
         "subpackageMember/couponInfo/couponInfo",
         "subpackageMember/mycanyu/mycanyu",
-        "subpackageMember/mycanyuinfo/mycanyuinfo",
         "subpackageMember/myinvite/myinvite",
         "subpackageMember/mytemplate/mytemplate",
         "subpackageMember/order/order",
         "subpackageMember/points-history/index",
         "subpackageMember/report-mine/index",
-        "subpackageMember/report-detail/index",
         "subpackageMember/appeal-mine/index",
-        "subpackageMember/signup/index",
         "subpackageMember/tixian/tixian",
         "subpackageMember/tixianjilu/tixianjilu",
         "subpackageRoam/history/index",

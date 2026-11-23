@@ -40,7 +40,9 @@ class ComplaintProgressChecks(unittest.TestCase):
     def test_source_copy_and_handle_note_line(self):
         self.assertIn('Text("profile.complaintProgress.handleNote \\(note)")', self.section)
         self.assertIn('Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty")', self.screen)
-        self.assertIn('Text("profile.complaint.pageTitle").font(.system(.largeTitle, design: .rounded, weight: .bold))', self.screen)
+        # PLY-27-2: 投诉与建议 is the bar's inline title, not a second title in the content.
+        self.assertIn('.cyPageTitle("profile.complaint.pageTitle")', self.screen)
+        self.assertNotIn('Text("profile.complaint.pageTitle")', self.screen)
     def test_fixture_progress_uses_its_own_counter(self):
         s = read('App/ProfileComplaintPreparationFixture.swift')
         self.assertIn('if resource == .complaintProgress { return try progress() }', s)
@@ -68,17 +70,19 @@ class TemplateShelfPlanChecks(unittest.TestCase):
     def setUp(self):
         self.core = read('Core/TemplateOwnShelfMarketPlan.swift')
     def test_plan_is_display_only_and_builds_no_request(self):
-        self.assertIn('public var isDispatchable: Bool { false }', self.core)
+        # PLY-26-1: the plan names one action; the request is built by TemplateAuthoringContract, never here.
+        self.assertIn('public var isDispatchable: Bool { action != nil }', self.core)
         for t in ['TemplateAuthoringRequest', '/market-submit', 'updateLibraryStatus', 'URLSession', 'HTTPTransport', 'submit(']:
             self.assertNotIn(t, self.core)
     def test_marketview_order_and_targets(self):
+        # Mini-program `_marketStatusTarget`: pending → 2, online → 3, otherwise 1.
         self.assertLess(self.core.index('action = .submitReview'), self.core.index('action = .withdrawReview'))
         self.assertIn('else if approved && state.market == .unlisted { action = .list }', self.core)
-        self.assertIn('case .withdrawReview, .delist: return 0', self.core)
+        self.assertIn('case .withdrawReview: return 2', self.core)
+        self.assertIn('case .delist: return 3', self.core)
         self.assertIn('case .list: return 1', self.core)
     def test_pinned_shelf_files_are_untouched(self):
-        # Reviewed pin update mounts the plan on the host. The shelf reader still
-        # only decodes the approved my-list response and builds no market write.
+        # The shelf reader still only decodes the approved my-list response; request paths live in the contract.
         shelf = read('Core/TemplateAuthoringShelf.swift')
         self.assertNotIn('TemplateOwnShelfMarketPlan', shelf)
         self.assertNotIn('/market-submit', shelf)

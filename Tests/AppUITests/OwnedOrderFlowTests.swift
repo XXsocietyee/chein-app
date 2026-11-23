@@ -26,7 +26,7 @@ final class OwnedOrderFlowTests:XCTestCase {
     func testNormalAccountFreshDetailBackAndExactUnroundedMoney(){
         let app=launch();openOrders(app);detail(app)
         XCTAssertTrue(app.staticTexts["Activity or route, Fresh owner detail"].waitForExistence(timeout:5))
-        XCTAssertTrue(app.staticTexts["Amount due, 9007199254740993.0123456"].exists)
+        XCTAssertTrue(app.staticTexts["Amount due, ¥9007199254740993.0123456"].exists)
         XCTAssertFalse(app.buttons["profile.order.lifecycle"].exists)
         app.navigationBars.buttons.firstMatch.tap();detail(app)
         XCTAssertTrue(app.staticTexts["Activity or route, Fresh owner detail"].waitForExistence(timeout:5))
@@ -41,7 +41,7 @@ final class OwnedOrderFlowTests:XCTestCase {
             control.tap()
             XCTAssertEqual(control.value as? String, "actions=1;retained=true;revoked=true;bound=true", app.debugDescription)
             cleared(privateTitle)
-            XCTAssertFalse(app.staticTexts["Amount due, 9007199254740993.0123456"].exists)
+            XCTAssertFalse(app.staticTexts["Amount due, ¥9007199254740993.0123456"].exists)
             XCTAssertEqual(app.staticTexts["orders.fixture.identity"].label,"signed-in")
             XCTAssertEqual(app.staticTexts["orders.fixture.reads"].label,"2");app.terminate()
         }

@@ -2,36 +2,45 @@ import SwiftUI
 
 /// Normal Account destination. Reading the observable approval through reader.identity
 /// tracks revocation/expiry even when an already-loaded screen is otherwise idle.
-/// Ticket navigation uses a separately configured reader; only a read-only lifecycle preview (no writer) and no map provider is mounted.
+/// Ticket navigation uses a separately configured reader; the lifecycle uses the reviewed cancel/refund factory (payment gated) and no map provider is mounted.
 @MainActor struct SessionOwnedOrdersView: View {
     @ObservedObject var session: AppSession
+    @State private var showsSignIn = false
     var body: some View {
-        OwnedOrdersLifecycleHost(session: session)
+        OwnedOrdersLifecycleHost(session: session, onSignIn: { showsSignIn = true })
             .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
             .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
             .id(session.ownedOrderReader.identity)
+            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player).environmentObject(session) }
     }
 }
 
-/// Read-only lifecycle preview for the normal Account destination. The coordinator is built
-/// without a production dispatcher and without a fixture simulator, so cancel/refund/pay
-/// review sheets stay disabled (canDispatch/canSimulate are false) and nothing can be sent.
+/// Lifecycle for the normal Account destination (FIN-16-1 / FIN-17-1). Reads stay fenced by the
+/// owned-order approval. Cancel / cancel-refund reuse the session's reviewed write factory, which
+/// dispatches only when the deployment's `allowsReviewedCancellationAndRefund` (or an explicit order
+/// approval) is present and the review is fresh. Payment stays behind `ReleaseMoneyWriteSwitch`: the
+/// factory has no payment provider while that switch is off. No fixture simulator is attached.
 @MainActor struct OwnedOrdersLifecycleHost: View {
     @State private var coordinator: OrderLifecycleCoordinator
     private let session: AppSession
-    init(session: AppSession) {
+    private let onSignIn: (() -> Void)?
+    init(session: AppSession, onSignIn: (() -> Void)? = nil) {
         self.session = session
+        self.onSignIn = onSignIn
         _coordinator = State(initialValue: OrderLifecycleCoordinator(
-            reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader)))
+            reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader),
+            production: { [weak session] in session?.makeOrderLifecycleDispatcher() }))
     }
     var body: some View {
-        ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader)
+        ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
     }
 }
 
 /// Fences the shared lifecycle reader behind the owned-order read approval: once the approval is
 /// revoked/expired or the account changes, the scope retires and the detail read throws. It
 /// exposes no writer; `isOfflineExample` is always false so a fixture simulator is unreachable.
+/// While current it reports the base reader's scope and replay context, so the session's reviewed
+/// factory (which is bound to that scope) can match it; once retired both stop matching.
 @MainActor final class OwnedOrderLifecycleReader: OrderLifecycleReading {
     private let origin: any ProfileReading
     private let base: any OrderLifecycleReading
@@ -39,7 +48,7 @@ import SwiftUI
     private let baseReaderID: ObjectIdentifier
     private let originIdentity: ProfileReadIdentity?
     private let baseScope: UUID
-    private let activeScope = UUID(), retiredScope = UUID()
+    private let retiredScope = UUID()
     private var retired = false
     init(origin: any ProfileReading, base: any OrderLifecycleReading) {
         self.origin = origin; self.base = base
@@ -56,7 +65,8 @@ import SwiftUI
         return true
     }
     var accountID: Int? { current ? originIdentity?.accountID : nil }
-    var scope: UUID { current ? activeScope : retiredScope }
+    var scope: UUID { current ? base.scope : retiredScope }
+    var replayContext: OrderLifecycleReplayContext? { current ? base.replayContext : nil }
     var isConfigured: Bool { current }
     var isOfflineExample: Bool { false }
     func detail(id: Int) async throws -> OrderLifecycleDetail {

@@ -101,7 +101,7 @@ struct CouponValidityRangeContext: Equatable {
         .merchantM02Page()
         .environment(\.timeZone, CouponValidityTime.timeZone)
         .environment(\.calendar, CouponValidityTime.calendar)
-        .navigationTitle("couponManagement.range.title")
+        .cyPageTitle("couponManagement.range.title")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("couponManagement.cancel") { model.cancel(); dismiss() }.accessibilityIdentifier("couponManagement.range.cancel")

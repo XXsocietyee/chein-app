@@ -19,6 +19,8 @@ struct ProfileOrdersView: View {
     /// Inert unless the root TabView installed it; mirrors the source switchTab to the home page.
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     var orderSupport: ProfileOrderSupportLookup? = nil
+    /// MP 登录 on the signed-out state. Nil keeps the state without a button.
+    var onSignIn: (() -> Void)? = nil
     @State private var filterSelection = ProfileOrderFilterSelection()
     @State private var orderEntry: SupportLookupEntry?
     @State private var lookedUpOrderID: Int64?
@@ -26,7 +28,7 @@ struct ProfileOrdersView: View {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, load: { try await reader.profileOrders() }) { orders in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
                 VStack(spacing: 12) {
                     CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
@@ -179,6 +181,10 @@ private struct ProfileOrderRow: View {
                 if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
                     meta(Text(verbatim: location), "mappin.and.ellipse")
                 }
+                // FIN-16-5: 待付款 with payment held behind the release switch says where to pay instead of staying silent.
+                if historyState == .pendingPayment, !ReleaseMoneyWriteSwitch.paymentEnabled {
+                    meta(Text("profile.orders.payElsewhere"), "info.circle").accessibilityIdentifier("profile.orderRow.payElsewhere")
+                }
             }
         }
     }
@@ -321,12 +327,17 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
                 }
                 ProfileOrderSourceDetailSections(order: order)
-                // A read-only host still receives a coordinator. The payment/refund screen is only
-                // reachable when that coordinator can dispatch or simulate; the identifier stays for the guard.
-                if let lifecycleCoordinator, lifecycleCoordinator.canDispatch || lifecycleCoordinator.canSimulate {
+                // FIN-16-1 / FIN-17-1: the MP's only self-service money exit. The lifecycle screen (fresh read +
+                // reviewed confirm sheet) opens when a reviewed writer is mounted for this reader; payment stays gated
+                // inside it. Without a writer the support section says where to go instead of staying silent.
+                if let lifecycleCoordinator, lifecycleCoordinator.hasReviewedWriter || lifecycleCoordinator.canDispatch || lifecycleCoordinator.canSimulate {
                     Section {
                         NavigationLink { OrderLifecycleView(id: id, coordinator: lifecycleCoordinator).id(lifecycleCoordinator.scope) } label: {
-                            Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
+                            if let key = order.selfServiceExitKey {
+                                Label(LocalizedStringKey(key), systemImage: "xmark.circle").foregroundStyle(CYColor.dangerText)
+                            } else {
+                                Label("orderLifecycle.title", systemImage: "list.bullet.rectangle")
+                            }
                         }.accessibilityIdentifier("profile.order.lifecycle")
                     }
                 }
@@ -341,6 +352,10 @@ struct ProfileOrderDetailView: View {
                     NavigationLink { ParticipationSupportView() } label: {
                         Label("profile.orderP2.contactSupport", systemImage: "message")
                     }.accessibilityIdentifier("profile.order.detail.support")
+                    if order.selfServiceExitKey != nil, lifecycleCoordinator?.hasReviewedWriter != true {
+                        Text("profile.orderExit.viaSupport").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("profile.order.detail.exitViaSupport")
+                    }
                 }
                 if orderSupport != nil, order.id == id {
                     Section {
@@ -539,12 +554,26 @@ private struct ProfileOrderCodeText: View {
     }
 }
 
+/// FIN-17-2: real money reads "¥x" like the MP and the list row, with no currency caveat.
 private struct ProfileOrderAmountLabel: View {
     let amount: Decimal?
-    @Environment(\.locale) private var locale
     var body: some View {
         if let amount {
-            RevolutAmountView(figure: OwnedOrderMoneyText.string(amount), label: appLocalized("activity.currencyUnconfirmed", locale: locale))
+            Text(verbatim: "¥" + OwnedOrderMoneyText.string(amount)).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
         } else { Text("activity.priceUnknown").foregroundStyle(CYColor.textSecondary) }
+    }
+}
+
+extension ProfileOrder {
+    /// MP `cancelRegistration` label by state: unpaid → 取消订单, paid free → 取消报名, paid and refundable → 申请退款.
+    /// Nil when no self-service exit applies (verified, closed, refund already applied, or unknown state).
+    var selfServiceExitKey: String? {
+        guard verificationStatus == 0 else { return nil }
+        if registrationStatus == 1, paymentStatus == 1 { return "profile.orderExit.cancel" }
+        if registrationStatus == 2, paymentStatus == 2 {
+            if isSourceFreeOrder { return "profile.orderExit.cancelSignup" }
+            return refundable == true ? "profile.orderExit.refund" : nil
+        }
+        return nil
     }
 }

@@ -12,7 +12,6 @@ import SwiftUI
     }
     var body: some View {
         List {
-            Section { CYHeroHeader("wallet.withdrawals").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             switch model.phase {
             case .idle, .loading:
                 CYSkeleton(variant: .row).accessibilityIdentifier("withdrawal.history.loading")
@@ -47,7 +46,9 @@ import SwiftUI
             }
         }
         .cyGroupedSurface()
-        .cyHeroScreen()
+        // FIN-19-3: the bar carries the inline title (type-and-chrome §2); no second title in the content.
+        .cyPageTitle("wallet.withdrawals")
+        .cyPushedChrome(domain: .player)
         .task(id: reader.scope) { await model.load() }
         .refreshable { await model.load() }
         .onDisappear { model.cancel() }
