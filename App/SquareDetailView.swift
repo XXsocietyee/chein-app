@@ -366,24 +366,42 @@ import SwiftUI
                 if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 HStack(spacing: 20) {
-                    Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
-                        .cyText(.meta).foregroundStyle(.secondary)
-                        .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                    let likeLabel = Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
+                        .cyText(.meta).foregroundStyle(comment.isLiked == 0 ? AnyShapeStyle(.secondary) : AnyShapeStyle(CYColor.dangerText))
+                    if let actions, actions.identity.accountID != nil {
+                        // C-S4 (MP comment row): like and 回复 act inline; the ⋯ menu keeps block / delete.
+                        Button { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) } label: { likeLabel }
+                            .buttonStyle(.borderless)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
+                            .accessibilityLabel(Text(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike")))
+                            .accessibilityValue(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                            .accessibilityIdentifier("square.comment.like.\(comment.id)")
+                        if post?.viewerCanComment == true {
+                            Button { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") } label: {
+                                Text("social.reply").cyText(.meta).foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.borderless)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
+                            .accessibilityIdentifier("square.comment.reply.\(comment.id)")
+                        }
+                    } else {
+                        likeLabel
+                            .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                    }
                     // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
                     if let actions, actions.identity.accountID != nil, comment.generation != .unknown {
                         Button { reportComment(comment) } label: { Text("square.report").cyText(.meta).foregroundStyle(.secondary) }
                             .buttonStyle(.borderless)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) // C-S5
                             .accessibilityLabel(Text("square.report"))
                             .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
                     }
                     Spacer(minLength: 0)
-                    if let actions, actions.identity.accountID != nil {
+                    if let actions, actions.identity.accountID != nil,
+                       SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID)
+                        || (comment.memberID == actions.identity.accountID && post.flatMap { SquareDeletionTarget(post: $0, comment: comment) }.map { deletion?.isAllowed($0) == true } == true) {
+                        // ⋯ only when it holds something (block / delete); like and 回复 are inline (C-S4).
                         Menu {
-                            if post?.viewerCanComment == true {
-                                Button("social.reply", systemImage: "arrowshape.turn.up.left") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }
-                            }
-                            Button(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike"), systemImage: comment.isLiked == 0 ? "heart" : "heart.slash") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
                             if SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
                                 Button("square.block", systemImage: "hand.raised") {
                                     blockTarget = .init(memberID: comment.memberID, authorName: comment.nickname)
