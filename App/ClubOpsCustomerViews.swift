@@ -143,19 +143,14 @@ struct ClubOpsCustomerRowView: View {
     @Environment(\.locale) private var locale
     let row: ClubOpsCustomerRow
     @Environment(\.dynamicTypeSize) private var typeSize
-    @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 40
     var body: some View {
         // Mini-program .cus-row: round initial avatar, then name (+ 备注 tag), meta, sub text.
         let stack = typeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
             : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         stack {
-            Text(verbatim: initial)
-                .cyText(.bodyMedium)
-                .foregroundStyle(CYColor.textSecondary)
-                .padding(CYSpacing.md)
-                .frame(minWidth: avatarSide, minHeight: avatarSide)
-                .background(CYColor.bgElevated, in: Circle())
+            // CLB-customers-02 (parity r2): CYAvatarView with the customer's avatar and an initial fallback (MP cy-avatar).
+            CYAvatarView(url: row.avatar.flatMap(URL.init(string:)), name: row.displayName ?? initial, size: .md)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
@@ -229,10 +224,16 @@ struct ClubOpsCustomerRowView: View {
                 ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
                 : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
             stack {
-                CYCoverArt(seed: detail.displayName ?? "—", symbol: "person", showsDebugLabel: false, showsGlyph: false)
-                    .frame(width: avatarSide, height: avatarSide)
-                    .clipShape(Circle())
-                    .accessibilityHidden(true)
+                // CLB-customer-detail-02 (parity r2): the customer's own avatar; the generated art is only the fallback.
+                if let url = detail.avatar.flatMap(URL.init(string:)), url.scheme?.lowercased() == "https" {
+                    CYAvatarView(url: url, name: detail.displayName ?? "—", size: .lg)
+                        .accessibilityHidden(true)
+                } else {
+                    CYCoverArt(seed: detail.displayName ?? "—", symbol: "person", showsDebugLabel: false, showsGlyph: false)
+                        .frame(width: avatarSide, height: avatarSide)
+                        .clipShape(Circle())
+                        .accessibilityHidden(true)
+                }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if let name = detail.displayName {
                         Text(verbatim: name)
@@ -335,9 +336,9 @@ struct ClubOpsCustomerRowView: View {
         return detail.paidAmountText
     }
     @ViewBuilder private var interaction: some View {
+        // CLB-customer-detail-06 (parity r2): the remark already has its own card, so it is not repeated here.
         if let day = detail.lastInteraction {
-            if let remark = detail.remark { Text("clubOps.customer.interactionRemark \(day.month) \(day.day) \(remark)", tableName: "ClubOpsCustomer") }
-            else { Text("clubOps.customer.interaction \(day.month) \(day.day)", tableName: "ClubOpsCustomer") }
+            Text("clubOps.customer.interaction \(day.month) \(day.day)", tableName: "ClubOpsCustomer")
         } else { Text("clubOps.customer.noInteraction", tableName: "ClubOpsCustomer") }
     }
 }

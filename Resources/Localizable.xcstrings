@@ -283249,6 +283249,22 @@
           }
         }
       }
+    },
+    "club.detail.signIn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to view the club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后查看俱乐部"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

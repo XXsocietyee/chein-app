@@ -9,6 +9,10 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     let refreshRevision: UInt64
     /// CLB-detail-44: the club page drops the bar 刷新 (pull-to-refresh, as the MP); other reads keep it.
     let showsToolbarRefresh: Bool
+    /// CLB-detail-28 (parity r2): the club page's own states. Sign-in reads 登录后查看俱乐部, and a business rejection
+    /// (a dissolved or closed club) shows the server sentence with 返回 instead of a pointless 重试. Default off.
+    let usesClubPageStates: Bool
+    @Environment(\.dismiss) private var dismiss
     private struct LoadIdentity: Equatable {
         let identity: ClubReadIdentity
         let revision: UInt64
@@ -26,10 +30,11 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @State private var generation: UInt64 = 0
 
     init(reader: Reader, accessibilityPrefix: String, requiresSignIn: Bool = false, refreshRevision: UInt64 = 0,
-         showsToolbarRefresh: Bool = true, onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
+         showsToolbarRefresh: Bool = true, usesClubPageStates: Bool = false, onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader; self.accessibilityPrefix = accessibilityPrefix
         self.refreshRevision = refreshRevision; self.showsToolbarRefresh = showsToolbarRefresh
+        self.usesClubPageStates = usesClubPageStates
         self.requiresSignIn = requiresSignIn; self.onSignIn = onSignIn
         self.load = load; self.content = content
     }
@@ -90,7 +95,21 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             }
         }
     }
-    private func issueView(_ issue: ClubLoadIssue) -> some View {
+    @ViewBuilder private func issueView(_ issue: ClubLoadIssue) -> some View {
+        if usesClubPageStates, let sentence = issue.rejectionMessage {
+            CYEmptyState(
+                systemImage: "exclamationmark.triangle",
+                LocalizedStringKey(sentence),
+                messageIdentifier: accessibilityPrefix + ".error",
+                actionTitle: "action.back",
+                actionIdentifier: accessibilityPrefix + ".back",
+                kind: .generic
+            ) { dismiss() }
+        } else {
+            defaultIssueView(issue)
+        }
+    }
+    private func defaultIssueView(_ issue: ClubLoadIssue) -> some View {
         let symbol = issue.needsSignIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle"
         let actionTitle: LocalizedStringKey? = issue.needsSignIn ? (onSignIn == nil ? nil : "club.signIn") : (issue.canRetry ? "action.retry" : nil)
         let actionID = issue.needsSignIn ? accessibilityPrefix + ".signIn" : accessibilityPrefix + ".retry"
@@ -98,11 +117,12 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             if issue.needsSignIn { onSignIn?() }
             else { Task { await reload() } }
         }
+        let signInPage = usesClubPageStates && issue.needsSignIn
         return CYEmptyState(
             systemImage: symbol,
-            LocalizedStringKey(issue.titleKey),
-            detail: issue.message == nil ? LocalizedStringKey(issue.hintKey) : nil,
-            detailVerbatim: issue.message,
+            LocalizedStringKey(signInPage ? "club.detail.signIn" : issue.titleKey),
+            detail: signInPage ? nil : (issue.message == nil ? LocalizedStringKey(issue.hintKey) : nil),
+            detailVerbatim: signInPage ? nil : issue.message,
             messageIdentifier: accessibilityPrefix + ".error",
             actionTitle: actionTitle,
             actionIdentifier: actionTitle == nil ? nil : actionID,
@@ -139,8 +159,14 @@ struct ClubLoadIssue {
     let message: String?
     let needsSignIn: Bool
     let canRetry: Bool
+    /// The server's sentence when it refused the read as a business rule (not a network or auth failure).
+    let rejectionMessage: String?
     init(_ error: Error) {
         let failure = error as? ClubReadFailure
+        if case .rejected(_, let sentence)? = failure,
+           let text = sentence?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty {
+            rejectionMessage = text
+        } else { rejectionMessage = nil }
         message = failure?.message.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
         needsSignIn = failure?.isUnauthorized == true || error as? APIError == .unauthorized
         canRetry = !needsSignIn && error as? APIError != .notConfigured
