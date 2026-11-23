@@ -93,12 +93,6 @@ import SwiftUI
         let scope = context
         let _ = model.bind(scope)
         List {
-            Section {
-                CYHeroHeader("club.leadProgress.title")
-            }
-            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
             if !scope.canRead || model.phase == .denied {
                 CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.leadProgress.ownerRequired", messageIdentifier: "club.leadProgress.denied")
             }
@@ -159,7 +153,7 @@ import SwiftUI
         }
         .listStyle(.plain)
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .cyPageTitle("club.leadProgress.title")
         .task(id: scope) {
             guard let permit = model.activate(scope) else { return }
             await model.load(permit, clubReader: clubReader, reader: reader, access: access, projects: projects)

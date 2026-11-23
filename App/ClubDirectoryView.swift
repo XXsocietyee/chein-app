@@ -16,10 +16,8 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
     @State private var openedClubID: Int? = nil
     @Environment(\.cyPalette) private var palette
     var body: some View {
+        // X1 (parity r2): pushed page → inline bar title, no hero in the content.
         VStack(alignment: .leading, spacing: 0) {
-            CYHeroHeader("club.directory")
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.top, CYSpacing.sm)
             searchHeader
             ClubReadScreen(reader: reader, accessibilityPrefix: "club.directory", onSignIn: onSignIn,
                            load: { try await reader.clubDirectory(name: submittedName.isEmpty ? nil : submittedName) }) { rows in
@@ -58,6 +56,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
         .onChange(of: searchText) { _, value in if value.isEmpty { submittedName = "" } }
         .onChange(of: reader.clubIdentity) { _, _ in searchText = ""; submittedName = "" }
         .cyDomainScreen(.player)
+        .cyPageTitle("club.directory")
     }
 
     private var searchHeader: some View {
@@ -97,10 +96,6 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
     @State private var openedClubID: Int? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            CYHeroHeader("club.owned")
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.top, CYSpacing.sm)
-                .padding(.bottom, CYSpacing.sm)
             ClubReadScreen(reader: reader, accessibilityPrefix: "club.owned", requiresSignIn: true,
                            onSignIn: onSignIn, load: { try await reader.clubOwned() }) { rows in
                 List {
@@ -134,6 +129,7 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
         .cyDomainPageBackground()
         .cyHideTabBar()
         .cyDomainScreen(.player)
+        .cyPageTitle("club.owned")
     }
 }
 
