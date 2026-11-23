@@ -73,6 +73,17 @@ final class TopicXcxFactsTests: XCTestCase {
         XCTAssertFalse(TopicXcxFacts.opensPricing(try topic(["lifecycle": 2])))
     }
 
+    /// PC-B-1-3: MP `topicSaleClosed` — `saleEndAt`, else `endDate`; purchased / locked / merchant-closed keep their own state.
+    func testSaleClosedStateAfterDeadline() throws {
+        let now = IMInboxTime.parse("2026-11-23 12:00:00")!
+        XCTAssertEqual(TopicXcxFacts.action(try topic(["endDate": "2026-11-20 00:00:00", "selfPlay": 1]), now: now), .closed)
+        XCTAssertEqual(TopicXcxFacts.action(try topic(["saleEndAt": "2026-11-23 11:59:59", "endDate": "2026-12-31"]), now: now), .closed)
+        XCTAssertEqual(TopicXcxFacts.action(try topic(["saleEndAt": "2026-11-30 00:00:00", "endDate": "2026-11-01"]), now: now), .signUp)
+        XCTAssertEqual(TopicXcxFacts.action(try topic(["endDate": "bad"]), now: now), .signUp)
+        XCTAssertEqual(TopicXcxFacts.action(try topic(["endDate": "2026-11-20", "isSignUp": 1]), now: now), .ticketWallet)
+        XCTAssertEqual(TopicXcxFacts.action(try topic(["endDate": "2026-11-20", "lifecycle": 1]), now: now), .locked(1))
+    }
+
     func testLineupPutsClubFirstAndDeduplicatesMerchants() throws {
         let merchant: [String: Any] = ["memberId": 9, "mmsMerchant": ["id": 3, "name": "Synthetic cafe"]]
         let value = try topic(["clubName": "Synthetic club", "clubId": 4, "chaptersList": [["id": 1, "name": "C", "nodes": [

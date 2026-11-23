@@ -255,7 +255,7 @@ struct TopicXcxActionBar: View {
             switch TopicXcxFacts.action(topic) {
             case .ticketWallet:
                 Text("topicXcx.bar.signedUp").cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
-            case .locked:
+            case .locked, .closed:
                 EmptyView()
             case .selfPlay(let price):
                 priceText(price).cyText(.sectionTitle).foregroundStyle(palette.textPrimary).monospacedDigit()
@@ -316,6 +316,10 @@ struct TopicXcxActionBar: View {
                         } else {
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                         }
+                    case .closed:
+                        // PC-B-1-3: after the sale deadline the bar only states 已截止 (MP is-off pill); no buy entry.
+                        Text("topicXcx.cta.closed").frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("topic.cta.closed")
                     case .selfPlay:
                         Button(action: openSelfPlay) {
                             Text("topicXcx.cta.selfPlayNoPrice").frame(minWidth: 132)

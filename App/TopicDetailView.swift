@@ -557,8 +557,8 @@ struct TopicDetailView: View {
     /// Source `topicSaleClosed`: the sale end (endDate) has passed. Mainland wall-clock source, as in the mini-program.
     /// A purchased topic keeps its 去票夹 path; an unparsable end never closes the topic.
     private func saleClosed(_ value: TopicDetail) -> Bool {
-        guard !value.isSignUp, let end = HomeFeedDate.parse(value.endDate, sourceTimeZone: TimeZone(identifier: "Asia/Shanghai")) else { return false }
-        return Date() >= end
+        // PC-B-1-3: one rule with the bottom bar (MP `topicSaleClosed`: `saleEndAt`, else `endDate`).
+        !value.isSignUp && TopicXcxFacts.saleClosed(value)
     }
     /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
     private func settleLoading() { if phase.isLoading { phase = .idle } }

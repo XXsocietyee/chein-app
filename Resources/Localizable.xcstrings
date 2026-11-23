@@ -283233,6 +283233,23 @@
           }
         }
       }
+    },
+    "topicXcx.cta.closed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已截止"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

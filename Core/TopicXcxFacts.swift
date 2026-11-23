@@ -160,11 +160,18 @@ public enum TopicXcxFacts {
     }
 
     /// Bottom bar states (source `is_join`, `lifecycle` 1/2/7, `selfPlay`).
-    public enum Action: Equatable { case ticketWallet, locked(Int), selfPlay(price: Decimal?), signUp }
-    public static func action(_ topic: TopicDetail) -> Action {
+    /// PC-B-1-3: `closed` = sale deadline passed (MP `topicSaleClosed`, x-fix2 P-1): the bar states 已截止 and offers no buy.
+    public enum Action: Equatable { case ticketWallet, locked(Int), closed, selfPlay(price: Decimal?), signUp }
+    public static func action(_ topic: TopicDetail, now: Date = Date()) -> Action {
         if topic.isSignUp { return .ticketWallet }
         if let lifecycle = topic.lifecycle, [1, 2, 7].contains(lifecycle) { return .locked(lifecycle) }
+        if !topic.merchantClosed, saleClosed(topic, now: now) { return .closed }
         return topic.selfPlay == 1 ? .selfPlay(price: topic.selfPlayPrice) : .signUp
+    }
+    /// MP `topicSaleClosed`: deadline = `saleEndAt`, else `endDate`; unknown deadline → still open.
+    public static func saleClosed(_ topic: TopicDetail, now: Date = Date()) -> Bool {
+        guard let deadline = IMInboxTime.parse(topic.saleEndAt) ?? IMInboxTime.parse(topic.endDate) else { return false }
+        return now >= deadline
     }
     /// Owner of a topic in pricing (lifecycle 2) is sent to the final-price page instead of a toast.
     public static func opensPricing(_ topic: TopicDetail) -> Bool { topic.isOwner && topic.lifecycle == 2 }
