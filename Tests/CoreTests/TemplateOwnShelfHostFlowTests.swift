@@ -42,8 +42,10 @@ import FoundationNetworking
         XCTAssertEqual(result.rows.map(\.id), Array(result.cardFacts.keys))
         let plan = TemplateOwnShelfMarketPlan(try XCTUnwrap(result.rowStates[7]))
         XCTAssertEqual(plan.action, .submitReview)
-        XCTAssertFalse(plan.isDispatchable)
-        XCTAssertNil(plan.action?.publishTarget)
+        // PLY-26-1: 提交广场审核 is dispatched through its own market-submit route (no library-status target).
+        XCTAssertTrue(plan.isDispatchable)
+        XCTAssertNil(plan.action?.statusTarget)
+        XCTAssertEqual(plan.action?.shelfAction, .marketSubmit)
     }
     func testMalformedCardColumnsRemainOnTheLegalRow() throws {
         let result = try page([[
@@ -93,8 +95,9 @@ import FoundationNetworking
         ]])
         let plan = TemplateOwnShelfMarketPlan(try XCTUnwrap(listed.rowStates[9]))
         XCTAssertEqual(plan.action, .delist)
-        XCTAssertEqual(plan.action?.publishTarget, 0)
-        XCTAssertFalse(plan.isDispatchable)
+        // PLY-26-1: the market columns (not personal publishStatus) choose 从广场下架, library status 3.
+        XCTAssertEqual(plan.action?.statusTarget, 3)
+        XCTAssertEqual(plan.action?.shelfAction, .marketStatus)
         XCTAssertEqual(listed.rows.first?.publishStatus, 1)
         XCTAssertEqual(listed.cardFacts[9]?.reviewFeedback, "个人反馈")
         XCTAssertEqual(listed.rowStates[9]?.market, .listed)

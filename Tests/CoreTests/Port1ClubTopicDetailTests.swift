@@ -47,8 +47,6 @@ final class Port1ClubTopicDetailTests: XCTestCase {
         XCTAssertEqual(P.structureParts(chapters: 3, nodes: 0, playMode: " 解谜 "), ["3 章", "解谜"])
         XCTAssertEqual(P.structureParts(chapters: nil, nodes: 5, playMode: nil), ["5 站"])
     }
-}
-#endi
     func testStateKeyReadsTheNumericProductionStatus() {
         // CLB-topic-detail-04: MP resolveStateKey (info-to-user sends cms_topic.status 0/1/2).
         func v(_ fields: [String: ClubGovernanceValue]) -> ClubGovernanceValue { .object(fields) }
@@ -65,3 +63,4 @@ final class Port1ClubTopicDetailTests: XCTestCase {
         XCTAssertEqual(P.notOnSaleKey(lifecycle: 2), "club.topic.notOnSale.2"); XCTAssertNil(P.notOnSaleKey(lifecycle: 3))
     }
 }
+#endif

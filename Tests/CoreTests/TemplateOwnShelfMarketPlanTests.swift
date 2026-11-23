@@ -8,24 +8,24 @@ final class TemplateOwnShelfMarketPlanTests: XCTestCase {
     private let approved = #""draftStatus":1,"status":1,"checkStatus":1"#
     func testApprovedWithoutMarketRecordOffersSubmissionOnly() throws {
         let plan = TemplateOwnShelfMarketPlan(try state("{\(approved)}"))
-        XCTAssertEqual(plan.action, .submitReview); XCTAssertNil(plan.action?.publishTarget)
-        XCTAssertFalse(plan.isDispatchable)
+        XCTAssertEqual(plan.action, .submitReview); XCTAssertNil(plan.action?.statusTarget)
+        XCTAssertTrue(plan.isDispatchable)  // PLY-26-1: 提交广场审核 dispatches through market-submit
     }
     func testRejectedMarketplaceRecordCanBeResubmitted() throws {
         let plan = TemplateOwnShelfMarketPlan(try state("{\(approved),\"marketTemplateId\":9,\"marketStatus\":2}"))
         XCTAssertEqual(plan.action, .submitReview)
     }
-    func testPendingAndListedTargetZeroWithDistinctLabels() throws {
+    func testPendingAndListedTargetsWithDistinctLabels() throws {
         let pending = TemplateOwnShelfMarketPlan(try state("{\(approved),\"marketTemplateId\":9,\"marketStatus\":0}"))
-        XCTAssertEqual(pending.action, .withdrawReview); XCTAssertEqual(pending.action?.publishTarget, 0)
+        XCTAssertEqual(pending.action, .withdrawReview); XCTAssertEqual(pending.action?.statusTarget, 2)
         XCTAssertEqual(pending.action?.labelKey, "templateOwnShelf.market.withdraw")
         let listed = TemplateOwnShelfMarketPlan(try state("{\(approved),\"marketTemplateId\":9,\"marketStatus\":1,\"marketPublishStatus\":1}"))
-        XCTAssertEqual(listed.action, .delist); XCTAssertEqual(listed.action?.publishTarget, 0)
+        XCTAssertEqual(listed.action, .delist); XCTAssertEqual(listed.action?.statusTarget, 3)
     }
     func testUnlistedNeedsPersonalApprovalToRelist() throws {
         let unlisted = "\"marketTemplateId\":9,\"marketStatus\":1,\"marketPublishStatus\":0"
         XCTAssertEqual(TemplateOwnShelfMarketPlan(try state("{\(approved),\(unlisted)}")).action, .list)
-        XCTAssertEqual(TemplateOwnShelfMarketPlan(try state("{\(approved),\(unlisted)}")).action?.publishTarget, 1)
+        XCTAssertEqual(TemplateOwnShelfMarketPlan(try state("{\(approved),\(unlisted)}")).action?.statusTarget, 1)
         XCTAssertNil(TemplateOwnShelfMarketPlan(try state("{\"draftStatus\":1,\"status\":0,\(unlisted)}")).action)
     }
     func testPersonalPublishStatusNeverDrivesTheMarketplaceAction() throws {
