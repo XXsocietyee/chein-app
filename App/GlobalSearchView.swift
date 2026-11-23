@@ -201,7 +201,10 @@ import SwiftUI
         .task(id: readOwner) {
             await prepare()
             if let initialQuery, !initialQueryApplied, reader.isConfigured {
-                initialQueryApplied = true; filter = initialQuery; await search()
+                initialQueryApplied = true; filter = initialQuery
+                // The task can start before onAppear marks the page visible; search() refuses an invisible page.
+                for _ in 0..<40 where !isVisible && !Task.isCancelled { try? await Task.sleep(nanoseconds: 50_000_000) }
+                await search()
             }
         }
         #if DEBUG
