@@ -10,6 +10,8 @@ S = {
     'topicXcx.cta.closed': ('Closed', '已截止'),
     # PC-C-3-2: MP official list refresh line.
     'official.refreshing': ('Updating…', '正在更新活动列表…'),
+    # PC-C-7-3: MP official-organizer oo-sync line.
+    'official.organizer.refreshing': ('Reading the latest platform record…', '正在读取平台最新记录…'),
     'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 

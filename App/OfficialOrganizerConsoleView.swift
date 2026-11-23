@@ -195,7 +195,7 @@ struct OfficialOrganizerConsoleView: View {
         List {
             // PC-C-7-3: say why controls are locked while the platform record is re-read (MP oo-sync line).
             if model.refreshing {
-                Label(c.t("正在读取平台最新记录…", "Reading the latest platform record…"), systemImage: "arrow.triangle.2.circlepath")
+                Label("official.organizer.refreshing", systemImage: "arrow.triangle.2.circlepath")
                     .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("official.organizer.refreshing")
             }

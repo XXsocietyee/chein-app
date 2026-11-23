@@ -283284,6 +283284,23 @@
           }
         }
       }
+    },
+    "official.organizer.refreshing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading the latest platform record…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取平台最新记录…"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
