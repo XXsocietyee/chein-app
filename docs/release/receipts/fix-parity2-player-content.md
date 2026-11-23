@@ -108,4 +108,4 @@ activity detail instead of the old hero chrome.)
 
 ## Ratchet
 
-See the last line of `contract_ratchet.py --check` recorded below (updated at the end of the run).
+`contract_ratchet.py --check` on this branch (run after PC-D-2-2; the later A-8-2 commit is view-only and its contract checks pass): **185 failing, baseline 184, new 1, fixed 0**. That one new failure is `test_workshop_paid_professional…bounded_paging`, which fails the same way on `ui/combined-r5`. This branch adds no new failures.
