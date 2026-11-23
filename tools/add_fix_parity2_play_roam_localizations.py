@@ -16,6 +16,13 @@ S = {
     'officialRoute.stat.duration': ('Duration', '用时'),
     'officialRoute.stat.distance': ('Distance', '距离'),
     'officialRoute.stat.stops': ('Stops', '站点'),
+    # B3D-3 / B3D-4
+    'badge3d.title': ('Badge', '徽章'),
+    'badge3d.loading': ('Preparing the 3D badge…', '正在准备 3D 徽章…'),
+    'badge3d.toggle.static': ('Static preview', '静态预览'),
+    'badge3d.toggle.threeD': ('3D view', '3D 展台'),
+    # BWALL-5
+    'profile.badges.partial': ('Some badge data did not arrive; this list is incomplete', '部分勋章数据未到达，当前结果不完整'),
     # JSEAT-7
     'mp.seats.unconfirmed': ('The result is not confirmed yet. Check again later.', '结果还没确认，请稍后查询'),
 }

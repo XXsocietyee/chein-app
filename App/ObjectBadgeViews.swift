@@ -38,13 +38,16 @@ struct ObjectBadgeWallLayoutSelection {
     @Environment(\.cyPalette) private var palette
     @Namespace private var hero
     @CYAlbumSeen private var seen
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     private var layoutOwner: ObjectBadgeWallLayoutOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
     var body: some View {
         let owner = layoutOwner
         let layout = layoutSelection.value(for: owner)
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", load: { try await reader.profileBadges() }) { wall in
+        // BWALL-5: the signed-out state offers 登录 (opens 我的) like the MP access gate.
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", onSignIn: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil,
+                          load: { try await reader.profileBadges() }) { wall in
             List {
                 ObjectBadgeWallParityHeader(wall: wall, focusBadgeCode: focusBadgeCode)
                 Section {

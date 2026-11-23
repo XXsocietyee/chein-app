@@ -283,7 +283,8 @@ enum ObjectBadgeShowroomMode: Equatable {
         view.backgroundColor = .clear
         view.antialiasingMode = .multisampling4X
         view.autoenablesDefaultLighting = false
-        view.allowsCameraControl = !reduceMotion
+        // B3D-2: Reduce Motion stops the idle spin only; the player can still turn the badge by hand.
+        view.allowsCameraControl = true
         view.scene = scene
         if let camera = scene.rootNode.childNode(withName: "showroomCamera", recursively: false) {
             view.pointOfView = camera
@@ -298,7 +299,7 @@ enum ObjectBadgeShowroomMode: Equatable {
                 view.pointOfView = camera
             }
         }
-        view.allowsCameraControl = !reduceMotion
+        view.allowsCameraControl = true
         if !reduceMotion, let node = scene.rootNode.childNode(withName: "badgeTurntable", recursively: false), node.action(forKey: "idleSpin") == nil {
             let spin = SCNAction.repeatForever(SCNAction.rotateBy(x: 0, y: .pi * 2, z: 0, duration: 12))
             node.runAction(spin, forKey: "idleSpin")
@@ -354,6 +355,11 @@ enum ObjectBadgeShowroomMode: Equatable {
                                 .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
+                        // B3D-4: MP stage hint; under Reduce Motion it says the spin is off.
+                        Text(reduceMotion ? "objects.badge3d.hint.reduced" : "objects.badge3d.hint.drag")
+                            .cyText(.meta)
+                            .foregroundStyle(CYColor.textTertiary)
+                            .accessibilityIdentifier("objects.badge3d.hint")
                     }
                     Spacer(minLength: 0)
                 }
@@ -363,7 +369,7 @@ enum ObjectBadgeShowroomMode: Equatable {
                 .themeDomain(.player)
                 .accessibilityIdentifier("objects.badge3d.ready")
             } else {
-                ProgressView("objects.loading")
+                ProgressView("badge3d.loading")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .cyDomainPageBackground()
                     .themeDomain(.player)
@@ -372,7 +378,7 @@ enum ObjectBadgeShowroomMode: Equatable {
         }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(ChannelCopy.text(force2DFallback ? "3D 展台" : "2D 预览", force2DFallback ? "3D View" : "2D Fallback", locale: locale)) {
+                Button(force2DFallback ? "badge3d.toggle.threeD" : "badge3d.toggle.static") {
                     force2DFallback.toggle()
                     if !force2DFallback && scene == nil {
                         Task { await loadShowroom() }
@@ -382,6 +388,8 @@ enum ObjectBadgeShowroomMode: Equatable {
                 .accessibilityIdentifier("objects.badge.toggleFallback")
             }
         }
+        // B3D-3: inline title 徽章 (MP header); the badge name stays under the stage.
+        .cyPageTitle("badge3d.title")
         .task(id: "\(expectedScope.uuidString):\(parameters.image):\(parameters.name)") {
             await loadShowroom()
         }

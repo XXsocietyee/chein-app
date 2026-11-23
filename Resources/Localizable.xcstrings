@@ -157546,13 +157546,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some badges couldn’t be loaded"
+            "value": "Some badge data did not arrive; this list is incomplete"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "部分徽章未能加载"
+            "value": "部分勋章数据未到达，当前结果不完整"
           }
         }
       }
@@ -283366,6 +283366,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "结果还没确认，请稍后查询"
+          }
+        }
+      }
+    },
+    "badge3d.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badge"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徽章"
+          }
+        }
+      }
+    },
+    "badge3d.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing the 3D badge…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备 3D 徽章…"
+          }
+        }
+      }
+    },
+    "badge3d.toggle.static": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Static preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静态预览"
+          }
+        }
+      }
+    },
+    "badge3d.toggle.threeD": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D view"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3D 展台"
           }
         }
       }
