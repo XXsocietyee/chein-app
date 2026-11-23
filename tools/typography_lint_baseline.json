@@ -1,12 +1,12 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 1173,
+  "raw text style": 1154,
   "Theme.Font": 63,
   "raw size": 67,
   "back chevron": 12,
   "hidden back": 7,
-  "large title": 11
+  "large title": 10
  },
  "files": {
   "App/AccessibilityReadinessSectionView.swift": {
@@ -445,7 +445,7 @@
    "raw text style": 2
   },
   "App/E1OfficialRouteParts.swift": {
-   "raw text style": 4
+   "raw text style": 2
   },
   "App/EditorKitCards.swift": {
    "raw text style": 7
@@ -528,8 +528,7 @@
    "raw text style": 3
   },
   "App/JourneyLandingViews.swift": {
-   "raw text style": 2,
-   "large title": 1
+   "raw text style": 2
   },
   "App/KeychainAndBiometricSessionSecuritySectionView.swift": {
    "raw text style": 3
@@ -982,7 +981,7 @@
    "raw text style": 1
   },
   "App/PlaySessionView.swift": {
-   "raw text style": 3
+   "raw text style": 2
   },
   "App/PlaySharedPlanLifecycleView.swift": {
    "raw text style": 4,
@@ -1197,23 +1196,20 @@
   "App/RoamExperienceHubView.swift": {
    "raw text style": 4
   },
-  "App/RoamExplorationExportView.swift": {
-   "raw text style": 1
-  },
   "App/RoamFinishReportView.swift": {
    "raw text style": 2
   },
   "App/RoamHistoryViews.swift": {
-   "raw text style": 5
+   "raw text style": 4
   },
   "App/RoamHomeTabsView.swift": {
-   "raw text style": 6
+   "raw text style": 3
   },
   "App/RoamItemDetailView.swift": {
    "raw text style": 3
   },
   "App/RoamLiveSessionView.swift": {
-   "raw text style": 3
+   "raw text style": 1
   },
   "App/RoamLocationSettingsDestination.swift": {
    "raw text style": 1
@@ -1222,14 +1218,11 @@
    "Theme.Font": 1
   },
   "App/RoamPOIActions.swift": {
-   "raw text style": 4
+   "raw text style": 1
   },
   "App/RoamPassportToolsViews.swift": {
-   "raw text style": 2,
+   "raw text style": 1,
    "Theme.Font": 1
-  },
-  "App/RoamPreflightRulesView.swift": {
-   "raw text style": 1
   },
   "App/RoamRecoveryView.swift": {
    "raw text style": 1
@@ -1238,10 +1231,10 @@
    "raw text style": 1
   },
   "App/RoamStampViews.swift": {
-   "raw text style": 5
+   "raw text style": 4
   },
   "App/RoamSubpageParityViews.swift": {
-   "raw text style": 8
+   "raw text style": 6
   },
   "App/RunAuthorityHostSectionView.swift": {
    "raw text style": 3
@@ -1435,9 +1428,6 @@
    "raw text style": 8
   },
   "App/UsageConsentGateView.swift": {
-   "raw text style": 1
-  },
-  "App/VerificationCodeView.swift": {
    "raw text style": 1
   },
   "App/VideoBountyView.swift": {
