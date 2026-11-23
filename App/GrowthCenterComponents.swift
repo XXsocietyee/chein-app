@@ -33,7 +33,7 @@ struct GrowthCenterIssueView: View {
                 // GROWTH-3: MP access gate — 登录 opens 我的 instead of a dead-end line.
                 CYEmptyState(systemImage: "lock", LocalizedStringKey(issue.localizationKey),
                              messageIdentifier: "growth.issue",
-                             actionTitle: "auth.signIn", actionIdentifier: "growth.signIn",
+                             actionTitle: "auth.signIn", actionIdentifier: "growthCenter.signIn",
                              action: { rootTabSwitch(.mine) })
             } else if issue == .login || issue == .notConfigured {
                 Label {
