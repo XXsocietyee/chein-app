@@ -499,8 +499,21 @@ struct TopicDetailView: View {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
                     Text(TopicXcxFacts.showsInStorePerks(value) ? "topicXcx.paywall.detail" : "topicXcx.paywall.detailNoPerks").cyText(.bodyCompact)
+                    // PC-B-1-15: the price of what unlocks (MP paywall price row); unknown price → row hidden.
+                    if value.selfPlay == 1, let price = value.selfPlayPrice {
+                        Text(price, format: .currency(code: "CNY").precision(.fractionLength(0...2)))
+                            .cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
+                            .accessibilityIdentifier("topic.paywall.price")
+                    }
                     if value.selfPlay == 1 && value.canOfferPurchase && !saleClosed(value) {
                         CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
+                    }
+                    // PC-B-1-15: a buyer whose purchase has not synced yet has a way out (MP 已购？去票夹).
+                    if ticketWalletDestination != nil {
+                        Button { showingTickets = true } label: { Text("topicXcx.paywall.purchased").cyText(.meta) }
+                            .buttonStyle(.plain).foregroundStyle(CYColor.brand)
+                            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                            .accessibilityIdentifier("topic.paywall.tickets")
                     }
                 }
             }

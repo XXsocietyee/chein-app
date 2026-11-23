@@ -283352,6 +283352,40 @@
           }
         }
       }
+    },
+    "topicXcx.paywall.purchased": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already bought? Open your tickets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购？去票夹"
+          }
+        }
+      }
+    },
+    "wallet.earnings.balance": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account earnings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户收益"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

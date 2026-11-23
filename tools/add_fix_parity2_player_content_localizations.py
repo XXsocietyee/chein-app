@@ -17,6 +17,10 @@ S = {
     'activity.cta.noTicketOpen': ('Tickets not open yet', '暂未开放票种'),
     # PC-D-7-1: video bounty signed-out gate.
     'mp.vb.signedOut': ('Sign in to see your video submissions and rewards', '登录后查看你的视频投稿与奖励'),
+    # PC-B-1-15: MP topic paywall recovery link.
+    'topicXcx.paywall.purchased': ('Already bought? Open your tickets', '已购？去票夹'),
+    # PC-D-5-3: MP scene-asset-earnings balance label.
+    'wallet.earnings.balance': ('Account earnings', '账户收益'),
     'official.refreshFailed': ("Couldn't refresh. Try again later.", '刷新失败，稍后再试'),
 }
 

@@ -153,7 +153,8 @@ enum WalletPayoutCapability {
                         CYSkeleton().accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
-                        WalletEarningsHero(label: appLocalized("withdrawal.support.balance", locale: locale),
+                        // PC-D-5-3: MP label 账户收益 (the currency symbol is drawn beside the number).
+                        WalletEarningsHero(label: appLocalized("wallet.earnings.balance", locale: locale),
                                            number: WalletNumberLocalization.text(value.balance.text, locale: locale),
                                            symbol: WalletCurrencySymbol.symbol(value.currency))
                             .privacySensitive()
