@@ -1264,6 +1264,7 @@ struct SessionMerchantRootContainerView: View {
                     marketingModel: session.merchantMarketingCoordinator,
                     marketingDestination: { AnyView(SessionMerchantMarketingDestination(session: session, destination: $0)) },
                     openApplication: { onReturnToConsumer(.mine) },
+                    openSignIn: { onReturnToConsumer(.mine) },
                     operationsReader: session.merchantOperationsReader,
                     operationsDestinationFactory: { session.merchantOperationsDestination($0, access: $1) },
                     businessReader: session.merchantBusinessReader,

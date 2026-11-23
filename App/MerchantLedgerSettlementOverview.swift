@@ -93,9 +93,10 @@ import UIKit
     @State private var ledgerView: MerchantR1LedgerView = .redemptions
     @Environment(\.merchantR1CumulativeRevenue) private var cumulativeRevenue
     @Environment(\.locale) private var locale
-    init(reader: any MerchantBusinessReading) {
+    init(reader: any MerchantBusinessReading, initialView: MerchantR1LedgerView = .redemptions) {
         self.reader = reader
         _model = StateObject(wrappedValue: MerchantLedgerSettlementModel(reader: reader))
+        _ledgerView = State(initialValue: initialView)
     }
     var body: some View {
         let cover = Binding<MerchantLedgerBatchCover?>(get: { model.state.cover }, set: { model.childPopped($0 == nil ? model.state.cover : nil) })
