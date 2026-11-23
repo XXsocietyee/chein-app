@@ -65,6 +65,19 @@ extension EnvironmentValues {
     }
 
     @ViewBuilder private func content(_ profit: CoopFinanceProfit) -> some View {
+        // Parity coop/finance P1 (source k6 N-4): with no settlements the page is the empty state only — no
+        // zero hero, no hand-off card, no disabled 提现.
+        if profit.topics.isEmpty {
+            Section {
+                CYEmptyState(systemImage: "tray", "cooperation.finance.empty", messageIdentifier: "cooperation.finance.empty")
+            }
+        } else {
+            settledContent(profit)
+        }
+        Section { CoopFlowSafetyNotice() }
+    }
+
+    @ViewBuilder private func settledContent(_ profit: CoopFinanceProfit) -> some View {
         Section {
             ForEach(profit.stats, id: \.key) { stat in
                 Group {
@@ -92,23 +105,28 @@ extension EnvironmentValues {
             MerchantR1WithdrawalHandOff()
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
-            // Mini puts 提现 beside the hero total as the one solid action. It only opens support; it does not pay out.
-            CYPillButton("cooperation.finance.withdraw", systemImage: "arrow.up.circle") {
+            // Parity coop/finance P1 (RevenueShareView 186:6257): 提现 is a row. It only opens support; it does not pay out.
+            Button {
                 if profit.canWithdraw, loadedSession == reader.session { showsSupport = true }
+            } label: {
+                HStack(spacing: CYSpacing.md) {
+                    Label { Text("cooperation.finance.withdraw").cyText(.bodyMedium) } icon: { Image(systemName: "arrow.up.circle") }
+                        .foregroundStyle(profit.canWithdraw ? CYColor.textPrimary : CYColor.textTertiary)
+                    Spacer(minLength: CYSpacing.sm)
+                    Image(systemName: "chevron.forward").imageScale(.small).foregroundStyle(CYColor.textTertiary)
+                        .accessibilityHidden(true)
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .contentShape(Rectangle())
             }
-            .listRowBackground(Color.clear)
+            .buttonStyle(.plain)
             .disabled(!profit.canWithdraw)
             .accessibilityLabel(Text(LocalizedStringKey(withdrawAccessibilityKey(profit.withdrawState))))
             .accessibilityIdentifier("cooperation.finance.withdraw")
             if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
             else if profit.withdrawState == .zero { Text("cooperation.finance.withdraw.zero").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
         }
-        if profit.topics.isEmpty {
-            Section {
-                CYEmptyState(systemImage: "tray", "cooperation.finance.empty", messageIdentifier: "cooperation.finance.empty")
-            }
-        } else {
-            Section {
+        Section {
                 ForEach(Array(profit.topics.enumerated()), id: \.offset) { index, topic in
                     if let id = topic.topicID, topic.canOpenDetail {
                         NavigationLink { CoopSettlementDetailView(reader: reader, source: .finance, id: id) } label: { row(topic) }
@@ -116,8 +134,6 @@ extension EnvironmentValues {
                     } else { row(topic).accessibilityIdentifier("cooperation.finance.topic.unavailable.\(index)") }
                 }
             } header: { CYSectionHeader("cooperation.finance.topics") } footer: { Text("cooperation.finance.explainer") }
-        }
-        Section { CoopFlowSafetyNotice() }
     }
 
     private func row(_ topic: CoopFinanceProfit.Topic) -> some View {
