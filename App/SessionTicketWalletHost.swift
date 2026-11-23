@@ -12,11 +12,21 @@ import SwiftUI
     var focusTopicID: Int? = nil
     var focusRegistrationID: Int? = nil
     @State private var login = false
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+
+    /// PLY-21-7: MP「+ 去探索主题」is `wx.switchTab('/pages/index/index')` (signup/index.js:701).
+    /// Only the root TabView installs a live switch, so hosts outside it keep the button hidden.
+    private var explore: (() -> Void)? {
+        guard rootTabSwitch.isAvailable else { return nil }
+        let close = onClose, select = rootTabSwitch
+        return { close?(); select(.home) }
+    }
 
     var body: some View {
         TicketWalletView(reader: session.ticketWalletReader, onClose: onClose, onSignIn: { login = true },
                          makeTeamCoordinator: { session.makeTeamCoordinator() },
                          orderLifecycleCoordinator: session.orderLifecycleCoordinator,
+                         onExplore: explore,
                          focusTopicID: focusTopicID, focusRegistrationID: focusRegistrationID, isPushed: isPushed)
             .environment(\.ticketWalletPlayProvider, SessionTicketWalletProviders.play(session))
             .environment(\.ticketWalletPendingOrderProvider, SessionTicketWalletProviders.pendingOrder(session))
