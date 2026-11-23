@@ -222,9 +222,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     Text(LocalizedStringKey(validation.titleKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.validation")
                 }
-                CYPillButton("profile.complaint.review") {
+                // PLY-27-3: one primary 提交投诉 (complaint/index.wxml:75-76). A valid draft goes straight to the
+                // confirm sheet; the review section below only remains as the fallback after a cancel or failure.
+                CYPillButton(sending.isConfigured ? "profile.complaint.submit.action" : "profile.complaint.review") {
                     focused = nil
-                    if !model.beginReview() {
+                    if model.beginReview() {
+                        if sending.isConfigured, sending.canSend(review: model.review) { confirmingSend = true }
+                    } else {
                         switch model.validation {
                         case .reasonShort, .reasonLong: focused = .reason
                         case .contactLong: focused = .contact
