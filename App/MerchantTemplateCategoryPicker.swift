@@ -135,7 +135,7 @@ import SwiftUI
             }
             .merchantCreationSurface()
             .searchable(text: $search, prompt: "merchant.categories.search")
-            .appNavigationTitle("merchant.categories.choose")
+            .cyPageTitle("merchant.categories.choose")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: dismiss).accessibilityIdentifier("merchant.categories.cancel") }
                 ToolbarItem(placement: .confirmationAction) {

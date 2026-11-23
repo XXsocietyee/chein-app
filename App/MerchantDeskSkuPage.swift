@@ -66,7 +66,7 @@ struct MerchantDeskSkuPage: View {
                     .accessibilityIdentifier("merchant.desk.sku.listed")
             }
         }
-        .navigationTitle("merchant.desk.sku")
+        .navigationTitle("merchant.desk.sku").navigationBarTitleDisplayMode(.inline)
         .task {
             await desk.reopen(productID: productID, skuID: skuID, access: access, token: token)
             if let read {

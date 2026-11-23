@@ -62,7 +62,7 @@ import SwiftUI
         .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page",in:domain) == nil ? .automatic : .hidden)
         .background { if let page=Theme.Generated.color("--cy-color-bg-page",in:domain){page} }
         .preferredColorScheme(domain.colorScheme)
-        .navigationTitle("原供给退出 / 结果")
+        .navigationTitle("原供给退出 / 结果").navigationBarTitleDisplayMode(.inline)
             .onAppear{model.recover()}.onDisappear{model.stop();clearLocal()}
             .onChange(of:scenePhase){_,phase in if phase != .active{model.stop();clearLocal()}else{model.recover()}}
             .onChange(of:flow.draftRetirement){_,_ in clearLocal()}

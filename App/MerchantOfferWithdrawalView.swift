@@ -89,7 +89,7 @@ import SwiftUI
 
             actionSection
         }
-        .appNavigationTitle("merchant.offerWithdrawal.title")
+        .cyPageTitle("merchant.offerWithdrawal.title")
         .cyModalConfirm(
             isPresented: showingConfirmation,
             title: appLocalized("merchant.offerWithdrawal.confirm.title", locale: locale),

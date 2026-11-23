@@ -67,7 +67,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.orders")
+        .cyPageTitle("merchant.orders")
         .toolbar {
             if reader.isSignedIn && reader.isConfigured && model.errorKey != "merchant.access.denied" {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -93,7 +93,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                     }
                     Button("merchant.filters.reset") { draftFilter = .init() }
                 }
-                .appNavigationTitle("merchant.filters")
+                .cyPageTitle("merchant.filters")
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("merchant.cancel") { showFilters = false } }
                     ToolbarItem(placement: .confirmationAction) {
@@ -232,7 +232,7 @@ private struct MerchantOrderSummary: View {
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
-        .appNavigationTitle("merchant.order.summary")
+        .cyPageTitle("merchant.order.summary")
     }
 }
 

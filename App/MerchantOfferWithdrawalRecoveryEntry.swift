@@ -21,7 +21,7 @@ import SwiftUI
                 }
             }
         }
-        .navigationTitle("原供给撤回结果")
+        .navigationTitle("原供给撤回结果").navigationBarTitleDisplayMode(.inline)
         .task(id: session.offerWithdrawalRecoveryEntryRevision + ":" + String(describing: scenePhase) + ":" + String(retry)) {
             let stamp = UUID(); generation = stamp; destination = nil; loading = true
             guard scenePhase == .active else { loading = false; return }

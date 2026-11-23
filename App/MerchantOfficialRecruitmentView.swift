@@ -100,7 +100,7 @@ import SwiftUI
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }
         }
-        .appNavigationTitle("merchant.officialRecruitment.title")
+        .cyPageTitle("merchant.officialRecruitment.title")
         .cyDomainScreen(.merchant)
     }
 }

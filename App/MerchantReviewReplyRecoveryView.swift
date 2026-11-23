@@ -96,7 +96,7 @@ import SwiftUI
             }.disabled(recovery.isBusy || scenePhase != .active)
                 .accessibilityIdentifier("merchant.reviewRecovery.refresh")
         }
-        .appNavigationTitle("merchant.reviewRecovery.title")
+        .cyPageTitle("merchant.reviewRecovery.title")
         .task { if scenePhase == .active { await model.refresh(pending, access: access) } }
         .onDisappear { model.invalidate() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.invalidate() } }

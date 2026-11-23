@@ -75,7 +75,7 @@ struct MerchantAuthoringView: View {
             if let refusal = coordinator.refusal { Text(verbatim: String(describing: refusal)) }
             }
         }
-        .navigationTitle(Text("本店 AI 草稿"))
+        .navigationTitle(Text("本店 AI 草稿")).navigationBarTitleDisplayMode(.inline)
         .task { coordinator.restore(owner) }
         .onChange(of: owner) { _, new in coordinator.adopt(new) }
         .cyDomainScreen(.merchant)

@@ -94,7 +94,7 @@ import SwiftUI
                     .accessibilityIdentifier("merchant.projectEvents.refresh")
             }
         }
-        .appNavigationTitle("merchant.projectEvents.title")
+        .cyPageTitle("merchant.projectEvents.title")
         .accessibilityIdentifier("merchant.projectEvents.screen")
         .task(id: key) {
             guard key.current && key.configured && key.signedIn && key.active else { model.retire(); return }

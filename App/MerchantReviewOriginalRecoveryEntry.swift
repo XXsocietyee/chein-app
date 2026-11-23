@@ -141,7 +141,7 @@ import SwiftUI
                 .disabled(model.busy || scenePhase != .active)
                 .accessibilityIdentifier("merchant.reviewOriginalRecovery.retry")
         }
-        .navigationTitle(copy("Original reply result", "原回复操作结果"))
+        .navigationTitle(copy("Original reply result", "原回复操作结果")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task(id: key) {
             guard key.active else { model.retire(); return }

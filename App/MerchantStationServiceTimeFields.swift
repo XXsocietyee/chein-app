@@ -78,7 +78,7 @@ import SwiftUI
                 if stale { Text("merchant.stationTime.changed").foregroundStyle(.secondary) }
                 Text("merchant.content.civilTime").font(.footnote).foregroundStyle(.secondary)
             }
-            .navigationTitle("merchant.stationTime.title")
+            .navigationTitle("merchant.stationTime.title").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel", action: cancel).accessibilityIdentifier("merchant.stationTime.cancel")

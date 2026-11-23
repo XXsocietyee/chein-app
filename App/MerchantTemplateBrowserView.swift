@@ -141,7 +141,7 @@ import SwiftUI
             }.padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s4)
         }
         .merchantCreationSurface()
-        .appNavigationTitle("merchant.operations.templates")
+        .cyPageTitle("merchant.operations.templates")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("merchant.operations.reloadSource", systemImage: "arrow.clockwise") { Task { await model.refresh(permit) } }
