@@ -65,6 +65,12 @@ activity detail instead of the old hero chrome.)
 | PC-B-4-6 | partial | same | Opens on 有人带; floor auto-loads when inputs allow. Tabs still shown for free-explore topics (the view has no `productType`) |
 | PC-D-5-3 | partial | `App/WalletCommerceViews.swift` | Balance label 账户收益. The inline `t("…")` section copy is unchanged |
 | PC-D-6-4 | fixed | `Resources/WalletIncomeAnalysis.xcstrings` | 收益分析 segment reads 提现 |
+| PC-B-1-7 | fixed | `Core/TopicChapterItinerary.swift` (`straightLineMeters`, `distanceText`), `App/TopicXcxSections.swift` | Topic 路线 tab: legs read 直线约 350 米 / 直线约 1.2 公里 (MP walkText), never "N min 步行". The chapter view's estimate notice is unchanged |
+| PC-C-5-3 | fixed | `App/OfficialPrivateViews.swift` | Official inbox: no 官方活动 · 承接关系 eyebrow / paragraph under the title; the first card is at the top |
+| PC-D-2-2 | fixed | `Resources/Localizable.xcstrings` | 城瘾玩法 现成玩法 empty: 还没有上架的现成玩法; failure: 现成玩法加载失败 (MP infomation.wxml). The stale fragment JSON is left as is |
+| PC-A-8-2 | fixed | `App/DiscoveryTemplateDetailView.swift` | Topic-template 详情 › 剧情: each chapter is number + name + one line, no stop chips or 站数 row (stops stay in 能力) |
+| PC-C-2-7 | already present | `App/QuestifyApp.swift:604` | `registrationMySignupsDestination` is installed at the root, so the 已报名 banner shows 查看我的报名 |
+| PC-C-2-5 | partial (via C-1-3) | `App/ActivityDetailView.swift` | A no-ticket activity no longer opens the sheet from detail (pill 暂未开放票种); the sheet's activity-level quote text is unchanged |
 
 ### Chrome / titles (X2, brief step 3)
 
@@ -92,8 +98,9 @@ activity detail instead of the old hero chrome.)
 | PC-C-1-8 | blocked (contract) | `test_activity_registration_parity_w2_06` pins 关于这场活动 inside 更多信息; needs a hand-off ruling to move it |
 | PC-A-3-3, PC-A-5-4, PC-A-5-5 | blocked (pinned files) | `GlobalSearchView`, `SearchMapExplorerView`, `SearchMapFilterSheet`, `SearchMapService` are SHA-pinned by `test_global_search_category_recovery` |
 | PC-D-8-1, D-8-3, D-9-3, D-9-4 | deferred | IM follows the Flutter app (owner rule); the Flutter source is not in this checkout |
+| PC-B-6-1 | deferred | `pages/topic/catalog/index` is not in the page map (`MiniProgramPages`, 264-page route table); adding the redirect needs a route-table entry |
 | PC-C-6-1, PC-A-3-1, PC-B-6-2, PC-D-5-1 | owner decision | 发布官方活动 entry vs the 2026-09-03 ruling; player search hides 商家; `/catalog` still live; 提现 in Release (money stays TEST-only) |
-| everything else in the audit P1 list (A-1-5/6/7, A-2-1/2/5, A-3-4, A-4-2/3, A-5-1/2/3, A-7-2, A-8-2/3, B-1-4…7, B-1-9…11, B-1-14, B-2-4/5, B-3-3…5, B-4-4, B-5-2, B-6-1, C-1-1/2/5/6/7, C-2-3…7, C-3-3, C-4-2/4, C-5-3/4, C-6-2, D-1-3/6/8/9, D-2-2/4, D-3-2, D-4-2/4/5, D-5-2, D-7-3) | deferred | Not reached in this run; P2s untouched |
+| everything else in the audit P1 list (A-1-5/6/7, A-2-1/2/5, A-3-4, A-4-2/3, A-5-1/2/3, A-7-2, A-8-3, B-1-4…6, B-1-9…11, B-1-14, B-2-4/5, B-3-3…5, B-4-4, B-5-2, C-1-1/2/5/6/7, C-2-3/4/6, C-3-3, C-4-2/4, C-5-4, C-6-2, D-1-3/6/8/9, D-2-4, D-3-2, D-4-2/4/5, D-5-2, D-7-3) | deferred | Not reached in this run; P2s untouched |
 
 ## Backend needed
 
