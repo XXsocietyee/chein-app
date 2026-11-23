@@ -121,7 +121,12 @@ struct MerchantBusinessEditorContext: Identifiable {
                     }
                     Text("merchant.business.rolesBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 case .removeOperator, .revokeInvite:
+                    // Parity team P1: source index.js:714 sends a fixed reason; it is prefilled here and stays editable.
                     TextField("merchant.business.reason", text: $content, axis: .vertical).lineLimit(3...8)
+                        .onAppear {
+                            guard content.isEmpty else { return }
+                            if case .removeOperator = context.kind { content = "店主在经营团队页移除成员" } else { content = "店主在经营团队页撤销邀请" }
+                        }
                 }
                 if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText) }
                 let unchangedRole = roleNoChange

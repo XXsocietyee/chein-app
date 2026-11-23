@@ -68,8 +68,8 @@ import SwiftUI
                     }
                 }
             } else {
+                // Parity team P1: one message per state; the self-role card already says what this role can do.
                 MerchantOperatorSelfRoleCard(access: access)
-                Text("merchant.business.denied")
             }
         }
     }
