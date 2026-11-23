@@ -283522,6 +283522,57 @@
           }
         }
       }
+    },
+    "profile.inviteRewards.hero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First-purchase reward points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首购奖励积分"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.meta %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ invited · %2$lld rewarded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已邀请 %1$@ 人 · 已到账 %2$lld 人"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.metaInvited %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ invited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已邀请 %@ 人"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

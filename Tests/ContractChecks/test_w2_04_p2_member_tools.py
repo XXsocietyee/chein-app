@@ -44,8 +44,11 @@ class W204P2MemberToolsChecks(unittest.TestCase):
         self.assertEqual(self.zh('ticketWallet.p2.notice.scheduleSync'), '场次信息待同步')
 
     def test_invite_summary_keeps_existing_total_row(self):
-        self.assertIn('ProfileInviteHistorySummaryLine(total: model.pagination.total)', self.invite_view)
-        self.assertIn('LabeledContent("social.invites.total", value: ProfileInviteHistoryPageReady.countText(model.pagination.total))', self.invite_view)  # unknown total renders the em dash via countText
+        # FIN-20-2: one hero section carries the total (已邀请 N 人, em dash via countText); no duplicate row.
+        self.assertIn('ProfileInviteRewardReviewSection(review: .init(scan: model.scan), total: model.pagination.total', self.invite_view)
+        self.assertNotIn('LabeledContent("social.invites.total"', self.invite_view)
+        hero = read('App/ProfileInviteRewardReviewSection.swift')
+        self.assertIn('ProfileInviteHistoryPageReady.countText(total)', hero)
         self.assertIn('Text("profile.inviteHistoryP2.summary \\(total)")', self.invite_issue)
         self.assertEqual(self.zh('profile.inviteHistoryP2.summary %lld'), '累计邀请 %lld 人')
 

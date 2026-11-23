@@ -21,7 +21,7 @@ class InvitationHistoryLifetimeContracts(unittest.TestCase):
                          ".onDisappear { model.suspend() }"]:
             self.assertIn(required, self.view)
         self.assertEqual(self.view.count("model.start(reader, permit: permit,"), 3)
-        self.assertIn("ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading)", self.view)
+        self.assertIn("ProfileInviteRewardReviewSection(review: .init(scan: model.scan), total: model.pagination.total,", self.view)  # FIN-20-2: the hero also carries the total
         self.assertNotIn("Task {", self.view)
         self.assertNotIn(".task(", self.view)
         self.assertNotIn("loadedIdentity", self.view)

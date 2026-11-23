@@ -24,6 +24,8 @@ public struct ProfileInviteRewardReview: Equatable {
             ledgerState = .partial; cumulativePoints = nil
         }
     }
+    /// FIN-20-2: 已到账 M 人 is only stated over a complete ledger (myinvite hero, `rewardReady`).
+    public var earnedCount: Int? { ledgerState == .complete ? rewards.count : nil }
     public struct Month: Equatable {
         /// Number of distinct loaded invitation members in this displayed group, not a server month total.
         public let loadedMemberCount: Int
