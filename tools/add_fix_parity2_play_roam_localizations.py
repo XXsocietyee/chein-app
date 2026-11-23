@@ -26,6 +26,9 @@ S = {
     # OCARDS-1: MP 藏品册
     'objects.title': ('Collection', '藏品册'),
     'objects.login': ('Sign in to view your collection', '登录后查看你的藏品'),
+    # RSTAMP-4: per-step stamp failures (MP citystamp _failDeliver copy)
+    'media.stamp.phase.failed.upload': ("The photo didn't upload. Try again.", '图没传上去，请重试一次'),
+    'media.stamp.phase.failed.create': ("The stamp wasn't saved. Try again.", '没存上，请重试一次'),
     # JSEAT-7
     'mp.seats.unconfirmed': ('The result is not confirmed yet. Check again later.', '结果还没确认，请稍后查询'),
 }

@@ -283439,6 +283439,40 @@
           }
         }
       }
+    },
+    "media.stamp.phase.failed.upload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The photo didn't upload. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图没传上去，请重试一次"
+          }
+        }
+      }
+    },
+    "media.stamp.phase.failed.create": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The stamp wasn't saved. Try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没存上，请重试一次"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -60,6 +60,9 @@ public struct RoamStampPending: Codable, Equatable {
 }
 @MainActor public final class RoamStampCaptureCoordinator {
     public enum Phase: Equatable { case ready, review, uploading, awaitingCreate, creating, unknown, created(Int), unavailable, failed }
+    /// RSTAMP-4: which step a `.failed` came from, so the page can say 图没传上去 vs 没存上 (MP citystamp).
+    public enum FailedStep: Equatable { case upload, create }
+    public private(set) var failedStep: FailedStep?
     public private(set) var phase: Phase = .ready
     public private(set) var selection: RetainedSelectedImage?
     public private(set) var pending: RoamStampPending?
@@ -98,7 +101,7 @@ public struct RoamStampPending: Codable, Equatable {
         let ticket = generation; phase = .uploading; changed?()
         await uploads.confirm(review)
         guard ticket == generation, !Task.isCancelled else { return }
-        guard case .uploaded(let proof) = uploads.state else { phase = uploads.locked ? .unknown : .failed; changed?(); return }
+        guard case .uploaded(let proof) = uploads.state else { phase = uploads.locked ? .unknown : .failed; failedStep = .upload; changed?(); return }
         do {
             let record = try RoamStampPending(pictureURL: proof.url, caption: reviewedCaption, idempotencyKey: "stamp-" + proof.id.uuidString)
             // Persist the exact create command before allowing a single create dispatch.
@@ -123,7 +126,7 @@ public struct RoamStampPending: Codable, Equatable {
         } catch let error as RetainedImageFailure {
             if ticket == generation {
                 if case .rejected = error {
-                    do { try storage.clear(pending, scope: scope); self.pending = nil; phase = .failed }
+                    do { try storage.clear(pending, scope: scope); self.pending = nil; phase = .failed; failedStep = .create }
                     catch { phase = .unknown }
                 } else { phase = .unknown }
             }
