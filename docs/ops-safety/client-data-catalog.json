@@ -159,6 +159,15 @@
       "deletion": "Changing the language overwrites it; removed when the app is deleted"
     },
     {
+      "file": "App/MerchantInboxPreviewSection.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Merchant workbench 我的消息 read marks (source merchant_inbox_read_<userID>): read keys of conversations, received coop invites and business events, per account, capped at 300",
+      "retention": "Until the marks age out of the 300 newest or the app is removed",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/NativeChannelReportJournalKeys.swift",
       "kinds": [
         "keychain"

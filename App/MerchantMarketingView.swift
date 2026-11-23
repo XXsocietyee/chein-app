@@ -40,6 +40,8 @@ import SwiftUI
     @State private var selected: MerchantMarketingCoordinator.Surface = .dashboard
     @State private var loadedRecommendationOrigin: MerchantInsightOrigin?
     @State private var refreshTask: Task<Void, Never>?
+    @State private var marketingPush: MerchantMarketingPush?
+    @Environment(\.merchantMarketingLinks) private var marketingLinks
     private var loadKey: String { selected.rawValue + ":" + model.scopeIdentity + ":" + (recommendationOrigin?.readerScope.uuidString ?? "none") + ":" + String(recommendationOrigin?.merchantID ?? 0) }
     init(model: MerchantMarketingCoordinator, initialSurface: MerchantMarketingCoordinator.Surface = .dashboard, recommendationOrigin: MerchantInsightOrigin? = nil, onSuggestion: @escaping (MerchantInsightDestination) -> Void = { _ in }) {
         self.model = model; self.onSuggestion = onSuggestion; self.recommendationOrigin = recommendationOrigin; _selected = State(initialValue: initialSurface)
@@ -66,7 +68,12 @@ import SwiftUI
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
-            if model.busy {
+            if model.isRefreshingKeptValues {
+                Label { Text("merchant.marketing.refreshing").cyText(.meta) } icon: { ProgressView().controlSize(.mini) }
+                    .foregroundStyle(CYColor.textSecondary)
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("merchantMarketing.refreshing")
+            } else if model.busy {
                 CYSkeleton()
                     .accessibilityLabel(Text("merchantMarketing.loading"))
                     .listRowBackground(Color.clear)
@@ -81,7 +88,7 @@ import SwiftUI
             if let home = model.home, let access = model.homeAccess {
                 MerchantMarketingHomeSections(home: home, access: access,
                     onRetry: { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } },
-                    onInsight: { selected = .insight }, onRoute: onSuggestion)
+                    onInsight: { selected = .insight }, onRoute: onSuggestion, onPush: { marketingPush = $0 })
             }
             if let insight = model.insight { insightSections(insight) }
             if let subscriptions = model.subscriptions { entitlementSections(subscriptions) }
@@ -91,6 +98,12 @@ import SwiftUI
         .cyDomainScreen(.merchant)
         .merchantRootHidesBarTitle()
         .refreshable { await loadSurface() }
+        .navigationDestination(item: $marketingPush) { push in
+            Group {
+                if let marketingLinks { marketingLinks.destination(push) }
+            }
+            .cyPushedChrome(domain: .merchant)
+        }
         .task(id: loadKey) { await loadSurface() }
         .onChange(of: loadKey) { _, _ in refreshTask?.cancel(); refreshTask = nil; loadedRecommendationOrigin = nil }
         .onDisappear { refreshTask?.cancel(); refreshTask = nil }
