@@ -16,7 +16,7 @@ struct OfficialDetailReturnLease {
 enum OfficialDetailID {
     static let organizer = leaf("organizer"), facts = leaf("facts"), overview = leaf("overview")
     static let story = leaf("story"), cards = leaf("cards"), tasks = leaf("tasks"), rewards = leaf("rewards")
-    static let collective = leaf("collective"), rewardFootnote = leaf("rewardFootnote"), cta = leaf("cta")
+    static let collective = leaf("collective"), rewardFootnote = leaf("rewardFootnote"), cta = leaf("cta"), share = leaf("share")
     static let unavailable = leaf("unavailable"), backToList = leaf("backToList"), network = leaf("network")
     static let service = leaf("service"), topicNameError = leaf("topicNameError"), ctaTopic = leaf("ctaTopic")
     static let empty = leaf("empty"), unknown = leaf("unknown")
@@ -41,6 +41,9 @@ enum OfficialDetailID {
     @State private var visit = UUID()
     @State private var readback = UUID()
     @State private var visible = false
+    /// PC-C-4-3: MP share button in the CTA bar opens the share card for the loaded event.
+    @State private var shareEvent: OfficialEvent?
+    @Environment(\.locale) private var locale
     /// Source official-detail: a missing event exits to the list; a network failure keeps retry.
     nonisolated static func issueCopy(_ error: Error) -> OfficialIssueCopy? {
         switch OfficialDetailLoadFailure(error) {
@@ -56,6 +59,18 @@ enum OfficialDetailID {
             return OfficialIssueCopy(title: "official.w206.detail.service.title", detail: "official.w206.detail.service.detail",
                                      identifier: OfficialDetailID.service)
         }
+    }
+    /// PC-C-4-3: share card for an official event. Unknown facts stay out (em dash on the card, never a guess).
+    private func shareContent(_ event: OfficialEvent) -> CYShareCardContent {
+        CYShareCardContent(
+            kind: .activity,
+            eyebrow: appLocalized("official.title", locale: locale),
+            title: event.title.isEmpty ? "—" : event.title,
+            subtitle: event.subtitle,
+            place: event.city,
+            artSeed: event.title,
+            artSymbol: "flag.checkered",
+            brand: appLocalized("share.card.brand", locale: locale))
     }
     var body: some View {
         OfficialReadScreen(reader: reader, requestID: "event.\(id).\(readback)", onLogin: onLogin,
@@ -250,6 +265,12 @@ enum OfficialDetailID {
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
             }.listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground().themeDomain(.player).tint(CYDomainPalette(.player).brand)
             .accessibilityIdentifier("official.detail.content")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { shareEvent = event } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
+                        .accessibilityIdentifier(OfficialDetailID.share)
+                }
+            }
             .task(id: namesKey) {
                 await loadTopicNames(namesKey, detailVisit: namesVisit)
             }
@@ -257,6 +278,11 @@ enum OfficialDetailID {
         }
         .appNavigationTitle("official.detail").navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
+        .sheet(item: $shareEvent) { event in
+            CatalogShareCardView(content: shareContent(event), tint: .sunset)
+                .cyPlayerSheetGlass()
+                .cyDomainSheet(detents: [.half, .full])
+        }
         .onAppear { visible = true }
         .onDisappear { visible = false; visit = UUID() }
         .onChange(of: id) { _, _ in visit = UUID() }
