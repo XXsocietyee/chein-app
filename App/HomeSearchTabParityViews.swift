@@ -276,7 +276,7 @@ struct PlayContinuationBannerView: View {
                     Spacer()
                     if readAvailability == .failed, let onRetry {
                         Button("homeFeed.retry", action: onRetry)
-                            .buttonStyle(.cySecondary)
+                            .buttonStyle(.bordered)
                             .accessibilityIdentifier("homeIndex.continuation.retry")
                     }
                 }

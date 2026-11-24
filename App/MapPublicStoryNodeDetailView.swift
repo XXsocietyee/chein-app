@@ -150,7 +150,7 @@ struct MapPublicStoryNodeDetailView: View {
                             layer("mapPublicLayers.storyNode.openParentTheme")
                         }
                     }
-                    .buttonStyle(CYPillButtonStyle())
+                    .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("mapPublicLayers.storyNode.openParentTheme")
                     .accessibilityLabel(layer("mapPublicLayers.storyNode.openParentTheme"))
                     .e1ActionRow()

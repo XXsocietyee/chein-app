@@ -78,7 +78,7 @@ struct DiscoveryHomeView: View {
             } label: {
                 CYPillButtonLabel("discovery.browseTemplates", systemImage: "square.stack.3d.up")
             }
-            .buttonStyle(CYPillButtonStyle())
+            .buttonStyle(.borderedProminent)
             .accessibilityIdentifier("discovery.openTemplates")
             .e1ActionRow()
             .questifyHidesLinkIndicator()

@@ -78,7 +78,7 @@ import SwiftUI
                     }
                     Text(verbatim: content).fixedSize(horizontal: false, vertical: true)
                     Button("merchant.publicHome.confirm") { Task { await model.confirm(review) } }
-                        .buttonStyle(.questifyPrimary)
+                        .buttonStyle(.borderedProminent)
                         .frame(maxWidth: .infinity)
                         .listRowBackground(Color.clear)
                         .disabled(state.busy).accessibilityIdentifier("merchant.publicHome.confirm")

@@ -19,7 +19,7 @@ import SwiftUI
                 } label: { Label("nativeNav.team.open", systemImage: "person.badge.plus") }
                 TeamNotice(coordinator: model.coordinator)
                 if !model.coordinator.authenticated {
-                    if let onLogin { Button("team.signIn", action: onLogin).buttonStyle(.cyPrimary) }
+                    if let onLogin { Button("team.signIn", action: onLogin).buttonStyle(.borderedProminent) }
                 } else if model.running && model.coordinator.currentTeams.isEmpty {
                     CYLoadingState("team.loading", messageIdentifier: "team.loading")
                 }
@@ -34,7 +34,7 @@ import SwiftUI
                     Button("team.refresh") {
                         let permit = model.captureRun()
                         readOwner.start { await reload(permit: permit) }
-                    }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    }.buttonStyle(.bordered).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).cyPageTitle("team.title")
@@ -122,7 +122,7 @@ import SwiftUI
                             NavigationLink {
                                 TeamDetailView(lookup: .id(teamID), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true, readOnly: true)
                             } label: { Label("team.detail", systemImage: "person.3") }
-                                .buttonStyle(.cyPrimary).disabled(model.running || model.coordinator.busy)
+                                .buttonStyle(.borderedProminent).disabled(model.running || model.coordinator.busy)
                                 .accessibilityIdentifier("team.postJoin.openDetail")
                         }
                         else if detail.joined == true {
@@ -130,7 +130,7 @@ import SwiftUI
                             NavigationLink {
                                 TeamDetailView(lookup: .id(detail.team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true)
                             } label: { Label("team.detail", systemImage: "person.3") }
-                                .buttonStyle(.cyPrimary).disabled(model.actionLocked)
+                                .buttonStyle(.borderedProminent).disabled(model.actionLocked)
                                 .accessibilityIdentifier("team.invitation.openDetail")
                         }
                         else if TeamPagePresentation.invitationCTA(detail) == .join {
@@ -151,7 +151,7 @@ import SwiftUI
                     if !readOnly, detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
                         // Mini `.team-actions`: 邀请队友 is the primary on the detail page; on the invitation page 加入 is.
                         if invitationCode == nil {
-                            Button("team.page.inviteTeammates") { invitationPreview = true }.buttonStyle(.cyPrimary).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
+                            Button("team.page.inviteTeammates") { invitationPreview = true }.buttonStyle(.borderedProminent).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
                         } else {
                             Button("team.invitePreview") { invitationPreview = true }.buttonStyle(.cySecondary(fullWidth: true)).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
                         }
@@ -215,13 +215,13 @@ import SwiftUI
                         let permit = model.captureRun()
                         Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
                     }
-                        .buttonStyle(.cySecondary).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
+                        .buttonStyle(.bordered).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
                 }
                 if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
                     Button("team.refresh") {
                         let permit = model.captureRun()
                         readOwner.start { await reload(permit: permit) }
-                    }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    }.buttonStyle(.bordered).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
@@ -242,13 +242,13 @@ import SwiftUI
             if case .join = action {
                 // Mini-program 加入队伍 is the page's one primary action.
                 Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }
-                    .buttonStyle(.cyPrimary).disabled(model.actionLocked)
+                    .buttonStyle(.borderedProminent).disabled(model.actionLocked)
                     .accessibilityIdentifier(action.key)
             } else {
                 // 解散队伍 is the source's danger action; native destructive role keeps it red.
                 if case .disband = action {
                     Button(role: .destructive) { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }
-                        .buttonStyle(.cyDestructive).disabled(model.actionLocked)
+                        .buttonStyle(.bordered).disabled(model.actionLocked)
                         .accessibilityIdentifier(action.key)
                 } else {
                     Button(role: destructiveRole(action)) { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }

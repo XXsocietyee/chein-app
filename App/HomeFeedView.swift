@@ -156,7 +156,7 @@ import UIKit
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
                             Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
-                                .buttonStyle(.cySecondary)
+                                .buttonStyle(.bordered)
                                 .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
@@ -418,7 +418,7 @@ import UIKit
                 .cyText(.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
-                .buttonStyle(.cySecondary)
+                .buttonStyle(.bordered)
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }

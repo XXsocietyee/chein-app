@@ -249,7 +249,7 @@ enum OfficialDetailID {
                         NavigationLink { topicLinks.destination(topic) } label: {
                             Text(LocalizedStringKey(presentation.cta.key)).frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(CYPillButtonStyle())
+                        .buttonStyle(.borderedProminent)
                         .accessibilityIdentifier(OfficialDetailID.ctaTopic)
                     }
                 } else if !presentation.cta.isSourceAction {

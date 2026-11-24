@@ -66,7 +66,7 @@ struct OfficialSignupCommandSection: View {
                     Button("playerGap.signup.retry") { run { await flow.retry() } }
                     Button("playerGap.signup.cancel", role: .destructive) { run { await flow.cancel() } }
                 }
-                .buttonStyle(CYPillButtonStyle(style: .secondary))
+                .buttonStyle(.bordered)
             case .settled(let state, let message):
                 settled(state, message: message)
                 if flow.safetyBlocked { Text("playerGap.signup.safetyBlocked").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
@@ -221,10 +221,10 @@ struct TeamTrailSection: View {
                             }
                         }
                         Button("playerGap.trail.stop") { Task { await model.consent(false) } }
-                            .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                            .buttonStyle(.borderless)
                     } else {
                         Button("playerGap.trail.start") { Task { await model.consent(true) } }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary))
+                            .buttonStyle(.bordered)
                     }
                 }
             }
@@ -560,7 +560,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                     ContentUnavailableView {
                         Label("playerGap.publish.signIn", systemImage: "person.crop.circle")
                     } actions: {
-                        Button("action.goSignIn") { showsSignIn = true }.buttonStyle(.cyPrimary)
+                        Button("action.goSignIn") { showsSignIn = true }.buttonStyle(.borderedProminent)
                             .accessibilityIdentifier("playerGap.publish.goSignIn")
                     }
                     .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.cyR1Sheet([.large]) }

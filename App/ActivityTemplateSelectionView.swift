@@ -154,14 +154,14 @@ import UIKit
                     .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
             Button { _ = apply(stamp) } label: { Text("apply", tableName: "ActivityTemplateSelection") }
-                .buttonStyle(CYPillButtonStyle(style: .secondary))
+                .buttonStyle(.bordered)
                 .disabled(!owner.canApply).accessibilityIdentifier("activityTemplate.apply")
             Button { owner.create(expected: stamp, available: createAvailable) } label: { Text("create", tableName: "ActivityTemplateSelection") }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                .buttonStyle(.borderless)
                 .disabled(!createAvailable).accessibilityIdentifier("activityTemplate.create")
             PublishingStatusRow(title: Text("creationNotice", tableName: "ActivityTemplateSelection"))
             Button { owner.close(stamp) } label: { Text("cancel", tableName: "ActivityTemplateSelection") }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                .buttonStyle(.borderless)
                 .accessibilityIdentifier("activityTemplate.cancel")
         } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textTertiary) }
     }

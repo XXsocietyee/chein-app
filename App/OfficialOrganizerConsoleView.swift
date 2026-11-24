@@ -360,7 +360,7 @@ struct OfficialOrganizerConsoleView: View {
         } label: {
             HStack { if model.busy { ProgressView() }; Text(actionName(action)).frame(maxWidth: .infinity) }
         }
-        .buttonStyle(.cyPrimary)
+        .buttonStyle(.borderedProminent)
         .disabled(!model.canStart(action))
         .frame(minHeight: 44)
         .accessibilityIdentifier("official.organizer.\(action.rawValue)")
@@ -527,7 +527,7 @@ struct OfficialOrganizerEntryRow: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 44)
                 }
-                .buttonStyle(CYPillButtonStyle(style: .primary))
+                .buttonStyle(.borderedProminent)
                 .accessibilityIdentifier("official.detail.cta.roam")
             }
         }
