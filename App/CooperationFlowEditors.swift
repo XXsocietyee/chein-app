@@ -182,6 +182,9 @@ struct CoopFlowHandleEditor: View {
     let inviteID: Int
     let action: CoopFlowHandle
     let currentStatus: Int
+    var supplyStationID: Int? = nil
+    var supplyStationName: String? = nil
+    var flowReader: (any CoopFlowReading)? = nil
     @Environment(\.locale) private var locale
     @State private var reason = ""
     @State private var confirmHandle = false
@@ -218,6 +221,10 @@ struct CoopFlowHandleEditor: View {
         Form {
             LabeledContent("coopflow.field.id", value: String(inviteID))
             Text(LocalizedStringKey("coopflow.handle." + String(action.rawValue)))
+            if action == .accept, let supplyStationName, !supplyStationName.isEmpty {
+                Text(verbatim: supplyStationName).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityIdentifier("coopflow.supplyStation")
+            }
             TextField("coopflow.field.reason", text: $reason, axis: .vertical)
                 .onChange(of: reason) { _, value in if value.count > 100 { reason = String(value.prefix(100)) } }
             Text(verbatim: "\(reason.count) / 100").font(.caption).foregroundStyle(.secondary)
@@ -248,13 +255,29 @@ struct CoopFlowHandleEditor: View {
             onCancel: { confirmHandle = false },
             onConfirm: {
                 confirmHandle = false
-                proceedPreview = true
+                if let supplyStationID, action == .accept {
+                    Task { await submitStation(supplyStationID) }
+                } else {
+                    proceedPreview = true
+                }
             }
         )
         .navigationDestination(isPresented: $proceedPreview) {
             CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason))
         }
         .cyToast(verbatimMessage: $toastMessage)
+    }
+
+    /// Station accept uses `acceptSupplyStation` after the name is shown and the confirm is accepted.
+    /// The 3-argument `.handle` path is the one without a station. The dormant grant still sends nothing.
+    private func submitStation(_ stationID: Int) async {
+        let note = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        do {
+            guard let flowReader else { throw CoopFlowFailure.disabled }
+            _ = try await flowReader.acceptSupplyStation(inviteID: inviteID, reason: note.isEmpty ? nil : note, supplyStationID: stationID)
+        } catch {
+            toastMessage = MerchantAreaCopy.text("接受未发送", "Acceptance was not sent", locale)
+        }
     }
 }
 /// Context is supplied only by a current, approved merchant chapter application.

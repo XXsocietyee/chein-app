@@ -4,11 +4,13 @@ import SwiftUI
 // 合作分润 entry (finance), the 全部/待结算/已结算/零现金 filter (finance), the 本月核销 · 待结算 · 已入账 strip, then the
 // day rows (verifiers see no amounts) — instead of the settlement entries, which now sit under 结算.
 // MC7-06-5: rows append on reaching the last one, with 正在加载更多… / 已经到底了 rows instead of a pager.
-// Reads only the existing `.redemptions(filter:page:)` query; nothing here writes.
+// Without a topic the read stays `.redemptions(filter:page:)`, which omits `topicId`. A ledger link that
+// carried one uses `MerchantFinanceRedemptionList` so the body includes `topicId`. Nothing here writes.
 
 @MainActor final class MerchantLedgerRedemptionsModel: ObservableObject {
     enum Phase: Equatable { case idle, loading, loaded, failed(String) }
     let reader: any MerchantBusinessReading
+    let topicID: Int?
     @Published private(set) var phase: Phase = .idle
     @Published private(set) var rows: [MerchantBusinessRecord] = []
     @Published private(set) var summary: MerchantBusinessObject = [:]
@@ -20,7 +22,7 @@ import SwiftUI
     private var generation = 0
     private var scope: MerchantBusinessScope?
 
-    init(reader: any MerchantBusinessReading) { self.reader = reader }
+    init(reader: any MerchantBusinessReading, topicID: Int? = nil) { self.reader = reader; self.topicID = topicID }
 
     var canReadFinance: Bool { access?.allows(MerchantAccess.Permission.finance.rawValue) == true }
 
@@ -42,9 +44,7 @@ import SwiftUI
         page = 1; loadingMore = false
         if rows.isEmpty { phase = .loading }
         do {
-            let snapshot = try await reader.snapshot(.redemptions(filter: filter.rawValue, page: 1), isCurrent: { [weak self] in
-                self?.generation == ticket && !Task.isCancelled
-            })
+            let snapshot = try await pageSnapshot(1, ticket: ticket)
             guard generation == ticket else { return }
             rows = snapshot.document.rows; summary = snapshot.document.summary
             access = snapshot.access; hasMore = snapshot.document.hasMore
@@ -61,13 +61,23 @@ import SwiftUI
         let ticket = generation, next = page + 1
         loadingMore = true
         defer { if generation == ticket { loadingMore = false } }
-        guard let snapshot = try? await reader.snapshot(.redemptions(filter: filter.rawValue, page: next), isCurrent: { [weak self] in
-            self?.generation == ticket && !Task.isCancelled
-        }), generation == ticket else { return }
+        guard let snapshot = try? await pageSnapshot(next, ticket: ticket), generation == ticket else { return }
         let known = Set(rows.map(\.id))
         rows += snapshot.document.rows.filter { !known.contains($0.id) }
         hasMore = snapshot.document.hasMore
         page = next
+    }
+
+    /// `topicId` is sent only when this ledger was opened with one. Otherwise the query omits it.
+    private func pageSnapshot(_ page: Int, ticket: Int) async throws -> MerchantBusinessSnapshot {
+        if let topicID {
+            let snapshot = try await reader.redemptions(filter: filter.rawValue, page: page, topicID: topicID)
+            guard generation == ticket, !Task.isCancelled else { throw CancellationError() }
+            return snapshot
+        }
+        return try await reader.snapshot(.redemptions(filter: filter.rawValue, page: page), isCurrent: { [weak self] in
+            self?.generation == ticket && !Task.isCancelled
+        })
     }
 }
 

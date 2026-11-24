@@ -318,6 +318,20 @@ import SwiftUI
                 PublicMerchantHomeView(target: .legacyMerchantRowID(row), context: session.publicMerchantHomeContext)
                     .cyPushedChrome()
             } else { unavailable }
+        case "pages/merchant/ledger/index":
+            MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                             topicID: MerchantFinanceRoute.normalize(query)?.topicID)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/ledger/order-detail/index":
+            if let record = MerchantOrderDetailLink.record(query) {
+                MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                     query: .redemption(recordID: record.recordKey))
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantMissingParamState(title: LocalizedStringKey(MerchantOrderDetailLink.missing))
+            }
+        case "pages/coop/settlement-detail/index":
+            CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: query)
         case "pages/merchant/ledger/batch-detail/index":
             // MC7-08-5 (batch-detail/index.wxml:52): ?batchId= opens the batch; without it 缺少结算批次信息 + 返回上一页.
             // The link rule must also accept batchId (Cursor, Core/MiniProgramPageLink.swift).

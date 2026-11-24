@@ -114,6 +114,16 @@ import SwiftUI
               pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return nil }
         return pages.sourcePage(for: row)
     }
+    /// Client `MerchantReviewFilter` stays a presentation filter. Non-all tabs use the manage-tab names (`photos` → `photo`).
+    private func reviewsServerFilter(for query: MerchantBusinessQuery) -> String? {
+        guard case .reviews = query else { return nil }
+        switch listFilters.review {
+        case .all: return nil
+        case .pending: return "pending"
+        case .low: return "low"
+        case .photos: return "photo"
+        }
+    }
     private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false, expectedTeamResult: UUID? = nil, expectedTeamRecovery: UUID? = nil, expectedTeamMerchantID: Int? = nil) async {
         // A retired queued read must not clear a newer snapshot or its original result.
         guard !Task.isCancelled else { return }
@@ -136,7 +146,7 @@ import SwiftUI
         customerQueryAuthorization = nil
         loadGeneration += 1
         let generation = loadGeneration, scope = coordinator.reader.scope, authorization = coordinator.reader.authorizationGeneration
-        revision += 1; await coordinator.load(query)
+        revision += 1; await coordinator.load(query, reviewsServerFilter: reviewsServerFilter(for: query))
         guard generation == loadGeneration else { return }
         defer { revision += 1 }
         guard !Task.isCancelled, scope == coordinator.reader.scope, authorization == coordinator.reader.authorizationGeneration else {
@@ -605,7 +615,7 @@ import SwiftUI
                     MerchantAftercareProgressView(progress: progress)
                 } else if query == .verificationRecords {
                     // Parity X5: 已核销 / 已撤销 chip tabs with counts and day groups (pages/merchant/verify-records).
-                    MerchantVerifyRecordsSections(records: snapshot.document.rows, total: snapshot.document.total)
+                    MerchantVerificationAppendList(reader: reader, snapshot: snapshot)
                 } else {
                     ForEach(snapshot.document.sections) { section in
                         let rows = visibleRows(section, in: snapshot.document)
@@ -968,6 +978,11 @@ import SwiftUI
                         Text(LocalizedStringKey("merchant.business.reviews.filter." + filter.rawValue)).tag(filter)
                     }
                 }.pickerStyle(.segmented).accessibilityIdentifier("merchant.business.reviews.filter")
+                    .onChange(of: model.listFilters.review) { _, selected in
+                        // 全部 stays the loaded `.reviews` page. Other tabs reload through MerchantReviewManageRead.
+                        guard selected != .all, case .reviews(let page) = query else { return }
+                        Task { await model.load(.reviews(page: page)) }
+                    }
                 if model.listFilters.review != .all {
                     Button("merchant.business.reviews.clearFilter") { model.listFilters.review = .all }
                         .accessibilityIdentifier("merchant.business.reviews.clearFilter")

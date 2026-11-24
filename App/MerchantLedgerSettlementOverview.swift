@@ -96,11 +96,11 @@ import UIKit
     @State private var ledgerView: MerchantR1LedgerView = .redemptions
     @Environment(\.merchantR1CumulativeRevenue) private var cumulativeRevenue
     @Environment(\.locale) private var locale
-    init(reader: any MerchantBusinessReading, journal: (any MerchantBusinessIntentStore)? = nil, initialView: MerchantR1LedgerView = .redemptions) {
+    init(reader: any MerchantBusinessReading, journal: (any MerchantBusinessIntentStore)? = nil, topicID: Int? = nil, initialView: MerchantR1LedgerView = .redemptions) {
         self.reader = reader
         self.journal = journal
         _model = StateObject(wrappedValue: MerchantLedgerSettlementModel(reader: reader))
-        _redemptions = StateObject(wrappedValue: MerchantLedgerRedemptionsModel(reader: reader))
+        _redemptions = StateObject(wrappedValue: MerchantLedgerRedemptionsModel(reader: reader, topicID: topicID))
         _ledgerView = State(initialValue: initialView)
     }
     /// MC7-06-2 (ledger/index.wxml:11): a denied overview read replaces the page with the no-permission state.
@@ -305,10 +305,20 @@ import UIKit
             mutate { $0.cancel(generation: ticket) }
         } catch {
             guard !Task.isCancelled else { mutate { $0.cancel(generation: ticket) }; return }
-            let key = MerchantLedgerSettlementFailure.key(error)
+            let key = MerchantBatchMissingRecord.failureKey(error, fallback: MerchantLedgerSettlementFailure.key)
             let accepted = mutate { $0.fail(generation: ticket, owner: owner, key: key) }
             if accepted && key == "merchant.business.denied" { onDenied() }
         }
+    }
+}
+
+enum MerchantBatchMissingRecord {
+    static func failureKey(_ error: Error, fallback: (Error) -> String) -> String {
+        if case let MerchantBusinessFailure.rejected(code, message) = error,
+           MerchantFinanceDetailLoad.isMissingRecord(code: String(code), statusCode: nil, message: message) {
+            return MerchantFinanceDetailLoad.batchMissingRecord
+        }
+        return fallback(error)
     }
 }
 
@@ -329,8 +339,13 @@ import UIKit
             }
             if let key = slot.failureKey {
                 Section {
-                    CYErrorState(LocalizedStringKey(key)) { model.appear() }
-                        .disabled(slot.isLoading)
+                    if key == MerchantFinanceDetailLoad.batchMissingRecord {
+                        Text(verbatim: key).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("merchant.ledger.batch.missing")
+                    } else {
+                        CYErrorState(LocalizedStringKey(key)) { model.appear() }
+                            .disabled(slot.isLoading)
+                    }
                 }
                 .listRowBackground(Color.clear)
             }

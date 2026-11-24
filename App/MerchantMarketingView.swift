@@ -223,9 +223,13 @@ import SwiftUI
             CYListRow("merchantMarketing.members", trailing: .value(value(insight.facts["crowd"]["members"].integer)))
             CYListRow("merchantMarketing.offers", trailing: .value(value(insight.facts["supply"]["activeOffers"].integer)))
             CYListRow("merchantMarketing.quotaRate", trailing: .value(percent(insight.facts["supply"]["quotaUsedRate"].decimal)))
-            ForEach(Array((insight.facts["checkin"]["hourBuckets"].array ?? []).enumerated()), id: \.offset) { _, bucket in
-                // Source 到店时段: one row per hour slot with its check-in count.
-                CYListRow(verbatim: bucket["hour"].integer.map { String(format: "%02d:00", $0) } ?? "—", trailing: .value(value(bucket["count"].integer)))
+            if let slots = MerchantInsightSlots.build(insight.facts) {
+                if !slots.peakText.isEmpty {
+                    Text(verbatim: slots.peakText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                ForEach(Array(slots.bars.enumerated()), id: \.offset) { _, bar in
+                    CYListRow(verbatim: bar.slot.isEmpty ? "—" : bar.slot, trailing: .value("\(bar.count) · \(bar.pct)"))
+                }
             }
             CYListRow("merchantMarketing.maleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["male"].decimal)))
             CYListRow("merchantMarketing.femaleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["female"].decimal)))

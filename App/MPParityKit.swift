@@ -220,7 +220,11 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageA/pages/myproject/index":
             self = .myProjects
         case "pages/merchant/ledger/index":
-            self = .merchantLedger
+            if let finance = MerchantFinanceRoute.normalize(query), finance.topicID != nil {
+                self = .screen(page: page, query: query)
+            } else {
+                self = .merchantLedger
+            }
         default:
             // The page's link rule still applies on internal paths: parity r1 gave several pages required keys
             // (club governance `clubId`, customer-detail `memberId`, …), so a bare path must not open them.

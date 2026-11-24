@@ -606,7 +606,19 @@ struct SessionRootView: View {
             inviteDestination: { id in
                 AnyView(CooperationInviteDetailView(key: CooperationInviteKey(id: id, direction: .received),
                                                     reader: session.cooperationReader, peerReader: session.cooperationFlowReader))
+            },
+            markConversationRead: { id in
+                do { try await session.imExpandedWriter.markInboxConversationRead(conversationID: id) }
+                catch APIError.notConfigured {}
+                catch {}
             }))
+        .environment(\.merchantDeskManualCode, MerchantDeskManualCodeAction { code in
+            guard let configuration = session.regionalConfiguration?.apiConfiguration, let token = session.token else {
+                throw MerchantBusinessFailure.disabled
+            }
+            return try await MerchantDeskManualCodeClient(configuration: configuration, transport: session.runtimeHTTPTransport, gate: .off)
+                .resolve(code: code, token: token)
+        })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
         .environment(\.merchantOpsWp03Bridge, MerchantOpsWp03Bridge(

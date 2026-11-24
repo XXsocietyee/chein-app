@@ -240,7 +240,13 @@ struct MerchantSettlementStatementCard: View {
             if let failureKey {
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text(LocalizedStringKey(failureKey)).cyText(.body).foregroundStyle(CYColor.textSecondary)
+                        Group {
+                            if failureKey == MerchantFinanceDetailLoad.batchMissingRecord {
+                                Text(verbatim: failureKey).cyText(.body)
+                            } else {
+                                Text(LocalizedStringKey(failureKey)).cyText(.body)
+                            }
+                        }.foregroundStyle(CYColor.textSecondary)
                         CYPillButton("action.retry", style: .secondary) { Task { await load() } }
                             .disabled(loading)
                             .accessibilityIdentifier("merchant.settlementOverview.batchDetail.retry")
@@ -318,7 +324,7 @@ struct MerchantSettlementStatementCard: View {
         } catch {
             guard visible, scenePhase == .active, generation == ticket, !Task.isCancelled,
                   reader.scope == scope, reader.authorizationGeneration == authorization else { return }
-            failureKey = MerchantSettlementOverviewModel.failureKey(error)
+            failureKey = MerchantBatchMissingRecord.failureKey(error, fallback: MerchantSettlementOverviewModel.failureKey)
         }
     }
 }

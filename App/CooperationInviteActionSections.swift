@@ -15,6 +15,10 @@ import SwiftUI
             switch view.footer {
             case .legacy: Text("cooperation.detail.footer.legacy").foregroundStyle(.secondary)
             case .decide:
+                if let name = invite.supplyStationName, !name.isEmpty, invite.supplyStationId != nil {
+                    Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("cooperation.detail.supplyStation")
+                }
                 // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one.
                 handle(.accept, label: "cooperation.detail.accept", emphasis: true)
                 handle(.reject, label: "cooperation.detail.reject")
@@ -75,7 +79,13 @@ import SwiftUI
         }
     }
     private func handle(_ action: CoopFlowHandle, label: String, emphasis: Bool = false) -> some View {
-        NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: {
+        let stationID = action == .accept ? invite.supplyStationId : nil
+        return NavigationLink {
+            CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0,
+                                 supplyStationID: stationID,
+                                 supplyStationName: stationID == nil ? nil : invite.supplyStationName,
+                                 flowReader: stationID == nil ? nil : peerReader)
+        } label: {
             Text(LocalizedStringKey(label)).cyText(emphasis ? .bodyMedium : .body)
                 .foregroundStyle(emphasis ? CYColor.infoText : CYColor.textPrimary)
         }

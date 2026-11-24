@@ -108,14 +108,18 @@ public struct MerchantBusinessConfirmation: Equatable, Identifiable {
         // Journal remains intact across refresh, navigation, logout, replacement and relaunch.
     }
     public func cancelConfirmation() { confirmationGeneration += 1; confirmation = nil }
-    public func load(_ query: MerchantBusinessQuery) async {
+    public func load(_ query: MerchantBusinessQuery, reviewsServerFilter: String? = nil) async {
         // A retired queued read must not clear a newer snapshot or its original result.
         guard !Task.isCancelled else { return }
         invalidate(); let generation = self.generation, scope = reader.scope
         isBusy = true
         defer { if generation == self.generation { isBusy = false } }
         do {
-            let snapshot = try await reader.snapshot(query)
+            let snapshot: MerchantBusinessSnapshot
+            if let reviewsServerFilter, reviewsServerFilter != "all", case .reviews = query {
+                do { snapshot = try await reader.managedReviews(filter: reviewsServerFilter, page: query.page) }
+                catch let failure as MerchantBusinessFailure where failure == .disabled { snapshot = try await reader.snapshot(query) }
+            } else { snapshot = try await reader.snapshot(query) }
             guard generation == self.generation, scope == reader.scope, !Task.isCancelled else { return }
             self.snapshot = snapshot; loadedScope = scope
             let intents = try journal.intents()
