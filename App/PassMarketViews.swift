@@ -339,7 +339,7 @@ struct PassMarketView: View {
             let line = MPRow(title: Text(verbatim: row.name),
                              sub: Text(verbatim: [row.sub, row.refundText.isEmpty ? row.stateText : row.refundText]
                                 .filter { !$0.isEmpty }.joined(separator: " · ")),
-                             value: Text(verbatim: row.amount.isEmpty ? MPText.unknown : row.amount),
+                             value: Text(verbatim: row.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(row.amount)),
                              chevron: onOpenPassOrder != nil)
             Group {
                 if let onOpenPassOrder {
@@ -980,7 +980,7 @@ struct PassOrderDetailView: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             MPCard {
                 MPRow(title: Text(verbatim: order.name), sub: order.sub.isEmpty ? nil : Text(verbatim: order.sub),
-                      value: Text(verbatim: order.amount.isEmpty ? MPText.unknown : order.amount), strong: true)
+                      value: Text(verbatim: order.amount.isEmpty ? MPText.unknown : MPParityBindings.moneyText(order.amount)), strong: true)
                 MPDivider()
                 MPRow(title: Text("mp.passOrder.state"), value: Text(verbatim: order.stateText))
                 if !order.refundText.isEmpty {
@@ -990,7 +990,7 @@ struct PassOrderDetailView: View {
                 switch order.refundDetail {
                 case .refunded(let amount, let time):
                     MPDivider()
-                    MPRow(title: Text("mp.passOrder.refundAmount"), value: Text(verbatim: amount))
+                    MPRow(title: Text("mp.passOrder.refundAmount"), value: Text(verbatim: MPParityBindings.moneyText(amount)))
                     if !time.isEmpty {
                         MPDivider()
                         MPRow(title: Text("mp.passOrder.refundTime"), value: Text(verbatim: time))

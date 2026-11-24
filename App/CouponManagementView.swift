@@ -168,7 +168,8 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                     count("couponManagement.used", row.useCount)
                     count("couponManagement.remaining", row.remaining)
                     count("couponManagement.perLimit", row.perLimit)
-                    LabeledContent("couponManagement.amount", value: CouponInfoAmount.from(row.amount).displayText)
+                    // Owner decision 9: two decimals through `MoneyDisplay`; unknown stays the em dash.
+                    LabeledContent("couponManagement.amount", value: CouponInfoAmount.from(row.amount).literal.map { MoneyDisplay.plain($0) } ?? CouponInfoAmount.unknownDisplay)
                     LabeledContent("couponManagement.currency", value: row.currency ?? "—")
                 }
                 Section {

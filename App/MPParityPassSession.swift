@@ -259,7 +259,7 @@ extension MPParityBindings {
         if amount.hasSuffix(suffix), let points = Int(amount.dropLast(suffix.count)) {
             return String(localized: LocalizedStringResource("mp.pass.points.amount \(points)", locale: locale))
         }
-        return amount
+        return moneyText(amount)
     }
 
     private static func giftStatus(_ state: String) -> PassGiftStatus {

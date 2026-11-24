@@ -551,11 +551,13 @@ enum T5PageFixtures {
                 untilText: "2026-12-31",
                 themeCount: 24,
                 plans: [
-                    PassPlanCard(code: "Y", priceText: "¥198", line: .year(monthlyText: "16.5"), best: true),
-                    PassPlanCard(code: "M", priceText: "¥28", line: .month, best: false)
+                    PassPlanCard(code: "Y", priceText: "¥198.00", line: .year(monthlyText: "¥16.50"), best: true),
+                    PassPlanCard(code: "M", priceText: "¥28.00", line: .month, best: false)
                 ],
                 selectedPlan: "Y",
-                buyBlock: nil
+                buyBlock: nil,
+                // fix-r3 member-a r2: server `overview.terms` rows (适用范围 + server refund text).
+                terms: PlatformPassTermFacts(period: "365 天", refund: "开通后 7 天内未使用可整单退款", seat: "本人及 1 位同行")
             )
             return wrapPlayer(NavigationStack {
                 PassMembershipView(phase: .ready(content), onRetry: {}, onSelectPlan: { _ in }, onOpenLibrary: {})

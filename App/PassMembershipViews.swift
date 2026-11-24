@@ -211,7 +211,8 @@ struct PassMembershipView: View {
                     }
                 }
                 Spacer()
-                PassKeyEmblem(size: 92, lit: content.active)
+                // MP membership/index.wxml:27 `cy-frames` glass key (184 rpx = 92 pt).
+                PassGlassKeyFrames(size: 92)
             }
             // 剩余 N 天 / 共 M 天 (membership/index.wxml:30-33); hidden when either number is unknown.
             if let left = content.daysLeft, let total = content.daysTotal, total > 0 {
@@ -271,6 +272,41 @@ struct PassMembershipView: View {
             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             .background(CYColor.bgElevated, in: Capsule())
             .accessibilityIdentifier("membership.renew")
+    }
+}
+
+/// MP `cy-frames` with `subpackageMember/images/frames/glass-key` (`MPAsset.Other.glassKey`): 24 frames on a
+/// 6 × 4 sheet, 10 fps, loop, 500 ms start delay. Reduced motion holds frame 0 (cy-frames `still` for `loop`).
+struct PassGlassKeyFrames: View {
+    var size: CGFloat = 92
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var start = Date().addingTimeInterval(0.5)
+    private static let columns = 6
+    private static let rows = 4
+    private static let count = 24
+    private static let fps = 10.0
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1 / Self.fps, paused: reduceMotion)) { context in
+            cell(reduceMotion ? 0 : Self.frame(at: context.date.timeIntervalSince(start)))
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+
+    static func frame(at elapsed: TimeInterval) -> Int {
+        guard elapsed > 0 else { return 0 }
+        return Int(elapsed * fps) % count
+    }
+
+    private func cell(_ frame: Int) -> some View {
+        MPAsset.Other.glassKey
+            .resizable()
+            .interpolation(.high)
+            .frame(width: size * CGFloat(Self.columns), height: size * CGFloat(Self.rows))
+            .offset(x: -size * CGFloat(frame % Self.columns), y: -size * CGFloat(frame / Self.columns))
+            .frame(width: size, height: size, alignment: .topLeading)
+            .clipped()
     }
 }
 
@@ -424,6 +460,7 @@ struct PassLibraryView: View {
 /// Club-style photo card: cover, bottom ink gradient, top row (city mark + "¥0 with pass" + city), title, one data line, tags.
 struct PassLibraryCardView: View {
     let card: PassLibraryCard
+    @ScaledMetric(relativeTo: .caption) private var pinSize: CGFloat = 12
 
     private var kindText: Text? {
         switch card.kind {
@@ -435,7 +472,7 @@ struct PassLibraryCardView: View {
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
-            CYCachedAsyncImage(card.coverURL, role: .cover)
+            cover
                 .overlay(LinearGradient(colors: [.clear, CYNight.ink0.opacity(0.92)], startPoint: .center, endPoint: .bottom))
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: card.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
@@ -471,7 +508,8 @@ struct PassLibraryCardView: View {
                 }
                 Spacer()
                 if let city = card.city {
-                    Label { Text(verbatim: city) } icon: { Image(systemName: "mappin") }
+                    // MP `/images/cards/pin.svg`.
+                    Label { Text(verbatim: city) } icon: { MPAsset.FeatureIcon.pin.resizable().scaledToFit().frame(width: pinSize, height: pinSize) }
                         .cyText(.caption).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .cyNightGlass(in: Capsule())
@@ -482,6 +520,19 @@ struct PassLibraryCardView: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("mp.library.open \(card.title)"))
+    }
+
+    /// MP library/index.wxml:15 `item.cover || '/images/route_city_cover.png'`.
+    @ViewBuilder private var cover: some View {
+        if let url = card.coverURL, !url.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            CYCachedAsyncImage(url, role: .cover)
+        } else {
+            Color.clear
+                .aspectRatio(CYCachedAsyncImageRole.cover.aspectRatio, contentMode: .fit)
+                .overlay { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .accessibilityHidden(true)
+        }
     }
 
     private func tag(_ text: Text) -> some View {
