@@ -147,6 +147,46 @@ import XCTest
         XCTAssertNil(draft.value["hintFreeUsesPerRun"])
         XCTAssertTrue(draft.issues.isEmpty)
     }
+
+    func testPoolTrimIsHiddenUntilTheGateIsOn() {
+        let raw = #"{"enabled":true,"layers":[{"level":1,"type":"POOL_TRIM","usable":true,"unlocked":false,"free":true,"costPoints":0},{"level":2,"type":"ANSWER","usable":true,"unlocked":false,"free":false,"costPoints":0}]}"#
+        let closed = PlayHelpProjection.project(wire(raw))
+        XCTAssertFalse(closed.rows.contains { $0.type == "POOL_TRIM" })
+        XCTAssertEqual(closed.rows.map(\.type), ["ANSWER"])
+        let open = PlayHelpProjection.project(wire(raw), poolTrimEnabled: true)
+        XCTAssertEqual(open.rows.map(\.type), ["POOL_TRIM", "ANSWER"])
+        XCTAssertEqual(open.rows.first?.state, .free)
+        XCTAssertTrue(PlayHelpProjection.renderable.contains("POOL_TRIM"))
+    }
+
+    func testPoolTrimUseSettlesWithoutHintTextAndBumpsTheGeneration() async {
+        let view = #"{"runId":9,"nodeId":3,"enabled":true,"layers":[{"level":1,"type":"POOL_TRIM","usable":true,"unlocked":false,"free":true,"costPoints":0}]}"#
+        let unlocked = view.replacingOccurrences(of: #""unlocked":false"#, with: #""unlocked":true"#)
+        var seen = false
+        let client = PlayHelpClient(identity: identity,
+            view: { self.envelope(seen ? unlocked : view) },
+            use: { _, _ in seen = true; return self.envelope(#"{"level":1,"type":"POOL_TRIM","applied":true}"#) },
+            skip: { _ in .unknown }, receipt: { .unknown })
+        let model = PlayHelpLadderModel(client: client, store: PlayHelpMemoryRequestStore(), poolTrimEnabled: true)
+        await model.load()
+        XCTAssertEqual(model.poolTrimGeneration, 0)
+        await model.use(1)
+        XCTAssertNil(model.row(1)?.problem)
+        XCTAssertEqual(model.row(1)?.state, .review)
+        XCTAssertEqual(model.poolTrimGeneration, 1)
+    }
+
+    func testWrongReplyStaysUnderAMissAndNoRightAnswerIsRecorded() throws {
+        XCTAssertEqual(PlayKitWrongReply.text(segment: wire(#"{"attempts":1,"passed":false,"lastFeedback":"前两个字母对了"}"#)), "前两个字母对了")
+        XCTAssertNil(PlayKitWrongReply.text(segment: wire(#"{"attempts":0,"lastFeedback":"x"}"#)))
+        XCTAssertNil(PlayKitWrongReply.text(segment: wire(#"{"attempts":2,"passed":true,"lastFeedback":"x"}"#)))
+        XCTAssertNil(PlayKitWrongReply.text(segment: wire(#"{"attempts":2,"finished":true,"passed":false,"lastFeedback":"已结束"}"#)))
+        XCTAssertNil(PlayKitWrongReply.text(segment: wire(#"{"attempts":2,"passed":false,"lastFeedback":"  "}"#)))
+        XCTAssertTrue(PlayKitNoRightAnswer.applies(kind: .qa, segment: wire(#"{"mode":"PICK","judge":false}"#)))
+        XCTAssertFalse(PlayKitNoRightAnswer.applies(kind: .qa, segment: wire(#"{"mode":"PICK"}"#)))
+        XCTAssertFalse(PlayKitNoRightAnswer.applies(kind: .qa, segment: wire(#"{"mode":"TYPE","judge":false}"#)))
+        XCTAssertFalse(PlayKitNoRightAnswer.applies(kind: .branch, segment: wire(#"{"mode":"PICK","judge":false}"#)))
+    }
 }
 
 private extension PlayWireValue {

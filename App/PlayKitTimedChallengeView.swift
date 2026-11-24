@@ -107,6 +107,13 @@ import SwiftUI
                 .textFieldStyle(.roundedBorder).textInputAutocapitalization(.never).autocorrectionDisabled()
                 .focused($typingFocused).disabled(timing.phase != .running || !enabled)
                 .onChange(of: input) { _, value in if value.count > 4096 { input = String(value.prefix(4096)) }; onDirty() }
+            if let reply = PlayKitWrongReply.text(segment: segment) {
+                Text(verbatim: reply).font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("playkit.qa.wrongReply")
+            }
+            if let howTo = segment["howTo"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !howTo.isEmpty {
+                PlayKitHowToButton(text: howTo, identifier: "playkit.type.howTo")
+            }
             if let attempts = segment["attempts"].integer, attempts >= 0 { LabeledContent("playkit.attempts") { Text(verbatim: PlayTimedDisplayLocalization.count(attempts, locale: locale)) } }
             else { LabeledContent("playkit.attempts") { Text(verbatim: "—").monospacedDigit() } }
             if let cap = segment["tries"].integer, cap >= 0 { LabeledContent("playkit.attemptLimit") { Text(verbatim: PlayTimedDisplayLocalization.count(cap, locale: locale)) } }
@@ -142,7 +149,9 @@ import SwiftUI
             CYPillButton("playkit.review") { reviewMeasurement() }
                 .disabled(!enabled || (kind == .typeIn && input.isEmpty)).accessibilityIdentifier("playkit.challenge.submit")
         }
-        if !validConfiguration { CYEmptyState(systemImage: "exclamationmark.triangle", "playkit.configurationInvalid") }
+        if !validConfiguration {
+            ContentUnavailableView("playkit.configurationInvalid", systemImage: "exclamationmark.triangle")
+        }
     }
     /// Local pre-review readout only; the server still grades the submission. Unknown tolerance gives a neutral card, never a verdict.
     private var stopwatchOutcome: Bool? {
