@@ -380,9 +380,17 @@ struct CityFavoriteNodesSection: View {
                             }
                     }
                 } else if failed {
+                    // Missing state: say what failed, then 重试 (44 pt), not a bare button.
+                    Label { Text("playerGap.cityFavorites.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
+                        .cyText(.body).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("playerGap.cityFavorites.failed")
                     Button("playerGap.retry") { Task { await load() } }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("playerGap.cityFavorites.retry")
                 } else {
-                    ProgressView()
+                    ProgressView { Text("playerGap.cityFavorites.loading") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("playerGap.cityFavorites.loading")
                 }
             }
             .task { await load() }

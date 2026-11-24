@@ -1,4 +1,38 @@
 {
+  "accountCollection.favorite.share": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Share"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分享"
+        }
+      }
+    }
+  },
+  "accountCollection.favorites.nodesTab": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Places"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "据点"
+        }
+      }
+    }
+  },
   "member.card.pointsHelp": {
     "extractionState": "manual",
     "localizations": {
@@ -63,6 +97,57 @@
         "stringUnit": {
           "state": "translated",
           "value": "保存参与人信息"
+        }
+      }
+    }
+  },
+  "playerGap.cityFavorites.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No saved places yet"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂无收藏的据点"
+        }
+      }
+    }
+  },
+  "playerGap.cityFavorites.loadFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saved places didn't load"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "收藏的据点没有加载出来"
+        }
+      }
+    }
+  },
+  "playerGap.cityFavorites.loading": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Loading saved places…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在加载收藏的据点"
         }
       }
     }

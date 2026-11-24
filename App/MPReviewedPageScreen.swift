@@ -351,10 +351,8 @@ import SwiftUI
             } else { unavailable }
         case "pages/mylike/mylike":
             // A6 / X1: 我的收藏 from a link, with the same readers the 我的 page passes.
-            AccountCollectionFavoritesView(reader: session.profileFavoritesReader, onOpenTopic: { _ in },
-                                           favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope),
-                                           communityGate: session.squareReader)
-                .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+            // A4-09-r7: topic and post taps use the same favourite navigation owners as 我的 (AccountView).
+            MPFavoritesLinkHost(session: session)
                 .id(session.profileFavoritesReader.scope)
         case "pages/addressinfo/addressinfo":
             // X1: the participant form; `?id=` edits that participant.
@@ -642,5 +640,42 @@ private struct MPTabHandoff: View {
         Color.clear
             .accessibilityHidden(true)
             .onAppear { guard !done else { return }; done = true; perform() }
+    }
+}
+
+
+/// A4-09-r7: `pages/mylike/mylike` from a link. Same readers, selection guards and destinations as
+/// 我的 › 我的收藏 (AccountView), so 主题 and 帖文 taps open their detail instead of doing nothing.
+@MainActor private struct MPFavoritesLinkHost: View {
+    @ObservedObject var session: AppSession
+    @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
+    @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
+    var body: some View {
+        let reader = session.profileFavoritesReader
+        AccountCollectionFavoritesView(reader: reader, onOpenTopic: { id in
+            guard let selected = reader.selectTopic(id, renderedScope: reader.scope) else { return }
+            _ = savedTopicOwner.open(selected, scope: reader.scope)
+        }, onOpenPost: { route in
+            guard let selected = reader.selectPost(route, renderedScope: reader.scope) else { return }
+            _ = savedPostOwner.open(selected, scope: reader.scope)
+        }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: reader.scope),
+           communityGate: session.squareReader)
+            .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+            .background {
+                ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
+                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id).cyPushedChrome()
+                }
+                ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in
+                    ProfileFavoriteDetailDestination(selection: selected,
+                        makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+                        accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
+                        .id(selected.id)
+                        .cyPushedChrome()
+                }
+            }
+            .onChange(of: session.profileFavoritesReader.scope) { _, scope in
+                savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
+            }
     }
 }
