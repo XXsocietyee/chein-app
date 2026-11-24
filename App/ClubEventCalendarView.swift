@@ -320,7 +320,7 @@ import SwiftUI
         return .init(topicID: topicID, club: reportClub, snapshot: snapshot, context: readContext, generation: model.snapshotGeneration)
     }
     @ViewBuilder private func reportButton(_ topicID: Int) -> some View {
-        if let source = reportSource(topicID) {
+        if ClubActivityReportExposure.playerEntryVisible, let source = reportSource(topicID) {
             Button { openReport(source) } label: { Label("club.activityReport.action", systemImage: "flag") }
                 .buttonStyle(.borderless).accessibilityIdentifier("club.activityReport.open.\(topicID)")
         }

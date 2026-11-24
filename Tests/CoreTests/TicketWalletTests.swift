@@ -182,6 +182,23 @@ final class TicketWalletTests: XCTestCase {
         XCTAssertEqual(one.topicCompletion, .completed)
         XCTAssertEqual(try decode(#"{"id":7}"#).topicCompletion, .absent)
     }
+    /// FE-G5 (port P5, chengyin-ios 63dad0d7).
+    func testPerkTermsAreOptionalAndMalformedValuesStayHidden() throws {
+        let ticket = try decode(#"{"id":1,"registrationStatus":2,"entitlements":[{"id":2,"status":0,"included":false,"extraSpendText":"需消费满 50 元","reserveRequired":true},{"id":3,"status":0,"included":true},{"id":4,"status":0,"included":"yes","reserveRequired":1}]}"#)
+        let rows = ticket.entitlements
+        XCTAssertEqual(rows[0].included, false); XCTAssertEqual(rows[0].extraSpendText, "需消费满 50 元"); XCTAssertEqual(rows[0].reserveRequired, true)
+        XCTAssertEqual(rows[1].included, true); XCTAssertNil(rows[1].extraSpendText); XCTAssertNil(rows[1].reserveRequired)
+        XCTAssertNil(rows[2].included); XCTAssertNil(rows[2].reserveRequired)
+    }
+    /// FE-G6 (port P5): an empty or blank server label falls back to the local status name.
+    func testEmptyEntitlementStatusLabelFallsBackToLocalStatus() throws {
+        let ticket = try decode(#"{"id":1,"registrationStatus":2,"entitlements":[{"id":2,"status":1,"statusLabel":""},{"id":3,"status":0,"statusLabel":"  "},{"id":4,"status":2,"statusLabel":"已过期"},{"id":5,"status":0}]}"#)
+        let rows = ticket.entitlements
+        XCTAssertNil(rows[0].displayStatusLabel); XCTAssertEqual(rows[0].statusKey, "redeemed")
+        XCTAssertNil(rows[1].displayStatusLabel)
+        XCTAssertEqual(rows[2].displayStatusLabel, "已过期")
+        XCTAssertNil(rows[3].displayStatusLabel)
+    }
     func testOwnerPrecedenceAllProductTypesAndUnknownMoneyRetained() throws {
         let ticket = try decode(#"{"id":7,"cmsActivity":{"name":"activity","productType":1},"cmsTopic":{"name":"topic","productType":2},"payableAmount":0}"#)
         XCTAssertEqual(ticket.title, "activity"); XCTAssertEqual(ticket.productType, 1); XCTAssertEqual(ticket.payableAmount, 0)

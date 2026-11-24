@@ -318,6 +318,8 @@ private struct MessagingConversationListView: View {
         }
     }
     private func searchName(_ conversation: MessagingConversation) -> String {
+        // OR-023: the system conversation is always 城瘾小助手, never the counterparty nickname.
+        if IMConversationTitlePolicy.usesAssistantTitle(conversation) { return appLocalized("messaging.system", locale: locale) }
         if let name = conversation.counterparty?.nickname, !name.isEmpty { return name }
         switch conversation.kind {
         case .system: return appLocalized("messaging.system",locale:locale)
