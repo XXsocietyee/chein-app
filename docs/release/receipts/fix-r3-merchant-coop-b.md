@@ -191,3 +191,18 @@ There is no compiler in the cloud. Every API used was grepped on the base. The c
   - MC7-30-4, 30-5 and 30-13: coop list card layout, copy phone and the all-empty state.
   - MC7-31-8: send summary.
 - **Do-not-touch:** there is no `cursor/wire-merchant-coop` branch, and `cursor-core-merchant-coop.md` hands these App call sites to the F-agent, so they were wired here.
+
+## Round 2 final sync and checks
+- Merged `origin/ui/combined-r7` again @ aee32a61f. Clean merge; this r7 now includes K1–K10, W1 and C7.
+- `tools/check_a11y_lint.py`: **PASS** (0 new). Four findings came in with the round-1 `restyle/r3-merchant-creator` merge: `.font(...)` → `.cyText(...)` changed their signatures. The fix adds `.accessibilityHidden(true)` to these decorative glyphs:
+  - `CYDesignComponents.swift` (reduce-motion ellipsis);
+  - `ExternalGameImportView.swift` (header circle; the Button carries the label);
+  - `MerchantPredictionInboxView.swift`;
+  - `UGCSafetyComponents.swift`.
+  - The three StoreCharacter state glyphs got the same change.
+- `tools/check_typography_lint.py`: **PASS**.
+- **ContractChecks:**
+  - Scope: every module that references any of the 329 App/Core files this branch changes relative to r7 @ aee32a61f, run on r7 and on the branch.
+  - Result: **39 failing on r7, 39 on the branch, the same set, 0 new.**
+  - Not covered: the rest of `Tests/ContractChecks/`. A full-directory run was started, then stopped because r7 had moved under it.
+- No compiler in the cloud. Every API used was grepped on the merged tree. The coordinator compiles.
