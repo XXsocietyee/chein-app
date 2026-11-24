@@ -66,7 +66,7 @@ struct MerchantAICommerceFixtureHost: View {
                         .cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle(Text("merchantAICommerce.title", tableName: "MerchantAICommerce"))
+            .navigationTitle(Text("merchantAICommerce.title", tableName: "MerchantAICommerce")).navigationBarTitleDisplayMode(.inline)
         }
         .accessibilityIdentifier("merchantAICommerce.root")
     }

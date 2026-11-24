@@ -124,7 +124,7 @@ import Combine
                 Section("templateAuthor.validationTitle") { ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } } }
             }
             Section { Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave).accessibilityIdentifier("templatePrediction.saveLocal") }
-        }.navigationTitle("templatePrediction.title")
+        }.navigationTitle("templatePrediction.title").navigationBarTitleDisplayMode(.inline)
             .onDisappear { editor.retire() }
             .onChange(of: model.canEdit) { _, allowed in if !allowed { editor.suspend() } }
             .onChange(of: scenePhase) { _, phase in if phase != .active { editor.suspend() } }

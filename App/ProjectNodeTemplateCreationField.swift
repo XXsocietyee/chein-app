@@ -100,7 +100,7 @@ extension EnvironmentValues {
                 Text("projectNodeCreate.unavailable", tableName: "ProjectNodeTemplateCreation").font(.caption)
             }
         }
-        .sheet(item: controller.binding(original)) { original in ProjectNodeTemplateCreationHost(controller: controller, selector: controller.selector, original: original) }
+        .sheet(item: controller.binding(original)) { original in Group { ProjectNodeTemplateCreationHost(controller: controller, selector: controller.selector, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.editorIncarnation) { _, _ in if let original { controller.close(original) } }
         .onDisappear { if let original { controller.close(original) } }
     }
@@ -129,7 +129,7 @@ extension EnvironmentValues {
                             if selector.busy { ProgressView() }
                             if selector.state == .saveFailed { Text("projectStoryTemplate.saveFailed") }
                         }
-                        .navigationTitle(Text("projectNodeCreate.reviewTitle", tableName: "ProjectNodeTemplateCreation"))
+                        .navigationTitle(Text("projectNodeCreate.reviewTitle", tableName: "ProjectNodeTemplateCreation")).navigationBarTitleDisplayMode(.inline)
                         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
                     }
                 }

@@ -24,12 +24,12 @@ struct MerchantAftercareRowLabel: View {
                     Text(verbatim: MerchantOpsCopy.text(row.statusKey)).foregroundStyle(toneColor)
                     if row.isTakenOver { Text(verbatim: "· " + MerchantOpsCopy.text("merchantOps.aftercare.takenOver")).foregroundStyle(CYColor.textSecondary) }
                 }.cyText(.meta)
-                if let activity = row.activityTitle { Text(verbatim: activity).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                if let activity = row.activityTitle { Text(verbatim: activity).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             }
             if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             if row.isManualCase { EmptyView() }
             else if let amount = row.amountDisplay { Text(verbatim: amount).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
-            else { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.amountPending")).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+            else { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.amountPending")).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)

@@ -64,16 +64,25 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                         }
                         Section {
                             if let openApplication {
-                                CYPillButton("merchant.onboarding.openApplication", action: openApplication)
-                                    .pageTemplateControl(label: Text("merchant.onboarding.openApplication"), traits: .isButton)
-                                    .accessibilityIdentifier("merchant.onboarding.entry")
-                                CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await reload() } }
-                                    .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
-                                    .accessibilityIdentifier("merchant.access.refresh")
+                                Button(action: openApplication) {
+                                    Text("merchant.onboarding.openApplication").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .pageTemplateControl(label: Text("merchant.onboarding.openApplication"), traits: .isButton)
+                                .accessibilityIdentifier("merchant.onboarding.entry")
+                                Button { Task { await reload() } } label: {
+                                    Text("merchant.refreshAccess").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.bordered)
+                                .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
+                                .accessibilityIdentifier("merchant.access.refresh")
                             } else {
-                                CYPillButton("merchant.refreshAccess") { Task { await reload() } }
-                                    .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
-                                    .accessibilityIdentifier("merchant.access.refresh")
+                                Button { Task { await reload() } } label: {
+                                    Text("merchant.refreshAccess").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
+                                .accessibilityIdentifier("merchant.access.refresh")
                             }
                         }
                         .listRowBackground(Color.clear)
@@ -85,24 +94,26 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             } else if let error = access.errorKey {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     CYHeroHeader("merchant.title")
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(LocalizedStringKey(error))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                    // Native restyle R3: the system unavailable state, one prominent action.
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(error), systemImage: error == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
                             .accessibilityIdentifier("merchant.access.error")
+                    } actions: {
                         if error != "merchant.access.denied" && error != "auth.expired" {
-                            CYPillButton("action.retry") { Task { await reload() } }
+                            Button("action.retry") { Task { await reload() } }
+                                .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.retry")
                         } else if error == "merchant.access.denied", let openApplication {
                             // Parity merchant/index P1: no merchant identity → 申请入驻 in place (source index.wxml:16-18).
-                            CYPillButton("merchant.gate.apply", action: openApplication)
+                            Button("merchant.gate.apply", action: openApplication)
+                                .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.apply")
                         } else if error == "auth.expired", let openSignIn {
-                            CYPillButton("merchant.gate.signIn", action: openSignIn)
+                            Button("merchant.gate.signIn", action: openSignIn)
+                                .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.signIn")
                         }
                     }
-                    .cyDomainCard()
                 }
                 .padding(CYSpacing.pageHorizontal)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -197,10 +208,14 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     private func merchantGate(systemImage: String, message: LocalizedStringKey, signIn: (() -> Void)? = nil) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             CYHeroHeader("merchant.title")
-            CYEmptyState(systemImage: systemImage, message)
-            if let signIn {
-                CYPillButton("merchant.gate.signIn", action: signIn)
-                    .accessibilityIdentifier("merchant.gate.signIn")
+            ContentUnavailableView {
+                Label(message, systemImage: systemImage)
+            } actions: {
+                if let signIn {
+                    Button("merchant.gate.signIn", action: signIn)
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("merchant.gate.signIn")
+                }
             }
         }
         .padding(CYSpacing.pageHorizontal)
@@ -766,7 +781,7 @@ struct MerchantSectionState<Value, Content: View>: View {
         if let value = model.value {
             if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
             if let error = model.errorKey {
-                Text("merchant.stale").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.stale").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 MerchantInlineFailure(errorKey: error, retry: retry)
             }
             content(value)
@@ -793,9 +808,8 @@ private struct MerchantQuickCircleAction: View {
                     .foregroundStyle(primary ? palette.actionPrimaryFg : palette.textPrimary)
                     .frame(width: diameter, height: diameter)
                     .background(primary ? palette.actionPrimaryBg : palette.bgSurface, in: Circle())
-                    .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -816,7 +830,9 @@ struct MerchantInlineFailure: View {
                 .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                CYPillButton("action.retry", style: .secondary, action: retry)
+                Button("action.retry", action: retry)
+                    .buttonStyle(.bordered)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
             }
         }
         .padding(.vertical, CYSpacing.xs)
@@ -828,23 +844,18 @@ struct MerchantFailureView: View {
     let identifier: String
     let retry: () -> Void
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            Image(systemName: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
-                .font(CYTypography.display)
-                .foregroundStyle(CYColor.textSecondary)
-            Text(LocalizedStringKey(errorKey))
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center)
+        // Native restyle R3: the system unavailable state with a retry button.
+        ContentUnavailableView {
+            Label(LocalizedStringKey(errorKey), systemImage: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
                 .accessibilityIdentifier(identifier + ".error")
+        } actions: {
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                CYPillButton("action.retry", style: .primary, action: retry)
+                Button("action.retry", action: retry)
+                    .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier(identifier + ".retry")
             }
         }
-        .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity)
-        .cyDomainCard()
         .padding(CYSpacing.pageHorizontal)
     }
 }

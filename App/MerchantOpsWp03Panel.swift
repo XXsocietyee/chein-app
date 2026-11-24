@@ -161,7 +161,7 @@ private struct MerchantOpsWp03RowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: dynamicTypeSize.isAccessibilitySize ? CYSpacing.sm : CYSpacing.xs) {
-            copy(LocalizedStringKey(titleKey), font: CYTypography.bodyMedium, color: CYColor.textPrimary)
+            copy(LocalizedStringKey(titleKey), style: .bodyMedium, color: CYColor.textPrimary)
             Text(verbatim: MerchantOpsWp03Catalog.method(for: route.path) + " /" + route.path)
                 .cyText(.meta)
                 .foregroundStyle(CYColor.textTertiary)
@@ -200,9 +200,9 @@ private struct MerchantOpsWp03RowView: View {
 
     private var titleKey: String { "wp03.row." + route.rawValue }
 
-    private func copy(_ key: LocalizedStringKey, font: Font, color: Color) -> some View {
+    private func copy(_ key: LocalizedStringKey, style: CYTextStyle, color: Color) -> some View {
         Text(key, tableName: "MerchantOpsWp03")
-            .font(font)
+            .cyText(style)
             .foregroundStyle(color)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -212,7 +212,7 @@ private struct MerchantOpsWp03RowView: View {
         case .loading:
             loading
         case .empty:
-            copy("wp03.empty", font: CYTypography.body, color: CYColor.textSecondary)
+            copy("wp03.empty", style: .body, color: CYColor.textSecondary)
                 .accessibilityIdentifier("wp03.empty." + route.id)
         case .failed:
             Text(verbatim: reply?.message ?? MerchantOpsWp03Reply.unknown)
@@ -229,11 +229,11 @@ private struct MerchantOpsWp03RowView: View {
             )
             .accessibilityIdentifier("wp03.retry." + route.id)
         case .withheld:
-            copy("wp03.unknown", font: CYTypography.body, color: CYColor.textPrimary)
+            copy("wp03.unknown", style: .body, color: CYColor.textPrimary)
                 .accessibilityIdentifier("wp03.withheld." + route.id)
-            copy(LocalizedStringKey(withheldKey), font: CYTypography.body, color: CYColor.textSecondary)
+            copy(LocalizedStringKey(withheldKey), style: .body, color: CYColor.textSecondary)
         case .signedOut:
-            copy("wp03.signedOut", font: CYTypography.body, color: CYColor.textSecondary)
+            copy("wp03.signedOut", style: .body, color: CYColor.textSecondary)
                 .accessibilityIdentifier("wp03.signedOut." + route.id)
         case .ready:
             Text(verbatim: reply?.detail ?? MerchantOpsWp03Reply.unknown)
@@ -251,7 +251,7 @@ private struct MerchantOpsWp03RowView: View {
         return layout {
             ProgressView()
                 .tint(CYColor.textSecondary)
-            copy("wp03.loading", font: CYTypography.body, color: CYColor.textSecondary)
+            copy("wp03.loading", style: .body, color: CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("wp03.loading." + route.id)

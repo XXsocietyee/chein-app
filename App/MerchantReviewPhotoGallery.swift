@@ -180,7 +180,10 @@ import CryptoKit
                 // its first photo does not change the host identity or loaded rows.
                 Color.clear.frame(width: 0, height: 0)
                     .sheet(item: model.presentationBinding()) { selected in
-                        MerchantReviewPhotoGallery(session: selected, owner: owner) { model.cancel(id: selected.id) }
+                        Group {
+                            MerchantReviewPhotoGallery(session: selected, owner: owner) { model.cancel(id: selected.id) }
+                        }
+                        .presentationDetents([.large]).presentationDragIndicator(.visible)
                     }
                     .id(model.generation)
             }

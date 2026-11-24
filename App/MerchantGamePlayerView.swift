@@ -118,7 +118,7 @@ struct MerchantGamePlayerView: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("merchant.game.player.failure")
     }

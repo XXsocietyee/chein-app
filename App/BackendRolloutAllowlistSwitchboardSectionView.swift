@@ -228,7 +228,7 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
             }
 
             Text(verbatim: "前置审批单：\(row.prerequisiteTicketCode)")
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id).ticket")
 

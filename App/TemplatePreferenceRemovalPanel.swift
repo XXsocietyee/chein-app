@@ -17,7 +17,10 @@ import SwiftUI
             .sheet(item: Binding(get: { controller.currentPresentation }, set: { value in
                 if value == nil, let original { controller.close(original) }
             })) { original in
-                TemplatePreferenceRemovalSheet(model: model, controller: controller, original: original)
+                Group {
+                    TemplatePreferenceRemovalSheet(model: model, controller: controller, original: original)
+                }
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             }
             .onChange(of: model.metadataGeneration) { _, _ in controller.retire() }
             .onChange(of: model.coordinator.session) { _, _ in controller.retire() }
@@ -70,7 +73,7 @@ import SwiftUI
                     }
                 } else { text("unavailable").accessibilityIdentifier("preferenceRemoval.unavailable") }
             }.id(controller.review?.id ?? original.id)
-            .navigationTitle(Text("preferenceRemoval.title", tableName: "TemplatePreferenceRemoval"))
+            .navigationTitle(Text("preferenceRemoval.title", tableName: "TemplatePreferenceRemoval")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button { controller.close(original) } label: { text("close") }

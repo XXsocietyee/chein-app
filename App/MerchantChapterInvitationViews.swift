@@ -17,8 +17,8 @@ import SwiftUI
         return snapshot.rows.first { $0["id"].integer == applicationID }.flatMap { try? MerchantChapterInvitation(row: $0) }
     }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
+        Form {
+            Section {
                 MerchantContentBoundary()
                 if let message = c.serverMessage { Text(verbatim: message).accessibilityIdentifier("merchantChapterInvitation.serverMessage") }
                 if let issue = c.issue { Text(LocalizedStringKey(issue)).cyText(.bodyCompact).accessibilityIdentifier("merchantChapterInvitation.issue") }
@@ -41,7 +41,7 @@ import SwiftUI
                             Text("merchantChapterInvitation.pending").cyText(.cardTitle)
                             ForEach(MerchantChapterInvitation.impactKeys(accepted: true), id: \.self) { Text(LocalizedStringKey($0)).cyText(.bodyCompact) }
                             Button("merchantChapterInvitation.accept") { prepare(invitation, accepted: true) }
-                                .buttonStyle(.questifyPrimary).disabled(c.busy || c.locked || c.review != nil || c.receipt != nil)
+                                .buttonStyle(.borderedProminent).disabled(c.busy || c.locked || c.review != nil || c.receipt != nil)
                                 .accessibilityIdentifier("merchantChapterInvitation.accept")
                             ForEach(MerchantChapterInvitation.impactKeys(accepted: false), id: \.self) { Text(LocalizedStringKey($0)).cyText(.bodyCompact) }
                             Button("merchantChapterInvitation.reject", role: .destructive) { prepare(invitation, accepted: false) }
@@ -53,12 +53,13 @@ import SwiftUI
                 } else if c.busy { ProgressView("merchant.loading") }
                 else if c.isCurrent { Text("merchantChapterInvitation.missing").accessibilityIdentifier("merchantChapterInvitation.missing") }
                 if !c.busy { Button("action.retry") { Task { await model.load() } }.accessibilityIdentifier("merchantChapterInvitation.reload") }
-            }.padding()
+            }
         }
+        .listStyle(.insetGrouped)
         .cyPageTitle("merchantChapterInvitation.title")
         .task(id: service.scope) { await model.load() }
         .onDisappear { model.suspend(); onReturn?() }
-        .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
+        .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .cyDomainScreen(.merchant)
     }
     private func prepare(_ invitation: MerchantChapterInvitation, accepted: Bool) {

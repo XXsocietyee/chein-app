@@ -135,6 +135,6 @@ private func packageText(_ key: String) -> Text { Text(LocalizedStringKey("works
 private struct PackageNavigationTitle: ViewModifier {
     @Environment(\.locale) private var locale
     func body(content: Content) -> some View {
-        content.navigationTitle(String(localized: LocalizedStringResource("workshopOwned.package.title", table: "WorkshopOwned", locale: locale)))
+        content.navigationTitle(String(localized: LocalizedStringResource("workshopOwned.package.title", table: "WorkshopOwned", locale: locale))).navigationBarTitleDisplayMode(.inline)
     }
 }

@@ -131,7 +131,7 @@ extension EnvironmentValues {
                     if host.failed && visit.isCurrent {
                         Button("nativeCondition.readAuthoritative") { Task { await host.load() } }
                     }
-                }.navigationTitle("nativeCondition.title")
+                }.navigationTitle("nativeCondition.title").navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button(NSLocalizedString("nativeCondition.close", tableName: "NativeConditionAuthor", bundle: .main, comment: "")) {
                             host.retire(); close()
