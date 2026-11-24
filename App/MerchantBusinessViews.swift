@@ -1030,6 +1030,12 @@ import SwiftUI
                     MerchantLedgerRedemptionHero(hero: MerchantLedgerParity.redemptionHero(row.fields))
                 } else if row.kind == .batch, case .batch = query {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(row.fields))
+                } else if row.kind == .operatorMember {
+                    // MP team/index.wxml:64-66 member cell: avatar (`item.avatar || /images/d_profile.png`) + nickname.
+                    HStack(spacing: CYSpacing.sm) {
+                        MerchantCoopMPThumb(urlString: row.fields.mbText("avatar"), fallback: .avatar)
+                        Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    }
                 } else {
                 Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }

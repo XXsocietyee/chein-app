@@ -89,3 +89,40 @@ struct MerchantCoopApplyState: View {
                                 actionTitle: actionTitle, action: openApplication, identifier: identifier)
     }
 }
+
+/// MP image-with-default for merchant-coop rows: an absolute https URL loads through `AsyncImage`; anything else
+/// (nil, empty, site-relative) shows the MP default asset (`/images/d_profile.png` avatars, `/images/d_logo.png` logos).
+struct MerchantCoopMPThumb: View {
+    enum Fallback { case avatar, logo }
+    let urlString: String?
+    let fallback: Fallback
+    var side: CGFloat = 40
+
+    private var url: URL? {
+        guard let raw = urlString?.trimmingCharacters(in: .whitespacesAndNewlines),
+              let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
+        return url
+    }
+    private var placeholder: Image {
+        switch fallback {
+        case .avatar: return MPAsset.AvatarDefault.dProfile
+        case .logo: return MPAsset.BrandLogo.dLogo
+        }
+    }
+
+    var body: some View {
+        Group {
+            if let url {
+                AsyncImage(url: url) { phase in
+                    if case .success(let image) = phase { image.resizable().scaledToFill() }
+                    else { placeholder.resizable().scaledToFill() }
+                }
+            } else {
+                placeholder.resizable().scaledToFill()
+            }
+        }
+        .frame(width: side, height: side)
+        .clipShape(fallback == .avatar ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)))
+        .accessibilityHidden(true)
+    }
+}

@@ -335,6 +335,9 @@ import SwiftUI
                 ForEach(filtered) { candidate in
                     Button { model.toggle(candidate.id, permit: permit) } label: {
                         HStack {
+                            // MP coop/invite/index.wxml:93,106 `.target-logo` (`item.logo || /images/d_logo.png`). The candidate
+                            // has no decoded logo yet (Core request in the receipt), so the MP default shows.
+                            MerchantCoopMPThumb(urlString: nil, fallback: .logo)
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 Text(verbatim: candidate.name).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                                 CoopInviteTargetMeta(candidate: candidate, memberCount: model.memberCounts[candidate.id]).cyText(.meta).foregroundStyle(CYColor.textTertiary)
