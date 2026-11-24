@@ -15,6 +15,30 @@ public enum ChinaReviewedRouteMark: String, Equatable, Sendable {
     case missing
 }
 
+/// P2 play-runtime gates. Reviewed, and default off. They live outside `marks` and
+/// `wiredPatterns` so this package does not change `callSiteCount` (995) or
+/// `wiredPatternCount` (679). Other packages add their own rows later.
+public enum PlayRuntimePortRouteGate {
+    /// Missing `storyLocked` counts as locked only after this is turned on.
+    public static let storyLockMissingCountsAsLocked = false
+    #if DEBUG
+    /// Unit tests flip this to prove both behaviors. Release builds ignore it.
+    public static var testStoryLockMissingCountsAsLocked: Bool?
+    #endif
+    public static var storyLockMissingIsLocked: Bool {
+        #if DEBUG
+        if let testStoryLockMissingCountsAsLocked { return testStoryLockMissingCountsAsLocked }
+        #endif
+        return storyLockMissingCountsAsLocked
+    }
+    /// `GET /api/topic/free-explore/visit-config`. Reviewed (`live-in-production`), default off.
+    public static let freeExploreVisitConfigRead = false
+    /// `POST /api/topic/free-explore/visit-config`. Reviewed, write default off.
+    public static let freeExploreVisitConfigWrite = false
+    public static let visitConfigPath = "/api/topic/free-explore/visit-config"
+    public static let visitConfigMark = ChinaReviewedRouteMark.liveInProduction
+}
+
 public enum ChinaReviewedRouteCapability {
     public static let productionBackendCommit = "014fc0d83afe9f53cf4a8b1f9544bcf634e9ce6c"
     public static let publicSnapshotCommit = "147754ba8740abf208bda75cf86ed5901cac4c02"

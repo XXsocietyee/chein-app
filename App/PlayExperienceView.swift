@@ -478,6 +478,36 @@ import SwiftUI
                     }
                 }
                 Section("playx.results") {
+                    if let mode = model.snapshot?.result.runStartMode {
+                        LabeledContent("playx.completion.start") {
+                            Text(LocalizedStringKey(mode == .desk ? "playx.completion.desk" : "playx.completion.alternate"))
+                        }
+                        .accessibilityIdentifier("playx.runStartMode")
+                    }
+                    if let snapshot = model.snapshot {
+                        let cards = PlayRunKeepsakes.evidence(in: snapshot)
+                        if !cards.isEmpty {
+                            Text("playx.evidence.title").font(.headline)
+                            ForEach(cards) { card in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if let title = card.title { Text(verbatim: title).font(.headline) }
+                                    Text(verbatim: card.text).font(.body)
+                                }
+                                .accessibilityIdentifier("playx.evidence.\(card.id)")
+                            }
+                        }
+                        let photos = PlayRunKeepsakes.photos(in: snapshot)
+                        if !photos.isEmpty {
+                            Text("playx.photos.title").font(.headline)
+                            ForEach(photos) { photo in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if let title = photo.title { Text(verbatim: title).font(.subheadline) }
+                                    PlayStationArtwork(image: PlayStationImage(source: photo.url, tier: .station), title: photo.title ?? "")
+                                }
+                                .accessibilityIdentifier("playx.photos.\(photo.id)")
+                            }
+                        }
+                    }
                     if model.snapshot?.availability == .completed, model.hasCurrentMediaSnapshot {
                         Button { finishScreen = true } label: { Label("medalScreen.open", systemImage: "rosette") }
                             .accessibilityIdentifier("medalScreen.open")
@@ -825,6 +855,9 @@ import SwiftUI
     @State private var justSubmitted = false
     /// The server's reason when this screen's answer was not accepted, shown above the button.
     @State private var rejectionText: String?
+    /// 「我已到达」 on the existing completion channel. Location stays nil until a one-shot provider is wired.
+    @State private var arrival: PlayArrivalService?
+    @State private var continuedWithoutPhoto = false
     private var answerPhase: CYResultPhase {
         if outcomeState == .submitting { return .loading }
         if justSubmitted && (outcomeState == .completed || nodeDone) { return .done }
@@ -871,7 +904,8 @@ import SwiftUI
                     Task { await model.load() }
                 }
             }
-            .onDisappear { journey?.roleContent.close(); device?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
+            .onAppear { if arrival == nil { arrival = PlayArrivalService(runtime: model, location: nil) } }
+            .onDisappear { journey?.roleContent.close(); device?.cancel(); arrival?.cancel(); model.cancelReview(); review = nil; hintContext = nil; answer = ""; showHelpPanel = false }
     }
 
     @ViewBuilder
@@ -1044,6 +1078,9 @@ import SwiftUI
         nodeAnswerSection(node: node, context: context)
         nodeHelpAndHintSections(node: node, context: context)
         nodeSensorAndDeviceSections(node: node, context: context)
+        if let arrival, arrival.offer(for: node.id) != nil {
+            Section { PlayArrivalControl(arrival: arrival, nodeID: node.id, context: context) }
+        }
     }
 
     @ViewBuilder
@@ -1170,10 +1207,12 @@ import SwiftUI
                 }
             }
         }
-        if let device { PlayDeviceTaskSection(model: device, task: PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node),
+        let resolvedTask = PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node)
+        let arrivalReplacesDevice = arrival?.offer(for: node.id) != nil && (resolvedTask == .arrive || resolvedTask == .merchantScan)
+        if let device, !arrivalReplacesDevice { PlayDeviceTaskSection(model: device, task: resolvedTask,
             photoFilter: node.sensorType == "filter_shot" ? PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") : nil,
             unsupportedPhotoSubtype: node.validationMethod == 2 && node.sensorType?.isEmpty == false && (node.sensorType != "filter_shot" || PlayPhotoFilter(rawValue: model.extras[nodeID]?.sensorConfig["filterStyle"].text ?? "") == nil), interaction: .init(context: context, current: { model.interactionContext }), onEvidence: { prepare($0, context: $1) }) }
-        else if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) != .answer { Text("playx.device.disabled") }
+        else if !arrivalReplacesDevice, resolvedTask != .answer { Text("playx.device.disabled") }
     }
     @ViewBuilder
     private func nodeBriefCard(node: PlayNode) -> some View {
@@ -1196,10 +1235,17 @@ import SwiftUI
                     systemImage: node.arrived == true ? "checkmark.circle.fill" : "location.fill"
                 )
             }
+            if let result = model.snapshot?.result {
+                PlayStationArtwork(image: PlayStationImageResolver.station(for: node, in: result), title: node.name ?? "")
+                    .accessibilityIdentifier("playx.station.artwork")
+            }
             PlayNodeTitle(name: node.name)
                 .cyText(.pageTitle)
                 .foregroundStyle(palette.textPrimary)
-            if let body = node.storyText ?? node.description {
+            if model.snapshot?.isStoryLocked(node) == true {
+                CYStatusChip("playFree.story.locked", tone: .neutral, systemImage: "lock.fill")
+                    .accessibilityLabel(Text("playFree.story.locked.a11y"))
+            } else if let body = node.storyText ?? node.description {
                 Text(verbatim: body)
                     .cyText(.body)
                     .foregroundStyle(palette.textSecondary)
@@ -1221,6 +1267,25 @@ import SwiftUI
                 PlayKitArtwork(source: image, approvedHosts: approvedArtworkHosts)
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityIdentifier("playx.question.image")
+            }
+            if let perk = node.perk {
+                if perk.included == true { Text("playx.perk.included").font(.subheadline) }
+                if let spend = perk.extraSpendText, !spend.isEmpty { Text(verbatim: spend).font(.subheadline) }
+                if perk.reserveRequired == true { Text("playx.perk.reserve").font(.subheadline) }
+            }
+            if let mode = PlayCompletionModePresentation(raw: node.completionMode) {
+                Text(LocalizedStringKey(mode.titleKey)).font(.subheadline).accessibilityIdentifier("playx.completion.mode")
+            }
+            if model.extras[node.id]?.photoCheckMode == "RECORD" {
+                Button("playkit.photo.continueWithout") {
+                    // Holds the legal RECORD body. P4 posts it through PlayKitInputContract.
+                    if case .success(.textConfirmed) = PlayPhotoRecordSubmission.validate(mode: "RECORD", imageURL: nil, textConfirmed: true, submitPhotoCheck: false) {
+                        continuedWithoutPhoto = true
+                    }
+                }
+                .font(.body)
+                .disabled(continuedWithoutPhoto)
+                .accessibilityIdentifier("playkit.photo.continueWithout")
             }
             if node.validationMethod == 2, let requirement = node.photoRequirement, !requirement.isEmpty {
                 Text(verbatim: requirement)
@@ -1434,6 +1499,9 @@ struct PlayExperienceIssueView: View {
             }
             if let xp = reward["xp"].tolerantInteger ?? reward["score"].tolerantInteger { LabeledContent("playx.reward.xp") { Text(verbatim: String(xp)) } }
             if let score = reward["puzzleScore"].tolerantInteger { LabeledContent("playx.reward.puzzle") { Text(verbatim: String(score)) } }
+            if let mode = PlayCompletionModePresentation(raw: reward["completionMode"].text) {
+                LabeledContent("play.completionMode") { Text(LocalizedStringKey(mode.titleKey)) }
+            }
             if let drop = PlayRewardDrop.fromReward(reward) {
                 LabeledContent {
                     Text(verbatim: drop.detailText(locale: locale))

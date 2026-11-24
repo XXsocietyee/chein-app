@@ -29,6 +29,16 @@ extension EnvironmentValues {
     }
 }
 
+enum PlayThemeCoverResolver {
+    /// One chain with station art: a chapter image, then the route cover. The title card
+    /// still prefers `PlayThemeServerFacts.coverURL` when the reader already resolved one.
+    static func url(chapterCover: String?, topicCover: String?) -> URL? {
+        let image = PlayStationImageResolver.station(stationImage: nil, chapterImages: PlayStationImageResolver.list(chapterCover), routeCover: topicCover)
+        guard let source = image.source else { return nil }
+        return PlayThemeServerFacts.coverURL(PlayStationImageResolver.secured(source))
+    }
+}
+
 enum PlayThemeIntro {
     /// Mini-program `introLine`: first authored line, first sentence, ≤ 40 characters, trailing separators trimmed.
     static func line(_ description: String?) -> String {
