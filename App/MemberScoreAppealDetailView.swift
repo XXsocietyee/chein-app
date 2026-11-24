@@ -4,6 +4,7 @@ import SwiftUI
     let selection: MemberScoreAppealSelection
     @ObservedObject var session: AppSession
     @Environment(\.scenePhase) private var scene
+    @Environment(\.locale) private var locale
     @State private var flow: MemberScoreAppealReadCoordinator?
     @State private var owner: MemberScoreReadPresentation?
     @State private var visible = false
@@ -74,15 +75,22 @@ import SwiftUI
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
             }
-            memberScoreText("score.detail.boundary")
-                .cyText(.meta)
-                .foregroundStyle(CYColor.textTertiary)
-                .fixedSize(horizontal: false, vertical: true)
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-            CYPillButton("score.detail.refresh", tableName: "MemberScoreAppealList") { load(rendered) }
-                .disabled(rendered == nil || flow?.busy == true)
-                .e1ActionRow()
+            // PLY-30-5: MP appeal-mine openAppeal lands on that round's scoring; the app opens 本局计分 for the session.
+            if let row = flow?.detailRow, let topicID = row.topicID, topicID > 0, let topic = Int(exactly: topicID) {
+                Section {
+                    NavigationLink {
+                        OrientScoreDeepLinkScreen(session: session, topicID: topic, sessionID: row.sessionID.flatMap { Int(exactly: $0) })
+                    } label: {
+                        Label { Text(verbatim: CoreLoopCopy(locale: locale).t("打开本局计分", "Open this round’s score")) }
+                            icon: { Image(systemName: "list.number").accessibilityHidden(true) }
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("score.detail.openOrientScore")
+                }
+            }
+            // R7-MEM-30-2: no developer boundary copy and no 刷新 pill; pull to refresh re-reads.
         }
+        .refreshable { load(readIntent()) }
         .listStyle(.insetGrouped)
         .cyGroupedSurface().navigationTitle(Text("score.detail.title", tableName: "MemberScoreAppealList")).navigationBarTitleDisplayMode(.inline).privacySensitive()
         .accessibilityIdentifier("score.mine.detail")

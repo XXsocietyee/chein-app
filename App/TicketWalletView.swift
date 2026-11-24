@@ -341,14 +341,11 @@ private struct TicketWalletRow: View {
     @Environment(\.ticketWalletCompletionReader) private var completionReader
     @Environment(\.dynamicTypeSize) private var typeSize
     @State private var topHeight: CGFloat = 140
-    /// Generated cover art (no ticket image exists in the model): muted dark gradients keyed by id.
+    /// Generated cover art (no ticket image exists in the model yet; R7-MEM-21-3 asks Core for `imgUrl`).
+    /// PLY-21-15: token colours only, one tint per id so neighbouring cards still differ.
     private var art: [Color] {
-        let sets: [[Color]] = [
-            [Color(red: 0.10, green: 0.32, blue: 0.36), Color(red: 0.04, green: 0.10, blue: 0.14)],
-            [Color(red: 0.14, green: 0.20, blue: 0.28), Color(red: 0.05, green: 0.07, blue: 0.10)],
-            [Color(red: 0.42, green: 0.17, blue: 0.22), Color(red: 0.13, green: 0.05, blue: 0.08)],
-            [Color(red: 0.30, green: 0.34, blue: 0.16), Color(red: 0.08, green: 0.10, blue: 0.05)]]
-        return sets[abs(ticket.id) % sets.count]
+        let tints: [Color] = [CYColor.brandStrong, CYColor.gameAccent, CYColor.rare, CYColor.coverFallback]
+        return [tints[abs(ticket.id) % tints.count].opacity(0.55), CYColor.bgSurfaceStrong]
     }
     private var hasStub: Bool {
         (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
@@ -409,11 +406,7 @@ private struct TicketWalletRow: View {
                     }
                 }
                 Spacer(minLength: 0)
-                if !typeSize.isAccessibilitySize, ticket.action == .detail, !ticket.isWalletLocked {
-                    Image(systemName: "qrcode").resizable().scaledToFit().frame(width: 34, height: 34).foregroundStyle(CYColor.textPrimary.opacity(0.85))
-                        .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                        .accessibilityHidden(true)
-                }
+                // PLY-21-15: no decorative QR glyph; the code is only on the pass.
             }
             .padding(CYSpacing.lg)
             .background(CYColor.bgElevated)

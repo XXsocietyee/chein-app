@@ -4,10 +4,16 @@ import SwiftUI
 /// (components/cy/scene-member-withdraw-history). Read-only; never starts a withdrawal.
 @MainActor struct WithdrawalHistoryView: View {
     let reader: WalletCommerceReader
+    /// R7-MEM-19-1: the coop entry (`pages/coop/withdraw/records`) keeps merchant chrome.
+    var domain: ThemeDomain = .player
+    /// FIN-19-4: MP 登录 on the signed-out state. Nil keeps the state without a button.
+    var onSignIn: (() -> Void)? = nil
     @State private var model: WithdrawalHistoryCoordinator
     @State private var selected: WithdrawalHistorySelection?
-    init(reader: WalletCommerceReader) {
+    init(reader: WalletCommerceReader, domain: ThemeDomain = .player, onSignIn: (() -> Void)? = nil) {
         self.reader = reader
+        self.domain = domain
+        self.onSignIn = onSignIn
         _model = State(initialValue: WithdrawalHistoryCoordinator(reader: reader))
     }
     var body: some View {
@@ -48,7 +54,7 @@ import SwiftUI
         .cyGroupedSurface()
         // FIN-19-3: the bar carries the inline title (type-and-chrome §2); no second title in the content.
         .cyPageTitle("wallet.withdrawals")
-        .cyPushedChrome(domain: .player)
+        .cyPushedChrome(domain: domain)
         .task(id: reader.scope) { await model.load() }
         .refreshable { await model.load() }
         .onDisappear { model.cancel() }
@@ -56,23 +62,28 @@ import SwiftUI
         .accessibilityIdentifier("withdrawal.history")
     }
     @ViewBuilder private func state(title: LocalizedStringKey, detail: LocalizedStringKey, image: String, id: String) -> some View {
-        // Login recovery belongs to the account surface; retry here only re-reads.
-        CYEmptyState(systemImage: image, title, detail: detail, messageIdentifier: "withdrawal.history." + id,
-                     actionTitle: model.phase == .failed ? "wallet.retry" : nil, actionIdentifier: "withdrawal.history.retry",
-                     action: model.phase == .failed ? { Task { await model.load() } } : nil)
+        // Retry only re-reads; FIN-19-4: the signed-out state offers 登录 when the host supplies it.
+        if model.phase == .login, let onSignIn {
+            CYEmptyState(systemImage: image, title, detail: detail, messageIdentifier: "withdrawal.history." + id,
+                         actionTitle: "auth.signIn", actionIdentifier: "withdrawal.history.signIn", action: onSignIn)
+        } else {
+            CYEmptyState(systemImage: image, title, detail: detail, messageIdentifier: "withdrawal.history." + id,
+                         actionTitle: model.phase == .failed ? "wallet.retry" : nil, actionIdentifier: "withdrawal.history.retry",
+                         action: model.phase == .failed ? { Task { await model.load() } } : nil)
+        }
     }
 }
 
 struct WithdrawalHistoryRowView: View {
     let row: WithdrawalHistoryRow
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text("wallet.withdrawal.rowTitle").cyText(.cardTitle)
                 Text(verbatim: row.createTime ?? "—").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 4) {
+            Spacer(minLength: CYSpacing.sm)
+            VStack(alignment: .trailing, spacing: CYSpacing.xs) {
                 Text(verbatim: row.amountText ?? "—").cyText(.cardTitle, monospacedDigit: true)
                 CYStatusChip(LocalizedStringKey(row.statusKey), tone: tone)
             }

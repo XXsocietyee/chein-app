@@ -26,9 +26,11 @@ enum CYPassCardPick {
 
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.ticketWalletPlayProvider) private var playProvider
     @State private var phase: CYPhase<TicketWalletSnapshot, Error> = .idle
     @State private var selectedID: Int?
     @State private var detailID: Int?
+    @State private var playDetailID: Int?
     @State private var loadToken = 0
     /// Bumped when the pass flips to verified: the edge glow sweeps the display corners (choreography D).
     @State private var glowTick = 0
@@ -50,6 +52,11 @@ enum CYPassCardPick {
                 }
                 .navigationDestination(item: $detailID) { id in
                     TicketWalletDetailView(id: id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
+                }
+                .navigationDestination(item: $playDetailID) { id in
+                    // PLY-21-3: the detail re-reads the ticket, then starts play; a list row never proves the status.
+                    TicketWalletDetailView(id: id, reader: reader, lifecycleCoordinator: lifecycleCoordinator,
+                                           makeTeamCoordinator: makeTeamCoordinator, autoStartsPlay: true)
                 }
         }
         .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) { await load() }
@@ -75,6 +82,17 @@ enum CYPassCardPick {
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
                         TicketPassCard(ticket: ticket, onVerified: { glowTick += 1 })
+                        // PLY-21-3 / PLY-21-4: MP signup wxml:103-106 puts 开始游戏 (查看记录 once cleared) under the pass.
+                        if playProvider != nil, ticket.status == .ready, ticket.action == .detail, !ticket.isWalletLocked,
+                           TicketWalletPlayEntry.entry(ticket: ticket, requestedID: ticket.id) != nil {
+                            Button { playDetailID = ticket.id } label: {
+                                if ticket.clearedFlag == true { Label(c.t("查看记录", "View record"), systemImage: "clock.arrow.circlepath") }
+                                else { Label("playerJourney.start", systemImage: "play.fill") }
+                            }
+                            .buttonStyle(.cyPrimary(fullWidth: true))
+                            .frame(maxWidth: 360)
+                            .accessibilityIdentifier("ticketPass.play")
+                        }
                         if let partial = snapshot.partialFailure {
                             Text(verbatim: c.t("部分票券没能读取，下拉或在菜单里刷新", "Some tickets did not load. Refresh from the menu."))
                                 .cyText(.meta).foregroundStyle(CYColor.textSecondary)

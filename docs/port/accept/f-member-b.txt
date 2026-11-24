@@ -1,0 +1,40 @@
+# fix/r3-member-b acceptance fixtures (launch argument: --design-fixture <name>), one per line.
+# 16 我的订单 / 17 订单详情: card (已下架, 查看处理进度, address → Maps), state notice chip, refund policy text
+orders-list
+orders-empty
+order-detail
+order-detail-full
+core-order-info
+core-order-info-unknown
+t5-order-center
+# 18 积分明细: 20-row reveal, short time, brand income delta
+core-points-history
+e4-wallet-points
+# 19 提现记录: tokens, sign-in state
+t13-withdraw-history
+t13-withdraw-history-empty
+e4-wallet-withdrawals
+# 20 邀请记录: avatar, latest-earn card, full-page failure
+core-invite-history
+core-invite-history-partial
+core-invite-history-zero
+core-invite-history-unavailable
+cur6-invite-denied
+# 21 票夹: no wallet-wide team row, no QR glyph, token art; pass sheet 开始游戏
+e4-tickets
+ticket-list
+ticket-detail
+ui-pass-card
+ui-pass-card-sheet
+ui-pass-card-used
+# 24 角色卡: header title style, 刷新角色卡
+cur7-character-sheet
+cur7-character-sheet-unknown
+# 25 本局计分
+member-popup-orient-score
+# 26 我的节点玩法 (unchanged; regression check)
+e4-template-mine
+# 27 投诉与建议: submit disabled until topic + 5 chars
+e4-complaint
+# 29 举报进度 appeal copy
+member-popup-report-appeal

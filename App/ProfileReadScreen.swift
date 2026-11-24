@@ -12,6 +12,10 @@ struct ProfileReadScreen<Value, Content: View>: View {
     let issueCopy: ProfileReadIssueCopy?
     /// Sign-in action for the signed-out state (MP 登录). Nil keeps the state without a button.
     let onSignIn: (() -> Void)?
+    /// FIN-16-8: native pages refresh by pull only (restyle spec §3.1). Older hosts keep the ↻ until restyled.
+    @Environment(\.profileReadShowsRefreshButton) private var showsRefreshButton
+    /// Host-provided 登录 used when the screen was built without `onSignIn` (deep-link hosts).
+    @Environment(\.profileReadSignIn) private var environmentSignIn
     @State private var value: Value?
     @State private var refreshToast: LocalizedStringKey?
     @State private var isLoading = true
@@ -32,6 +36,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
         self.content = content
     }
 
+    private var signIn: (() -> Void)? { onSignIn ?? environmentSignIn }
     /// Configured, signed in and the first read is in flight.
     private var isShowingLoad: Bool { reader.identity != nil && reader.isConfigured && isLoading }
     var body: some View {
@@ -41,10 +46,12 @@ struct ProfileReadScreen<Value, Content: View>: View {
         }
         .refreshable { await loadOwner.run { await reload(keepingValue: true) } }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload(keepingValue: true) } }
-                    .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
-                    .accessibilityIdentifier(accessibilityPrefix + ".refresh")
+            if showsRefreshButton {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload(keepingValue: true) } }
+                        .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
+                        .accessibilityIdentifier(accessibilityPrefix + ".refresh")
+                }
             }
         }
         .task(id: reader.identity) { loadOwner.activate(); await loadOwner.run { await reload() } }
@@ -60,8 +67,8 @@ struct ProfileReadScreen<Value, Content: View>: View {
         ZStack {
             if reader.identity == nil {
                 CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), detail: LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired"), messageIdentifier: accessibilityPrefix + ".signIn",
-                             actionTitle: onSignIn == nil ? nil : "auth.signIn", actionIdentifier: onSignIn == nil ? nil : accessibilityPrefix + ".signIn.action",
-                             action: onSignIn)
+                             actionTitle: signIn == nil ? nil : "auth.signIn", actionIdentifier: signIn == nil ? nil : accessibilityPrefix + ".signIn.action",
+                             action: signIn)
             } else if !reader.isConfigured {
                 CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: accessibilityPrefix + ".unavailable")
             } else if isLoading {
@@ -172,5 +179,20 @@ struct ProfileEmptyState: View {
     var body: some View {
         CYEmptyState(systemImage: symbol, title, messageIdentifier: identifier)
         // `hint` is kept for callers; the spec allows no helper captions under empty states.
+    }
+}
+
+private struct ProfileReadShowsRefreshButtonKey: EnvironmentKey { static let defaultValue = true }
+private struct ProfileReadSignInKey: EnvironmentKey { static let defaultValue: (() -> Void)? = nil }
+extension EnvironmentValues {
+    /// FIN-16-8: false drops the toolbar ↻ on pages that refresh by pull only.
+    var profileReadShowsRefreshButton: Bool {
+        get { self[ProfileReadShowsRefreshButtonKey.self] }
+        set { self[ProfileReadShowsRefreshButtonKey.self] = newValue }
+    }
+    /// R7-MEM-17-1: 登录 for a `ProfileReadScreen` whose host had no sign-in closure to pass.
+    var profileReadSignIn: (() -> Void)? {
+        get { self[ProfileReadSignInKey.self] }
+        set { self[ProfileReadSignInKey.self] = newValue }
     }
 }

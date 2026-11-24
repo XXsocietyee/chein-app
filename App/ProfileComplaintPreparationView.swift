@@ -24,14 +24,22 @@ import SwiftUI
 /// `subpackageMember/complaint/index` for the page router (PLY-27-1): the same screen the 我的 row pushes.
 @MainActor struct ProfileComplaintDeepLinkScreen: View {
     @ObservedObject var session: AppSession
+    /// R7-MEM-27-1: the link can open this page signed out; 登录 presents the player sign-in, and the new
+    /// session revision rebuilds (and so reloads) the page.
+    @State private var showsSignIn = false
     var body: some View {
         let _ = WP06ComplaintWrite.install()
         let revision = session.sessionRevision
         let owner = session.cooperationFlowReader.session
         ProfileComplaintPreparationView(reader: session.cooperationFlowReader,
             isCurrent: { session.sessionRevision == revision && session.cooperationFlowReader.session == owner },
-            submitter: ProfileComplaintPreparationLink.submitterFactory?(session))
+            submitter: ProfileComplaintPreparationLink.submitterFactory?(session),
+            onSignIn: { showsSignIn = true })
             .id(revision)
+            .sheet(isPresented: $showsSignIn) {
+                LoginView(intent: .player).environmentObject(session)
+                    .presentationDetents([.large]).presentationDragIndicator(.visible)
+            }
     }
 }
 
@@ -48,14 +56,17 @@ private struct ProfileComplaintPresentationKey: Hashable {
     let isCurrent: @MainActor () -> Bool
     /// nil = the report route is not approved in this build; the review screen then says so honestly.
     let submitter: (any ProfileComplaintSubmitting)?
+    /// MP complaint/index.wxml:19-21 登录 on the signed-out read. Nil keeps the state without a button.
+    var onSignIn: (() -> Void)? = nil
     init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool) {
         self.reader = reader; self.isCurrent = isCurrent; submitter = nil
     }
-    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool, submitter: (any ProfileComplaintSubmitting)?) {
-        self.reader = reader; self.isCurrent = isCurrent; self.submitter = submitter
+    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool, submitter: (any ProfileComplaintSubmitting)?,
+         onSignIn: (() -> Void)? = nil) {
+        self.reader = reader; self.isCurrent = isCurrent; self.submitter = submitter; self.onSignIn = onSignIn
     }
     var body: some View {
-        ProfileComplaintPreparationScreen(reader: reader, isCurrent: isCurrent, submitter: submitter)
+        ProfileComplaintPreparationScreen(reader: reader, isCurrent: isCurrent, submitter: submitter, onSignIn: onSignIn)
             .id(ProfileComplaintPresentationKey(reader))
     }
 }
@@ -70,8 +81,11 @@ private struct ProfileComplaintPresentationKey: Hashable {
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var focused: Field?
     private enum Field: Hashable { case reason, contact }
-    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool, submitter: (any ProfileComplaintSubmitting)?) {
+    private let onSignIn: (() -> Void)?
+    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool, submitter: (any ProfileComplaintSubmitting)?,
+         onSignIn: (() -> Void)? = nil) {
         self.reader = reader
+        self.onSignIn = onSignIn
         _model = State(initialValue: .init(reader: reader, isCurrent: isCurrent))
         _sending = State(initialValue: .init(submitter: submitter))
         _progress = State(initialValue: .init(reader: reader, isCurrent: isCurrent))
@@ -101,10 +115,10 @@ private struct ProfileComplaintPresentationKey: Hashable {
                             .accessibilityIdentifier("profile.complaint.issueTitle")
                         if issue != .unavailable {
                             if model.isNetworkFailure && issue == .failed {
-                                Text("profile.complaint.read.network").font(.subheadline)
+                                Text("profile.complaint.read.network").cyText(.bodyCompact)
                                     .accessibilityIdentifier("profile.complaint.issueDetail")
                             } else {
-                                Text(LocalizedStringKey(issue.sourceDetailKey)).font(.subheadline)
+                                Text(LocalizedStringKey(issue.sourceDetailKey)).cyText(.bodyCompact)
                                     .accessibilityIdentifier("profile.complaint.issueDetail")
                             }
                         }
@@ -112,6 +126,10 @@ private struct ProfileComplaintPresentationKey: Hashable {
                         if issue == .failed {
                             Button("action.retry") { Task { await model.load() } }
                                 .disabled(model.isLoading).accessibilityIdentifier("profile.complaint.retry")
+                        } else if issue == .signIn, let onSignIn {
+                            Button("auth.signIn", action: onSignIn)
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .accessibilityIdentifier("profile.complaint.signIn")
                         }
                     }
                 }
@@ -242,7 +260,14 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     } else if sending.isConfigured, sending.canSend(review: model.review) {
                         confirmingSend = true
                     }
-                }.accessibilityIdentifier("profile.complaint.review")
+                }
+                // PLY-27-6: MP complaint/index.js:283-287 keeps 提交投诉 disabled until a topic is chosen and the reason
+                // has 5 characters; over-limit text still reaches the inline message on tap.
+                .disabled({
+                    let blocking = model.draft.validation(topics: model.topics ?? [])
+                    return blocking == .topic || blocking == .reasonShort
+                }())
+                .accessibilityIdentifier("profile.complaint.review")
             }
         }
     }
