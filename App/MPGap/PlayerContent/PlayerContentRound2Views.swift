@@ -147,7 +147,7 @@ public struct ActivityCancelledStateView: View {
             Text("activity.cancelled.subtitle")
         } actions: {
             if canViewOwnOrders {
-                Button("activity.cancelled.viewOrders", action: onViewOwnOrders)
+                Button("activity.cancelled.viewOrders", action: onViewOrders)
                     .buttonStyle(.borderedProminent)
             }
             Button("common.back", action: onBack)

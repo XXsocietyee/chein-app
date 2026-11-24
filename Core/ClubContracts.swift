@@ -41,9 +41,12 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     /// Absent, null, `UNKNOWN`, a numeric string, a bool, or a non-integer is nil.
     /// Nil is unknown and must display as an em dash, never as 0. A literal JSON 0 stays 0.
     public let pendingJoinRequestCount: Int?
+    /// MC-055: the server's single governance bit. When absent, older responses keep the
+    /// existing owner/administrator facts; a present value always wins.
+    public let viewerCanGovern: Bool?
 
     public var canSeeMembers: Bool { isOwner || isJoined }
-    public var canGovern: Bool { isOwner || viewerIsAdmin }
+    public var canGovern: Bool { viewerCanGovern ?? (isOwner || viewerIsAdmin) }
     public var joinPending: Bool { myJoinStatus == 0 }
     public var needsApproval: Bool { joinPolicy == 1 }
 
@@ -51,7 +54,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         case id, name, logo, cover, description, clubTypes, clubType, address, city, style
         case leaderName, keywords, activityPrefs, memberCount, isJoined, isOwner, viewerIsAdmin
         case level, joinPolicy, joinPolicySupported, myJoinStatus, myJoinReviewReason, viewerIdentityUnavailable
-        case welcomeNote, memberPostAllowed, prioritySignupEnabled, status, pendingJoinRequestCount
+        case welcomeNote, memberPostAllowed, prioritySignupEnabled, status, pendingJoinRequestCount, viewerCanGovern
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -96,6 +99,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         prioritySignupEnabled = try setting(.prioritySignupEnabled)
         status = (try? c.decodeIfPresent(Int.self, forKey: .status)) ?? nil
         pendingJoinRequestCount = Self.literalCount(c, .pendingJoinRequestCount)
+        viewerCanGovern = try c.decodeIfPresent(Bool.self, forKey: .viewerCanGovern)
     }
 
     /// An exact JSON integer, including 0. Anything else is unknown and stays nil.

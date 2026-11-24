@@ -201,7 +201,8 @@ extension PlayAdvancedView {
                     if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                     PlayKitHangmanView(projection: PlayKitHangmanProjection(segment: segment), enabled: model.canInteract,
                         stationQuestion: stationQuestion, stationName: stationName, stationPassText: stationPassText,
-                        submit: ugHangmanWrite ?? hangmanWrite, close: { openKit = nil })
+                        submit: ugHangmanWrite ?? hangmanWrite, close: { openKit = nil },
+                        segment: segment, nodeID: model.state?.nodeID)
                         .padding()
                 } else { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }
             }

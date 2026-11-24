@@ -2,7 +2,9 @@
 import SwiftUI
 
 @MainActor final class TopicFixtureReader: TopicReading {
-    enum Scenario: String { case content, empty, failure, unauthorized, unconfigured, unavailable, closed, itinerary, reviews, reviewsEmpty, reviewsUnknown }
+    enum Scenario: String { case content, empty, failure, unauthorized, unconfigured, unavailable, closed, itinerary, reviews, reviewsEmpty, reviewsUnknown
+        /// Port P3 acceptance screens: chapter cards, 出发前, story-only 活动内容 and 0/empty hiding.
+        case routeDetail, routeDetailSparse }
     let scenario: Scenario
     let scope = UUID()
     var isConfigured: Bool { scenario != .unconfigured }
@@ -46,6 +48,9 @@ import SwiftUI
             let json = "{\"id\":\(id),\"name\":\"Synthetic review route\"\(fields)}"
             return try JSONDecoder().decode(TopicDetail.self, from: Data(json.utf8))
         }
+        if scenario == .routeDetail || scenario == .routeDetailSparse {
+            return try JSONDecoder().decode(TopicDetail.self, from: Data(TopicP3Fixtures.json(sparse: scenario == .routeDetailSparse).utf8))
+        }
         if scenario == .itinerary {
             // Fictional geometry only; no device location or routed directions.
             let json = #"""
@@ -68,6 +73,30 @@ import SwiftUI
     }
 }
 
+/// Synthetic route-detail data for port P3 (no backend records, coordinates or remote assets). `totalTime` is seconds.
+enum TopicP3Fixtures {
+    static func json(sparse: Bool) -> String {
+        if sparse {
+            // Free exploration with nothing known: no 出发前, no zero rows, no 0 review total, no chapter cards.
+            return #"{"id":7,"name":"Synthetic open walk","productType":2,"locationCount":0,"templateCount":0,"registrationMerchantCount":0,"totalTime":0,"finishMedalName":"  ","averageRating":0,"commentCount":0,"commentList":[],"chaptersList":[{"id":11,"title":"Open walk","totalTime":0,"templateCount":0,"nodes":[]}]}"#
+        }
+        return #"""
+        {"id":7,"name":"Synthetic lost-cat street","subtitle":"Follow the cat through the old lanes","productType":1,"locationCount":6,"templateCount":5,"totalChapterCount":4,
+         "registrationMerchantCount":0,"totalTime":0,"selfPlay":1,"selfPlayPrice":30,"finishMedalName":"Lost-cat finder","completeRewardCouponId":12,
+         "description":"Tonight the cat did not come home. You follow its trail along the old street.\n过马路请注意红绿灯。\n\n【注意事项】\n1. 部分店铺18点打烊；\n2. 带好充电宝",
+         "activityList":[{"id":1,"name":"Saturday session","startDate":"2030-01-05"}],
+         "omsTicketList":[{"id":51,"name":"Pair ticket","price":59,"teamSize":2},{"id":52,"name":"Pair ticket","price":49,"teamSize":2},{"id":53,"name":"Single ticket","price":29}],
+         "averageRating":4.5,"commentCount":2,"commentList":[{"memberNickname":"Example walker","createTime":"2030-01-02 10:00","rating":5,"contents":"Lovely evening walk."}],
+         "chaptersList":[
+          {"id":13,"sortId":3,"title":"The harbour","description":"The trail ends where the boats sleep.","templateCount":1,"totalTime":20,"nodes":[{"id":23,"name":"Harbour steps"}]},
+          {"id":11,"sortId":1,"title":"The old lane","description":"A bowl of milk, still warm, by a shuttered door.","templateCount":3,"totalTime":1800,"nodes":[{"id":21,"name":"Shuttered door"},{"id":22,"name":"Tea house"}]},
+          {"id":12,"sortId":2,"title":"Rooftops","templateCount":1,"totalTime":0,"nodes":[{"id":24,"name":"Fire escape","cmsMemberTemplate":{"id":31,"title":"Count the chimneys","duration":15}}]},
+          {"id":14,"sortId":4,"title":"结局 · 黎明","templateCount":0,"totalTime":0,"nodes":[]}
+         ]}
+        """#
+    }
+}
+
 @MainActor struct TopicFixtureHostView: View {
     @State private var reader: TopicFixtureReader
     init() {
@@ -77,7 +106,7 @@ import SwiftUI
         _reader = State(initialValue: TopicFixtureReader(scenario: raw.flatMap(TopicFixtureReader.Scenario.init(rawValue:)) ?? .content))
     }
     var body: some View {
-        if reader.scenario == .unavailable || reader.scenario == .itinerary {
+        if [.unavailable, .itinerary, .routeDetail, .routeDetailSparse].contains(reader.scenario) {
             NavigationStack { TopicDetailView(id: 7, reader: reader) }
         } else { TopicBrowserView(reader: reader, pageSize: 2) }
     }

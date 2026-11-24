@@ -1,0 +1,87 @@
+# DEBUG native gallery. One route per line. # comments are ignored.
+# Index. Does not force color scheme or Dynamic Type.
+native-gallery
+
+# 组件
+# 分组列表与表单
+native-gallery-list-form-light
+native-gallery-list-form-dark
+native-gallery-list-form-ax5
+# 卡片与主视觉
+native-gallery-cards-light
+native-gallery-cards-dark
+native-gallery-cards-ax5
+# 半屏弹层
+native-gallery-sheets-light
+native-gallery-sheets-dark
+native-gallery-sheets-ax5
+# 空态与错误
+native-gallery-empty-error-light
+native-gallery-empty-error-dark
+native-gallery-empty-error-ax5
+# 系统按钮
+native-gallery-buttons-light
+native-gallery-buttons-dark
+native-gallery-buttons-ax5
+# 破坏性确认
+native-gallery-confirm-light
+native-gallery-confirm-dark
+native-gallery-confirm-ax5
+# 状态标签
+native-gallery-status-tags-light
+native-gallery-status-tags-dark
+native-gallery-status-tags-ax5
+# 字号阶梯
+native-gallery-type-ramp-light
+native-gallery-type-ramp-dark
+native-gallery-type-ramp-ax5
+
+# 页面
+# 首页
+native-gallery-home-light
+native-gallery-home-dark
+native-gallery-home-ax5
+# 动态
+native-gallery-square-light
+native-gallery-square-dark
+native-gallery-square-ax5
+# 玩法
+native-gallery-play-tab-light
+native-gallery-play-tab-dark
+native-gallery-play-tab-ax5
+# 俱乐部
+native-gallery-club-tab-light
+native-gallery-club-tab-dark
+native-gallery-club-tab-ax5
+# 主题详情
+native-gallery-topic-detail-light
+native-gallery-topic-detail-dark
+native-gallery-topic-detail-ax5
+# 活动详情
+native-gallery-activity-detail-light
+native-gallery-activity-detail-dark
+native-gallery-activity-detail-ax5
+# 游玩
+native-gallery-play-light
+native-gallery-play-dark
+native-gallery-play-ax5
+# 俱乐部主页
+native-gallery-club-home-light
+native-gallery-club-home-dark
+native-gallery-club-home-ax5
+# 工作台
+native-gallery-merchant-light
+native-gallery-merchant-dark
+native-gallery-merchant-ax5
+# 我的
+native-gallery-me-light
+native-gallery-me-dark
+native-gallery-me-ax5
+# 设置
+native-gallery-settings-light
+native-gallery-settings-dark
+native-gallery-settings-ax5
+# 开局大厅
+native-gallery-lobby-light
+native-gallery-lobby-dark
+native-gallery-lobby-ax5

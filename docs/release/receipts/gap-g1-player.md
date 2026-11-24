@@ -52,4 +52,10 @@ Walked all 30 `player-content` pages, 30 `play-roam` pages, and 29 `member` page
   - Fixed `CYCachedAsyncImage`: changed `CYCachedAsyncImage(url: url, role: .cover/.thumbnail)` to `CYCachedAsyncImage(sourceString, role: .cover/.shelf)` matching `App/DesignSystem/CYCachedAsyncImage.swift:61-64, 169-174` (across `TopicTemplateDeckPreviewView`, `PlayerContentRound2Views`, `CityStampTearScratchCardView`, `PlayRoamRound2Views`, `MemberRound2Views`).
   - Fixed `CYSheetHeader`: changed `title: "..."` / `LocalizedStringKey(...)` to `title: Text(...)` matching `App/DesignSystem/CYPlayerKit.swift:346-356` (across `SearchMapExplorerGapView`, `PlayerContentRound2Views`, `PlayToolsAndLeadSheetView`, `RoamSessionToolsSheetView`, `ObjectCardCategoryAndRenameSheets`, `PlayRoamRound2Views`, `OrientScoreGapViews`, `ReportAppealAndCouponSummaryViews`).
 
+## Compile Fix (`docs/mp-gap/compile-errors-r7.md` after merging `origin/ui/combined-r7`)
+- Merged `origin/ui/combined-r7` into `gap/g1-player` and resolved `TopicTemplateDeckPreviewView.swift` conflict.
+- Verified all 12 G1 errors listed in `docs/mp-gap/compile-errors-r7.md` (`MemberRound2Views.swift:112`, `OrientScoreGapViews.swift:22,88`, `ReportAppealAndCouponSummaryViews.swift:32,184`, `CityStampTearScratchCardView.swift:113`, `ObjectCardCategoryAndRenameSheets.swift:27,82`, `PlayRoamRound2Views.swift:49,125,184`) are fixed.
+- `swiftc -parse` and `python3 -B tools/check_design_lint.py` passed with 0 errors.
+
 DONE-ROUND-3
+DONE-COMPILE-FIX

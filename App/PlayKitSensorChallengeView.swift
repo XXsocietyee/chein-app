@@ -184,7 +184,7 @@ import UIKit
                         .foregroundStyle(stage.compass.aligned ? Color.green : Color.accentColor)
                         .rotationEffect(.degrees(stage.compass.needleDegrees))
                         .opacity(stage.compass.heading == nil ? 0.25 : 1)
-                        .animation(reduceMotion ? nil : .linear(duration: 0.1), value: stage.compass.needleDegrees)
+                        .animation(reduceMotion ? nil : .linear(duration: CYMotion.Duration.quick), value: stage.compass.needleDegrees)
                 }.frame(width: 240, height: 240).accessibilityHidden(true)
                 LabeledContent("playkit.compass.target") { Text(verbatim: "\(Int(stage.compass.target))°").monospacedDigit() }
                 if let heading = stage.compass.heading {

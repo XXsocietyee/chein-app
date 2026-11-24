@@ -8,6 +8,17 @@ final class ChapterStoryTests: XCTestCase {
                        "Ada 0 false {lost} friend {empty|} {name_too_long_123456}")
         XCTAssertEqual(ChapterStoryProjection.substitute("{object|safe}", variables: ["object": .object(["private": .string("hidden")])]), "safe")
     }
+    func testReaderPaintsOnlyTheRoutesOwnChapterColour() throws {
+        let cases: [(String, ProjectChapterAtmosphere?)] = [
+            ("\"BLUE\"", .blue), ("\" night \"", .blue), ("\"WHITE\"", .white),
+            ("\"LASER\"", nil), ("\"\"", nil), ("null", nil),
+        ]
+        for (preset, expected) in cases {
+            let chapter = try ChapterStoryDocument(raw: wire("{\"chapterId\":8,\"atmospherePreset\":" + preset + "}"))
+            XCTAssertEqual(chapter.atmosphere, expected, preset)
+        }
+        XCTAssertNil(try ChapterStoryDocument(raw: wire(#"{"chapterId":8}"#)).atmosphere)
+    }
     func testChapterCoverComesFromActualImgArrAndPreservesBlocks() throws {
         let chapter = try ChapterStoryDocument(raw: wire(#"{"chapterId":8,"name":"A chapter","imgArr":"https://story.test/first.jpg,https://story.test/second.jpg","blocks":[{"type":"text","content":"Hello"}]}"#))
         XCTAssertEqual(chapter.cover, "https://story.test/first.jpg"); XCTAssertEqual(chapter.title, "A chapter"); XCTAssertEqual(chapter.blocks.count, 1)
@@ -41,6 +52,26 @@ final class ChapterStoryTests: XCTestCase {
         let rows = ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(nodes: "[]"), variables: [:])
         XCTAssertEqual(rows.count, 4); XCTAssertTrue(rows.allSatisfy { $0.mood == "quiet" && $0.odd == 3 })
         XCTAssertEqual(rows[2].content, .reveal(speaker: "Guide", lines: ["A", "B"]))
+    }
+    func testOptionalTextBlockBecomesCollapsedFurtherReadingWithWhoSubtitle() throws {
+        let chapter = try ChapterStoryDocument(raw: wire(#"{"chapterId":8,"blocks":[{"type":"text","content":"Main"},{"type":"text","optional":true,"who":"Sample station note","content":"First {name|friend}\n\nSecond"},{"type":"text","optional":true,"content":"No heading"},{"type":"text","optional":false,"content":"Plain"}]}"#))
+        let rows = ChapterStoryProjection.segments(chapter: chapter, snapshot: try snapshot(nodes: "[]"), variables: [:])
+        XCTAssertEqual(rows.map(\.content), [.text("Main"), .optionalReading(subtitle: "Sample station note", paragraphs: ["First friend", "Second"]), .optionalReading(subtitle: nil, paragraphs: ["No heading"]), .text("Plain")])
+    }
+    func testOptionalBlockDoesNotBypassSpoilerTruncation() throws {
+        let snapshot = try snapshot(nodes: #"[{"nodeId":1,"chapterId":8,"done":false,"locked":false}]"#)
+        let chapter = try ChapterStoryDocument(raw: wire(#"{"chapterId":8,"blocks":[{"type":"node","nodeId":1},{"type":"text","optional":true,"content":"SPOILER"}]}"#))
+        XCTAssertEqual(ChapterStoryProjection.segments(chapter: chapter, snapshot: snapshot, variables: [:]).map(\.content), [.game(nodeID: 1)])
+    }
+    func testNarrationAutoplayDefaultsOnAndStoresTheArrivalKey() {
+        let name = "p1.narration." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        XCTAssertTrue(PlatformNarrationAutoplayPreference.isEnabled(in: defaults))
+        XCTAssertEqual(PlatformNarrationAutoplayPreference.storageKey, "play.narrationOn")
+        PlatformNarrationAutoplayPreference.set(false, in: defaults)
+        XCTAssertFalse(PlatformNarrationAutoplayPreference.isEnabled(in: defaults))
+        XCTAssertEqual(defaults.object(forKey: PlatformNarrationAutoplayPreference.storageKey) as? Bool, false)
     }
     func testAuthorizedRuntimeDocumentCarriesVarsVoicesAndThoughts() throws {
         let document: PlayExperienceDocument = try wire(#"{"topicId":9,"playable":true,"nodes":[],"chapters":[{"chapterId":8,"name":"Chapter"}],"vars":{"name":"Ada"},"storyVoices":{"1":[{"who":"Guide","text":"Remember"}]},"routeState":{"thoughts":[{"key":"known","name":"Thought"}]}}"#).decoded()

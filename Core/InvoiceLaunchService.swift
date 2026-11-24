@@ -176,7 +176,14 @@ import FoundationNetworking
         let header = try JSONDecoder().decode(Header.self, from: data)
         if header.code == 401 { unauthorized(); throw InvoiceLaunchIssue.unauthorized }
         if header.code != 200 {
-            if originalRead { throw InvoiceLaunchIssue.outcomeUnknown }
+            // FIN-11-4: the original-request read's not-found is a miss, not an unknown transport
+            // result and not a rollback. Title and command receipt reads stay unknown.
+            if originalRead {
+                if path == InvoiceLaunchRoute.originalRequest.path, header.errorCode == "INVOICE_NOT_FOUND" {
+                    throw InvoiceLaunchIssue.notFound
+                }
+                throw InvoiceLaunchIssue.outcomeUnknown
+            }
             if let code = header.errorCode, Self.rollbacks.contains(code) { throw InvoiceLaunchIssue.rejected(code) }
             throw InvoiceLaunchIssue.unavailable
         }

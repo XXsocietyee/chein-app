@@ -42,7 +42,10 @@ extension PlayKitScreen {
                 else { Text(verbatim: String(value)).cyText(.dataXL).padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16)) }
             }
         }.frame(maxWidth: .infinity)
-        if values.isEmpty { Text("playkit.dice.waiting") }
+        if values.isEmpty {
+            ContentUnavailableView("playkit.dice.waiting", systemImage: "dice")
+                .accessibilityIdentifier("playkit.dice.waiting")
+        }
         if let action = raw["action"].text, !action.isEmpty { Text(verbatim: action) }
         if let total = projection.diceTotal {
             // Big total, then "5 + 4" under it, as the mini-program shows after a roll.
@@ -85,6 +88,10 @@ extension PlayKitScreen {
                 if let label = card["label"].text { Text(verbatim: label).cyText(.sheetTitle) }
                 if let content = card["content"].text { Text(verbatim: content) }
             }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        }
+        if count == 0, drawn.isEmpty {
+            ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.stack")
+                .accessibilityIdentifier("playkit.random.empty")
         }
         if count > drawn.count {
             Image(systemName: "rectangle.stack").resizable().scaledToFit().frame(width: 80, height: 80).frame(maxWidth: .infinity).accessibilityHidden(true)
