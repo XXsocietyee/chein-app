@@ -196,8 +196,18 @@ extension View {
 }
 struct DiscoverySectionHeader: View {
     let title: LocalizedStringKey
-    init(_ title: LocalizedStringKey) { self.title = title }
+    /// MP `xb-section-ico` art (templatedetail.wxml), drawn before the title. Nil keeps the plain header.
+    var art: Image? = nil
+    init(_ title: LocalizedStringKey, art: Image? = nil) { self.title = title; self.art = art }
     var body: some View {
-        CYSectionHeader(title).textCase(nil).padding(.top, CYSpacing.sm)
+        if let art {
+            HStack(alignment: .center, spacing: CYSpacing.sm) {
+                art.resizable().scaledToFit().frame(width: 22, height: 22).accessibilityHidden(true)
+                CYSectionHeader(title).textCase(nil)
+            }
+            .padding(.top, CYSpacing.sm)
+        } else {
+            CYSectionHeader(title).textCase(nil).padding(.top, CYSpacing.sm)
+        }
     }
 }

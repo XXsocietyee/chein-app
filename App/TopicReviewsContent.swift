@@ -12,9 +12,18 @@ struct TopicReviewsContent: View {
                 if !reviews.hasConfirmedNoReviews {
                     LabeledContent("topic.reviews.average") {
                         if let average = reviews.averageRating {
-                            (Text(average, format: .number.precision(.fractionLength(0...1))) + Text(verbatim: " / 5"))
-                                .monospacedDigit()
-                                .accessibilityIdentifier("topic.reviews.average")
+                            // REV-B B-07 (MP index.wxml:289-293): the average, then round(average) filled MP stars.
+                            HStack(spacing: 4) {
+                                (Text(average, format: .number.precision(.fractionLength(0...1))) + Text(verbatim: " / 5"))
+                                    .monospacedDigit()
+                                    .accessibilityIdentifier("topic.reviews.average")
+                                HStack(spacing: 2) {
+                                    ForEach(0..<max(0, min(5, Int(average.rounded()))), id: \.self) { _ in
+                                        MPAsset.FeatureIcon.iconStarFilled.resizable().scaledToFit().frame(width: 12, height: 12)
+                                    }
+                                }
+                                .accessibilityHidden(true)
+                            }
                         } else {
                             Text("topic.reviews.ratingUnknown")
                                 .accessibilityIdentifier("topic.reviews.averageUnknown")
@@ -25,7 +34,8 @@ struct TopicReviewsContent: View {
                 if showsTotal {
                     LabeledContent("topic.reviews.total") {
                         if let count = reviews.commentCount {
-                            Text(count, format: .number)
+                            // REV-B B-07: MP 「基于N条评论」.
+                            Text("topic.reviews.basedOn \(count)")
                                 .monospacedDigit()
                                 .accessibilityIdentifier("topic.reviews.count")
                         } else {

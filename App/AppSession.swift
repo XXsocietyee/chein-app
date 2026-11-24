@@ -3479,7 +3479,7 @@ final class AppSession: ObservableObject {
         return coordinator
     }
     var activityHostCancelAccess: (any ActivityHostCancelAccess)? {
-        guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+        guard let api = regionalConfiguration?.apiConfiguration, ReviewedAreaSwitch.moneyPayments(apiHost: api.baseURL.host) else { return nil } // owner #6: refunds TEST-only
         return ActivityHostCancelHTTPAccess(
             configuration: api,
             transport: runtimeHTTPTransport,

@@ -71,7 +71,8 @@ struct ActivityListCard: View {
     @ViewBuilder private var priceChip: some View {
         if let amount = item.minimumAmount, amount >= 0 {
             if amount == 0 { CYStatusChip(verbatim: copy.t("免费", "Free"), tone: .success) }
-            else if let p = E1Money.yuan(amount, locale: locale) { CYStatusChip(verbatim: copy.t("\(p) 起", "From \(p)")) }
+            else { let p = MoneyDisplay.yuan(amount)  // owner decision 9: ¥12.50
+                CYStatusChip(verbatim: copy.t("\(p) 起", "From \(p)")) }
         }
     }
 }

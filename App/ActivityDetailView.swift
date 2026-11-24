@@ -285,7 +285,7 @@ struct ActivityDetailView: View {
         let summary = detail.summary
         let price: String? = summary.minimumAmount == Decimal.zero
             ? appLocalized("share.card.free", locale: locale)
-            : E1Money.yuan(summary.minimumAmount, locale: locale)
+            : summary.minimumAmount.flatMap { $0 >= 0 ? MoneyDisplay.yuan($0) : nil }  // owner decision 9: ¥12.50
         let place = ActivityPresentation.nonempty(summary.addressName) ?? ActivityPresentation.nonempty(summary.address)
         // Spots left is the sum over tickets that report an inventory; no ticket reporting one stays unknown (em dash).
         let inventories = detail.tickets.compactMap(\.remainingInventory)
@@ -631,7 +631,8 @@ struct ActivityDetailView: View {
         let amount = detail.summary.minimumAmount
         var parts: [Text] = []
         if let amount, amount == 0 { parts.append(Text(verbatim: CoreLoopCopy(locale: locale).t("免费", "Free"))) }
-        else if let yuan = E1Money.yuan(amount, locale: locale) { parts.append(Text("activity.pinned.price \(yuan)")) }
+        else if let amount, amount > 0 { let yuan = MoneyDisplay.yuan(amount)  // owner decision 9: ¥12.50
+            parts.append(Text("activity.pinned.price \(yuan)")) }
         if let count = ActivityDetailHeaderFacts(detail: detail).registrationCount { parts.append(Text("activity.pinned.going \(count)")) }
         guard var line = parts.first else { return nil }
         for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }

@@ -24,3 +24,15 @@ topic-preview
 # C1 activity detail: ticket 场次 / 报名截止 / 集合点 rows; host footer 取消活动并退款 (host fixtures only)
 e1-activity-detail
 activity-expanded
+# ---- Round 2 (2026-11-24) ----
+# A1 首页: player badge = MP icon-member, avatar default = MP d_profile, 更多玩法 menu rows carry the MP banner posters
+d2-home
+# A6/A7/A8 template detail: MP section art (book / interaction / magnifier / city / flashlight / star), city 3D cover
+# when the topic template has no cover, 用这个模板 + share in one head row, node image → full-screen gallery
+template-detail
+topic-preview
+# B1 topic: publisher row (avatar + name + 发布) and owner review chip; chapter-card MP route_city_cover fallback;
+# review header with MP stars and 基于N条评论; 出发前 「N 个章节」/「N 个节点」; two-decimal prices (¥12.50)
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN
+# C1 activity: two-decimal price chip / pinned summary; a missing isSignUp shows a disabled "—"
+e1-activity-detail

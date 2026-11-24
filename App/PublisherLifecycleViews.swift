@@ -21,6 +21,10 @@ import SwiftUI
     @State private var generation = UUID()
     @State private var visible = false
     @State private var resultSession: PublishingSession?
+    /// R7-PC-B4-4 (MP pricing js:446-460): a confirmed price toasts and returns; a 支付资质 note is a modal first.
+    @State private var successToast: String?
+    @State private var paymentQualificationNote: String?
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var phase
     @Environment(\.pricingChapterProjectDestination) private var pricingChapterProjectDestination
@@ -159,6 +163,11 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
+        .cyToast(verbatimMessage: $successToast, tone: .success)
+        .alert(Text("publisherPricing.confirmedTitle"), isPresented: Binding(
+            get: { paymentQualificationNote != nil }, set: { if !$0 { paymentQualificationNote = nil } })) {
+            Button("publisherPricing.gotIt") { paymentQualificationNote = nil; dismiss() }
+        } message: { Text(verbatim: paymentQualificationNote ?? "") }
         // PC-B-4-7: the page title is drawn once, inline by the bar (no in-content hero header).
         .cyPageTitle(verbatim: text("publisherPricing.confirmFinalPrice"))
         .cyPushedChrome(domain: .merchant)
@@ -274,7 +283,19 @@ import SwiftUI
             let review = value
             let outcome = await coordinator.confirm(review, consequentialApproval: true)
             guard isCurrent(stamp, session, key), !Task.isCancelled else { return }
-            message = PublisherLifecycleCopy.outcome(outcome, zh: isChinese); resultSession = session; self.review = nil
+            self.review = nil
+            if case .acknowledged(let serverMessage, _) = outcome {
+                // MP: the server only moves the topic to PRICING; never claim 已开售.
+                let trimmed = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                let text = trimmed.isEmpty
+                    ? (isChinese ? "终价已确认，请等待开售审核" : "Final price confirmed. Waiting for the sales review.") : trimmed
+                if text.contains("支付资质") { paymentQualificationNote = text; return }
+                successToast = text
+                try? await Task.sleep(nanoseconds: 2_500_000_000)
+                if visible { dismiss() }
+                return
+            }
+            message = PublisherLifecycleCopy.outcome(outcome, zh: isChinese); resultSession = session
         }
     }
 }

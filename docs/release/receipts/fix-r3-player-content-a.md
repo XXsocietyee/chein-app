@@ -115,3 +115,90 @@ The contract ratchet showed these as NEW failures, so the code was taken back ou
 ## Acceptance
 Not run from the cloud (no compiler). Coordinator: please compile and send exact errors. Routes are in
 `docs/port/accept/f-player-content-a.txt`.
+
+---
+
+## Round 2 (2026-11-24)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round2.md` (+ `wave-x10.md`, `owner-decisions-1124.md`).
+- **Sync:** merged `origin/ui/combined-r7` (Core K1–K10, W1 wiring, C7 MP assets). One conflict, `tools/check_typography_lint.py`,
+  taken from combined-r7 (newer). Typography lint passes after the merge.
+- **Cursor wiring list:** there is no `cursor/wire-player-content` branch and `cursor-core-player-content.md` lists no
+  reserved call sites, so no call site was skipped for that reason. The App callers that receipt asks for are done below
+  where they fall in this half.
+- **Strings:** 11 new keys in `docs/port/strings/fix-r3-player-content-a.json` (en + zh-Hans), 25 in total.
+- **Acceptance routes:** appended a Round 2 block to `docs/port/accept/f-player-content-a.txt`.
+
+### Fixed in round 2
+
+| id | what | files |
+|---|---|---|
+| Owner #6 / #3 / #12 | Host cancellation with refunds is money, so it is now TEST/DEBUG-only: `AppSession.activityHostCancelAccess` returns nil unless `ReviewedAreaSwitch.moneyPayments(apiHost:)` is open. That switch is off in Release and on the production host. The C1-4 footer and host-cancel section disappear with it. | AppSession |
+| Owner #9 | Two-decimal money through the shared `MoneyDisplay` on this half's pages: activity price chip, pinned summary, share card and ticket rows; topic bar price and paywall price; home feed card and VoiceOver prices (`HomeFeedMoney`). Pricing already used `TopicPricingXcx` two decimals. | ActivityDetailView, ActivityPresentationComponents, TopicXcxSections, TopicDetailView, HomeFeedView |
+| R7-PC-C1-3 (App) | A missing or unknown `isSignUp` (`.unavailable`) is a disabled "—" pill. It is never the wallet button, and the tile action skips it. | ActivityDetailView |
+| R7-PC-B1-9 | Publisher row under the hero (MP `cy-avatar` + name + 发布) and the owner-only review chip (审核中 / 未通过 / 已下架 from `TopicDetail.ownerReviewLabel`). | TopicXcxSections |
+| R7-PC-B1-15 | `pages/topic/index/index?via=session` → `SessionTopicDetailView(prefersSessionPicker:)` → bar `TopicXcxFacts.action(_, preferSession:)`. | MPReviewedPageScreen, PlatformConsumerSessionOwner, TopicDetailView, TopicXcxSections |
+| R7-PC-B1-19 | A free-explore owner in lifecycle 2 (`ownerSaleRoute == .editor`) gets 去设置票价, which pushes the topic editor (`pages/publish/fabu/index?id=` + `scope=MERCHANT`). Other owners keep the pricing route. | TopicXcxSections, TopicDetailView, PlatformConsumerSessionOwner |
+| R7-PC-B6-1 / B6-2 (App) | `pages/topic/catalog/index`: a canonical `id` opens the topic; anything else hands off to the 首页 tab. | MPReviewedPageScreen |
+| R7-PC-B1-17 | 路线配置中 now has 浏览其他主题. It switches to the 发布/模板 tab, which is the MP `goTopicList` → `pages/template/index`. | TopicXcxSections |
+| R7-PC-B4-4 (rest) | On a confirmed price, a success toast shows the server message (default 终价已确认，请等待开售审核, never 已开售), then the page returns after 2.5 s. A 支付资质 message gets the 终价已确认 / 知道了 modal first. The reason confirm is disabled was already shown (`publisher.phaseBlocked`). | PublisherLifecycleViews |
+| R7-PC-A8-5 | When the write is gated, the disabled 用这个模板 and share sit in one head row. With the live adoption flow, its section stays below because it carries plan and progress state. | DiscoveryTemplateDetailView |
+| R7-PC-A8-2 (part) | Node images open the full-screen `NativeMediaGallery` over all node images (MP `previewNode`). The top mosaic is not done. | DiscoveryTemplateDetailView |
+| REV-B B-03 | Already mounted on combined-r7 (`TopicDetailView` `TopicCastRow` from `TopicDetail.castConfig`). Display only, with no live cast backend call (owner #7). | — |
+| REV-B B-04 | Chapter-card images drop `media-asset:N` references, and plain lists strip `[ ] " '`, so the route cover is the fallback, as in the MP. It is a logic-only Core change (no type change). **Cursor:** add the `media-asset:1,https://x/a.jpg` test. | Core/TopicChapterCards |
+| REV-B B-05 | A chapter card with no chapter or route image shows the MP `route_city_cover.png` (`MPAsset.BannerCover.routeCityCover`). | TopicChapterCardsSection |
+| REV-B B-06 | 出发前 「含 …」 says 「N 个章节」 (story + endings, no breakdown) and 「N 个节点」 (new `topic.depart.stops`). | TopicXcxSections |
+| REV-B B-07 | Review header: average, then round(average) MP `star-filled` icons, then 「基于N条评论」. | TopicReviewsContent |
+| REV-B B-09 | Receipt correction: 出发前 never lists seat products in the MP (`buildDepartNotes` gets no products); they belong to the buy sheet (commerce), not P3. | this receipt |
+| Missing state | A signed-out topic detail now offers 登录 (→ 我的), like the activity detail. | PlatformConsumerSessionOwner |
+
+### MP assets applied (mapping.md rows)
+
+- [x] `MPAsset.FeatureIcon.iconMember`: 首页 player badge (`pages/index/index.wxml:46`)
+- [x] `MPAsset.AvatarDefault.dProfile`: 首页 hero avatar default (`index.wxml:38`)
+- [x] `MPAsset.BannerCover.homeBannerFriends` / `homeBannerClub` / `homeBannerMerchant`: 更多玩法 menu rows (`home-action-banner.js:21-35`)
+- [x] `MPAsset.BannerCover.routeCityCover`: chapter-card fallback (REV-B B-05)
+- [x] `MPAsset.FeatureIcon.iconStarFilled`: topic review stars (MP `star-filled`, REV-B B-07)
+- [x] `MPAsset.FeatureIcon.book`, `interaction`, `magnifier`, `city`, `flashlight`, `star`, `explore`: template detail and topic-template section headers (`templatedetail.wxml:72-210`, `topic-detail/index.wxml:59,83`)
+- [x] `MPAsset.FeatureIcon.pagesTemplatedetailArtCatCity`: topic-template head cover when there is no cover (`topic-detail/index.wxml:31`)
+- [ ] `TabIcon.tplTabTopic` / `tplTabGame`: the shelf switch is a native segmented `Picker`, which can show text or an image but not both. Kept as text.
+- [ ] Shelf / game cover art (`shelf/art.js`, `game-covers.js`, ~90 rows) and template category art (`templatedetail.js:103`): these need the MP name → art tables ported first (same blocker as R7-PC-A2-3/A2-6). Next pass.
+- [ ] `FeatureIcon.iconViewers`, `iconStar`, `BannerCover.recoHero`, `homeRouteCityPlaceholder` (home cards): covers draw through the shared design-system `CYImageCard` / `CYCarouselSlide`, which have no fallback-image input. A design-system change was left to the owner of those components.
+- [ ] `MapMarker.dSmapicon` / `iconMap6` (search map), `FeatureIcon.iconCat` (search): `SearchMapExplorerView` and `GlobalSearchView` are whole-file hash-pinned (see round 1).
+- [ ] merchantinfo icons (`iconQa*`, `Other.clock/location/people/xjt`, `dWeihao`): `MerchantContentViews.swift` is hash-pinned (`test_merchant_station_submission_import`).
+- [ ] `FeatureIcon.iconBm` / `iconBmOn` (收藏): the favourite control is still blocked (R7-PC-B1-1, the like factory pin).
+- [ ] `iconStar1/2` (review composer), `iconPhoto2`, `iconTodoCheck`, `iconCreatorSpark`, `pagesTopicImagesIconCopy`: on the parked MPGap composer / project-join (Gemini).
+
+### Owner decisions (11-24) in this half
+
+- #2 platform-pass reads, #4 upload retry, #5 merchant approvals: nothing in this half.
+- #3 / #6 / #12 money TEST-only: host cancel+refund now TEST/DEBUG-only (above). Pricing confirm stays behind its existing grant.
+- #7 cast on fixtures: the topic `TopicCastRow` only displays `castConfig`; no voice or profile call is mounted from this half.
+- #8 GPS arrival lock and #10 game-kit pilot gate: play runtime (play-roam / Cursor), not in this half's pages.
+- #9 two decimals: done on this half's pages (above). `E1Money.yuan` and `QuestifyCardText.amount` (shared, used by other areas) still format 0–2 decimals. **Cursor / coordinator:** switch those two helpers to `MoneyDisplay` once, globally.
+
+### Still left after round 2
+
+| id | reason |
+|---|---|
+| R7-PC-C1-8 活动不存在 | Core folds `data:null` into `APIError.malformedResponse`, so the App cannot tell "not found" apart. **Cursor:** throw a distinct not-found error from `ActivityService.detail` when `data` is null. |
+| R7-PC-C1-2 guest read | Core allows a nil token, but `AppSession.activityDetail` still requires an account. The guest-read policy is the open owner item (R7-PC-B1-4), so the signed-out activity and topic pages keep a sign-in state, now with a 登录 action. |
+| R7-PC-B1-21 locked chapter rows | `TopicChapter` has no `locked` flag (MP `topic-motion.js:160` reads `c.locked`). **Cursor:** decode it. |
+| R7-PC-B1-13, B2-3, B3-3, A3-4, A4-1, A5-6, A8-2 mosaic, A2-3/A2-6 | M-sized or blocked as in round 1 (hash pins for search; art tables for the shelf). |
+| R7-PC-B3-4, A8-3, C1-9 | Still need Core: `MerchantApplyXcx.allMissing`, `PublicTopicTemplateDetail.isOfficial`, `organizerShopLogo` (none on combined-r7). |
+| R7-PC-B4-5 | The pricing page still has no topic read to know productType 2. |
+| Round-1 pin-blocked list | Unchanged on combined-r7 (no re-pin landed); still waiting on Cursor. |
+
+### Written, then reverted because a pin forbids it (round 2)
+| change | pin |
+|---|---|
+| Activity ticket-row price through `MoneyDisplay` | `test_activity_design_structure.test_nullable_ticket_values_do_not_gain_invented_availability_or_currency` requires `E1Money.yuan(ticket.price, locale: locale)`. Re-pin, then switch (or switch `E1Money` globally). |
+| A separate VoiceOver label for the "—" CTA | `test_activity_design_structure` allows only catalog keys in `ActivityDetailView`; the pill speaks `activity.cta.unavailable`. |
+| Comment lines on the host-cancel gate | The `AppSession.swift` ceiling is 8171 lines (`test_home_city_location_consent`, `test_ugc_1_2_completeness`); the gate is one line. |
+
+### Local gates (round 2, cloud, no compiler)
+- `tools/contract_ratchet.py --check`: **200 failing, the same 200 as the merge commit 24fa46cb7** (combined-r7 + this branch before round-2 edits). The 16 above baseline 184 all come from the combined-r7 merge; **0 are new from this branch**.
+- `tools/check_typography_lint.py`: PASS.
+- `tools/check_a11y_lint.py`: nothing new from this branch's lines. `HomeSearchTabParityViews.swift` `readAvailability` image is a baseline row that combined-r7 restyled (`.font` → `.cyText`).
+- `tools/check_search_map.py`: fails `local filters and first-page scope` **on the merge base too** (combined-r7, Cursor A5-7 page size).
+- Acceptance and compile: not run from the cloud. Coordinator, please compile and send back the exact errors.

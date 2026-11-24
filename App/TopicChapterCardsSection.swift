@@ -47,7 +47,18 @@ struct TopicChapterCardView: View {
         Button(action: toggle) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 // The image's own retry button must not swallow the card tap; a later appearance retries it.
-                CYCachedAsyncImage(card.imageSource, role: .cover)
+                Group {
+                    if card.imageSource == nil {
+                        // REV-B B-05 (MP chapter-cards.js FALLBACK_COVER): no chapter or route image → `route_city_cover.png`.
+                        Color.clear
+                            .aspectRatio(CYCachedAsyncImageRole.cover.aspectRatio, contentMode: .fit)
+                            .overlay { MPAsset.BannerCover.routeCityCover.resizable().scaledToFill() }
+                            .clipped()
+                            .accessibilityIdentifier("topic.chapterCard.fallbackCover")
+                    } else {
+                        CYCachedAsyncImage(card.imageSource, role: .cover)
+                    }
+                }
                     .frame(width: Self.width)
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .allowsHitTesting(false)
