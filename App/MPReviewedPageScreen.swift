@@ -355,6 +355,14 @@ import SwiftUI
             if let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .marketing, market: session.operationalMarket,
                                        legalReader: session.legalReader, showsCloseButton: false)
+            } else if session.account == nil {
+                // B-MK-07-r7: MP marketing/index.wxml:3 login gate — a signed-out link says so and offers 登录.
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "compliance.marketing.signedOut",
+                             messageIdentifier: "compliance.marketing.signedOut",
+                             actionTitle: openSignIn == nil ? nil : "compliance.marketing.signIn",
+                             actionIdentifier: "compliance.marketing.signIn", actionStyle: .primary, action: openSignIn)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .cyPageTitle("compliance.marketing")
             } else { unavailable }
         case "pages/gerenziliao/gerenziliao":
             // JSEAT-3: the lobby's 编辑 opens the same own-profile editor as 我的 → 编辑资料.

@@ -139,10 +139,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
 #endif
     var body: some View {
         Form {
-            Section {
-                ComplianceHeader(destination: destination, step: model.state.step)
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
+            // B-MK-02: MP marketing/index.wxml:6 is the title and the merchant list, with no intro block.
+            if destination != .marketing {
+                Section {
+                    ComplianceHeader(destination: destination, step: model.state.step)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                        .listRowBackground(Color.clear)
+                }
             }
             if model.state.busy {
                 CYSkeleton()
@@ -478,7 +481,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 routes: ["/api/compliance/consents"],
                 session: offlineWriteSession.session
             )
-            Text("marketingOriginal.scope", tableName: "MarketingConsentOriginalPresentation")
+            // B-MK-02: no engineering scope line on the user page.
             ForEach(model.state.marketingOriginalResults) { receipt in
                 MarketingConsentOriginalReceiptView(receipt: receipt)
             }
@@ -489,20 +492,17 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if page.unresolvedText != nil && !model.state.marketingUnresolved.isEmpty {
                 Text("compliance.marketing.unknown", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.unknown")
             }
-            if !model.state.marketing.isEmpty {
-                Text("marketingOriginal.current.title", tableName: "MarketingConsentOriginalPresentation")
-                    .font(.headline).accessibilityAddTraits(.isHeader)
-            }
             ForEach(model.state.marketing) { row in
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: CYSpacing.md) {
                         Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
-                            .font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(.white)
+                            .cyText(.bodyMedium, weight: .bold).foregroundStyle(.white)
                             .frame(width: 36, height: 36)
                             .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityHidden(true)
+                        // B-MK-06b: MP mc-name is body-medium, not a headline.
                         Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
-                            .font(.headline).accessibilityAddTraits(.isHeader)
+                            .cyText(.bodyMedium).accessibilityAddTraits(.isHeader)
                     }
                     .padding(.bottom, CYSpacing.sm)
                     ForEach(ComplianceMarketingChannel.allCases, id: \.rawValue) { channel in
@@ -511,11 +511,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                             guard scenePhase == .active, model.marketingRead() != nil else { return }
                             marketingChange = model.coordinator.reviewMarketing(row, channel: channel, optedIn: value)
                         })) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(LocalizedStringKey("compliance.channel." + channel.rawValue)).cyText(.bodyMedium)
-                                Text(LocalizedStringKey("compliance.channel." + channel.rawValue + ".detail")).font(.footnote).foregroundStyle(CYColor.textSecondary)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
+                            // B-MK-02: MP rows are the channel name and the switch only.
+                            Text(LocalizedStringKey("compliance.channel." + channel.rawValue)).cyText(.body)
                         }
                         .tint(SettingsTint.green)
                         .disabled(!designModeAllowsToggles && model.coordinator.reviewMarketing(row, channel: channel, optedIn: !row.value(channel)) == nil)
@@ -548,6 +545,12 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                             routes: ["/api/compliance/consents"]
                         ) {
                             await model.coordinator.setMarketing(change, explicitlyConfirmed: true)
+                        }
+                        // B-MK-05: MP toast 已同意 / 已退订 once the server confirmed the new value.
+                        if model.state.error == nil,
+                           model.state.marketing.first(where: { $0.id == change.row.id })?.value(change.channel) == change.optedIn {
+                            toastTone = .info
+                            toastMessage = change.optedIn ? "compliance.marketing.toast.agreed" : "compliance.marketing.toast.unsubscribed"
                         }
                     }
                 }

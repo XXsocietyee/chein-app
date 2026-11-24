@@ -33,6 +33,74 @@
       }
     }
   },
+  "compliance.marketing.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录"
+        }
+      }
+    }
+  },
+  "compliance.marketing.signedOut": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to manage marketing messages"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看营销消息设置"
+        }
+      }
+    }
+  },
+  "compliance.marketing.toast.agreed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Subscribed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已同意"
+        }
+      }
+    }
+  },
+  "compliance.marketing.toast.unsubscribed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Unsubscribed"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已退订"
+        }
+      }
+    }
+  },
   "member.card.pointsHelp": {
     "extractionState": "manual",
     "localizations": {
