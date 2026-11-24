@@ -918,7 +918,7 @@ struct RoamFinishedStorySection: View {
     @Environment(\.locale) private var locale
     var body: some View {
         Section {
-            Text(verbatim: presentation.text).font(.body.italic())
+            Text(verbatim: presentation.text).cyText(.body).italic()
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("roam.live.finishedStory.text")
         } header: { Text("roam.live.story.title") }
