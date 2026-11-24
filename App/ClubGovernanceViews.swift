@@ -177,6 +177,11 @@ struct ClubGovernanceReadView: View {
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     var expectedCreatedSeries: ClubCreatedSeriesReceipt? = nil
+    /// CLB-topic-story-01: `pages/club/topic-story/index` opens the story directly. The topic overview stays the
+    /// host that owns the read; once it has loaded, the story is pushed one time.
+    var opensStoryOnLoad = false
+    @State private var storyAutoOpen = false
+    @State private var storyAutoOpened = false
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var customerPager = ClubOpsCustomerPager()
     @StateObject private var attendanceReturn = ClubAttendanceCorrectionReturn()
@@ -240,6 +245,20 @@ struct ClubGovernanceReadView: View {
     }
 
     var body: some View {
+        bodyMain
+            .navigationDestination(isPresented: $storyAutoOpen) { storyDestination }
+            .onChange(of: snapshot != nil && snapshotContext == readContext && !loading, initial: true) { _, ready in
+                guard ready, opensStoryOnLoad, operation == .topicOverview, !storyAutoOpened, scenePhase == .active else { return }
+                storyAutoOpened = true
+                storyAutoOpen = true
+            }
+    }
+    private var storyDestination: some View {
+        ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration,
+                                loading: $loading, failure: $failure, context: readContext, identity: identity, access: access,
+                                coordinator: coordinator, reload: { await load() })
+    }
+    private var bodyMain: some View {
         bodyReturnOwners
         .task(id: readContext) { await synchronizeReadContext() }
         .background {
@@ -1507,7 +1526,8 @@ struct ClubGovernanceReadView: View {
                     if let id = row["id"].int {
                         let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
                         let issued = groupCodePage.hidden ? nil : groupCodePage.sessions?.first(where: { $0.id == id })
-                        NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator, groupCodePage: groupCodePage) } label: {
+                        NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator, groupCodePage: groupCodePage,
+                                                                 activityLabel: row["name"].string.map { ClubGroupCodePort.sessionLabel(id: id, name: $0, startDate: row["startDate"].string, startTime: row["startTime"].string) }) } label: {
                             if let name = row["name"].string { Text(verbatim: ClubGroupCodePort.sessionLabel(id: id, name: name, startDate: row["startDate"].string, startTime: row["startTime"].string) + (issued.map { " · " + $0.headcount.displayText } ?? "")) } else { Text("club.gov.eventID \(id)") }
                         }
                         // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
@@ -1820,6 +1840,8 @@ struct ClubGovernanceEventView: View {
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     var groupCodePage: ClubGroupCodePage? = nil
+    /// CLB-roles-02: 「活动名 · 开始时间」 for the session role page; nil shows 未命名.
+    var activityLabel: String? = nil
     var body: some View {
         List {
             NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
@@ -1832,7 +1854,10 @@ struct ClubGovernanceEventView: View {
             ForEach([ClubGovernanceRead.roster, .occurrenceStatus, .roles, .audienceCounts, .topicStats], id: \.rawValue) { operation in
                 // Original role approval and journal own exactly club + optional activity.
                 let target = operation == .roles ? ClubGovernanceScope(clubID: scope.clubID, activityID: scope.activityID) : scope
-                NavigationLink { ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator) } label: {
+                NavigationLink {
+                    ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator)
+                        .environment(\.clubRoleActivityLabel, activityLabel)
+                } label: {
                     CYListRow(LocalizedStringKey("club.gov." + operation.rawValue), trailing: .chevron) { CYRowIcon(systemImage: "calendar") }
                 }
             }

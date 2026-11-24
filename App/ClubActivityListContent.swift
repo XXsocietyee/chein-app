@@ -54,6 +54,10 @@ private struct ClubActivityCard: View {
         VStack(alignment: .leading, spacing: 10) {
             if let cover = row.cover {
                 SquareImage(source: cover).frame(maxWidth: .infinity).frame(height: 140).clipped().accessibilityHidden(true)
+            } else {
+                // Round 2 MP asset: the MP event card falls back to `route_free_cover.png` (club/detail wxml:169).
+                MPAsset.BannerCover.routeFreeCover.resizable().scaledToFill()
+                    .frame(maxWidth: .infinity).frame(height: 140).clipped().accessibilityHidden(true)
             }
             HStack(alignment: .top) {
                 if let name = row.name { Text(verbatim: name).cyText(.cardTitle) }

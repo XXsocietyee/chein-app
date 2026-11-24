@@ -1021,6 +1021,7 @@ final class AppSession: ObservableObject {
             }
         } else if comment != nil { throw ClubCommunityFailure.invalid }
         guard try currentCommunitySession() == captured else { throw ClubCommunityFailure.stale }
+        // cursor/core-club hand-off (CLB-detail-16): the detail's 成员发帖 setting gates plain members' posts. Nil = allowed.
         return .init(identity: captured.identity, clubID: clubID, joined: membership.isJoined, owner: membership.isOwner,
             administrator: membership.viewerIsAdmin, post: freshPost, comment: freshComment,
             memberPostAllowed: membership.memberPostAllowed)

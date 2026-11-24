@@ -218,7 +218,8 @@ import SwiftUI
         .accessibilityIdentifier("club.publicRoster.member.\(id)")
     }
     private func memberPortrait(_ avatar: String?, name: String) -> some View {
-        CYAvatarView(url: ClubCloud14HTTPS.url(avatar), name: name, size: .md)
+        // Round 2 MP asset: club detail members `item.avatar || '/images/d_profile.png'` (detail wxml:295).
+        ClubMPAvatar(url: ClubCloud14HTTPS.url(avatar), name: name, size: .md)
             .accessibilityHidden(true)
     }
     private var profileMatches: Bool {

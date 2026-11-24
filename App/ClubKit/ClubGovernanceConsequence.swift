@@ -37,15 +37,48 @@ enum ClubGovernanceConsequence: Equatable {
         }
     }
 
-    func sheet(locale: Locale, onConfirm: @escaping () -> Void) -> ClubConsequenceSheet {
+    /// `name`: the member (ban) or the role (revoke) the MP names in its title; nil keeps the generic title.
+    func sheet(locale: Locale, name: String? = nil, onConfirm: @escaping () -> Void) -> ClubConsequenceSheet {
+        let named = name?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmptyForConsequence
         let text: (String) -> String = { OpsR3Text.string("r3club.consequence.\(key).\($0)", locale: locale) }
-        return ClubConsequenceSheet(
-            title: text("title"),
-            consequences: [
-                CYConfirmConsequence(systemImage: symbols.0, text: text("line1")),
-                CYConfirmConsequence(systemImage: symbols.1, text: text("line2")),
-            ],
-            confirmTitle: text("confirm"),
-            onConfirm: onConfirm)
+        switch self {
+        case .ban:
+            // CLB-governance-04 (MP governance js:445-451): the ban ends membership and the group chat at once;
+            // unbanning only restores the right to apply.
+            let mp: (String) -> String = { appLocalized(String.LocalizationValue(stringLiteral: "club.gov.consequence.ban." + $0), locale: locale) }
+            return ClubConsequenceSheet(
+                title: named.map { appLocalized("club.gov.consequence.ban.titleNamed \($0)", locale: locale) } ?? mp("title"),
+                consequences: [
+                    CYConfirmConsequence(systemImage: "person.crop.circle.badge.xmark", text: mp("line1")),
+                    CYConfirmConsequence(systemImage: "arrow.uturn.backward.circle", text: mp("line2")),
+                ],
+                confirmTitle: mp("confirm"),
+                onConfirm: onConfirm)
+        case .revokeRole:
+            // CLB-roles-07 (MP utils/danger-actions.js `club.role.revoke`): one confirm with its three consequences.
+            let mp: (String) -> String = { appLocalized(String.LocalizationValue(stringLiteral: "club.gov.consequence.revokeRole." + $0), locale: locale) }
+            return ClubConsequenceSheet(
+                title: named.map { appLocalized("club.gov.consequence.revokeRole.titleNamed \($0)", locale: locale) } ?? mp("title"),
+                consequences: [
+                    CYConfirmConsequence(systemImage: "lock", text: mp("line1")),
+                    CYConfirmConsequence(systemImage: "person.2", text: mp("line2")),
+                    CYConfirmConsequence(systemImage: "exclamationmark.triangle", text: mp("line3")),
+                ],
+                confirmTitle: mp("confirm"),
+                onConfirm: onConfirm)
+        default:
+            return ClubConsequenceSheet(
+                title: text("title"),
+                consequences: [
+                    CYConfirmConsequence(systemImage: symbols.0, text: text("line1")),
+                    CYConfirmConsequence(systemImage: symbols.1, text: text("line2")),
+                ],
+                confirmTitle: text("confirm"),
+                onConfirm: onConfirm)
+        }
     }
+}
+
+private extension String {
+    var nilIfEmptyForConsequence: String? { isEmpty ? nil : self }
 }

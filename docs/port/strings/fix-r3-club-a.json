@@ -1,110 +1,872 @@
 {
-  "club.detail.leaderboard.lockedReview": {
-    "zh-Hans": "通过审核后可看贡献榜",
-    "en": "Get approved to see the contribution board"
-  },
-  "club.detail.safety.title": {
-    "zh-Hans": "治理与安全",
-    "en": "Governance & Safety"
-  },
-  "club.detail.safety.appeal": {
-    "zh-Hans": "封禁申诉",
-    "en": "Ban Appeal"
-  },
-  "club.detail.manage.settlement": {
-    "zh-Hans": "结算",
-    "en": "Settlement"
-  },
-  "club.topic.merchantLogo": {
-    "zh-Hans": "承接商家",
-    "en": "Host merchant"
-  },
-  "club.topic.verifyAtStore": {
-    "zh-Hans": "玩家可到店核销",
-    "en": "Players can check in at the store"
-  },
-  "club.story.answerTitle": {
-    "zh-Hans": "答案",
-    "en": "Answer"
-  },
-  "club.story.noRoute": {
-    "zh-Hans": "暂无路线",
-    "en": "No route yet"
-  },
-  "club.story.noStops": {
-    "zh-Hans": "这一章还没有节点",
-    "en": "No stops in this chapter yet"
-  },
-  "club.story.addressUnavailable": {
-    "zh-Hans": "未填写地址",
-    "en": "No address"
-  },
-  "club.story.answer.notice": {
-    "zh-Hans": "答案只给主办方和这一站的接待方看，用于现场判定玩家能否通过。玩家端看不到这一段。",
-    "en": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
-  },
-  "club.gov.action.ban": {
-    "zh-Hans": "封禁",
-    "en": "Ban"
-  },
-  "club.gov.action.unban": {
-    "zh-Hans": "解封",
-    "en": "Unban"
-  },
-  "club.gov.action.report": {
-    "zh-Hans": "填写事实并提交平台",
-    "en": "State the facts and report to the platform"
-  },
-  "club.gov.action.appeal": {
-    "zh-Hans": "填写理由并提交申诉",
-    "en": "State your reason and appeal"
-  },
-  "club.gov.a11y.unban %@": {
-    "zh-Hans": "解封 %@",
-    "en": "Unban %@"
-  },
-  "club.gov.a11y.ban %@": {
-    "zh-Hans": "封禁 %@",
-    "en": "Ban %@"
-  },
-  "club.gov.a11y.transfer %@": {
-    "zh-Hans": "把主理人转让给 %@",
-    "en": "Transfer ownership to %@"
-  },
-  "club.gov.a11y.revoke %@": {
-    "zh-Hans": "撤销 %@ 的角色",
-    "en": "Remove %@'s role"
-  },
-  "club.host.merchant.viewApply": {
-    "zh-Hans": "查看商家入驻",
-    "en": "View merchant application"
-  },
-  "club.host.signIn.title": {
-    "zh-Hans": "登录后申请成为主理人",
-    "en": "Sign in to apply as a host"
-  },
-  "club.host.signIn.action": {
-    "zh-Hans": "登录",
-    "en": "Sign In"
-  },
-  "club.ops.recheck": {
-    "zh-Hans": "重新检查",
-    "en": "Check Again"
-  },
-  "club.ops.discardTitle": {
-    "zh-Hans": "放弃本轮修改？",
-    "en": "Discard these changes?"
-  },
-  "club.ops.discard": {
-    "zh-Hans": "确认放弃",
-    "en": "Discard"
-  },
-  "club.ops.quotaUnit": {
-    "zh-Hans": "个",
-    "en": "spots"
-  },
-  "club.detail.identityUnavailable": {
-    "zh-Hans": "成员身份暂时无法确认，管理员工具暂不可用。",
-    "en": "Your membership can't be confirmed right now, so admin tools are unavailable."
+  "sourceLanguage": "en",
+  "strings": {
+    "club.detail.leaderboard.lockedReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get approved to see the contribution board"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过审核后可看贡献榜"
+          }
+        }
+      }
+    },
+    "club.detail.safety.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Governance & Safety"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "治理与安全"
+          }
+        }
+      }
+    },
+    "club.detail.safety.appeal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban Appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁申诉"
+          }
+        }
+      }
+    },
+    "club.detail.manage.settlement": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算"
+          }
+        }
+      }
+    },
+    "club.topic.merchantLogo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host merchant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承接商家"
+          }
+        }
+      }
+    },
+    "club.topic.verifyAtStore": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players can check in at the store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家可到店核销"
+          }
+        }
+      }
+    },
+    "club.story.answerTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案"
+          }
+        }
+      }
+    },
+    "club.story.noRoute": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No route yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无路线"
+          }
+        }
+      }
+    },
+    "club.story.noStops": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No stops in this chapter yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一章还没有节点"
+          }
+        }
+      }
+    },
+    "club.story.addressUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No address"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未填写地址"
+          }
+        }
+      }
+    },
+    "club.story.answer.notice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案只给主办方和这一站的接待方看，用于现场判定玩家能否通过。玩家端看不到这一段。"
+          }
+        }
+      }
+    },
+    "club.gov.action.ban": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁"
+          }
+        }
+      }
+    },
+    "club.gov.action.unban": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unban"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解封"
+          }
+        }
+      }
+    },
+    "club.gov.action.report": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "State the facts and report to the platform"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写事实并提交平台"
+          }
+        }
+      }
+    },
+    "club.gov.action.appeal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "State your reason and appeal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写理由并提交申诉"
+          }
+        }
+      }
+    },
+    "club.gov.a11y.unban %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unban %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解封 %@"
+          }
+        }
+      }
+    },
+    "club.gov.a11y.ban %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁 %@"
+          }
+        }
+      }
+    },
+    "club.gov.a11y.transfer %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transfer ownership to %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把主理人转让给 %@"
+          }
+        }
+      }
+    },
+    "club.gov.a11y.revoke %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove %@'s role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销 %@ 的角色"
+          }
+        }
+      }
+    },
+    "club.host.merchant.viewApply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View merchant application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看商家入驻"
+          }
+        }
+      }
+    },
+    "club.host.signIn.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to apply as a host"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录后申请成为主理人"
+          }
+        }
+      }
+    },
+    "club.host.signIn.action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录"
+          }
+        }
+      }
+    },
+    "club.ops.recheck": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检查"
+          }
+        }
+      }
+    },
+    "club.ops.discardTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard these changes?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃本轮修改？"
+          }
+        }
+      }
+    },
+    "club.ops.discard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认放弃"
+          }
+        }
+      }
+    },
+    "club.ops.quotaUnit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "spots"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个"
+          }
+        }
+      }
+    },
+    "club.detail.identityUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your membership can't be confirmed right now, so admin tools are unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员身份暂时无法确认，管理员工具暂不可用。"
+          }
+        }
+      }
+    },
+    "club.welcome.memberPrice %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member price %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "成员价 %@"
+          }
+        }
+      }
+    },
+    "club.schedule.error.weeklyHorizonMax %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to %lld weekly dates fit within 90 days of the first date"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首次日期起 90 天内最多可排 %lld 期"
+          }
+        }
+      }
+    },
+    "club.ops.clubLimit.manage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage My Club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理我的俱乐部"
+          }
+        }
+      }
+    },
+    "club.host.requiredHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必填"
+          }
+        }
+      }
+    },
+    "club.host.optionalHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选填"
+          }
+        }
+      }
+    },
+    "club.host.placeholder.leaderName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What should we call you"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的称呼"
+          }
+        }
+      }
+    },
+    "club.host.placeholder.phone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phone number or WeChat ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机号或微信号"
+          }
+        }
+      }
+    },
+    "club.host.placeholder.identity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. campus society lead / outdoor guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如 高校社团负责人 / 户外领队"
+          }
+        }
+      }
+    },
+    "club.host.placeholder.coFounders": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate names with commas"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多人用逗号分隔"
+          }
+        }
+      }
+    },
+    "club.host.placeholder.maxEventSize": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. 50"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如 50"
+          }
+        }
+      }
+    },
+    "club.host.placeholder.avgEventSize": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "e.g. 20"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如 20"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban this member?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认封禁这位成员"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.line1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A ban ends their membership and group chat access right away."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁后对方立即失去成员身份与群聊入口。"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.line2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbanning only lets them apply again; membership is not restored."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解封只恢复申请资格，成员身份不会自动恢复。"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认封禁"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this role?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销这个角色？"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.line1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They lose every management action in this scope at once; work in progress is interrupted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方立刻失去该范围内的全部管理动作，进行中的操作会被打断"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.line2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They stay a club member, just without this role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方仍然是俱乐部成员，只是不再有这个角色"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.line3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can't be undone; to restore it, assign the role again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销；要恢复只能重新分配一次角色"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销角色"
+          }
+        }
+      }
+    },
+    "club.gov.roles.noMembers": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No members yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无成员"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.titleNamed %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban %@?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认封禁 %@"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.titleNamed %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销「%@」？"
+          }
+        }
+      }
+    },
+    "club.rolePicker.untitledSession": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Untitled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未命名"
+          }
+        }
+      }
+    }
   }
 }

@@ -71,6 +71,7 @@ import SwiftUI
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.clubDissolveAcknowledged) private var dissolveAcknowledged
     @Environment(\.locale) private var locale
     @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
     @QuestifyReduceMotion private var reduceMotion
@@ -133,7 +134,7 @@ import SwiftUI
                 }
                 if applyStep == 1 {
                     Section {
-                        ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { fieldRow($0) }
+                        ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { applyFieldRow($0) }
                         if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.nameGap")
@@ -147,7 +148,7 @@ import SwiftUI
                 }
                 if applyStep == 2 {
                     Section {
-                        ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { fieldRow($0) }
+                        ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { applyFieldRow($0) }
                         if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.experienceGap")
@@ -410,7 +411,8 @@ import SwiftUI
         }
         .sheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
-                kind.sheet(locale: locale) {
+                kind.sheet(locale: locale, name: route.operation == .revokeRole ? route.seed["roleName"]?.string
+                                                 : (route.operation == .ban ? route.seed["targetNickname"]?.string : nil)) {
                     guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
                     consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
                 }
@@ -586,6 +588,43 @@ import SwiftUI
     private func setApplyStep(_ next: Int) {
         if reduceMotion { applyStep = next } else { withAnimation(.easeInOut(duration: 0.2)) { applyStep = next } }
     }
+    /// CLB-apply-07 (MP apply wxml:63-113): a persistent label above each input (`*` on the two required fields;
+    /// the optional labels already read （选填）) and the MP placeholder inside it. Choice fields keep `fieldRow`.
+    @ViewBuilder private func applyFieldRow(_ key: String) -> some View {
+        if key == "experience", let choices = draft.choices(key) {
+            // CLB-apply-06 (MP apply wxml:94-101): 组织经验 is one radio card per option (create-wizard kit).
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                ForEach(choices, id: \.self) { choice in
+                    ClubR1OptionCard(title: Text(LocalizedStringKey("club.gov.choice." + choice)),
+                                     isSelected: draft.text[key] == choice) { textBinding(key).wrappedValue = choice }
+                        .accessibilityIdentifier("club.gov.input.experience.\(choice)")
+                }
+            }
+            .listRowBackground(Color.clear)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(LocalizedStringKey("club.gov.field." + key)))
+            .accessibilityIdentifier("club.gov.input." + key)
+        } else if draft.choices(key) != nil {
+            fieldRow(key)
+        } else {
+            let required = ClubHostApplyFieldCopy.required.contains(key)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                (Text(LocalizedStringKey("club.gov.field." + key))
+                 + (required ? Text(verbatim: " *").foregroundColor(CYColor.dangerText) : Text(verbatim: "")))
+                    .cyText(.label)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityHidden(true)
+                TextField(text: textBinding(key), prompt: Text(LocalizedStringKey("club.host.placeholder." + key))) {
+                    Text(LocalizedStringKey("club.gov.field." + key))
+                }
+                .keyboardType(["maxEventSize", "avgEventSize"].contains(key) ? .numberPad : .default)
+                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .accessibilityHint(required ? Text("club.host.requiredHint") : Text("club.host.optionalHint"))
+                .accessibilityIdentifier("club.gov.input." + key)
+            }
+            .padding(.vertical, CYSpacing.xs)
+        }
+    }
     @ViewBuilder private func fieldRow(_ key: String) -> some View {
         if let choices = draft.choices(key) {
             Picker(LocalizedStringKey("club.gov.field." + key), selection: textBinding(key)) {
@@ -707,6 +746,7 @@ import SwiftUI
             if route.operation == .cancelOccurrence, submittedRequestID == draft.requestID, !Task.isCancelled {
                 occurrenceCancellationReturn?.acknowledged(review, value)
             }
+            if route.operation == .dissolve { dissolveAcknowledged?() }
             if route.operation == .issueGroupCode {
                 guard let clubID = review.command.scope.clubID, let activityID = review.command.scope.activityID,
                       scenePhase == .active, !Task.isCancelled else { throw ClubGovernanceFailure.staleReview }

@@ -69,6 +69,7 @@
 | CLB-topic-detail-05, -06, -10 | Round actions with native sheets (M), toggle rows that write with rollback (M) and the customer rows: not attempted without a compiler. -06's more-menu rows are parked (G12). |
 | CLB-topic-detail-11 | **Cursor request:** `ClubTopicMerchantList` strips contact fields; the copy-phone button needs a `phone` on `ClubTopicMerchantRow` (only when the merchant confirmed). |
 | CLB-topic-detail-14, -15 | P2, not reached. |
+| CLB-roles-02 | The session role page names the session: 「活动名 · 开始时间」 from the topic page's session rows (`ClubGovernanceEventView.activityLabel`) or the MP `activityLabel` query, and 未命名 otherwise. The id is never shown. | App/ClubRoleAssignmentPicker.swift, App/ClubGovernanceViews.swift, App/MPReviewedPageScreen.swift |
 | CLB-topic-story-01 | `ClubGovernanceStoryView` binds to a parent read view's snapshot; opening it directly needs a small host that owns the overview read. Next round. |
 | CLB-topic-story-03 (loading/error copy) | The sheet hosts `ClubGovernanceReadView(.nodeAnswer)`, which shows the shared loading/failure states. |
 | CLB-topic-story-08, -10 | P2 layout, not reached. |
@@ -106,3 +107,88 @@
   - Still failing, and failing the same way on the base `ui/combined-r7`: `test_club_customer_directory_remote_admission`, `test_club_operations_contracts`, `test_club_customer_keyword_debounce`, `test_profile_read_failure_remote_admission`, `test_category_roam_registration`.
   - `tools/check_typography_lint.py`: PASS. `tools/check_scaffold.py`: fails identically on the base.
 - **No Swift build** (no compiler in the cloud). Acceptance run: pending the coordinator's build.
+
+## Round 2 (2026-11-24)
+
+- **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round2.md`, with `wave-x10.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` (Core K1–K10, W1 wiring, C7 MP assets). One conflict, `tools/check_typography_lint.py`; the newer r7 version was taken. Re-merged before the final push.
+- **Strings:** `docs/port/strings/fix-r3-club-a.json` is now in xcstrings format (`sourceLanguage` + `strings`, en and zh-Hans). The round-1 keys were converted unchanged. Round-2 keys are listed below. `test_localization_key_catalog_contract` fails on this branch only because these keys sit in the fragment and not yet in `Resources/Localizable.xcstrings`; it passes once the integrator merges the fragment.
+- **Shared App helpers (new file, `App/*.swift` glob):** `App/ClubMPAssetViews.swift` holds `ClubMPAvatar`, `ClubShareURL`, `ClubDirectionIcon` / `ClubDirectionLabel`, `ClubMoneyText`, `ClubHostApplyFieldCopy` and the `clubDissolveAcknowledged` environment key.
+
+### MP assets (`docs/mp-assets/mapping.md`, `MPAsset.<name>`)
+
+| mapping row | applied in | how |
+|---|---|---|
+| [x] `MPAsset.BannerCover.clubCoverDefault` | App/ClubDetailView.swift (`ClubDetailCover`) | no club cover → the MP default cover (detail wxml:35) |
+| [x] `MPAsset.BrandLogo.dLogo` | App/ClubDetailView.swift | no club logo → `d_logo.png` (detail wxml:48) |
+| [x] `MPAsset.BannerCover.routeFreeCover` | App/ClubActivityListContent.swift | 活动 card without a cover → `route_free_cover.png` (detail wxml:169) |
+| [x] `MPAsset.BannerCover.routeCityCover` | App/ClubEnrollmentView.swift | team cover fallback (enroll wxml:37) |
+| [x] `MPAsset.AvatarDefault.dProfile` | App/ClubEnrollmentView.swift, App/ClubMembersView.swift, App/ClubPublicRosterView.swift, App/ClubRoleAssignmentPicker.swift, App/ClubOpsGovernanceSections.swift (members + role assignments) | every club `cy-avatar` fallback, through `ClubMPAvatar` (a real HTTPS avatar still uses `CYAvatarView`) |
+| [x] `MPAsset.FeatureIcon.coffee / voice / gameHandle / footprints / dices / drama / sport / platte / noodles / music` | App/ClubKit/ClubCreateKit.swift (`ClubR1Chip` icon), App/ClubOperationsViews.swift (create chips, edit toggles), App/ClubProfileChoiceEditor.swift | the MP `tag-library.js` club 活动倾向 icons, template-rendered |
+| [ ] `MPAsset.BannerCover.dFrametu`, `.mer1` | — | MP `mockData.js` only; nothing real renders them |
+| [ ] `MPAsset.FeatureIcon.citylink / members / pin / iconBell`, `MPAsset.BannerCover.defaultCover` | — | `App/ClubHomeView.swift` club cards: half b's page (club home), not this half |
+| [ ] `MPAsset.TabIcon.iconTabClub(On)` | — | `CYDomainTabBar` (design system / restyle r6), not a club page |
+| kept SF Symbol | `chevron.right`, share, close, search, ellipsis | system-control glyphs, per mapping |
+
+### Core hand-offs wired (from `cursor-core-club.md` "For the Claude F-agent")
+
+No `cursor/wire-club` branch exists, so none of these call sites was being wired elsewhere.
+
+| item | what changed | files |
+|---|---|---|
+| CLB-detail-29 | The welcome sheet shows 成员价 when Core has `memberPricePerk`. Server text wins; otherwise `MoneyDisplay.yuan` (two decimals, owner decision 9). | App/ClubMemberWelcomeSheet.swift |
+| CLB-r7-C-01 | The ban review shows `durationDays` as 「N 天」 (the body no longer has `expiresAtEpochMs`). `durationDays` is kept out of the raw fact rows. | App/ClubOpsGovernanceSections.swift, App/ClubGovernanceCommandForm.swift |
+| CLB-r7-A-07 / C-02 | The member-governance denial reads `club.memberGovernance.denied` (仅主理人与联合主理人可进行成员治理, the Core sentence; key from `cursor-core-club.json`). The gate itself is Core's `allows("club:member:manage")`, which now requires owner/co-owner. | App/ClubOpsGovernanceSections.swift |
+| CLB-topic-detail-09 / event-ops-05 / notify-04 | `ClubOpsPageFailureSection` prefers `literalTitle` through its catalogued key (网络连接失败, 活动无法打开, 链接已失效, 系列列表加载失败, 可开场主题加载失败, 活动运营暂时不可用, 结算数据暂不可用). `prefersBack` shows 返回 (pop) instead of reload. | App/ClubOpsJoinNotifyViews.swift (shared with half b's notify page) |
+| CLB-detail-30 | The club header share and the post share carry `ClubShareLink` as an in-app `chein://mp/pages/club/detail/index?id=…[&postId=…]` link (the deep-link router already accepts it), with the invitation or excerpt as the message. | App/ClubKit/ClubWorkbenchKit.swift, App/ClubDetailView.swift, App/ClubCommunityViews.swift |
+| CLB-detail-16 | `AppSession.communityEvidence` passes the detail's `memberPostAllowed`, so the composer hides for plain members when posting is off. Nil stays allowed. | App/AppSession.swift |
+| CLB-r7-C-06 | After an acknowledged dissolve, the form calls `clubDissolveAcknowledged`, which the edit page sets to `profileDraft.clearAfterConfirmedDissolve()`. | App/ClubGovernanceCommandForm.swift, App/ClubOperationsViews.swift |
+| CLB-event-ops-06 (horizon part) | The weekly-horizon error names the real maximum (首次日期起 90 天内最多可排 N 期) using `ClubEventOpsFormRules.maxWeeklyOccurrences`. | App/ClubSeriesScheduleEditor.swift, App/ClubGovernanceCommandForm.swift |
+
+### Owner decisions (`owner-decisions-1124.md`)
+
+- **9, two-decimal money:** the welcome perk uses `MoneyDisplay.yuan`. Enroll per-session money (`ClubEnrollmentRoster.yuanText`, one decimal in Core) is re-rendered through `MoneyDisplay` at display (`ClubMoneyText.twoDecimals`). **Cursor request:** switch `yuanText` and `ClubMemberWelcome.memberPricePerk` to `MoneyDisplay`, then the App shim can go.
+- **3, 6, 12, money stays TEST-only:** no money write was added. `cancelOccurrence` / `endTopic` / `dissolve` keep `risk == .financial`. Dispatch is still `ClubGovernanceSessionAccess.canDispatch` (production needs a reviewed production service). Nothing here flips a gate.
+- **7, 8, 10 (cast, arrival lock, game kits):** no club page uses them.
+
+### P1 rows closed this round
+
+| id | what changed | files |
+|---|---|---|
+| CLB-create-03 (limit) | The limit state adds 管理我的俱乐部. One club opens that club's 管理 tab; otherwise it opens the MP `owner=1&tab=manage` route. | App/ClubOperationsViews.swift |
+| CLB-apply-07 | Step 1/2 inputs have a persistent label above them (`*` on 实名/昵称 and 联系方式), the MP placeholder, and a required/optional VoiceOver hint. | App/ClubGovernanceCommandForm.swift |
+| CLB-apply-06 (experience part) | 组织经验 is one `ClubR1OptionCard` per option (the create-wizard kit) instead of a Picker. | App/ClubGovernanceCommandForm.swift |
+| CLB-governance-04 | The ban confirm reads 确认封禁 <name> / 封禁后对方立即失去成员身份与群聊入口。 / 解封只恢复申请资格，成员身份不会自动恢复。 / 确认封禁. | App/ClubKit/ClubGovernanceConsequence.swift, App/ClubGovernanceCommandForm.swift |
+| CLB-roles-07 | One revoke confirm: 撤销「角色名」？, the MP's three consequences, and 撤销角色. The duplicate consequence lines in the form notes are gone. | App/ClubKit/ClubGovernanceConsequence.swift, App/ClubOpsGovernanceSections.swift |
+| CLB-roles-10 | The no-delegable-members copy is 暂无成员. | App/ClubOpsGovernanceSections.swift |
+| CLB-topic-story-01 | `pages/club/topic-story/index` opens the story directly. The topic overview hosts the read and pushes the story once after it loads, so back returns to the topic page. | App/MPReviewedPageScreen.swift, App/ClubGovernanceViews.swift |
+
+The governance-04, roles-07 and roles-10 copy now uses Localizable keys from the fragment, so the round-1 OpsR3 / ClubOpsGovernance integrator request for these rows is **withdrawn**.
+
+### Review findings (`review/r7-rev-{a,b,c}`)
+- REV-A: no club rows.
+- REV-B B-22 (`ClubRecord.viewerCanGovern` decode): Core, and it needs an owner call. Not touched.
+- REV-C F-C20 / F-C21 (reference-settlement mount): the view is parked in `App/MPGap/Club` and not mounted. The settlement page belongs to half b. Not touched.
+
+### Left after round 2, with reasons
+
+| id | reason |
+|---|---|
+| CLB-detail-26 (Now card) | `ClubOwnerStageMachine.resolve` needs topic lifecycles, sale-review flags, uncontracted stations, projects and messages. `ClubLeadProgressSnapshot` reads them but does not expose them. **Cursor request:** add `ClubLeadProgressSnapshot.ownerStage: ClubOwnerStageResolution`, built inside the snapshot init. The App then shows its `label` / `hint`. |
+| CLB-event-ops-06 (capacity part) | Needs the chosen topic's `sessionTicketCount` in the create-series form. The event-topics row's count is not carried by `ClubGovernanceFormRoute` or `seriesCreationSource`. **Cursor request:** expose `sessionTicketCount` on the event-topic source so `ClubEventOpsFormRules.showsCapacity` can be applied. |
+| Governance/roles avatars | Rows show `d_profile` because `ClubOpsGovernanceMember` / role-assignment rows carry no avatar. **Cursor request:** decode `avatar` there; `ClubMPAvatar(url:)` already takes it. |
+| CLB-detail-14, -22, -35, CLB-topic-detail-02 (pinned footer), -05, -06, -10, CLB-event-ops-02, CLB-governance-01, -03, CLB-roles-04, CLB-create-06, CLB-edit-01, -05 | Each restructures a List or the shared command-form flow (M). Several have UI/flow tests pinned to the current structure (`ClubOperationsFlowTests`, governance UI tests). Without a compiler, a wrong move here breaks a working flow. They are left for a compiled round, unchanged from round 1. |
+| CLB-enroll-02, CLB-edit-03 | Need the pinned XCUITests changed in the same commit (Tests/ is Cursor's). |
+| CLB-apply-04 (切换到商家端), -10, -11, CLB-create-07, CLB-topic-detail-11, CLB-event-ops-03 | Unchanged from round 1 (no switch API; Core literals; Core phone fields). |
+| CLB-r7-A-08, CLB-enroll-08 | Need an `api/club/my` read in the router (Core). |
+
+### Files touched in round 2 that half b also uses
+`App/ClubOpsJoinNotifyViews.swift` (`ClubOpsPageFailureSection`), `App/ClubKit/ClubWorkbenchKit.swift` (`ClubHeaderShareButton`), `App/ClubKit/ClubCreateKit.swift` (`ClubR1Chip` gained an optional `icon`, default nil), `App/ClubKit/ClubGovernanceConsequence.swift` (ban/revoke branches only). Every change is additive with defaults, so existing call sites compile unchanged.
+
+### Round-2 strings (fragment)
+`club.welcome.memberPrice %@`, `club.schedule.error.weeklyHorizonMax %lld`, `club.ops.clubLimit.manage`, `club.host.requiredHint`, `club.host.optionalHint`, `club.host.placeholder.{leaderName,phone,identity,coFounders,maxEventSize,avgEventSize}`, `club.gov.consequence.ban.{title,titleNamed %@,line1,line2,confirm}`, `club.gov.consequence.revokeRole.{title,titleNamed %@,line1,line2,line3,confirm}`, `club.gov.roles.noMembers`, `club.rolePicker.untitledSession`. Uses Cursor's `club.memberGovernance.denied` and `clubOps.*` keys from `docs/port/strings/cursor-core-club.json`.
+
+### Checks (round 2)
+- Every contract check (`Tests/ContractChecks/test_*.py`) was run on this branch and on `origin/ui/combined-r7`. The only new failure is `test_localization_key_catalog_contract` (fragment keys, see Strings). The club failures (`customer_directory_remote_admission`, `customer_keyword_debounce`, `customer_permissions`, `operations_contracts`) fail identically on the base.
+- `tools/check_typography_lint.py`: PASS.
+- No Swift build (no compiler in the cloud). New APIs relied on, grepped on r7: `MPAsset.*` accessors, `MoneyDisplay.yuan(_:)`, `ClubShareLink.club/post`, `CheinDeepLink.scheme`, `ClubOpsPageFailureCopy.literalTitle/prefersBack`, `ClubOpsNetworkFailureClassifier.*Title`, `ClubProfileLocalDraftFlow.clearAfterConfirmedDissolve()`, `ClubEventOpsFormRules.maxWeeklyOccurrences`, `ClubSeriesScheduleDraft.day(_:)`, `ClubCommunityEvidence(…, memberPostAllowed:)`, `ClubRecord.memberPostAllowed/memberDiscountPrice(Text)`, `ClubR1OptionCard(title:isSelected:action:)`, `appLocalized(_:locale:)`, `View.cyText` / `Text.cyText`, `.onChange(of:initial:)` (iOS 17).

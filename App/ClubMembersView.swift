@@ -250,7 +250,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     }
     private func memberRow(_ member: ClubMember) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
-            CYAvatarView(url: QuestifyCardArtwork.safeURL(member.avatar), name: member.trimmedNickname ?? "\(member.memberId)", size: .md)
+            ClubMPAvatar(url: QuestifyCardArtwork.safeURL(member.avatar), name: member.trimmedNickname ?? "\(member.memberId)", size: .md)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let nickname = member.trimmedNickname {
