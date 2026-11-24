@@ -138,3 +138,15 @@ extension EnvironmentValues {
         set { self[CoopInviteOutcomeUnknownKey.self] = newValue }
     }
 }
+
+/// MC7-32-5: opens the IM conversation `coop/contact` returned (MP invite-detail index.js:435-460 navigates to the chat).
+/// Nil keeps the preview ending on 已提交.
+private struct CoopConversationDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var coopConversationDestination: (@MainActor (Int) -> AnyView)? {
+        get { self[CoopConversationDestinationKey.self] }
+        set { self[CoopConversationDestinationKey.self] = newValue }
+    }
+}

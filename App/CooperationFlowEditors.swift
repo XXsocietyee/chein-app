@@ -6,6 +6,8 @@ struct CoopFlowRequestPreview: View {
     @Environment(\.coopFlowPreviewWrite) private var write
     @Environment(\.dismiss) private var dismiss
     @Environment(\.coopInviteOutcomeUnknown) private var reportUnknownOutcome
+    @Environment(\.coopConversationDestination) private var conversationDestination
+    @State private var openedConversation: Int?
     private let review: CoopFlowRequestReviewContext?
     private let operation: CoopFlowMutation
     private enum Outcome: Equatable { case idle, sending, sent, failed(String?), unknown }
@@ -51,8 +53,12 @@ struct CoopFlowRequestPreview: View {
         outcome = .sending
         do {
             let accepted = try await coordinator.prepare(operation)
-            _ = try await coordinator.confirm(accepted)
+            let result = try await coordinator.confirm(accepted)
             outcome = .sent
+            if case .contact = operation, conversationDestination != nil,
+               let conversation = result["conversationId"].integer, conversation > 0 {
+                openedConversation = conversation
+            }
         } catch CoopFlowFailure.server(_, let message) { outcome = .failed(message) }
         catch CoopFlowFailure.inactiveMerchant(_, let message) { outcome = .failed(message) }
         catch CoopFlowFailure.ambiguous { outcome = .unknown; reportUnknownOutcome?() }
@@ -73,6 +79,9 @@ struct CoopFlowRequestPreview: View {
             Section { CoopFlowSafetyNotice(); Text("coopflow.review.local") }
             submitSection
         }.navigationTitle("coopflow.reviewAction").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("coopflow.review")
+            .navigationDestination(item: $openedConversation) { id in
+                if let conversationDestination { conversationDestination(id) }
+            }
     }
     @ViewBuilder private func reviewValue(_ value: CoopFlowRequestReviewValue) -> some View {
         switch value {

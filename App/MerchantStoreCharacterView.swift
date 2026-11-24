@@ -216,6 +216,10 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .ready:
             List {
                 if let notice = c.notice { Section { StoreCharacterNoticeText(notice: notice) } }
+                // MC7-23-1 (until the npc/save review): say up front that saving is closed, instead of only on a tap.
+                else if !c.canSave {
+                    Section { StoreCharacterNoticeText(notice: .writesDisabled) }.accessibilityIdentifier("aiNPC.writesClosed")
+                }
                 Section { hero }
                 if c.screen == .home { homeRows } else { avatarRows }
                 if c.showsReformScopes, let reform = model.reform { StoreCharacterReformSection(context: reform) }

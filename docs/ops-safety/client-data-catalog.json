@@ -177,6 +177,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/MerchantStoreCharacterView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "AppStorage flag cy_ai_npc_intro_seen (MP same key): the AI NPC first-visit intro was dismissed; no personal data",
+      "retention": "until app deletion (same as the MP storage flag)",
+      "deletion": "app deletion; not account-scoped"
+    },
+    {
       "file": "App/NativeChannelReportJournalKeys.swift",
       "kinds": [
         "keychain"
