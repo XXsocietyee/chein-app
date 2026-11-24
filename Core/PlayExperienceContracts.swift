@@ -2,7 +2,7 @@ import Foundation
 
 /// JSON scalar fidelity for source-backed payloads. Never log these values: answers and
 /// evidence can be private. Numeric strings are tolerated only by explicit accessors.
-public indirect enum PlayWireValue: Codable, Equatable {
+public indirect enum PlayWireValue: Codable, Equatable, Sendable {
     case object([String: PlayWireValue]), array([PlayWireValue]), string(String), integer(Int64), number(Double), bool(Bool), null
     public init(from decoder: Decoder) throws {
         let c = try decoder.singleValueContainer()
