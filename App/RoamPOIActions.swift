@@ -169,7 +169,7 @@ struct RoamPOIActionRows: View {
                           onClose: { choiceSheet = false })
                 .cyDomainSheet(detents: [.half])
         }
-        .sheet(isPresented: $photoSheet) {
+        .sheet(isPresented: $photoSheet) { Group {
             NavigationStack {
                 ScrollView {
                     ChallengePOIPhotoCapture(lead: node.photoRequireDesc, uploader: makePhotoUploader?(node.poiId), confirmed: false) { url in
@@ -181,7 +181,7 @@ struct RoamPOIActionRows: View {
                 .cyPageTitle("roam.poi.photo.title")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { photoSheet = false } } }
             }
-        }
+        }.cySheet(detents: [.large]) }
         .fullScreenCover(isPresented: $scanSheet) {
             NativeQRScanner { code in scanSheet = false; submit(.init(photoURL: challengePhoto, code: code)) }
         }

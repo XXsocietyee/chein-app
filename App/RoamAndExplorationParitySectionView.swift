@@ -200,7 +200,7 @@ public struct RoamAndExplorationParitySectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color.secondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)

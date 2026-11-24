@@ -265,7 +265,7 @@ struct CityDeedCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         // Inside a sheet the deed is a plain fill with no outline (xrefs-1 B.1, N08–N12): the sheet's edge is the box.
         .background(palette.bgRaised)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     @ViewBuilder private var row: some View {
@@ -276,8 +276,8 @@ struct CityDeedCard: View {
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(outline(corner: 16))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(outline(corner: 12))
         } else {
             HStack(spacing: CYSpacing.md) {
                 rowLead
@@ -286,8 +286,8 @@ struct CityDeedCard: View {
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(outline(corner: 16))
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(outline(corner: 12))
         }
     }
 

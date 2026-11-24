@@ -158,7 +158,7 @@ public struct AppStoreSubmissionFinalPreflightGateView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle((row.isPassed && row.isFailClosed) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.checkSummary)

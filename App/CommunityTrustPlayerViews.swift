@@ -12,7 +12,7 @@ struct MerchantSafetySummaryRow: View {
             if let summary {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Label { Text(verbatim: summary.text) } icon: { Image(systemName: "shield.lefthalf.filled") }
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(summary.level == "UNSAFE" ? CYColor.warningText : CYColor.textPrimary)
                     Text(verbatim: summary.note)
                         .cyText(.meta)

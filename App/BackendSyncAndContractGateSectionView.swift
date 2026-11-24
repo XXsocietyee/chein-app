@@ -175,7 +175,7 @@ public struct BackendSyncAndContractGateSectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(pillar.isPassing ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("backendContractGate.pillarStatus.\(pillar.id)")
                     }
@@ -185,7 +185,7 @@ public struct BackendSyncAndContractGateSectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.evidenceSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("backendContractGate.pillarEvidence.\(pillar.id)")
                 }

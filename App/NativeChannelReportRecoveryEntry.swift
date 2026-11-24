@@ -22,7 +22,7 @@ import SwiftUI
                 }
             }
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .nativeChannelFlowPage()
         .navigationTitle(Text("d7.channelReport.statusTitle"))
@@ -164,7 +164,7 @@ import SwiftUI
             }
         }
         .formStyle(.grouped)
-        .font(Theme.Font.body)
+        .cyText(.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .nativeChannelFlowPage()
         .cyGroupedSurface()
