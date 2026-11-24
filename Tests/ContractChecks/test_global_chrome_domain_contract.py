@@ -149,10 +149,11 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             detail = read_swift(rel)
             self.assertNotIn(".cyHeroPushedChrome(", detail)
             self.assertIn(".cyPushedChrome(domain: .player)", detail)
-        # Parity r1 (type-and-chrome §3): the club page moved to cyHeroChrome + CYHeroBackButton in the hero overlay.
+        # CLB-detail-32 (owner native-iOS rule 11-24): the club page keeps the system bar and system back.
         club = read_swift("App/ClubDetailView.swift")
-        self.assertIn("cyHeroChrome(heroScrolledAway: heroScrolledAway", club)
-        self.assertIn("CYHeroBackButton()", club)
+        self.assertNotIn(".cyHeroChrome(", club)
+        self.assertNotIn("CYHeroBackButton()", club)
+        self.assertIn(".cyPushedChrome(domain: viewerDomain)", club)
 
         # Standard L2+ non-hero pushed detail views must not wrap back chevrons in glass hero pills.
         for rel in ("App/OfficialEventDetailView.swift", "App/DiscoveryTemplateDetailView.swift", "App/ProfileEditView.swift"):

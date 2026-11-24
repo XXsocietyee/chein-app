@@ -226,7 +226,8 @@ import SwiftUI
         case "pages/club/detail/index":
             // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {
-                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil })
+                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
+                           postID: positiveID(query["postId"]))
             } else if query["owner"] != nil { ownedClubs } else { unavailable }
         case "pages/club/workbench/index":
             // CLB-workbench-01/02: the workbench is the club page's 管理 tab; no id → my own club.
@@ -466,10 +467,10 @@ import SwiftUI
 
     @Environment(\.clubBadgeHostFactory) private var badgeHost
 
-    private func clubDetail(_ id: Int, tab: ClubDetailTab?) -> some View {
+    private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil) -> some View {
         ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
                        management: session.clubManagementContext, community: session.clubCommunityContext,
-                       publicRoster: session.clubPublicRosterReader, requestedTab: tab)
+                       publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID)
     }
 
     private var ownedClubs: some View {

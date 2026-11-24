@@ -63,7 +63,7 @@ import SwiftUI
                             if value.club.name.isEmpty { Text("welcome.title", tableName: "ClubMemberWelcome") }
                             else { Text("welcome.titleNamed \(value.club.name)", tableName: "ClubMemberWelcome") }
                         }
-                        .cyText(.display)
+                        .cyText(.sheetTitle)  // CLB-detail-40: MP welcome title is the sheet title size
                         .foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)

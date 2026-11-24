@@ -222,11 +222,18 @@ struct ClubCommunityEntry: View {
     let clubID: Int
     let identity: ClubReadIdentity
     let context: ClubCommunityContext
+    /// CLB-detail-31 (MP detail js:744, 1956-1959): a `postId` link opens the feed and scrolls to that post.
+    var focusPostID: Int? = nil
+    @State private var opensFocusedPost = false
     var body: some View {
         NavigationLink {
             ClubCommunityFeedView(context: context, identity: identity, clubID: clubID)
         } label: { Label("club.community.posts", systemImage: "text.bubble") }
             .accessibilityIdentifier("club.community.entry")
+            .navigationDestination(isPresented: $opensFocusedPost) {
+                ClubCommunityFeedView(context: context, identity: identity, clubID: clubID, focusPostID: focusPostID)
+            }
+            .task(id: focusPostID) { if focusPostID != nil { opensFocusedPost = true } }
     }
 }
 
@@ -253,14 +260,19 @@ struct ClubCommunityFeedView: View {
     @State private var toastMessage: LocalizedStringKey?
     @Environment(\.clubCustomerTopics) private var topics
     @Environment(\.clubPostPlayHost) private var discussionHost
-    init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil) {
-        self.identity = identity; self.clubID = clubID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
+    /// CLB-detail-31: scroll to this post once it is in the loaded feed (one time per appearance).
+    private let focusPostID: Int?
+    @State private var didFocusPost = false
+    init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil, focusPostID: Int? = nil) {
+        self.identity = identity; self.clubID = clubID; self.focusPostID = focusPostID
+        _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
     /// CLB-detail-16: compose only for members and the owner (MP wxml:100); the server still enforces memberPostAllowed.
     @State private var canPost = false
     private var canCompose: Bool { clubID != nil && identity.isSignedIn && canPost }
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                 // Discover feed already has the page title and the 帖文 tab. A club-scoped list keeps the header.
@@ -302,6 +314,7 @@ struct ClubCommunityFeedView: View {
                         UGCBlockedFilterContainer(memberID: item.post.authorMemberID, authorName: item.post.nickname) {
                             feedItem(item, snapshot: snapshot)
                         }
+                        .id(item.id)
                     }
                     // CLB-detail-15: the next page loads when the end of the list scrolls in (MP onReachBottom).
                     if let clubID, model.canLoadMorePosts {
@@ -330,6 +343,13 @@ struct ClubCommunityFeedView: View {
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.lg)
+        }
+        .onChange(of: model.snapshot?.feedItems.map(\.id)) { _, ids in
+            guard !didFocusPost, let focusPostID, let ids,
+                  let target = model.snapshot?.feedItems.first(where: { $0.post.id == focusPostID }), ids.contains(target.id) else { return }
+            didFocusPost = true
+            withAnimation(CYMotion.standard) { proxy.scrollTo(target.id, anchor: .top) }
+        }
         }
         .cyDomainPageBackground()
         .refreshable { await model.load(operation) }

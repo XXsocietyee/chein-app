@@ -1,0 +1,18 @@
+{
+  "club.detail.leaderboard.lockedReview": {
+    "zh-Hans": "通过审核后可看贡献榜",
+    "en": "Get approved to see the contribution board"
+  },
+  "club.detail.safety.title": {
+    "zh-Hans": "治理与安全",
+    "en": "Governance & Safety"
+  },
+  "club.detail.safety.appeal": {
+    "zh-Hans": "封禁申诉",
+    "en": "Ban Appeal"
+  },
+  "club.detail.manage.settlement": {
+    "zh-Hans": "结算",
+    "en": "Settlement"
+  }
+}
