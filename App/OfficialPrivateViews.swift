@@ -116,7 +116,8 @@ import SwiftUI
                     if broadcasts.isEmpty { emptyRow("official.published.broadcastsEmpty", "official.published.broadcastsEmptyDetail") }
                         ForEach(Array(broadcasts.enumerated()), id: \.offset) { _, broadcast in
                             if broadcast.id > 0 {
-                                NavigationLink { OfficialBroadcastStatsView(id: broadcast.id, reader: reader, onLogin: onLogin) } label: {
+                                // R7-PC-C6-3 (MP official-mine/index.wxml:25-29): tapping the card reads its 复盘 in place.
+                                OfficialBroadcastInlineStatsRow(id: broadcast.id, reader: reader) {
                                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                         if let facts = broadcast.facts {
                                             CYStatusChip(OfficialPrivateFactsText.broadcastStatusKey(facts.status), tone: .neutral, systemImage: "megaphone")
@@ -175,8 +176,10 @@ import SwiftUI
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "stats.\(id)", onLogin: onLogin, load: { try await reader.broadcastStats(id: id) }) { stats in
             List {
-                if stats.rows.isEmpty { Text("official.emptyStats") }
-                ForEach(stats.rows) { row in
+                // R7-PC-C6-3: only the stats the page can name; an unknown key is never printed raw.
+                let known = stats.rows.filter { OfficialBroadcastStatsText.knownIDs.contains($0.id) }
+                if known.isEmpty { Text("official.emptyStats") }
+                ForEach(known) { row in
                     LabeledContent {
                         switch row.value {
                         case .text(let value): Text(verbatim: value)
@@ -186,15 +189,86 @@ import SwiftUI
                         }
                     } label: {
                         switch row.id {
-                        case "reach": Text("official.reach")
+                        case "reach", "reached": Text("official.reach")
                         case "read", "reads": Text("official.reads")
-                        case "click", "clicks": Text("official.clicks")
-                        default: Text(verbatim: row.id)
+                        case "click", "clicks", "clicked": Text("official.clicks")
+                        default: EmptyView()
                         }
                     }
                 }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }.accessibilityIdentifier("official.stats.content")
         }.appNavigationTitle("official.stats").navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// MP official-mine `broadcastStatsText`: 站内触达 N 人 · 点击 M 人, from `reached` / `clicked`.
+enum OfficialBroadcastStatsText {
+    static let knownIDs: Set<String> = ["reach", "reached", "read", "reads", "click", "clicks", "clicked"]
+    static func counts(_ stats: OfficialBroadcastStats) -> (reached: String, clicked: String)? {
+        func count(_ key: String) -> String? {
+            guard let row = stats.rows.first(where: { $0.id == key }), case .number(let value) = row.value,
+                  value >= 0, value == value.officialWholeRounded() else { return nil }
+            return NSDecimalNumber(decimal: value).stringValue
+        }
+        guard let reached = count("reached"), let clicked = count("clicked") else { return nil }
+        return (reached, clicked)
+    }
+}
+private extension Decimal {
+    func officialWholeRounded() -> Decimal {
+        var source = self, result = Decimal()
+        NSDecimalRound(&result, &source, 0, .plain)
+        return result
+    }
+}
+
+/// R7-PC-C6-3: one 我发的通知 card. A tap reads `GET /api/official/broadcast/{id}/stats` and shows the line
+/// inside the card (MP `_statsText`); a failure says so with 点一下重试 and the next tap reads again.
+@MainActor struct OfficialBroadcastInlineStatsRow<Content: View>: View {
+    let id: Int
+    let reader: any OfficialEventReading
+    @ViewBuilder let label: () -> Content
+    private enum Phase: Equatable { case idle, loading, loaded(String, String), failed }
+    @State private var phase: Phase = .idle
+    @Environment(\.cyPalette) private var palette
+    var body: some View {
+        Button { load() } label: {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                label()
+                switch phase {
+                case .idle: EmptyView()
+                case .loading:
+                    Text("official.published.statsLoading").cyText(.caption).foregroundStyle(palette.textSecondary)
+                case .loaded(let reached, let clicked):
+                    Text("official.published.statsLine \(reached) \(clicked)").cyText(.caption).monospacedDigit()
+                        .foregroundStyle(palette.textSecondary)
+                case .failed:
+                    Text("official.published.statsFailed").cyText(.caption).foregroundStyle(CYColor.dangerText)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(phase == .loading)
+        .accessibilityHint(Text("official.published.statsHint"))
+    }
+    private func load() {
+        guard phase != .loading else { return }
+        phase = .loading
+        let scope = reader.scope
+        Task {
+            do {
+                let stats = try await reader.broadcastStats(id: id)
+                guard reader.scope == scope else { return }
+                if let counts = OfficialBroadcastStatsText.counts(stats) { phase = .loaded(counts.reached, counts.clicked) }
+                else { phase = .failed }
+            } catch is CancellationError {
+                phase = .idle
+            } catch {
+                if reader.scope == scope { phase = .failed }
+            }
+        }
     }
 }
