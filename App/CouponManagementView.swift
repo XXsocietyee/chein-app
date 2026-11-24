@@ -220,7 +220,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     var body: some View {
         let page = self.page
         Form {
-            Section { CYHeroHeader("couponManagement.create") }.e1HeroRow()
             CouponManagementNotice(model: model, surface: .editor)
             switch page.phase {
             case .ready:
@@ -258,7 +257,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .environment(\.calendar, CouponValidityTime.calendar)
         .formStyle(.grouped)
         .cyGroupedSurface()
-        .cyHeroScreen()
         .cyDomainScreen(.topicEditor)
         .scrollDismissesKeyboard(.interactively)
         .cyPageTitle("couponManagement.create")

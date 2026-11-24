@@ -207,7 +207,6 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
     var body: some View {
         NavigationStack {
             Form {
-                Section { CYHeroHeader("profile.favoriteRemoval.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
                 Section {
                     if let contents { Text(verbatim: contents).lineLimit(6) }
                     LabeledContent("profile.favoriteRemoval.postID", value: String(presentation.postID))
@@ -243,7 +242,7 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
                 }
             }
             .cyGroupedSurface()
-            .cyHeroScreen()
+            .navigationTitle(Text("profile.favoriteRemoval.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("action.close") { close() }.accessibilityIdentifier("profile.favoriteRemoval.close")
             } }

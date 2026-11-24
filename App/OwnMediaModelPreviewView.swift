@@ -208,8 +208,6 @@ private struct OwnMediaModelPreviewViewIdentity: Hashable {
     var body: some View {
         NavigationStack {
             Form {
-                CYHeroHeader("title", tableName: "OwnMediaModelPreview")
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Text("privateOnly", tableName: "OwnMediaModelPreview")
                 Text("staticOnly", tableName: "OwnMediaModelPreview").cyText(.bodyCompact).foregroundStyle(.secondary)
                 if model.available, model.presentation == offered {
@@ -217,7 +215,7 @@ private struct OwnMediaModelPreviewViewIdentity: Hashable {
                 } else { Text("unavailable", tableName: "OwnMediaModelPreview") }
                 Text("limits", tableName: "OwnMediaModelPreview").cyText(.bodyCompact).foregroundStyle(.secondary)
             }
-            .cyHeroScreen()
+            .navigationTitle(Text("title", tableName: "OwnMediaModelPreview")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { model.close(offered) } label: { Text("close", tableName: "OwnMediaModelPreview") }.frame(minWidth: 44, minHeight: 44)
             } }
