@@ -14,3 +14,12 @@
 --roam-subpage-fixture stampNoExchange -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RSTAMP-5 not-exchanged slip
 --design-fixture nearby-empty  # 我的队伍 tab regression check (加入码 toolbar shows only on the Session host, which passes the join-code page)
 --nearby-team-fixture -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # nearby / my-teams segmented page (regression check after RTEAMS-3 init change)
+# Round 2 (2026-11-24)
+--uitesting-module merchant-city-npc --w2-19-page playMerchant --w2-19-scenario perk -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # PLAYM-2: 本店权益 card (MP gift art, name + rule) between consent and 商家信息; primary CTA 出示核销码
+--uitesting-module merchant-city-npc --w2-19-page playMerchant --w2-19-scenario perkBlocked -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # PLAYM-2: primary CTA is the disabled server line 今日名额已用完 (no code)
+--uitesting-roam-home -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # MP assets: tickets show intro-ticket-route/map/team art (NO.04 official routes keeps its symbol); passport tiles 历史/印章/目标 show the 3D icons; 官方活动 card shows the event photo
+--uitesting-roam-home -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # MP assets (map view, best-effort route): place pins are pin-<category>.png (merchant/landmark…); clusters use dot-cluster.png; routes/events keep symbols
+--roam-subpage-fixture stampExchanged -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # (write step before exchange) MP mailbox photo above 投进信箱
+--uitesting-module playExperience -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # MP assets: station without photo shows the cover-route illustration; reward medal without image shows trophy, new badges show glass-badge
+--uitesting-module playExperience --uitesting-play-experience-scenario mode2 -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # MP assets: free-exploration card pack body is pack-foil.png with the topic name in black
+--roam-subpage-fixture poiLive -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RPOI-3 regression: no pending record → 你的状态 rows unchanged (pending UI needs a live journal record; device check by coordinator)

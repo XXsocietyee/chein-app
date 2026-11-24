@@ -120,8 +120,11 @@ struct QuestifyMapPinSymbol: View {
     let symbol: String
     var selected = false
     /// MP marker artwork (roam pins / cluster); drawn at the MP size inside a 44 pt hit area.
-    var art: Image? = nil
+    private var art: Image? = nil
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
+    init(symbol: String, selected: Bool = false) { self.symbol = symbol; self.selected = selected }
+    /// Roam pins: the MP marker image instead of the symbol disc (nil keeps the symbol).
+    func mpArt(_ image: Image?) -> Self { var copy = self; copy.art = image; return copy }
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
         if let art {

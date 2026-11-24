@@ -6412,9 +6412,7 @@ final class AppSession: ObservableObject {
                 // Re-read the token after the permission prompt: the account may have changed meanwhile.
                 guard let token = self.token else { throw APIError.unauthorized }
                 return try await service.completeNode(poiID: poiID, fix: fix, answer: evidence.answer, photoURL: evidence.photoURL, code: evidence.code, token: token)
-            },
-            ownerID: String(context.session.accountID),
-            pendingStore: RoamPendingCheckInDefaults.shared)
+            }, ownerID: String(context.session.accountID), pendingStore: RoamPendingCheckInDefaults.shared)
     }
     private let roamService: RoamService?
     // Exact dormant IM adapter exists, but ordinary production composition has no live grant.

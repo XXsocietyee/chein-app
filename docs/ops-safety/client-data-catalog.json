@@ -339,6 +339,15 @@
       "deletion": "Removed with app data; no account data stored"
     },
     {
+      "file": "App/RoamPOIActions.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "RPOI-3 pending POI check-in record (MP cy_roam_poi_checkin_pending:v1:{owner}:{poi}): version, owner id, poi id, attempt id, uncertain flag only; no coordinates, answers, photos or scan text",
+      "retention": "Until the attempt is confirmed (completed / awaiting redemption) or rejected before write, as in the MP",
+      "deletion": "Cleared by attempt id on a confirmed read or receipt; logout cleanup not verified per store (key is per owner id)"
+    },
+    {
       "file": "App/RoamReceivedStampMetadataView.swift",
       "kinds": [
         "userDefaults"
