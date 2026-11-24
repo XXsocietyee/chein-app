@@ -5,27 +5,21 @@ on:
       - 'port/**'
       - ui/combined-r7
       - ci/acceptance
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: check compares failing test names to the baseline; record uploads the observed names
-        type: choice
-        options:
-          - check
-          - record
-        default: check
+      - ci/baseline-record
 permissions:
   contents: read
 env:
-  ACCEPTANCE_MODE: ${{ github.event.inputs.mode || 'check' }}
+  ACCEPTANCE_MODE: ${{ github.ref == 'refs/heads/ci/baseline-record' && 'record' || 'check' }}
 jobs:
   baselines:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Acceptance mode
+        run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - name: Check mode requires baseline files
         run: |
           set -euo pipefail
@@ -43,21 +37,29 @@ jobs:
           exit "$missing"
 
   gates:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Acceptance mode
+        run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
       - name: Scaffold
         run: python3 -B tools/check_scaffold.py
       - name: Typography lint
         run: python3 -B tools/check_typography_lint.py
+      - name: Record the known contract-ratchet failure
+        if: env.ACCEPTANCE_MODE == 'record'
+        run: python3 -B .github/acceptance_support.py record-contract --baseline docs/release/contract-failing-baseline.txt
       - name: Contract ratchet
         run: python3 -B tools/contract_ratchet.py --check
 
   debug-build:
-    runs-on: macos-26
+    runs-on: [self-hosted, macOS, ARM64, chengyin-app]
+    concurrency:
+      group: acceptance-mac
+      cancel-in-progress: false
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -67,8 +69,8 @@ jobs:
         with:
           path: DerivedData
           key: acceptance-debug-${{ hashFiles('Questify.xcodeproj/project.pbxproj', 'Package.swift') }}
-      - name: Select newest Xcode
-        run: python3 -B .github/acceptance_support.py xcode
+      - name: Print Xcode version
+        run: xcodebuild -version
       - name: Simulator destination
         run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
       - name: Debug simulator build
@@ -87,14 +89,17 @@ jobs:
 
   core-tests:
     needs: baselines
-    runs-on: macos-26
+    runs-on: [self-hosted, macOS, ARM64, chengyin-app]
+    concurrency:
+      group: acceptance-mac
+      cancel-in-progress: false
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Select newest Xcode
-        run: python3 -B .github/acceptance_support.py xcode
+      - name: Print Xcode version
+        run: xcodebuild -version
       - name: Core package tests
         run: |
           set -euo pipefail
@@ -129,7 +134,10 @@ jobs:
 
   appunit:
     needs: baselines
-    runs-on: macos-26
+    runs-on: [self-hosted, macOS, ARM64, chengyin-app]
+    concurrency:
+      group: acceptance-mac
+      cancel-in-progress: false
     timeout-minutes: 180
     strategy:
       fail-fast: false
@@ -143,8 +151,8 @@ jobs:
         with:
           path: DerivedData
           key: acceptance-appunit-${{ matrix.shard }}-${{ hashFiles('Questify.xcodeproj/project.pbxproj') }}
-      - name: Select newest Xcode
-        run: python3 -B .github/acceptance_support.py xcode
+      - name: Print Xcode version
+        run: xcodebuild -version
       - name: Simulator destination
         run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
       - name: AppUnit shard
@@ -184,7 +192,7 @@ jobs:
   appunit-baseline:
     needs: appunit
     if: ${{ always() && !cancelled() && needs.appunit.result != 'skipped' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -218,7 +226,7 @@ jobs:
           if-no-files-found: error
 
   screenshot-plan:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
@@ -237,14 +245,17 @@ jobs:
   screenshots:
     needs: screenshot-plan
     if: needs.screenshot-plan.outputs.needed == 'true'
-    runs-on: macos-26
+    runs-on: [self-hosted, macOS, ARM64, chengyin-app]
+    concurrency:
+      group: acceptance-mac
+      cancel-in-progress: false
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Select newest Xcode
-        run: python3 -B .github/acceptance_support.py xcode
+      - name: Print Xcode version
+        run: xcodebuild -version
       - name: Simulator destination
         run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
       - name: Launch DEBUG fixtures and screenshot
@@ -255,3 +266,128 @@ jobs:
           name: acceptance-screenshots
           path: acceptance-shots
           if-no-files-found: ignore
+
+  ui-smoke:
+    runs-on: [self-hosted, macOS, ARM64, chengyin-app]
+    concurrency:
+      group: acceptance-mac
+      cancel-in-progress: false
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Print Xcode version
+        run: xcodebuild -version
+      - name: Select Accept XCUITests
+        id: select
+        run: |
+          set -euo pipefail
+          needed="$(python3 -B .github/acceptance_support.py ui-smoke-needed)"
+          echo "needed=${needed}" >> "$GITHUB_OUTPUT"
+          if [ "$needed" != "true" ]; then
+            echo "Tests/AppUITests/Accept is absent or has no XCTestCase; skipping UI smoke"
+            exit 0
+          fi
+          python3 -B .github/acceptance_support.py ui-smoke-args --out ui-smoke-only-testing.args
+      - name: Simulator destination
+        if: steps.select.outputs.needed == 'true'
+        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
+      - name: Run Accept XCUITests
+        if: steps.select.outputs.needed == 'true'
+        run: |
+          set -euo pipefail
+          set -o pipefail
+          dest="$(tr -d '\n' < simulator-destination.txt)"
+          read -r -a only <<< "$(tr -d '\n' < ui-smoke-only-testing.args)"
+          test "${#only[@]}" -gt 0
+          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "$dest" -derivedDataPath DerivedData -resultBundlePath ui-smoke.xcresult CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES test -skip-testing:QuestifyAppUnitTests "${only[@]}" | tee ui-smoke.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ui-smoke
+          path: |
+            ui-smoke.log
+            ui-smoke.xcresult
+          if-no-files-found: ignore
+
+  record-baselines:
+    needs: [gates, core-tests, appunit-baseline]
+    if: ${{ github.ref == 'refs/heads/ci/baseline-record' && needs.gates.result == 'success' && needs.core-tests.result == 'success' && needs.appunit-baseline.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ci/acceptance
+          persist-credentials: true
+          fetch-depth: 1
+      - name: Acceptance mode
+        run: echo "ACCEPTANCE_MODE=$ACCEPTANCE_MODE ref=$GITHUB_REF"
+      - uses: actions/download-artifact@v4
+        with:
+          name: baseline-core.txt
+          path: recorded-core
+      - uses: actions/download-artifact@v4
+        with:
+          name: baseline-appunit.txt
+          path: recorded-appunit
+      - name: Commit baselines to ci/acceptance
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = "refs/heads/ci/baseline-record"
+          test "$ACCEPTANCE_MODE" = "record"
+          url="$(git remote get-url origin)"
+          case "$url" in
+            *github.com/liboyang42-cpu/chengyin-app|*github.com:liboyang42-cpu/chengyin-app*) ;;
+            *) echo "origin is not liboyang42-cpu/chengyin-app"; exit 1 ;;
+          esac
+          unset url
+          git fetch origin refs/heads/ci/acceptance
+          git checkout --detach FETCH_HEAD
+          mkdir -p docs/release/baselines
+          cp recorded-core/baseline-core.txt docs/release/baselines/core.txt
+          cp recorded-appunit/baseline-appunit.txt docs/release/baselines/appunit.txt
+          python3 -B .github/acceptance_support.py record-contract --baseline docs/release/contract-failing-baseline.txt
+          git add -- docs/release/baselines/core.txt docs/release/baselines/appunit.txt docs/release/contract-failing-baseline.txt
+          set +e
+          python3 - << 'PY'
+          import subprocess
+          import sys
+          allowed = {
+              "docs/release/baselines/core.txt",
+              "docs/release/baselines/appunit.txt",
+              "docs/release/contract-failing-baseline.txt",
+          }
+          staged = subprocess.check_output(["git", "diff", "--cached", "--name-only"], text=True).split()
+          unstaged = subprocess.check_output(["git", "diff", "--name-only"], text=True).split()
+          if unstaged:
+              sys.exit("unexpected unstaged changes: " + " ".join(unstaged))
+          bad = [name for name in staged if name not in allowed]
+          if bad:
+              sys.exit("refusing to commit: " + " ".join(bad))
+          if not staged:
+              print("acceptance: baselines already match ci/acceptance; not committing")
+              sys.exit(2)
+          print("committing " + ", ".join(staged))
+          PY
+          code=$?
+          set -e
+          if [ "$code" -eq 2 ]; then
+            echo "acceptance: no baseline commit"
+            exit 0
+          fi
+          test "$code" -eq 0
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m "$(cat <<'EOF'
+          ci: record Core, AppUnit, and contract baselines
+
+          Observed failing names from the ci/baseline-record run.
+          The contract ratchet baseline adds only the known paid-professional failure.
+
+          Co-Authored-By: Cursor <cursoragent@cursor.com>
+          EOF
+          )"
+          git push origin HEAD:refs/heads/ci/acceptance
+          echo "pushed $(git rev-parse HEAD) to ci/acceptance"

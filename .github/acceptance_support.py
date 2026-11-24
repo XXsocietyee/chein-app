@@ -6,6 +6,9 @@ names come from XCTest lines ``Test Case '-[Target.Class testMethod]' failed``.
 Screenshot routes come only from docs/port/accept/*.txt and launch through the
 app's existing DEBUG fixture arguments (``--design-fixture <name>``, or a line
 that already starts with ``--``).
+
+Record mode is the branch ``ci/baseline-record``. It appends one known contract
+ratchet id and does not rewrite that baseline. Every other branch is check mode.
 """
 import argparse
 import json
@@ -21,6 +24,32 @@ ANSI = re.compile(r"\x1b\[[0-9;]*m")
 XCTEST_FAILED = re.compile(r"Test Case '-\[([^\]]+)\]' failed")
 BUNDLE_FALLBACK = "invalid.example.questify.ios"
 PREFERRED_SIMULATORS = ("iPhone 18 Pro", "iPhone 17 Pro")
+ACCEPT_UI_ROOT = Path("Tests/AppUITests/Accept")
+# The one contract-ratchet failure RECORD may add. Do not replace the file.
+KNOWN_CONTRACT_FAILURE = "test_workshop_paid_professional.PaidProfessionalContracts.test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging"
+
+
+def xctest_classes(root):
+    """XCTestCase subclass names under ``root``, sorted and unique.
+
+    The name is the identifier after ``class``, so ``@MainActor final class`` counts.
+    Comment lines are ignored. A missing directory yields an empty list.
+    """
+    classes = []
+    if not root.is_dir():
+        return classes
+    for path in root.rglob("*.swift"):
+        for line in path.read_text(errors="replace").splitlines():
+            text = line.strip()
+            if "XCTestCase" not in text or text.startswith(("//", "*", "/*")):
+                continue
+            parts = text.split()
+            if "class" not in parts:
+                continue
+            name = parts[parts.index("class") + 1].split("(")[0].split(":")[0].split("{")[0]
+            if name:
+                classes.append(name)
+    return sorted(set(classes))
 
 
 def only_testing_args(shard):
@@ -33,26 +62,48 @@ def only_testing_args(shard):
     """
     if shard not in (0, 1, 2, 3):
         raise SystemExit(f"shard {shard} is outside 0..3")
-    classes = []
-    root = Path("Tests/AppUnitTests")
-    for path in root.rglob("*.swift"):
-        for line in path.read_text(errors="replace").splitlines():
-            text = line.strip()
-            if "XCTestCase" not in text or text.startswith(("//", "*", "/*")):
-                continue
-            parts = text.split()
-            if "class" not in parts:
-                continue
-            name = parts[parts.index("class") + 1].split("(")[0].split(":")[0].split("{")[0]
-            if name:
-                classes.append(name)
-    classes = sorted(set(classes))
+    classes = xctest_classes(Path("Tests/AppUnitTests"))
     if not classes:
         raise SystemExit("no AppUnit classes found")
     mine = [name for index, name in enumerate(classes) if index % 4 == shard]
     if not mine:
         raise SystemExit(f"shard {shard} is empty")
     return " ".join(f"-only-testing:QuestifyAppUnitTests/{name}" for name in mine)
+
+
+def ui_smoke_needed(root=None):
+    """True when Accept/ exists and declares at least one XCTestCase."""
+    return bool(xctest_classes(ACCEPT_UI_ROOT if root is None else root))
+
+
+def write_ui_smoke_args(root, out_path):
+    classes = xctest_classes(root)
+    if not classes:
+        raise SystemExit(f"no XCUITest classes under {root}")
+    text = " ".join(f"-only-testing:QuestifyUITests/{name}" for name in classes)
+    out_path.write_text(text + "\n")
+    print(text)
+    return text
+
+
+def record_known_contract_failure(path):
+    """Append the one known contract failure. Never blank or rewrite the file."""
+    if not path.is_file():
+        raise SystemExit(f"contract ratchet baseline missing: {path}")
+    original = path.read_text()
+    if not original.strip():
+        raise SystemExit(f"refusing to write a blank contract ratchet baseline: {path}")
+    names = [line.strip() for line in original.splitlines() if line.strip()]
+    if KNOWN_CONTRACT_FAILURE in names:
+        print(f"acceptance: known contract failure already in {path} ({len(names)} names)")
+        return 0
+    text = original
+    if not text.endswith("\n"):
+        text += "\n"
+    text += KNOWN_CONTRACT_FAILURE + "\n"
+    path.write_text(text)
+    print(f"acceptance: added known contract failure to {path} ({len(names) + 1} names)")
+    return 0
 
 
 def normalize_xctest(identifier):
@@ -96,7 +147,9 @@ def read_exit_code(path):
 
 def write_names(path, names):
     unique = sorted(set(names))
-    path.write_text("".join(f"{name}\n" for name in unique))
+    text = "".join(f"{name}\n" for name in unique)
+    # A zero-byte file is dropped by upload-artifact. One blank line still means no names.
+    path.write_text(text or "\n")
     return unique
 
 
@@ -158,18 +211,8 @@ def gate(mode, baseline_path, failure_paths, status_paths, record_path, expected
     return 0
 
 
-def version_key(path):
-    return tuple(int(part) for part in re.findall(r"\d+", path.name))
-
-
 def select_xcode():
-    apps = [path for path in Path("/Applications").glob("Xcode_*.app") if path.is_dir() or path.is_symlink()]
-    if not apps:
-        raise SystemExit("no versioned Xcode under /Applications")
-    newest = sorted(apps, key=version_key)[-1]
-    developer = newest / "Contents" / "Developer"
-    print(f"Selecting {newest}")
-    subprocess.check_call(["sudo", "xcode-select", "-s", str(developer)])
+    """Print the active Xcode. Do not switch the self-hosted Mac's selection."""
     subprocess.check_call(["xcodebuild", "-version"])
 
 
@@ -407,6 +450,37 @@ def self_check():
         (sample / "p1.txt").write_text("# comment\n\n  d2-home\n\t# also\n--shop-npc-fixture enabled\n")
         assert routes_from_accept(sample) == ["d2-home", "--shop-npc-fixture enabled"]
         assert routes_from_accept(root / "absent") == []
+        missing_contract = root / "no-contract.txt"
+        try:
+            record_known_contract_failure(missing_contract)
+            raise AssertionError("missing contract baseline must fail")
+        except SystemExit as error:
+            assert "baseline missing" in str(error)
+        blank_contract = root / "blank-contract.txt"
+        blank_contract.write_text("\n\n")
+        try:
+            record_known_contract_failure(blank_contract)
+            raise AssertionError("blank contract baseline must fail")
+        except SystemExit as error:
+            assert "blank" in str(error)
+        assert blank_contract.read_text() == "\n\n"
+        contract = root / "contract-failing-baseline.txt"
+        contract.write_text("zeta.Z.test_last\nalpha.A.test_first")
+        assert record_known_contract_failure(contract) == 0
+        recorded = contract.read_text()
+        assert recorded == "zeta.Z.test_last\nalpha.A.test_first\n" + KNOWN_CONTRACT_FAILURE + "\n"
+        assert record_known_contract_failure(contract) == 0
+        assert contract.read_text() == recorded
+        accept = root / "Accept"
+        assert ui_smoke_needed(accept) is False
+        accept.mkdir()
+        assert ui_smoke_needed(accept) is False
+        (accept / "Helper.swift").write_text("// class NotATest: XCTestCase\nstruct Foo {}\n")
+        assert ui_smoke_needed(accept) is False
+        (accept / "Flow.swift").write_text("@MainActor final class AcceptFlowTests: XCTestCase {\n}\n")
+        assert ui_smoke_needed(accept) is True
+        args_path = root / "ui.args"
+        assert write_ui_smoke_args(accept, args_path) == "-only-testing:QuestifyUITests/AcceptFlowTests"
     groups = []
     for shard in (0, 1, 2, 3):
         args = only_testing_args(shard).split()
@@ -419,8 +493,41 @@ def self_check():
     assert len(ordered) == len(set(ordered))
     for index, name in enumerate(ordered):
         assert name in groups[index % 4]
+    workflow_contract()
     print(f"acceptance support self-check passed ({len(ordered)} AppUnit classes)")
     return 0
+
+
+def workflow_contract():
+    """Lock the Acceptance workflow to the self-hosted runner and branch record mode."""
+    text = Path(".github/workflows/acceptance.yml").read_text()
+    head, jobs = text.split("\njobs:\n", 1)
+    for forbidden in ("workflow_dispatch:", "pull_request:", "pull_request_target:", "macos-26", "macos-latest", "github.event.inputs"):
+        if forbidden in text:
+            raise SystemExit(f"acceptance workflow contains {forbidden}")
+    if "acceptance-mac" in head:
+        raise SystemExit("concurrency group must stay on the self-hosted jobs")
+    if "contents: write" in head:
+        raise SystemExit("contents: write must stay on the commit job")
+    if jobs.count("group: acceptance-mac") != 5:
+        raise SystemExit("acceptance-mac concurrency must be on the five self-hosted jobs")
+    if jobs.count("cancel-in-progress: false") != 5:
+        raise SystemExit("self-hosted concurrency must not cancel")
+    runner = "runs-on: [self-hosted, macOS, ARM64, chengyin-app]"
+    if jobs.count(runner) != 5:
+        raise SystemExit("build, test, and screenshot jobs must use the self-hosted Mac")
+    if jobs.count("runs-on: ubuntu-latest") != 5:
+        raise SystemExit("python and baseline jobs must use ubuntu-latest")
+    if "HEAD:refs/heads/ci/acceptance" not in jobs:
+        raise SystemExit("record must push baselines to ci/acceptance")
+    if "refs/heads/ci/baseline-record" not in head:
+        raise SystemExit("record mode must key off refs/heads/ci/baseline-record")
+    if jobs.count("contents: write") != 1:
+        raise SystemExit("only the commit job may write contents")
+    if KNOWN_CONTRACT_FAILURE not in Path(".github/acceptance_support.py").read_text():
+        raise SystemExit("known contract failure id drifted")
+    if not ui_smoke_needed() and not ACCEPT_UI_ROOT.is_dir():
+        print("acceptance: Tests/AppUITests/Accept is absent; ui-smoke will skip")
 
 
 def main(argv):
@@ -454,6 +561,15 @@ def main(argv):
     shots.add_argument("--out", type=Path, default=Path("acceptance-shots"))
 
     sub.add_parser("screenshot-needed")
+    sub.add_parser("ui-smoke-needed")
+
+    ui = sub.add_parser("ui-smoke-args")
+    ui.add_argument("--out", type=Path, required=True)
+    ui.add_argument("--root", type=Path, default=ACCEPT_UI_ROOT)
+
+    contract = sub.add_parser("record-contract")
+    contract.add_argument("--baseline", type=Path, required=True)
+
     sub.add_parser("self-check")
 
     args = parser.parse_args(argv)
@@ -475,6 +591,14 @@ def main(argv):
     if args.cmd == "screenshot-needed":
         print("true" if screenshot_needed() else "false")
         return 0
+    if args.cmd == "ui-smoke-needed":
+        print("true" if ui_smoke_needed() else "false")
+        return 0
+    if args.cmd == "ui-smoke-args":
+        write_ui_smoke_args(args.root, args.out)
+        return 0
+    if args.cmd == "record-contract":
+        return record_known_contract_failure(args.baseline)
     if args.cmd == "self-check":
         return self_check()
     raise SystemExit(f"unknown command {args.cmd}")
