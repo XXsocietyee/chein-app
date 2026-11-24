@@ -202,9 +202,17 @@ struct PlayChapterPickRow: Identifiable, Equatable {
     let showsEmergency: Bool
     let openChapters: () -> Void
     let openEmergency: () -> Void
+    /// PLAY-3: MP 游玩工具 扫码到达 (`onScanArriveFromTools`, mode != 2). Opens the current stop, whose scan task
+    /// owns the camera and the `api/play/checkin` write. nil hides the row (no single current stop).
+    var openScanArrival: (() -> Void)? = nil
     var body: some View {
-        if showsChapters || showsEmergency {
+        if showsChapters || showsEmergency || openScanArrival != nil {
             Menu {
+                if let openScanArrival {
+                    Button(action: openScanArrival) { Label("play.tools.scanArrive", systemImage: "qrcode.viewfinder") }
+                        .accessibilityHint(Text("play.tools.scanArrive.hint"))
+                        .accessibilityIdentifier("play.tools.scanArrive")
+                }
                 if showsChapters {
                     Button(action: openChapters) { Label("mpd.chapters.switch", systemImage: "book.pages") }
                         .accessibilityIdentifier("play.tools.chapters")
