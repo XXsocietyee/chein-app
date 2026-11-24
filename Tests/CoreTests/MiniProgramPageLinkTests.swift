@@ -229,6 +229,15 @@ final class MiniProgramPageLinkTests: XCTestCase {
         }
     }
 
+    func testCatalogOptionalIDAndSessionVia() {
+        let session = MiniProgramPageLink(path: "pages/topic/index/index", query: ["id": "7", "via": "session"])
+        XCTAssertEqual(session?.opensSessionPickerFirst, true)
+        XCTAssertNil(MiniProgramPageLink(path: "pages/topic/index/index", query: ["id": "7", "via": "other"]))
+        XCTAssertEqual(MiniProgramPageLink(path: "pages/topic/catalog/index", query: ["id": "9"])?.catalogDestination, .topic(9))
+        XCTAssertEqual(MiniProgramPageLink(path: "pages/topic/catalog/index", query: [:])?.catalogDestination, .home)
+        XCTAssertNil(MiniProgramPageLink(path: "pages/topic/catalog/index", query: ["id": "09"]))
+    }
+
     func testEmptyValuesAreAbsent() {
         let link = MiniProgramPageLink(path: "/subpackageA/pages/video-bounty/index", query: ["campaignKey": "", "topicId": ""])
         XCTAssertEqual(link?.query, [:])

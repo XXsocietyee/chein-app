@@ -12,6 +12,7 @@ public struct TopicClubShareLink: Equatable, Sendable {
     public static let laterRegistrationField = "sourceChannelCode"
     public let topicID: Int
     public let sourceClubId: Int
+    /// Trimmed 1–64. Nil when the link has a club id and no code (`clubCode` / `sourceChannelCode`).
     public let clubCode: String?
     public init(topicID: Int, sourceClubId: Int, clubCode: String?) {
         self.topicID = topicID
@@ -45,16 +46,22 @@ public enum TopicClubShareLinkParser {
         var path = components.percentEncodedPath
         if path.hasPrefix("/") { path.removeFirst() }
         guard path == TopicClubShareLink.page, let items = components.queryItems,
-              !items.isEmpty, Set(items.map(\.name)).count == items.count else { return nil }
-        let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") })
-        let topicText = query["topicId"].flatMap { $0.isEmpty ? nil : $0 } ?? query["id"] ?? ""
-        guard let topicID = canonicalID(topicText),
+              !items.isEmpty, Set(items.map(\.name)).count == items.count,
+              items.allSatisfy({ $0.value != nil }) else { return nil }
+        let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })
+        // utils/ticket-source.js: `id` or `topicId`, required `sourceClubId`, optional code. Extra keys are ignored.
+        let topicRaw = (query["topicId"]?.isEmpty == false) ? query["topicId"]! : (query["id"] ?? "")
+        guard let topicID = canonicalID(topicRaw),
               let sourceClubId = canonicalID(query["sourceClubId"] ?? "") else { return nil }
-        let code = clubCode(query["clubCode"])
-        if query.keys.contains("clubCode"), code == nil, !(query["clubCode"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return nil
-        }
-        return TopicClubShareLink(topicID: topicID, sourceClubId: sourceClubId, clubCode: code)
+        let codeRaw = (query["clubCode"]?.isEmpty == false) ? query["clubCode"]! : query["sourceChannelCode"]
+        let clubCode: String?
+        if let codeRaw {
+            let trimmed = codeRaw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.isEmpty { clubCode = nil }
+            else if let code = clubCode(trimmed) { clubCode = code }
+            else { return nil }
+        } else { clubCode = nil }
+        return TopicClubShareLink(topicID: topicID, sourceClubId: sourceClubId, clubCode: clubCode)
     }
 
     private static func canonicalID(_ text: String) -> Int? {
@@ -63,12 +70,10 @@ public enum TopicClubShareLinkParser {
         return value
     }
 
-    /// MP `normalizeCode`: trim, empty is absent, longer than 64 rejects the link.
-    private static func clubCode(_ text: String?) -> String? {
-        guard let text else { return nil }
+    private static func clubCode(_ text: String) -> String? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-        guard trimmed.utf16.count <= 64 else { return nil }
+        guard (1...64).contains(trimmed.unicodeScalars.count),
+              trimmed.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 127 }) else { return nil }
         return trimmed
     }
 }

@@ -260,12 +260,26 @@ final class WiringR6TopicClubShareLinkTests: XCTestCase {
     }
 
     func testParserRejectsIncompleteOrNonCanonicalLinks() {
+        XCTAssertEqual(
+            TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42"),
+            TopicClubShareLink(topicID: 8, sourceClubId: 42, clubCode: nil)
+        )
+        XCTAssertEqual(
+            TopicClubShareLinkParser.parse("pages/topic/index/index?topicId=8&sourceClubId=42&sourceChannelCode=EAST&extra=1")?.clubCode,
+            "EAST"
+        )
+        XCTAssertEqual(
+            TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42&clubCode=")?.clubCode,
+            nil
+        )
         for raw in [
             "pages/topic/index/index?id=8",
             "pages/topic/index/index?id=08&sourceClubId=42&clubCode=EAST",
             "pages/topic/index/index?id=8&sourceClubId=0&clubCode=EAST",
+            "pages/topic/index/index?id=8&clubCode=EAST",
             "pages/topic/detail/index?id=8&sourceClubId=42&clubCode=EAST",
-            "http://www.chengyinhub.com/pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST"
+            "http://www.chengyinhub.com/pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST",
+            "pages/topic/index/index?id=8&sourceClubId=42&clubCode=\(String(repeating: "A", count: 65))"
         ] {
             XCTAssertNil(TopicClubShareLinkParser.parse(raw), raw)
         }

@@ -117,6 +117,9 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/team/detail/index"] = Rule(allowed: ["teamId"], required: [], ids: ["teamId"])
         // Only the manual-code form; `?code=` invitations keep the team-invitation parser (NativeNavigationCompletion).
         pages["pages/team/join/index"] = Rule(allowed: ["entry"], required: ["entry"], ids: [])
+        // F14c retired catalog: optional id opens the topic, a bare path opens home. `via=session` is the club-session entry.
+        pages["pages/topic/catalog/index"] = optionalID
+        pages["pages/topic/index/index"] = Rule(allowed: ["id", "via"], required: ["id"], ids: ["id"])
         return pages
     }()
 
@@ -271,6 +274,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         "pages/coop/invite/index": ["type": ["0", "1"]],
         "pages/coop/invite-detail/index": ["box": ["received", "sent"]],
         "pages/coop/settlement-detail/index": ["personal": ["1"]],
+        "pages/topic/index/index": ["via": ["session"]],
     ]
 
     public init?(path: String, query: [String: String]) {
@@ -333,4 +337,21 @@ public struct MiniProgramPageLink: Equatable, Sendable {
               let value = Int(text), value > 0, String(value) == text else { return nil }
         return value
     }
+
+    /// Club session card (`via=session`): the primary bar opens the session picker before self-play.
+    public var opensSessionPickerFirst: Bool {
+        page == "pages/topic/index/index" && query["via"] == "session"
+    }
+
+    /// `pages/topic/catalog/index`: a canonical id is the topic; anything else is home.
+    public var catalogDestination: TopicCatalogDestination? {
+        guard page == "pages/topic/catalog/index" else { return nil }
+        if let raw = query["id"], let id = Self.positiveID(raw) { return .topic(id) }
+        return .home
+    }
+}
+
+public enum TopicCatalogDestination: Equatable, Sendable {
+    case topic(Int)
+    case home
 }
