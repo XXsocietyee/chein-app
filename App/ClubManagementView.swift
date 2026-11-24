@@ -181,6 +181,8 @@ struct ClubManagementView: View {
         .cyDomainScreen(.player)
         .cyPageTitle("club.management.title")
         .refreshable { await refresh() }
+        // CLB-join-requests-05 (fix-r3-club-b), MC-21: a handled card slides out when the readback replaces the list.
+        .animation(.easeOut(duration: 0.16), value: snapshot?.requests.map(\.id))
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {
             guard screenContext != readContext || snapshot == nil && state == .idle else { return }
@@ -627,9 +629,7 @@ struct ClubManagementView: View {
               reviewOwner.permitsDispatch(item, context: reviewContext, active: scenePhase == .active) else { return }
         state = coordinator.state(clubID: clubID)
         switch coordinator.readback(clubID: clubID) {
-        case .received(let result):
-            // CLB-join-requests-05 (fix-r3-club-b), MC-21: the handled card slides out instead of waiting for a refresh.
-            withAnimation(.easeOut(duration: 0.16)) { snapshot = result }
+        case .received(let result): snapshot = result
         case .unavailable: readbackUnavailable = true
         default: break
         }

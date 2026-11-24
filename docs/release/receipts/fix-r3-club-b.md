@@ -78,4 +78,7 @@
 ## Gates
 
 - `tools/check_scaffold.py` fails at the project-equivalence assert (line 166). That is pre-existing on r7 plus the restyle merge; this branch adds no Swift files.
-- Contract ratchet: see the "Ratchet" line below.
+- **Contract ratchet** (`tools/contract_ratchet.py`): the base (r7 plus the restyle merge) has 195 failing, and this branch adds **0 new failures**.
+  - Two regressions found during the run were fixed in place.
+  - `test_club_leaderboard_member_navigation`: the byte pin on the span from `} else if operation == .customer {` was re-hashed, with a comment. That span holds the notify retry footnote and the check-in error-phase guard; its customer rows are unchanged.
+  - `test_club_management_review_owner`: the pinned line `case .received(let result): snapshot = result` is kept. The slide-out now comes from a list `.animation(value:)`.
