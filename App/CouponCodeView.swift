@@ -52,6 +52,8 @@ extension EnvironmentValues {
         }.cyPageTitle("couponCode.title")
             .cyDomainPageBackground()
             .privacySensitive().accessibilityIdentifier("couponCode.view")
+            // MKT-9-4: MP coupon-qr vibrates once when the merchant scan lands (index.js:413-418).
+            .cyHaptic(.success, trigger: model.phase == .used, where: { old, new in !old && new })
             .sheet(isPresented: $review) {
                 MemberCouponShowConfirmSheet {
                     review = false
@@ -142,13 +144,13 @@ extension EnvironmentValues {
             // Source used state: a large success disc, 已核销, then the redemption time.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "checkmark.circle")
-                    .font(.title.weight(.semibold))
+                    .cyText(.pageTitle, weight: .semibold)
                     .foregroundStyle(CYColor.successText)
                     .frame(width: 64, height: 64)
                     .background(Circle().fill(CYColor.successSoft))
                     .accessibilityHidden(true)
                 Text("u9cde.coupon.used").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                if let time = model.useTime { Text(verbatim: time).cyText(.meta).monospacedDigit().foregroundStyle(.secondary) }
+                if let time = model.useTime { Text(verbatim: time).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
             }
             .padding(.top, CYSpacing.xxl)
             .accessibilityElement(children: .combine)

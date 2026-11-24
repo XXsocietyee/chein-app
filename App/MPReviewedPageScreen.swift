@@ -410,9 +410,12 @@ import SwiftUI
         case "subpackageMember/points-history/index":
             PassMarketPointsBridge.destination(for: session)()
         case "subpackageMember/coupon-wallet/index", "subpackageMember/coupon-qr/index":
-            // coupon-qr needs the owner-scoped coupon selection to mint a code; the link lands on the wallet,
-            // one tap from the code (the code page itself re-checks the owner).
-            AccountCollectionCouponsView(reader: session.accountCollectionReader)
+            // coupon-qr needs the owner-scoped coupon selection to mint a code. The link lands on the wallet, which
+            // pushes the code once the owner's list holds that history id unused (R7-MEM-9-1); otherwise the list stays.
+            AccountCollectionCouponsView(reader: session.accountCollectionReader,
+                                         focusHistoryID: page.hasSuffix("coupon-qr/index")
+                                            ? (reviewedID(query, key: "couponHistoryId") ?? reviewedID(query, key: "historyId") ?? reviewedID(query))
+                                            : nil)
         case "subpackageMember/free-explore/index":
             freeExplore
         case "subpackageMember/complaint/index":
