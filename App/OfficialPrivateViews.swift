@@ -36,7 +36,7 @@ import SwiftUI
                         if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
                         // Source meta line: "(city ‖ 全国) · role".
                         (cityText(row) + Text(verbatim: " · ") + roleText(row)).cyText(.meta).foregroundStyle(palette.textSecondary)
-                        Text(LocalizedStringKey(row.scopeKey)).cyText(.caption).foregroundStyle(palette.textTertiary)
+                        Text(LocalizedStringKey(row.scopeKey)).cyText(.caption).foregroundStyle(palette.textSecondary)
                         if let note = row.roleNoteTuple {
                             Text(verbatim: c.t(note.zh, note.en)).cyText(.caption).foregroundStyle(palette.textSecondary)
                         }
@@ -158,7 +158,7 @@ import SwiftUI
         // Mini-program `cy-empty` (title + sub): quiet centred empty row.
         VStack(spacing: CYSpacing.xs) {
             Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textSecondary)
-            Text(detail).cyText(.meta).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
+            Text(detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
         }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.md).accessibilityElement(children: .combine)
     }
 }

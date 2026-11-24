@@ -93,7 +93,7 @@ import SwiftUI
             }.disabled(!model.canEdit)
             if row["when"] != nil { NativeConditionAuthorExpressionSection(model: model, path: path.field("when"), effect: false) }
             else { Section { Button("配置原只读条件") { model.setField("when", at: path, to: .array([])) }.disabled(!model.canEdit) } }
-        }.navigationTitle("原检定修正")
+        }.navigationTitle("原检定修正").navigationBarTitleDisplayMode(.inline)
     }
     private func text(_ key: String) -> Binding<String> {
         Binding(get: { row[key]?.text ?? "" }, set: { model.setField(key, at: path, to: .string($0)) })

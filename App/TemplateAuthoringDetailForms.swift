@@ -222,7 +222,7 @@ import SwiftUI
                 .deleteDisabled(editor.beats.count <= 1)
             Section { Button("templateAuthor.addBeat", systemImage: "plus") { editor.add() }.accessibilityIdentifier("templateAuthor.addBeat") }
         }.disabled(!editor.canEdit)
-            .navigationTitle("templateAuthor.storyTimeline")
+            .navigationTitle("templateAuthor.storyTimeline").navigationBarTitleDisplayMode(.inline)
             .toolbar { EditButton().disabled(!editor.canEdit) }
             .onAppear { editor.load(); media.reload() }
             .onDisappear { editor.retire() }
@@ -278,7 +278,7 @@ import SwiftUI
                 }.accessibilityIdentifier("templateTimerOutcome.open")
             }
             if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).cyText(.meta).foregroundStyle(CYColor.dangerText) } } }
-        }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced")
+        }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced").navigationBarTitleDisplayMode(.inline)
     }
     private func field(_ section: String, _ key: String) -> some View {
         TemplateAuthoringField(key, text: .init(get: { model.draft.advanced.text(section, key) }, set: { model.draft.advanced.set(section, key, .string($0)) }))

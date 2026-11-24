@@ -172,7 +172,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: pillar.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(
                                     (pillar.isFailClosedCompliant && !pillar.liveCashMutationEnabled)
                                         ? CYColor.successText
@@ -197,7 +197,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                             .cyText(.label)
                         Spacer()
                         Text(verbatim: surface.isFlaggedOffByPolicy ? "FLAGGED-OFF" : "PARITY-READY")
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                     }
                 }
             }

@@ -249,7 +249,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                     }
                     Spacer()
                     Text(verbatim: snapshot.isZeroGapCertified ? "CERTIFIED" : "UNVERIFIED")
-                        .font(.caption2.monospaced().weight(.bold))
+                        .font(.caption.monospaced().weight(.bold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
@@ -274,7 +274,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.isCertified ? row.statusText : "BLOCKED (\(row.statusText))")
-                                .font(.caption2.monospaced().weight(.semibold))
+                                .font(.caption.monospaced().weight(.semibold))
                                 .foregroundStyle(row.isCertified ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.scopeSummary)
@@ -282,7 +282,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                             .foregroundStyle(.secondary)
                         if let sha = row.commitSHA, !sha.isEmpty {
                             Text(verbatim: "绑定 SHA: \(sha) · 证据: \(row.evidenceLink ?? "无")")
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                         }
                         if let blocker = row.blockerNote, !blocker.isEmpty {

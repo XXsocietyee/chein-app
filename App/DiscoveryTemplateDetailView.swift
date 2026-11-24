@@ -11,6 +11,7 @@ struct DiscoveryTemplateDetailView: View {
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
@@ -79,6 +80,12 @@ struct DiscoveryTemplateDetailView: View {
                                 Button {
                                     guard loadedKey == requestKey, reader.isConfigured,
                                           authoringCompletion?.isCurrent() != false else { return }
+                                    // R7-PC-A6-2 (r1 PC-A-6-3): MP `ensureLogin` before 应用 — a guest goes to sign-in.
+                                    if (reader as? AppSession)?.isSignedIn == false {
+                                        toastMessage = appLocalized("discovery.adopt.signIn", locale: locale)
+                                        if rootTabSwitch.isAvailable { (reader as? AppSession)?.dismissNativeEntry(); rootTabSwitch(.mine) }
+                                        return
+                                    }
                                     adoption = Adoption(source: item, key: requestKey)
                                 } label: { TemplateXbApplyLabel() }
                                     .buttonStyle(.plain)
@@ -219,7 +226,8 @@ struct DiscoveryTemplateDetailView: View {
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section { Text(text).cyText(.body).foregroundStyle(palette.textSecondary).textSelection(.enabled) } header: { DiscoverySectionHeader(title) }
+            // R7-PC-A6-4 (r1 PC-A-6-5): MP clamps 简介 / 规则 to 4 lines with 更多 / 收起.
+            Section { DiscoveryClampedText(text: text) } header: { DiscoverySectionHeader(title) }
                 .discoveryCardRow()
         }
     }
@@ -299,7 +307,9 @@ struct DiscoveryTopicTemplatePreview: View {
                 ContentUnavailableView("discovery.templateSessionChanged", systemImage: "person.crop.circle.badge.exclamationmark",
                                        description: Text("discovery.templateReopen"))
             } else if detail.isLoading {
-                ProgressView("discovery.loading")
+                // R7-PC-A7-2 (r1 PC-A-7-4): MP skeleton, not a centred spinner.
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text("discovery.loading"))
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await detail.load() } }
             } else if let item = detail.value {
@@ -352,7 +362,10 @@ struct DiscoveryTopicTemplatePreview: View {
                 .cyDomainPageBackground()
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")
-            } else { ProgressView("discovery.loading") }
+            } else {
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text("discovery.loading"))
+            }
         }
         .appNavigationTitle("discovery.topicPreview")
         .toolbar {
@@ -404,7 +417,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                             if !TopicXcxFacts.hidesGeneratedChapterOrdinal(chapter.name ?? "") {
-                                Text("u10.template.chapterNo \(index + 1)").cyText(.meta).foregroundStyle(palette.textTertiary)
+                                Text("u10.template.chapterNo \(index + 1)").cyText(.meta).foregroundStyle(palette.textSecondary)
                             }
                             DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").cyText(.cardTitle)
                         }
@@ -439,10 +452,6 @@ struct DiscoveryTopicTemplatePreview: View {
             }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
         }.discoveryCardRow()
-        TopicTemplateAdoptionConditionsSection(
-            delivery: item.contentDelivery,
-            canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
-        )
         let nodes = item.chapters.flatMap(\.nodes)
         if !nodes.isEmpty {
             Section {
@@ -457,7 +466,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                 (nonempty(node.name).map { Text(verbatim: $0) } ?? Text("u10.template.nodeNo \(index + 1)"))
                                     .cyText(.label).foregroundStyle(palette.textPrimary).cyWrapText()
                                 if let teaser = nonempty(node.hookTeaser) {
-                                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary).cyWrapText()
+                                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary).cyWrapText()
                                 }
                                 // U02-05: credit for the first 8 node images only (mini _loadCredits).
                                 if index < 8, let reference = nonempty(node.imgUrl), TopicTemplateAdoptionFactory.attributionIsLive {
@@ -481,7 +490,7 @@ struct DiscoveryTopicTemplatePreview: View {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: medal).cyText(.cardTitle)
-                    Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textTertiary)
+                    Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textSecondary)
                 }.accessibilityElement(children: .combine)
             } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star") }
                 .discoveryCardRow()
@@ -496,7 +505,7 @@ struct DiscoveryTopicTemplatePreview: View {
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
             value.cyText(.numericBody).foregroundStyle(palette.textPrimary)
-            Text(label).cyText(.caption).foregroundStyle(palette.textTertiary)
+            Text(label).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -513,6 +522,15 @@ struct DiscoveryTopicTemplatePreview: View {
                 }
             }
             .accessibilityIdentifier("discovery.topicDetail.summary")
+            // R7-PC-A8-1 (r1 PC-A-8-3): MP `xb-stat` cards — 节点 / 玩法 / 总时长.
+            HStack(alignment: .top) {
+                topicStat(Text(verbatim: String(stops.count)), label: "discovery.templateDetail.stat.nodes")
+                if !item.games.isEmpty {
+                    topicStat(Text(verbatim: String(item.games.count)), label: "discovery.templateDetail.stat.games")
+                }
+                topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+            }
+            .accessibilityIdentifier("discovery.topicDetail.stats")
             if stops.isEmpty {
                 CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
             }
@@ -532,6 +550,11 @@ struct DiscoveryTopicTemplatePreview: View {
                 ForEach(stops, id: \.number) { stopRow($0) }
             }
         }.discoveryCardRow()
+        // R7-PC-A8-4 (r1 PC-A-8-4): MP 采用条件 sits under 能力, after the stops.
+        TopicTemplateAdoptionConditionsSection(
+            delivery: item.contentDelivery,
+            canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
+        )
     }
     private func stopRow(_ stop: NumberedStop) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
@@ -543,7 +566,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     Text(verbatim: play).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 if let teaser = stop.hookTeaser {
-                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
             }
         }
@@ -613,11 +636,32 @@ private struct PublicTemplateSilhouette: View {
             }
             #if DEBUG
             Text(verbatim: "ROUTE SHAPE · DEBUG")
-                .cyText(.micro).foregroundStyle(palette.textTertiary)
+                .cyText(.micro).foregroundStyle(palette.textSecondary)
                 .padding(CYSpacing.sm)
             #endif
         }
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .ignore)
+    }
+}
+
+/// Long template text: 4 lines with 更多, full text with 收起. Short text shows no control.
+struct DiscoveryClampedText: View {
+    let text: String
+    var lineLimit = 4
+    @State private var expanded = false
+    @Environment(\.cyPalette) private var palette
+    private var isLong: Bool { text.count > 80 || text.filter { $0 == "\n" }.count >= lineLimit }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(text).cyText(.body).foregroundStyle(palette.textSecondary).textSelection(.enabled)
+                .lineLimit(expanded || !isLong ? nil : lineLimit)
+                .fixedSize(horizontal: false, vertical: true)
+            if isLong {
+                Button(expanded ? "discovery.text.less" : "discovery.text.more") { expanded.toggle() }
+                    .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
+                    .accessibilityIdentifier("discovery.clampedText.toggle")
+            }
+        }
     }
 }

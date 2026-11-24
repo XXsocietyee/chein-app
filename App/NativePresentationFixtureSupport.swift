@@ -96,7 +96,7 @@ import UIKit
                         if expired { Text(verbatim: "Synthetic scope changed").accessibilityIdentifier("presentation.fixture.expired") }
                     }
                 }
-                .navigationTitle("media.destination.squareImages")
+                .navigationTitle("media.destination.squareImages").navigationBarTitleDisplayMode(.inline)
                 .fullScreenCover(isPresented: $gallery) {
                     NativeMediaGallery(snapshot: .init(sources: [sources[0]], selectedIndex: 0), titleKey: "media.destination.squareImages", reader: images)
                 }

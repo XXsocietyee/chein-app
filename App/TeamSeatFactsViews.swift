@@ -41,7 +41,7 @@ struct TeamSeatFactsCard: View {
             let chinese = locale.language.languageCode?.identifier == "zh"
             if let text = TeamPagePresentation.startText(raw, chinese: chinese) {
                 Label { Text("team.invite.expires \(text)") } icon: { Image(systemName: "clock") }
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("teamSeats.invite")
             }
         }
@@ -60,7 +60,7 @@ struct TeamViewerRelationshipLine: View {
                              systemImage: duty == "team.viewer.captain" ? "crown" : "person")
                     .accessibilityIdentifier("teamViewer.duty")
                 Text("team.viewer.dutyScope")
-                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if invitation, let status = TeamSeatPresentation.applicationKey(detail.viewer) {

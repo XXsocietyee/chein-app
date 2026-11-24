@@ -131,13 +131,13 @@ import UIKit
     @ViewBuilder private var privacyControls: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             if record.meaningfulZone != nil {
-                Toggle("roam.share.includePlace", isOn: $includePlace)
+                Toggle("roam.share.includePlace", isOn: $includePlace).tint(.green)
                     .accessibilityIdentifier("roam.share.includePlace")
                 Text("roam.share.includePlaceHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if !record.track.isEmpty {
-                Toggle("roam.share.includeRoute", isOn: $includeRoute)
+                Toggle("roam.share.includeRoute", isOn: $includeRoute).tint(.green)
                     .accessibilityIdentifier("roam.share.includeRoute")
             }
             RoamShareChannelPicker(mode: Binding(get: { channelPolicy.mode }, set: { mode in

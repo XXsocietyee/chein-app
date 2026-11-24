@@ -105,7 +105,7 @@ extension EnvironmentValues {
         .tint(Theme.Color.actionPrimaryBackground(in: .merchant))
         .themeDomain(.merchant)
         .scrollDismissesKeyboard(.interactively)
-        .navigationTitle(Text("cityMerchant.heading", tableName: table))
+        .navigationTitle(Text("cityMerchant.heading", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .task {
             guard !Task.isCancelled else { return }
             visit.appear(); active = scenePhase == .active

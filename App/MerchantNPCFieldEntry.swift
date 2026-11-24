@@ -38,7 +38,10 @@ import SwiftUI
         content.background {
             Color.clear.frame(width: 0, height: 0)
                 .sheet(item: presentation.presentationBinding()) { selected in
-                    MerchantNPCFieldSheet(session: selected) { presentation.close(selected.id) }
+                    Group {
+                        MerchantNPCFieldSheet(session: selected) { presentation.close(selected.id) }
+                    }
+                    .presentationDetents([.large]).presentationDragIndicator(.visible)
                 }
                 // A newly selected session gets a fresh sheet binding owner, including first open.
                 .id(presentation.session?.id)

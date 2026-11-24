@@ -273,7 +273,7 @@ import SwiftUI
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playTeam.close") { close() }.disabled(flow.busyLevel != nil) } }
         }
-        .presentationDetents([.medium, .large])
+        .cySheet()
         .interactiveDismissDisabled(flow.busyLevel != nil)
         .onChange(of: flow.finished) { _, done in if done { close() } }
     }

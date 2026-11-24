@@ -33,7 +33,7 @@ import UIKit
                         Button("Change fixture session") { featuredScope = UUID() }
                             .accessibilityIdentifier("merchant.featured.fixture.changeScope")
                     }
-                }.navigationTitle("merchant.publicHome.featured.activity"))
+                }.navigationTitle("merchant.publicHome.featured.activity").navigationBarTitleDisplayMode(.inline))
             }, couponWallet: {
                 AnyView(Text("Synthetic owned coupon wallet").accessibilityIdentifier("merchant.featured.fixture.wallet"))
             })

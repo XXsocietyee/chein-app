@@ -56,7 +56,7 @@ private struct MerchantOnboardingCategorySheet: View {
                                 Text(verbatim: row.name).cyText(.body).foregroundStyle(CYColor.textPrimary)
                                 Spacer()
                                 if let index {
-                                    Text(verbatim: "\(index + 1)").cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                                    Text(verbatim: "\(index + 1)").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
                                     Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.textPrimary)
                                 } else {
                                     Image(systemName: "circle").foregroundStyle(CYColor.textTertiary)
@@ -70,7 +70,7 @@ private struct MerchantOnboardingCategorySheet: View {
                         .accessibilityAddTraits(index == nil ? [] : .isSelected)
                     }
                 } footer: {
-                    Text("merchant.onboarding.category.hint \(MerchantOnboardingDraft.categoryLimit)").cyText(.caption)
+                    Text("merchant.onboarding.category.hint \(MerchantOnboardingDraft.categoryLimit)").cyText(.meta)
                 }
             }
         }

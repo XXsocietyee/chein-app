@@ -113,26 +113,41 @@ import SwiftUI
         }
         .onDisappear { suspendOriginalInstallRead() }
         .sheet(item: $editing, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
-            NavigationStack { ModInstallationTemplateEditorView(editor: editor) }
+            Group {
+                NavigationStack { ModInstallationTemplateEditorView(editor: editor) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $editingQa, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
-            NavigationStack { ModInstallationQaEditorView(editor: editor) }
+            Group {
+                NavigationStack { ModInstallationQaEditorView(editor: editor) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $venue) { model in NavigationStack { ModVenueOperationsView(model: model) } }
+        .sheet(item: $venue) { model in Group { NavigationStack { ModVenueOperationsView(model: model) } }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .sheet(item: $editingTopic, onDismiss: { Task { await controller.refreshFacts() } }) { receipt in
-            NavigationStack { ModInstallationTopicEditor(receipt: receipt, isCurrent: { controller.isCurrent }) }
+            Group {
+                NavigationStack { ModInstallationTopicEditor(receipt: receipt, isCurrent: { controller.isCurrent }) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $confirmation) { receipt in
-            ModInstallationConfirmation(receipt: receipt, preview: controller.preview, canConfirm: controller.canConfirm && controller.receipt == receipt) {
-                confirmation = nil
-                Task { await controller.confirmInstall(receipt) }
+            Group {
+                ModInstallationConfirmation(receipt: receipt, preview: controller.preview, canConfirm: controller.canConfirm && controller.receipt == receipt) {
+                    confirmation = nil
+                    Task { await controller.confirmInstall(receipt) }
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $factReview) { facts in
-            ModInstallationFactReview(facts: facts, canConfirm: controller.canConfirmFacts && controller.facts == facts) {
-                factReview = nil
-                Task { await controller.confirmFacts(facts) }
+            Group {
+                ModInstallationFactReview(facts: facts, canConfirm: controller.canConfirmFacts && controller.facts == facts) {
+                    factReview = nil
+                    Task { await controller.confirmFacts(facts) }
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .confirmationDialog(installationString("cancelQuestion", locale: locale), isPresented: $showCancellation, titleVisibility: .visible) {
             Button(role: .destructive) {
@@ -243,7 +258,7 @@ import SwiftUI
             } label: {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     installationText("kind." + requirement.kind.rawValue)
-                    Text(verbatim: requirement.key).font(CYTypography.meta.monospaced()).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: requirement.key).cyText(.meta).monospaced().foregroundStyle(CYColor.textTertiary)
                 }
             }
             .disabled(!controller.canSelect || controller.selectedAnchorPoiId == nil)
@@ -529,7 +544,7 @@ import SwiftUI
                             InstallationNativeGraphContent(graph: graph)
                         } else {
                             installationText("graph.currentConfiguration").cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                            Text(verbatim: json).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: json).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
@@ -540,7 +555,7 @@ import SwiftUI
                             installationText("kind." + binding.kind.rawValue).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             Text(verbatim: binding.key + ": " + binding.label).cyText(.body).fixedSize(horizontal: false, vertical: true)
                             Text(verbatim: String(binding.resourceId)).cyText(.numericBody)
-                            Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: binding.fingerprint).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
@@ -577,7 +592,7 @@ private struct InstallationReceiptFacts: View {
                 installationText("kind." + binding.kind.rawValue).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: binding.key + ": " + binding.label).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: String(binding.resourceId)).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
-                Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: binding.fingerprint).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             }
         }
         ForEach(receipt.requiredGates, id: \.self) { gate in
@@ -714,7 +729,7 @@ private func receiptSymbol(_ state: ModInstallationReceipt.State) -> String {
             CYInfoCard {
                 Cloud25Header(title: installationString("originalRecovery.localSection", locale: locale))
                 if let request = controller.originalRecoveryRequestID {
-                    Text(verbatim: request).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: request).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if let saved = controller.originalRecoverySavedReceipt {
                         CYStatusChip(verbatim: installationString("originalRecovery.savedReceipt", locale: locale), tone: .info, systemImage: "doc.text")
                             .accessibilityLabel(installationText("originalRecovery.savedReceipt"))

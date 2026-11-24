@@ -189,8 +189,8 @@ import SwiftUI
                     .lineLimit(1...4).focused($typing)
                     .cyText(.body).foregroundStyle(CYColor.textPrimary)
                     .padding(.horizontal, 16).padding(.vertical, 14).frame(minHeight: 52)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(CYColor.borderSubtle, lineWidth: 1))
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous).stroke(CYColor.borderSubtle, lineWidth: 1))
                     .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")
                 textReviewButton
             }
@@ -206,7 +206,7 @@ import SwiftUI
     private var textReviewButton: some View {
         let empty = draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         return Button { typing = false; guardedSend(current: { (draft, nil) }) { attempt { try coordinator.reviewText(draft) } } } label: {
-            Image(systemName: "arrow.up").font(CYTypography.button)
+            Image(systemName: "arrow.up").cyText(.button)
                 .frame(width: 44, height: 44)
                 .foregroundStyle(empty || !canCompose ? CYColor.textDisabled : CYColor.textInverse)
                 .background(empty || !canCompose ? CYColor.bgElevated : CYColor.textPrimary, in: Circle())
@@ -224,7 +224,7 @@ import SwiftUI
                 else { try capture.startAfterExplicitMicrophoneIntent(grants: coordinator.grants, onEnded: { recording = false }); recording = true }
             }
         } label: {
-            Image(systemName: recording ? "stop.fill" : "mic.fill").font(CYTypography.button)
+            Image(systemName: recording ? "stop.fill" : "mic.fill").cyText(.button)
                 .frame(width: 44, height: 44).foregroundStyle(CYColor.textPrimary)
                 .background(CYColor.bgElevated, in: Circle())
         }

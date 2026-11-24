@@ -58,7 +58,7 @@ import SwiftUI
                 if presentation.storyImage != nil {
                     Text("discovery.template.storyImageInGallery")
                         .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("discovery.template.storyImage")
                         .discoveryPresentationRow()

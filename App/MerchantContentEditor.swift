@@ -127,7 +127,7 @@ import SwiftUI
         .onAppear { if case .placement = kind { addressChoice.appear(active: addressScenePhase == .active) } }
         .onChange(of: addressScenePhase) { _, phase in addressChoice.sceneChanged(active: phase == .active) }
         .onChange(of: service.scope) { _, _ in addressChoice.invalidate() }
-        .appNavigationTitle(key: "merchant.content." + query.key)
+        .appNavigationTitle(key: "merchant.content." + query.key).navigationBarTitleDisplayMode(.inline)
         .task(id: service.scope) { addressGeneration = UUID(); addressConfirmation = nil; placementTemplateReturnReadback = false; placementTemplateProtectedReadback = nil; text = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false; addressGeneration = UUID(); await model.load(); if c.isCurrent, let s = c.snapshot { seed(s) } }
         // type-and-chrome §3: one exit guard — system back while clean; the same-looking guarded back asks first while dirty.
         .cyGuardedBack(when: dirty) { discard = true }

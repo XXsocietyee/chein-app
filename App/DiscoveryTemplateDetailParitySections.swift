@@ -24,7 +24,7 @@ struct DiscoveryTemplateDetailParitySections: View {
                     ForEach(stats, id: \.kind) { stat in
                         VStack(spacing: 2) {
                             statValue(stat).cyText(.numericBody).foregroundStyle(palette.textPrimary)
-                            Text(statLabel(stat.kind)).cyText(.caption).foregroundStyle(palette.textTertiary)
+                            Text(statLabel(stat.kind)).cyText(.caption).foregroundStyle(palette.textSecondary)
                         }
                         .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .combine)
@@ -66,9 +66,9 @@ struct DiscoveryTemplateDetailParitySections: View {
             } header: { DiscoverySectionHeader("discovery.templateDetail.reviews") }.discoveryCardRow()
         }
         DiscoveryTemplateNoticeSection()
-        .sheet(item: $preview) { state in
+        .sheet(item: $preview) { state in Group {
             TemplateNodePreviewSheet(state: state) { preview = nil }
-        }
+        }.cySheet() }
     }
 
     /// Use count and duration already render in the base metadata/presentation.
@@ -138,7 +138,7 @@ struct DiscoveryTemplateNoticeSection: View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text("discovery.templateDetail.notice.title").cyText(.label)
-                Text("discovery.templateDetail.notice.body").cyText(.meta).foregroundStyle(palette.textTertiary)
+                Text("discovery.templateDetail.notice.body.mp").cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("discovery.templateDetail.notice")

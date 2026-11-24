@@ -41,7 +41,7 @@ class MerchantCustomerPaidCardContracts(unittest.TestCase):
             'LabeledContent("merchant.business.field.paidAmount")',
             "switch paidCardState {",
             "case .amount(let text):",
-            "Text(verbatim: text).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)",
+            "Text(verbatim: text).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)",
             "case .unknown:",
             'Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")',
             "case .permissionHidden:",

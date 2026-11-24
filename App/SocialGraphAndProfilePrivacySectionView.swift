@@ -172,7 +172,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                         .cyText(.cardTitle)
                         .accessibilityIdentifier("socialProfileParity.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
-                        .font(.subheadline)
+                        .cyText(.body)
                         .foregroundStyle(snapshot.isAllReady ? .green : .orange)
                         .accessibilityIdentifier("socialProfileParity.header.summary")
                 }
@@ -196,7 +196,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card).fill(Color.secondary.opacity(0.08)))
         .accessibilityIdentifier("socialProfileParity.section")
     }
 
@@ -209,7 +209,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.referenceBadge)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).ref")
                 Text(verbatim: row.statusBadgeText)
@@ -225,7 +225,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
 
             if !row.verifiedTokens.isEmpty {
                 Text(verbatim: row.verifiedTokens.joined(separator: " · "))
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("socialProfileParity.row.\(row.id).tokens")
             }
@@ -239,7 +239,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.inner).fill(Color.secondary.opacity(0.06)))
         .accessibilityIdentifier("socialProfileParity.row.\(row.id)")
     }
 }

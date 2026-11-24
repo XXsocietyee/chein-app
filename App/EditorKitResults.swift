@@ -127,7 +127,7 @@ struct EditorStateView: View {
                         .font(.title2)
                         .foregroundStyle(palette.textSecondary)
                         .frame(width: EditorKitMetric.stateIconTile, height: EditorKitMetric.stateIconTile)
-                        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(palette.inputFilledBg))
+                        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.inputFilledBg))
                         .accessibilityHidden(true)
                         .padding(.bottom, CYSpacing.xs)
                     (title ?? defaultTitle).cyText(.cardTitle).foregroundStyle(palette.textPrimary)

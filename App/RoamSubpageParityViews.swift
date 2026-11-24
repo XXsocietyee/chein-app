@@ -253,6 +253,7 @@ struct RoamShareLinkDormantNotice: View {
                 }
             }.padding()
         }.navigationTitle(Text("roamSub.w208.session.title"))
+            .navigationBarTitleDisplayMode(.inline)
             .task(id: token) { await load() }
         .cyDomainScreen(.player)
     }

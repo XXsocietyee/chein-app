@@ -317,7 +317,7 @@ struct ClubOpsGovernanceDeniedNote: View {
         Section {
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textSecondary)
                 ClubOpsGovernanceCopy.text(title)
                     .cyText(.cardTitle)

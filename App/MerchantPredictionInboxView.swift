@@ -231,7 +231,7 @@ extension MerchantPredictionReading {
             else if model.phase == .failed {
                 VStack(spacing: CYSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(CYTypography.display)
+                        .cyText(.display)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error"))
                         .cyText(.body)
@@ -276,7 +276,7 @@ extension MerchantPredictionReading {
                 }
             }
         }
-        .appNavigationTitle("merchant.predict.title")
+        .appNavigationTitle("merchant.predict.title").navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.merchant)
         .task { await model.load() }
         .refreshable { await model.load() }
@@ -374,16 +374,16 @@ extension MerchantPredictionReading {
         switch facts.bets {
         case .count(let count):
             Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.bets %lld", count))
-                .cyText(.caption)
+                .cyText(.meta)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textSecondary)
         case .none:
             Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.noBets"))
-                .cyText(.caption)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
         }
         Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.options %lld", facts.optionCount))
-            .cyText(.caption)
+            .cyText(.meta)
             .monospacedDigit()
             .foregroundStyle(CYColor.textSecondary)
     }

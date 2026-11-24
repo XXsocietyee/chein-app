@@ -183,13 +183,13 @@ import SwiftUI
             case .ready:
                 ForEach(Array(requestRows.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: rowGap) {
-                        valueLine(row["state"].text, font: CYTypography.bodyMedium, color: CYColor.textPrimary)
-                        valueLine(row["requestId"].text, font: CYTypography.meta, color: CYColor.textTertiary)
+                        valueLine(row["state"].text, style: .bodyMedium, color: CYColor.textPrimary)
+                        valueLine(row["requestId"].text, style: .meta, color: CYColor.textTertiary)
                     }
                 }
                 if let oneReceipt {
-                    valueLine(oneReceipt["state"].text, font: CYTypography.body, color: CYColor.textPrimary)
-                    valueLine(oneReceipt["inviteId"].text, font: CYTypography.meta, color: CYColor.textTertiary)
+                    valueLine(oneReceipt["state"].text, style: .body, color: CYColor.textPrimary)
+                    valueLine(oneReceipt["inviteId"].text, style: .meta, color: CYColor.textTertiary)
                 }
             }
         }
@@ -205,16 +205,16 @@ import SwiftUI
                 Text(verbatim: locale.pick("据点读取失败，请重试", "Stations did not load. Try again.")).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 CYPillButton(verbatim: locale.pick("重试", "Try again"), style: .secondary, fullWidth: dynamicTypeSize.isAccessibilitySize) { Task { await loadStations() } }
             case .ready:
-                if stationRows.isEmpty { valueLine(nil, font: CYTypography.body, color: CYColor.textSecondary) }
+                if stationRows.isEmpty { valueLine(nil, style: .body, color: CYColor.textSecondary) }
                 ForEach(Array(stationRows.enumerated()), id: \.offset) { _, row in
-                    valueLine(row["stationName"].text, font: CYTypography.body, color: CYColor.textPrimary)
+                    valueLine(row["stationName"].text, style: .body, color: CYColor.textPrimary)
                 }
             }
         }
     }
-    private func valueLine(_ text: String?, font: Font, color: Color) -> some View {
+    private func valueLine(_ text: String?, style: CYTextStyle, color: Color) -> some View {
         Text(verbatim: text ?? "—")
-            .font(font)
+            .cyText(style)
             .foregroundStyle(color)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -461,7 +461,7 @@ import SwiftUI
             }
             TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
                 .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
-            Text(verbatim: "\(message.count) / 100").cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: "\(message.count) / 100").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             Picker("cooperation.invite.terms", selection: $fixed) {
                 Text("cooperation.invite.terms.traffic").tag(false)

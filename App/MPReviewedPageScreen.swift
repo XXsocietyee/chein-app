@@ -37,7 +37,8 @@ import SwiftUI
                 authoringCompletion: session.templateAuthoringCompletionContext,
                 publishDestination: {
                     AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch))
-                }
+                },
+                searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
             )
             .id(session.templateAuthoringViewIdentity)
         case "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index":
@@ -189,15 +190,38 @@ import SwiftUI
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/topic/merchantapply/index":
-            // The application form lives on the topic's chapters screen (MerchantContentEditor is presented from there).
-            if let topicID = reviewedID(query, key: "topicId") {
+            // R7-PC-B3-5: MP merchantapply with a registration `id` edits it; with `topicId` + `nodeId` it is the 承接 form
+            // for that node. A bare `topicId` keeps the chapters screen the form is opened from.
+            if let registrationID = reviewedID(query) {
+                MerchantContentEditView(service: session.merchantContentService, query: .registration(id: registrationID), kind: .registrationEdit(registrationID))
+                    .cyPushedChrome()
+            } else if let topicID = reviewedID(query, key: "topicId"), let nodeID = reviewedID(query, key: "nodeId") {
+                MerchantContentEditView(service: session.merchantContentService, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: nodeID))
+                    .cyPushedChrome()
+            } else if let topicID = reviewedID(query, key: "topicId") {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: topicID))
                     .cyPushedChrome()
             } else { unavailable }
-        case "pages/topic/pricing/index", "pages/topic/pricing/partner/index":
+        case "pages/topic/pricing/partner/index":
+            // R7-PC-B5-1 (P0): MP partner page (`topicId`, `toType`, `toId`) — the partner's terms, not the pricing page.
+            if let topicID = reviewedID(query, key: "topicId"), let context = session.publisherLifecycleContext,
+               let row = PublisherPartnerLink.lineup(type: query["toType"], id: reviewedID(query, key: "toId")) {
+                PublisherPartnerView(topicID: topicID, row: row, client: context.client)
+                    .environment(\.topicLineupClubDestination, { clubID in
+                    AnyView(MPReviewedPageScreen(page: "pages/club/detail/index", query: ["id": String(clubID)]).environmentObject(session))
+                })
+                .environment(\.topicLineupMerchantDestination, { memberID in
+                    guard let owner = PublicMerchantOwnerID(memberID) else { return AnyView(EmptyView()) }
+                    return AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
+                })
+            } else { unavailable }
+        case "pages/topic/pricing/index":
             // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
             if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
                 PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
+                    .environment(\.pricingChapterProjectDestination, { topicID in
+                    AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
+                })
             } else { unavailable }
         case "pages/publish/fabu/index", "pages/publish/topicadd/topicadd":
             topicEditor
@@ -283,8 +307,11 @@ import SwiftUI
         case "pages/topic/index/index":
             if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
         case "pages/templatedetail/templatedetail":
+            // R7-PC-A6-1: MP `scope=my` is the viewer's own template (member read), never the public `api/template/info`.
+            if query["scope"] == "my", let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
+                SessionOwnedMemberTemplateDetailView(id: id).environmentObject(session)
             // PC-A-6-2: the link opens the template with 应用, as in-app entries do.
-            if let id = reviewedID(query) {
+            } else if let id = reviewedID(query) {
                 DiscoveryTemplateDetailView(id: id, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
                                             authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
                     .id(session.templateAuthoringViewIdentity)
@@ -642,5 +669,16 @@ private struct MPTabHandoff: View {
         Color.clear
             .accessibilityHidden(true)
             .onAppear { guard !done else { return }; done = true; perform() }
+    }
+}
+
+/// Builds the one lineup row a partner deep link names, through the public pricing-preview decoder (the row init is
+/// Core-internal). `toType` is `club` or `merchant`.
+enum PublisherPartnerLink {
+    static func lineup(type: String?, id: Int?) -> PublisherLineup? {
+        guard let type = type?.trimmingCharacters(in: .whitespacesAndNewlines), ["club", "merchant"].contains(type),
+              let id, id > 0 else { return nil }
+        let row: ProjectEditJSON = .object(["toType": .string(type), "toId": .number(Decimal(id))])
+        return (try? PublisherPricingPreview(.object(["priceMin": .number(0), "lineup": .array([row])])))?.lineup.first
     }
 }

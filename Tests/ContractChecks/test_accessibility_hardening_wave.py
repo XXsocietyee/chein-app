@@ -77,7 +77,9 @@ class FPA4ActivityDetail(unittest.TestCase):
 
     def test_sheets_have_detent_and_indicator_and_labelled_close(self):
         s = src('App/ActivityDetailView.swift')
-        self.assertGreaterEqual(s.count('.presentationDragIndicator(.visible)'), 2)
+        # restyle/r1-player-front: the sheets use the shared cySheet chrome, which applies detents and the visible indicator.
+        self.assertIn('.presentationDragIndicator(.visible)', src('App/DesignSystem/CYSheetModal.swift').split('func cySheet(', 1)[1].split('\n}\n', 1)[0])
+        self.assertGreaterEqual(s.count('.presentationDragIndicator(.visible)') + s.count('.cySheet('), 2)
         self.assertIn('Button("action.close"', src('App/RegistrationSheetView.swift'))
         self.assertIn('Button("action.close", action: onClose)', src('App/TicketWalletView.swift'))
 
@@ -88,7 +90,8 @@ class FPA5WalletAndGrowth(unittest.TestCase):
         wallet = src('App/WalletCommerceViews.swift')
         self.assertNotIn('.system(size:', wallet)
         self.assertIn('.font(CYTypography.data2XL).monospacedDigit()', wallet)
-        self.assertIn('CYTypography.data2XL', src('App/GrowthCenterView.swift'))
+        # restyle/r6-system-rest: GrowthCenterView spells the token .cyText(.data2XL) (native restyle r1).
+        self.assertIn('.cyText(.data2XL)', src('App/GrowthCenterView.swift'))
 
     def test_wallet_posts_announcement_when_loaded(self):
         s = src('App/WalletCommerceViews.swift')

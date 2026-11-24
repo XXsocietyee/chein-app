@@ -16,7 +16,10 @@ import SwiftUI
             if capture == nil && original == nil { Text("projectNodeTemplate.unavailable", tableName: "ProjectNodeTemplateSelection").font(.caption) }
         }
         .sheet(item: controller.binding(original)) { original in
-            ProjectStoryTemplateView(controller: controller, original: original, nodeSelection: true)
+            Group {
+                ProjectStoryTemplateView(controller: controller, original: original, nodeSelection: true)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: model.editorIncarnation) { _, _ in if let original { controller.close(original) } }
         .onDisappear { if let original { controller.close(original) } }

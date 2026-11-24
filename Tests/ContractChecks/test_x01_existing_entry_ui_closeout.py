@@ -24,7 +24,7 @@ class X01ExistingEntryUICloseoutTests(unittest.TestCase):
     def testTopicMenuKeepsLoadedOnlyAndRetainsOutOfPageSelection(self):
         s=self.source('App/CooperationBrowserView.swift')
         self.assertIn('}.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")',s)
-        self.assertIn('Text("cooperation.topicFilter.loadedOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)\n                    .fixedSize(horizontal: false, vertical: true)',s)
+        self.assertIn('Text("cooperation.topicFilter.loadedOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary)\n                    .fixedSize(horizontal: false, vertical: true)',s)
         self.assertIn('if let selected, !options.contains(where: { $0.id == selected })',s)
         self.assertIn('Text(verbatim: "#" + String(selected)).tag(selected)',s)
     def testTopicSelectionDoesNotAcquireAuthorityOrPerformNetworkIO(self):

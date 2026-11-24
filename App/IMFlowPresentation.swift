@@ -6,7 +6,7 @@ private struct IMFlowFormPresentation: ViewModifier {
     func body(content: Content) -> some View {
         content
             .formStyle(.grouped)
-            .font(Theme.Font.body)
+            .cyText(.body)
             .environment(\.defaultMinListRowHeight, 44)
             .navigationBarTitleDisplayMode(.inline)
     }
@@ -58,7 +58,7 @@ struct IMFlowStateMessage: View {
         .foregroundStyle(color)
         .padding(CYSpacing.md)
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-        .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }

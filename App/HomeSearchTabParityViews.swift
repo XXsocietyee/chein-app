@@ -75,7 +75,7 @@ struct HomeHeroHeaderSectionView: View {
                         .buttonStyle(.plain)
                         .pageTemplateControl(
                             label: Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)),
-                            hint: Text("searchMap.citySearch"),
+                            hint: Text("homeSearch.mapHint"),
                             traits: .isButton
                         )
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
@@ -166,7 +166,7 @@ struct HomeHeroHeaderSectionView: View {
                     HStack(spacing: 6) {
                         Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
                             .cyWrapText()
-                        Image(systemName: "chevron.down").font(.caption2.weight(.bold))
+                        Image(systemName: "chevron.down").font(.caption.weight(.bold))
                     }
                     .cyText(.label)
                     .foregroundStyle(CYColor.textSecondary)
@@ -248,7 +248,7 @@ private struct HomeHeroAvatar: View {
     }
     private var fallback: some View {
         CYColor.bgRaised
-            .overlay { Image(systemName: "person.fill").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary) }
+            .overlay { Image(systemName: "person.fill").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
     }
 }
 
@@ -267,7 +267,7 @@ struct PlayContinuationBannerView: View {
             if let messageKey = readAvailability.messageKey, readAvailability != .unauthenticated {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: readAvailability == .failed ? "exclamationmark.triangle" : "info.circle")
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(LocalizedStringKey(messageKey))
                         .cyText(.caption)
@@ -310,7 +310,7 @@ struct PlayContinuationBannerView: View {
                             }
                             Spacer(minLength: 0)
                             Image(systemName: "play.circle.fill")
-                                .font(CYTypography.dataXL)
+                                .cyText(.dataXL)
                                 .foregroundStyle(.white)
                                 .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
                                 .accessibilityHidden(true)
@@ -513,7 +513,7 @@ struct MerchantRootModeSwitchBannerView: View {
                             Image(systemName: descriptor.systemImage)
                                 .font(.subheadline)
                             Text(LocalizedStringKey(descriptor.titleKey))
-                                .font(.caption2.weight(isSelected ? .semibold : .regular))
+                                .font(.caption.weight(isSelected ? .semibold : .regular))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
@@ -1523,7 +1523,7 @@ struct PublishTabFloatingSheetView: View {
                                         .foregroundStyle(item.isEnabled ? CYColor.textPrimary : CYColor.textSecondary)
                                     Text(verbatim: copy.tr(item.subtitle))
                                         .cyText(.meta)
-                                        .foregroundStyle(CYColor.textTertiary)
+                                        .foregroundStyle(CYColor.textSecondary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
                                             .cyText(.micro)
@@ -1534,7 +1534,7 @@ struct PublishTabFloatingSheetView: View {
                                 Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "chevron.right")
                                     .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(CYColor.textTertiary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityHidden(true)
                             }
                             .frame(minHeight: CYSpacing.minTouchTarget)
@@ -1550,7 +1550,7 @@ struct PublishTabFloatingSheetView: View {
                 .padding(.vertical, CYSpacing.lg)
             }
             .cyDomainPageBackground()
-            .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle)))
+            .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle))).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if let onClose {
                     ToolbarItem(placement: .cancellationAction) {
@@ -1560,7 +1560,7 @@ struct PublishTabFloatingSheetView: View {
                 }
             }
         }
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .cyDomainScreen(.topicEditor)
     }
 }

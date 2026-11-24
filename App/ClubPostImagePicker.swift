@@ -310,7 +310,7 @@ struct ClubPostImageSectionView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: 40, height: 40)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner))
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("club.community.uploadedImagePreview.\(index)")
@@ -356,7 +356,7 @@ struct ClubPostImageSectionView: View {
                             .resizable()
                             .scaledToFill()
                             .frame(width: 40, height: 40)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner))
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("club.community.localImagePreview.\(candidate.id.uuidString)")
@@ -427,12 +427,13 @@ struct ClubPostImageSectionView: View {
                     get: { bridge.previewingCandidate != nil },
                     set: { if !$0 { bridge.closePreview() } }
                 )
-            ) {
+            ) { Group {
                 if let candidate = bridge.previewingCandidate {
                     ClubPostImagePreviewSheet(candidate: candidate) {
                         bridge.closePreview()
                     }
                 }
+            }.cySheet(detents: [.large])
             }
     }
 }

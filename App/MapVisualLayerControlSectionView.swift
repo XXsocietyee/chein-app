@@ -127,7 +127,7 @@ public struct MapVisualLayerControlSectionView: View {
                                 Spacer()
 
                                 Text(verbatim: Self.datumBadgeText(for: projection.coordinate.datum))
-                                    .font(.caption2.monospaced())
+                                    .font(.caption.monospaced())
                                     .foregroundStyle(.secondary)
                             }
                         }

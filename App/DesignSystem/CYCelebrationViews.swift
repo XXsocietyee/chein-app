@@ -394,7 +394,7 @@ struct CYStampSlamView: View {
                         .foregroundStyle(.white)
                         .contentTransition(reduceMotion ? .opacity : .numericText())
                     Image(systemName: "book.closed.fill")
-                        .font(.system(size: 22, weight: .semibold))
+                        .font(.system(.title2, weight: .semibold))
                         .foregroundStyle(CYNight.lanternHot)
                         .frame(width: 48, height: 48)
                         .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))

@@ -73,13 +73,14 @@ import SwiftUI
         }
         .onAppear { active = true }
         .onDisappear { active = false; invalidate() }
-        .sheet(item: $profileTarget) { target in
+        .sheet(item: $profileTarget) { target in Group {
             if let profile, current(target) {
                 NavigationStack {
                     SocialPublicProfileView(memberID: target.memberID, reader: profile.reader, squareReader: profile.squareReader,
                                             actions: nil, showsStartChat: false, isCurrent: { current(target) })
                 }
             } else { Color.clear.onAppear { profileTarget = nil } }
+        }.cySheet(detents: [.large])
         }
         .cyDomainScreen(.player)
     }
@@ -266,7 +267,7 @@ private struct ClubCloud14Banner: View {
         Color.clear
             .aspectRatio(2.4, contentMode: .fit)
             .overlay { CYCoverArt(seed: seed, symbol: symbol) }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityHidden(true)
     }
 }

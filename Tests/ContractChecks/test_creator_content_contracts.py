@@ -25,7 +25,7 @@ class CreatorContentContracts(unittest.TestCase):
         self.assertIn('guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,',self.ui)
         self.assertNotIn('URLSession',self.ui);self.assertNotIn('.send(',self.ui)
     def test_retry_identifier_not_on_ancestor(self):
-        self.assertIn('}.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)\n                .accessibilityIdentifier("creatorContent.issue")',self.ui)
+        self.assertIn('}.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)\n                .accessibilityIdentifier("creatorContent.issue")',self.ui)
         self.assertNotIn('issue(failure).accessibilityIdentifier', self.ui)
     def test_localization_static_keys_and_dynamic_families(self):
         strings=json.loads((ROOT/'docs/creator-content-localizations.json').read_text())

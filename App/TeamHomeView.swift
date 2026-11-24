@@ -187,7 +187,7 @@ import SwiftUI
                     CYCard(padding: CYSpacing.md) {
                         VStack(spacing: 0) {
                             if detail.members.isEmpty {
-                                Text("team.page.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                Text("team.page.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                             ForEach(Array(detail.members.enumerated()), id: \.element.id) { index, member in
                                 let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
@@ -203,7 +203,7 @@ import SwiftUI
                     actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
                     actionButton(.disband(teamID: detail.team.id), detail: detail)
                     if TeamPagePresentation.showsRefundNote(detail) {
-                        Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     // C-D3: 举报队伍 for members who are not the leader (the entry hides itself until its access is enabled).
                     if invitationCode == nil, detail.leader != true {
@@ -232,9 +232,9 @@ import SwiftUI
                 await readOwner.run { await reload() }
             }.refreshable { await readOwner.run { await reload() } }
             .onDisappear { readOwner.deactivate(); model.leave() }
-            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
-            .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
-            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }
+            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
+            .sheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
+            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
         .cyDomainScreen(.player)
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {

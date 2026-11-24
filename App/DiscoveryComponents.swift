@@ -105,7 +105,7 @@ struct DiscoveryPlayRow: View {
                 }
             }
             Spacer(minLength: CYSpacing.sm)
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textSecondary).accessibilityHidden(true)
         }
     }
 }
@@ -120,7 +120,7 @@ extension DiscoveryPlayRow {
         ].compactMap { $0 }
         if let first = parts.first {
             parts.dropFirst().reduce(first) { $0 + Text(verbatim: " · ") + $1 }
-                .cyText(.meta).foregroundStyle(palette.textTertiary)
+                .cyText(.meta).foregroundStyle(palette.textSecondary)
         }
     }
 }

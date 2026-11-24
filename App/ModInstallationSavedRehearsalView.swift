@@ -52,7 +52,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, CYSpacing.pageHorizontal)
             Text(verbatim: "#\(snapshot.saved.templateId) · \(shown(snapshot.saved.draftContentHash))")
-                .font(CYTypography.caption.monospaced())
+                .cyText(.meta).monospaced()
                 .foregroundStyle(CYColor.textSecondary)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
@@ -63,7 +63,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CYColor.bgPage.ignoresSafeArea())
-        .navigationTitle(text("title"))
+        .navigationTitle(text("title")).navigationBarTitleDisplayMode(.inline)
     }
 
     private var unavailable: some View {
@@ -126,7 +126,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: shown(binding.fingerprint))
-                            .font(CYTypography.caption.monospaced())
+                            .cyText(.meta).monospaced()
                             .foregroundStyle(CYColor.textSecondary)
                             .textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
@@ -150,7 +150,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
                 }
                 DisclosureGroup(text("fullSnapshot")) {
                     Text(verbatim: shown(snapshot.saved.snapshotJson))
-                        .font(CYTypography.caption.monospaced())
+                        .cyText(.meta).monospaced()
                         .foregroundStyle(CYColor.textSecondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)

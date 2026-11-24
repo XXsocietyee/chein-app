@@ -370,11 +370,13 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
             .cyHideTabBar()
             .task(id: readKey) { showShare = false; selectedMedal = nil; load() }
             .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }
-            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }
+            .sheet(isPresented: $showShare) { Group { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }.cySheet(detents: [.large]) }
             .sheet(item: $selectedMedal) { medal in
-                if currentRecord == medal.record {
-                    NavigationStack { RoamMedalShareView(selection: medal, reader: reader) }
-                }
+                Group {
+                    if currentRecord == medal.record {
+                        NavigationStack { RoamMedalShareView(selection: medal, reader: reader) }
+                    }
+                }.cySheet(detents: [.large])
             }
             .accessibilityIdentifier("roam.experience.session")
     }

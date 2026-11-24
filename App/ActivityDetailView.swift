@@ -78,6 +78,7 @@ struct ActivityDetailView: View {
             }
         }
         .appNavigationTitle("activity.details")
+        .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
         .cyDomainPageBackground()
         .cyHideTabBar()
@@ -117,6 +118,7 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
+    @State private var showsHostCancelFromFooter=false
     /// Continuity r1 (+): the footer pill is the zoom source of the registration / ticket-wallet sheet it opens. The first
     /// tile (`performPrimaryAction`) opens the same sheets; it sets this so they keep the plain slide-up. Cleared on dismiss.
     @State private var tileOpenedSheet = false
@@ -205,8 +207,8 @@ struct ActivityDetailView: View {
         .sheet(isPresented: $showsShare) {
             if let access, case .allowed(let detail) = access {
                 CatalogShareCardView(content: shareContent(detail), tint: .sunset)
-                    .cyPlayerSheetGlass()
-                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.player)
+                    .cySheet()
             }
         }
         .cyDomainPageBackground()
@@ -248,18 +250,16 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
-                .cyPlayerSheetGlass()
-                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.player)
+                .cySheet()
         }
         .sheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
             .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .cyPlayerSheetGlass()
-            .cyDomainSheet(detents: [.full])
+            .themeDomain(.player)
+            .cySheet(detents: [.large])
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
@@ -275,9 +275,8 @@ struct ActivityDetailView: View {
                 SessionTicketWalletHost(onClose:{ showsTicketWallet=false })
                     .environmentObject(session)
                     .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-                    .cyPlayerSheetGlass()
+                    .themeDomain(.player)
+                    .cySheet(detents: [.large])
             }
         }
     }
@@ -473,7 +472,7 @@ struct ActivityDetailView: View {
                     Text("activity.reviewPointsNote")
                         .accessibilityIdentifier("activity.detail.readOnly")
                 } icon: { Image(systemName:"star").accessibilityHidden(true) }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal:false,vertical:true)
             }
@@ -488,7 +487,7 @@ struct ActivityDetailView: View {
                         Spacer(minLength: 0)
                         Image(systemName: "chevron.down")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(CYColor.textTertiary)
+                            .foregroundStyle(CYColor.textSecondary)
                             .rotationEffect(.degrees(showsMoreInfo ? 180 : 0))
                             .accessibilityHidden(true)
                     }
@@ -641,7 +640,24 @@ struct ActivityDetailView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
-            if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
+            if let access = hostCancelAccess, !detail.isCancelled,
+               ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: access.accountID) {
+                // R7-PC-C1-4 (r1 PC-C-1-5): MP host footer is 取消活动并退款, not 立即报名.
+                Button(role: .destructive) { showsHostCancelFromFooter = true } label: {
+                    Text(verbatim: CoreLoopCopy(locale: locale).t("取消活动并退款", "Cancel event & refund"))
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!access.enabled)
+                .accessibilityIdentifier("activity.hostCancel.footer")
+                .sheet(isPresented: $showsHostCancelFromFooter) {
+                    ActivityHostCancelSheet(detail: detail, access: access) {
+                        showsHostCancelFromFooter = false
+                        await load()
+                    }
+                    .cyDomainSheet(detents: [.half, .full])
+                }
+            } else if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
                 // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).
                 CYPillButton(LocalizedStringKey(block.titleKey)) {}
                     .disabled(true)

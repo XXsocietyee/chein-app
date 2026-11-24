@@ -31,14 +31,11 @@ import SwiftUI
     @State private var generation = UUID()
     var body: some View {
         List {
-            CYHeroHeader("square.gov.title")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if context.access.identity == nil {
                 CYPillButton("square.gov.signIn", action: context.signIn).listRowBackground(Color.clear).accessibilityIdentifier("square.gov.signIn")
             } else {
                 if loading { CYSkeleton().accessibilityIdentifier("square.gov.loading") }
                 if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("square.gov.message") }
-                CYPillButton("square.gov.refresh", style: .secondary) { Task { await reload() } }.listRowBackground(Color.clear).disabled(loading)
                 if let snapshot {
                     Button("square.gov.drafts", action: context.openDrafts)
                     preferenceSection(snapshot)
@@ -48,7 +45,8 @@ import SwiftUI
                 }
             }
         }
-        .cyHeroScreen()
+        .cyPageTitle("square.gov.title")
+        .refreshable { if context.access.identity != nil, !loading { await reload() } }
         .task { await reload() }
         .onChange(of: context.access.identity) { _, _ in
             generation = UUID(); snapshot = nil; review = nil; appeal = nil; pendingAppeal = nil; reason = ""; message = nil
@@ -58,7 +56,7 @@ import SwiftUI
         .onDisappear { generation = UUID(); review = nil; appeal = nil; pendingAppeal = nil; reason = "" }
         .sheet(item: $appeal, onDismiss: {
             if let action = pendingAppeal { pendingAppeal = nil; prepare(action) }
-        }) { record in
+        }) { record in Group {
             NavigationStack {
                 Form {
                     Text("square.gov.appealFacts")
@@ -69,11 +67,11 @@ import SwiftUI
                         appeal = nil
                     }.disabled(reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || reason.count > 1000)
                 }
-                .navigationTitle("square.gov.appeal")
+                .navigationTitle("square.gov.appeal").navigationBarTitleDisplayMode(.inline)
                 .toolbar { Button("square.gov.cancel") { appeal = nil; reason = "" } }
             }
-        }
-        .sheet(item: $review) { item in
+        }.cySheet() }
+        .sheet(item: $review) { item in Group {
             NavigationStack {
                 Form {
                     Text("square.gov.reviewWarning")
@@ -83,9 +81,9 @@ import SwiftUI
                         .disabled(loading || !context.coordinator.service.allows(item.action))
                         .accessibilityIdentifier("square.gov.confirm")
                     Button("square.gov.cancel") { review = nil }.disabled(loading)
-                }.navigationTitle("square.gov.review")
+                }.navigationTitle("square.gov.review").navigationBarTitleDisplayMode(.inline)
             }.interactiveDismissDisabled(loading)
-        }
+        }.cySheet() }
         .cyDomainScreen(.player)
     }
     @ViewBuilder private func preferenceSection(_ snapshot: SquareGovernanceSnapshot) -> some View {

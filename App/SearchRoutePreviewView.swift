@@ -29,7 +29,7 @@ import Observation
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
                 CYHeroHeader(verbatim: name)
                 PlatformExternalMapHost(destination: .init(name: name, latitude: destination.latitude, longitude: destination.longitude), scope: scope, makeModel: makeExternalMaps)
-                Text("searchMap.routeOriginDisclosure").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("searchMap.routeOriginDisclosure").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Text("searchMap.mode.walking").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                 if let navigationReference, let walkingFactory, walkingFactory.available {
                     NavigationLink {
@@ -67,7 +67,7 @@ import Observation
                     }
                 }
                 else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("searchMap.loading")) }
-                Text("searchMap.routeBoundary").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("searchMap.routeBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).cyHeroScreen()
             .onAppear { loader.appear(input) }
@@ -92,6 +92,7 @@ import Observation
     @State private var saved: WalkingSavedDestination?
     @State private var failed = false
     @State private var attempted = false
+    @State private var confirmsRemoval = false
     @State private var readGate = WalkingCheckpointReadGate()
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
@@ -104,11 +105,17 @@ import Observation
                 } label: { CYPillButtonLabel("walking.saved.open", systemImage: "bookmark") }
                     .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("walking.saved.open")
-                Text("walking.saved.notice").cyText(.meta).foregroundStyle(CYColor.textTertiary)
-                CYPillButton("walking.saved.remove", style: .tertiary) {
-                    do { try factory.removeSavedDestination(saved); self.saved = nil; failed = false }
-                    catch { failed = true }
-                }.accessibilityIdentifier("walking.saved.remove")
+                Text("walking.saved.notice").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Button(role: .destructive) { confirmsRemoval = true } label: { Text("walking.saved.remove") }
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("walking.saved.remove")
+                    .confirmationDialog(Text("walking.saved.remove"), isPresented: $confirmsRemoval, titleVisibility: .visible) {
+                        Button(role: .destructive) {
+                            do { try factory.removeSavedDestination(saved); self.saved = nil; failed = false }
+                            catch { failed = true }
+                        } label: { Text("walking.saved.remove") }
+                        .accessibilityIdentifier("walking.saved.remove.confirm")
+                    }
             }
             if failed {
                 Text("walking.saved.failed").cyText(.bodyCompact).accessibilityIdentifier("walking.saved.failed")

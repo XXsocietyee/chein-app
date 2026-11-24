@@ -404,7 +404,7 @@ import SwiftUI
                 isDestructive: true
             ) { showDiscard = false; retirePresentation(); coordinator.cancelReview(); dismiss() }
         }
-        .sheet(item: $scheduleSession) { session in
+        .sheet(item: $scheduleSession) { session in Group {
             NavigationStack {
                 ClubSeriesScheduleEditor(session: session, canApply: { canApplySchedule(session) }, apply: { selection in
                     guard canApplySchedule(session), let next = try? selection.applying(to: draft, now: Date()) else { return false }
@@ -412,6 +412,7 @@ import SwiftUI
                     return true
                 })
             }
+        }.cySheet(detents: [.large])
         }
         .onChange(of: access.authorizationGeneration) { _, _ in scheduleSession = nil }
         .onChange(of: identity) { _, _ in scheduleSession = nil; retirePresentation(); review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }

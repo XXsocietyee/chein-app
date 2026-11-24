@@ -57,9 +57,10 @@ struct TopicBrowserView: View {
                             .accessibilityIdentifier("topic.loadMore")
                     }
                 }
-                Section { Text("topic.readOnly").cyText(.caption).foregroundStyle(CYColor.textTertiary) }.listRowBackground(Color.clear)
+                Section { Text("topic.readOnly").cyText(.caption).foregroundStyle(CYColor.textSecondary) }.listRowBackground(Color.clear)
             }
             .appNavigationTitle("topic.title")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
             .searchable(text: $keyword, prompt: "topic.search")
             .task(id: key) {

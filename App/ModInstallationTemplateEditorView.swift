@@ -44,7 +44,7 @@ import SwiftUI
                 }
                 if let state = editor.state {
                     Text(verbatim: "#\(state.templateId) · \(Cloud25Copy.value(state.draftContentHash))")
-                        .font(CYTypography.meta.monospaced()).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).monospaced().foregroundStyle(CYColor.textSecondary)
                         .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if !state.editable {
                         CYNoteBanner(text: installationText("templateEdit.locked"), symbol: "lock", tone: .warning)
@@ -78,7 +78,7 @@ import SwiftUI
                 if let advanced = state.advancedConfigJson, !advanced.isEmpty {
                     CYInfoCard {
                         CYNoteBanner(text: installationText("templateEdit.graphReadOnly"), symbol: "point.3.connected.trianglepath.dotted", tone: .info)
-                        Text(verbatim: advanced).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: advanced).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 CYInfoCard {
@@ -107,7 +107,7 @@ import SwiftUI
                     installationText("templateEdit.reviewBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                 }
                 DisclosureGroup {
-                    Text(verbatim: state.snapshotJson).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: state.snapshotJson).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 } label: {
                     installationText("templateEdit.fullSnapshot").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
@@ -116,12 +116,12 @@ import SwiftUI
             CYInfoCard {
                 if let pending = editor.pending {
                     Text(verbatim: pending.command.action + " · " + pending.command.editRequestId)
-                        .font(CYTypography.meta.monospaced()).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).monospaced().foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let receipt = pending.receipt {
                         CYStatusChip(verbatim: installationString("templateEdit.received", locale: locale), tone: .success, systemImage: "checkmark")
                             .accessibilityLabel(installationText("templateEdit.received"))
-                        Text(verbatim: receipt.resultDraftHash).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: receipt.resultDraftHash).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         if let task = receipt.auditTaskId {
                             CYListRow(verbatim: "audit-task:\(task)", trailing: .none) { CYRowIcon(systemImage: "checkmark.shield") }
                         }
@@ -145,45 +145,51 @@ import SwiftUI
         }
         .task { if editor.state == nil { await editor.open() } }
         .sheet(item: $rehearsal, onDismiss: { editor.invalidateSavedRehearsal() }) { visit in
-            ModInstallationSavedRehearsalView(rehearsal: visit)
+            Group {
+                ModInstallationSavedRehearsalView(rehearsal: visit)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $review) { original in
-            NavigationStack {
-                Cloud25Screen(title: installationString("templateEdit.title", locale: locale), seed: original.command.editRequestId, symbol: "checkmark.seal") {
-                    CYInfoCard {
-                        installationText("templateEdit.scope").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: original.command.action + " · #" + (original.installation.draftId.map(String.init) ?? Cloud25Copy.dash))
-                            .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: original.command.expectedDraftHash).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        ForEach(original.installation.bindings) { binding in
-                            CYListRow(verbatim: binding.kind.rawValue + " · " + binding.label, meta: "#\(binding.resourceId)", trailing: .none) {
-                                CYRowIcon(systemImage: "link")
+            Group {
+                NavigationStack {
+                    Cloud25Screen(title: installationString("templateEdit.title", locale: locale), seed: original.command.editRequestId, symbol: "checkmark.seal") {
+                        CYInfoCard {
+                            installationText("templateEdit.scope").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: original.command.action + " · #" + (original.installation.draftId.map(String.init) ?? Cloud25Copy.dash))
+                                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: original.command.expectedDraftHash).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            ForEach(original.installation.bindings) { binding in
+                                CYListRow(verbatim: binding.kind.rawValue + " · " + binding.label, meta: "#\(binding.resourceId)", trailing: .none) {
+                                    CYRowIcon(systemImage: "link")
+                                }
+                                Text(verbatim: binding.fingerprint).cyText(.meta).monospaced().foregroundStyle(CYColor.textTertiary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             }
-                            Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).foregroundStyle(CYColor.textTertiary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            // Owner sees the complete current audit snapshot before factual confirmation or review submission.
+                            Text(verbatim: original.reviewedSnapshotJson).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
+                                installationText("field." + key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: original.command.fields[key] ?? "").cyText(.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            }
+                            installationText("templateEdit.reviewBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                            Cloud25Pill(title: installationString("templateEdit.confirm", locale: locale), key: "templateEdit.confirm", primary: true, enabled: editor.canEdit && editor.review == original) {
+                                review = nil
+                                Task { await editor.confirm(original) }
+                            }
                         }
                         // Owner sees the complete current audit snapshot before factual confirmation or review submission.
-                        Text(verbatim: original.reviewedSnapshotJson).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: original.reviewedSnapshotJson).font(.caption.monospaced()).textSelection(.enabled)
                         ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
-                            installationText("field." + key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            Text(verbatim: original.command.fields[key] ?? "").cyText(.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+                            Text(verbatim: original.command.fields[key] ?? "").textSelection(.enabled)
                         }
-                        installationText("templateEdit.reviewBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                        Cloud25Pill(title: installationString("templateEdit.confirm", locale: locale), key: "templateEdit.confirm", primary: true, enabled: editor.canEdit && editor.review == original) {
-                            review = nil
-                            Task { await editor.confirm(original) }
-                        }
-                    }
-                    // Owner sees the complete current audit snapshot before factual confirmation or review submission.
-                    Text(verbatim: original.reviewedSnapshotJson).font(.caption.monospaced()).textSelection(.enabled)
-                    ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
-                        Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
-                        Text(verbatim: original.command.fields[key] ?? "").textSelection(.enabled)
-                    }
-                    Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation")
-                    CYPillButton("modInstallation.templateEdit.confirm", tableName: "ModInstallation") { review = nil; Task { await editor.confirm(original) } }
-                        .disabled(!editor.canEdit || editor.review != original).e1ActionRow()
-                }.formStyle(.grouped).cyGroupedSurface().toolbar { ToolbarItem(placement: .cancellationAction) { Button { editor.cancelReview(); review = nil } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
+                        Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation")
+                        CYPillButton("modInstallation.templateEdit.confirm", tableName: "ModInstallation") { review = nil; Task { await editor.confirm(original) } }
+                            .disabled(!editor.canEdit || editor.review != original).e1ActionRow()
+                    }.formStyle(.grouped).cyGroupedSurface().toolbar { ToolbarItem(placement: .cancellationAction) { Button { editor.cancelReview(); review = nil } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
     private func prepare(_ action: String) { retireRehearsal(); editor.prepare(action); review = editor.review }

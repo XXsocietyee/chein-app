@@ -703,9 +703,9 @@ struct RoamAnniversaryReadIntent {
         .disabled(!lifetime.canPresent(reader))
         .privacySensitive()
         .background(LifetimeAttachment(lifetime: lifetime).frame(width: 0, height: 0))
-        .sheet(item: detailBinding(model.presentation)) { presentation in
+        .sheet(item: detailBinding(model.presentation)) { presentation in Group {
             RoamMonthlyRecapDetailView(model: model, presentation: presentation, routeDestination: routeDestination)
-        }
+        }.cySheet(detents: [.large]) }
         .onAppear { lifetime.appear(reader, foreground: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { lifetime.resume(reader, foreground: true) }
@@ -808,7 +808,7 @@ struct RoamRecapShareCard: View {
             card
             ShareLink(item: renderedImage(), preview: SharePreview(Text("roam.tools.recap"), image: renderedImage())) {
                 Label { Text(verbatim: ChannelCopy.text("分享这张卡片", "Share this card", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
-                    .font(CYTypography.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 48)
+                    .cyText(.body, weight: .semibold).frame(maxWidth: .infinity, minHeight: 48)
             }
             .buttonStyle(.cySecondary)
             .accessibilityIdentifier("roam.tools.recap.share")

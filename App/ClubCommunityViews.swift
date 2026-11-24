@@ -295,7 +295,7 @@ struct ClubCommunityFeedView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
                         .accessibilityIdentifier("club.community.pinnedNotice")
                     }
                     ForEach(snapshot.feedItems) { item in
@@ -424,7 +424,7 @@ struct ClubCommunityFeedView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
     }
     @ViewBuilder private func feedItem(_ item: ClubCommunityFeedItem, snapshot: ClubCommunitySnapshot) -> some View {
         let post = item.post
@@ -603,7 +603,7 @@ struct ClubCommunityPostTile: View {
         .cyText(.body)
         .foregroundStyle(CYColor.textPrimary)
         .buttonStyle(.borderless)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.community.post.\(post.id)")
         .task(id: identity) {
@@ -621,7 +621,7 @@ struct ClubCommunityPostTile: View {
     }
     private func countLabel(_ count: Int, symbol: String) -> some View {
         Label { Text(verbatim: String(count)).monospacedDigit() } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
     }
 }
@@ -688,7 +688,7 @@ struct ClubCommunityPostDetailView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                    .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                 }
                 CYSectionHeader("club.community.comments")
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
@@ -788,7 +788,7 @@ struct ClubCommunityComposer: View {
                         .scrollContentBackground(.hidden)
                         .padding(CYSpacing.sm)
                         .frame(minHeight: editorMinHeight)
-                        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         .accessibilityLabel(Text("club.community.content"))
                         .accessibilityIdentifier("club.community.content")
                     if content.isEmpty {
@@ -959,7 +959,7 @@ struct ClubCommunityReviewView: View {
                     .cyText(.meta)
                     .padding(CYSpacing.md)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(CYColor.bgSurface, in: .rect(cornerRadius: CYRadius.md))
+                    .background(CYColor.bgSurface, in: .rect(cornerRadius: CYRadius.card))
                 }
 
                 VStack(spacing: CYSpacing.sm) {
@@ -1055,7 +1055,7 @@ struct ClubCommunityCommentsView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                    .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                 }
                 if model.snapshot?.comments.isEmpty == true {
                     CYEmptyState(systemImage: "bubble", "club.community.noComments")
@@ -1091,7 +1091,7 @@ struct ClubCommunityCommentsView: View {
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("club.community.comment.\(comment.id)")
                     }
@@ -1099,7 +1099,7 @@ struct ClubCommunityCommentsView: View {
                 TextField("club.community.commentContent", text: $content, axis: .vertical)
                     .cyText(.body)
                     .padding(CYSpacing.md)
-                    .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                     .accessibilityIdentifier("club.community.commentContent")
                 CYPillButton("club.community.review") { Task { await model.prepare(.comment(content), clubID: clubID, post: post) } }
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !identity.isSignedIn || model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
@@ -1164,7 +1164,7 @@ struct ClubCommunityHistoryView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                    .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                 }
                 CYPillButton("club.community.refresh") { Task { await model.load(.history(postID: postID)) } }
             }
@@ -1219,7 +1219,7 @@ private struct ClubCommunityReferenceCover: View {
                         CYCoverArt(seed: trimmed.isEmpty ? "club-community" : trimmed, showsDebugLabel: false)
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityLabel(Text("club.community.image") + Text(verbatim: " \(index + 1)"))
             if !trimmed.isEmpty {
                 Text(verbatim: trimmed)

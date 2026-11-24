@@ -296,7 +296,7 @@ extension EnvironmentValues {
 /// Mini-program card: 16pt continuous radius, 16pt padding, fill `bgElevated`, no border,
 /// dark = 0.5pt top-edge highlight, light = soft shadow (offset 1pt, blur 4pt).
 struct CYDomainCardModifier: ViewModifier {
-    var radius: CGFloat = Theme.Radius.lg   // --cy-comp-card-radius 32rpx = 16pt
+    var radius: CGFloat = Theme.Radius.card   // native restyle r1: one card radius, 12pt
     var padding: CGFloat = 16               // --cy-comp-card-pad 32rpx
 
     @Environment(\.cyPalette) private var palette
@@ -304,8 +304,8 @@ struct CYDomainCardModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let shadowRadius: CGFloat = colorScheme == .light ? 6 : 0
-        let shadowY: CGFloat = colorScheme == .light ? 2 : 0
+        let shadowRadius: CGFloat = 0   // native restyle r1 (spec §3.3): cards carry no shadow
+        let shadowY: CGFloat = 0
         content
             .padding(padding)
             .background(
@@ -330,7 +330,7 @@ struct CYDomainCardModifier: ViewModifier {
 extension View {
     /// Card surface that follows the mini-program tokens for the current role domain.
     /// Default radius is `--cy-comp-card-radius` (32rpx = 16pt).
-    func cyDomainCard(radius: CGFloat = Theme.Radius.lg, padding: CGFloat = 16) -> some View {
+    func cyDomainCard(radius: CGFloat = Theme.Radius.card, padding: CGFloat = 16) -> some View {
         modifier(CYDomainCardModifier(radius: radius, padding: padding))
     }
 

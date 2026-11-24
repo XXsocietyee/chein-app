@@ -218,7 +218,7 @@ struct TeamMemberRow: View {
                             ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
                                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                                     Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
                                         .accessibilityHidden(true)
                                     Text(LocalizedStringKey(key))

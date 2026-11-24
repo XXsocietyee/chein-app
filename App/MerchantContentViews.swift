@@ -34,7 +34,7 @@ import SwiftUI
         }
         .cyDomainPageBackground()
         .themeDomain(.merchant)
-        .appNavigationTitle("merchant.content.title")
+        .appNavigationTitle("merchant.content.title").navigationBarTitleDisplayMode(.inline)
     }
 }
 @MainActor final class MerchantContentViewModel: ObservableObject {
@@ -117,13 +117,13 @@ struct MerchantContentBoundary: View {
                 }
             }.padding()
         }
-        .appNavigationTitle(key: "merchant.content." + query.key)
+        .appNavigationTitle(key: "merchant.content." + query.key).navigationBarTitleDisplayMode(.inline)
         .task(id: service.scope) { await model.load() }
         .refreshable { await model.load() }
         // Clearing the source rows here would remove the pushed NavigationLink's owner.
         // Scope changes still invalidate via load(), and isCurrent rejects stale display data.
         .onDisappear { model.suspend() }
-        .sheet(item: Binding(get: { c.isCurrent && model.projectActionsAreCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }
+        .sheet(item: Binding(get: { c.isCurrent && model.projectActionsAreCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { value in Group { MerchantContentReviewView(model: model, review: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
     @ViewBuilder private func content(_ s: MerchantContentSnapshot) -> some View {
         switch query {
@@ -263,7 +263,7 @@ struct MerchantContentFields: View {
         Form {
             TextField("merchant.content.search", text: $keyword)
             NavigationLink("merchant.content.search") { MerchantContentDocumentView(service: service, query: .claimable(keyword: keyword)) }
-        }.appNavigationTitle("merchant.content.claimable")
+        }.appNavigationTitle("merchant.content.claimable").navigationBarTitleDisplayMode(.inline)
     }
 }
 @MainActor struct MerchantContentRows: View {
@@ -287,10 +287,10 @@ struct MerchantContentFields: View {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     if case .query(.recruiting) = kind, let focusedTopicID, row["id"].integer == focusedTopicID {
                         Label("merchant.insightNavigation.located", systemImage: "scope")
-                            .font(CYTypography.meta.weight(.medium))
+                            .cyText(.meta, weight: .medium)
                             .accessibilityIdentifier("merchant.insightNavigation.located." + String(focusedTopicID))
                     }
-                    Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").font(CYTypography.cardTitle)
+                    Text(verbatim: row["merchantName"].text ?? row["name"].text ?? row["title"].text ?? row["topicName"].text ?? row["activityName"].text ?? row["poiName"].text ?? "—").cyText(.cardTitle)
                     MerchantContentFields(value: row, names: fields)
                     actions(row)
                 }
@@ -323,7 +323,7 @@ struct MerchantContentFields: View {
         case .cityApplication:
             if let snapshot = model.coordinator.snapshot,
                let target = MerchantCityClaimWithdrawal(row: row, snapshot: snapshot) {
-                Button("merchant.content.cancelClaim") {
+                Button("merchant.content.cancelClaim", role: .destructive) {
                     guard model.coordinator.isCurrent, model.coordinator.snapshot == snapshot,
                           model.coordinator.snapshot?.observedAt == snapshot.observedAt else { return }
                     model.prepare(.cancelClaim(poiID: target.poiID))
@@ -347,7 +347,7 @@ struct MerchantContentFields: View {
                     .accessibilityIdentifier("merchantChapterInvitation.open." + String(id))
             }
             if case .applications = query {
-                if let id = row["id"].integer, row["status"].integer == 0, row["source"].integer == 0 { Button("merchant.content.withdraw") { model.prepare(.withdraw(applicationID: id)) }.accessibilityIdentifier("merchant.content.withdraw") }
+                if let id = row["id"].integer, row["status"].integer == 0, row["source"].integer == 0 { Button("merchant.content.withdraw", role: .destructive) { model.prepare(.withdraw(applicationID: id)) }.accessibilityIdentifier("merchant.content.withdraw") }
                 if let chapter = row["chapterId"].integer, [0, 1].contains(row["status"].integer ?? -1) {
                     NavigationLink("merchant.content.submitNode") { MerchantContentEditView(service: service, query: .nodeAuthoring(chapterID: chapter), kind: .chapterNode(chapter)) }
                     Text("merchant.content.supplyBoundary").font(.footnote)
@@ -410,7 +410,7 @@ struct MerchantContentFields: View {
                     Text(verbatim: row["name"].text ?? "—").font(.headline)
                     MerchantContentFields(value: row, names: ["description", "category", "required"])
                     MerchantContentFields(value: row["recruitStatus"], names: ["termsMode", "perkMinValue", "allowedValidationMethods", "maxNodeXp", "maxMerchant", "remainingMerchantCount", "state"])
-                    if row["recruitStatus"]["remainingMerchantCount"] == .null { Text("merchant.content.unlimitedSlots").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if row["recruitStatus"]["remainingMerchantCount"] == .null { Text("merchant.content.unlimitedSlots").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     if let id = row["id"].integer, id > 0 { NavigationLink("merchant.content.apply") { MerchantContentEditView(service: service, query: snapshot.query, kind: .apply(id)) }.accessibilityIdentifier("merchant.content.apply") }
                 }.cyDomainCard()
             }
@@ -495,7 +495,7 @@ struct MerchantContentRowLinkStyle: ButtonStyle {
         HStack(spacing: CYSpacing.xs) {
             configuration.label.foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: CYSpacing.xs)
-            Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+            Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
         }
         .padding(.horizontal, CYSpacing.md)
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
@@ -513,7 +513,7 @@ struct MerchantContentRowLinkStyle: ButtonStyle {
             ForEach(Array(projection.stations.enumerated()), id: \.offset) { _, station in
                 if let node = station["nodeId"].safeInteger {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(verbatim: station["nodeName"].text ?? "—").font(CYTypography.cardTitle)
+                        Text(verbatim: station["nodeName"].text ?? "—").cyText(.cardTitle)
                         MerchantContentFields(value: station, names: ["stationCode", "status", "merchantInstruction", "hiddenInfoReminder", "capacity", "serviceStartAt", "serviceEndAt", "pendingVerificationCount"])
                         if let prompt = station["playerTask"]["prompt"].text { Text(verbatim: prompt) }
                         ForEach(MerchantStationAction.allCases) { action in
@@ -646,7 +646,7 @@ private struct MerchantChapterReplacementContextKey: EnvironmentKey {
     @State private var error = false
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Text("merchant.content.actualSupply").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text("merchant.content.actualSupply").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let snapshot, snapshot.scope == service.scope {
                 ForEach(Array(snapshot.rows.filter { $0["topicId"].integer == topicID }.enumerated()), id: \.offset) { _, row in
                     if let context = try? MerchantContentSupplyContext(application: row, recruitmentChapters: chapters) {
@@ -658,7 +658,7 @@ private struct MerchantChapterReplacementContextKey: EnvironmentKey {
                             if (context.canEnroll || context.canReconfirmOrPause), let destination {
                                 NavigationLink { destination(context) } label: { Text("merchant.content.manageSupply") }
                             } else if !context.offerActive && context.termsMode == nil {
-                                Text("merchant.content.supplyTermsUnknown").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                                Text("merchant.content.supplyTermsUnknown").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                             }
                             if context.offerActive, context.offerID != nil, let withdrawalDestination {
                                 NavigationLink { withdrawalDestination(context) } label: { Text("merchant.offerWithdrawal.title") }
@@ -667,9 +667,9 @@ private struct MerchantChapterReplacementContextKey: EnvironmentKey {
                         }
                     }
                 }
-            } else if error { Text("merchant.content.supplyLoadFailed").font(CYTypography.meta).foregroundStyle(CYColor.dangerText) }
+            } else if error { Text("merchant.content.supplyLoadFailed").cyText(.meta).foregroundStyle(CYColor.dangerText) }
             else { CYSkeleton(variant: .row) }
-            Text("merchant.content.supplyBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            Text("merchant.content.supplyBoundary").cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }.task(id: service.scope) {
             let captured = service.scope; snapshot = nil; error = false
             do { let result = try await service.load(.applications); guard !Task.isCancelled, captured == service.scope else { return }; snapshot = result }

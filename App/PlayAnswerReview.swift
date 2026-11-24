@@ -151,12 +151,12 @@ struct PlayAnswerReview: Identifiable, Equatable {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(isPresented: Binding(get: { owner.isPresented(offered) }, set: { if !$0 { owner.cancel(offered) } }),
-                   onDismiss: { owner.dismissed(offered) }) {
+                   onDismiss: { owner.dismissed(offered) }) { Group {
                 PlayAnswerReviewSheet(review: offered, isCurrent: owner.isCurrent(offered), confirm: {
                     guard owner.confirm(offered) else { return }
                     Task { await owner.sendClaimed(offered) }
                 }, cancel: { owner.cancel(offered) })
-            }
+            }.cySheet(detents: [.large]) }
     }
 }
 

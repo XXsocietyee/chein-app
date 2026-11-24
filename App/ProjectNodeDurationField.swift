@@ -70,7 +70,7 @@ import SwiftUI
                 Text("projectNodeDuration.edit", tableName: "ProjectNodeDuration")
             }.disabled(captured == nil || original != nil).accessibilityIdentifier("projectNodeDuration.edit")
         }
-        .sheet(item: controller.binding(original)) { original in sheet(original) }
+        .sheet(item: controller.binding(original)) { original in Group { sheet(original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: scenePhase) { _, phase in if phase != .active { controller.retire() } }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
@@ -87,7 +87,7 @@ import SwiftUI
                         .accessibilityIdentifier("projectNodeDuration.invalid")
                 }
             }
-            .navigationTitle(Text("projectNodeDuration.title", tableName: "ProjectNodeDuration"))
+            .navigationTitle(Text("projectNodeDuration.title", tableName: "ProjectNodeDuration")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } }
                 ToolbarItem(placement: .confirmationAction) {

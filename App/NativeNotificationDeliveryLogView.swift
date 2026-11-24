@@ -65,7 +65,7 @@ import SwiftUI
             } else { ProgressView().frame(maxWidth: .infinity) }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(Text("d7.deliveryLog.title")).privacySensitive()
+        .navigationTitle(Text("d7.deliveryLog.title")).navigationBarTitleDisplayMode(.inline).privacySensitive()
         // Pull to refresh rereads the current page (the old "reload current page" button).
         .refreshable { if model?.page != nil { performRead { await $0.rereadPage() } } }
         .onAppear { visible = true; reopen() }

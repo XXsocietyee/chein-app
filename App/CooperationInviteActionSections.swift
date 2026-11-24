@@ -66,7 +66,7 @@ import SwiftUI
     }
     private func handle(_ action: CoopFlowHandle, label: String, emphasis: Bool = false) -> some View {
         NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: {
-            Text(LocalizedStringKey(label)).font(emphasis ? CYTypography.bodyMedium : CYTypography.body)
+            Text(LocalizedStringKey(label)).cyText(emphasis ? .bodyMedium : .body)
                 .foregroundStyle(emphasis ? CYColor.infoText : CYColor.textPrimary)
         }
             .accessibilityIdentifier("cooperation.detail.handle.\(action.rawValue)")
@@ -111,7 +111,7 @@ import SwiftUI
                                 Text(verbatim: MerchantAreaCopy.text("下一步", "Next", locale))
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .font(CYTypography.caption.weight(.semibold))
+                                    .cyText(.meta, weight: .semibold)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityHidden(true)
                             }
@@ -207,7 +207,7 @@ struct CoopStarRatingControl: View {
                 ForEach(1...5, id: \.self) { star in
                     Button { select(star) } label: {
                         Image(systemName: star <= value ? "star.fill" : "star")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(star <= value ? CYColor.warningText : CYColor.textTertiary)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                             .contentShape(Rectangle())

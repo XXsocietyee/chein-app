@@ -135,7 +135,7 @@ import UIKit
                             Text(row.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                             if row.availability != .available {
                                 Text(LocalizedStringKey(row.availability.rawValue), tableName: "ActivityTemplateSelection")
-                                    .cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+                                    .cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                             }
                         }
                         Spacer(minLength: CYSpacing.sm)
@@ -163,7 +163,7 @@ import UIKit
             Button { owner.close(stamp) } label: { Text("cancel", tableName: "ActivityTemplateSelection") }
                 .buttonStyle(CYPillButtonStyle(style: .tertiary))
                 .accessibilityIdentifier("activityTemplate.cancel")
-        } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textTertiary) }
+        } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textSecondary) }
     }
 }
 
@@ -188,7 +188,7 @@ extension ActivityTemplateSelectionOwner {
     }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: owner.creationBinding(original), onDismiss: { owner.creationDismissed(original) }) { offered in
+            .sheet(item: owner.creationBinding(original), onDismiss: { owner.creationDismissed(original) }) { offered in Group {
                 NavigationStack {
                     if owner.currentCreation(offered) {
                         contentOwner.view.toolbar { ToolbarItem(placement: .cancellationAction) {
@@ -197,7 +197,7 @@ extension ActivityTemplateSelectionOwner {
                         } }
                     }
                 }
-            }
+            }.cySheet(detents: [.large]) }
     }
 }
 

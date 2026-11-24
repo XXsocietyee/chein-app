@@ -131,7 +131,7 @@ HINT = {
     RAW_SIZE: 'use a scale token; decorative glyph sizes belong in App/DesignSystem components',
     BACK_CHEVRON: 'use the system back button (exit guard: `cyGuardedBack`; hero: `CYHeroBackButton` in `cyHeroChrome`)',
     HIDDEN_BACK: 'keep the system back; exit guards use `cyGuardedBack(when:onBack:)`',
-    LARGE_TITLE: 'large titles are for tab roots (`cyRootHeader`); pushed pages use `cyPageTitle(_:)`',
+    LARGE_TITLE: 'tab roots get the large title from `cyRootHeader`; pushed pages use `cyPageTitle(_:)` (inline)',
 }
 
 

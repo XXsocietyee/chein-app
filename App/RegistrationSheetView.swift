@@ -157,8 +157,8 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
-            .sheet(isPresented: $showingTicketSheet) { ticketSheetContent }
-            .sheet(isPresented: $showingParticipantSheet) { participantSheetContent }
+            .sheet(isPresented: $showingTicketSheet) { Group { ticketSheetContent }.cySheet() }
+            .sheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cySheet() }
             .modifier(RegistrationOrderAndLifecycleModifier(
                 flow: flow,
                 orderReader: orderReader,
@@ -175,7 +175,7 @@ struct RegistrationSheetView: View {
                 nonRefundableConfirmed: $nonRefundableConfirmed
             ))
         }
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .accessibilityIdentifier("registration.form.sheet")
         .cyDomainScreen(.player)
     }
@@ -296,18 +296,18 @@ struct RegistrationSheetView: View {
                         else { Text(verbatim: name).cyText(.cardTitle).lineLimit(2) }
                         if let dateText {
                             Label { Text(verbatim: dateText) } icon: { Image(systemName: "calendar") }
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }
                         // Source: the session's 集合点 row appears only when the selected ticket supplies it.
                         if let meetingPoint = checkout.meetingPoint {
                             Label { Text("registrationParity.meetingPointValue \(meetingPoint)") } icon: { Image(systemName: "flag") }
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("registration.activity.meetingPoint")
                         }
                         Label {
                             if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }
                         } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("registration.activity.venue")
                     }
                     Spacer(minLength: 0)
@@ -317,7 +317,7 @@ struct RegistrationSheetView: View {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
                         }
                         Spacer(minLength: CYSpacing.sm)
@@ -325,7 +325,7 @@ struct RegistrationSheetView: View {
                             .cyWrapText().layoutPriority(1)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
                         Text(verbatim: ticketPriceText(copy)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary).cyWrapText()
                     }
@@ -455,7 +455,7 @@ struct RegistrationSheetView: View {
             VStack(spacing: CYSpacing.sm) {
                 CurA11yActions {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(verbatim: copy.t("合计", "Total")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: copy.t("合计", "Total")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: summaryTotalText).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                             .cyWrapText().layoutPriority(1)
                             .accessibilityLabel(PageTemplateVoiceOver.spoken(summaryTotalText, locale: locale))
@@ -493,7 +493,7 @@ struct RegistrationSheetView: View {
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
                     if let reason = blockReason(copy) {
                         Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("registration.form.blockReason")
                     }
@@ -738,7 +738,7 @@ struct RegistrationSheetView: View {
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
                         Text(verbatim: CoreLoopCopy(locale: locale).tr(refundNotice))
                             .cyText(.meta)
-                            .foregroundStyle(quote.requiresNonRefundableConfirmation ? CYColor.warningText : CYColor.textTertiary)
+                            .foregroundStyle(quote.requiresNonRefundableConfirmation ? CYColor.warningText : CYColor.textSecondary)
                             .accessibilityIdentifier("registration.fees.refundPolicy")
                     }
                     if !quote.isUsableForCreate { Text("registration.form.incompleteQuote").foregroundStyle(.secondary) }
@@ -1055,47 +1055,47 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                 }
                 flow.checkWaitlistDeadline()
             }
-            .sheet(item: $orderDestination) { visit in
+            .sheet(item: $orderDestination) { visit in Group {
                 if let orderReader {
                     RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
                         isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
                             destination: flow.waitlistOrderDestination, isActive: scenePhase == .active) })
-                        .cyPlayerSheetGlass()
+                        .themeDomain(.player)
                 }
-            }
+            }.cySheet(detents: [.large]) }
             .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
             .onChange(of: flow.waitlistOrderDestination) { _, _ in orderDestination = nil }
-            .sheet(item: $resultOrderDestination) { presentation in
+            .sheet(item: $resultOrderDestination) { presentation in Group {
                 if let orderReader {
                     RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { resultOrderDestination == presentation &&
                             flow.resultOrderDestination == presentation.destination && scenePhase == .active })
-                        .cyPlayerSheetGlass()
+                        .themeDomain(.player)
                 }
-            }
-            .sheet(item: $recoveredOrderDestination) { presentation in
+            }.cySheet(detents: [.large]) }
+            .sheet(item: $recoveredOrderDestination) { presentation in Group {
                 if let orderReader {
                     RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { recoveredOrderDestination == presentation &&
                             flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
-                        .cyPlayerSheetGlass()
+                        .themeDomain(.player)
                 }
-            }
+            }.cySheet(detents: [.large]) }
             .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
             .onChange(of: flow.resultOrderDestination) { _, _ in resultOrderDestination = nil }
             .onChange(of: scenePhase) { _, phase in
                 if phase == .background { orderDestination = nil; resultOrderDestination = nil; recoveredOrderDestination = nil; flow.retireResultOrderNavigation() }
             }
-            .sheet(isPresented: $showingAddParticipant) {
+            .sheet(isPresented: $showingAddParticipant) { Group {
                 if let participantReader, let participantCoordinator {
                     NavigationStack {
                         ParticipantFormView(reader: participantReader, coordinator: participantCoordinator,
                             onSaved: { if participantCoordinator.savedParticipant == nil { Task { await flow.loadParticipants() } } },
                             onCreated: { row, identity in Task { await flow.selectCreatedParticipant(row, identity: identity) } })
                     }
-                    .cyPlayerSheetGlass()
+                    .themeDomain(.player)
                 }
-            }
+            }.cySheet() }
             .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
             .onChange(of: flow.participantsIdentity) { _, _ in
                 showingAddParticipant = false

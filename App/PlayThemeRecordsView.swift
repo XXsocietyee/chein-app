@@ -36,12 +36,12 @@ import SwiftUI
         .accessibilityIdentifier("playx.themeRecords")
         .task { if model.rows.isEmpty { await model.open() } }
         .onDisappear { model.close() }
-        .sheet(isPresented: Binding(get: { model.cardSessionID != nil }, set: { if !$0 { model.closeCard() } })) {
+        .sheet(isPresented: Binding(get: { model.cardSessionID != nil }, set: { if !$0 { model.closeCard() } })) { Group {
             NavigationStack { cardContent.toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { model.closeCard() } label: { Image(systemName: "xmark") }
                     .accessibilityLabel(Text("playx.themeRecords.backToList")).accessibilityIdentifier("playx.themeRecords.closeCard")
             } } }
-        }
+        }.cySheet(detents: [.large]) }
     }
 
     private func rowLabel(_ row: PlayThemeHistoryRow) -> some View {
