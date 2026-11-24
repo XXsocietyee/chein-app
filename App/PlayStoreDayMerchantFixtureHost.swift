@@ -20,13 +20,19 @@ import Observation
         switch scenario {
         case "arrived": row["arrived"] = true; row["hasGame"] = false
         case "consented", "noTicket": row["arrived"] = true; row["selfReported"] = true; row["gameDone"] = true
+        // PLAYM-2: 本店权益 card; perkBlocked also carries the server's blocked line instead of 出示核销码.
+        case "perk", "perkBlocked":
+            row["arrived"] = true; row["selfReported"] = true; row["gameDone"] = true
+            var perk: [String: Any] = ["name": "Synthetic perk / 示例权益", "redeemRule": "Synthetic rule / 示例规则"]
+            if scenario == "perkBlocked" { perk["redeemBlockedText"] = "Synthetic quota used up / 今日名额已用完" }
+            row["perk"] = perk
         case "degraded": row["quantityUnavailable"] = true; row["crowded"] = true; row["serviceCapacity"] = NSNull(); row["expectedWaitMinutes"] = NSNull()
         case "redeemed": row["arrived"] = true; row["selfReported"] = true; row["done"] = true
         default: break
         }
         if row["arrived"] as? Bool == true { Self.addQuiz(&row) }
         self.row = row
-        consentEvent = scenario == "consented" ? "AGREE" : nil
+        consentEvent = ["consented", "perk", "perkBlocked"].contains(scenario) ? "AGREE" : nil
     }
     private static func addQuiz(_ row: inout [String: Any]) {
         guard row["hasGame"] as? Bool == true else { return }

@@ -1582,10 +1582,10 @@ struct PlayExperienceIssueView: View {
     static func medals(in reward: PlayWireValue, locale: Locale) -> [CYMedalItem] {
         var items: [CYMedalItem] = []
         if let medal = reward["medalName"].text, !medal.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            items.append(.init(id: "topic-medal", name: medal, imageURL: reward["medalImg"].text ?? reward["medalImage"].text, systemImage: "rosette"))
+            items.append(.init(id: "topic-medal", name: medal, imageURL: reward["medalImg"].text ?? reward["medalImage"].text, systemImage: "rosette", mpDefault: .trophy))
         }
         for target in PlayRewardBadgeTarget.targets(in: reward) {
-            items.append(.init(id: "badge-" + target.code, name: target.name ?? appLocalized("medalDeck.unnamed", locale: locale), systemImage: "seal.fill"))
+            items.append(.init(id: "badge-" + target.code, name: target.name ?? appLocalized("medalDeck.unnamed", locale: locale), systemImage: "seal.fill", mpDefault: .glassBadge))
         }
         return items
     }

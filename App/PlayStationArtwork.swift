@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Station / station-game picture from `PlayStationImageResolver`. Fixed aspect ratio and
-/// fill cropping. The last tier is `CYCoverArt` (the same cover surface as other cards),
+/// fill cropping. The last tier is `CYCoverArt` with the MP route cover illustration on top,
 /// never a hardcoded dark color, a person placeholder, or an empty gap.
 struct PlayStationArtwork: View {
     let image: PlayStationImage
@@ -18,7 +18,9 @@ struct PlayStationArtwork: View {
     }
 
     var body: some View {
-        CYCoverArt(seed: title.isEmpty ? "station" : title, showsDebugLabel: false, cornerRadius: 0)
+        // MP `cy-cover-fb`: no station photo → the route cover illustration (`images/cover-route.svg`) on the cover surface.
+        CYCoverArt(seed: title.isEmpty ? "station" : title, showsDebugLabel: false, showsGlyph: false, cornerRadius: 0)
+            .overlay { MPAsset.BannerCover.coverRoute.resizable().scaledToFit().padding(CYSpacing.lg) }
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay {
                 if let url {

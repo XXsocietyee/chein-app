@@ -138,6 +138,9 @@ struct CYShareCardContent: Equatable {
     var brand: String
     /// Generated art carries CYCoverArt's tiny label in DEBUG builds only; Release never shows it.
     var debugArt = true
+    /// MP share card without a cover: the route illustration (`subpackageRoam/components/cy/share-card/route-art.png`)
+    /// replaces the generated art. Default off keeps every other card unchanged.
+    var mpRouteArt = false
 
     var placeDisplay: String { place?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? place! : "—" }
     var trimmedCaption: String { caption.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -405,7 +408,8 @@ private struct CYShareCardPoster: View {
     var body: some View {
         let ratio = style.ratio
         ZStack(alignment: .bottomLeading) {
-            CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: content.kind != .medal)
+            if content.mpRouteArt { MPAsset.BannerCover.routeArt.resizable().scaledToFill() }
+            else { CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: content.kind != .medal) }
             LinearGradient(colors: [style.tint.primary.opacity(0.22), style.tint.secondary.opacity(0.92)],
                            startPoint: .top, endPoint: .bottom)
             LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .center, endPoint: .bottom)
@@ -452,7 +456,10 @@ private struct CYShareCardTicket: View {
         let ground = style.tint.secondary
         ZStack {
             LinearGradient(colors: [style.tint.secondary, style.tint.secondary.opacity(0.75)], startPoint: .top, endPoint: .bottom)
-            CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: false)
+            Group {
+                if content.mpRouteArt { MPAsset.BannerCover.routeArt.resizable().scaledToFill() }
+                else { CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: false) }
+            }
                 .opacity(0.28)
             VStack(spacing: 0) {
                 // Upper stub: identity.

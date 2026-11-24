@@ -7,6 +7,30 @@ struct SearchMapPin: Identifiable, Equatable {
     let title: String
     let coordinate: RoamCoordinate
     let symbol: String
+    /// Roam places only: MP `images/roam/pin/pin-<category>.png` (utils/roam-place-map.js). nil keeps the symbol marker.
+    var category: RoamPinCategory? = nil
+}
+
+/// MP `categoryKey` (utils/roam-place-map.js + roam-poi-presentation.js): type 2 → merchant, then tags roam:park / roam:street /
+/// roam:shop, else landmark. Selects the MP map-marker artwork.
+enum RoamPinCategory: String, Equatable {
+    case merchant, park, street, shop, landmark
+    init(place: RoamPlace) {
+        if place.type == 2 { self = .merchant }
+        else if place.tags.contains("roam:park") { self = .park }
+        else if place.tags.contains("roam:street") { self = .street }
+        else if place.tags.contains("roam:shop") { self = .shop }
+        else { self = .landmark }
+    }
+    var pin: Image {
+        switch self {
+        case .merchant: MPAsset.MapMarker.pinMerchant
+        case .park: MPAsset.MapMarker.pinPark
+        case .street: MPAsset.MapMarker.pinStreet
+        case .shop: MPAsset.MapMarker.pinShop
+        case .landmark: MPAsset.MapMarker.pinLandmark
+        }
+    }
 }
 /// Rendering consumes only supplied coordinates. No device location manager, tracking mode,
 /// user annotation, camera-to-network callback or geocoder exists in this surface.
@@ -95,7 +119,12 @@ enum QuestifyMapAppearance {
 struct QuestifyMapPinSymbol: View {
     let symbol: String
     var selected = false
+    /// MP marker artwork (roam pins / cluster); drawn at the MP size inside a 44 pt hit area.
+    private var art: Image? = nil
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
+    init(symbol: String, selected: Bool = false) { self.symbol = symbol; self.selected = selected }
+    /// Roam pins: the MP marker image instead of the symbol disc (nil keeps the symbol).
+    func mpArt(_ image: Image?) -> Self { var copy = self; copy.art = image; return copy }
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
         CYMapMarker(symbol: symbol, selected: selected)

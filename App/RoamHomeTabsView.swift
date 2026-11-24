@@ -26,16 +26,18 @@ struct RoamHomeTabPicker: View {
         let id: String
         let title: LocalizedStringKey, sub: LocalizedStringKey
         let symbol: String
+        /// MP `images/roam/intro-ticket-*.svg`; the official-routes ticket has no MP art and keeps its symbol.
+        var art: Image? = nil
         let spine: Color
         let destination: () -> AnyView
     }
     private var specs: [Spec] {
         var list = [Spec(id: "roam.home.intro.start", title: "roam.w208.intro.start", sub: "roam.w208.intro.start.sub",
-                         symbol: "point.topleft.down.to.point.bottomright.curvepath", spine: Color(red: 0.36, green: 0.75, blue: 0.42), destination: start)]
+                         symbol: "point.topleft.down.to.point.bottomright.curvepath", art: MPAsset.FeatureIcon.introTicketRoute, spine: Color(red: 0.36, green: 0.75, blue: 0.42), destination: start)]
         if let nearby { list.append(Spec(id: "roam.home.intro.map", title: "roam.w208.intro.map", sub: "roam.w208.intro.map.sub",
-                                         symbol: "map", spine: Color(red: 0.36, green: 0.55, blue: 0.88), destination: nearby)) }
+                                         symbol: "map", art: MPAsset.FeatureIcon.introTicketMap, spine: Color(red: 0.36, green: 0.55, blue: 0.88), destination: nearby)) }
         if let myTeams { list.append(Spec(id: "roam.home.intro.teams", title: "roam.w208.intro.teams", sub: "roam.w208.intro.teams.sub",
-                                          symbol: "person.3", spine: Color(red: 0.93, green: 0.58, blue: 0.27), destination: myTeams)) }
+                                          symbol: "person.3", art: MPAsset.FeatureIcon.introTicketTeam, spine: Color(red: 0.93, green: 0.58, blue: 0.27), destination: myTeams)) }
         if let officialRoutes { list.append(Spec(id: "roam.home.intro.officialRoutes", title: "officialRoute.intro", sub: "officialRoute.intro.sub",
                                                  symbol: "signpost.right.and.left", spine: Color(red: 0.25, green: 0.70, blue: 0.72), destination: officialRoutes)) }
         return list
@@ -52,7 +54,10 @@ struct RoamHomeTabPicker: View {
         NavigationLink { spec.destination() } label: {
             HStack(spacing: 0) {
                 VStack(alignment: .leading) {
-                    Image(systemName: spec.symbol).font(.title3.weight(.semibold)).accessibilityHidden(true)
+                    Group {
+                        if let art = spec.art { art.resizable().scaledToFit().frame(width: 36, height: 36) }
+                        else { Image(systemName: spec.symbol).font(.title3.weight(.semibold)) }
+                    }.accessibilityHidden(true)
                     Spacer(minLength: 8)
                     Text(verbatim: "NO.0\(number)").cyText(.caption, weight: .semibold).monospaced()
                 }
@@ -530,7 +535,7 @@ struct RoamToolUnavailableView: View {
     private func tileLink(_ tile: RoamPassportHome.Tile) -> some View {
         NavigationLink { tileDestination(tile) } label: {
             HStack(spacing: 12) {
-                Image(systemName: tile.symbol).foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
+                tileArt(tile).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(LocalizedStringKey(tile.titleKey)).cyText(.cardTitle)
@@ -541,6 +546,15 @@ struct RoamToolUnavailableView: View {
             }
         }
         .accessibilityIdentifier("roam.home.passport.tile.\(tile.rawValue)")
+    }
+    /// MP `cy-roam-photo` 3D icons for 历史 / 印章 / 目标 (`subpackageRoam/assets/icons`); other tiles keep a symbol (MP cy-icon).
+    @ViewBuilder private func tileArt(_ tile: RoamPassportHome.Tile) -> some View {
+        switch tile {
+        case .history: MPAsset.FeatureIcon.history.resizable().scaledToFit().frame(width: 36, height: 36)
+        case .stamp: MPAsset.FeatureIcon.stamp.resizable().scaledToFit().frame(width: 36, height: 36)
+        case .goals: MPAsset.FeatureIcon.goals.resizable().scaledToFit().frame(width: 36, height: 36)
+        default: Image(systemName: tile.symbol).foregroundStyle(.tint).frame(width: 36)
+        }
     }
     /// A tile is listed only when it opens something; goals and capsule need the owner-only tools reader
     /// (capability absent => hidden, per the pages/roam/index page-ready note).
@@ -583,7 +597,15 @@ struct RoamToolUnavailableView: View {
     /// 发现附近店铺 opens the nearby map. A card without a destination is not listed.
     @ViewBuilder private func playCard(_ play: RoamPassportHome.Play) -> some View {
         let label = HStack(spacing: 12) {
-            Image(systemName: play == .event ? "calendar" : "storefront").foregroundStyle(.tint).frame(width: 28).accessibilityHidden(true)
+            Group {
+                // MP 官方活动 card photo (`subpackageRoam/assets/photos/event`); 发现附近店铺 keeps the cy-icon stand-in.
+                if play == .event {
+                    MPAsset.BannerCover.event.resizable().scaledToFill().frame(width: 44, height: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                } else {
+                    Image(systemName: "storefront").foregroundStyle(.tint).frame(width: 44)
+                }
+            }.accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(play.titleKey)).cyText(.cardTitle)
                 if play == .event, let activeOfficial {

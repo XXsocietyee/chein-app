@@ -7,6 +7,22 @@ struct RoamPOIActions {
     var toggleFavorite: @MainActor (Int) async throws -> Bool
     /// RPOI-1: `POST api/city/nodes/{id}/complete` with the evidence the node's validationMethod asks for.
     var complete: @MainActor (Int, RoamPOICheckInEvidence) async throws -> RoamNodeCompletion
+    /// RPOI-3: signed-in member id and the device store for the MP `cy_roam_poi_checkin_pending:v1` journal.
+    /// nil skips the journal (previews, fixtures).
+    var ownerID: String? = nil
+    var pendingStore: (any RoamPendingCheckInStoring)? = nil
+}
+
+/// RPOI-3: the MP keeps the pending check-in record in wx storage; the app keeps the same record in UserDefaults.
+/// The record holds only version, owner, poi and attempt ids (no coordinates, answers, photos or scan text).
+final class RoamPendingCheckInDefaults: RoamPendingCheckInStoring, @unchecked Sendable {
+    static let shared = RoamPendingCheckInDefaults()
+    private let defaults: UserDefaults
+    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
+    func data(forKey key: String) -> Data? { defaults.data(forKey: key) }
+    func set(_ data: Data?, forKey key: String) {
+        if let data { defaults.set(data, forKey: key) } else { defaults.removeObject(forKey: key) }
+    }
 }
 
 /// Body fields of the MP `completeNode(answer, photoUrl, code)`; empty strings when a method does not use them.
@@ -56,6 +72,18 @@ enum RoamDeviceFixGCJ {
     @Published private(set) var favoritePhase: Phase = .idle
     @Published private(set) var checkInPhase: Phase = .idle
     @Published private(set) var checkInSuccess: RoamNodeCompletion?
+    /// RPOI-3 (MP `checkinPending`): an earlier complete POST whose result is not known yet.
+    enum Pending: Equatable { case none, uncertain, storageError }
+    /// MP `pendingStatusText` after a node read that did not settle the pending attempt.
+    enum PendingStatus: Equatable { case notShown, unresolved }
+    @Published private(set) var pending: Pending = .none
+    @Published private(set) var pendingStatus: PendingStatus?
+    /// MP `reverifyReady`: the fresh node read allows a new on-site check under the same attempt id.
+    @Published private(set) var reverifyReady = false
+    /// MP toast 已确认当前已完成 / 已确认当前待核销 after a read settled the pending attempt; the value is `needRedeem`.
+    @Published private(set) var pendingRecovered: Bool?
+    private var reverifyAttempt: String?
+    private var reverifyRequested = false
     /// Retry resends the same answer / photo / code instead of asking again.
     private(set) var lastEvidence = RoamPOICheckInEvidence.none
     /// RPOI-3: the signed-in owner. Empty skips the journal so a check-in with no account still reports the location failure.
@@ -118,6 +146,10 @@ enum RoamDeviceFixGCJ {
         Task {
             do {
                 let receipt = try await actions.complete(poiID, evidence)
+                if let context {
+                    do { _ = try RoamPendingCheckInJournal.clear(context.store, key: context.key, ownerID: context.owner, poiID: context.poi, attemptID: attempt) }
+                    catch { if mine == token { pending = .storageError } }
+                }
                 guard mine == token else { return }
                 applyReceipt(opened, poiID: poiID, receipt: receipt)
                 completedOverride = !receipt.needRedeem; needRedeemOverride = receipt.needRedeem
@@ -239,6 +271,8 @@ struct RoamPOIActionRows: View {
     var ownerID: String? = nil
     var onReload: () -> Void = {}
     @Environment(\.openURL) private var openURL
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
     @Environment(\.locale) private var locale
     @State private var answerPrompt = false
@@ -267,10 +301,11 @@ struct RoamPOIActionRows: View {
         if case .failed(let failure) = model.favoritePhase {
             failureRow(failure, retry: { model.toggleFavorite(poiID: node.poiId, current: favorited, actions: actions) })
         }
-        if node.isPublished && !completed {
+        if model.pending != .none, !completed { pendingRows }
+        if node.isPublished && !completed && (model.pending == .none || model.reverifyReady) {
             Button { startCheckIn() } label: {
                 HStack {
-                    Label(LocalizedStringKey(needRedeem ? "roam.poi.action.checkIn.redeem" : "roam.poi.action.checkIn"), systemImage: "mappin.and.ellipse")
+                    Label(LocalizedStringKey(model.reverifyReady ? "roam.poi.pending.startReverify" : (needRedeem ? "roam.poi.action.checkIn.redeem" : "roam.poi.action.checkIn")), systemImage: "mappin.and.ellipse")
                     if model.checkInPhase == .working { Spacer(); ProgressView() }
                 }.frame(minHeight: 44)
             }
@@ -295,7 +330,12 @@ struct RoamPOIActionRows: View {
                   systemImage: "checkmark.seal.fill").foregroundStyle(.green)
                 .accessibilityIdentifier("roam.poi.checkin.success")
         }
+        if let redeem = model.pendingRecovered {
+            Label(LocalizedStringKey(redeem ? "roam.poi.pending.recoveredRedeem" : "roam.poi.pending.recoveredDone"), systemImage: "checkmark.seal.fill")
+                .foregroundStyle(.green).accessibilityIdentifier("roam.poi.pending.recovered")
         }
+        }
+        .onAppear { model.restore(node: node, actions: actions) }
         .alert("roam.poi.answer.title", isPresented: $answerPrompt) {
             TextField("roam.poi.answer.placeholder", text: $answerText)
             Button("action.cancel", role: .cancel) { model.disarmReverify() }
@@ -351,6 +391,32 @@ struct RoamPOIActionRows: View {
         model.checkIn(poiID: node.poiId, evidence: evidence, actions: actions)
     }
 
+    /// RPOI-3: MP `.poi-recovery` (结果待确认 + 查询当前状态 + 重新现场核验).
+    @ViewBuilder private var pendingRows: some View {
+        let storage = model.pending == .storageError
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Label(LocalizedStringKey(storage ? "roam.poi.pending.storageTitle" : "roam.poi.pending.title"), systemImage: "clock.badge.questionmark")
+                .cyText(.bodyMedium)
+            Text(LocalizedStringKey(storage ? "roam.poi.pending.storageMessage" : "roam.poi.pending.message")).cyText(.bodyCompact).foregroundStyle(.secondary)
+            if let status = model.pendingStatus {
+                Text(LocalizedStringKey(status == .notShown ? "roam.poi.pending.notShown" : "roam.poi.pending.unresolved")).cyText(.bodyCompact).foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .combine).accessibilityIdentifier("roam.poi.pending")
+        Button("roam.poi.pending.query") { reload() }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .disabled(model.checkInPhase == .working)
+            .accessibilityIdentifier("roam.poi.pending.query")
+        if !storage {
+            Button { model.requestReverify(); reload() } label: {
+                Text(LocalizedStringKey(model.reverifyReady ? "roam.poi.pending.reverifyReady" : "roam.poi.pending.reverify"))
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .disabled(model.reverifyReady || model.checkInPhase == .working)
+            .accessibilityIdentifier("roam.poi.pending.reverify")
+        }
+    }
+
     @ViewBuilder private func failureRow(_ failure: RoamPOIActionModel.Failure, retry: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             switch failure {
@@ -368,6 +434,12 @@ struct RoamPOIActionRows: View {
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .signIn:
                 Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").cyText(.body)
+                // poi-detail #20: MP ensureLoginFor → the sign-in entry. Close the place sheet first, then open 我的.
+                if rootTabSwitch.isAvailable {
+                    Button("auth.signIn") { dismiss(); rootTabSwitch(.mine) }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("roam.poi.signIn.action")
+                }
             case .network:
                 Label("roam.poi.action.failed", systemImage: "wifi.exclamationmark").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)

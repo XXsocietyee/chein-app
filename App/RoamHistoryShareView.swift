@@ -126,7 +126,8 @@ import UIKit
             artSeed: "walk-\(record.ts)",
             artSymbol: "figure.walk",
             caption: caption,
-            brand: appLocalized("roamSub.w208.share.brand", locale: locale))
+            brand: appLocalized("roamSub.w208.share.brand", locale: locale),
+            mpRouteArt: true)
     }
 
     // MARK: Controls

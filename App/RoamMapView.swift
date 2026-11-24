@@ -18,7 +18,7 @@ struct RoamMapView: View {
             guard let coordinate = item.coordinate else { return nil }
             return SearchMapPin(id: item.id,
                 title: item.title.isEmpty ? appLocalized("roam.unnamed", locale: locale) : item.title,
-                coordinate: coordinate, symbol: item.symbol)
+                coordinate: coordinate, symbol: item.symbol, category: item.pinCategory)
         }
     }
     var body: some View {
@@ -34,5 +34,13 @@ struct RoamMapView: View {
                 onSelect(item)
             }, fillsHeight: fillsHeight, fog: fog, reveal: reveal)
             .accessibilityIdentifier("roam.map")
+    }
+}
+
+extension RoamMapItem {
+    /// MP pin artwork applies to places; routes, events and players keep their symbol markers.
+    var pinCategory: RoamPinCategory? {
+        if case .place(let place) = self { return RoamPinCategory(place: place) }
+        return nil
     }
 }

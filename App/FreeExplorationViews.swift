@@ -53,15 +53,18 @@ import SwiftUI
                     // Foil pack printed with the topic name (x-fix7 P-6). Tap tears it open: a short shake and
                     // burst, then the store cards are dealt one by one. Reduce Motion: opens at once.
                     Button { openPack(count: presentation.stores.count) } label: {
+                        // MP `.fx-pack__foil` (pages/play/assets/pack-foil.png) is the pack body; the topic name is printed in black.
                         VStack(spacing: 18) {
-                            Image(systemName: "rectangle.stack.fill").font(.largeTitle).foregroundStyle(CYColor.textSecondary)
-                                .symbolEffect(.bounce, value: tearing)
                             Text(verbatim: snapshot.result.topicName ?? "").cyText(.sectionTitle).cyLookTitle()
-                                .foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).lineLimit(2)
-                            Text("playFree.pack.open").cyText(.label).foregroundStyle(CYColor.textSecondary)
+                                .foregroundStyle(Color.black).multilineTextAlignment(.center).lineLimit(2)
+                            Text("playFree.pack.open").cyText(.label).foregroundStyle(Color.black.opacity(0.6))
                         }.frame(maxWidth: .infinity, minHeight: 200)
                             .padding(CYSpacing.xl)
-                            .background { CYCoverArt(seed: snapshot.result.topicName ?? "pack", symbol: "rectangle.stack.fill", cornerRadius: CYRadius.xl) }
+                            .background {
+                                MPAsset.Other.packFoil.resizable()
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                                    .accessibilityHidden(true)
+                            }
                             .rotationEffect(.degrees(tearing && !reduceMotion ? -2.5 : 0))
                             .scaleEffect(tearing && !reduceMotion ? 1.06 : 1)
                             .opacity(tearing ? 0 : 1)

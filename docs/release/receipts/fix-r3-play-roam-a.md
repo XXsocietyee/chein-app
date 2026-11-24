@@ -71,3 +71,74 @@ Once `MPAsset` accessors exist, swap the SF Symbols on the roam tickets and pass
 - Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), base 52b08c7c7 vs branch: 196 failures+errors on both, identical sorted lists, **0 new**. The first branch run found 2 new (a pinned `.footnote` line and a `nearby.*` key outside the catalog); both fixed and the two suites re-run green.
 - Acceptance workflow: not run from the cloud (no `gh` here); fixture routes are in `docs/port/accept/f-play-roam-a.txt` for the coordinator's run. Routes for the live-session tap and the circle-link query are best-effort and may need the coordinator's adjustment.
 - New Swift files: none (no `tools/generate_project.py` change needed).
+
+## Round 2 (2026-11-24)
+
+Brief: `design/handoff-r2:docs/briefs/fix-r3-round2.md` (+ `wave-x10.md`, `owner-decisions-1124.md`).
+
+- **Sync:** merged `origin/ui/combined-r7` 82388e4a5 (Cursor Core K1–K10, W1 wiring, C7 MP assets). Two conflicts: `App/PlayExperienceView.swift` (kept both my `PlayStoryMapGround` and Cursor's W1 `PlayExperienceCastMounts`); `tools/check_typography_lint.py` (took the newer r7 version). Merged again before the final push.
+- **Strings:** fragment `docs/port/strings/fix-r3-play-roam-a.json` now 16 keys (en + zh-Hans). The perk header uses `playMerchant.perk.title` in the default table: `test_w2_19_playMerchant` requires every `playStoreDay.*` key used in the view to be in `Resources/PlayStoreDay.xcstrings`, which is not a fragment.
+
+### Fixed in round 2
+
+| id | page | what changed | files |
+|---|---|---|---|
+| PLAYM-2 | play/merchant | Cursor's `PlayStoreDayNode.perk` is shown as the MP 本店权益 card (gift art `MPAsset.FeatureIcon.gift`, name, `redeemRule`) between the consent and 商家信息 sections. While `redeemBlockedNotice` is set, the `.verify` primary CTA is the disabled server line (MP `.mp-cta__main.is-dead`) instead of 出示核销码. Fixture scenarios `perk` / `perkBlocked`. | PlayStoreDayMerchantView, PlayStoreDayMerchantFixtureHost |
+| RPOI-3 | poi-detail | MP `cy_roam_poi_checkin_pending:v1` journal on the check-in action, through Cursor's `RoamPendingCheckInJournal`: `begin` before the POST (fresh attempt needs an empty slot; 重新现场核验 reuses the attempt), `clear` on a receipt, `step` on a rejection (known pre-write message → clear, or keep an earlier unknown; any other failure → `markUncertain`). On each node read a pending record is settled when `completed != needRedeem` (已确认当前已完成 / 待核销), otherwise kept with the MP status line. UI: 打卡结果待确认 + 查询当前状态 (re-reads the node) + 重新现场核验 → 开始现场核验 under the same attempt; storage failure shows the MP 本地存储异常 copy and sends nothing. Store: `RoamPendingCheckInDefaults` (UserDefaults; record = v, ownerId, poiId, attemptId, uncertain — no coordinates, answers, photos or scan text), catalogued in `docs/ops-safety/client-data-catalog.json`. `AppSession.makeRoamPOIActions` passes `ownerID` (session account id) and the store (no line added: ratchet 8171). | RoamPOIActions, RoamItemDetailView, AppSession, client-data-catalog.json |
+| RHIST-r7-1 | history | Checked: no App caller of `fetchRoamHistory` remains (Cursor removed it); merged history stays on `RoamPassportHistoryReadRoute`. Nothing to change. | — |
+| poi-detail #20 (P2) | poi-detail | `.signIn` check-in error now has 登录: closes the place sheet, then switches to 我的 (`rootTabSwitch(.mine)`), shown only when the root tab switch is available. | RoamPOIActions |
+
+### MP assets applied (mapping.md rows ticked)
+
+| ✓ | MPAsset | where |
+|---|---|---|
+| ✓ | `FeatureIcon.introTicketRoute` / `introTicketMap` / `introTicketTeam` | roam start-tab tickets NO.01–03 (`RoamHomeIntroCards`); NO.04 官方路线 has no MP ticket art and keeps its symbol |
+| ✓ | `FeatureIcon.history` / `stamp` / `goals` | passport tiles 历史 / 印章 / 目标 (`RoamHomeTabsView.tileArt`); 徽章 / 时光胶囊 have no MP image (cy-icon) and keep symbols |
+| ✓ | `BannerCover.event` | 官方活动 play card thumbnail (`RoamHomeTabsView.playCard`) |
+| ✓ | `MapMarker.pinMerchant` / `pinPark` / `pinStreet` / `pinShop` / `pinLandmark` | roam map place pins, by the MP `categoryKey` (type 2 → merchant; tags roam:park / roam:street / roam:shop; else landmark). New `RoamPinCategory`, optional `SearchMapPin.category` (default nil, so search / nearby / city maps are unchanged), `QuestifyMapPinSymbol.mpArt(_:)` (44 pt hit area kept, selected = scale + checkmark) |
+| ✓ | `MapMarker.dotCluster` | roam map cluster anchor (count capsule unchanged) |
+| ✓ | `Other.mailbox` | citystamp write step, above 投进信箱 (`RoamCityStampFlowView`) |
+| ✓ | `BannerCover.routeArt` | roam session share card and official-route share card (no cover → MP route illustration); `CYShareCardContent.mpRouteArt` (default false, other cards unchanged) |
+| ✓ | `BadgeMedal.trophy` | play reward topic medal without a server image (`CYMedalItem.mpDefault = .trophy`) |
+| ✓ | `BadgeMedal.glassBadge` | play reward new badges without an image (`.glassBadge`, was SF `seal.fill`) |
+| ✓ | `Other.packFoil` | free-exploration card pack body (topic name printed in black, MP x-fix7 P-6); the SF `rectangle.stack.fill` stand-in is gone |
+| ✓ | `BannerCover.coverRoute` | station artwork with no photo (`PlayStationArtwork`, MP `cy-cover-fb`) |
+| — | `BrandLogo.cyLogoMark` | MP uses it on the roam opening animation (no app host) and the share-card badge (`CYShareCard` brand row is text; left to the share-card owner) |
+| — | `BannerCover.nearbyCard` | MP `MOCK_IMG` is a demo-data image; real rows stay empty (MP L05-022 "不拿占位图冒充店面") |
+| — | `BannerCover.homeRouteCityPlaceholder` | MP nearby card-strip default; the app has no nearby card strip yet (RNEAR-2, Gemini) |
+| — | `MapMarker.roamPushpin`, `dot*` single dots | MP canvas share-image decoration / far-zoom single dots; the native map uses clusters instead of solo dots |
+| — | `Other.printerBody` / `printerSlot` | wxss background of the citystamp printer; `RoamStampSlipView` tear/scratch layout not redrawn this round |
+| — | `TabIcon.iconRoam*` / `iconTabRoam*` | global tab bar (`CYDomainTabBar`), not a play-roam page |
+| — | medal-screen `gl*` / `mic*`, `dTopic*`, `laurel` | medal screen / mock data / journey rank board: not in half a's pages |
+
+System-control glyphs (✕, share, search, chevrons, ⋯) stay SF Symbols.
+
+### Owner decisions (1124) on half a
+
+- #9 two-decimal money: no money is drawn on the 15 pages (the store-day perk is a name and a rule). The journey promo amounts (`PlayerJourneyPromoBinding.yuan`) already print two decimals.
+- #8 GPS arrival lock: A2-01 is fixed on r7 (`PlayArrivalService(runtime:location: RuntimeNativeLocationProvider(enabled: true))`); no App change needed here.
+- #10 pilot gate for game kits: the P4 mounts are Cursor's (`cursor/r7-wiring`); there is no per-event gate in Core yet → request below.
+- #7 cast on fixtures / #12 money TEST-only: nothing here sends cast or money (`makeCastCoordinator` stays `enabled: []`; JLAND-r7-1 claim stays behind `moneyOff`).
+
+### Still left (round 2)
+
+| id | why | owner |
+|---|---|---|
+| JLAND-r7-1 | Claim flow is money (owner #3/#12: not on). `JourneyLandingClaim` is ready; mount when the owner opens claims. | owner, then F |
+| RTEAMS-3 (b), RTEAMS-5 | Unchanged: no per-team applicant count in Core; `test_nearby_mine_read_provenance:16` still pins the duplicate row. (`.font(.footnote)` is legal again under the r7 lint, so only the row removal is blocked.) | Cursor |
+| ROAM-8 | MP tile images are in, but the passport still lacks the latest track thumbnail / stamp image fields and the photo-tile layout ruling. | Cursor + owner |
+| PLAYPOI-6 (P2) | Unchanged (needs `makeExternalMaps` plumbing into `ChallengePOIView`). | F (next round) |
+| official-route #7 | Unchanged: no node `imgUrl`. | Cursor |
+| review r7-rev-a/b/c | No Claude-owned row lands in half a's pages (rev-a rows are Cursor's; rev-b Claude rows are P3/P5 topic / registration; rev-c is parked MPGap). | — |
+
+### Core requests for Cursor (round 2)
+
+6. Owner #10: a per-event pilot gate (default off) for the ported P4 game-page kits, read by the P4 mounts on play/index.
+7. Owner #9: `PlayerJourneyPromoBinding.yuan` could reuse `MoneyDisplay.yuan` (one shared formatter); it is already two decimals.
+
+### Verification (round 2, cloud, no compiler)
+
+- APIs grepped on the branch before use: `RoamPendingCheckInJournal.{storageKey,read,begin,markUncertain,clear,step,photoKey}`, `RoamPendingCheckInStoring`, `RoamPendingCompleteStep`, `RoamPendingCheckInRecord.attemptID`, `PlayStoreDayNode.perk` / `redeemBlockedNotice`, `PlayStoreDayPerk`, every `MPAsset.*` accessor used (and its imageset: PNG/JPG/PDF only, no WebP), `RoamNodeDetail.{completed,needRedeem,canInteract,isPublished}`, `PlayExperienceSession.accountID`, `CYCoverArt(seed:symbol:showsDebugLabel:showsGlyph:cornerRadius:)`, `RootTabSwitch.isAvailable`, `CYRadius.sm/xl`, `CYSpacing.minTouchTarget/xxs`.
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), merge base b52f057dd vs branch: 202 failures+errors on both, identical sorted lists, **0 new**. The first run found 5 new failures (UserDefaults store not catalogued ×2, AppSession line ratchet ×2, the pinned `QuestifyMapPinSymbol(symbol: anchor.symbol, selected: anchor.id == selectedID)` string); all fixed and those suites re-run green.
+- `tools/check_typography_lint.py`: PASS. `tools/audit_client_ops_surfaces.py --check`: PASS.
+- Fixture routes added under "Round 2" in `docs/port/accept/f-play-roam-a.txt`.
