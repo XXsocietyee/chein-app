@@ -67,6 +67,23 @@
       }
     }
   },
+  "messaging.system": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Chengyin Assistant"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "城瘾小助手"
+        }
+      }
+    }
+  },
   "myProject.address.open %@": {
     "extractionState": "manual",
     "localizations": {
