@@ -177,6 +177,11 @@ struct ClubGovernanceReadView: View {
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     var expectedCreatedSeries: ClubCreatedSeriesReceipt? = nil
+    /// CLB-topic-story-01: `pages/club/topic-story/index` opens the story directly. The topic overview stays the
+    /// host that owns the read; once it has loaded, the story is pushed one time.
+    var opensStoryOnLoad = false
+    @State private var storyAutoOpen = false
+    @State private var storyAutoOpened = false
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var customerPager = ClubOpsCustomerPager()
     @StateObject private var attendanceReturn = ClubAttendanceCorrectionReturn()
@@ -240,6 +245,20 @@ struct ClubGovernanceReadView: View {
     }
 
     var body: some View {
+        bodyMain
+            .navigationDestination(isPresented: $storyAutoOpen) { storyDestination }
+            .onChange(of: snapshot != nil && snapshotContext == readContext && !loading, initial: true) { _, ready in
+                guard ready, opensStoryOnLoad, operation == .topicOverview, !storyAutoOpened, scenePhase == .active else { return }
+                storyAutoOpened = true
+                storyAutoOpen = true
+            }
+    }
+    private var storyDestination: some View {
+        ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration,
+                                loading: $loading, failure: $failure, context: readContext, identity: identity, access: access,
+                                coordinator: coordinator, reload: { await load() })
+    }
+    private var bodyMain: some View {
         bodyReturnOwners
         .task(id: readContext) { await synchronizeReadContext() }
         .background {

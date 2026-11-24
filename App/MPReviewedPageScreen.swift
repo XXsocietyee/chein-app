@@ -266,9 +266,18 @@ import SwiftUI
         case "pages/club/notify/index":
             clubRead(.audienceCounts, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
         case "pages/club/topic-detail/index", "pages/club/topic-story/index":
-            // MP topic-detail reads topicId (or id); the story opens one row down from the topic page.
+            // MP topic-detail reads topicId (or id). CLB-topic-story-01: the story link opens the story itself, hosted by
+            // the topic overview that owns its read (back returns to the topic page).
             if let topic = queryID(query, "topicId") ?? reviewedID(query) {
-                clubRead(.topicOverview, .init(clubID: queryID(query, "clubId"), topicID: topic, activityID: queryID(query, "activityId")), needsClub: false)
+                let scope = ClubGovernanceScope(clubID: queryID(query, "clubId"), topicID: topic, activityID: queryID(query, "activityId"))
+                if page == "pages/club/topic-story/index" {
+                    clubGovernance { g in
+                        ClubGovernanceReadView(operation: .topicOverview, scope: scope, identity: session.clubIdentity,
+                                               access: g.access, coordinator: g.coordinator, opensStoryOnLoad: true)
+                    }
+                } else {
+                    clubRead(.topicOverview, scope, needsClub: false)
+                }
             } else { unavailable }
         case "pages/club/governance/index":
             // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
