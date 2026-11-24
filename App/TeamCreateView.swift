@@ -10,10 +10,7 @@ import SwiftUI
     init(activityID: Int, coordinator: TeamCoordinator) { self.activityID = activityID; _model = StateObject(wrappedValue: TeamScreenModel(coordinator)) }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader("team.create").listRowBackground(Color.clear)
-                TeamNotice(coordinator: model.coordinator)
-            }
+            Section { TeamNotice(coordinator: model.coordinator) }
             if model.running { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
             if let context = model.coordinator.creation {
                 Section("team.create.activity") { Text(verbatim: context.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
@@ -21,7 +18,7 @@ import SwiftUI
                     Picker("team.size", selection: $size) { ForEach(context.sizes, id: \.self) { Text(verbatim: "\($0)").tag($0) } }
                         .accessibilityIdentifier("team.create.size")
                     Toggle("team.invitationOnly", isOn: $inviteOnly).accessibilityIdentifier("team.create.inviteOnly")
-                    Text(inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp").cyText(.meta).foregroundStyle(palette.textTertiary)
+                    Text(inviteOnly ? "team.create.privateHelp" : "team.create.publicHelp").cyText(.meta).foregroundStyle(palette.textSecondary)
                 }.disabled(model.actionLocked)
                 Section {
                     Text("team.create.consequence").fixedSize(horizontal: false, vertical: true)
@@ -43,7 +40,7 @@ import SwiftUI
                 }
                     .disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
             }
-        }.cyHeroScreen()
+        }.cyPageTitle("team.create")
             .task { await model.run { await model.coordinator.loadCreation(ownerID: activityID) } }
             .onChange(of: model.coordinator.creation?.sizes ?? [], initial: true) { _, sizes in
                 // Keep a still-valid draft choice. Never invent a capacity while
@@ -51,7 +48,7 @@ import SwiftUI
                 guard !sizes.contains(size), let first = sizes.first else { return }
                 size = first
             }
-            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
+            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
             .onDisappear { model.leave() }
         .cyDomainScreen(.player)
     }
@@ -71,7 +68,7 @@ import SwiftUI
     private var leaseClosedNote: some View {
         Text("team.create.leaseClosed")
             .cyText(.meta)
-            .foregroundStyle(palette.textTertiary)
+            .foregroundStyle(palette.textSecondary)
             .accessibilityIdentifier("team.create.leaseClosed")
     }
 }

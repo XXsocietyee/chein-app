@@ -194,7 +194,7 @@ import UIKit
     @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            label("boundary").cyText(.meta).foregroundStyle(palette.textTertiary)
+            label("boundary").cyText(.meta).foregroundStyle(palette.textSecondary)
             if !owner.isOpen {
                 if let reference = owner.visiblePreviewReference {
                     DiscoveryArtwork(source: reference)

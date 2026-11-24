@@ -58,7 +58,7 @@ struct SearchMapAllResultsSheet: View {
                     }
                     if loading {
                         ForEach(0..<3, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 18).fill(.secondary.opacity(0.1)).frame(height: 96).accessibilityHidden(true)
+                            RoundedRectangle(cornerRadius: 20).fill(.secondary.opacity(0.1)).frame(height: 96).accessibilityHidden(true)
                         }
                     } else if failed && rows.isEmpty {
                         CYErrorStateView(

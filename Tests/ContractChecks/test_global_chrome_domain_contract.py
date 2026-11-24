@@ -206,9 +206,7 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
 
         for rel in (
             "App/QuestifyApp.swift",
-            "App/ActivityDetailView.swift",
             "App/TopicDetailView.swift",
-            "App/RegistrationSheetView.swift",
             "App/CatalogShareCardView.swift",
             "App/ContextualReviewComposer.swift",
             "App/JourneyLandingViews.swift",
@@ -227,6 +225,14 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             src = strip_swift_comments(read_swift(rel))
             self.assertIn(".themeDomain(.player)", src, f"{rel} sheets must stay in the player role.")
             self.assertNotIn("presentationCornerRadius", src, f"{rel} must use the system sheet corners.")
+
+        # Native restyle R1 (owner-approved, spec native-ios-r1 §2.2/§3.4): the player glass is retired on R1 sheets.
+        # They keep the player domain tokens and use the one system sheet chrome (detents + drag indicator).
+        for rel in ("App/ActivityDetailView.swift", "App/RegistrationSheetView.swift"):
+            src = strip_swift_comments(read_swift(rel))
+            self.assertNotIn("cyPlayerSheetGlass", src, f"{rel} uses the system sheet chrome.")
+            self.assertIn(".themeDomain(.player)", src, f"{rel} keeps player tokens on its sheets.")
+            self.assertIn(".cySheet(", src, f"{rel} uses cySheet detents and drag indicator.")
 
 
 if __name__ == "__main__":

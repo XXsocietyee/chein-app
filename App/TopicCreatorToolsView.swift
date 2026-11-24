@@ -182,7 +182,7 @@ import QuestifyCore
             shareSection
             chaptersSection
         }
-        .navigationTitle(Text("creatorEditor.title", tableName: "CreatorEditorUI"))
+        .navigationTitle(Text("creatorEditor.title", tableName: "CreatorEditorUI")).navigationBarTitleDisplayMode(.inline)
         .disabled(model.busy)
         .task { await model.load() }
         .refreshable { await model.load() }

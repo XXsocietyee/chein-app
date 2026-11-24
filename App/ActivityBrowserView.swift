@@ -61,6 +61,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
             }
             .cyAnimation(.easeInOut(duration: CYMotion.Duration.standard), value: model.items.isEmpty)
             .appNavigationTitle("activity.browse")
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text:$query,placement:.navigationBarDrawer(displayMode:.always),prompt:"activity.search")
             .onSubmit(of:.search) { loads.start { await model.load(reader: reader, reset: true, keyword: query) } }
             .onChange(of: query) { _, text in
