@@ -879,24 +879,28 @@ struct JourneyPromoView: View {
     let onSignIn: () -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                switch phase {
-                case .loading:
-                    CYLoadingStateView(rows: 3).accessibilityIdentifier("journeyPromo.loading")
-                case .auth:
-                    CYEmptyState(systemImage: "person.crop.circle", "mp.promo.auth", messageIdentifier: "journeyPromo.auth",
-                                 actionTitle: "mp.common.signIn", actionIdentifier: "journeyPromo.signIn", action: onSignIn)
-                case .failed:
-                    CYErrorState("mp.promo.error", retryTitle: "mp.common.reload", onRetry: onRetry).accessibilityIdentifier("journeyPromo.error")
-                case .ready(let content):
-                    ready(content)
+        // JPROMO-6: the whole-page states fill the screen (centred, native state layout); only the content scrolls.
+        Group {
+            switch phase {
+            case .loading:
+                CYLoadingStateView(rows: 3).padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityIdentifier("journeyPromo.loading")
+            case .auth:
+                CYEmptyState(systemImage: "person.crop.circle", "mp.promo.auth", messageIdentifier: "journeyPromo.auth",
+                             actionTitle: "mp.common.signIn", actionIdentifier: "journeyPromo.signIn", action: onSignIn)
+                    .frame(maxHeight: .infinity)
+            case .failed:
+                CYErrorState("mp.promo.error", retryTitle: "mp.common.reload", onRetry: onRetry).frame(maxHeight: .infinity)
+                    .accessibilityIdentifier("journeyPromo.error")
+            case .ready(let content):
+                ScrollView {
+                    VStack(alignment: .leading, spacing: CYSpacing.lg) { ready(content) }
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .padding(.vertical, CYSpacing.lg)
                 }
+                .refreshable { onRetry() }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
         }
-        .refreshable { onRetry() }
         .background { MPNightGround() }
         .cyPageTitle("mp.promo.title")
         .cyDomainScreen(.player)
