@@ -737,7 +737,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
         async let productsRead = try? reader.productList(token: session)
         let overview = await overviewRead
         let products = await productsRead ?? []
-        let pass = overview.map { ov in
+        let pass = overview.map { ov -> JourneyFinishOfferPassInput in
             let month = ov.plans.first { $0.code == "MONTH" && !$0.title.trimmingCharacters(in: .whitespaces).isEmpty && $0.priceFen > 0 }
             return JourneyFinishOfferPassInput(enabled: ov.enabled, holdingActive: ov.holding.active, libraryCount: ov.libraryCount ?? 0,
                                                monthPlanTitle: month?.title, monthPlanPriceFen: month?.priceFen)

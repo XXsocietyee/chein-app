@@ -145,3 +145,69 @@ JREPORT-8 (stat value one line, scales to 0.6), JREPORT-9 (rank row hint; memory
 - `tools/check_typography_lint.py`, `tools/check_design_lint.py`: PASS. `tools/check_a11y_lint.py`: same 3 findings as the base (not in these files). `tools/check_roam_private_tools.py`: PASS.
 - `tools/check_missing_string_keys.py` lists the 13 new keys as missing from `Localizable.xcstrings`; they are in the fragment for the integrator to merge.
 - APIs grepped on r7: `JourneySeatsSessionGate.phase`, `JourneyHeldSeatInviteRule.hold/afterRead/Seat`, `JourneyHeldSeatInvite`, `JourneyReportRead.reject/runDisagrees/Surface`, `PostGameRunReport.startModeText/Node.photoURL`, `JourneyRankBoardContract.menu/LinkCodes.parse/teamID/Menu/Tab.Kind`, `JourneyLoopSource.choices/rank`, `MPAsset.*` (each accessor name), `CYTabs(items:selection:variant:)`, `CYTabItem(id:title:)`, `CYSkeletonBlock(height:)`, `CYEmptyState(systemImage:_:actionTitle:actionIdentifier:action:)`, `CYFactRow(label:value:)`, `.cyPressable`.
+
+## Round 3 (2026-11-24 evening)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round3.md` (+ `wave-x10.md`, `fix-r3-round2.md`, `owner-decisions-1124.md`).
+- **Sync:** merged `origin/ui/combined-r7` @ `b0ac0108d` (fast-forward: my round-2 tip was its merge base), and again before the final push.
+- **Layer:** App/ only (plus App/MPGap mounts). No Core, Tests, `Localizable.xcstrings` or project edits. New strings in `docs/port/strings/fix-r3-play-roam-b.json` (en + zh-Hans).
+
+### Round 3 · re-applied
+
+Of my round-2 files only `App/JourneyReportViews.swift` was restored to Cursor's side. Each hunk was checked against the new base; the missing ones were re-applied **on Cursor's wiring** (its `JourneyNodePhoto`, `assistedCount` / `showsAssistedCount`, `showsStartMode`, `JourneyRankScope(tab)`), with no second implementation:
+
+| id | re-applied | how |
+|---|---|---|
+| MP asset laurel | rank-board hero wreath back on `MPAsset.BadgeMedal.laurel` (right branch mirrored), replacing SF `laurel.*` | JourneyReportViews |
+| JREPORT-8 | 战报 stat value one line, scales to 0.6 (Cursor's `cyWrapText` wrapped it) | JourneyReportViews |
+| JREPORT-9 | 排名 row hint `mp.report.rank.hint`; memory photo labelled `mp.report.memory.photo %@` instead of hidden | JourneyReportViews |
+| JSETTLE-4 开局 | Cursor's `showsStartMode` cell now reads the catalog words (`mp.settle.startMode.desk/alt`, else as sent) with the 开局 caption, combined for VoiceOver | JourneyReportViews |
+| JREPORT-2 | Cursor's row button + `JourneyNodePhoto` kept; added the 44 pt leading thumb (MP wxml:53) and turned the single-photo sheet into `JourneyNodePhotoPages`, a paged viewer over every https node photo opened on the tapped one (MP `wx.previewImage` urls). VoiceOver label per node | JourneyReportViews |
+
+Not re-applied, on purpose: `MPSectionHeader` / `MPRow` styles (JPROMO-3) — r7 moved the shared kit to the native inset-grouped look (native-ios-r1 §3.2), which wins over the MP `.jn-sec__h` weight. Seats / report bindings: Cursor's versions cover JSEAT-6, JSEAT-r7-1, JREPORT-3, JREPORT-5 (a 401 with a live session is now `.failed`, per Core `JourneySeatsSessionGate`). SALBUM-r7-1 camera, GROWTH-5 session profile, and every other round-2 file survived the merge unchanged.
+
+### New this round
+
+| id | what changed | files |
+|---|---|---|
+| JSETTLE-r7-1 (flows-g1 `[GAP-CLAUDE]`) | 完局优惠卡 mounted under the settle overview. Settle model reads Core `PlatformPass.overview` + `productList` (both on the read-only transport, merchants ask nothing, one read per page, a failed read = none), maps them into Core `JourneyFinishOfferResolver`; nil hides the card. Tap → `.membership` (month pass) or `.pass(productID:)` (MP `offer.url`). Purchase stays gated (`PlatformPass.writesReachable` false → gated note; money TEST-only, owner #3/#12). Prices are two-decimal from the resolver (owner #9) | App/PlayerJourneyReadBindings.swift, App/JourneyReportViews.swift |
+| JSETTLE-r7-1 card | Gemini's `JourneyFinishOfferCardView`: MP `cy-icon coupon` → `MPAsset.FeatureIcon.coupon`, trailing chevron, 44 pt minimum, VoiceOver = name + price (MP aria-label) | App/MPGap/PlayRoam/PlayRoamRound4Views.swift |
+| BWALL → badge-3d (flows-g1 `[GAP-CLAUDE]`), B3D-1 (part) | the 3D entry now also opens for every **unlocked identity** badge, as MP `goBadge3d`: `style=pin`, `glyph` from MP `CODE_TO_GLYPH` (+ `ROAM_POI_<id>` → citylit), `rarity` = Core `ObjectBadgePresentation.track(category:)`. The stage shows the pin hint `objects.badge3d.hint.pin` | App/ObjectBadgeWallParityViews.swift |
+| OCARDS-4 (flows-g1 `[GAP-CLAUDE]`) | rename is now Gemini's `ObjectCardRenameSheetView` (MP 改名 sheet: 卡名 field, 给这张卡起个名字, 64-char clamp + count, inline server error, 保存) instead of an alert; the sheet was rebuilt to the native structure (inline title, ✕ cancellation, 保存 confirmation item, spinner while saving, no swipe-dismiss mid-save). Pencil target 44 pt | App/PlayerGapViews.swift, App/MPGap/PlayRoam/ObjectCardCategoryAndRenameSheets.swift |
+| OCARDS-3 sheet (prep) | `ObjectCardCategorySheetView` also rebuilt native, with optional MP `cat/*.png` icons, selected trait and caller identifiers — ready to mount (see Left) | App/MPGap/PlayRoam/ObjectCardCategoryAndRenameSheets.swift |
+
+Fixture: `r3prb-settle-offer` (App/DesignFixtures/FixR3PlayRoamBFixtures.swift), added to `docs/port/accept/f-play-roam-b.txt` (26 routes).
+
+### MP assets (mapping.md, my pages)
+
+All rows for half-b files were applied in round 2 or are recorded as skipped there. New this round: `MPAsset.FeatureIcon.coupon` on the 完局优惠卡; laurel re-applied. Template-detail shelf tabs and member-journey icons (`dCyIcon*`, `dCyinfo*`, PlayerJourneyViews / mycanyu) are not on half-b pages. `laurel` in `App/PlayExperienceView.swift` (shared play page) is half a.
+
+### Review / audit rows
+
+`review/r7-rev-a/-b/-c`: still no Claude row for half-b pages. `audit/parity-r7-play-roam` P1 for half b: closed, except the rows below.
+
+### Still left
+
+| id | why |
+|---|---|
+| SCAM-1, SALBUM-1 (P0) | owner (`mediaUpload`, stamp image policy) |
+| SCAM-2 rest, JSEAT-8, TGOALS-6 | owner |
+| OCARDS-3 mount | `test_native_ui_accessibility_semantics.test_object_menu_keeps_native_action…` pins the native `Menu {` filter. The sheet is ready (keeps the `objects.category.<key>` ids `ObjectCardFlowTests` taps); Cursor to drop the `Menu {` pin, then it is a five-line swap in ObjectCardsView |
+| BWALL-2 / BWALL-3 | Gemini's `BadgeWallTwoColumnGridView` draws remote art with `CYCachedAsyncImage` (bypasses the bounded `ObjectCardImageLoading` policy the wall uses) and drops the list/wall switch that `test_object_badge_wall_layout` pins; the shared `ObjectCardArtwork` shows loading / no-image text that does not fit a 76 pt tile. Needs a compact artwork state (Gemini) and the test un-pinned (Cursor) |
+| B3D-1 scene | the pin opens on the existing medallion showroom; a procedural glyph scene (MP `glyphs.js` / `enamel-pin.js`) is Gemini |
+| OCARDS-2 pile | Gemini's `ObjectCardPileAndGridView` uses `CYCachedAsyncImage` (same media-policy issue) and puts its gather toggle in a toolbar it does not own; not mounted |
+| finish-offer analytics | `finish_offer_shown` / `finish_offer_click` are not in Core `AnalyticsEventClient.allowedEvents` (Cursor) |
+| SALBUM-6, TGOALS-4, TEXPORT pending retry, GROWTH-9 / LEADER-7 refresh pins | Cursor (unchanged from round 2) |
+| TANNIV-4 | shared reviewed route has no destination |
+
+### Requests for Cursor
+
+- Add `finish_offer_shown` / `finish_offer_click` to `AnalyticsEventClient.allowedEvents` (payload: MP `trackPayload`, bizType `platform_pass` / `marketing_product`).
+- Drop the `Menu {` pin in `test_native_ui_accessibility_semantics` so the OCARDS-3 sheet can mount; un-pin the list/wall switch in `test_object_badge_wall_layout` for BWALL-3.
+- Round-2 requests still open: `RoamExplorationGoal.progress: Int?`, the Growth refresh pins.
+
+### Checks run here (no compiler in the cloud)
+
+- Targeted contract checks (every Journey / PlayerGap / ObjectBadge / MPGap test file, 277 tests): the same 4 failures + 2 errors as `origin/ui/combined-r7` — **0 new**. `test_object_badge_3d_preview`, `test_object_badge_wall_layout`, `test_native_ui_accessibility_semantics`, `test_native_repair_batch_integration`: pass.
+- `tools/check_typography_lint.py`, `tools/check_design_lint.py`: PASS. `tools/check_a11y_lint.py`: no finding in these files.
+- APIs grepped on r7 before use: `PlatformPass.overview(token:viewerIsMerchant:)`, `productList(token:)`, `writesReachable`, `PlatformPassOverview.enabled/holding.active/libraryCount/plans`, `PlatformPassPlan.code/title/priceFen`, `PlatformPassProduct.id/name/productKind/cashPrice/pointsPrice/topicIDs`, `JourneyFinishOfferResolver.resolve`, `JourneyFinishOffer(kind:id:name:priceText:)`, `JourneyFinishOfferPassInput/ProductInput` inits, `AppSession.makePlatformPassReader()/mpViewerIsMerchant`, `MPParityRoute.membership/.pass(productID:)`, `mpParityRouteDestination`, `JourneyNodePhoto.url`, `MPRow(leading:)`, `ObjectBadgePresentation.track(category:)`, `ObjectBadgeDetailParameters(query:fallbackName:)`, `ObjectCardRenameValidator`, `CYColor.dangerText`, `MPAsset.FeatureIcon.coupon`, `MPAsset.BadgeMedal.laurel`.
