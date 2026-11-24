@@ -149,6 +149,7 @@ import SwiftUI
                             .accessibilityIdentifier("storeDayPage.feedback")
                     }
                     if model.consent == .agree { consentSection }
+                    if let perk = node.perk, let name = perk.name { perkSection(name: name, rule: perk.redeemRule) }
                     if let address = node.address { infoSection(node, address: address) }
                     PlayStoreDaySafetyRatingEntry(ownerMemberID: node.merchantID)
                 }
@@ -276,6 +277,23 @@ import SwiftUI
             .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md)
         }
     }
+    /// PLAYM-2: MP 本店权益 (`node.perk.name` + `redeemRule`), with the MP gift artwork.
+    private func perkSection(name: String, rule: String?) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("playMerchant.perk.title").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                MPAsset.FeatureIcon.gift.resizable().scaledToFit().frame(width: 24, height: 24).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    Text(verbatim: name).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                    if let rule { Text(verbatim: rule).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText() }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md)
+            .accessibilityElement(children: .combine).accessibilityIdentifier("storeDayPage.perk")
+        }
+    }
     private func infoSection(_ node: PlayStoreDayNode, address: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text("playStoreDay.section.info", tableName: "PlayStoreDay").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
@@ -354,6 +372,9 @@ import SwiftUI
         case .scanUnlock: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scanUnlock"), disabled: model.busy) { model.prepareScan() }
         case .scan: primary(L(model.busy ? "playStoreDay.cta.scanBusy" : "playStoreDay.cta.scan"), disabled: model.busy) { model.prepareScan() }
         case .photo: primary(L(model.busy ? "playStoreDay.cta.photoBusy" : "playStoreDay.cta.photo"), disabled: model.busy) { model.preparePhoto() }
+        case .verify where node.redeemBlockedNotice != nil:
+            // PLAYM-2: daily quota used up / not started yet: the server line, no code (MP .mp-cta__main.is-dead).
+            primary(node.redeemBlockedNotice ?? "", disabled: true) {}
         case .verify: primary(L(model.consentBusy ? "playStoreDay.cta.verifyBusy" : "playStoreDay.cta.verify"), disabled: model.consentBusy) { model.openVerifyCode() }
         case .redeemed: primary(L("playStoreDay.cta.redeemed"), disabled: true) {}
         }
