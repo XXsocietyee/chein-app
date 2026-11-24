@@ -106,15 +106,21 @@ public struct AccountPublishGapClient {
         self.transport = transport
     }
 
-    public func saveCastVoice(topicID: Int, castID: String, voiceID: String, token: String) async throws {
-        guard topicID > 0, !castID.isEmpty, !voiceID.isEmpty else { throw APIError.invalidRequest }
-        try await MPGapHTTP.postAction(
+    public func previewCastVoice(topicID: Int?, preset: String, token: String) async throws -> String {
+        guard !preset.isEmpty else { throw APIError.invalidRequest }
+        struct VoicePreviewPayload: Decodable { let audioUrl: String }
+        var query = [URLQueryItem(name: "preset", value: preset)]
+        if let topicID, topicID > 0 {
+            query.append(URLQueryItem(name: "topicId", value: String(topicID)))
+        }
+        let payload: VoicePreviewPayload = try await MPGapHTTP.getJSON(
             configuration: configuration,
             transport: transport,
             path: "api/topic/cast/voice",
-            body: ["topicId": topicID, "castId": castID, "voiceId": voiceID],
+            queryItems: query,
             token: token
         )
+        return payload.audioUrl
     }
 
     public func remixTemplate(templateID: Int, token: String) async throws -> Int {
@@ -132,22 +138,23 @@ public struct AccountPublishGapClient {
 
     public func teamApplications(teamID: Int, token: String) async throws -> [TeamApplicantItem] {
         guard teamID > 0 else { throw APIError.invalidRequest }
-        return try await MPGapHTTP.getJSON(
+        return try await MPGapHTTP.postJSON(
             configuration: configuration,
             transport: transport,
             path: "api/team/applications",
-            queryItems: [URLQueryItem(name: "teamId", value: String(teamID))],
+            body: ["teamId": teamID],
             token: token
         )
     }
 
-    public func handleTeamApplication(applicationID: Int, approved: Bool, token: String) async throws {
-        guard applicationID > 0 else { throw APIError.invalidRequest }
+    /// `POST /api/team/handle` JSON `{ teamId, memberId, approved }`, matching `NearbyTeamService.handle`.
+    public func handleTeamApplication(teamID: Int, memberID: Int, approved: Bool, token: String) async throws {
+        guard teamID > 0, memberID > 0 else { throw APIError.invalidRequest }
         try await MPGapHTTP.postAction(
             configuration: configuration,
             transport: transport,
             path: "api/team/handle",
-            body: ["applicationId": applicationID, "action": approved ? "approve" : "reject"],
+            body: ["teamId": teamID, "memberId": memberID, "approved": approved],
             token: token
         )
     }

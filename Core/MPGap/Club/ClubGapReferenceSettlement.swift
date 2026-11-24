@@ -67,14 +67,19 @@ public struct ClubFEReferenceSettlementClient {
     }
 
     /// Money write: withheld unless `allowsMoneyWrite` is explicitly enabled (TEST-only).
-    public func markSettled(id: Int, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
+    public func markSettled(ids: [Int], voucherNo: String? = nil, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
         guard allowsMoneyWrite else { return false }
-        guard id > 0 else { throw APIError.invalidRequest }
+        let validIDs = ids.filter { $0 > 0 }
+        guard !validIDs.isEmpty else { throw APIError.invalidRequest }
+        var body: [String: Any] = ["ids": validIDs]
+        if let voucherNo, !voucherNo.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            body["voucherNo"] = voucherNo.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
         try await MPGapHTTP.postAction(
             configuration: configuration,
             transport: transport,
             path: "api/fe/reference-settlement/settle",
-            body: ["id": id],
+            body: body,
             token: token
         )
         return true

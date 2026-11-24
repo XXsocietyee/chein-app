@@ -109,8 +109,8 @@ public struct CityStampTearScratchCardView: View {
             }
             .cyText(.meta)
 
-            if let urlStr = slip.photoURL, let url = URL(string: urlStr) {
-                CYCachedAsyncImage(url: url, role: .cover)
+            if let urlStr = slip.photoURL, !urlStr.isEmpty {
+                CYCachedAsyncImage(urlStr, role: .cover)
                     .frame(height: 180)
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
             }

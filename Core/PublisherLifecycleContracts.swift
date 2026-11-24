@@ -2,18 +2,35 @@ import Foundation
 
 public enum PublisherLifecycleError: Error, Equatable { case unavailable, stale, incomplete, forbidden, rejected(String) }
 public enum PublisherPriceSubtype: String, CaseIterable { case guided, selfPlay = "self" }
+/// One ticket's final yuan price (`toCents`: two decimal places). Sent only when the page has more than one ticket.
+public struct PublisherTicketPrice: Equatable {
+    public let ticketID: Int
+    public let price: Decimal
+    public init(ticketID: Int, price: Decimal) throws {
+        guard ticketID > 0, !price.isNaN, price >= 0 else { throw PublisherLifecycleError.incomplete }
+        self.ticketID = ticketID; self.price = price
+    }
+    var json: ProjectEditJSON { .object(["ticketId": .number(Decimal(ticketID)), "price": .number(price)]) }
+}
 public struct PublisherPricingInput: Equatable {
     public let topicID: Int
     public let subtype: PublisherPriceSubtype
     public let leadCost: Decimal?
     public let teamSize: Int?
-    public init(topicID: Int, subtype: PublisherPriceSubtype, leadCost: Decimal? = nil, teamSize: Int? = nil) throws {
+    /// MP `options.scope === 'MERCHANT'`. Any other value is refused. Omitted when nil.
+    public let scope: String?
+    /// Per-ticket finals. Preview ignores them. Confirm sends them, and `guidedPrice` becomes the minimum, when there is more than one.
+    public let ticketPrices: [PublisherTicketPrice]
+    public init(topicID: Int, subtype: PublisherPriceSubtype, leadCost: Decimal? = nil, teamSize: Int? = nil, scope: String? = nil, ticketPrices: [PublisherTicketPrice] = []) throws {
         guard topicID > 0 else { throw PublisherLifecycleError.incomplete }
         if subtype == .guided { guard let leadCost, !leadCost.isNaN, leadCost >= 0, let teamSize, teamSize > 0 else { throw PublisherLifecycleError.incomplete } }
+        if let scope, scope != "MERCHANT" { throw PublisherLifecycleError.incomplete }
         self.topicID = topicID; self.subtype = subtype; self.leadCost = leadCost; self.teamSize = teamSize
+        self.scope = scope; self.ticketPrices = ticketPrices
     }
     var fields: [String: ProjectEditJSON] {
         var result: [String: ProjectEditJSON] = ["topicId": .number(Decimal(topicID)), "subType": .string(subtype.rawValue)]
+        if let scope { result["scope"] = .string(scope) }
         if subtype == .guided { result["leadCost"] = leadCost.map(ProjectEditJSON.number); result["teamSize"] = teamSize.map { .number(Decimal($0)) } }
         return result
     }

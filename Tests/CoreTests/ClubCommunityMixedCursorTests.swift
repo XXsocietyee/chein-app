@@ -91,16 +91,49 @@ final class ClubCommunityMixedCursorTests: XCTestCase {
         XCTAssertEqual(transport.requests.count, 1)
         XCTAssertFalse(service.allowsInjectedWrites)
     }
-    func testJoinedAggregatePreservesMixedRowsWithoutInventingContinuationOrScopeAll() async throws {
-        let transport = MixedClubReadTransport(); transport.value = ["clubCount": 1, "rows": [post(50), repost(2, original: post(80, club: 20))]]
-        let service = ClubCommunityService(baseURL: URL(string: "https://fixture.test")!, transport: transport)
+    func testDiscoverFeedPostsScopeAllAndContinuesFromTheLastRow() async throws {
+        let transport = MixedClubReadTransport()
+        transport.value = ["clubCount": 2, "hasMore": true, "rows": [post(50), repost(2, original: post(80, club: 20))]]
+        let base = URL(string: "https://fixture.test")!
+        let service = ClubCommunityService(baseURL: base, transport: transport)
         let session = try ClubCommunitySession(identity: identity, token: "Bearer fixture")
         let result = try await service.read(.feed(page: 1), session: session, check: {})
-        XCTAssertNil(result.postPage); XCTAssertEqual(result.feedItems.map(\.id), ["p50", "r2"])
-        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(transport.requests.first?.httpBody)) as? [String: Int])
-        XCTAssertEqual(body, ["limit": 20])
-        do { _ = try await service.read(.feed(page: 2), session: session, check: {}); XCTFail("no aggregate cursor") } catch {}
-        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertNil(result.postPage)
+        XCTAssertEqual(result.clubCount, 2)
+        XCTAssertTrue(result.feedHasMore)
+        XCTAssertNil(result.feedRequestedBeforeID)
+        XCTAssertEqual(result.feedItems.map(\.id), ["p50", "r2"])
+        XCTAssertEqual(result.feedNextBeforeID, 2)
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(transport.requests.first?.httpBody)) as? [String: Any])
+        XCTAssertEqual(body["limit"] as? Int, 20)
+        XCTAssertEqual(body["scope"] as? String, "all")
+        XCTAssertNil(body["beforeId"])
+        let firstRequest = try service.request(suffix: "feed", fields: ClubCommunityRead.feed(limit: 20, beforeID: nil).fields, session: session)
+        XCTAssertEqual(try XCTUnwrap(ClubCommunityReadRoute(request: firstRequest, baseURL: base)), .feed(limit: 20, beforeID: nil))
+        var bare = URLRequest(url: base.appendingPathComponent(ClubCommunityReadRoute.feedPath))
+        bare.httpMethod = "POST"
+        bare.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        bare.httpBody = try JSONSerialization.data(withJSONObject: ["limit": 20], options: [.sortedKeys])
+        XCTAssertNil(ClubCommunityReadRoute(request: bare, baseURL: base))
+        do { _ = try await service.read(.feed(page: 2), session: session, check: {}); XCTFail("a page number is not a cursor") } catch {}
+        transport.value = ["clubCount": 2, "hasMore": false, "rows": [post(40)]]
+        let next = try await service.read(.feed(limit: 20, beforeID: 2), session: session, check: {})
+        XCTAssertEqual(next.feedRequestedBeforeID, 2)
+        XCTAssertFalse(next.feedHasMore)
+        XCTAssertEqual(next.feedItems.map(\.id), ["p40"])
+        let continued = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(transport.requests.last?.httpBody)) as? [String: Any])
+        XCTAssertEqual(continued["beforeId"] as? Int, 2)
+        XCTAssertEqual(continued["scope"] as? String, "all")
+        XCTAssertEqual(continued["limit"] as? Int, 20)
+        var cursor = ClubCommunityFeedCursor()
+        let merged = try cursor.accept(result, identity: identity)
+        XCTAssertEqual(merged.feedItems.map(\.id), ["p50", "r2"])
+        XCTAssertTrue(cursor.hasMore)
+        let second = try cursor.accept(next, identity: identity)
+        XCTAssertEqual(second.feedItems.map(\.id), ["p50", "r2", "p40"])
+        XCTAssertFalse(cursor.hasMore)
+        transport.value = ["clubCount": 0, "rows": []]
+        do { _ = try await service.read(.feed(limit: 20, beforeID: nil), session: session, check: {}); XCTFail("hasMore is required") } catch {}
     }
     @MainActor
     func testApprovedRuntimeContinuesReturnsToFirstPageAndRetiresRevokedRead() async throws {

@@ -17,9 +17,9 @@ public enum CoopFlowRead: Equatable {
     case inviteRequests(before: String?, limit: Int)
     /// GET `/api/coop/supply-stations?topicId=&merchantMemberId=`.
     case supplyStations(topicID: Int, merchantMemberID: Int)
-    /// Coop settlement detail `source=club`. GET `/api/club/settlement/summary?clubId=`.
+    /// Coop settlement detail `source=club`. POST `/api/club/settlement/summary` body `{clubId}` or `{clubId, personal:true}`.
     /// Read only: this case does not withdraw, adjust, or rewrite an amount.
-    case clubSettlementSummary(clubID: Int)
+    case clubSettlementSummary(clubID: Int, personal: Bool)
     public var path: String {
         switch self {
         case .invitations: return "api/coop/list"; case .pool: return "api/coop/pool/list"
@@ -46,7 +46,7 @@ public enum CoopFlowRead: Equatable {
     /// GET reads send the query and no body. Every other read stays a JSON POST.
     public var usesGet: Bool {
         switch self {
-        case .officialMerchantInvites, .inviteRequest, .inviteRequests, .supplyStations, .clubSettlementSummary: return true
+        case .officialMerchantInvites, .inviteRequest, .inviteRequests, .supplyStations: return true
         default: return false
         }
     }
@@ -59,8 +59,6 @@ public enum CoopFlowRead: Equatable {
             return items
         case .supplyStations(let topicID, let merchantMemberID):
             return [URLQueryItem(name: "topicId", value: String(topicID)), URLQueryItem(name: "merchantMemberId", value: String(merchantMemberID))]
-        case .clubSettlementSummary(let clubID):
-            return [URLQueryItem(name: "clubId", value: String(clubID))]
         default: return []
         }
     }
@@ -94,9 +92,11 @@ public enum CoopFlowRead: Equatable {
         case .supplyStations(let topicID, let merchantMemberID):
             guard topicID > 0, merchantMemberID > 0 else { throw APIError.invalidRequest }
             return .object([:])
-        case .clubSettlementSummary(let clubID):
+        case .clubSettlementSummary(let clubID, let personal):
             guard clubID > 0 else { throw APIError.invalidRequest }
-            return .object([:])
+            var fields: [String: CoopFlowJSON] = ["clubId": .id(clubID)]
+            if personal { fields["personal"] = .bool(true) }
+            return .object(fields)
         default: return .object([:])
         }
     }
@@ -171,6 +171,7 @@ public struct CoopFlowService {
         case .invitations: guard value["sent"].rows != nil, value["received"].rows != nil else { throw CoopFlowFailure.malformed }
         case .pool, .registrations, .ownedTopics: guard value["rows"].rows != nil else { throw CoopFlowFailure.malformed }
         case .relations: _ = try CoopRelationDiscovery(value)
+        case .clubSettlementSummary: guard value["topics"].rows != nil else { throw CoopFlowFailure.malformed }
         default: break
         }
         return value
@@ -206,6 +207,14 @@ public struct CoopFlowService {
         default: break
         }
         return result
+    }
+    /// Station-topic accept. Uses the same dormant handle grant as `.handle(.accept)` and adds `supplyStationId`.
+    /// Default configuration sends nothing.
+    public func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int, session: CoopFlowSession) async throws -> CoopFlowJSON {
+        let operation = CoopFlowMutation.handle(inviteID: inviteID, action: .accept, reason: reason)
+        guard permitsDispatch(operation) else { throw CoopFlowFailure.disabled }
+        let body = try CoopSupplyStationAccept.body(inviteID: inviteID, reason: reason, supplyStationID: supplyStationID)
+        return try await send(makeRequest(path: CoopSupplyStationAccept.path, body: body, session: session))
     }
     /// Invitee's read receipt. Not a money or merchant write, so it does not wait on the dormant write switch.
     public func markInviteRead(inviteID: Int, session: CoopFlowSession) async throws -> CoopFlowJSON {

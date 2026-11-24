@@ -24,7 +24,7 @@ public struct ObjectCardCategorySheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "objects.category", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("objects.category"), style: .player, onClose: onClose)
             ScrollView {
                 LazyVGrid(columns: columns, spacing: CYSpacing.sm) {
                     ForEach(categories) { category in
@@ -79,7 +79,7 @@ public struct ObjectCardRenameSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "playerGap.card.rename", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("playerGap.card.rename"), style: .player, onClose: onClose)
             Form {
                 Section {
                     TextField("objects.rename.placeholder", text: $name)

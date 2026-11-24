@@ -3,8 +3,8 @@ import SwiftUI
 /// FE-STORY 7.10 author control: per place 「到访方式」 GPS (default) / scan / online only, and
 /// a 300 / 400 / 500 m radius for GPS. Saving needs the author-write grant (default off);
 /// nothing changes locally until the server's list confirms it, and an unknown save is
-/// re-read, never re-sent. Mounted in `ProjectEditView` for saved free-explore topics through
-/// `FreeExplorationVisitConfigEntrySection` (C-F6); both routes stay behind their default-off gates.
+/// re-read, never re-sent. The author editor opens this when `freeExploreVisitConfigRead` is on.
+/// That gate stays off, so the link is absent until a later grant.
 @MainActor struct FreeExplorationVisitConfigView: View {
     @State private var model: FreeExplorationVisitConfigModel
     init(model: FreeExplorationVisitConfigModel) { _model = State(initialValue: model) }
@@ -83,56 +83,6 @@ import SwiftUI
         case .unknown?:
             Label("feVisitConfig.unknown", systemImage: "questionmark.circle")
             Button("feVisitConfig.reload", systemImage: "arrow.clockwise") { Task { await model.reread() } }
-        }
-    }
-}
-
-
-/// C-F6 (MP pages/publish/fabu/theme-fe-visit): mounts the per-place 「到访方式」 editor in the topic editor
-/// for a saved free-explore topic. The factory is installed once at the app root; fixtures and previews get
-/// nil and show nothing. Reads and writes stay behind `PlayRuntimePortRouteGate` (both default off).
-private struct FreeExplorationVisitConfigFactoryKey: EnvironmentKey {
-    static let defaultValue: ((_ topicID: Int, _ authorWrites: Bool) -> FreeExplorationVisitConfigModel?)? = nil
-}
-
-extension EnvironmentValues {
-    var freeExplorationVisitConfig: ((_ topicID: Int, _ authorWrites: Bool) -> FreeExplorationVisitConfigModel?)? {
-        get { self[FreeExplorationVisitConfigFactoryKey.self] }
-        set { self[FreeExplorationVisitConfigFactoryKey.self] = newValue }
-    }
-}
-
-extension AppSession {
-    /// Nil while the read gate is off, signed out, or unconfigured. Writes need both the write gate and the
-    /// editor's own author-write grant (`authorWrites`, derived from the approved project write authority).
-    func freeExplorationVisitConfigModel(topicID: Int, authorWrites: Bool) -> FreeExplorationVisitConfigModel? {
-        guard PlayRuntimePortRouteGate.freeExploreVisitConfigRead, topicID > 0, isConfigured, isSignedIn,
-              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
-        let service = FreeExplorationVisitConfigService(
-            configuration: configuration, transport: compositionTransport,
-            authorWrites: PlayRuntimePortRouteGate.freeExploreVisitConfigWrite && authorWrites,
-            readsEnabled: PlayRuntimePortRouteGate.freeExploreVisitConfigRead,
-            token: { [weak self] in self?.token })
-        return FreeExplorationVisitConfigModel(topicID: topicID, service: service)
-    }
-}
-
-/// One disclosure row 到访方式 › in the topic editor. Absent when no factory or the gate gives no model.
-@MainActor struct FreeExplorationVisitConfigEntrySection: View {
-    let topicID: Int
-    let authorWrites: Bool
-    @Environment(\.freeExplorationVisitConfig) private var factory
-
-    var body: some View {
-        if let factory, let model = factory(topicID, authorWrites) {
-            Section {
-                NavigationLink {
-                    FreeExplorationVisitConfigView(model: model)
-                } label: {
-                    Label("feVisitConfig.title", systemImage: "location.viewfinder")
-                }
-                .accessibilityIdentifier("projectEdit.feVisitConfig")
-            }
         }
     }
 }

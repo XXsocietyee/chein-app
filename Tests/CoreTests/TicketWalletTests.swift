@@ -50,6 +50,13 @@ final class TicketWalletTests: XCTestCase {
         try JSONDecoder().decode(TicketWalletTicket.self, from: Data(json.utf8))
     }
     private func body(_ request: URLRequest) -> String { String(data: request.httpBody ?? Data(), encoding: .utf8) ?? "" }
+    func testCoverURLPrefersActivityImageThenTopicImage() throws {
+        let activity = try decode(#"{"id":7,"cmsActivity":{"imgUrl":"https://cdn.example/a.jpg"},"cmsTopic":{"imgUrl":"https://cdn.example/t.jpg"}}"#)
+        XCTAssertEqual(activity.coverURL, "https://cdn.example/a.jpg")
+        let topic = try decode(#"{"id":8,"cmsTopic":{"name":"Route","imgUrl":"https://cdn.example/t.jpg"}}"#)
+        XCTAssertEqual(topic.coverURL, "https://cdn.example/t.jpg")
+        XCTAssertNil(try decode(#"{"id":9}"#).coverURL)
+    }
     func testExactTwoLaneRequestsRawAuthorizationAndFreshReads() async throws {
         let t = TicketWalletTransport(["route": .init(json: TicketWalletSyntheticFixtures.routeListJSON), "activity": .init(json: TicketWalletSyntheticFixtures.activityListJSON)])
         let api = try service(t)

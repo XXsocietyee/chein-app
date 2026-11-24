@@ -16,7 +16,7 @@ import UIKit
     var makeSensorProvider: (@MainActor () -> any PlayKitSensorProviding)? = nil
     var spatialApproval = PlayKitSpatialApproval()
     var imageReader: (any RetainedPublicImageReading)? = nil
-    /// Cast stays off until P2 passes this. The play coordinator is not edited here.
+    /// Nil for callers that have no cast. The play host passes the run's coordinator.
     var castModel: CastCoordinator? = nil
     let nodeDestination: (Int) -> AnyView
     @State private var advancedVariables: [String: PlayWireValue] = [:]
@@ -45,6 +45,10 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     private var chapter: ChapterStoryDocument? { model.chapterStories[chapterID] }
+    private var gameStage: PlayGameStage? {
+        guard let result = model.snapshot?.result else { return nil }
+        return PlayGameStage.resolve(nodeID: nodeID, nodes: result.nodes, chapters: result.chapters)
+    }
     private var visible: Bool {
         guard model.hasCurrentMediaSnapshot, let snapshot = model.snapshot,
               snapshot.availability == .active || snapshot.availability == .completed,
@@ -212,6 +216,7 @@ import UIKit
         }
         .modifier(ChapterAtmosphereScheme(atmosphere: visible ? chapter?.atmosphere : nil))
         .environment(\.questifyCast, castModel?.context)
+        .environment(\.playGameStage, gameStage)
         .sheet(item: $castCard) { target in
             if let member = castModel?.config?.member(target.memberID) {
                 CastCharacterCard(member: member, trust: castModel?.trust[member.id] ?? 0,
@@ -709,8 +714,7 @@ private struct ChapterAtmosphereFill: View {
     let atmosphere: ProjectChapterAtmosphere
     init(_ atmosphere: ProjectChapterAtmosphere) { self.atmosphere = atmosphere }
     var body: some View {
-        let rgb = atmosphere.backgroundRGB
-        Color(red: Double((rgb >> 16) & 0xFF) / 255, green: Double((rgb >> 8) & 0xFF) / 255, blue: Double(rgb & 0xFF) / 255)
+        CYPackedRGB.color(atmosphere.backgroundRGB)
     }
 }
 

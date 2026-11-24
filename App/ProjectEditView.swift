@@ -437,11 +437,6 @@ import SwiftUI
                 // One place to-do section: the G4/G5 mount only when the H1 binding client is not installed.
                 TemplateLocationTodosEntry(topicID: topicID, scope: model.draft.owner.rawValue, nodes: model.draft.chapters.flatMap(\.nodes))
             }
-            // C-F6 (MP theme-fe-visit): 到访方式 for a saved free-explore topic; hidden while its read gate is off.
-            if model.draft.product == .freeExplore, let topicID = model.coordinator.snapshot?.topicID {
-                FreeExplorationVisitConfigEntrySection(topicID: topicID,
-                    authorWrites: model.coordinator.canSubmit && !model.coordinator.canSimulate)
-            }
             if model.coordinator.snapshot != nil {
                 ProjectSubmissionEvidenceSection(model: model)
                 TopicPublicationStatusSection(model: model)
@@ -1021,6 +1016,10 @@ import SwiftUI
                 ProjectEditScheduleSpan(start: model.draft.startDate, end: model.draft.endDate)
                 if model.draft.product == .freeExplore {
                     ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline").dateEditing(.init(model: model, field: .deadline)).id("project-issue-anchor-deadline")
+                    if let topicID = model.coordinator.publicationTopicID, let visit = model.coordinator.visitConfigModel(topicID: topicID) {
+                        NavigationLink { FreeExplorationVisitConfigView(model: visit) } label: { Text("feVisitConfig.title") }
+                            .accessibilityIdentifier("feVisitConfig.open")
+                    }
                 }
             }.disabled(!model.fullEdit)
         }
