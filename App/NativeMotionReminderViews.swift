@@ -296,7 +296,7 @@ import SwiftUI
             text = "—"
         }
         return Text(verbatim: text)
-            .font(CYTypography.data2XL.italic()).monospacedDigit()
+            .cyText(.data2XL).italic().monospacedDigit()
             .foregroundStyle(palette.textPrimary)
     }
     private var afterLabel: some View {

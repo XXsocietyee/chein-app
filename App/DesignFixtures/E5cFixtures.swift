@@ -59,7 +59,7 @@ struct E5cTabsFixture: View {
                     List {
                         ForEach(0..<8, id: \.self) { i in
                             HStack(spacing: CYSpacing.md) {
-                                CYCoverArt(seed: "tab-\(i)", showsDebugLabel: false, cornerRadius: 12).frame(width: 52, height: 52)
+                                CYCoverArt(seed: "tab-\(i)", showsDebugLabel: false, cornerRadius: CYRadius.card).frame(width: 52, height: 52)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: E5cCopy.t("Night market \(i + 1)", "夜市 \(i + 1)")).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                                     Text(verbatim: E5cCopy.t("0.\(i + 3) km · open late", "0.\(i + 3) 公里 · 营业至深夜")).cyText(.meta).foregroundStyle(palette.textSecondary)

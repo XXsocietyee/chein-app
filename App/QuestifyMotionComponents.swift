@@ -8,9 +8,9 @@ private struct QuestifyCardSurface: ViewModifier {
         content
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous)
                     .strokeBorder(Color.primary.opacity(contrast == .increased ? 0.3 : 0.06), lineWidth: 1)
                     .allowsHitTesting(false)
             }
@@ -63,7 +63,7 @@ struct QuestifyStatusBadge: View {
             .foregroundStyle(emphasized ? QuestifyPalette.accent : Color.primary)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(emphasized ? QuestifyPalette.accent.opacity(contrast == .increased ? 0.16 : 0.09) : Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+            .background(emphasized ? QuestifyPalette.accent.opacity(contrast == .increased ? 0.16 : 0.09) : Color(uiColor: .tertiarySystemFill), in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
             .fixedSize(horizontal: false, vertical: true)
             .layoutPriority(1)
             .contentTransition(.opacity)

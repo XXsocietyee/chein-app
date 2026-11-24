@@ -192,8 +192,8 @@ struct PhoneSignInForm<AppleContent: View>: View {
             }
             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(focus == .phone ? CYColor.brand : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(focus == .phone ? CYColor.brand : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
             sendButton
         }
     }

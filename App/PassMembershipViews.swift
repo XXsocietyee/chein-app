@@ -438,7 +438,7 @@ struct PassLibraryCardView: View {
                     if let kindText { tag(kindText) }
                     if let city = card.city { tag(Text(verbatim: city)) }
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                         .accessibilityHidden(true)
                 }
                 .padding(.top, CYSpacing.xxs)

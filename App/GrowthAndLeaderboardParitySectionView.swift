@@ -243,7 +243,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityIdentifier("growthLeaderboardAudit.formEncodingCard")

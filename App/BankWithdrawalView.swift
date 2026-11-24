@@ -108,7 +108,7 @@ import SwiftUI
                             .fixedSize(horizontal: false, vertical: true)
                         Spacer(minLength: CYSpacing.sm)
                         Image(systemName: "arrow.up.right")
-                            .font(CYTypography.meta.weight(.semibold))
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(palette.textTertiary)
                             .accessibilityHidden(true)
                     }

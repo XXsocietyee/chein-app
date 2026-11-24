@@ -193,7 +193,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(CYColor.textSecondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(CYColor.textSecondary.opacity(0.08)))
         .accessibilityIdentifier("journalCorruptionRecovery.section")
     }
 
@@ -229,7 +229,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(CYColor.textSecondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(CYColor.textSecondary.opacity(0.06)))
         .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id)")
     }
 }

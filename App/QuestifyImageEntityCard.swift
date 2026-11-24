@@ -86,8 +86,8 @@ struct QuestifyImageEntityCard<Details:View>:View {
                 .frame(width:geometry.size.width,height:geometry.size.height)
             }.accessibilityHidden(true)
         }
-        .clipShape(RoundedRectangle(cornerRadius:24,style:.continuous))
-        .contentShape(RoundedRectangle(cornerRadius:24,style:.continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style:.continuous))
+        .contentShape(RoundedRectangle(cornerRadius: CYRadius.hero, style:.continuous))
     }
     private var placeholder:some View {
         Image(systemName:fallbackSymbol).font(.largeTitle.weight(.light)).imageScale(.large)
