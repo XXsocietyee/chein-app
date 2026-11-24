@@ -217,7 +217,8 @@ import SwiftUI
     private var actions: [OfficialResponseAction] { OfficialInboxPresentation.actions(for: invite) }
     var body: some View {
         Group {
-            if embedded { content } else { Section("officialAction.respond") { content } }
+            // Embedded: one row, so the sheet and toast below attach to a single view.
+            if embedded { VStack(alignment: .leading, spacing: CYSpacing.sm) { content } } else { Section("officialAction.respond") { content } }
         }
         .cyToast(verbatimMessage: $toastMessage)
         .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } }), onDismiss: {

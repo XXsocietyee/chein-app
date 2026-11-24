@@ -38,11 +38,11 @@ extension EnvironmentValues {
 
 /// R7-PC-D1-5 (MP myproject ops sheet 收到的申请 → `/pages/coop/list/index?tab=received`). The host owns the push.
 private struct MyProjectReceivedAppliesKey: EnvironmentKey {
-    static let defaultValue: (@MainActor () -> Void)? = nil
+    static let defaultValue: (() -> Void)? = nil
 }
 
 extension EnvironmentValues {
-    var myProjectReceivedApplies: (@MainActor () -> Void)? {
+    var myProjectReceivedApplies: (() -> Void)? {
         get { self[MyProjectReceivedAppliesKey.self] }
         set { self[MyProjectReceivedAppliesKey.self] = newValue }
     }

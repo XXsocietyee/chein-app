@@ -218,8 +218,8 @@ private struct WalletIncomeMonthChartDescriptor: AXChartDescriptorRepresentable 
     let months: [(label: String, value: Double, spoken: String)]
     let title: String
     func makeChartDescriptor() -> AXChartDescriptor {
-        let x = AXCategoricalDataAxisDescriptor(title: title, categoryOrder: months.map(\.label))
-        let maxValue = max(months.map(\.value).max() ?? 0, 1)
+        let x = AXCategoricalDataAxisDescriptor(title: title, categoryOrder: months.map { $0.label })
+        let maxValue = max(months.map { $0.value }.max() ?? 0, 1)
         let spokenByValue = Dictionary(months.map { ($0.value, $0.spoken) }, uniquingKeysWith: { first, _ in first })
         let y = AXNumericDataAxisDescriptor(title: title, range: 0...maxValue, gridlinePositions: []) { value in
             spokenByValue[value] ?? String(format: "%.2f", value)
