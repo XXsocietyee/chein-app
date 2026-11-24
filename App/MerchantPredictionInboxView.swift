@@ -276,7 +276,7 @@ extension MerchantPredictionReading {
                 }
             }
         }
-        .appNavigationTitle("merchant.predict.title")
+        .appNavigationTitle("merchant.predict.title").navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.merchant)
         .task { await model.load() }
         .refreshable { await model.load() }

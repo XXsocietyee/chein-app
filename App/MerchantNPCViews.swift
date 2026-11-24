@@ -251,7 +251,7 @@ import SwiftUI
             MerchantNPCIssue(failure: localFailure ?? model.coordinator.failure)
             Button("merchantNPC.refresh") { Task { await model.coordinator.refresh() } }.disabled(model.coordinator.refreshing)
         }
-        .navigationTitle("merchantNPC.resourcesTitle").privacySensitive()
+        .navigationTitle("merchantNPC.resourcesTitle").navigationBarTitleDisplayMode(.inline).privacySensitive()
         .task(id: model.coordinator.reader.scope) {
             await model.coordinator.refresh()
         }

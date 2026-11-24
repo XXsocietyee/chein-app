@@ -59,7 +59,10 @@ import SwiftUI
             .sheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value
             }), onDismiss: close) { value in
-                MerchantTemplateCategorySheet(model: value) { value.cancel(); picker = nil }
+                Group {
+                    MerchantTemplateCategorySheet(model: value) { value.cancel(); picker = nil }
+                }
+                .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
             }
             .onChange(of: document.coordinator.draftIdentity) { _, _ in close() }
             .onChange(of: document.coordinator.draft) { _, _ in close() }

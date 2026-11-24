@@ -653,18 +653,21 @@ struct MerchantOnboardingIdentitySection: View {
             .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.xs, bottom: 0, trailing: CYSpacing.xs))
         }
         .sheet(isPresented: $showsRule) {
-            NavigationStack {
-                SettingsLegalDocumentView(type: .privacyPolicy, market: RegionalLaunchConfiguration.market,
-                                          reader: SettingsBundledLegalReader(privacyPolicyApproved:
-                                            RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true))
-                    .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button { showsRule = false } label: { Image(systemName: "xmark") }
-                                .accessibilityLabel(Text("action.close"))
+            Group {
+                NavigationStack {
+                    SettingsLegalDocumentView(type: .privacyPolicy, market: RegionalLaunchConfiguration.market,
+                                              reader: SettingsBundledLegalReader(privacyPolicyApproved:
+                                                RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true))
+                        .toolbar {
+                            ToolbarItem(placement: .topBarTrailing) {
+                                Button { showsRule = false } label: { Image(systemName: "xmark") }
+                                    .accessibilityLabel(Text("action.close"))
+                            }
                         }
-                    }
+                }
+                .presentationDragIndicator(.visible)
             }
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
 
