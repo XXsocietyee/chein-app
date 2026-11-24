@@ -533,7 +533,7 @@ struct RoamToolUnavailableView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(LocalizedStringKey(tile.titleKey)).cyText(.cardTitle)
-                        if tile.isNew { Text("roam.private.new").cyText(.meta, weight: .bold).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
+                        if tile.isNew { Text("roam.private.new").cyText(.caption, weight: .bold).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
                     }
                     caption(tile).cyText(.meta).foregroundStyle(.secondary)
                 }

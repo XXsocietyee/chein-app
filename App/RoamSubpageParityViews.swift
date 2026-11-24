@@ -22,7 +22,7 @@ struct RoamHistoryParityStrip: View {
         VStack(alignment: .leading, spacing: 4) {
             value.font(.system(.title3, design: .rounded).weight(.heavy).italic()).monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary).cyWrapText()
-            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
     /// Mini-program `h:mm` over every record's `durSec`; any record without one makes the total unknown.
@@ -38,7 +38,7 @@ struct RoamHistoryMonthHead: View {
     let date: Date
     var body: some View {
         Text(date, format: .dateTime.year().month(.wide))
-            .cyText(.meta, weight: .semibold).foregroundStyle(CYColor.textSecondary)
+            .cyText(.caption, weight: .semibold).foregroundStyle(CYColor.textSecondary)
             .padding(.top, CYSpacing.sm)
             .accessibilityAddTraits(.isHeader)
     }
@@ -59,9 +59,9 @@ struct RoamRunCardDateText: View {
             let hour = Calendar.current.component(.hour, from: date)
             (Text(date, format: .dateTime.month().day().weekday(.abbreviated)) + Text(verbatim: " · ")
              + Text(LocalizedStringKey(Self.daypartKeys[min(3, max(0, hour / 6))])))
-                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
         } else {
-            Text("roamSub.w208.history.dateUnavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text("roamSub.w208.history.dateUnavailable").cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
 }
@@ -108,7 +108,7 @@ struct RoamRunCardParityMeta: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(verbatim: value).font(.system(.headline, design: .rounded).weight(.bold).monospacedDigit())
                 .cyWrapText()
-            Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
@@ -191,16 +191,16 @@ struct RoamShareCardParityFooter: View {
                 VStack(alignment: .leading) {
                     if let percent = record.explorePct { Text(verbatim: "\(percent)%").cyText(.cardTitle, monospacedDigit: true) }
                     else { Text(verbatim: "--%").cyText(.cardTitle, monospacedDigit: true) }
-                    Text("roamSub.w208.share.explore").cyText(.meta).foregroundStyle(.secondary)
+                    Text("roamSub.w208.share.explore").cyText(.caption).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.explore")
                 VStack(alignment: .leading) {
                     Text(verbatim: record.shops.map(String.init) ?? "—").cyText(.cardTitle, monospacedDigit: true)
-                    Text("roamSub.w208.share.lit").cyText(.meta).foregroundStyle(.secondary)
+                    Text("roamSub.w208.share.lit").cyText(.caption).foregroundStyle(.secondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.lit")
                 if record.footprintCount > 0 {
                     VStack(alignment: .leading) {
                         Text(verbatim: String(record.footprintCount)).cyText(.cardTitle, monospacedDigit: true)
-                        Text("roamSub.w208.share.footprints").cyText(.meta).foregroundStyle(.secondary)
+                        Text("roamSub.w208.share.footprints").cyText(.caption).foregroundStyle(.secondary)
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.share.footprints")
                 }
             }
@@ -277,7 +277,7 @@ struct RoamShareLinkDormantNotice: View {
         }.accessibilityElement(children: .contain).accessibilityIdentifier("roamSub.w208.shared.card")
     }
     private func metric(_ value: String, _ label: Text) -> some View {
-        VStack(alignment: .leading) { Text(verbatim: value).cyText(.cardTitle, monospacedDigit: true); label.cyText(.meta).foregroundStyle(.secondary) }
+        VStack(alignment: .leading) { Text(verbatim: value).cyText(.cardTitle, monospacedDigit: true); label.cyText(.caption).foregroundStyle(.secondary) }
             .accessibilityElement(children: .combine)
     }
     private func load() async {
@@ -512,23 +512,23 @@ struct RoamPOIMissingView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("roamSub.w208.stamp.departure").cyText(.meta).foregroundStyle(.secondary)
+                    Text("roamSub.w208.stamp.departure").cyText(.caption).foregroundStyle(.secondary)
                     place.cyText(.cardTitle)
                     Text(openedAt, format: .dateTime.hour().minute()).cyText(.meta)
                 }
                 Spacer()
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("roamSub.w208.stamp.serialLabel").cyText(.meta).foregroundStyle(.secondary)
+                    Text("roamSub.w208.stamp.serialLabel").cyText(.caption).foregroundStyle(.secondary)
                     Text(verbatim: slip.serial).cyText(.sectionTitle, monospacedDigit: true).accessibilityIdentifier("roamSub.w208.stamp.serial")
-                    Text("roamSub.w208.stamp.serialHint").cyText(.meta)
+                    Text("roamSub.w208.stamp.serialHint").cyText(.caption)
                 }
             }
             Divider()
             HStack {
-                VStack(alignment: .leading) { Text("roamSub.w208.stamp.leftBy").cyText(.meta).foregroundStyle(.secondary); Text("roamSub.w208.stamp.someone").cyText(.meta) }
+                VStack(alignment: .leading) { Text("roamSub.w208.stamp.leftBy").cyText(.caption).foregroundStyle(.secondary); Text("roamSub.w208.stamp.someone").cyText(.meta) }
                 Spacer()
                 VStack(alignment: .leading) {
-                    Text("roamSub.w208.stamp.leftAt").cyText(.meta).foregroundStyle(.secondary)
+                    Text("roamSub.w208.stamp.leftAt").cyText(.caption).foregroundStyle(.secondary)
                     Text(verbatim: slip.leftAt ?? "—").cyText(.meta, monospacedDigit: true)
                 }
             }
@@ -538,7 +538,7 @@ struct RoamPOIMissingView: View {
                 RoamStampSlipSaveRow(torn: torn, pictureURL: slip.pictureURL)
                 Divider()
             }
-            Text("roamSub.w208.stamp.forYou").cyText(.meta).foregroundStyle(.secondary)
+            Text("roamSub.w208.stamp.forYou").cyText(.caption).foregroundStyle(.secondary)
             ZStack {
                 Group {
                     if let caption = slip.caption { Text(verbatim: caption) } else { Text("roamSub.w208.stamp.noCaption") }

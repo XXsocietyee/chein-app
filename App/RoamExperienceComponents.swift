@@ -205,7 +205,7 @@ struct RoamExperienceNotice: View {
     var body: some View {
         if offline {
             Label("roam.experience.offline", systemImage: "testtube.2")
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .padding(.horizontal, 12).padding(.vertical, 6)
                 .cyNightGlass(in: Capsule())
                 .accessibilityIdentifier("roam.experience.notice")

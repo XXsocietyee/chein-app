@@ -216,7 +216,7 @@ public struct RoamAndExplorationParitySectionView: View {
                 .accessibilityIdentifier("roamExplorationAudit.header")
             Spacer()
             Text(verbatim: summaryBadgeText)
-                .cyText(.meta, weight: .semibold)
+                .cyText(.caption, weight: .semibold)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(
@@ -250,13 +250,13 @@ public struct RoamAndExplorationParitySectionView: View {
     private var roamTabSurfaceSummaryRow: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(verbatim: "Roam Tab Surfaces: Map/POI · Nearby (1km, 4 filters) · Official Routes/Session · History/MyTeams (4 buckets) · NodeCode · Stamp (4:5 EXIF-stripped + Album) · Badges (24-dot/3D/40-pile) · Growth")
-                .cyText(.meta)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("roamExplorationAudit.roamTabSurfaces")
             Text(verbatim: snapshot.roamTabParity.enforcesWhenInUseLocationOnly && snapshot.roamTabParity.suspendsLocationOnBackground
                 ? "Location Privacy: When-In-Use Foreground Only · Background Immediately Suspended"
                 : "Location Privacy Warning: Check When-In-Use / Background Suspension Policy")
-                .cyText(.meta, weight: .medium)
+                .cyText(.caption, weight: .medium)
                 .foregroundStyle(snapshot.roamTabParity.enforcesWhenInUseLocationOnly ? .teal : .red)
                 .accessibilityIdentifier("roamExplorationAudit.locationPrivacy")
         }
@@ -269,7 +269,7 @@ public struct RoamAndExplorationParitySectionView: View {
                     .cyText(.bodyMedium)
                 Spacer()
                 Text(verbatim: row.status.rawValue)
-                    .cyText(.meta, weight: .semibold)
+                    .cyText(.caption, weight: .semibold)
                     .padding(.horizontal, 7)
                     .padding(.vertical, 2)
                     .background(
@@ -285,7 +285,7 @@ public struct RoamAndExplorationParitySectionView: View {
                 .foregroundStyle(.primary)
 
             Text(verbatim: row.guardrailNote)
-                .cyText(.meta)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(10)
@@ -304,7 +304,7 @@ public struct RoamAndExplorationParitySectionView: View {
 
     private func badgePill(text: String, tint: Color) -> some View {
         Text(verbatim: text)
-            .cyText(.meta, weight: .medium)
+            .cyText(.caption, weight: .medium)
             .padding(.horizontal, 7)
             .padding(.vertical, 3)
             .background(

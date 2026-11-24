@@ -96,7 +96,7 @@ private struct RoamPassportTileLabel: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(title)
-                    Text("roam.private.new").cyText(.meta, weight: .bold).padding(.horizontal, 6).padding(.vertical, 1)
+                    Text("roam.private.new").cyText(.caption, weight: .bold).padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Color.accentColor.opacity(0.15), in: Capsule())
                 }
                 Text(subtitle).cyText(.meta).foregroundStyle(.secondary)
@@ -671,7 +671,7 @@ extension RoamGoalState {
                                 CYStatusChip(row.state.titleKey, tone: row.state == .achieved ? .success : .neutral)
                             }
                             ProgressView(value: Double(row.percent), total: 100)
-                            (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                         }.accessibilityElement(children: .combine)
                     }.buttonStyle(.plain).accessibilityIdentifier("roam.goals.row")
                 }

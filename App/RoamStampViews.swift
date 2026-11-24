@@ -369,7 +369,7 @@ private struct RoamStampAlbumPage: View {
                 if let caption = stamp.caption, !caption.isEmpty {
                     Text(verbatim: caption).cyText(.cardTitle).foregroundStyle(.white).lineLimit(2).multilineTextAlignment(.leading)
                 }
-                Text(verbatim: number).cyText(.meta).monospaced().foregroundStyle(.white.opacity(0.82))
+                Text(verbatim: number).cyText(.caption).monospaced().foregroundStyle(.white.opacity(0.82))
             }
             .padding(CYSpacing.lg)
         }
@@ -382,7 +382,7 @@ private struct RoamStampAlbumPage: View {
             HStack {
                 CYStatusChip("roam.experience.cityStamp", systemImage: "seal.fill")
                 Spacer(minLength: CYSpacing.sm)
-                Text(verbatim: number).cyText(.meta).monospaced().foregroundStyle(palette.textTertiary)
+                Text(verbatim: number).cyText(.caption).monospaced().foregroundStyle(palette.textTertiary)
             }
             Divider()
             if let day { CYFactRow(label: Text(verbatim: ChannelCopy.text("盖章日期", "Collected on", locale: locale)), value: day) }
@@ -392,7 +392,7 @@ private struct RoamStampAlbumPage: View {
             }
             Spacer(minLength: 0)
             Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .cyText(.meta).foregroundStyle(palette.textTertiary)
+                .cyText(.caption).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .cyAlbumCard(padding: CYSpacing.lg)
@@ -421,7 +421,7 @@ struct RoamStampCard: View {
             if let caption = stamp.caption, !caption.isEmpty {
                 Text(verbatim: caption).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading)
             }
-            Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).cyText(.meta).monospaced().foregroundStyle(palette.textTertiary)
+            Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).cyText(.caption).monospaced().foregroundStyle(palette.textTertiary)
             if let date = stamp.createTime { Text(verbatim: String(date.prefix(10))).cyText(.meta).foregroundStyle(palette.textSecondary) }
         }
         .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.md)

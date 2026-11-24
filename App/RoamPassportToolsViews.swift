@@ -783,7 +783,7 @@ private struct RoamRecapWeekChart: View {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
                             .frame(width: 14, height: max(4, CGFloat(week.count) / CGFloat(top) * 110))
-                        Text("roam.tools.recap.week \(week.index)").cyText(.meta).foregroundStyle(.secondary)
+                        Text("roam.tools.recap.week \(week.index)").cyText(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity)
                 }.buttonStyle(.plain)
                     .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
@@ -858,7 +858,7 @@ struct RoamRecapShareFace: View {
             Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(.white).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 0) {
                 Text(n, format: .number).cyText(.dataXL).monospacedDigit().foregroundStyle(.white)
-                Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(.white.opacity(0.85))
+                Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(.white.opacity(0.85))
             }
             Spacer(minLength: 0)
         }
