@@ -29,7 +29,7 @@ import Observation
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
                 CYHeroHeader(verbatim: name)
                 PlatformExternalMapHost(destination: .init(name: name, latitude: destination.latitude, longitude: destination.longitude), scope: scope, makeModel: makeExternalMaps)
-                Text("searchMap.routeOriginDisclosure").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("searchMap.routeOriginDisclosure").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Text("searchMap.mode.walking").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                 if let navigationReference, let walkingFactory, walkingFactory.available {
                     NavigationLink {
@@ -67,7 +67,7 @@ import Observation
                     }
                 }
                 else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("searchMap.loading")) }
-                Text("searchMap.routeBoundary").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("searchMap.routeBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }.padding(CYSpacing.pageHorizontal)
         }.background(CYColor.bgPage.ignoresSafeArea()).cyHeroScreen()
             .onAppear { loader.appear(input) }
@@ -105,7 +105,7 @@ import Observation
                 } label: { CYPillButtonLabel("walking.saved.open", systemImage: "bookmark") }
                     .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("walking.saved.open")
-                Text("walking.saved.notice").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("walking.saved.notice").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Button(role: .destructive) { confirmsRemoval = true } label: { Text("walking.saved.remove") }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("walking.saved.remove")

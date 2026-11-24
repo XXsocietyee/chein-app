@@ -11,7 +11,7 @@ import SwiftUI
             Button { presented = true } label: {
                 Text("mpfresh.teamReport.entry", tableName: "MpFresh")
                     .cyText(.meta)
-                    .foregroundStyle(CYColor.textTertiary)
+                    .foregroundStyle(CYColor.textSecondary)
                     .underline()
                     .frame(minHeight: 44)
             }

@@ -162,7 +162,7 @@ import UIKit
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
                             Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
                                 .cyText(.meta)
-                                .foregroundStyle(CYColor.textTertiary)
+                                .foregroundStyle(CYColor.textSecondary)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
@@ -275,13 +275,13 @@ import UIKit
                         if let items, !items.isEmpty {
                             Text("homeFeed.editorsPicksFootnote")
                                 .cyText(.meta)
-                                .foregroundStyle(CYColor.textTertiary)
+                                .foregroundStyle(CYColor.textSecondary)
                                 .accessibilityIdentifier("homeFeed.editorsPicksFootnote")
                             if model.loading, !failed {
                                 // Also above the carousel, so it never lands under the tab bar.
                                 Text("homeFeed.updating.recommended")
                                     .cyText(.meta)
-                                    .foregroundStyle(CYColor.textTertiary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityIdentifier("homeFeed.updating.recommended")
                             }
                         }
@@ -325,7 +325,7 @@ import UIKit
                         }
                     }
                         .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
+                        .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("homeFeed.updating.\(section.rawValue)")
                 }
             }

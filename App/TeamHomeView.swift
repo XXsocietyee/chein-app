@@ -187,7 +187,7 @@ import SwiftUI
                     CYCard(padding: CYSpacing.md) {
                         VStack(spacing: 0) {
                             if detail.members.isEmpty {
-                                Text("team.page.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                Text("team.page.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                             ForEach(Array(detail.members.enumerated()), id: \.element.id) { index, member in
                                 let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
@@ -203,7 +203,7 @@ import SwiftUI
                     actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
                     actionButton(.disband(teamID: detail.team.id), detail: detail)
                     if TeamPagePresentation.showsRefundNote(detail) {
-                        Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     // C-D3: 举报队伍 for members who are not the leader (the entry hides itself until its access is enabled).
                     if invitationCode == nil, detail.leader != true {

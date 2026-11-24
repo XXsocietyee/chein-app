@@ -31,7 +31,7 @@ import QuestifyCore
                             Text(todos.summaryText ?? W8Text.t("\(todos.rows.count) 个地点", "\(todos.rows.count) place(s)"))
                                 .cyText(.meta)
                                 .foregroundStyle(todos.blockingCount > 0 ? palette.danger : palette.textSecondary)
-                            Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                            Image(systemName: "chevron.right").cyText(.meta).foregroundStyle(palette.textSecondary).accessibilityHidden(true)
                         }
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .contentShape(Rectangle())
@@ -143,7 +143,7 @@ import QuestifyCore
             }
             if let mapped { Text(mapped.node.place).cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(1) }
             Text(TopicLocationTodos.statusText(row.status)).cyText(.meta)
-                .foregroundStyle(row.blocking ? palette.danger : palette.textTertiary)
+                .foregroundStyle(row.blocking ? palette.danger : palette.textSecondary)
             // What to look at / what to do / when it can't be seen: shown only when the author contract has them.
             if let what = nonempty(row.observationTarget) {
                 Text(W8Text.t("看什么：\(what)", "Look at: \(what)")).cyText(.meta).foregroundStyle(palette.textSecondary)

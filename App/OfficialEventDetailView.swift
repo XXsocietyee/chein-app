@@ -342,9 +342,9 @@ struct OfficialDetailFactsStrip: View {
             HStack(alignment: .top, spacing: CYSpacing.xl) {
                 ForEach(facts) { fact in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(fact.labelKey)).cyText(.micro).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey(fact.labelKey)).cyText(.micro).foregroundStyle(CYColor.textSecondary)
                         value(fact.value).cyText(.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                        sub(fact.sub).cyText(.micro).foregroundStyle(CYColor.textTertiary)
+                        sub(fact.sub).cyText(.micro).foregroundStyle(CYColor.textSecondary)
                     }.accessibilityElement(children: .combine)
                 }
             }.padding(.vertical, 4)

@@ -76,7 +76,7 @@ import SwiftUI
         ScrollViewReader { scroll in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                if reader.isOfflineExample { Text("searchMap.offline").cyText(.caption).foregroundStyle(CYColor.textTertiary) }
+                if reader.isOfflineExample { Text("searchMap.offline").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                 if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline).accessibilityAddTraits(.isHeader) }
                 if mode == .city {
                     TextField("searchMap.cityPlaceholder", text: $filter.keyword)

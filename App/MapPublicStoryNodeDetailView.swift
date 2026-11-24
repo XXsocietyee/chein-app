@@ -121,7 +121,7 @@ struct MapPublicStoryNodeDetailView: View {
                 Text(verbatim: "node #\(node.id) · topic #\(detail.id) · chapter #\(chapter.id)")
                     .cyText(.meta)
                     .monospacedDigit()
-                    .foregroundStyle(CYColor.textTertiary)
+                    .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("mapPublicLayers.storyNode.domainIDs")
                 if let address = node.address ?? destination.address {

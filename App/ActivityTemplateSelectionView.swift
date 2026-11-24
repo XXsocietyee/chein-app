@@ -135,7 +135,7 @@ import UIKit
                             Text(row.title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                             if row.availability != .available {
                                 Text(LocalizedStringKey(row.availability.rawValue), tableName: "ActivityTemplateSelection")
-                                    .cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+                                    .cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                             }
                         }
                         Spacer(minLength: CYSpacing.sm)
@@ -163,7 +163,7 @@ import UIKit
             Button { owner.close(stamp) } label: { Text("cancel", tableName: "ActivityTemplateSelection") }
                 .buttonStyle(CYPillButtonStyle(style: .tertiary))
                 .accessibilityIdentifier("activityTemplate.cancel")
-        } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textTertiary) }
+        } header: { Text("title", tableName: "ActivityTemplateSelection").cyText(.label).foregroundStyle(palette.textSecondary) }
     }
 }
 

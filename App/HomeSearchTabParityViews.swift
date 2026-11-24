@@ -1523,7 +1523,7 @@ struct PublishTabFloatingSheetView: View {
                                         .foregroundStyle(item.isEnabled ? CYColor.textPrimary : CYColor.textSecondary)
                                     Text(verbatim: copy.tr(item.subtitle))
                                         .cyText(.meta)
-                                        .foregroundStyle(CYColor.textTertiary)
+                                        .foregroundStyle(CYColor.textSecondary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
                                             .cyText(.micro)
@@ -1534,7 +1534,7 @@ struct PublishTabFloatingSheetView: View {
                                 Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "chevron.right")
                                     .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(CYColor.textTertiary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityHidden(true)
                             }
                             .frame(minHeight: CYSpacing.minTouchTarget)

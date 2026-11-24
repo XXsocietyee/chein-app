@@ -52,7 +52,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("teamPool.hint")
                     if model.coveredByTeam {
-                        Text("teamPool.coveredByTeam").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("teamPool.coveredByTeam").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
                 }
             } else if model.canRecover && model.notice == .unknown {
@@ -239,7 +239,7 @@ import SwiftUI
                 }
                 Text(verbatim: c.t("第一个答对全队推进 · 全队共用提示/跳过/计时与统一团队总分",
                                    "First solve advances the team · Shared hints, skips, timer & single team score"))
-                    .cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             } header: {
                 Text("teamPool.title")
             }

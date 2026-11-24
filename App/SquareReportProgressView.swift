@@ -60,7 +60,7 @@ struct MemberReportProgressTimeView: View {
                             Text("u9cde.report.number \(String(record.id))")
                                 .cyText(.meta)
                                 .monospacedDigit()
-                                .foregroundStyle(CYColor.textTertiary)
+                                .foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)

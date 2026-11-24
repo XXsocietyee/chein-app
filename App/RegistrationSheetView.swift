@@ -317,7 +317,7 @@ struct RegistrationSheetView: View {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                            Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
                         }
                         Spacer(minLength: CYSpacing.sm)
@@ -325,7 +325,7 @@ struct RegistrationSheetView: View {
                             .cyWrapText().layoutPriority(1)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: copy.t("票种", "Ticket")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: flow.selectedTicket?.name ?? "—").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).cyWrapText()
                         Text(verbatim: ticketPriceText(copy)).cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary).cyWrapText()
                     }
@@ -455,7 +455,7 @@ struct RegistrationSheetView: View {
             VStack(spacing: CYSpacing.sm) {
                 CurA11yActions {
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(verbatim: copy.t("合计", "Total")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: copy.t("合计", "Total")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: summaryTotalText).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                             .cyWrapText().layoutPriority(1)
                             .accessibilityLabel(PageTemplateVoiceOver.spoken(summaryTotalText, locale: locale))
@@ -738,7 +738,7 @@ struct RegistrationSheetView: View {
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
                         Text(verbatim: CoreLoopCopy(locale: locale).tr(refundNotice))
                             .cyText(.meta)
-                            .foregroundStyle(quote.requiresNonRefundableConfirmation ? CYColor.warningText : CYColor.textTertiary)
+                            .foregroundStyle(quote.requiresNonRefundableConfirmation ? CYColor.warningText : CYColor.textSecondary)
                             .accessibilityIdentifier("registration.fees.refundPolicy")
                     }
                     if !quote.isUsableForCreate { Text("registration.form.incompleteQuote").foregroundStyle(.secondary) }

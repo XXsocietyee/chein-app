@@ -448,7 +448,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                     Text("parityB.circle.review").cyText(.cardTitle)
                     if let day = topic.reviewedOn { Text("parityB.circle.reviewedOn \(day)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     else { Text("parityB.circle.notReviewed").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    Text("parityB.circle.reviewHint").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                    Text("parityB.circle.reviewHint").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     CYPillButton("parityB.circle.pick", style: .secondary) { picking = true }
                         .accessibilityIdentifier("parityB.circle.pick")
                 }

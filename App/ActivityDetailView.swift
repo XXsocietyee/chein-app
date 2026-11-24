@@ -486,7 +486,7 @@ struct ActivityDetailView: View {
                         Spacer(minLength: 0)
                         Image(systemName: "chevron.down")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(CYColor.textTertiary)
+                            .foregroundStyle(CYColor.textSecondary)
                             .rotationEffect(.degrees(showsMoreInfo ? 180 : 0))
                             .accessibilityHidden(true)
                     }
