@@ -165,28 +165,6 @@ struct TopicXcxDurationText: View {
     }
 }
 
-struct TopicXcxIncludes: View {
-    let rows: [TopicXcxFacts.Include]
-    var body: some View {
-        ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-            switch row {
-            case .chapters(let n): Label { Text("topicXcx.include.chapters \(n)") } icon: { Image(systemName: "book") }
-            case .chapterBreakdown(let story, let endings):
-                Label {
-                    Text(story > 0 ? "topicXcx.include.storyAndEndings \(story) \(endings)" : "topicXcx.include.endings \(endings)")
-                } icon: { Image(systemName: "book") }
-            case .stops(let n): Label { Text("topicXcx.include.stops \(n)") } icon: { Image(systemName: "mappin.and.ellipse") }
-            case .plays(let n): Label { Text("topicXcx.include.plays \(n)") } icon: { Image(systemName: "gamecontroller") }
-            case .audioMinutes(let n): Label { Text("topicXcx.include.audioMinutes \(n)") } icon: { Image(systemName: "headphones") }
-            case .audio: Label("topicXcx.include.audio", systemImage: "headphones")
-            case .medal(let name?): Label { Text("topicXcx.include.medal \(name)") } icon: { Image(systemName: "medal") }
-            case .medal(nil): Label("topicXcx.include.medalFallback", systemImage: "medal")
-            case .coupon: Label("topicXcx.include.coupon", systemImage: "ticket")
-            }
-        }
-    }
-}
-
 struct TopicXcxLineup: View {
     @Environment(\.ugcSafetySubjectID) private var safetySubjectID
     let members: [TopicXcxFacts.LineupMember]
@@ -479,48 +457,6 @@ struct TopicXcxSessionChip: View {
     }
 }
 
-/// Source 节点介绍: horizontal template cards (title, players, minutes). Images stay behind the gated gallery.
-struct TopicXcxTemplatesSection: View {
-    @Environment(\.cyPalette) private var palette
-    let templates: [TopicTemplate]
-    var body: some View {
-        if !templates.isEmpty {
-            Section("topicXcx.section.nodeIntro") {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: CYSpacing.md) {
-                        ForEach(templates, id: \.id) { template in
-                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                                Text(verbatim: template.title)
-                                    .cyText(.cardTitle)
-                                    .foregroundStyle(palette.textPrimary)
-                                    .cyWrapText()
-                                if let players = template.players {
-                                    Text(verbatim: players)
-                                        .cyText(.caption)
-                                        .foregroundStyle(palette.textSecondary)
-                                }
-                                Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))")
-                                    .cyText(.caption)
-                                    .foregroundStyle(palette.textTertiary)
-                            }
-                            .frame(width: 152, alignment: .leading)
-                            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("topic.nodeIntro.\(template.id)")
-                            .contextMenu {
-                                UGCReviewSafetyFooter(
-                                    target: .template(id: template.id),
-                                    subjectTitle: template.title
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 /// Source node card foot: `{商家}（{节点}）` plus `等 N 家`.
 struct TopicXcxNodeFootView: View {
     let node: TopicNode
@@ -532,5 +468,78 @@ struct TopicXcxNodeFootView: View {
                 if foot.merchantCount > 1 { Text("topicXcx.moreMerchants \(foot.merchantCount)").cyText(.meta).foregroundStyle(.secondary) }
             }.accessibilityIdentifier("topic.nodeFoot")
         }
+    }
+}
+
+/// 「出发前」 (MP `index.wxml` `topic-includes`, `pages/topic/utils/depart-notes.js`, 2026-11-21; port plan r1 C13):
+/// one short line per fact the route already has. Nothing shows when nothing is known.
+struct TopicDepartSection: View {
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
+    let items: [TopicDepartNotes.Item]
+
+    var body: some View {
+        if !items.isEmpty {
+            Section("topic.depart") {
+                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                    row(item)
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("topic.depart.\(index)")
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func row(_ item: TopicDepartNotes.Item) -> some View {
+        switch item {
+        case .price(let name, let amount, let from, let sharedBy):
+            // One-decimal / trimmed money is P5's `MoneyDisplay`; this call site is listed in the P3 receipt.
+            let price = amount.formatted(.currency(code: "CNY").precision(.fractionLength(0...2)).locale(locale))
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                if let name { Text(verbatim: name) } else { Text("topic.depart.selfPlay") }
+                Spacer(minLength: CYSpacing.sm)
+                VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
+                    Group {
+                        if from { Text("topic.depart.priceFrom \(price)") } else { Text(verbatim: price) }
+                    }
+                    .monospacedDigit()
+                    if let sharedBy {
+                        Text("topic.depart.sharedBy \(sharedBy)").cyText(.caption).foregroundStyle(palette.textSecondary)
+                    }
+                }
+            }
+            .accessibilityElement(children: .combine)
+        case .includes(let parts):
+            Text("topic.depart.includes \(includesText(parts))")
+        case .pauseResume:
+            Text("topic.depart.pauseResume")
+        case .badge(let name):
+            if let name { Text("topic.depart.badge \(name)") } else { Text("topic.depart.badgeUnnamed") }
+        case .coupon:
+            Text("topic.depart.coupon")
+        case .note(let line):
+            Text(verbatim: line)
+        }
+    }
+
+    /// 含 N 个章节、N 个站点、N 个玩法、语音导览: the same include copy as the rest of the page, joined like the MP.
+    private func includesText(_ parts: [TopicXcxFacts.Include]) -> String {
+        let texts: [String] = parts.compactMap { part in
+            switch part {
+            case .chapters(let n): return appLocalized("topicXcx.include.chapters \(n)", locale: locale)
+            case .chapterBreakdown(let story, let endings):
+                return story > 0
+                    ? appLocalized("topicXcx.include.storyAndEndings \(story) \(endings)", locale: locale)
+                    : appLocalized("topicXcx.include.endings \(endings)", locale: locale)
+            case .stops(let n): return appLocalized("topicXcx.include.stops \(n)", locale: locale)
+            case .plays(let n): return appLocalized("topicXcx.include.plays \(n)", locale: locale)
+            case .audioMinutes(let n): return appLocalized("topicXcx.include.audioMinutes \(n)", locale: locale)
+            case .audio: return appLocalized("topicXcx.include.audio", locale: locale)
+            case .medal, .coupon: return nil
+            }
+        }
+        return texts.joined(separator: appLocalized("topic.depart.separator", locale: locale))
     }
 }
