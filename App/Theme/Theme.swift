@@ -92,11 +92,16 @@ enum Theme {
     enum Radius {
         static let sm = Theme.length("--cy-radius-sm")
         static let md = Theme.length("--cy-radius-md")
-        static let lg = Theme.length("--cy-radius-lg")
-        static let xl = Theme.length("--cy-radius-xl")
-        static let xxl = Theme.length("--cy-radius-2xl")
+        // Native iOS restyle r1 (owner, 11-24): ONE radius set. Cards are 12 (`lg` folds into `card`), heroes are 20
+        // (`xl` and `xxl` fold into `hero`). The mini-program 16 / 20 / 22 steps are retired.
+        static let lg = card
+        static let xl = hero
+        static let xxl = hero
         /// Prefer Capsule for true pills. Source 999rpx is 499.5pt, not 999pt.
         static let pill = Theme.length("--cy-radius-pill")
+        /// Native iOS restyle (owner, 11-24): one card radius (12) and one hero radius (20).
+        static let card: CGFloat = 12
+        static let hero: CGFloat = 20
     }
 
     enum Font {
