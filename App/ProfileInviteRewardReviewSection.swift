@@ -1,19 +1,40 @@
 import SwiftUI
 
+/// FIN-20-2: one hero section, as in the MP invite history (scene-member-invite-history index.wxml:5-18):
+/// 首购奖励积分, +N (待同步 until the ledger is complete), then 已邀请 N 人 · 已到账 M 人. No duplicate total row.
 @MainActor struct ProfileInviteRewardReviewSection: View {
     let review: ProfileInviteRewardReview
+    let total: Int?
+    /// Invitation pages still loading reward coverage (`rewardCoverage != .complete`).
+    var coverageIncomplete = false
     let isLoading: Bool
     let reload: () -> Void
     var body: some View {
-        Section("profile.inviteRewards.title") {
-            LabeledContent("profile.inviteRewards.total") {
+        Section {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("profile.inviteRewards.hero").cyText(.label).foregroundStyle(CYColor.textSecondary)
                 if let points = review.cumulativePoints {
-                    Text(verbatim: NSDecimalNumber(decimal: points).stringValue)
-                        .cyText(.sheetTitle).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: "+" + NSDecimalNumber(decimal: points).stringValue)
+                        .cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("profile.inviteRewards.cumulative")
                 } else {
-                    Text("social.invites.synchronizing").accessibilityIdentifier("profile.inviteRewards.pending")
+                    Text("social.invites.synchronizing").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("profile.inviteRewards.pending")
                 }
+                Group {
+                    if let earned = review.earnedCount {
+                        Text("profile.inviteRewards.meta \(ProfileInviteHistoryPageReady.countText(total)) \(earned)")
+                    } else {
+                        Text("profile.inviteRewards.metaInvited \(ProfileInviteHistoryPageReady.countText(total))")
+                    }
+                }
+                .cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                .accessibilityIdentifier("social.invites.total")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            if coverageIncomplete {
+                CYStatusChip("social.invites.partial", tone: .warning, systemImage: "hourglass").accessibilityIdentifier("social.invites.partial")
             }
             if review.ledgerState != .complete {
                 Text("profile.inviteRewards.incomplete").cyText(.label).fixedSize(horizontal: false, vertical: true)
@@ -21,7 +42,7 @@ import SwiftUI
                 Button("profile.inviteRewards.reload", action: reload).disabled(isLoading)
                     .accessibilityIdentifier("profile.inviteRewards.reload")
             }
-            Text("profile.inviteRewards.monthScope").cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text("profile.inviteRewards.monthScope").cyText(.label).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

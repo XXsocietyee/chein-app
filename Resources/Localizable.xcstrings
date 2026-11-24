@@ -11077,6 +11077,23 @@
         }
       }
     },
+    "characterCard.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
     "characterCard.definition.legacy": {
       "extractionState": "manual",
       "localizations": {
@@ -11218,13 +11235,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No character card yet"
+            "value": "This link has expired"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有角色卡"
+            "value": "链接已失效"
           }
         }
       }
@@ -49462,6 +49479,23 @@
         }
       }
     },
+    "couponManagement.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
     "couponManagement.batchCode.referenceOnly": {
       "extractionState": "manual",
       "localizations": {
@@ -49764,6 +49798,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "请选择优惠券日期"
+          }
+        }
+      }
+    },
+    "couponManagement.denied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account can't view coupons"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份不能查看优惠券"
           }
         }
       }
@@ -132416,6 +132467,40 @@
         }
       }
     },
+    "mp.member.daysLeft %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld days left"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余 %1$lld 天 / 共 %2$lld 天"
+          }
+        }
+      }
+    },
+    "mp.member.expiring": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expiring soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将到期"
+          }
+        }
+      }
+    },
     "mp.member.eyebrow": {
       "extractionState": "manual",
       "localizations": {
@@ -132701,6 +132786,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "年卡 · 每月不到 %@"
+          }
+        }
+      }
+    },
+    "mp.member.teammate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companions included"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同行可用"
           }
         }
       }
@@ -169841,13 +169943,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading journeys…"
+            "value": "Loading your participation records…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载旅程…"
+            "value": "正在加载参与记录…"
           }
         }
       }
@@ -169858,13 +169960,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sign in to see your journeys"
+            "value": "Sign in to see your participation records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "登录后查看我的旅程"
+            "value": "登录后查看参与记录"
           }
         }
       }
@@ -194096,6 +194198,23 @@
         }
       }
     },
+    "profile.inviteRewards.hero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First-purchase reward points"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首购奖励积分"
+          }
+        }
+      }
+    },
     "profile.inviteRewards.incomplete": {
       "localizations": {
         "en": {
@@ -194124,6 +194243,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "已加载受邀人"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.meta %@ %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ invited · %2$lld rewarded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已邀请 %1$@ 人 · 已到账 %2$lld 人"
+          }
+        }
+      }
+    },
+    "profile.inviteRewards.metaInvited %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ invited"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已邀请 %@ 人"
           }
         }
       }
@@ -194835,6 +194988,159 @@
           "stringUnit": {
             "state": "translated",
             "value": "订单状态"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.application": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票申请"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.apply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request an invoice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请开票"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.issued": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Issued"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已开具"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.issuing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Being issued"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开具中"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.notApplied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not requested"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未申请"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.number": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票号"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.paused": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund under review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款核对中"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.section": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发票"
+          }
+        }
+      }
+    },
+    "profile.orderInvoice.state": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invoice status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开票状态"
           }
         }
       }
@@ -254109,6 +254415,23 @@
         }
       }
     },
+    "templateAuthor.shelf.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
+          }
+        }
+      }
+    },
     "templateAuthor.shelf.moreFailed": {
       "localizations": {
         "en": {
@@ -275011,6 +275334,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "已经到底了"
+          }
+        }
+      }
+    },
+    "wallet.points.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load points history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "积分明细加载失败"
           }
         }
       }

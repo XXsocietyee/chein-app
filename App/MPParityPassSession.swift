@@ -63,7 +63,12 @@ extension MPParityBindings {
             selectedPlan: plans.first { $0.best }?.code ?? plans.first?.code,
             buyBlock: block,
             validDays: Dictionary(overview.plans.compactMap { plan in plan.validDays.map { (plan.code, $0) } },
-                                  uniquingKeysWith: { first, _ in first }))
+                                  uniquingKeysWith: { first, _ in first }),
+            planLabel: active ? overview.holding.planLabel : nil,
+            teammate: active && overview.holding.teammateBenefit,
+            expiring: active && overview.holding.expiring,
+            daysLeft: active ? overview.holding.daysRemaining : nil,
+            daysTotal: active ? overview.holding.daysTotal : nil)
     }
 
     /// Explore feed card: city, period, and year passes that have a cash price and covered works.

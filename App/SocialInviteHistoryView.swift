@@ -22,12 +22,10 @@ import SwiftUI
             }
             else {
                 if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
-                Section {
-                    ProfileInviteHistorySummaryLine(total: model.pagination.total)
-                    LabeledContent("social.invites.total", value: ProfileInviteHistoryPageReady.countText(model.pagination.total))
-                    if ProfileInviteHistoryPageReady.rewardCoverage(model.scan) != .complete { CYStatusChip("social.invites.partial", tone: .warning, systemImage: "hourglass").accessibilityIdentifier("social.invites.partial") }
-                }
-                ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
+                // FIN-20-2: one hero (首购奖励积分 / 已邀请 N 人 · 已到账 M 人); no duplicate 累计邀请 row.
+                ProfileInviteRewardReviewSection(review: .init(scan: model.scan), total: model.pagination.total,
+                                                 coverageIncomplete: ProfileInviteHistoryPageReady.rewardCoverage(model.scan) != .complete,
+                                                 isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)
                 }
                 ForEach(groups, id: \.0) { group in

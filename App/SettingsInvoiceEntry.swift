@@ -8,7 +8,7 @@ import SwiftUI
         if let invoice = session.makeInvoiceLaunchPresentation() {
             Section {
                 NavigationLink {
-                    InvoiceLaunchHistoryView(model: invoice)
+                    InvoiceLaunchSessionHistory(session: session, model: invoice)
                 } label: {
                     Label { invoiceText("history") } icon: {
                         Image(systemName: "doc.text").accessibilityHidden(true)
@@ -31,5 +31,18 @@ import SwiftUI
             }
             .accessibilityIdentifier("settings.orderCenter")
         }
+    }
+}
+
+/// FIN-11-7: 我的发票 from 我的 / 设置 keeps a working 登录 when the session lapses on the page
+/// (MP invoice/index.wxml:11-12 offers 微信登录).
+@MainActor struct InvoiceLaunchSessionHistory: View {
+    @ObservedObject var session: AppSession
+    let model: InvoiceLaunchPresentation
+    @State private var login = false
+    var body: some View {
+        InvoiceLaunchHistoryView(model: model, onSignIn: { login = true })
+            .sheet(isPresented: $login) { LoginView(intent: .player).environmentObject(session) }
+            .onChange(of: session.sessionRevision) { _, _ in login = false }
     }
 }

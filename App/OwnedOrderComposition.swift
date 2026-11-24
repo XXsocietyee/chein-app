@@ -10,6 +10,8 @@ import SwiftUI
         OwnedOrdersLifecycleHost(session: session, onSignIn: { showsSignIn = true })
             .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
             .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
+            .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
+            .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
             .id(session.ownedOrderReader.identity)
             .sheet(isPresented: $showsSignIn) { LoginView(intent: .player).environmentObject(session) }
     }

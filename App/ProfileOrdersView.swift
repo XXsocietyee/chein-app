@@ -266,6 +266,7 @@ struct ProfileOrderDetailView: View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }) { order in
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
             List {
+                ProfileOrderHeroSection(order: order)
                 ProfileOrderStateNoticeSection(order: order)
                 Section(LocalizedStringKey("profile.orderParity.section.order")) {
                     if let title = order.title, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -327,6 +328,7 @@ struct ProfileOrderDetailView: View {
                     ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
                 }
                 ProfileOrderSourceDetailSections(order: order)
+                ProfileOrderInvoiceSection(order: order)
                 // FIN-16-1 / FIN-17-1: the MP's only self-service money exit. The lifecycle screen (fresh read +
                 // reviewed confirm sheet) opens when a reviewed writer is mounted for this reader; payment stays gated
                 // inside it. Without a writer the support section says where to go instead of staying silent.
@@ -488,6 +490,46 @@ struct ProfileOrderTicketTimeRow: View {
     }
 }
 
+/// FIN-17-5 (handoff MC-35, MP hero 578:2298): paid amount, then the order name and a status chip, before any row.
+private struct ProfileOrderHeroSection: View {
+    let order: ProfileOrder
+    private var title: String? {
+        let value = order.title?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value?.isEmpty == false ? value : nil
+    }
+    private var statusText: String? {
+        let value = order.statusText?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value?.isEmpty == false ? value : nil
+    }
+    private var stateKey: LocalizedStringKey {
+        switch order.registrationState {
+        case .awaitingPayment: return "profile.orders.awaitingPayment"
+        case .registered: return "profile.orders.registered"
+        case .cancelled: return "profile.orders.cancelled"
+        case .expired: return "profile.orders.expired"
+        case .unknown: return "profile.orders.unknown"
+        }
+    }
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                // Unknown money is an em dash, never ¥0.
+                Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
+                    .cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                if let title {
+                    Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                        .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                }
+                if let statusText { CYStatusChip(verbatim: statusText) } else { CYStatusChip(stateKey) }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, CYSpacing.xs)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("profile.order.detail.hero")
+        }
+    }
+}
+
 private struct ProfileOrderStatus: View {
     let order: ProfileOrder
     private var stateKey: LocalizedStringKey {
@@ -575,5 +617,56 @@ extension ProfileOrder {
             return refundable == true ? "profile.orderExit.refund" : nil
         }
         return nil
+    }
+}
+
+/// FIN-17-3: opens the invoice pages from an order. Set by the session host; nil hides the links, not the status.
+private struct ProfileOrderInvoicePresentationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> InvoiceLaunchPresentation?)? = nil
+}
+
+extension EnvironmentValues {
+    var profileOrderInvoicePresentation: (@MainActor () -> InvoiceLaunchPresentation?)? {
+        get { self[ProfileOrderInvoicePresentationKey.self] }
+        set { self[ProfileOrderInvoicePresentationKey.self] = newValue }
+    }
+}
+
+/// FIN-17-3: MP 发票 block (scene-member-order-detail index.wxml:217-237): 开票状态, 发票号 when issued,
+/// 申请开票 when not applied, 发票申请 → detail while issuing or issued. Paused keeps only the status row.
+@MainActor struct ProfileOrderInvoiceSection: View {
+    let order: ProfileOrder
+    @Environment(\.profileOrderInvoicePresentation) private var makeInvoice
+
+    var body: some View {
+        if let state = order.invoiceState, !order.isSourceFreeOrder {
+            Section("profile.orderInvoice.section") {
+                LabeledContent("profile.orderInvoice.state") { Text(stateKey(state)) }
+                    .accessibilityIdentifier("profile.order.invoice.state")
+                if state == .issued, let number = order.invoiceNo {
+                    LabeledContent("profile.orderInvoice.number") { Text(verbatim: number).monospacedDigit().textSelection(.enabled) }
+                }
+                if let makeInvoice, let model = makeInvoice() {
+                    if state == .notApplied {
+                        NavigationLink { InvoiceLaunchApplyView(model: model) } label: { Text("profile.orderInvoice.apply") }
+                            .accessibilityIdentifier("profile.order.invoice.apply")
+                    } else if state != .paused, let application = order.invoiceApplicationID {
+                        NavigationLink { InvoiceLaunchDetailView(model: model, applicationID: application) } label: {
+                            Text("profile.orderInvoice.application")
+                        }
+                        .accessibilityIdentifier("profile.order.invoice.detail")
+                    }
+                }
+            }
+        }
+    }
+
+    private func stateKey(_ state: ProfileOrderInvoiceState) -> LocalizedStringKey {
+        switch state {
+        case .notApplied: return "profile.orderInvoice.notApplied"
+        case .issuing: return "profile.orderInvoice.issuing"
+        case .issued: return "profile.orderInvoice.issued"
+        case .paused: return "profile.orderInvoice.paused"
+        }
     }
 }

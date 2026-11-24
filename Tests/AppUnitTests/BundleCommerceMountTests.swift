@@ -15,7 +15,8 @@ import XCTest
         let china = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
         XCTAssertEqual(
             BundleCommerceCatalog.visible(baseURL: china, capabilityAvailable: true),
-            [.orderStatus, .refundQuote, .cancel, .exitSwap]
+            // MKT-7-2: 评价 reads the live merchant/reviews contract.
+            [.orderStatus, .refundQuote, .cancel, .exitSwap, .review]
         )
     }
 

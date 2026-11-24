@@ -21,8 +21,9 @@ import QuestifyCore
             LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 headerCard
 
+                // PLY-24-4: the MP lists attributes under the header card with no group title
+                // (本局特质 is only the aspect tag there).
                 if !card.attributes.isEmpty {
-                    CYSectionHeader("characterCard.traits")
                     CYCard {
                         VStack(alignment: .leading, spacing: CYSpacing.lg) {
                             ForEach(card.attributes) { attribute in

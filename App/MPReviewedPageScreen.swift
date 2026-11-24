@@ -294,7 +294,10 @@ import SwiftUI
                 SquareDetailView(id: id, reader: session.squareReader, accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
             } else { unavailable }
         case "subpackageMember/orderinfo/orderinfo":
-            if let id = reviewedID(query) { ProfileOrderDetailView(id: id, reader: session.ownedOrderReader) }
+            if let id = reviewedID(query) {
+                ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
+                    .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
+            }
             else if query["outTradeNo"] != nil { SessionOwnedOrdersView(session: session) }
             else { unavailable }
         case "pages/merchant/index/index":

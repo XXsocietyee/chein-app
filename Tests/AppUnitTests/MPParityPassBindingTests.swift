@@ -137,6 +137,22 @@ import FoundationNetworking
         return url.appendingPathComponent("App/MPParityPassSession.swift")
     }
 
+    /// MKT-4-4: card facts follow platform-pass.js passView (clamped days, two labels only, active only).
+    func testMembershipCardFactsFollowHolding() {
+        let holding = PlatformPassHolding(active: true, validTo: nil, coverageEnd: nil, planLabel: "月卡",
+                                          daysTotal: 30, daysRemaining: 40, teammateBenefit: true, expiring: true)
+        XCTAssertEqual(holding.daysRemaining, 30)
+        XCTAssertNil(PlatformPassHolding(active: true, validTo: nil, coverageEnd: nil, planLabel: "季卡").planLabel)
+        XCTAssertNil(PlatformPassHolding(active: true, validTo: nil, coverageEnd: nil, daysTotal: 0, daysRemaining: 3).daysRemaining)
+        let active = MPParityBindings.membershipContent(PlatformPassOverview(
+            enabled: true, merchantBlocked: false, libraryCount: nil, plans: plans, holding: holding,
+            jsapiAvailable: true, xpayAvailable: false))
+        XCTAssertEqual(active.planLabel, "月卡"); XCTAssertTrue(active.teammate); XCTAssertTrue(active.expiring)
+        XCTAssertEqual(active.daysLeft, 30); XCTAssertEqual(active.daysTotal, 30)
+        let inactive = MPParityBindings.membershipContent(overview(active: false, coverageEnd: nil, libraryCount: nil, plans: plans))
+        XCTAssertNil(inactive.planLabel); XCTAssertNil(inactive.daysLeft); XCTAssertFalse(inactive.expiring)
+    }
+
     private var plans: [PlatformPassPlan] {
         [PlatformPassPlan(code: "YEAR", title: "年卡", priceFen: 29900, validDays: 365),
          PlatformPassPlan(code: "MONTH", title: "月卡", priceFen: 3900, validDays: 30)]

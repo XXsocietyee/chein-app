@@ -7,6 +7,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     let model: CharacterCardReadback
     @State private var login = false
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         let _ = session.account?.id
         let card = model.cardIfCurrent()
@@ -33,9 +34,9 @@ import SwiftUI
                     .accessibilityValue(Text(verbatim: CharacterCardPageModel.unknownStat))
                     .accessibilityHint(Text("characterCard.refresh"))
             case .empty:
-                // A loaded card with no attributes: count is a real 0, not unknown.
-                CYEmptyState(systemImage: "person.text.rectangle", "characterCard.empty", messageIdentifier: "characterCard.empty",
-                             actionTitle: "characterCard.refresh", actionIdentifier: "characterCard.refresh") { Task { await model.load() } }
+                // PLY-24-4: a card with nothing to show is the MP missing-param state 链接已失效 · 返回 (character/index.wxml:10).
+                CYEmptyState(systemImage: "link.badge.plus", "characterCard.empty", messageIdentifier: "characterCard.empty",
+                             actionTitle: "characterCard.back", actionIdentifier: "characterCard.back") { dismiss() }
             case .ready:
                 if model.isCurrent, let card {
                     CharacterSheetDetailView(card: card, rpgSheet: card.rpgSheet, definitionSource: card.definitionSource,

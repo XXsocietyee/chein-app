@@ -5,6 +5,7 @@ import SwiftUI
     @StateObject private var model = OwnedCouponReadScreenModel()
     @State private var viewPresentation = OwnedCouponReadViewPresentation()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.couponCodeFactory) private var makeCode
     @State private var filter = AccountCollectionCouponFilter.all
     @State private var searchText = ""
     @State private var submittedQuery = ""
@@ -65,11 +66,22 @@ import SwiftUI
                     let selections = model.selections(for: offeredRequest, filter: filter)
                     ForEach(Array(rows.enumerated()), id: \.offset) { index, coupon in
                         let selection = selections[index]
-                        NavigationLink {
-                            AccountCollectionCouponDetailView(selection: selection, reader: reader).id(selection.id)
-                        } label: { AccountCollectionCouponRow(coupon: coupon) }
+                        Group {
+                            // MKT-8-1: as in the MP (coupon-wallet/index.js:165-170) an unused coupon opens its code in one tap.
+                            if coupon.status == .unused, let makeCode {
+                                let destination = OwnedCouponCodeDestination(selection: selection)
+                                NavigationLink {
+                                    OwnedCouponCodeDestinationView(destination: destination, reader: reader, factory: makeCode).id(destination.id)
+                                } label: { AccountCollectionCouponRow(coupon: coupon, showsCodeFooter: true) }
+                            } else {
+                                NavigationLink {
+                                    AccountCollectionCouponDetailView(selection: selection, reader: reader).id(selection.id)
+                                } label: { AccountCollectionCouponRow(coupon: coupon) }
+                            }
+                        }
                         .buttonStyle(QuestifyCardButtonStyle())
                         .questifyHidesLinkIndicator()
+                        .overlay(alignment: .bottomTrailing) { AccountCollectionCouponNavigateButton(coupon: coupon) }
                         .accessibilityIdentifier("accountCollection.coupon.\(coupon.id)")
                         .questifyCardListRow()
                     }
@@ -130,6 +142,8 @@ import SwiftUI
 
 struct AccountCollectionCouponRow: View {
     let coupon: AccountCollectionCoupon
+    /// MKT-8-1: list rows that open the code directly say so (出示核销码 / 查看可用时间).
+    var showsCodeFooter = false
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             AccountCollectionCouponBadge(status: coupon.status)
@@ -157,6 +171,14 @@ struct AccountCollectionCouponRow: View {
             if coupon.shopName != nil || coupon.shopAddress != nil {
                 AccountCollectionCouponShopLine(coupon: coupon)
             }
+            if showsCodeFooter {
+                Label(coupon.futureStartDay(relativeTo: Date()) != nil ? "accountCollection.coupon.viewAvailability" : "couponCode.show",
+                      systemImage: coupon.futureStartDay(relativeTo: Date()) != nil ? "calendar" : "qrcode")
+                    .cyText(.label).foregroundStyle(CYColor.brand)
+                    .accessibilityIdentifier("accountCollection.coupon.codeFooter")
+            }
+            // Room for the 导航 capsule the list overlays on the card (MKT-8-4).
+            if coupon.hasShopNavigation { Color.clear.frame(height: 44).accessibilityHidden(true) }
         }
         .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
     }
@@ -178,5 +200,35 @@ struct AccountCollectionCouponShopLine: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("accountCollection.coupon.shop")
+    }
+}
+
+/// MKT-8-4: MP coupon cards open Maps from the shop line (coupon-wallet/index.wxml:12-15).
+/// A separate borderless 44 pt button so the row's own push stays intact. Hidden without both coordinates.
+struct AccountCollectionCouponNavigateButton: View {
+    let coupon: AccountCollectionCoupon
+    private var destination: PlatformMapDestination? {
+        guard coupon.hasShopNavigation else { return nil }
+        let value = PlatformMapDestination(name: coupon.shopName ?? coupon.shopAddress ?? "", address: coupon.shopAddress,
+                                           latitude: coupon.shopLatitude, longitude: coupon.shopLongitude)
+        return value.hasCoordinates ? value : nil
+    }
+    var body: some View {
+        if let destination {
+            Button {
+                Task { _ = await NativePlatformMapOpener().open(destination) }
+            } label: {
+                Label("accountCollection.coupon.navigate", systemImage: "arrow.triangle.turn.up.right.diamond")
+                    .cyText(.label)
+                    .padding(.horizontal, CYSpacing.md)
+                    .frame(minHeight: 44)
+                    .background(CYColor.bgOverlay, in: Capsule())
+                    .contentShape(Capsule())
+            }
+            .buttonStyle(.borderless)
+            .padding(CYSpacing.lg)
+            .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
+            .accessibilityIdentifier("accountCollection.coupon.list.navigate")
+        }
     }
 }

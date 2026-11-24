@@ -238,11 +238,25 @@ public struct PlatformPassHolding: Equatable, Sendable {
     public let active: Bool
     public let validTo: String?
     public let coverageEnd: String?
+    /// MKT-4-4 card facts (backend PlatformPassService.putCardFacts; MP utils/platform-pass.js:119-127).
+    /// Each is nil / false when absent, and the card then leaves that fact out.
+    public let planLabel: String?
+    public let daysTotal: Int?
+    public let daysRemaining: Int?
+    public let teammateBenefit: Bool
+    public let expiring: Bool
 
-    public init(active: Bool, validTo: String?, coverageEnd: String?) {
+    public init(active: Bool, validTo: String?, coverageEnd: String?, planLabel: String? = nil,
+                daysTotal: Int? = nil, daysRemaining: Int? = nil, teammateBenefit: Bool = false, expiring: Bool = false) {
         self.active = active
         self.validTo = validTo
         self.coverageEnd = coverageEnd
+        // Only the two labels the MP renders; anything else is not drawn.
+        self.planLabel = planLabel == "年卡" || planLabel == "月卡" ? planLabel : nil
+        self.daysTotal = daysTotal.flatMap { $0 > 0 ? $0 : nil }
+        self.daysRemaining = self.daysTotal == nil ? nil : daysRemaining.map { min(self.daysTotal!, max(0, $0)) }
+        self.teammateBenefit = teammateBenefit
+        self.expiring = expiring
     }
 }
 
@@ -287,7 +301,12 @@ public struct PlatformPassOverview: Equatable, Sendable {
             plans: plans,
             holding: PlatformPassHolding(active: PlatformPassJSON.flag(holding["active"]),
                                          validTo: PlatformPassJSON.text(holding["validTo"]),
-                                         coverageEnd: PlatformPassJSON.text(holding["coverageEnd"])),
+                                         coverageEnd: PlatformPassJSON.text(holding["coverageEnd"]),
+                                         planLabel: PlatformPassJSON.text(holding["planLabel"]),
+                                         daysTotal: PlatformPassJSON.int(holding["daysTotal"]),
+                                         daysRemaining: PlatformPassJSON.int(holding["daysRemaining"]),
+                                         teammateBenefit: PlatformPassJSON.flag(holding["teammateBenefit"]),
+                                         expiring: PlatformPassJSON.text(holding["badge"]) == "EXPIRING"),
             jsapiAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["jsapi"])?["available"]),
             xpayAvailable: PlatformPassJSON.flag(PlatformPassJSON.dictionary(channels["xpay"])?["available"]))
     }
