@@ -123,62 +123,88 @@ public struct MerchantGapOperationsClient {
         )
     }
 
-    public func supplyStations(merchantID: Int, token: String) async throws -> [CoopSupplyStation] {
-        guard merchantID > 0 else { throw APIError.invalidRequest }
+    public func supplyStations(topicID: Int, merchantMemberID: Int, token: String) async throws -> [CoopSupplyStation] {
+        guard topicID > 0, merchantMemberID > 0 else { throw APIError.invalidRequest }
         return try await MPGapHTTP.getJSON(
             configuration: configuration,
             transport: transport,
             path: "api/coop/supply-stations",
-            queryItems: [URLQueryItem(name: "merchantId", value: String(merchantID))],
+            queryItems: [
+                URLQueryItem(name: "topicId", value: String(topicID)),
+                URLQueryItem(name: "merchantMemberId", value: String(merchantMemberID))
+            ],
             token: token
         )
     }
 
-    public func invitableMerchants(topicID: Int, token: String) async throws -> [CoopInvitableMerchant] {
+    public func invitableMerchants(
+        topicID: Int,
+        latitude: Double? = nil,
+        longitude: Double? = nil,
+        token: String
+    ) async throws -> [CoopInvitableMerchant] {
         guard topicID > 0 else { throw APIError.invalidRequest }
-        return try await MPGapHTTP.getJSON(
+        var body: [String: Any] = ["topicId": topicID]
+        if let latitude, let longitude {
+            body["latitude"] = latitude
+            body["longitude"] = longitude
+        }
+        return try await MPGapHTTP.postJSON(
             configuration: configuration,
             transport: transport,
             path: "api/merchant/chapter-application/invitable",
-            queryItems: [URLQueryItem(name: "topicId", value: String(topicID))],
+            body: body,
             token: token
         )
     }
 
-    public func inviteChapterReplacement(topicID: Int, chapterID: Int, merchantID: Int, token: String) async throws {
-        guard topicID > 0, chapterID > 0, merchantID > 0 else { throw APIError.invalidRequest }
+    public func inviteChapterReplacement(
+        chapterID: Int,
+        merchantMemberID: Int,
+        replacementOfOfferID: Int? = nil,
+        message: String? = nil,
+        token: String
+    ) async throws {
+        guard chapterID > 0, merchantMemberID > 0 else { throw APIError.invalidRequest }
+        var body: [String: Any] = ["chapterId": chapterID, "merchantMemberId": merchantMemberID]
+        if let replacementOfOfferID, replacementOfOfferID > 0 {
+            body["replacementOfOfferId"] = replacementOfOfferID
+        }
+        if let message, !message.isEmpty {
+            body["message"] = message
+        }
         try await MPGapHTTP.postAction(
             configuration: configuration,
             transport: transport,
             path: "api/merchant/chapter-application/invite",
-            body: ["topicId": topicID, "chapterId": chapterID, "merchantId": merchantID],
+            body: body,
             token: token
         )
     }
 
     /// Money write: withheld unless `allowsMoneyWrite` is explicitly enabled (TEST-only).
-    public func createDeposit(coopID: Int, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
+    public func createDeposit(inviteID: Int, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
         guard allowsMoneyWrite else { return false }
-        guard coopID > 0 else { throw APIError.invalidRequest }
-        try await MPGapHTTP.postAction(
+        guard inviteID > 0 else { throw APIError.invalidRequest }
+        try await MPGapHTTP.postFormAction(
             configuration: configuration,
             transport: transport,
-            path: "api/coop/deposit/create",
-            body: ["id": coopID],
+            path: "api/coop/deposit/create/app",
+            fields: ["inviteId": String(inviteID)],
             token: token
         )
         return true
     }
 
     /// Money write: withheld unless `allowsMoneyWrite` is explicitly enabled (TEST-only).
-    public func retryDepositRefund(coopID: Int, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
+    public func retryDepositRefund(inviteID: Int, token: String, allowsMoneyWrite: Bool) async throws -> Bool {
         guard allowsMoneyWrite else { return false }
-        guard coopID > 0 else { throw APIError.invalidRequest }
-        try await MPGapHTTP.postAction(
+        guard inviteID > 0 else { throw APIError.invalidRequest }
+        try await MPGapHTTP.postFormAction(
             configuration: configuration,
             transport: transport,
             path: "api/coop/deposit/refund/retry",
-            body: ["id": coopID],
+            fields: ["inviteId": String(inviteID)],
             token: token
         )
         return true

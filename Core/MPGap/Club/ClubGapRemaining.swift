@@ -103,11 +103,11 @@ public struct ClubRemainingGapClient {
 
     public func toggleFollowAuthor(targetUserID: Int, follow: Bool, token: String) async throws {
         guard targetUserID > 0 else { throw APIError.invalidRequest }
-        try await MPGapHTTP.postAction(
+        try await MPGapHTTP.postFormAction(
             configuration: configuration,
             transport: transport,
             path: "api/user/follow/action",
-            body: ["follow_member_id": targetUserID, "follow": follow ? 1 : 0],
+            fields: ["follow_member_id": String(targetUserID), "follow": follow ? "1" : "0"],
             token: token
         )
     }

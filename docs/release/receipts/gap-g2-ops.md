@@ -98,3 +98,8 @@ DONE-COMPILE-FIX
 - `swiftc -parse` passed on all 26 G2 Swift files (`Core/MPGap`, `App/MPGap`, `Tests/CoreTests/MPGap`).
 
 DONE-ROUND-4
+
+## 9. Round 5 (`r7-rev-c` + `owner-decisions-1124`)
+- Closed all G2 `owner=Gemini` findings from `origin/review/r7-rev-c:docs/review/r7-rev-c.md`: `F-C03`, `F-C04`, `F-C06`, `F-C07`, `F-C08`, `F-C09`, `F-C20`, `F-C22`, `F-C23`, `F-C25`.
+- Report written to [round5-g2.md](docs/mp-gap/round5-g2.md).
+- `swiftc -parse` passed on all 26 G2 Swift files after final edits.

@@ -1,19 +1,26 @@
 import SwiftUI
 
-/// Mount hook for `ClubGovernanceViews` / `MerchantLedgerSettlementOverview` (`CLB-G17`, `MC-G04`):
-/// Displays 自由探索结算（参考） rows; money write (`标记已结清`) stays gated behind `allowsMoneyWrite` (TEST-only).
+/// Mount hook for `ClubGovernanceViews` / `MerchantLedgerSettlementOverview` (`CLB-G17`, `MC-G04`, `F-C20`):
+/// Displays 自由探索结算（参考） rows; `标记已结清` is payer-only, settles a group (`[Int]`) with an
+/// optional 转账凭证号 confirmation alert, and stays gated behind `allowsMoneyWrite` (TEST-only).
 public struct ClubGapFEReferenceSettlementSection: View {
+    public let role: FEReferenceSettlementRole
     public let items: [FEReferenceSettlementItem]
     public let allowsMoneyWrite: Bool
-    public let onMarkSettled: (Int) -> Void
+    public let onMarkSettled: (_ ids: [Int], _ voucherNo: String?) -> Void
     public let onDispute: (Int) -> Void
 
+    @State private var settlingIDs: [Int]?
+    @State private var voucherNo: String = ""
+
     public init(
+        role: FEReferenceSettlementRole = .payer,
         items: [FEReferenceSettlementItem],
         allowsMoneyWrite: Bool = false,
-        onMarkSettled: @escaping (Int) -> Void,
+        onMarkSettled: @escaping (_ ids: [Int], _ voucherNo: String?) -> Void,
         onDispute: @escaping (Int) -> Void
     ) {
+        self.role = role
         self.items = items
         self.allowsMoneyWrite = allowsMoneyWrite
         self.onMarkSettled = onMarkSettled
@@ -44,13 +51,14 @@ public struct ClubGapFEReferenceSettlementSection: View {
                                 .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                             Spacer()
-                            if allowsMoneyWrite && item.canSettle {
+                            if role == .payer && allowsMoneyWrite && item.canSettle {
                                 Button(FEReferenceSettlementCopy.markSettled) {
-                                    onMarkSettled(item.id)
+                                    voucherNo = ""
+                                    settlingIDs = [item.id]
                                 }
                                 .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
                             }
-                            if item.canDispute {
+                            if role == .merchant && item.canDispute {
                                 Button(FEReferenceSettlementCopy.dispute) {
                                     onDispute(item.id)
                                 }
@@ -66,6 +74,23 @@ public struct ClubGapFEReferenceSettlementSection: View {
         } footer: {
             if !allowsMoneyWrite {
                 Text(verbatim: FEReferenceSettlementCopy.moneyGateNote).cyText(.meta)
+            }
+        }
+        .alert(
+            "标记已线下结清？",
+            isPresented: Binding(
+                get: { settlingIDs != nil },
+                set: { if !$0 { settlingIDs = nil } }
+            )
+        ) {
+            TextField("转账凭证号（选填）", text: $voucherNo)
+            Button("取消", role: .cancel) { settlingIDs = nil }
+            Button(FEReferenceSettlementCopy.markSettled) {
+                if let ids = settlingIDs {
+                    let trimmed = voucherNo.trimmingCharacters(in: .whitespacesAndNewlines)
+                    onMarkSettled(ids, trimmed.isEmpty ? nil : trimmed)
+                }
+                settlingIDs = nil
             }
         }
     }

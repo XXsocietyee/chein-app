@@ -62,7 +62,7 @@ public struct MerchantGapAIInsightDashboardSection: View {
 
             if !sources.isEmpty {
                 Section {
-                    ForEach(sources) { source in
+                    ForEach(Array(sources.enumerated()), id: \.offset) { _, source in
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack {
                                 Text(verbatim: source.name)
@@ -119,6 +119,7 @@ public struct MerchantGapAIInsightDashboardSection: View {
                         } label: {
                             HStack {
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                    // TODO: MPAsset("grow-\(tip.key.rawValue)") once cursor/mp-assets lands
                                     Text(verbatim: tip.title)
                                         .cyText(.cardTitle)
                                         .foregroundStyle(CYColor.textPrimary)

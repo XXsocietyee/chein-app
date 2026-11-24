@@ -60,6 +60,7 @@ public struct MerchantGapAIInsightExtraSection: View {
         Group {
             Section {
                 HStack(spacing: CYSpacing.md) {
+                    // TODO: MPAsset("d_profile") fallback once cursor/mp-assets lands
                     CYAvatarView(url: storeLogoURL, name: storeName, size: .lg)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: storeName.isEmpty ? "我的门店" : storeName)

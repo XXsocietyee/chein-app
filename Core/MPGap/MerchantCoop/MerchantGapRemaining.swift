@@ -199,15 +199,4 @@ public struct MerchantRemainingGapClient {
             token: token
         )
     }
-
-    public func acceptTeamInvite(inviteID: Int, token: String) async throws {
-        guard inviteID > 0 else { throw APIError.invalidRequest }
-        try await MPGapHTTP.postAction(
-            configuration: configuration,
-            transport: transport,
-            path: "api/merchant/team/invite/accept",
-            body: ["inviteId": inviteID],
-            token: token
-        )
-    }
 }

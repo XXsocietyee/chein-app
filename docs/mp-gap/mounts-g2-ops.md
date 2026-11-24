@@ -17,7 +17,7 @@ All new UI views live in `App/MPGap/<Area>/*.swift` with zero edits to existing 
    - **Code:** `ClubGapTopicDirectorEmbeddedSection(summary: directorSummary, onConfirmUnknownWrite: { ... }, onRetryUnknownWrite: { ... }, onOpenTool: { ... }, onToggleLeaderboardVisibility: { ... })`
 5. **`ClubGapFEReferenceSettlementSection`** (`App/MPGap/Club/ClubGapReferenceSettlementView.swift`)
    - **Target:** `App/ClubGovernanceViews.swift` (settlement view) & `App/MerchantLedgerSettlementOverview.swift`
-   - **Code:** `ClubGapFEReferenceSettlementSection(items: feSettlements, allowsMoneyWrite: allowsMoneyWrite, onMarkSettled: { ... }, onDispute: { ... })`
+   - **Code:** `ClubGapFEReferenceSettlementSection(role: .payer, items: feSettlements, allowsMoneyWrite: allowsMoneyWrite, onMarkSettled: { ids, voucherNo in ... }, onDispute: { ... })`
 
 ## Merchant-Coop
 1. **`MerchantGapAIInsightDashboardSection`** (`App/MPGap/MerchantCoop/MerchantGapAIInsightViews.swift`)
