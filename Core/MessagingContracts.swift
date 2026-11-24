@@ -135,7 +135,7 @@ public struct MessagingConversation: Decodable, Equatable, Identifiable {
 }
 
 /// Exact server statuses; absent/malformed/future values never imply visibility.
-public enum MessagingMessageStatus: Equatable {
+public enum MessagingMessageStatus: Equatable, Sendable {
     case normal, recalled, blocked, unknown
     public init(wireValue: Int?) {
         switch wireValue {
@@ -147,7 +147,7 @@ public enum MessagingMessageStatus: Equatable {
     }
 }
 
-public struct MessagingMessage: Decodable, Equatable, Identifiable {
+public struct MessagingMessage: Decodable, Equatable, Identifiable, Sendable {
     public let status: MessagingMessageStatus
     public var isPayloadVisible: Bool { status == .normal }
     public let id: Int

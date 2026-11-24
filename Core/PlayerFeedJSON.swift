@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// Runs one feed decode or projection off the main actor.
 /// The decoded value is immutable and is read only after the background write finishes.
@@ -75,7 +76,7 @@ public final class InFlightReadCoalescer<Value>: @unchecked Sendable {
         let task: Task<Value, Error>
     }
 
-    private let lock = NSLock()
+    private let lock = OSAllocatedUnfairLock()
     private var slots: [String: Slot] = [:]
     /// A body that finished before its slot was published. Cleared when publish observes it.
     private var finishedEarly: Set<UUID> = []
@@ -83,37 +84,34 @@ public final class InFlightReadCoalescer<Value>: @unchecked Sendable {
     public init() {}
 
     public func isInFlight(_ key: String) -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-        return slots[key] != nil
+        lock.withLock { slots[key] != nil }
     }
 
     public func join(_ key: String, _ body: @escaping () async throws -> Value) async throws -> Value {
-        lock.lock()
-        if let existing = slots[key] {
-            let task = existing.task
-            lock.unlock()
-            return try await task.value
+        let task: Task<Value, Error> = lock.withLock {
+            if let existing = slots[key] {
+                return existing.task
+            }
+            let id = UUID()
+            let task = Task { () throws -> Value in
+                defer { self.finish(key, id) }
+                return try await body()
+            }
+            if finishedEarly.remove(id) == nil {
+                slots[key] = Slot(id: id, task: task)
+            }
+            return task
         }
-        let id = UUID()
-        let task = Task { () throws -> Value in
-            defer { self.finish(key, id) }
-            return try await body()
-        }
-        if finishedEarly.remove(id) == nil {
-            slots[key] = Slot(id: id, task: task)
-        }
-        lock.unlock()
         return try await task.value
     }
 
     private func finish(_ key: String, _ id: UUID) {
-        lock.lock()
-        if slots[key]?.id == id {
-            slots[key] = nil
-        } else if slots[key] == nil {
-            finishedEarly.insert(id)
+        lock.withLock {
+            if slots[key]?.id == id {
+                slots[key] = nil
+            } else if slots[key] == nil {
+                finishedEarly.insert(id)
+            }
         }
-        lock.unlock()
     }
 }

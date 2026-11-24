@@ -72,14 +72,14 @@ public struct ClubCommunityService {
         guard code == 200 else { throw ClubCommunityFailure.rejected(code) }
         return object["data"] ?? NSNull()
     }
-    func submit(_ review: ClubCommunityReview, session: ClubCommunitySession, check: () throws -> Void) async throws {
+    func submit(_ review: ClubCommunityReview, session: ClubCommunitySession, check: @MainActor () throws -> Void) async throws {
         guard allowsInjectedWrites else { throw ClubCommunityFailure.unavailable }
         guard session.identity == review.evidence.identity else { throw ClubCommunityFailure.stale }
         let request = try request(suffix: review.operation.suffix, fields: review.fields(), session: session)
-        try Task.checkCancellation(); try check()
+        try Task.checkCancellation(); try await check()
         let data: Data, status: Int
         do { (data, status) = try await transport.send(request) } catch { throw ClubCommunityFailure.unknown }
-        do { try Task.checkCancellation(); try check() } catch { throw ClubCommunityFailure.unknown }
+        do { try Task.checkCancellation(); try await check() } catch { throw ClubCommunityFailure.unknown }
         do { _ = try Self.decode(data, status: status) }
         catch let error as ClubCommunityFailure {
             if case .rejected = error { throw error }; throw ClubCommunityFailure.unknown

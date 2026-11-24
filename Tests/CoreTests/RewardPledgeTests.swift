@@ -225,13 +225,11 @@ final class RewardPledgeTests: XCTestCase {
         } catch RewardPledgeFailure.closed("not open") {}
         XCTAssertTrue(transport.requests.isEmpty)
         transport.body = listed
-        var moved = false
-        let loaded = try await client.awards(token: "fixture-token", open: true, still: { !moved })
+        let loaded = try await client.awards(token: "fixture-token", open: true, still: { true })
         XCTAssertEqual(loaded.map(\.awardId), ["a1", "a2"])
-        moved = true
         transport.body = #"{"code":200,"msg":"ok","data":{"awardId":"a1","requestId":"req-1","state":"AWARDED","historyId":"9","useStatus":"0"}}"#
         do {
-            _ = try await client.claim(requestID: digest, versionID: "v1", subjectID: "100", token: "fixture-token", open: true, still: { !moved })
+            _ = try await client.claim(requestID: digest, versionID: "v1", subjectID: "100", token: "fixture-token", open: true, still: { false })
             XCTFail("stale claim was kept")
         } catch RewardPledgeFailure.stale {}
     }
