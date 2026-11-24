@@ -101,7 +101,8 @@ import SwiftUI
         case "pages/activity/baoming/baoming":
             // PC-C-2 routing: MP baoming is the registration step of one activity; land on its detail with the sheet open.
             if let id = reviewedID(query, key: "activityId") {
-                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true)
+                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true,
+                                   registrationTicketID: positiveID(query["ticketId"]))
             } else { unavailable }
         case "pages/activity/official-organizer/index":
             if let id = reviewedID(query), let access = session.officialActionCoordinator?.organizer {
