@@ -684,6 +684,9 @@ struct ClubGovernanceReadView: View {
         .cyGroupedSurface()
         .cyPageTitle(String.LocalizationValue(stringLiteral: "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
+        // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
+        // customer page shows when the owner comes back.
+        .onAppear { rereadCustomersOnReturn() }
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
             NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) }
                 .cyDomainSheet(detents: [.half, .full])
@@ -1144,6 +1147,11 @@ struct ClubGovernanceReadView: View {
         leaderboardMember = nil
     }
     /// Customer detail re-reads its server tags/remark when the reviewed editor closes; the read keeps every existing fence.
+    @MainActor private func rereadCustomersOnReturn() {
+        guard operation == .customers, scenePhase == .active, snapshot != nil, snapshotContext == readContext,
+              identity == access.identity, !loading else { return }
+        Task { await load() }
+    }
     @MainActor private func rereadCustomerAfterEditor() {
         guard operation == .customer, scenePhase == .active, snapshot != nil, snapshotContext == readContext,
               identity == access.identity, !loading else { return }

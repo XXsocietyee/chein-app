@@ -127,9 +127,10 @@ struct ClubOpsFailureSection: View {
                 .accessibilityIdentifier("clubOps.customers.loadMoreRetry")
             }
         } header: {
+            // CLB-customers-06 (fix-r3-club-b): MP .cus-count is a label-size meta line.
             Text("clubOps.customers.count \(list.total) \(list.monthNew)", tableName: "ClubOpsCustomer")
-                .cyText(.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
+                .cyText(.meta)
+                .foregroundStyle(CYColor.textSecondary)
                 .monospacedDigit()
                 .textCase(nil)
                 .fixedSize(horizontal: false, vertical: true)
