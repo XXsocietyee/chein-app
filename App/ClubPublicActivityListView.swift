@@ -79,7 +79,7 @@ import SwiftUI
                 } else {
                     ClubActivityListContent(rows: rows, canOpen: visible && scenePhase == .active && opening == nil, open: { row in
                         select(row, from: snapshot, snapshotID: renderedSnapshotID)
-                    })
+                    }, embedded: true)
                 }
             } else if !model.loading, model.issueScope == scope, let issue = model.issue {
                 issueSection(issue)

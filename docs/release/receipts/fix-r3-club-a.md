@@ -22,6 +22,7 @@
 | CLB-detail-37 | Cover 160, logo 56. | App/ClubDetailView.swift |
 | CLB-detail-40 | Welcome title `.sheetTitle`. | App/ClubMemberWelcomeSheet.swift |
 | CLB-detail-41 | Invite row glyph `.cyText(.bodyMedium)`. | App/ClubMembersView.swift |
+| CLB-detail-19 | The 活动 tab's embedded list has no 当前活动 header and no time-zone helper line (ended activities were already excluded). | App/ClubActivityListContent.swift, App/ClubPublicActivityListView.swift |
 | CLB-r7-A-02 | 概览 shows 成员身份暂时无法确认，管理员工具暂不可用。 when the detail says `viewerIdentityUnavailable`. | App/ClubDetailView.swift; strings |
 | CLB-r7-A-03 | 治理与安全 · 封禁申诉 row on 概览 for owner/admin, opening the club's cases. | App/ClubDetailView.swift; strings |
 | CLB-r7-A-05 | 结算 entry on 管理 for the owner (settlement read). | App/ClubDetailView.swift; strings |
@@ -63,7 +64,7 @@
 | CLB-detail-14 (inline feed) | The feed is a ScrollView/LazyVStack screen with its own pagination, composer and destinations; embedding it in the detail `List` without a compiler risks layout and lifecycle regressions. The postId path (detail-31) now pushes it automatically. Next round, with a build. |
 | CLB-detail-35 (团码 on cards) | Needs the session picker + `ClubGroupCodePresentation` on the detail; overlaps CLB-group-code-05 (Gemini). |
 | CLB-detail-22 (inline top rows + 我 row) | Needs the leaderboard read on the detail page; the avatar strip is parked (G08). |
-| CLB-detail-43, -19, -39, r7-A-06, r7-A-08 | Not reached this round (P2). r7-A-08 needs an `api/club/my` read in the router. |
+| CLB-detail-43, -39, r7-A-06, r7-A-08 | Not reached this round (P2). r7-A-08 needs an `api/club/my` read in the router. |
 | CLB-topic-detail-02 (pinned footer) | Moving `topicPrimary` into `.safeAreaInset` means restructuring the read view's List; left for a compiled round. |
 | CLB-topic-detail-05, -06, -10 | Round actions with native sheets (M), toggle rows that write with rollback (M) and the customer rows: not attempted without a compiler. -06's more-menu rows are parked (G12). |
 | CLB-topic-detail-11 | **Cursor request:** `ClubTopicMerchantList` strips contact fields; the copy-phone button needs a `phone` on `ClubTopicMerchantRow` (only when the merchant confirmed). |
