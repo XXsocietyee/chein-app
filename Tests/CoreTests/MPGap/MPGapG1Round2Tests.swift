@@ -189,7 +189,7 @@ final class MPGapG1Round2Tests: XCTestCase {
         let service = PlayRoamRound2Service(baseURL: URL(string: "https://example.com")!, token: { "tok-1234" }, transport: transport)
 
         _ = await service.fetchTeamApplications(teamID: 4)
-        _ = await service.fetchLeaderboard(JourneyLeaderboardScopeQuery(scope: "TEAM", topicID: 1, teamID: 4))
+        _ = await service.fetchLeaderboard(JourneyLeaderboardScopeQuery(scope: "team", scopeID: "4"))
         _ = await service.fetchStampAlbum(pageNum: 1)
 
         XCTAssertEqual(transport.requests.compactMap { $0.url?.path }, [
@@ -197,6 +197,7 @@ final class MPGapG1Round2Tests: XCTestCase {
             "/api/rank/list",
             "/api/roam/stamp/list"
         ])
+        XCTAssertFalse(PlayRoamRound2Service.paths.contains("api/roam/history/list"))
     }
 
     // MARK: - Member Round-1 & Round-2 Types

@@ -4,7 +4,8 @@ import FoundationNetworking
 #endif
 
 public enum ObjectCardMediaFailure: Error { case disabled, invalidURL, unapprovedOrigin, invalidResponse, tooLarge, unsupportedImage }
-/// Exact approved origins only. No credentials, cookies, caches, redirects or model downloads.
+/// Exact approved origins only. No credentials, cookies, stored response cache, redirects or model downloads.
+/// Two callers of the same absolute URL share the transfer that is already running.
 public struct ObjectCardMediaPolicy {
     public let approvedOrigins: Set<String>
     public static let maximumBytes = 12 * 1024 * 1024
@@ -27,14 +28,17 @@ public protocol ObjectCardImageLoading {
 }
 public struct ObjectCardBoundedImageLoader: ObjectCardImageLoading {
     public let policy: ObjectCardMediaPolicy
+    private static let reads = InFlightReadCoalescer<Data>()
     public init(policy: ObjectCardMediaPolicy) { self.policy = policy }
     public func image(url raw: String) async throws -> Data {
         let url = try policy.validate(raw)
-        let operation = ObjectCardImageTransfer(url: url)
-        return try await withTaskCancellationHandler(operation: {
-            try Task.checkCancellation()
-            return try await withCheckedThrowingContinuation { operation.start($0) }
-        }, onCancel: { operation.cancel() })
+        return try await Self.reads.join(url.absoluteString) {
+            let operation = ObjectCardImageTransfer(url: url)
+            return try await withTaskCancellationHandler(operation: {
+                try Task.checkCancellation()
+                return try await withCheckedThrowingContinuation { operation.start($0) }
+            }, onCancel: { operation.cancel() })
+        }
     }
 }
 private final class ObjectCardImageTransfer: NSObject, URLSessionDataDelegate, @unchecked Sendable {

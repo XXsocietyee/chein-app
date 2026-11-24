@@ -147,13 +147,14 @@ public struct AccountPublishGapClient {
         )
     }
 
-    public func handleTeamApplication(applicationID: Int, approved: Bool, token: String) async throws {
-        guard applicationID > 0 else { throw APIError.invalidRequest }
+    /// `POST /api/team/handle` JSON `{ teamId, memberId, approved }`, matching `NearbyTeamService.handle`.
+    public func handleTeamApplication(teamID: Int, memberID: Int, approved: Bool, token: String) async throws {
+        guard teamID > 0, memberID > 0 else { throw APIError.invalidRequest }
         try await MPGapHTTP.postAction(
             configuration: configuration,
             transport: transport,
             path: "api/team/handle",
-            body: ["applicationId": applicationID, "action": approved ? "approve" : "reject"],
+            body: ["teamId": teamID, "memberId": memberID, "approved": approved],
             token: token
         )
     }

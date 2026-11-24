@@ -1,0 +1,90 @@
+{
+  "settings.home.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看账号信息"
+        }
+      }
+    }
+  },
+  "settings.home.deniedRetry": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "点击刷新并确认当前账号权限"
+        }
+      }
+    }
+  },
+  "deregister.sms.sent": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "验证码已发送至尾号 %@ 的手机号"
+        }
+      }
+    }
+  },
+  "deregister.sms.bindPhone": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先绑定手机号后再获取验证码"
+        }
+      }
+    }
+  },
+  "team.recovery.query": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "查询原请求"
+        }
+      }
+    }
+  },
+  "team.recovery.retry": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按原输入重试"
+        }
+      }
+    }
+  },
+  "team.recovery.abort": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "终止尚未执行的请求"
+        }
+      }
+    }
+  },
+  "team.recovery.abortNote": {
+    "extractionState": "manual",
+    "localizations": {
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "终止只针对未执行的原请求；已经提交的业务不会撤销。"
+        }
+      }
+    }
+  }
+}

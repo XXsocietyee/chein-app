@@ -5,6 +5,7 @@ import FoundationNetworking
 
 /// Round-2 Core service methods for `play-roam` MP gaps:
 /// `RTEAMS-3`, `JREPORT-3`, `SALBUM-6`.
+/// RHIST-r7-1: passport history is `RoamPassportHistoryReadRoute` (`GET /api/roam/passport/history`), not a list invented here.
 @MainActor
 public final class PlayRoamRound2Service {
     public static let paths: Set<String> = [
@@ -85,15 +86,14 @@ public final class PlayRoamRound2Service {
         return await send(req)
     }
 
-    /// `JREPORT-3`: `GET /api/rank/list` with `scope`, `topicId`, `activityId`, `teamId`, `cityCode`, `countryCode`, `clubId`
+    /// `JREPORT-3`: `GET /api/rank/list` as `journey-api.js` `rank` (`scope`, `scopeId`, `period` via `idQuery`).
+    /// Topic, city, country, club and team ids are the `scopeId` of one tab, not extra query keys.
     public func fetchLeaderboard(_ queryModel: JourneyLeaderboardScopeQuery) async -> PlayerGapReply {
-        var q: [String: String] = ["scope": queryModel.scope]
-        if let v = queryModel.topicID { q["topicId"] = String(v) }
-        if let v = queryModel.activityID { q["activityId"] = String(v) }
-        if let v = queryModel.teamID { q["teamId"] = String(v) }
-        if let v = queryModel.cityCode { q["cityCode"] = v }
-        if let v = queryModel.countryCode { q["countryCode"] = v }
-        if let v = queryModel.clubID { q["clubId"] = String(v) }
+        let items = JourneyRankBoardContract.query(scope: queryModel.scope, scopeID: queryModel.scopeID ?? "", period: queryModel.period)
+        var q: [String: String] = [:]
+        for item in items {
+            if let value = item.value { q[item.name] = value }
+        }
         guard let req = try? makeRequest("api/rank/list", method: "GET", query: q) else {
             return .unauthorized
         }
