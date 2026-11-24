@@ -38,11 +38,11 @@ ROWS = {
  'merchantOps.insight.delta %@': ('%@ players vs previous period', '比上期 %@ 位玩家'),
  'merchantOps.insight.empty.body': ('Take on a theme in the cooperation center first; data appears here after players check in at your store', '先去合作中心承接一个主题，玩家到店打卡后这里就有数据了'),
  # pages/merchant/predict/index.{js,wxml}
- 'merchantOps.predict.denied.title': ('Your role cannot settle predictions', '当前岗位不能结算竞猜'),
+ 'merchantOps.predict.denied.title': ('Your role cannot publish prediction answers', '当前身份不能公布预测答案'),
  'merchantOps.predict.denied.body': ('Settling issues coupons by your rules and needs project management access. Ask the store owner to adjust team permissions.', '结算会按规则发券，需要项目管理权限。请联系店主调整经营团队权限'),
  'merchantOps.predict.error': ('Pending predictions failed to load', '待答列表加载失败'),
  'merchantOps.predict.retry': ('Reload', '重新加载'),
- 'merchantOps.predict.empty.title': ('No predictions waiting for your answer', '没有等你给答案的竞猜'),
+ 'merchantOps.predict.empty.title': ('No predictions waiting for your answer', '没有等你给答案的预测'),
  'merchantOps.predict.empty.body': ('After players place their picks, the round appears here for you to publish the answer', '玩家押完之后，那一轮会出现在这里等你公布答案'),
  'merchantOps.predict.summary %lld': ('%lld rounds waiting for your answer', '共 %lld 轮等你给答案'),
  'merchantOps.predict.round %@': ('Round of %@', '%@ 那一轮'),
@@ -51,7 +51,7 @@ ROWS = {
  'merchantOps.predict.bets %lld': ('%lld people picked this round', '%lld 个人押了这一轮'),
  'merchantOps.predict.noBets': ('Nobody has picked this round yet', '这一轮还没有人押'),
  'merchantOps.predict.options %lld': ('%lld options', '%lld 个选项'),
- 'merchantOps.predict.workbenchAlert %lld': ('%lld prediction rounds are waiting for your answer', '有 %lld 轮竞猜待给答案'),
+ 'merchantOps.predict.workbenchAlert %lld': ('%lld prediction rounds are waiting for your answer', '有 %lld 轮预测待给答案'),
  # pages/merchant/aftercare/index.* and aftercare/detail/view-model.js
  'merchantOps.aftercare.status.awaitingResponse': ('Awaiting response', '待回应'),
  'merchantOps.aftercare.status.returned': ('Returned', '已退回'),

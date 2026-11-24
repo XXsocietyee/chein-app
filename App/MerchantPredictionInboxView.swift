@@ -85,7 +85,7 @@ extension MerchantPredictionReading {
 }
 
 @MainActor final class MerchantPredictionInboxModel: ObservableObject {
-    enum Phase: Equatable { case idle, loading, admitted, ready, denied, failed }
+    enum Phase: Equatable { case idle, loading, admitted, ready, denied, failed, signIn }
     struct Selection: Identifiable {
         let id = UUID()
         let snapshotID: UUID
@@ -118,6 +118,8 @@ extension MerchantPredictionReading {
             rows = values; snapshotID = UUID(); phase = .ready
         } catch {
             guard current(request) else { return }
+            // MC7-18-2: an expired or missing session is 登录后查看预测, not the generic failure.
+            if error as? APIError == .unauthorized { phase = .signIn; return }
             phase = error as? MerchantReadError == .accessDenied ? .denied : .failed
         }
     }
@@ -217,6 +219,10 @@ extension MerchantPredictionReading {
             }
             else if model.phase == .loading || model.phase == .idle {
                 CYSkeleton(variant: .card).listRowBackground(Color.clear)
+            }
+            else if model.phase == .signIn {
+                MerchantSignInState(title: "merchant.predict.signIn", identifier: "merchantOps.predict.signIn")
+                    .listRowBackground(Color.clear)
             }
             else if model.phase == .denied {
                 // Source predict/index.wxml no-permission state.

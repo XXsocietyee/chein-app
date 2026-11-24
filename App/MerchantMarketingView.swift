@@ -42,6 +42,7 @@ import SwiftUI
     @State private var refreshTask: Task<Void, Never>?
     @State private var marketingPush: MerchantMarketingPush?
     @Environment(\.merchantMarketingLinks) private var marketingLinks
+    @Environment(\.merchantPredictionWorkbenchEntry) private var predictionEntry
     private var loadKey: String { selected.rawValue + ":" + model.scopeIdentity + ":" + (recommendationOrigin?.readerScope.uuidString ?? "none") + ":" + String(recommendationOrigin?.merchantID ?? 0) }
     init(model: MerchantMarketingCoordinator, initialSurface: MerchantMarketingCoordinator.Surface = .dashboard, recommendationOrigin: MerchantInsightOrigin? = nil, onSuggestion: @escaping (MerchantInsightDestination) -> Void = { _ in }) {
         self.model = model; self.onSuggestion = onSuggestion; self.recommendationOrigin = recommendationOrigin; _selected = State(initialValue: initialSurface)
@@ -50,7 +51,13 @@ import SwiftUI
     private var needsSignIn: Bool { model.failure == .signIn && !model.busy }
     /// MC7-11-5 (ai-insight/index.wxml:5): 店铺参谋 shows only for marketing readers.
     private var surfaces: [MerchantMarketingCoordinator.Surface] {
-        MerchantMarketingCoordinator.Surface.allCases.filter { $0 != .insight || model.homeAccess?.canReadMarketing != false }
+        MerchantMarketingCoordinator.Surface.allCases.filter { item in
+            if item == .insight { return model.homeAccess?.canReadMarketing != false }
+            // MC7-18-4: one prediction inbox (pages/merchant/predict) owns selection and settlement; the 营销 copy
+            // of it is dropped wherever the inbox entry is available.
+            if item == .predictions { return predictionEntry == nil }
+            return true
+        }
     }
     var body: some View {
         Group {
@@ -104,6 +111,9 @@ import SwiftUI
             if let insight = model.insight { insightSections(insight) }
             if let subscriptions = model.subscriptions { entitlementSections(subscriptions) }
             if let rounds = model.rounds { predictionSections(rounds) }
+            if selected == .dashboard, let predictionEntry {
+                Section { predictionEntry() }
+            }
         }
         }
         }

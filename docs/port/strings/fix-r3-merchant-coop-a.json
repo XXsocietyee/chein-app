@@ -339,6 +339,10 @@
     "en": "Loading more…",
     "zh-Hans": "正在加载更多…"
   },
+  "merchant.predict.signIn": {
+    "en": "Sign in to view predictions",
+    "zh-Hans": "登录后查看预测"
+  },
   "merchant.review.underPlatformReview": {
     "en": "Under platform review",
     "zh-Hans": "平台复审中"
