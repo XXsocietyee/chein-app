@@ -129,7 +129,6 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     @Environment(\.dismiss) private var dismiss
     @State private var agreement = false
     @State private var document: SettingsLegalDocument?
-    @State private var phone = ""
     @State private var code = ""
     @State private var cancelReview = false
     @State private var cancelIntent: AccountDeregistrationIntent?
@@ -169,7 +168,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     .accessibilityLabel(Text(LocalizedStringKey(destination == .cancellation && model.state.status == nil ? "fixr3.deregister.loading" : "compliance.loading")))
                     .listRowBackground(Color.clear)
             }
-            if let error = model.state.error {
+            // B-DR-03: the missing-bound-phone message shows inline under 获取验证码, not twice.
+            if let error = model.state.error, error != DeregistrationBoundPhone.missingMessage {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     // B-DR-09-r7: a failed condition read is titled 注销条件核验失败, as in the MP.
                     if destination == .cancellation, model.state.status == nil {
@@ -192,7 +192,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         .toolbar {
             if showsCloseButton {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("compliance.close") { code = ""; phone = ""; dismiss() }
+                    Button("compliance.close") { code = ""; dismiss() }
                 }
             }
         }
@@ -205,13 +205,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                let intent = model.cancellationIntent(resume: true) { await loadCancellation(intent) }
         }
         .onDisappear {
-            code = ""; phone = ""; agreement = false; cancelReview = false; cancelIntent = nil
+            code = ""; agreement = false; cancelReview = false; cancelIntent = nil
             marketingChange = nil
             model.endPresentation()
         }
         .onChange(of: model.coordinator.deregistrationOriginalRevision) { _, _ in
             guard destination == .cancellation else { return }
-            code = ""; phone = ""; agreement = false; cancelReview = false; cancelIntent = nil
+            code = ""; agreement = false; cancelReview = false; cancelIntent = nil
             model.pauseCancellation()
         }
         .onChange(of: model.coordinator.marketingOriginalRevision) { _, _ in
@@ -226,7 +226,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 return
             }
             guard destination == .cancellation else { return }
-            code = ""; phone = ""; agreement = false; cancelReview = false; cancelIntent = nil
+            code = ""; agreement = false; cancelReview = false; cancelIntent = nil
             if phase != .active { model.pauseCancellation() }
             else if let intent = model.cancellationIntent(resume: true) { Task { await loadCancellation(intent) } }
         }
@@ -335,8 +335,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     let displayedVersion = document?.version
                     let documentWasRead = document != nil
                     let explicitlyAgreed = agreement
+                    // B-DR-04: the notice step only reads the precheck; AGREE is recorded in apply(), after SMS (MP order).
                     Task { await model.coordinator.precheckAndAgree(documentRead: documentWasRead,
-                        explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, intent: intent) }
+                        explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, recordConsent: false, intent: intent) }
                 }
                     .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                     .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
@@ -345,14 +346,22 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             }
         case .verify:
             Section {
-                TextField("compliance.phone", text: $phone).textContentType(.telephoneNumber).keyboardType(.phonePad).accessibilityIdentifier("compliance.phone")
+                // B-DR-03 (MP deregister-flow sendSms): the code goes to the account's bound phone, read from
+                // `/api/user/info`; there is no number field. Core blocks a second send for 60 seconds.
                 Button(LocalizedStringKey(model.state.smsSent ? "fixr3.deregister.resendSMS" : "fixr3.deregister.sendSMS")) {
-                    guard let intent = model.cancellationIntent() else { return }; let number = phone
-                    Task { await model.coordinator.sendSMS(phone: number, explicitlyRequested: true, intent: intent) }
+                    guard let intent = model.cancellationIntent() else { return }
+                    Task { await model.coordinator.sendBoundPhoneSMS(explicitlyRequested: true, intent: intent) }
                 }
                     .buttonStyle(.bordered).buttonBorderShape(.capsule)
-                    .disabled(!model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
-                if model.state.smsSent { Text("compliance.smsSent") }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .disabled(model.state.busy || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
+                if model.state.error == DeregistrationBoundPhone.missingMessage {
+                    Text(verbatim: DeregistrationBoundPhone.missingMessage).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("compliance.boundPhoneMissing")
+                } else if let notice = model.state.smsNotice, model.state.smsSent {
+                    Text(verbatim: notice).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("compliance.smsSent")
+                } else if model.state.smsSent { Text("compliance.smsSent").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 TextField("fixr3.deregister.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
                 Button("compliance.review") {
                     guard model.cancellationIntent() != nil else { return }
@@ -373,13 +382,15 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Text("c08.display.42", tableName: "AccountDeregistrationPresentation").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 if let impact = model.state.status?.impact, impact.confirmable {
                     AccountDeregistrationImpactConfirmation(revision: impact.revision) {
-                        guard let intent = model.cancellationIntent() else { return }; code = ""; phone = ""
-                        Task { await model.coordinator.apply(explicitlyConfirmed: true, intent: intent) }
+                        guard let intent = model.cancellationIntent() else { return }; code = ""
+                        let displayedVersion = document?.version
+                        Task { await model.coordinator.apply(explicitlyConfirmed: true, recordNoticeConsent: true, expectedConsentVersion: displayedVersion, intent: intent) }
                     }.id(impact.revision).disabled(!model.state.localCancellationConsent.allowsNewConsent)
                 } else if model.coordinator.deregistrationOriginalRevision == nil {
                     Button("fixr3.deregister.confirmApply", role: .destructive) {
-                        guard let intent = model.cancellationIntent() else { return }; code = ""; phone = ""
-                        Task { await model.coordinator.apply(explicitlyConfirmed: true, intent: intent) }
+                        guard let intent = model.cancellationIntent() else { return }; code = ""
+                        let displayedVersion = document?.version
+                        Task { await model.coordinator.apply(explicitlyConfirmed: true, recordNoticeConsent: true, expectedConsentVersion: displayedVersion, intent: intent) }
                     }
                     .disabled(!model.state.localCancellationConsent.allowsNewConsent)
                     .accessibilityIdentifier("compliance.confirmApply")
