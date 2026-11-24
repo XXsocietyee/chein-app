@@ -9,7 +9,7 @@ struct OrderCardSurface: ViewModifier {
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.lg, padding: padding)
+            .cyDomainCard(radius: CYRadius.card, padding: padding)
     }
 }
 
@@ -51,7 +51,7 @@ struct OrderCoverTile: View {
             } else { placeholder }
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
     private var placeholder: some View {

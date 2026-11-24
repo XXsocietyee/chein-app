@@ -141,7 +141,7 @@ enum BundlePayResultPresentation: Equatable {
                     detailRow(copy.t("订单号", "Order number"), value: orderNumber, icon: "number", numeric: true)
                 }
             }
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
         }
     }
 

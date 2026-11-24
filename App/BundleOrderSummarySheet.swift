@@ -88,7 +88,7 @@ import SwiftUI
                 CYAnimatedPrice(text: priceText ?? "—", font: CYTypography.dataXL)
             }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
     }
 
     private func row<Value: View>(_ title: String, emphasized: Bool = false, @ViewBuilder value: () -> Value) -> some View {
@@ -119,7 +119,7 @@ import SwiftUI
                         .cyStaggeredAppear(index: index, gate: stagger)
                     }
                 }
-                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
             }
         }
     }

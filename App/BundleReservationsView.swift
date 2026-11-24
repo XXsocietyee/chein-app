@@ -44,7 +44,7 @@ import SwiftUI
         let tone = statusTone(row.status)
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             CYListRow(verbatim: statusLine(row), meta: shown(row.startAt), trailing: .none) {
-                CYCoverArt(seed: row.id.text, symbol: tone.symbol, showsDebugLabel: false, cornerRadius: CYRadius.sm)
+                CYCoverArt(seed: row.id.text, symbol: tone.symbol, showsDebugLabel: false, cornerRadius: CYRadius.inner)
                     .frame(width: 44, height: 44)
                     .accessibilityHidden(true)
             }

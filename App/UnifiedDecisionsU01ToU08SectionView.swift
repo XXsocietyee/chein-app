@@ -216,7 +216,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+                    RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                         .fill(Color.primary.opacity(0.04))
                 )
                 .accessibilityElement(children: .combine)

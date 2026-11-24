@@ -186,7 +186,7 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                     }
                     .padding(8)
                     .background(CYColor.bgSurfaceSubtle)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
             }
             .accessibilityIdentifier("memberSubscriptionOrder.rowList")

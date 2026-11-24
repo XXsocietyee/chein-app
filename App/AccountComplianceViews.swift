@@ -499,7 +499,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                         Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
                             .font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(.white)
                             .frame(width: 36, height: 36)
-                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityHidden(true)
                         Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
                             .font(.headline).accessibilityAddTraits(.isHeader)

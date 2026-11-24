@@ -90,7 +90,7 @@ import SwiftUI
             }
             // Late values (streak, 积分) arrive in place: the card grows on `standard`, nothing else moves.
             .cyAnimation(CYMotion.standard, value: streakDays)
-            .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
             .cyStaggeredAppear(index: 0, gate: stagger)
         }
         .listRowBackground(Color.clear)

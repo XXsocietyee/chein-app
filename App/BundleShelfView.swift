@@ -73,7 +73,7 @@ private struct BundleShelfRow: View {
                 }
             }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
         .accessibilityElement(children: .combine)
     }
     private var cover: some View {

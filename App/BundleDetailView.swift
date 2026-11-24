@@ -65,7 +65,7 @@ import SwiftUI
                     .padding(CYSpacing.lg).padding(.top, 64).frame(maxWidth: .infinity, alignment: .leading)
                     .background(LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom))
             }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .cyHeroParallax(height: heroHeight)
     }
 
@@ -85,7 +85,7 @@ import SwiftUI
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
             .accessibilityElement(children: .combine)
         }
     }
@@ -103,7 +103,7 @@ import SwiftUI
                         .cyStaggeredAppear(index: index, gate: stagger)
                     }
                 }
-                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
             }
         }
     }
@@ -129,7 +129,7 @@ import SwiftUI
                         .accessibilityElement(children: .combine)
                     }
                 }
-                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
             }
         }
     }
@@ -154,7 +154,7 @@ import SwiftUI
                     .foregroundStyle(palette.textPrimary)
             }
             .tint(palette.textSecondary)
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         }
     }
 

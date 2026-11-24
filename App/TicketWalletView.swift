@@ -63,7 +63,7 @@ import SwiftUI
                                     .accessibilityIdentifier("ticketWallet.empty")
                             } icon: { Image(systemName: "ticket") }
                         }
-                        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
                         .listRowBackground(Color.clear)
                     }
                     let shown = filtered(snapshot.tickets)

@@ -29,7 +29,7 @@ import UIKit
                         .frame(width: 112, height: 112)
                         .background {
                             CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
-                                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.xl, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
                         }
                         .accessibilityHidden(true)
                     appName

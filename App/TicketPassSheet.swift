@@ -195,7 +195,7 @@ enum CYPassCardPick {
     private var state: CYPassState { CYPassState(ticket.status) }
     private let tearBand: CGFloat = 22
     private var shape: CYTicketPassShape {
-        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: CYRadius.xl, notch: 11, perforation: 3, perforationGap: 7)
+        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: CYRadius.hero, notch: 11, perforation: 3, perforationGap: 7)
     }
 
     var body: some View {

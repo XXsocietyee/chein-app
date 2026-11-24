@@ -34,7 +34,7 @@ extension EnvironmentValues {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
-                        .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                         .accessibilityElement(children: .combine)
                     }
                     // Source parity: validity is shown on the expired result only.

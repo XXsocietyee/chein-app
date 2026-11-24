@@ -612,7 +612,7 @@ extension EnvironmentValues {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(CYSpacing.xl)
             .background(LinearGradient(colors: [CYColor.bgElevated, CYColor.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                        in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowBackground(Color.clear)
             .accessibilityIdentifier("wallet.ledger.hero")

@@ -242,7 +242,7 @@ import UIKit
                     if let preview = model.mediaPreviews[item.id], let image = UIImage(data: preview.jpeg) {
                         Image(uiImage: image).resizable().scaledToFill()
                             .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityLabel(LocalizedStringKey(kind == .casePicture ? "profile.case.newPreview" : "profile.contactQR.newPreview"))
                     }
                     Text(LocalizedStringKey(kind == .casePicture ? "profile.case.newStaged" : "profile.contactQR.newStaged"))

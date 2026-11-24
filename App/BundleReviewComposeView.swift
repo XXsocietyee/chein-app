@@ -83,7 +83,7 @@ import SwiftUI
                 .frame(minHeight: editorMin)
                 .scrollContentBackground(.hidden)
                 .padding(CYSpacing.sm)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityLabel(Text(verbatim: W8Text.t("评价内容", "Review text")))
             Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)")
                 .cyText(.caption)

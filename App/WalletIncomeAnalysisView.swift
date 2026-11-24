@@ -162,7 +162,7 @@ import SwiftUI
                         VStack {
                             Spacer(minLength: 0)
                             if summary.unknownCount == 0 || month.count > 0 {
-                                RoundedRectangle(cornerRadius: Theme.Radius.sm)
+                                RoundedRectangle(cornerRadius: CYRadius.inner)
                                     .fill(month.id == summary.months.last?.id ? Theme.Color.textPrimary(in: domain) : Theme.Color.bgRaised(in: domain))
                                     .frame(height: geometry.size.height * CGFloat(summary.fraction(month.amount)))
                             }
