@@ -46,7 +46,7 @@ import SwiftUI
                 .cyPageTitle("bundle.receipt.title")
         case .pending, .failed:
             CYStateLayout(kind: phase == .pending ? .generic : .failure,
-                          title: Text(phase == .pending ? "freeBundle.receipt.pending" : "freeBundle.receipt.unreadable"),
+                          title: Text(LocalizedStringKey(phase == .pending ? "freeBundle.receipt.pending" : "freeBundle.receipt.unreadable")),
                           primary: reloadAction,
                           primaryIdentifier: "freeBundle.receipt.reload")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
