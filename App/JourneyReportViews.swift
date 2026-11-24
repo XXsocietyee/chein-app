@@ -596,6 +596,18 @@ struct JourneyReportView: View {
         Rectangle().fill(CYColor.borderSubtle).frame(width: 1, height: 28).accessibilityHidden(true)
     }
 
+    /// JREPORT-2 (MP report wxml:53-54): a 44 pt thumb of the player's own photo; tap opens the swipe preview.
+    private func nodeThumb(_ node: JourneyNodeRow, url: URL) -> some View {
+        Button { photoShown = JourneyNodePhotoSelection(nodeID: node.id) } label: {
+            AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
+                .frame(width: 44, height: 44)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("mp.report.node.photo \(node.name ?? "")"))
+        .accessibilityIdentifier("journeyReport.nodePhoto")
+    }
+
     /// The 战报 stats the report can actually read, in the frame's order: 完成站点, 用时, 得分.
     static func stats(_ report: JourneyReport) -> [(label: LocalizedStringKey, value: String)] {
         var rows: [(label: LocalizedStringKey, value: String)] = []
@@ -896,18 +908,6 @@ struct JourneySettleView: View {
         case .thanks: return .done
         case .idle, .error: return .idle
         }
-    }
-
-    /// JREPORT-2 (MP report wxml:53-54): a 44 pt thumb of the player's own photo; tap opens the swipe preview.
-    private func nodeThumb(_ node: JourneyNodeRow, url: URL) -> some View {
-        Button { photoShown = JourneyNodePhotoSelection(nodeID: node.id) } label: {
-            AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
-                .frame(width: 44, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("mp.report.node.photo \(node.name ?? "")"))
-        .accessibilityIdentifier("journeyReport.nodePhoto")
     }
 
     /// Core hands the MP label (`RUN_START_MODE_LABEL`); the two known labels read from the catalog, anything else as sent.
