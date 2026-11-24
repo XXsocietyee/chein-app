@@ -465,12 +465,12 @@ private struct ClubDetailHeader: View {
                     if !typeSize.isAccessibilitySize {
                         ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: QuestifyCardArtwork.safeURL(club.logo) == nil)
                             .frame(width: 52, height: 52)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))
                             .accessibilityIdentifier("club.detail.logo")
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        ClubName(value: club.name).cyText(.sheetTitle).foregroundStyle(palette.textPrimary)
+                        ClubName(value: club.name).cyText(.pageTitle).foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("club.detail.name")

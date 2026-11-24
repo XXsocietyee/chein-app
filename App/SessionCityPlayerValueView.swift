@@ -56,6 +56,7 @@ import Observation
             }
         }
         .navigationTitle(CityPlayerValueCopy.string("title"))
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { guard !resolved, !retired else { return }; resolved = true; owner = session.makeCityPlayerValueOwner(); reload() }
         .onChange(of: session.cityPlayerReadIdentity) { _, _ in retire() }
         .onChange(of: session.currentRuntimeDependencyContext) { _, _ in if owner?.isCurrent != true { retire() } }

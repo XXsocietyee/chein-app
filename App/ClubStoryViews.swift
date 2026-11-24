@@ -84,7 +84,7 @@ struct ClubStoryChapterTitle: View {
             else if let name = chapter.name { Text("club.story.chapter \(chapter.id + 1)") + Text(verbatim: " · " + name) }
             else { Text("club.story.chapter \(chapter.id + 1)") }
         }
-        .font(CYTypography.cardTitle)
+        .cyText(.cardTitle)
         .foregroundStyle(CYColor.textPrimary)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityIdentifier("club.gov.fact.title")
@@ -97,15 +97,15 @@ struct ClubStoryChapterHeader: View {
             ClubStoryChapterTitle(chapter: chapter)
             if chapter.stops.isEmpty {
                 Text("club.story.awaitingMerchants")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             } else {
                 Text("club.story.stopCount \(chapter.stops.count)")
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let minutes = chapter.totalTime {
                     Text("club.story.minutes \(minutes.formatted(.number.precision(.fractionLength(0...2))))")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -120,7 +120,7 @@ struct ClubStoryChapterHeader: View {
         Color.clear
             .aspectRatio(16.0 / 10.0, contentMode: .fit)
             .overlay { media }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityHidden(true)
     }
     @ViewBuilder private var media: some View {
@@ -144,7 +144,7 @@ struct ClubStoryChapterHeader: View {
                         CYRowIcon(systemImage: "figure.walk")
                     }
                     Text("topic.itinerary.estimateNotice")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .combine)
@@ -155,8 +155,8 @@ struct ClubStoryChapterHeader: View {
                 CYStatusChip("club.story.stop \(stop.sequence)", tone: .neutral, systemImage: "mappin.circle.fill")
                     .padding(CYSpacing.sm)
             }
-            if let name = stop.name { Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
-            else { Text("club.story.unnamedStop").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+            if let name = stop.name { Text(verbatim: name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+            else { Text("club.story.unnamedStop").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
             if let time = stop.businessTime {
                 CYListRow(verbatim: time, trailing: .none) { CYRowIcon(systemImage: "clock") }
             } else {
@@ -186,7 +186,7 @@ struct ClubStoryChapterHeader: View {
                 if let title = play.title { Text(verbatim: title) }
                 else { Text("discovery.untitledPlay") }
             }
-            .font(CYTypography.cardTitle)
+            .cyText(.cardTitle)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("club.gov.fact.title")

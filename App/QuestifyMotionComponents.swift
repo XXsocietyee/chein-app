@@ -95,7 +95,7 @@ struct QuestifyCardArtwork: View {
         .frame(height: height)
         .frame(maxWidth: .infinity)
         .clipped()
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityHidden(true)
     }
 }
@@ -221,7 +221,7 @@ private struct QuestifyNotice<Message: View>: View {
 
     var body: some View {
         Label { message.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).foregroundStyle(tint) }
-            .font(Theme.Font.body)
+            .cyText(.body)
     }
 }
 

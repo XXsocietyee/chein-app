@@ -90,8 +90,8 @@ import SwiftUI
             if row.name.isEmpty { Text("club.merchantDiscovery.unnamed").cyText(.cardTitle) }
             else { Text(verbatim: row.name).cyText(.cardTitle) }
             if !row.activityTypes.isEmpty { Text(verbatim: row.activityTypes) }
-            if !row.address.isEmpty { Text(verbatim: row.address).font(.subheadline) }
-            if !row.city.isEmpty { Text(verbatim: row.city).font(.subheadline) }
+            if !row.address.isEmpty { Text(verbatim: row.address).cyText(.body) }
+            if !row.city.isEmpty { Text(verbatim: row.city).cyText(.body) }
         }.accessibilityIdentifier("club.merchantDiscovery.row.\(row.id)")
     }
     private func open(_ choice: ClubMerchantProfileSelection, profile: ClubMerchantProfileContext) {

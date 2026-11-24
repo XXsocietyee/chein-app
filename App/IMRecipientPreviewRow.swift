@@ -200,7 +200,7 @@ private struct IMRecipientPreviewLineView: View {
     }
 
     private var valueBlock: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             stateLabel
                 .cyText(.meta)
                 .foregroundStyle(ink.secondary)
