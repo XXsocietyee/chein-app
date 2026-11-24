@@ -118,6 +118,7 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
+    @State private var showsHostCancelFromFooter=false
     /// Continuity r1 (+): the footer pill is the zoom source of the registration / ticket-wallet sheet it opens. The first
     /// tile (`performPrimaryAction`) opens the same sheets; it sets this so they keep the plain slide-up. Cleared on dismiss.
     @State private var tileOpenedSheet = false
@@ -442,6 +443,17 @@ struct ActivityDetailView: View {
                     }.accessibilityIdentifier("activity.openTopic")
                 }
             }
+            // R7-PC-C1-7 (r1 PC-C-1-8): MP 关于这场活动 sits on the first fold, above the people section.
+            if let text=ActivityPresentation.nonempty(detail.summary.description) {
+                Section("activity.about") {
+                        Text(verbatim:text)
+                            .cyText(.body)
+                            .fixedSize(horizontal:false,vertical:true)
+                            .textSelection(.enabled)
+                            .questifyCardSurface()
+                            .questifyCardListRow()
+                }
+            }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail), organizerShopName: detail.organizerShopName)
             Section {
                 if detail.tickets.isEmpty {
@@ -527,16 +539,6 @@ struct ActivityDetailView: View {
     /// Secondary sections behind the "More info" disclosure.
     @ViewBuilder private func moreInfoSections(_ detail: ActivityDetail) -> some View {
         // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
-        if let text=ActivityPresentation.nonempty(detail.summary.description) {
-            Section("activity.about") {
-                Text(verbatim:text)
-                    .cyText(.body)
-                    .fixedSize(horizontal:false,vertical:true)
-                    .textSelection(.enabled)
-                    .questifyCardSurface()
-                    .questifyCardListRow()
-            }
-        }
         // Only this successful, current allowed response supplies these rows.
         // A scope/reader/activity/reread invalidation immediately removes them.
         if gateScope != nil, detail.summary.id == id {
@@ -639,7 +641,24 @@ struct ActivityDetailView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
-            if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
+            if let access = hostCancelAccess, !detail.isCancelled,
+               ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: access.accountID) {
+                // R7-PC-C1-4 (r1 PC-C-1-5): MP host footer is 取消活动并退款, not 立即报名.
+                Button(role: .destructive) { showsHostCancelFromFooter = true } label: {
+                    Text(verbatim: CoreLoopCopy(locale: locale).t("取消活动并退款", "Cancel event & refund"))
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!access.enabled)
+                .accessibilityIdentifier("activity.hostCancel.footer")
+                .sheet(isPresented: $showsHostCancelFromFooter) {
+                    ActivityHostCancelSheet(detail: detail, access: access) {
+                        showsHostCancelFromFooter = false
+                        await load()
+                    }
+                    .cyDomainSheet(detents: [.half, .full])
+                }
+            } else if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
                 // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).
                 CYPillButton(LocalizedStringKey(block.titleKey)) {}
                     .disabled(true)
