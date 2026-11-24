@@ -59,7 +59,7 @@ import SwiftUI
                 }
             }
         }
-        .navigationTitle("nativeCondition.title")
+        .navigationTitle("nativeCondition.title").navigationBarTitleDisplayMode(.inline)
         .task(id: retry) { if host == nil { await load() } }
     }
     private func load() async {
