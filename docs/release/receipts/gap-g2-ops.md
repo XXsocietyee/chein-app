@@ -66,6 +66,11 @@ DONE-ROUND-2
 ## 6. Round 3 Alignment (against `origin/ui/combined-r7`)
 - **Copy alignment:** [copy-g2-ops.md](docs/mp-gap/copy-g2-ops.md) — audited 632 `club`, 855 `merchant-coop`, and 1,384 `account-publish` MP strings against `Resources/Localizable.xcstrings` and area `.xcstrings` on `origin/ui/combined-r7`. Listed 16 near-mismatches in existing `Localizable.xcstrings` for the coordinator and verified all `MPGap` strings.
 - **Contract alignment:** [contracts-g2-ops.md](docs/mp-gap/contracts-g2-ops.md) — audited 102 `club`, 131 `merchant-coop`, and 92 `account-publish` MP endpoints against `Core/`. Fixed all 8 mismatches inside `Core/MPGap/*` (`POST /api/ai/merchant/insight`, `POST /api/merchant/claims/submit`, split `POST /api/merchant/update` vs `decor/save`, `follow_member_id`/`follow` on `user/follow/action`, `POST /api/team/applications`, `GET /api/topic/cast/voice`, `ids: [Int]` on `fe/reference-settlement/settle`, `manualCaseId` on `manual-case-detail`) and updated `Tests/CoreTests/MPGap/G2OpsGapTests.swift`.
+- **Swift symbol & signature audit (coordinator note):** checked every external type, case, method, and initializer in `Core/MPGap/*`, `App/MPGap/*`, and `Tests/CoreTests/MPGap/*` against `origin/ui/combined-r7` and fixed all mismatches:
+  - `Core/MPGap/MPGapHTTP.swift`: replaced non-existent `APIError.serverMessage(...)` with `APIError.httpStatus(status)` and `APIError.businessCode(code)`.
+  - `App/MPGap/Club/ClubGapManageExtensions.swift`: fixed `CYAvatarView(url:fallbackText:size:)` -> `CYAvatarView(url:name:size: .sm)` and `CYColor.surfaceSecondary` -> `CYColor.bgSurfaceSubtle`.
+  - `App/MPGap/Club/ClubGapRemainingViews.swift`, `App/MPGap/MerchantCoop/{MerchantGapOperationsViews,MerchantGapRemainingViews}.swift`, `App/MPGap/AccountPublish/AccountPublishGapViews.swift`: fixed `CYColor.accent` -> `CYColor.brand`, `CYColor.warning` -> `CYColor.warningText`, `CYColor.danger` -> `CYColor.dangerText`.
+  - `Tests/CoreTests/MPGap/G2OpsGapTests.swift`: fixed `APIConfiguration(baseURL:)` -> `try! APIConfiguration(baseURL:)` (throwing initializer).
 - `swiftc -parse` passed on all 19 Swift files after final edits.
 
 DONE-ROUND-3

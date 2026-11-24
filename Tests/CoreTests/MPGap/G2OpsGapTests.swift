@@ -19,7 +19,7 @@ final class G2OpsGapTests: XCTestCase {
         }
     }
 
-    private let baseConfig = APIConfiguration(baseURL: URL(string: "https://example.com")!)
+    private let baseConfig = try! APIConfiguration(baseURL: URL(string: "https://example.com")!)
     private let validToken = "valid-token-123456"
 
     func testClubCoopPoolAndEditionsReason() async throws {

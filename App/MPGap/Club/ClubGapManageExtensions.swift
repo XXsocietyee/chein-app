@@ -169,7 +169,7 @@ public struct ClubGapMemberAvatarStrip: View {
         Button(action: onTapAll) {
             HStack(spacing: CYSpacing.sm) {
                 ForEach(Array(avatars.prefix(4))) { item in
-                    CYAvatarView(url: item.url, fallbackText: item.name, size: 36)
+                    CYAvatarView(url: item.url, name: item.name, size: .sm)
                 }
                 let overflow = max(0, totalCount - min(avatars.count, 4))
                 if overflow > 0 {
@@ -178,7 +178,7 @@ public struct ClubGapMemberAvatarStrip: View {
                         .foregroundStyle(CYColor.textSecondary)
                         .padding(.horizontal, CYSpacing.sm)
                         .padding(.vertical, CYSpacing.xs)
-                        .background(Capsule().fill(CYColor.surfaceSecondary))
+                        .background(Capsule().fill(CYColor.bgSurfaceSubtle))
                 }
                 Spacer()
                 Image(systemName: "chevron.right")

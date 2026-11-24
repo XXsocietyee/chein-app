@@ -16,7 +16,7 @@ public struct AccountGapOwnProfileComposerRow: View {
             Button(action: onTapCompose) {
                 HStack {
                     Image(systemName: "square.and.pencil")
-                        .foregroundStyle(CYColor.accent)
+                        .foregroundStyle(CYColor.brand)
                     Text(verbatim: AccountPublishGapCopy.ownComposerPlaceholder)
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)
@@ -258,7 +258,7 @@ public struct TeamJoinGapManualCodeSection: View {
             if let errorText, !errorText.isEmpty {
                 Text(verbatim: errorText)
                     .cyText(.meta)
-                    .foregroundStyle(CYColor.danger)
+                    .foregroundStyle(CYColor.dangerText)
             }
             Button(TeamGapCopy.nextStep, action: onSubmitCode)
                 .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
