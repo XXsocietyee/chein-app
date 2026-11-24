@@ -113,3 +113,61 @@ Brief: `design/handoff-r2:docs/briefs/fix-r3-round2.md`, with `wave-x10.md` and 
 
 - `docs/port/accept/f-member-a.txt`: no new routes; the existing ones now note what they cover. `t5-membership` covers the glass key and server terms, and `t5-library` covers the default cover and the pin, since both fixture cards have no cover. `e5-invoice-history` covers the order icons, and `member-popup-coupon-code` covers coupon-qr.
 - Run: pending. The coordinator compiles and sends back exact errors.
+
+## Round 3 (2026-11-24 evening)
+
+Brief: `design/handoff-r2:docs/briefs/fix-r3-round3.md`. Base: `origin/ui/combined-r7` `b0ac0108d` (the merge was a fast-forward of this branch).
+
+### Round 3 · re-applied
+
+Every hunk of my round-1 and round-2 commits was checked against the new base (`git diff <c>^ <c> | git apply --check -R`, then by hand for the files that differed).
+
+- **Nothing had to be re-applied.** `MPParityPassSession` was restored to my side, and none of my round-2 files were in the "Cursor side" list.
+- **MKT-2-1 (pass 去报名 preselects the ticket):** my `preselectedTicketID` plumbing was replaced by Cursor's `ActivityDetailView(registrationTicketID:)` and the environment `registrationPreselectedTicketID`. The effect is present: `PassMarketViews.openActivitySignup` opens `pages/activity/baoming/baoming?activityId&ticketId`, and that route passes `positiveID(query["ticketId"])`. No second implementation was added.
+- Still present as written: `MemberMissingLinkState` (pass, pass-order, gift, invoice-detail), the coupon-qr focus, the free-explore catalog facts, the invoice-titles banner, the coupon scope, `invoice/index?id=`, membership terms, two-decimal money, and the MP assets (glass key, default cover, pin, order icons).
+
+### Fixed in Round 3
+
+| id | page | what changed | files |
+|---|---|---|---|
+| MKT-10-1 / flows-g1 | 10 coupon/coupon | With `scope=MERCHANT`, the page reads `POST /api/merchant/coupon-summary` once (and on pull to refresh) and mounts Gemini's `MerchantCouponSummaryTilesView` (累计领取 / 累计核销) above the list. The reply is shaped by the MP rule (`coupon-summary.js`): `couponTotal` must be a positive integer and `received` / `verified` non-negative integers, else no tiles. A failed or stale read hides the tiles and never blocks the list | App/CouponPageSummary.swift (new), App/CouponManagementView.swift, App/SessionCouponManagementView.swift, App/CouponManagementFixtureSupport.swift |
+| MKT-10-5 / flows-g1 | 10 coupon/coupon | The refused state keeps one CTA, as in MP `merchant-no-permission.js`: 返回 for a merchant member (merchant scope, or a merchant account), 申请入驻 (pushes `pages/merchant/apply/index`) for anyone else | App/CouponManagementView.swift, App/SessionCouponManagementView.swift |
+| MKT-7-1 / flows-g1 | 7 free-explore `?topicId=` | The link used to open the topic page. It now reads the bundle catalog through `FreeExploreLaunchService.catalog(topicID:)` and mounts Gemini's `FreeExploreCatalogBundleView` (one row per store, `章节 · 每人N次`), with the topic name and 暂未开售 above it. 查看主题详情 pushes the topic. Signed out shows 请登录后查看 + 登录; a failed read shows 加载失败，请稍后重试 + 刷新, with 刷新 hidden on `BUNDLE_LEDGER_OFF` | App/FreeExploreTopicCatalogScreen.swift (new), App/MPReviewedPageScreen.swift |
+| MKT-7-1 / flows-g1 | 7 free-explore `?requestId=` | The link used to open 我的订单. It now reads `GET /api/free-explore/bundle/order/receipt` (validated `requestId`, MP `^[A-Za-z0-9_-]{1,64}$`). A reply with the same `requestId` and `receipt == FOUND` lands on that order's detail, which hosts the bundle (what the MP does by switching to `registrationId`). Any other receipt shows 购买结果确认中，请稍后刷新; a failed or mismatched reply shows 购买结果暂时读不到，请刷新. Both have 刷新 | App/FreeExploreReceiptResolveScreen.swift (new), App/MPReviewedPageScreen.swift |
+| free-explore missing param | 7 free-explore | No usable id is the MP `missing-param` state (链接已失效 + 返回) through `MemberMissingLinkState`, not a bare text | App/MPReviewedPageScreen.swift |
+| R7-MEM-7-2 | 7 free-explore (bundle detail) | `FreeExploreBundleLaunchModel.failure` already keeps `.response(…, businessCode:)`, so the App hides 刷新 when it is `BUNDLE_LEDGER_OFF` (MP `featureOff`). Round 2 Cursor request 2 is no longer needed | App/FreeExploreBundleLaunchView.swift |
+
+New strings in `docs/port/strings/fix-r3-member-a.json` (en + zh-Hans): `freeBundle.catalog.signIn`, `freeBundle.catalog.loadFailed`, `freeBundle.receipt.pending`, `freeBundle.receipt.unreadable`. Reused keys: `couponManagement.forbidden.applyMerchant`, `couponSummary.claimed/redeemed`, `bundle.catalog.*`, `bundle.receipt.title`, `mp.common.signIn`, `刷新`, `mp.common.linkExpired`, `action.back`.
+
+APIs grepped on the new base before use: `MemberGapService(baseURL:token:transport:)`, `.fetchMerchantCouponSummary()`, `.fetchFreeExploreReceipt(requestID:)`, `PlayerGapReply`, `MerchantCouponSummary(totalClaimed:totalRedeemed:)`, `MerchantCouponSummaryTilesView(summary:)`, `FreeExploreCatalogBundleView(topicTitle:items:onOpenTopic:)`, `FreeExploreCatalogMerchantItem(id:merchantName:chapterName:perkSummary:)`, `FreeExploreLaunchSession(baseURL:accountID:market:namespace:role:epoch:token:)`, `FreeExploreLaunchService(session:transport:currentSession:)`, `FreeExploreLaunchFailure.response`, `AppSession.currentRuntimeDependencyContext/runtimeHTTPTransport`, `CYStateLayout` (memberwise order), `CYLoadingStateView(rows:)`, `ProfileOrderDetailView(id:reader:)`, `SessionTopicDetailView(id:session:)`. Both new paths are on the reviewed route list (`ChinaReviewedRouteCapability`). New files are under `App/*.swift`, which `tools/generate_project.py` already globs.
+
+### Not mounted, with reasons
+- **`CouponForbiddenPlayerActionView`** (Gemini): it shows 申请入驻 and 返回 together, but the MP shows exactly one CTA. The existing `CYStateLayout` deny state now switches its single CTA instead.
+- **`FreeExploreBundleReceiptView`** (Gemini): `FreeExploreReceiptSummary` has no decoder, and the order detail already renders the bundle from the owned-order read. A second order renderer would duplicate that, so a found receipt lands on the order detail.
+
+### MP assets (Round 3 rows)
+- [x] `MPAsset.Other.keyIntro*/keyIdle*` (`subpackagePass/reveal/frames.js`, mapped to `App/PassMembershipViews.swift`): already applied on the base. `PassRevealStage` draws the MP frame sheets.
+- Template-detail shelf tabs, leaderboard memojis (`GrowthLeaderboardView`) and member-journey icons (`PlayerJourneyViews`, mycanyu / participation detail) are not on member pages 1–15. They belong to other areas or to half b.
+
+### Review / audit rows
+- `review/r7-rev-a/b/c` and `audit/parity-r7-member` have no new commits since Round 2. The open Claude P1 rows (R7-MEM-17-1, FIN-18-2, R7-MEM-27-1) are pages 17, 18 and 27 (half b).
+- flows-g2 `talent/list → market/passes` and `subpackagePass/reveal redirectTo ?` are not on my pages: talent list is another area, and reveal is not in pages 1–15.
+
+### Requests for Cursor (Round 3)
+1. Still open: `MiniProgramPageLink` reviewedPages `required: []` for `market/pass`, `market/pass-order` and `invoice-detail`, plus the optional `scope` key on `coupon/coupon`.
+2. Still open: `FreeExploreLaunchCatalog.Item.Store.available`, for 可用 / 暂不可用 per store (MP `index.wxml:22`). The catalog screen shows store names only until then.
+3. `MerchantCouponSummary.fromWire` reads `totalClaimed/claimedCount`, but the MP contract is `{couponTotal, received, verified}` with the `couponTotal > 0` gate. The App uses its own `CouponPageSummary.shape` until Core is fixed.
+4. Still open: Core two decimals (`PlatformPassSubscriptionOrder.yuanFen`, `PlatformPassNumber.plain`, `CouponInfoAmount.displayText`), and the TEST-only, default-off gate for MKT-5-3.
+5. `FreeExploreLaunchFailure.response` drops the server `msg`. The MP shows `res.msg` first on catalog, receipt and order read failures; the App shows the fixed fallback copy.
+6. `FreeExploreLaunchService.catalog` rejects a catalog where any `unitsPerHolder` is 0. The MP shows such a chapter with 次数待确认.
+
+### Still left
+- MKT-3-1, MKT-4-1, MKT-4-6, MKT-9-2, MKT-8-2, MKT-10-2: owner rulings.
+- MKT-5-3: needs Cursor request 4.
+- Fixture routes for the two new free-explore screens: they read the live session, and adding one needs an injectable transport. They are reachable by `chein://` link on a signed-in build.
+
+### Checks
+- `tools/check_typography_lint.py` and `tools/check_design_lint.py` pass.
+- `tools/check_a11y_lint.py` fails with the same 17 findings with and without this round's changes. They are pre-existing and none is in my files.
+- `tools/check_missing_string_keys.py` lists only this round's four new keys, which are in the fragment file.
+- No compiler in the cloud; the coordinator's build is the first real check.
