@@ -117,42 +117,6 @@ import SwiftUI
                             return channelManagementHooks.makeFlow(selected)
                         }).disabled(model.running || model.coordinator.busy)
                     }
-                    if let invitationCode {
-                        if let teamID = model.coordinator.postJoinDetailID {
-                            NavigationLink {
-                                TeamDetailView(lookup: .id(teamID), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true, readOnly: true)
-                            } label: { Label("team.detail", systemImage: "person.3") }
-                                .buttonStyle(.cyPrimary).disabled(model.running || model.coordinator.busy)
-                                .accessibilityIdentifier("team.postJoin.openDetail")
-                        }
-                        else if detail.joined == true {
-                            Label("team.alreadyJoined", systemImage: "checkmark.circle").cyText(.label).foregroundStyle(CYColor.successText)
-                            NavigationLink {
-                                TeamDetailView(lookup: .id(detail.team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true)
-                            } label: { Label("team.detail", systemImage: "person.3") }
-                                .buttonStyle(.cyPrimary).disabled(model.actionLocked)
-                                .accessibilityIdentifier("team.invitation.openDetail")
-                        }
-                        else if TeamPagePresentation.invitationCTA(detail) == .join {
-                            if TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) {
-                                TeamJoinRetryNotice(reasonKey: model.coordinator.rejectionCode.map { TeamSeatPresentation.rejectionKey($0) })
-                            }
-                            // C-J2 (MP team/join wxml:55, js goBuyTicket): after a TICKET_REQUIRED rejection on an activity
-                            // team (ownerType 2), the primary becomes 去买这一场的票 → that activity's registration page.
-                            if TeamSeatPresentation.showsBuyTicket(errorCode: model.coordinator.rejectionCode),
-                               let owner = detail.team.ownerKey, owner.type == 2 {
-                                NavigationLink {
-                                    MPReviewedPageScreen(page: "pages/activity/baoming/baoming", query: ["activityId": String(owner.id)])
-                                } label: { Text("fixr3.team.buyTicket").frame(maxWidth: .infinity) }
-                                    .buttonStyle(.cyPrimary).disabled(model.actionLocked)
-                                    .accessibilityIdentifier("teamPage.buyTicket")
-                            } else {
-                                actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
-                                             labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)
-                            }
-                        }
-                        else { TeamClosedInvitationButton(cta: TeamPagePresentation.invitationCTA(detail)) }
-                    }
                     if invitationCode == nil, !readOnly, let code = TeamPagePresentation.joinRouteCode(detail) {
                         NavigationLink {
                             TeamDetailView(lookup: .invitation(code), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, onLogin: onLogin)
@@ -237,7 +201,13 @@ import SwiftUI
                     }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
             }.padding(CYSpacing.pageHorizontal)
-        }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
+        }
+        .safeAreaInset(edge: .bottom) {
+            if let invitationCode, let detail = model.coordinator.detail {
+                CYFooterBar { VStack(spacing: CYSpacing.sm) { invitationActions(detail: detail, invitationCode: invitationCode) } }
+            }
+        }
+        .background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
             .navigationBarTitleDisplayMode(.inline)
             .task {
                 guard !Task.isCancelled else { return }
@@ -249,6 +219,43 @@ import SwiftUI
             .sheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
             .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
         .cyDomainScreen(.player)
+    }
+    /// C-J5 (MP team/join `.tj-bar`): the invitation's one action sits in the bottom bar, outside the scroll.
+    @ViewBuilder private func invitationActions(detail: TeamDetail, invitationCode: String) -> some View {
+                if let teamID = model.coordinator.postJoinDetailID {
+                    NavigationLink {
+                        TeamDetailView(lookup: .id(teamID), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true, readOnly: true)
+                    } label: { Label("team.detail", systemImage: "person.3") }
+                        .buttonStyle(.cyPrimary).disabled(model.running || model.coordinator.busy)
+                        .accessibilityIdentifier("team.postJoin.openDetail")
+                }
+                else if detail.joined == true {
+                    Label("team.alreadyJoined", systemImage: "checkmark.circle").cyText(.label).foregroundStyle(CYColor.successText)
+                    NavigationLink {
+                        TeamDetailView(lookup: .id(detail.team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true)
+                    } label: { Label("team.detail", systemImage: "person.3") }
+                        .buttonStyle(.cyPrimary).disabled(model.actionLocked)
+                        .accessibilityIdentifier("team.invitation.openDetail")
+                }
+                else if TeamPagePresentation.invitationCTA(detail) == .join {
+                    if TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) {
+                        TeamJoinRetryNotice(reasonKey: model.coordinator.rejectionCode.map { TeamSeatPresentation.rejectionKey($0) })
+                    }
+                    // C-J2 (MP team/join wxml:55, js goBuyTicket): after a TICKET_REQUIRED rejection on an activity
+                    // team (ownerType 2), the primary becomes 去买这一场的票 → that activity's registration page.
+                    if TeamSeatPresentation.showsBuyTicket(errorCode: model.coordinator.rejectionCode),
+                       let owner = detail.team.ownerKey, owner.type == 2 {
+                        NavigationLink {
+                            MPReviewedPageScreen(page: "pages/activity/baoming/baoming", query: ["activityId": String(owner.id)])
+                        } label: { Text("fixr3.team.buyTicket").frame(maxWidth: .infinity) }
+                            .buttonStyle(.cyPrimary).disabled(model.actionLocked)
+                            .accessibilityIdentifier("teamPage.buyTicket")
+                    } else {
+                        actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
+                                     labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)
+                    }
+                }
+                else { TeamClosedInvitationButton(cta: TeamPagePresentation.invitationCTA(detail)) }
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {
