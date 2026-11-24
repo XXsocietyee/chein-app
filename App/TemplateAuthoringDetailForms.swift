@@ -246,7 +246,7 @@ import SwiftUI
                     } label: {
                         HStack {
                             Text(LocalizedStringKey(game.labelKey)); Spacer()
-                            if model.draft.advanced.enabled(game.section) { Image(systemName: "checkmark.circle.fill") }
+                            if model.draft.advanced.enabled(game.section) { TemplateToolAddedMark() }
                         }
                     }.accessibilityIdentifier("templateAuthor.game." + game.rawValue)
                 }
@@ -265,7 +265,7 @@ import SwiftUI
             Section("creator.modules") {
                 ForEach(TemplateCreatorFamily.allCases) { family in
                     NavigationLink { TemplateCreatorConfigurationView(model: model, family: family) } label: {
-                        HStack { Text(LocalizedStringKey(family.labelKey)); Spacer(); if model.draft.advanced.enabled(family.rawValue) { Image(systemName: "checkmark.circle.fill") } }
+                        HStack { Text(LocalizedStringKey(family.labelKey)); Spacer(); if model.draft.advanced.enabled(family.rawValue) { TemplateToolAddedMark() } }
                     }
                 }
             }
@@ -284,4 +284,13 @@ import SwiftUI
         TemplateAuthoringField(key, text: .init(get: { model.draft.advanced.text(section, key) }, set: { model.draft.advanced.set(section, key, .string($0)) }))
     }
 
+}
+
+/// MP publish/temp tool picker (wxml:1699): an added tool carries `icon_tag_check`.
+struct TemplateToolAddedMark: View {
+    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 18
+    var body: some View {
+        MPAsset.FeatureIcon.iconTagCheck.resizable().scaledToFit().frame(width: size, height: size)
+            .accessibilityLabel(Text("publishModes.selected"))
+    }
 }
