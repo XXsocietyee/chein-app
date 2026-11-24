@@ -338,7 +338,10 @@ extension EnvironmentValues {
             if let request = model.coordinator.pending?.serverRequest, let session = model.coordinator.session {
                 let identity = model.coordinator.identity
                 Section {
+                    #if DEBUG
+                    // C-T11: the raw request id is support detail, shown in debug builds only.
                     Text(verbatim: "Request: " + request.requestId).textSelection(.enabled)
+                    #endif
                     if let receipt = model.coordinator.pending?.serverReceipt {
                         Text(verbatim: receipt.state)
                         Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "保存/提审回执不等于审核通过、上架或媒体检查完成。" : "A save or review-submission receipt does not mean approval, listing, or completed media checks.")
@@ -381,6 +384,11 @@ extension EnvironmentValues {
                     let isAX = dynamicTypeSize.isAccessibilitySize
                     let layout = isAX ? AnyLayout(VStackLayout(spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
                     layout {
+                        // C-T5 (MP temp wxml:1492): 保存草稿 sits in the bottom bar as the secondary action.
+                        Button { model.prepare(.saveDraft) } label: { Text("templateAuthor.reviewDraft") }
+                            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: isAX, compact: true))
+                            .disabled(!model.canEdit || !model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly)
+                            .accessibilityIdentifier("templateAuthor.reviewDraft")
                         // CF-45: one preview entry. With missing data it opens on a state that says what is missing.
                         Button { if model.draft.publishIssues.isEmpty { preview = true } else { previewMissing = true } } label: {
                             Label { EditorKitText.text("editorKit.preview") } icon: { Image(systemName: "play.circle") }
@@ -594,7 +602,6 @@ extension EnvironmentValues {
                 }
             }
             Section {
-                CYPillButton("templateAuthor.reviewDraft", style: .secondary) { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft").e1ActionRow()
                 CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal").e1ActionRow()
             }
         }.disabled(!model.canEdit)
@@ -742,7 +749,7 @@ struct TemplateAuthoringReviewView: View {
                 Section("templateAuthor.story") {
                     if let story = try? draft.preparedStoryText() { Text(verbatim: story) }
                     ForEach((try? draft.storyBeats()) ?? []) { beat in
-                        VStack(alignment: .leading) { if !beat.tag.isEmpty { Text(verbatim: beat.tag).font(.caption) }; Text(verbatim: beat.text); if !beat.imgs.isEmpty { Label("templateAuthor.linkedMedia", systemImage: "photo") } }
+                        VStack(alignment: .leading) { if !beat.tag.isEmpty { Text(verbatim: beat.tag).cyText(.caption) }; Text(verbatim: beat.text); if !beat.imgs.isEmpty { Label("templateAuthor.linkedMedia", systemImage: "photo") } }
                     }
                 }
             }
