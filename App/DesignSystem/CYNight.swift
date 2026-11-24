@@ -27,6 +27,11 @@ public enum CYNight {
     public static let foilA = CYRGB(hex: 0xF59F00).swiftUIColor
     public static let foilB = CYRGB(hex: 0xFFB84D).swiftUIColor
     public static let foilC = CYRGB(hex: 0x3DD6FF).swiftUIColor
+    // Pass reveal gold wash (MP subpackagePass/reveal .ky__grad, owner 2026-11-19): deep copper → warm gold.
+    public static let passGold0 = CYRGB(hex: 0x2A1E08).swiftUIColor
+    public static let passGold1 = CYRGB(hex: 0x8A6414).swiftUIColor
+    public static let passGold2 = CYRGB(hex: 0xD4A72C).swiftUIColor
+    public static let passGold3 = CYRGB(hex: 0xF2CF63).swiftUIColor
     public static let glassFill = Color.white.opacity(0.06)
     public static let glassEdgeTop = Color.white.opacity(0.14)
     public static let glassEdgeBottom = Color.white.opacity(0.04)
