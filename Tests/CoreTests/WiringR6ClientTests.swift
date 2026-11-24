@@ -15,11 +15,11 @@ private final class WiringR6Transport: HTTPTransport {
 }
 
 @MainActor final class WiringR6IMReadTests: XCTestCase {
-    private func service(inbox: Bool = false, paths: Set<String>? = nil) throws -> (IMExpandedService, WiringR6Transport) {
+    private func service(inbox: Bool = false, writes: Bool = false, paths: Set<String>? = nil) throws -> (IMExpandedService, WiringR6Transport) {
         let transport = WiringR6Transport()
         let service = try IMExpandedService(
             configuration: APIConfiguration(baseURL: URL(string: "https://example.com/prod-api")!),
-            transport: transport, approvedMediaOrigins: [], enabledPaths: paths,
+            transport: transport, approvedMediaOrigins: [], writesEnabled: writes, enabledPaths: paths,
             inboxConversationReadEnabled: inbox)
         return (service, transport)
     }
@@ -34,17 +34,39 @@ private final class WiringR6Transport: HTTPTransport {
     }
 
     func testInboxReadHookPostsOnlyConversationId() async throws {
-        let (service, transport) = try service(inbox: true)
+        let (service, transport) = try service(inbox: true, writes: true, paths: ["api/im/read"])
         XCTAssertTrue(service.canWriteInboxConversationRead)
         XCTAssertFalse(service.canWriteOrdinaryRead)
+        transport.payload = #"{"code":200,"msg":"ok"}"#
         try await service.markInboxConversationRead(conversationID: 12, token: "synthetic-im-token")
         let request = try XCTUnwrap(transport.requests.first)
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/prod-api/api/im/read")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-im-token")
-        let body = try JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any]
-        XCTAssertEqual(body?["conversation_id"] as? Int, 12)
-        XCTAssertEqual(body?.count, 1)
+        XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data;") == true)
+        let body = String(decoding: XCTUnwrap(request.httpBody), as: UTF8.self)
+        XCTAssertTrue(body.contains("name=\"conversation_id\"\r\n\r\n12\r\n"))
+        XCTAssertFalse(body.contains("read_to"))
+        XCTAssertEqual(body.components(separatedBy: "name=\"").count, 2)
+        transport.payload = #"{"code":409,"msg":"未读","errorCode":"CONFLICT"}"#
+        transport.requests.removeAll()
+        do { try await service.markInboxConversationRead(conversationID: 12, token: "synthetic-im-token"); XCTFail() }
+        catch let error as MessagingReadFailure {
+            XCTAssertEqual(error.code, 409)
+            XCTAssertEqual(error.message, "未读")
+            XCTAssertEqual(error.errorCode, "CONFLICT")
+        }
+    }
+
+    func testInboxReadStaysOffWithoutTheWriteSwitchOrThePathGrant() async throws {
+        let (noWrite, first) = try service(inbox: true, writes: false, paths: ["api/im/read"])
+        let (noPath, second) = try service(inbox: true, writes: true, paths: nil)
+        XCTAssertFalse(noWrite.canWriteInboxConversationRead)
+        XCTAssertFalse(noPath.canWriteInboxConversationRead)
+        do { try await noWrite.markInboxConversationRead(conversationID: 12, token: "synthetic-im-token"); XCTFail() }
+        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        XCTAssertTrue(first.requests.isEmpty)
+        XCTAssertTrue(second.requests.isEmpty)
     }
 
     func testInboxReadRefusesWhenThePathGrantOmitsIt() async throws {
@@ -57,29 +79,36 @@ private final class WiringR6Transport: HTTPTransport {
 }
 
 @MainActor final class WiringR6ClubSettlementTests: XCTestCase {
-    func testClubSourceIsAGetOnTheSummaryRoute() throws {
-        let read = CoopFlowRead.clubSettlementSummary(clubID: 9)
+    func testClubSourceIsAPostOnTheSummaryRoute() throws {
+        let read = CoopFlowRead.clubSettlementSummary(clubID: 9, personal: false)
         XCTAssertEqual(read.path, "api/club/settlement/summary")
-        XCTAssertTrue(read.usesGet)
+        XCTAssertFalse(read.usesGet)
         XCTAssertFalse(read.expectsArray)
-        XCTAssertEqual(read.queryItems, [URLQueryItem(name: "clubId", value: "9")])
-        XCTAssertEqual(try read.body(), .object([:]))
-        XCTAssertThrowsError(try CoopFlowRead.clubSettlementSummary(clubID: 0).body())
+        XCTAssertTrue(read.queryItems.isEmpty)
+        XCTAssertEqual(try read.body(), .object(["clubId": .id(9)]))
+        XCTAssertEqual(try CoopFlowRead.clubSettlementSummary(clubID: 9, personal: true).body(), .object(["clubId": .id(9), "personal": .bool(true)]))
+        XCTAssertThrowsError(try CoopFlowRead.clubSettlementSummary(clubID: 0, personal: false).body())
     }
 
-    func testClubSourceReadSendsGetAndDoesNotWithdraw() async throws {
+    func testClubSourceReadSendsPostAndDoesNotWithdraw() async throws {
         let transport = WiringR6Transport()
-        transport.payload = #"{"code":200,"data":{"topics":[],"isOwner":true,"settledAmountText":null}}"#
+        transport.payload = #"{"code":200,"data":{"topics":[{"topicId":4,"name":"夜跑","status":"settled","amountStatus":"verified","amountText":"12.00","originalAmountText":"20.00","executedAdjustmentText":"0.00","netAmountText":"12.00","arrivedText":"已到账","paidText":"已打款","lineType":"INITIATOR_MARGIN"}],"isOwner":true}}"#
         let service = CoopFlowService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: transport)
         let session = try CoopFlowSession(accountID: 7, epoch: 1, token: "synthetic-coop-token")
-        let value = try await service.read(.clubSettlementSummary(clubID: 9), session: session)
+        let value = try await service.read(.clubSettlementSummary(clubID: 9, personal: true), session: session)
         XCTAssertEqual(value["isOwner"].flag, true)
+        XCTAssertEqual(value["topics"].rows?.count, 1)
         let request = try XCTUnwrap(transport.requests.first)
-        XCTAssertEqual(request.httpMethod, "GET")
-        XCTAssertNil(request.httpBody)
+        XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/api/club/settlement/summary")
-        XCTAssertEqual(URLComponents(url: XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.query, "clubId=9")
+        XCTAssertNil(URLComponents(url: XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.query)
+        XCTAssertEqual(request.httpBody, try CoopFlowRead.clubSettlementSummary(clubID: 9, personal: true).body().canonical())
         XCTAssertFalse(transport.requests.contains { $0.url?.path.contains("withdraw") == true })
+        let detail = try XCTUnwrap(CoopClubSettlementDetail.resolve(try XCTUnwrap(value["topics"].rows?.first)))
+        XCTAssertEqual(detail.topicID, 4)
+        XCTAssertEqual(detail.amountLabel, "已入账金额")
+        XCTAssertEqual(detail.lineTypeText, "主办分成")
+        XCTAssertEqual(detail.amountText, "12.00")
     }
 }
 
