@@ -83,3 +83,14 @@ DONE-ROUND-4
 - **Localization & tests:** added `orientScore.syncTasks.confirmTitle`, `orientScore.settleRun.confirmTitle`, `common.cancel` (`zh-Hans` + `en`) to `docs/port/strings/gap-g1-player.json`; updated `MPGapG1Round2Tests.swift` and `MPGapG1Round4Tests.swift`.
 
 DONE-ROUND-5
+
+## Round 6: Copy Overrides, Flow Graph, and `r7-rev-c` `F-C23`
+- **Copy alignment (`docs/port/strings/gap-g1-copy.json` + `docs/mp-gap/copy-diff-g1.md`):**
+  - Compared G1 `Resources/Localizable.xcstrings` and `gap-g1-player.json` strings against `hengyin/chengyinhub-xcx` across `player-content`, `play-roam`, and `member`.
+  - Wrote 21 exact MP `zh-Hans` overrides (with updated `en` translations) in `xcstrings` format to [`docs/port/strings/gap-g1-copy.json`](file:///Users/fanning/orca/workspaces/native-ios/DES-ag3/docs/port/strings/gap-g1-copy.json) and documented every old/new diff with `MP file:line` in [`docs/mp-gap/copy-diff-g1.md`](file:///Users/fanning/orca/workspaces/native-ios/DES-ag3/docs/mp-gap/copy-diff-g1.md).
+- **Flow graph (`docs/mp-gap/flows-g1.md`):**
+  - Mapped navigation edges (taps, back, after-success redirects) across 97 MP `.js` files in G1 areas and marked `[OK]` vs `[GAP-CLAUDE]` (unmounted `App/MPGap` hosts outside `App/MPGap/`).
+- **`r7-rev-c` `F-C23` (`Core/MPGap/MPGapHTTP.swift`):**
+  - Added `MPGapHTTPError.serverMessage(code:message:)` (`LocalizedError`) so non-200 business responses preserve the server `msg` string instead of dropping it in `APIError.businessCode(code)`.
+
+DONE-ROUND-6

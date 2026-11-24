@@ -1,0 +1,153 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "playx.merchant.stat.wait": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Est. wait (min)" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "预计等待（分）" } }
+      }
+    },
+    "u10.roamFinish.medals": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Medals" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "勋章（枚）" } }
+      }
+    },
+    "playx.circle.notice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This card only records your own choices" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "本卡仅记录玩家自己的选择" } }
+      }
+    },
+    "roamTools.clearCache.confirmTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Clear local cache" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "确认清空本机缓存" } }
+      }
+    },
+    "templateVenue.park": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Park · Green space" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "公园 · 绿地" } }
+      }
+    },
+    "nearby.error.apply.ALREADY_JOINED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You are already in this team" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "你已在这支队伍里" } }
+      }
+    },
+    "nearby.error.apply.APPLY_BLOCKED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cannot apply to this team right now" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂时不能申请这支队伍" } }
+      }
+    },
+    "nearby.error.apply.APPLY_PENDING": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You have already applied" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "你已经申请过了" } }
+      }
+    },
+    "nearby.error.handle.APPLY_BLOCKED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This application cannot be approved" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "不能同意这条申请" } }
+      }
+    },
+    "nearby.rejected.foot": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You cannot apply to this team again" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "不能再申请这支队伍" } }
+      }
+    },
+    "roam.historyLocal.unfinishedHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Recorded after completion" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "结束后收录" } }
+      }
+    },
+    "playkit.photo.fallbackRecorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Photo recorded" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "照片已记录" } }
+      }
+    },
+    "roam.live.finishing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Settling" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在结算" } }
+      }
+    },
+    "playx.circle.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Preparing free exploration" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "正在准备自由探索" } }
+      }
+    },
+    "playkit.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Choose" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "请选择" } }
+      }
+    },
+    "orientScore.review.confirmTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Confirm submit" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "确认提交" } }
+      }
+    },
+    "playx.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Confirm submit" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "确认提交" } }
+      }
+    },
+    "nearby.actionFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Action failed" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "操作未完成" } }
+      }
+    },
+    "roam.experience.readFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Failed to load, please retry" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "加载失败，请重试" } }
+      }
+    },
+    "orderLifecycle.explanation.ended": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Activity ended" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "活动已结束" } }
+      }
+    },
+    "templateReaction.tapHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Tap now" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "现在点" } }
+      }
+    }
+  }
+}
