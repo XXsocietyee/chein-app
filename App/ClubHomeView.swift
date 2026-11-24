@@ -23,7 +23,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var onTopicDestination: ((Int) -> Void)? = nil
     /// chein://club/<id>/join: open this club's detail once, then clear it. The detail keeps its own join confirmation.
     var requestedClubID: Binding<Int?>? = nil
-    /// Author square delete on the talent list feed. Nil shows a visible not-connected line.
+    /// Kept for existing call sites; the 帖文 tab no longer mounts the author delete block (A8-05).
     var authorSquare: (any SquareReading)? = nil
     /// MP `talent/list?tab=feed` (A8-04): opens on 帖文 once; nil keeps 俱乐部.
     var initialTopTab: ClubTabPresentation.TopTab? = nil
@@ -72,17 +72,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         if topTab == .feed, let community {
             // 帖文: the existing community feed (like / comment / repost / share / follow). Not rebuilt.
             VStack(spacing: 0) {
-                if let authorSquare {
-                    CreativeSquareAuthorDeleteSection(signedIn: authorSquare.isSignedIn, load: { try await authorSquare.ownCreativeSquareIDs() }, remove: { try await authorSquare.deleteOwnCreativeSquare(postID: $0) })
-                        .padding(.horizontal, CYSpacing.pageHorizontal)
-                        .padding(.bottom, CYSpacing.sm)
-                } else {
-                    Text(verbatim: "—").cyText(.body).foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, CYSpacing.pageHorizontal)
-                        .accessibilityIdentifier("club.authorSquare.missing")
-                }
+                // A8-05: MP talent/list 帖文 has no author delete block and no placeholder dash above the feed; deleting
+                // one's own posts lives on 我的帖文 / 帖文详情 (A4-02).
                 MPPassExploreCard()
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.bottom, CYSpacing.sm)
