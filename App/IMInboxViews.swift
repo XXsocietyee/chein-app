@@ -96,7 +96,7 @@ struct IMInboxRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            IMRemoteAvatar(url: conversation.kind == .system ? nil : IMRemoteAvatar.url(conversation.counterparty?.avatar)) {
+            IMRemoteAvatar(url: conversation.kind == .system ? nil : IMRemoteAvatar<EmptyView>.url(conversation.counterparty?.avatar)) {
                 CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
             }
                 .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)

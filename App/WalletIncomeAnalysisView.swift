@@ -128,7 +128,7 @@ import Accessibility
                         .accessibilityChartDescriptor(WalletIncomeMonthChartDescriptor(
                             months: summary.months.map { (label: $0.id, value: NSDecimalNumber(decimal: $0.amount).doubleValue,
                                                           spoken: WalletIncomeAnalysisPresentation.text($0.amount, currency: currency, locale: locale)) },
-                            title: String(localized: "wallet.analysis.months", table: "WalletIncomeAnalysis", locale: locale)))
+                            title: String(localized: LocalizedStringResource("wallet.analysis.months", table: "WalletIncomeAnalysis", locale: locale))))
                     DisclosureGroup { monthRows(summary, currency: currency) } label: { text("months") }
                 } else { monthRows(summary, currency: currency) }
             } header: { text("months") }

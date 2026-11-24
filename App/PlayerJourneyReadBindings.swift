@@ -337,10 +337,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
         content.headName = head?.name
         content.headCoverURL = head?.coverURL
         content.tiles = tiles
-        if let lastSeats {
-            heldInvite = JourneyHeldSeatInviteRule.afterRead(hold: heldInvite, seats: PlayerJourneyProjection.inviteSeats(lastSeats))
-            if heldInvite == nil { inviteURL = nil }
-        }
+        heldInvite = JourneyHeldSeatInviteRule.afterRead(hold: heldInvite, seats: PlayerJourneyProjection.inviteSeats(lastSeats))
+        if heldInvite == nil { inviteURL = nil }
         content.inviteShareURL = inviteURL
         content.actionError = actionError
         phase = .ready(content)
@@ -508,7 +506,9 @@ struct PlayerJourneySignInSheet: ViewModifier {
         if case .ready(let report) = phase {
             shareURL = PlayerJourneyShare.url(report: report, scope: scope, source: source, token: session)
             let rankBefore = rank.scope
-            await installJourneyRankMenu(&rank, scope: scope, source: source, session: session, settle: false)
+            var rankMenu = rank
+            await installJourneyRankMenu(&rankMenu, scope: scope, source: source, session: session, settle: false)
+            rank = rankMenu
             if rank.scope != rankBefore { loadRank() }
         }
         if case .ready(let report) = phase, !report.legacy, !teamsProbed {
@@ -681,7 +681,9 @@ struct PlayerJourneySignInSheet: ViewModifier {
         guard case .ready(let report) = phase else { return }
         shareURL = PlayerJourneyShare.url(report: report, scope: scope, source: source, token: session)
         let rankBefore = rank.scope
-        await installJourneyRankMenu(&rank, scope: scope, source: source, session: session, settle: true)
+        var rankMenu = rank
+        await installJourneyRankMenu(&rankMenu, scope: scope, source: source, session: session, settle: true)
+        rank = rankMenu
         if rank.scope != rankBefore { loadRank() }
         // JSETTLE-3: a link without `topicName` reads it, so the overview and card do not fall back to 本局.
         if topicName == nil, let topic = report.topicID ?? scope.topicID, JourneyLoopSource.isID(topic),

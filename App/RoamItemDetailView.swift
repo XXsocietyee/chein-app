@@ -424,7 +424,8 @@ struct RoamItemDetailView: View {
         }
     }
     private var checkInOwnerID: String? {
-        let text = String(reader.identity.accountID)
+        guard let identity = reader.identity else { return nil }
+        let text = String(identity.accountID)
         return JourneyLoopSource.isID(text) ? text : nil
     }
     private func suspendReads() {

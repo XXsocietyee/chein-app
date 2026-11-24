@@ -599,7 +599,7 @@ struct PassRevealPaidFacts: Hashable {
         }
         // B-PR-05: only the toolbar 跳过 skips; the stage has no tap/drag skip and no press dim.
         .background(alignment: .bottom) {
-            // B-PR-02: MP gold wash (#2A1E08 → #8A6414 → #D4A72C → #F2CF63) over the lower 62 % of the stage.
+            // B-PR-02: MP gold wash over the lower 62 % of the stage.
             GeometryReader { proxy in
                 VStack(spacing: 0) {
                     Spacer(minLength: 0)
