@@ -120,7 +120,7 @@ struct ClubStoryChapterHeader: View {
         Color.clear
             .aspectRatio(16.0 / 10.0, contentMode: .fit)
             .overlay { media }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityHidden(true)
     }
     @ViewBuilder private var media: some View {

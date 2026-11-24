@@ -163,7 +163,7 @@ import UIKit
         Color.clear.frame(width: 0, height: 0)
             .sheet(isPresented: owner.binding(item, source: source, active: active), onDismiss: {
                 if owner.dismissed(item, source: source(), active: active()) { returned() }
-            }) {
+            }) { Group {
                 NavigationStack {
                     Group {
                         if owner.current(item, source: source(), active: active()) {
@@ -175,6 +175,7 @@ import UIKit
                         Button("club.gov.close") { owner.binding(item, source: source, active: active).wrappedValue = false }
                     } }
                 }
+            }.cySheet(detents: [.large])
             }
     }
 }

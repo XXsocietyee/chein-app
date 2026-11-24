@@ -327,13 +327,13 @@ private struct CYMoneyRowLocal: View {
 private struct CYSkeletonLocal: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(CYColor.bgRaised)
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.sm, alignment: .leading)
-            RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(CYColor.bgRaised)
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.xxl, alignment: .leading)
-            RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(CYColor.bgRaised)
                 .frame(maxWidth: .infinity, minHeight: CYSpacing.md, alignment: .leading)
         }
