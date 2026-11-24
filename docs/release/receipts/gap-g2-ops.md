@@ -62,3 +62,10 @@ All mount hooks (target file + location + snippet) are listed in:
 - **Cloud acceptance:** `ci/acceptance` is currently failing on `origin/ci/acceptance` (checked via `gh run list --branch ci/acceptance`), so `origin/ci/acceptance` was not merged yet; ready to merge and run once `ci/acceptance` is green.
 
 DONE-ROUND-2
+
+## 6. Round 3 Alignment (against `origin/ui/combined-r7`)
+- **Copy alignment:** [copy-g2-ops.md](docs/mp-gap/copy-g2-ops.md) — audited 632 `club`, 855 `merchant-coop`, and 1,384 `account-publish` MP strings against `Resources/Localizable.xcstrings` and area `.xcstrings` on `origin/ui/combined-r7`. Listed 16 near-mismatches in existing `Localizable.xcstrings` for the coordinator and verified all `MPGap` strings.
+- **Contract alignment:** [contracts-g2-ops.md](docs/mp-gap/contracts-g2-ops.md) — audited 102 `club`, 131 `merchant-coop`, and 92 `account-publish` MP endpoints against `Core/`. Fixed all 8 mismatches inside `Core/MPGap/*` (`POST /api/ai/merchant/insight`, `POST /api/merchant/claims/submit`, split `POST /api/merchant/update` vs `decor/save`, `follow_member_id`/`follow` on `user/follow/action`, `POST /api/team/applications`, `GET /api/topic/cast/voice`, `ids: [Int]` on `fe/reference-settlement/settle`, `manualCaseId` on `manual-case-detail`) and updated `Tests/CoreTests/MPGap/G2OpsGapTests.swift`.
+- `swiftc -parse` passed on all 19 Swift files after final edits.
+
+DONE-ROUND-3
