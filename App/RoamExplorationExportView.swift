@@ -170,6 +170,14 @@ private struct RoamExportFileSaveLink: View {
         switch kind { case .last30Days: return "roam.export.range.30"; case .thisYear: return "roam.export.range.year"; case .lastYear: return "roam.export.range.365" }
     }
     private var prepared: Bool { model.checkpoint != nil }
+    /// The preset's name when the chosen dates are exactly that preset, else the two dates as chosen.
+    private var fileRangeText: Text {
+        if let value = model.presets.first(where: { $0.kind == preset }),
+           value.startDate == startDate, value.endDateExclusive == endDate {
+            return Text(presetKey(preset))
+        }
+        return Text(verbatim: "\(startDate) – \(endDate)")
+    }
     /// Readers stay live. A later account, permission, clock, or scene change is visible
     /// at the write without another call here.
     private func bindDeliveryFacts() {
@@ -333,7 +341,15 @@ private struct RoamExportFileSaveLink: View {
         if let file = model.fileForDelivery(foreground: scenePhase == .active) {
             Section {
                 LabeledContent { Text("roam.export.rows \(file.rows)") } label: {
-                    Label { Text(verbatim: file.fileName) } icon: { Text(verbatim: "JSONL").cyText(.caption, weight: .bold) }
+                    // TEXPORT-2 (MP wxml:33): 探索记录 · <range> as the title; the long filename is a middle-truncated subtitle.
+                    Label {
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            (Text("mp.export.fileTitle") + Text(verbatim: " · ") + fileRangeText)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: file.fileName).cyText(.meta).foregroundStyle(.secondary)
+                                .lineLimit(1).truncationMode(.middle)
+                        }
+                    } icon: { Text(verbatim: "JSONL").cyText(.caption, weight: .bold) }
                 }.accessibilityIdentifier("roam.export.file")
                 CYPillButton("roam.export.share") {
                     if owner.active, let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {
@@ -349,7 +365,13 @@ private struct RoamExportFileSaveLink: View {
                 }.listRowBackground(Color.clear).accessibilityIdentifier("roam.export.save")
             }
         } else if model.phase == .complete && model.isFileExpired {
-            Section { Button("roam.export.expired") { model.discardExpired() } }
+            // TEXPORT-4: a stated expiry with one 重新准备 action, not a bare list button.
+            Section {
+                CYEmptyState(systemImage: "clock.arrow.circlepath", "roam.export.expired",
+                             actionTitle: "mp.export.prepareAgain", actionIdentifier: "roam.export.prepareAgain",
+                             action: { model.discardExpired() })
+                    .accessibilityIdentifier("roam.export.expired")
+            }
         }
         Section {
             if model.phase == .reading {

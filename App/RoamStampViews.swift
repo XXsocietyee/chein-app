@@ -238,9 +238,12 @@ struct RoamAlbumReadOwner: Hashable {
                 // B62 al-fab: the camera is a round + once the album has stamps (the empty state has its own CTA).
                 if hosted, allowsCapture, canShowAlbum, (pager.total ?? pager.stamps.count) > 0 {
                     NavigationLink { captureDestination } label: {
-                        Image(systemName: "plus").font(.title2.weight(.medium)).foregroundStyle(palette.actionPrimaryFg)
-                            .frame(width: 56, height: 56).background(palette.actionPrimaryBg, in: Circle())
+                        // SALBUM-7 (MP wxss:31-35): a 52 pt round button with a drop shadow and a press state.
+                        Image(systemName: "plus").cyText(.sectionTitle, weight: .semibold).foregroundStyle(palette.actionPrimaryFg)
+                            .frame(width: 52, height: 52).background(palette.actionPrimaryBg, in: Circle())
+                            .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
                     }
+                    .buttonStyle(.cyPressable)
                     .accessibilityLabel(Text("stampAlbum.openCamera"))
                     .accessibilityIdentifier("roam.experience.album.fab")
                     .padding(CYSpacing.xl)

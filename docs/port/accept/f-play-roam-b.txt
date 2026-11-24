@@ -5,7 +5,9 @@ r3prb-promo-unknown
 t5-settle
 t5-settle-error
 r3prb-settle-assisted
+r3prb-settle-startmode
 r4-report-unscored
+r3prb-report-nodephotos
 e2-passport-recap
 e2-passport-anniversary
 t13-goals

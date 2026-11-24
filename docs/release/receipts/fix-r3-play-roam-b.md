@@ -65,3 +65,83 @@
 
 ## Acceptance
 - Run: none yet. `ui/combined-r7` has no `acceptance.yml` (only ios-ci / native-ios / native-targeted), so the coordinator compiles and runs the routes in `docs/port/accept/f-play-roam-b.txt`.
+
+## Round 2 (2026-11-24)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round2.md` + `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` at the start (Cursor K1–K10, W1, C7 assets; one conflict in `tools/check_typography_lint.py`, taken from r7) and again before the final push.
+- **Layer:** App/ only, plus one contract-check hash re-pin (below). Strings in `docs/port/strings/fix-r3-play-roam-b.json` (en + zh-Hans).
+
+### Round-1 leftovers now closed (Core landed in r7)
+
+| id | what changed | files |
+|---|---|---|
+| JSEAT-6 | seats read goes through Core `JourneySeatsSessionGate`: no session → 登录; 403 → denied; 401 answer → 登录; every other non-OK → 加载失败 (a bare 404 is no longer 链接已失效) | App/PlayerJourneyReadBindings.swift |
+| JSEAT-r7-1 | Core `JourneyHeldSeatInviteRule`: the invite answer keeps `{invitationId, token}` only when both are valid; after every seats read the hold is replaced by `afterRead`, and the share link is dropped with it. An answer without both reads 链接生成失败 | App/PlayerJourneyReadBindings.swift |
+| JREPORT-5 | report and settle use Core `JourneyReportRead.reject` (report: RUN_NOT_FOUND / RUN_SCOPE_MISMATCH → gone, 403 → denied; settle: RUN_NOT_FOUND only) and `runDisagrees`; every other non-OK is 暂未加载 + 重新加载 | App/PlayerJourneyReadBindings.swift |
+| JSETTLE-4 开局 | `JourneyReport.startModeText` from Core; settle shows the 开局 cell only when set (桌面完成 / 替代站开局, catalog keys for both) | App/JourneyReportViews.swift, App/PlayerJourneyReadBindings.swift |
+| JREPORT-3 | `JourneyRunScope` carries `cityCode` / `countryCode` / `clubID` from the link (Core `LinkCodes.parse`); tabs and 更多 come from Core `JourneyRankBoardContract.menu`; city / country / club boards read `GET /api/rank/list` with `scope`, `scopeId`, `period` only; a report without `teamId` reads choices and opens 队内 from `JourneyRankBoardContract.teamID` (MP `_loadTeam`) | App/MPParityKit.swift, App/PlayerJourneyReadBindings.swift |
+| JREPORT-2 | `JourneyNodeRow.photoURL` (Core `Node.photoURL`, https only); 44 pt thumb on the node row, tap opens a paged full-screen preview over all node photos of the run (system close item) | App/JourneyReportViews.swift |
+
+### P2s closed this round
+
+JREPORT-8 (stat value one line, scales to 0.6), JREPORT-9 (rank row hint; memory photo described), TRECAP-4 (44 pt round month buttons), TRECAP-5 (share copy key), TRECAP-6 (28 pt bars; one VoiceOver summary of every week), TANNIV-5 (two card skeletons), TEXPORT-2 (探索记录 · range title, middle-truncated filename), TEXPORT-4 (expired state with 重新准备), TGOALS-5 (cancel copy adds 此操作不可撤销 — fragment overrides the catalog value), GROWTH-9 (hand-made chevron removed), LEADER-6 (gold / pale gold / bronze rings, star above #1), LEADER-7 (`CYTabs(variant: .chip)`), SALBUM-7 (52 pt FAB, shadow, press state), B3D-5 (name bold, sub caption), B3D-6 (full-bleed stage), OCARDS-5 (glyph via `cyText`, ChannelCopy → `objects.flip` / `objects.tapToTurnBack`), OCARDS-6 (total row removed), OCARDS-7 (style / status / source rows off the detail; source moved to the card back). JPROMO-5: the MP `dateText` is now `YYYY.MM.DD`, which the app already shows — no change.
+
+### MP assets (`docs/mp-assets/mapping.md`)
+
+| row | applied | where |
+|---|---|---|
+| ✅ `MPAsset.AvatarDefault.memoji1/2/3` | leaderboard podium + list rows + pinned 我 row (MP `toRow` index rotation, 我 = first). Remote avatars stay undrawn on Growth screens (`test_growth_source_contract` forbids `AsyncImage`), so the MP's second fallback is what shows | App/GrowthLeaderboardView.swift |
+| ✅ `MPAsset.AvatarDefault.dProfile` | growth score-card avatar (MP `avatarUrl || d_profile.png`) | App/GrowthCenterView.swift |
+| ✅ `MPAsset.BadgeMedal.laurel` | rank-board hero wreath, right branch mirrored (was SF `laurel.*`) | App/JourneyReportViews.swift |
+| ✅ `MPAsset.BadgeMedal.badgeDemo` | default badge art on the wall tile, album page front and badge detail stage (was SF `medal.fill`) | App/ObjectBadgeViews.swift |
+| ✅ `MPAsset.FeatureIcon.all/electronics/clothing/bags/…Food/books/toys/daily/…Other` | object-card filter row shows the selected category's icon (MP `oc-filter__ic`). Not in the `Menu` items: UIMenu does not scale non-symbol images | App/ObjectCardViews.swift |
+| ⏭ `MPAsset.FeatureIcon.iconCloseSm` | mapping says keep SF `xmark` (system control) | — |
+| ⏭ `MPAsset.BadgeMedal.medal/stamp`, `FeatureIcon.object` (album-intro) | the app has no 收集册 opening transition (album-intro ring stack); nothing to put them on | — |
+| ⏭ `MPAsset.BadgeMedal.goldMatcap` | WebGL matcap texture of the MP `xr-badge`; the SceneKit showroom has its own material | — |
+| ⏭ `MPAsset.EmptyState.*` | empty states on these pages are the shared `CYEmptyState` (App/DesignSystem/CYStates.swift, SF only); the swap belongs in that shared component | — |
+| — | small status glyphs (lock / medal beside 已点亮 on card backs) stay SF as state indicators | — |
+
+### Owner decisions (1124)
+
+- #9 two-decimal money: the only money figure on these pages (promo net amounts) already prints `¥x.xx` (`PlayerJourneyPromoBinding.yuan`). No shared formatter exists on r7 yet; switch when one lands.
+- #3 / #6 / #12 money TEST-only: nothing here writes money (gift claim / referral token stay `moneyOff`).
+- #8 arrival lock, #10 pilot kits, #7 cast: not on half-b pages.
+
+### Review findings
+
+`review/r7-rev-a/-b/-c`: no row owned by Claude for half-b pages (B-15 is P5 Core; F-C21 is club). `audit/parity-r7-play-roam` P1 for half b: all closed except the Gemini / owner rows below.
+
+### Still left
+
+| id | why |
+|---|---|
+| SCAM-1, SALBUM-1 (P0) | owner (`mediaUpload`, stamp image policy) |
+| SCAM-2 rest | owner (consent toggle is the app-wide privacy gate) |
+| JSEAT-8 | owner (bar title) |
+| JSETTLE-r7-1, BWALL-2/3, B3D-1, OCARDS-2 | Gemini |
+| OCARDS-3/4 | Gemini's sheets stay parked in App/MPGap (not mounted, per Cursor) |
+| SALBUM-6 | MP is POST `api/roam/stamp/list`; the parked GET helper is wrong — Cursor |
+| TGOALS-4 | Core `RoamExplorationGoal.progress` is non-optional `Int`; needs `Int?` (Cursor) |
+| TGOALS-6 | owner (keep the extra create confirmation or not) |
+| TANNIV-4 | shared reviewed route (MPReviewedPageScreen) has no destination |
+| TEXPORT pending retry | Core semantics (`.outcomeUnknown`) |
+| GROWTH-9 / LEADER-7 toolbar refresh | `growth.refresh` is driven by AppUITests and `growth.board.refresh` is pinned by `test_growth_leaderboard_page_ready`; Cursor to drop both with the tests |
+| B3D-4 | already done in r7 (keys + hint) |
+
+### Requests for Cursor
+
+- `RoamExplorationGoal.progress: Int?` (TGOALS-4).
+- Drop the two Growth toolbar refresh buttons together with their UI test / contract pins (GROWTH-9, LEADER-7).
+- A shared money formatter (owner #9) so Journey promo can switch to it.
+
+### Fixtures / acceptance
+
+- New routes `r3prb-settle-startmode`, `r3prb-report-nodephotos` (App/DesignFixtures/FixR3PlayRoamBFixtures.swift), added to `docs/port/accept/f-play-roam-b.txt` (25 routes).
+
+### Checks run here (no compiler in the cloud)
+
+- Contract checks: full run before the P2 batch — 1 new failure from the badge-art swap (`test_object_badge_wall_layout` hashes `ObjectBadgeDetailView`); re-pinned with a comment line in that test (`Tests/ContractChecks/test_object_badge_wall_layout.py`). Targeted reruns (growth, roam, object, journey, export, a11y-hardening, native semantics): no new failures.
+- `tools/check_typography_lint.py`, `tools/check_design_lint.py`: PASS. `tools/check_a11y_lint.py`: same 3 findings as the base (not in these files). `tools/check_roam_private_tools.py`: PASS.
+- `tools/check_missing_string_keys.py` lists the 13 new keys as missing from `Localizable.xcstrings`; they are in the fragment for the integrator to merge.
+- APIs grepped on r7: `JourneySeatsSessionGate.phase`, `JourneyHeldSeatInviteRule.hold/afterRead/Seat`, `JourneyHeldSeatInvite`, `JourneyReportRead.reject/runDisagrees/Surface`, `PostGameRunReport.startModeText/Node.photoURL`, `JourneyRankBoardContract.menu/LinkCodes.parse/teamID/Menu/Tab.Kind`, `JourneyLoopSource.choices/rank`, `MPAsset.*` (each accessor name), `CYTabs(items:selection:variant:)`, `CYTabItem(id:title:)`, `CYSkeletonBlock(height:)`, `CYEmptyState(systemImage:_:actionTitle:actionIdentifier:action:)`, `CYFactRow(label:value:)`, `.cyPressable`.

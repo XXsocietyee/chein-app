@@ -290,6 +290,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
             }
             lastSeats = seats
             facts = PlayerJourneyProjection.seatsFacts(seats)
+            heldInvite = JourneyHeldSeatInviteRule.afterRead(hold: heldInvite, seats: PlayerJourneyProjection.heldSeatRows(seats))
+            if heldInvite == nil { inviteURL = nil }
             render(actionError: nil)
             if case .ready = phase, !extrasRead, let facts = self.facts {
                 extrasRead = true
@@ -406,7 +408,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private(set) var feedback: JourneyFeedbackState = .editing(nil)
     /// JREPORT-1: set once the report is ready (topic link; the referral token stays a money write, see `PlayerJourneyShare`).
     private(set) var shareURL: URL?
-    private let scope: JourneyRunScope
+    /// `var`: JREPORT-3 fills `teamID` from choices after the report is ready.
+    private var scope: JourneyRunScope
     private let source: JourneyLoopSource
     private let token: () -> String?
     /// Kept unchanged while the answer is unknown: the same request id is only re-sent with the same text.
@@ -513,8 +516,23 @@ struct PlayerJourneySignInSheet: ViewModifier {
         }
         if case .ready(let report) = phase, !report.legacy, !teamsProbed {
             teamsProbed = true
+            await loadTeamFromChoices(session)
             await probeTeams(session)
         }
+    }
+
+    /// JREPORT-3 (MP report `_loadTeam`): a link without `teamId` reads choices; the first `teamCapacity.teamId`
+    /// (Core `JourneyRankBoardContract.teamID`) opens 队内. A failed read changes nothing.
+    private func loadTeamFromChoices(_ session: String) async {
+        guard scope.teamID == nil, scope.activityID != nil || scope.topicID != nil,
+              let envelope = try? await source.choices(activityID: scope.activityID,
+                                                       topicID: scope.activityID == nil ? scope.topicID : nil, token: session),
+              envelope.ok, let team = JourneyRankBoardContract.teamID(choicesJSON: envelope.dataJSON) else { return }
+        scope.teamID = team
+        let tabs = PlayerJourneyProjection.rankTabs(scope)
+        let extra = rank.tabs.filter { !tabs.contains($0) }
+        rank.tabs = tabs + extra
+        if rank.scope == nil { rank.scope = rank.tabs.first }
     }
 
     /// The Teams tab only appears when the server returns team rows for this topic or activity.
@@ -988,6 +1006,20 @@ enum PlayerJourneyProjection {
         guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return [] }
         let rows = object["seats"] as? [Any] ?? []
         return rows.compactMap { item in
+            guard let row = item as? [String: Any], let id = idText(row["invitationId"]), let state = string(row["state"]) else { return nil }
+            return JourneyHeldSeatInviteRule.Seat(invitationID: id, state: state)
+        }
+    }
+
+    static func seatInviteToken(_ envelope: JourneyEnvelope) -> String? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return nil }
+        return string(object["token"])
+    }
+
+    /// JSEAT-r7-1: each seat row's `invitationId` + upper-case `state`, for `JourneyHeldSeatInviteRule.afterRead`.
+    static func heldSeatRows(_ envelope: JourneyEnvelope) -> [JourneyHeldSeatInviteRule.Seat] {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return [] }
+        return (object["seats"] as? [Any] ?? []).compactMap { item in
             guard let row = item as? [String: Any], let id = idText(row["invitationId"]), let state = string(row["state"]) else { return nil }
             return JourneyHeldSeatInviteRule.Seat(invitationID: id, state: state)
         }

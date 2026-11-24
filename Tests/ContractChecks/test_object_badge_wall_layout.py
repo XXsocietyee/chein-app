@@ -15,7 +15,8 @@ class ObjectBadgeWallLayoutContracts(unittest.TestCase):
         # ObjectBadgeWallBadgeLabel migrated medal icon to CYTypography.data2XL (cur-t7-14); detail & route lifetimes unchanged.
         # fix/parity2-play-roam: detail + route preview titles appNavigationTitle -> cyPageTitle (inline title mode only).
         # restyle/r6-system-rest: static CYTypography fonts -> .cyText(.token) (semantic text styles only).
-        self.assertEqual(hashlib.sha256(value).hexdigest(), '5645d601a588e4bb9ac17447d67f69b33a7d1a0e6b5cbfe8c8e98535799f5363')
+        # fix/r3-play-roam-b round 2: detail stage placeholder art SF medal -> MP `badge-demo.png` (MPAsset.BadgeMedal.badgeDemo).
+        self.assertEqual(hashlib.sha256(value).hexdigest(), 'ff26c06b901f71bfc5fa08210437e16772e85478532239840daa64c811ca8a1d')
         self.assertIn('let capturedIdentity = reader.identity', self.wall)
         self.assertIn('ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,', self.wall)
     def test_default_list_and_current_owner_selection_are_local(self):
