@@ -253,8 +253,9 @@ public struct PlatformPassHolding: Equatable, Sendable {
         self.coverageEnd = coverageEnd
         // Only the two labels the MP renders; anything else is not drawn.
         self.planLabel = planLabel == "年卡" || planLabel == "月卡" ? planLabel : nil
-        self.daysTotal = daysTotal.flatMap { $0 > 0 ? $0 : nil }
-        self.daysRemaining = self.daysTotal == nil ? nil : daysRemaining.map { min(self.daysTotal!, max(0, $0)) }
+        let resolvedTotal = daysTotal.flatMap { $0 > 0 ? $0 : nil }
+        self.daysTotal = resolvedTotal
+        self.daysRemaining = resolvedTotal.flatMap { total in daysRemaining.map { min(total, max(0, $0)) } }
         self.teammateBenefit = teammateBenefit
         self.expiring = expiring
     }
