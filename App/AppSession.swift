@@ -1156,12 +1156,23 @@ final class AppSession: ObservableObject {
         guard mapPublicLayerService != nil, regionalConfiguration?.showsRoute("/api/map/public-layers") == true else { return nil }
         return mapPublicLayerCoordinator
     }
-    lazy var searchMapReader = SearchMapSessionReader(service: searchMapService, currentContext: { [weak self] in
+    private lazy var searchMapSessionReader = SearchMapSessionReader(service: searchMapService, currentContext: { [weak self] in
         self?.currentSearchMapContext ?? SearchMapContext(guestEpoch: 0)
     }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
     }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: searchMapPublicLayerCoordinator, topicReader: topicReader)
+    /// Global search and the type-1 category directory. City, merchant, and nearby reads stay on `searchMapSessionReader`.
+    lazy var searchMapReader: any SearchMapReading = PlayerContentSearchMapReader(
+        inner: searchMapSessionReader,
+        baseURL: { [weak self] in self?.regionalConfiguration?.apiConfiguration?.baseURL },
+        transport: compositionTransport.scopedForManualMap(searchMapSelection),
+        token: { [weak self] in self?.token },
+        stamp: { [weak self] in self?.gate.currentStamp ?? 0 },
+        onUnauthorized: { [weak self] credential, stamp in
+            guard let self else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: stamp, credential: credential)
+        })
     private let registrationApproval: RegistrationProductionApproval?
     private let registrationStorefront: () -> String?
     private var registrationJournal: any OperationPendingJournal { composition.storage.operationJournal() }
@@ -3519,12 +3530,22 @@ final class AppSession: ObservableObject {
         return OfficialReadContext(guestEpoch:gate.currentStamp,viewerRevision:compositionViewerRevision,
             publicSourceRevision:currentOfficialPublicSourceRevision)
     }
-    lazy var officialEventReader=OfficialSessionReader(service:officialEventService,currentContext:{ [weak self] in
+    private lazy var officialSessionReader=OfficialSessionReader(service:officialEventService,currentContext:{ [weak self] in
         self?.currentOfficialContext ?? OfficialReadContext(guestEpoch:0)
     },invalidationSignal:composition.officialPublicEventReadSelection.invalidations,onUnauthorized:{ [weak self] captured in
         guard let self,self.currentOfficialContext == captured else { return }
         self.expireIfMatching(error:APIError.unauthorized,stamp:captured.epoch,credential:self.token)
     })
+    /// Public list, mine, and can-publish. Detail and the other official reads stay on `officialSessionReader`.
+    lazy var officialEventReader: any OfficialEventReading = PlayerContentOfficialReader(
+        inner: officialSessionReader,
+        baseURL: { [weak self] in self?.regionalConfiguration?.apiConfiguration?.baseURL },
+        transport: compositionTransport,
+        token: { [weak self] in self?.token },
+        onUnauthorized: { [weak self] credential in
+            guard let self, self.token == credential else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: self.gate.currentStamp, credential: credential)
+        })
     private let profileWeeklyPointsService: ProfileWeeklyPointsService?
     private var currentProfileWeeklyPointsSession: ProfileWeeklyPointsSession? {
         guard let context = currentRuntimeDependencyContext else { return nil }
@@ -4396,12 +4417,13 @@ final class AppSession: ObservableObject {
             token: { [weak self] in self?.currentRuntimeDependencyContext == captured ? self?.token : nil },
             readsEnabled: true, writesEnabled: true,
             legalApproved: { [weak self] subject, scope in subject == .signup && self?.currentRuntimeDependencyContext == captured && self?.complianceSession == scope })
-        let client = TopicSelfPlayHTTPClient(configuration: configuration, transport: transport, consent: compliance,
+        let http = TopicSelfPlayHTTPClient(configuration: configuration, transport: transport, consent: compliance,
             complianceSession: { [weak self] in self?.complianceSession }, documentProvider: document, captured: captured,
             current: { [weak self] in self?.currentRuntimeDependencyContext }, credentials: { [weak self] in
                 guard let self, self.currentRuntimeDependencyContext == captured, let session = self.publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
             })
+        let client = PlayerContentSelfPlayClient(inner: http, baseURL: configuration.baseURL)
         let payment: (any TopicSelfPlayPaymentProviding)? = ReleaseMoneyWriteSwitch.paymentEnabled
             && factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
             ? (runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter) : nil
