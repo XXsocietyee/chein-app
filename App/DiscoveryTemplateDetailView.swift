@@ -307,7 +307,9 @@ struct DiscoveryTopicTemplatePreview: View {
                 ContentUnavailableView("discovery.templateSessionChanged", systemImage: "person.crop.circle.badge.exclamationmark",
                                        description: Text("discovery.templateReopen"))
             } else if detail.isLoading {
-                ProgressView("discovery.loading")
+                // R7-PC-A7-2 (r1 PC-A-7-4): MP skeleton, not a centred spinner.
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text("discovery.loading"))
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await detail.load() } }
             } else if let item = detail.value {
@@ -360,7 +362,10 @@ struct DiscoveryTopicTemplatePreview: View {
                 .cyDomainPageBackground()
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")
-            } else { ProgressView("discovery.loading") }
+            } else {
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityLabel(Text("discovery.loading"))
+            }
         }
         .appNavigationTitle("discovery.topicPreview")
         .toolbar {
@@ -447,10 +452,6 @@ struct DiscoveryTopicTemplatePreview: View {
             }
             TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
         }.discoveryCardRow()
-        TopicTemplateAdoptionConditionsSection(
-            delivery: item.contentDelivery,
-            canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
-        )
         let nodes = item.chapters.flatMap(\.nodes)
         if !nodes.isEmpty {
             Section {
@@ -521,6 +522,15 @@ struct DiscoveryTopicTemplatePreview: View {
                 }
             }
             .accessibilityIdentifier("discovery.topicDetail.summary")
+            // R7-PC-A8-1 (r1 PC-A-8-3): MP `xb-stat` cards — 节点 / 玩法 / 总时长.
+            HStack(alignment: .top) {
+                topicStat(Text(verbatim: String(stops.count)), label: "discovery.templateDetail.stat.nodes")
+                if !item.games.isEmpty {
+                    topicStat(Text(verbatim: String(item.games.count)), label: "discovery.templateDetail.stat.games")
+                }
+                topicStat(TopicXcxDurationText(seconds: item.totalTime), label: "discovery.templateDetail.stat.totalTime")
+            }
+            .accessibilityIdentifier("discovery.topicDetail.stats")
             if stops.isEmpty {
                 CYEmptyState(systemImage: "map", "template.cap.emptyState", messageIdentifier: "template.cap.empty")
             }
@@ -540,6 +550,11 @@ struct DiscoveryTopicTemplatePreview: View {
                 ForEach(stops, id: \.number) { stopRow($0) }
             }
         }.discoveryCardRow()
+        // R7-PC-A8-4 (r1 PC-A-8-4): MP 采用条件 sits under 能力, after the stops.
+        TopicTemplateAdoptionConditionsSection(
+            delivery: item.contentDelivery,
+            canViewEvidence: item.viewerIsPublisher || (scope == "MERCHANT" && item.viewerIsMerchant)
+        )
     }
     private func stopRow(_ stop: NumberedStop) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
