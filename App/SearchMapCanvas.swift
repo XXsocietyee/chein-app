@@ -27,7 +27,7 @@ struct SearchMapCanvas: View {
                     CYMapPlaceholder(fog: false)
                     VStack(spacing: 12) {
                         Label { Text("searchMap.offlineMap").accessibilityIdentifier("searchMap.map") } icon: { Image(systemName: "map") }
-                            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                             .background(.thinMaterial, in: Capsule(style: .continuous))
                         ForEach(pins) { pin in

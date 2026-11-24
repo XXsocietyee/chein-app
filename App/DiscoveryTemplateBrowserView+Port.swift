@@ -40,7 +40,7 @@ private struct DiscoveryCoverUnavailable: View {
     var body: some View {
         VStack(spacing: CYSpacing.xxs) {
             Image(systemName: "photo")
-                .font(CYTypography.label)
+                .cyText(.label)
                 .accessibilityHidden(true)
             Text("discovery.coverUnavailable")
                 .cyText(.caption)
@@ -70,7 +70,7 @@ struct DiscoveryTemplateSyncingRow: View {
         if TemplateBrowserPort.showsSyncingLine(isLoading: true, hasLoadedRows: hasLoadedRows) {
             Text("discovery.syncing")
                 .cyText(.meta)
-                .foregroundStyle(CYColor.textTertiary)
+                .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.updatesFrequently)
         } else {

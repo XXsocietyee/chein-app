@@ -83,7 +83,6 @@ struct TeamReformSheetHost: View {
         NavigationStack {
             List {
                 Section {
-                    CYHeroHeader("teamReform.invite.title").listRowBackground(Color.clear)
                     CYStatusChip("teamReform.dormantNotice", tone: .neutral, systemImage: "moon.zzz")
                 }
                 switch flow.phase {
@@ -94,7 +93,7 @@ struct TeamReformSheetHost: View {
                     CYPillButton("action.retry", style: .secondary) { Task { await box.run { await $0.open() } } }
                 case .ready: content
                 }
-            }.cyHeroScreen()
+            }.cyPageTitle("teamReform.invite.title")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("team.close") { box.step { $0.close() }; dismiss() }.disabled(flow.busy) } }
                 .interactiveDismissDisabled(flow.busy)
         }.task { await box.run { await $0.open() } }
@@ -121,7 +120,7 @@ struct TeamReformSheetHost: View {
                 Section("teamReform.invite.review") {
                     Text(verbatim: "\(reviewed.count)").cyText(.numericBody).monospacedDigit().accessibilityIdentifier("teamReform.invite.reviewCount")
                     ForEach(reviewed.names, id: \.self) { Text(verbatim: $0) }
-                    Text("teamReform.invite.reviewNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("teamReform.invite.reviewNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
             Section {
@@ -147,7 +146,7 @@ struct TeamReformSheetHost: View {
             LabeledContent("teamReform.invite.unknown") { Text(verbatim: "\(summary.unknown)") }.accessibilityIdentifier("teamReform.invite.summary.unknown")
             LabeledContent("teamReform.invite.revoked") { Text(verbatim: "\(summary.revoked)") }.accessibilityIdentifier("teamReform.invite.summary.revoked")
             if summary.unknown > 0 {
-                Text("teamReform.invite.unknownNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("teamReform.invite.unknownNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 CYPillButton("teamReform.invite.checkUnknown", style: .secondary) { Task { await box.run { await $0.readBackUnknown() } } }
                     .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.checkUnknown")
             }
@@ -189,7 +188,7 @@ struct TeamReformSheetHost: View {
         NavigationStack {
             List {
                 Section {
-                    CYHeroHeader("teamReform.meeting.title", subtitle: "teamReform.meeting.scope").listRowBackground(Color.clear)
+                    Text("teamReform.meeting.scope").cyText(.bodyCompact).foregroundStyle(.secondary)
                     CYStatusChip("teamReform.dormantNotice", tone: .neutral, systemImage: "moon.zzz")
                 }
                 switch flow.phase {
@@ -201,7 +200,7 @@ struct TeamReformSheetHost: View {
                     CYPillButton("action.retry", style: .secondary) { Task { await box.run { await $0.open() } } }
                 case .active: if let meeting = flow.meeting { active(meeting) }
                 }
-            }.cyHeroScreen()
+            }.cyPageTitle("teamReform.meeting.title")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("team.close") { box.step { $0.close() }; dismiss() }.disabled(flow.busy) } }
                 .interactiveDismissDisabled(flow.busy)
         }.task { await box.run { await $0.open() } }
@@ -245,7 +244,7 @@ struct TeamReformSheetHost: View {
             Section {
                 Button("teamReform.meeting.cancel", role: .destructive) { Task { await box.run { await $0.cancel() } } }
                     .frame(minHeight: CYSpacing.minTouchTarget).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.cancel")
-                Text("teamReform.meeting.cancelNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                Text("teamReform.meeting.cancelNote").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
     }

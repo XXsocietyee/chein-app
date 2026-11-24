@@ -68,7 +68,7 @@ enum PublishClarityText {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             TopicPublicationHeadlineChip(headline: headline)
             Text("result.nextStep", tableName: PublishClarityText.table)
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                .cyText(.micro).foregroundStyle(CYColor.textSecondary)
             Group {
                 if let text = next.serverText { Text(verbatim: text) }
                 else if let key = next.fallbackKey { Text(LocalizedStringKey(key), tableName: PublishClarityText.table) }
@@ -326,7 +326,7 @@ enum PublishClarityText {
     private func notice(_ key: String) -> some View {
         Label { Text(LocalizedStringKey(key), tableName: PublishClarityText.table).fixedSize(horizontal: false, vertical: true) }
             icon: { Image(systemName: "arrow.triangle.2.circlepath") }
-            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.warningText)
+            .cyText(.bodyCompact).foregroundStyle(CYColor.warningText)
             .accessibilityIdentifier("publishClarity.check.agreement")
     }
     @ViewBuilder private func issueRow(_ issue: TopicPublishCheckIssue) -> some View {
@@ -358,7 +358,7 @@ enum PublishClarityText {
                 icon: { Image(systemName: issue.blocks ? "exclamationmark.circle" : "info.circle") }
                 .foregroundStyle(issue.blocks ? CYColor.dangerText : CYColor.textPrimary)
             Text(LocalizedStringKey(issue.blocks ? "check.level.error" : "check.level.warn"), tableName: PublishClarityText.table)
-                .cyText(.micro).foregroundStyle(CYColor.textSecondary)
+                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
     }

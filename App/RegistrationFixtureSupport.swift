@@ -150,7 +150,7 @@ struct RegistrationFixtureHostView: View {
             Button("registration.form.open") { presented = true }
                 .accessibilityIdentifier("registration.fixture.open")
         }
-        .sheet(isPresented: $presented) {
+        .sheet(isPresented: $presented) { Group {
             if let flow = model.expiryFlow {
                 RegistrationSheetView(fixtureFlow: flow)
                     .safeAreaInset(edge: .bottom) {
@@ -173,7 +173,7 @@ struct RegistrationFixtureHostView: View {
                     }
                     .modifier(AccessibilityFixtureOptions())
             }
-        }
+        }.cySheet() }
     }
 }
 

@@ -88,12 +88,14 @@ class TestDesignTokenUnificationContract(unittest.TestCase):
         # weight follows the mini-program (700 = .bold, was .heavy).
         self.assertIn("static var pageTitle: SwiftUI.Font { CYTextStyle.pageTitle.font }", theme)
         self.assertIn("static var button: SwiftUI.Font { CYTextStyle.button.font }", theme)
-        self.assertIn('Theme.length("--cy-type-page-title"), .bold', code)
-        self.assertIn('Theme.length("--cy-type-body")', code)
-        self.assertIn('Theme.length("--cy-type-micro")', code)
-        self.assertIn('Theme.length("--cy-type-data-xl")', code)
-        self.assertIn('Theme.length("--cy-type-data-2xl")', code)
-        self.assertIn('Theme.length("--cy-type-button"), .bold, lineHeight: 1.3, relativeTo: .callout, nativeStyle: .callout', code)
+        # Native iOS restyle r1 (owner, 11-24): every token is a semantic Dynamic Type style, nothing below .caption.
+        self.assertIn('case .pageTitle: return CYTypeSpec(.title, .bold', code)
+        self.assertIn('case .body: return CYTypeSpec(.body, .regular', code)
+        self.assertIn('case .micro: return CYTypeSpec(.caption,', code)
+        self.assertIn('case .dataXL: return CYTypeSpec(.largeTitle, .bold', code)
+        self.assertIn('case .button: return CYTypeSpec(.headline, .semibold)', code)
+        self.assertIn('.system(spec.textStyle, design: spec.design', code)
+        self.assertNotIn('CYTypeSpec(.caption2', code)
 
         # Ensure every required Theme.length/color/duration key actually exists in Theme+Generated.swift
         generated = (ROOT / "App/Theme/Theme+Generated.swift").read_text(encoding="utf-8")

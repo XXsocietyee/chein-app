@@ -56,11 +56,10 @@ import SwiftUI
                         .navigationTitle(Text(verbatim: screenTitle))
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar(.visible, for: .navigationBar)
-                        .background(CYNight.ink0)
+                        .background(CYColor.bgPage)
                 }
         }
-        .preferredColorScheme(.dark)
-        .background(CYNight.ink0)
+        .background(CYColor.bgPage)
         .onAppear(perform: open)
         .onChange(of: coordinator.identity) { _, _ in identityChanged() }
         .onDisappear {
@@ -88,29 +87,29 @@ import SwiftUI
             ScrollView {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     VStack(spacing: CYSpacing.sm) {
-                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.white.opacity(0.8))
+                        Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary)
                             .accessibilityHidden(true)
-                        Rectangle().fill(CYNight.ink2).frame(width: 2).frame(maxHeight: .infinity)
+                        Rectangle().fill(CYColor.bgSurfaceSubtle).frame(width: 2).frame(maxHeight: .infinity)
                     }
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(verbatim: displayName).cyText(.cardTitle).foregroundStyle(.white).cyWrapText()
+                        Text(verbatim: displayName).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
                             .accessibilityIdentifier("square.cloud.author")
                         ZStack(alignment: .topLeading) {
                             if contents.isEmpty {
                                 Text(verbatim: copy("有什么新鲜好玩的分享吗？", "Share something new?"))
-                                    .foregroundStyle(.white.opacity(0.45))
+                                    .foregroundStyle(.secondary)
                                     .accessibilityHidden(true)
                             }
                             TextEditor(text: $contents)
                                 .scrollContentBackground(.hidden)
                                 .frame(minHeight: 120)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(.primary)
                                 .disabled(lock.locksComposer)
                                 .accessibilityLabel(Text(verbatim: copy("帖文内容", "Post text")))
                                 .accessibilityIdentifier("square.cloud.text")
                         }
                         if let notice {
-                            Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.white.opacity(0.8))
+                            Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.secondary)
                                 .accessibilityIdentifier("square.cloud.notice")
                         }
                         previews
@@ -121,7 +120,7 @@ import SwiftUI
             }
             footer
         }
-        .background(CYNight.ink0)
+        .background(CYColor.bgPage)
         .onChange(of: contents) { _, value in
             if value.count > SquareComposeRules.maxLength { contents = SquareComposeRules.clip(value) }
         }
@@ -142,15 +141,15 @@ import SwiftUI
 
     private func chip(_ title: String, _ symbol: String, clear: @escaping () -> Void) -> some View {
         HStack(spacing: CYSpacing.sm) {
-            Image(systemName: symbol).foregroundStyle(.white)
-            Text(verbatim: title).cyWrapText().foregroundStyle(.white)
+            Image(systemName: symbol).foregroundStyle(.primary)
+            Text(verbatim: title).cyWrapText().foregroundStyle(.primary)
             Spacer(minLength: CYSpacing.sm)
             Button(action: clear) { Image(systemName: "xmark") }
                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 .accessibilityLabel(Text(verbatim: copy("清除", "Clear")))
         }
         .padding(.horizontal, CYSpacing.md)
-        .background(CYNight.ink1, in: Capsule())
+        .background(CYColor.bgSurface, in: Capsule())
     }
 
     private var tools: some View {
@@ -185,7 +184,7 @@ import SwiftUI
                 .accessibilityIdentifier("square.cloud.announce")
             }
         }
-        .foregroundStyle(.white)
+        .foregroundStyle(.primary)
     }
 
     private func tool(_ symbol: String, _ label: String, _ action: @escaping () -> Void) -> some View {
@@ -198,9 +197,9 @@ import SwiftUI
 
     private var footer: some View {
         HStack(spacing: CYSpacing.md) {
-            Image(systemName: "person.crop.circle.fill").foregroundStyle(.white.opacity(0.8)).accessibilityHidden(true)
+            Image(systemName: "person.crop.circle.fill").foregroundStyle(.secondary).accessibilityHidden(true)
             Text(verbatim: "\(contents.count)/\(SquareComposeRules.maxLength)")
-                .cyText(.meta, monospacedDigit: true).foregroundStyle(.white.opacity(0.72))
+                .cyText(.meta, monospacedDigit: true).foregroundStyle(.secondary)
                 .accessibilityIdentifier("square.cloud.count")
             Spacer(minLength: CYSpacing.sm)
             if lock.phase == .unknown {
@@ -225,7 +224,7 @@ import SwiftUI
             }
         }
         .padding(CYSpacing.lg)
-        .background(CYNight.ink1)
+        .background(CYColor.bgSurface)
     }
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
@@ -269,21 +268,21 @@ import SwiftUI
                 CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在读取草稿", "Loading drafts")))
                     .accessibilityIdentifier("square.cloud.drafts.loading")
             } else if drafts.isEmpty {
-                Text(verbatim: copy("还没有草稿", "No drafts yet")).cyText(.cardTitle).foregroundStyle(.white)
+                Text(verbatim: copy("还没有草稿", "No drafts yet")).cyText(.cardTitle).foregroundStyle(.primary)
                     .accessibilityIdentifier("square.cloud.drafts.empty")
                 Text(verbatim: copy("写到一半退出时会自动存成草稿，回到这里就能接着写。", "Leaving mid-write keeps a draft. Come back and continue."))
-                    .font(.subheadline).foregroundStyle(.white.opacity(0.72))
+                    .font(.subheadline).foregroundStyle(.secondary)
             } else {
                 ForEach(drafts) { row in
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         Button { pick(row) } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                 HStack {
-                                    Text(verbatim: row.nickname).cyText(.cardTitle).foregroundStyle(.white).cyWrapText()
+                                    Text(verbatim: row.nickname).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
                                     Spacer(minLength: CYSpacing.sm)
-                                    Text(verbatim: row.date).cyText(.meta).foregroundStyle(.white.opacity(0.62))
+                                    Text(verbatim: row.date).cyText(.meta).foregroundStyle(.secondary)
                                 }
-                                Text(verbatim: row.summary).font(.subheadline).foregroundStyle(.white.opacity(0.8)).lineLimit(2)
+                                Text(verbatim: row.summary).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
                             }
                         }
                         .buttonStyle(.borderless)
@@ -298,12 +297,12 @@ import SwiftUI
                     }
                 }
                 Text(verbatim: copy("只有 \(drafts.count) 条草稿", "Only \(drafts.count) drafts"))
-                    .cyText(.meta).foregroundStyle(.white.opacity(0.62))
+                    .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityIdentifier("square.cloud.drafts.count")
             }
             if let undo {
                 HStack {
-                    Text(verbatim: copy("草稿已删除", "Draft deleted")).foregroundStyle(.white)
+                    Text(verbatim: copy("草稿已删除", "Draft deleted")).foregroundStyle(.primary)
                     Spacer(minLength: CYSpacing.sm)
                     Button { restore(undo) } label: { Text(verbatim: copy("撤销", "Undo")) }
                         .accessibilityIdentifier("square.cloud.draft.undo")
@@ -314,20 +313,20 @@ import SwiftUI
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYNight.ink0)
+        .background(CYColor.bgPage)
         .accessibilityIdentifier("square.cloud.drafts.page")
     }
 
     private var reviewPage: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            Text(verbatim: contents).cyText(.body).foregroundStyle(.white).textSelection(.enabled)
+            Text(verbatim: contents).cyText(.body).foregroundStyle(.primary).textSelection(.enabled)
             if let selectedActivity {
                 Text(verbatim: copy("活动「\(selectedActivity.name)」不会写入这次提交", "Activity “\(selectedActivity.name)” is not part of this submit"))
-                    .font(.subheadline).foregroundStyle(.white.opacity(0.8))
+                    .font(.subheadline).foregroundStyle(.secondary)
             }
             if lock.phase == .unknown {
                 Text(verbatim: copy("结果还没核对。请求号 \(lock.requestID ?? SquareCountDisplay.unknownMark)", "The result is still unchecked. Request \(lock.requestID ?? SquareCountDisplay.unknownMark)"))
-                    .font(.subheadline).foregroundStyle(.white)
+                    .font(.subheadline).foregroundStyle(.primary)
                     .accessibilityIdentifier("square.cloud.unknown")
                 Button(action: confirmResult) {
                     Text(verbatim: copy("确认结果", "Check result")).frame(minHeight: CYSpacing.minTouchTarget)
@@ -336,12 +335,12 @@ import SwiftUI
                 .accessibilityIdentifier("square.cloud.confirmResult")
             } else if lock.phase == .receipt {
                 Text(verbatim: copy("已收到提交回执。刷新广场核对。这张回执不是新帖子的编号。", "A submit receipt arrived. Refresh the square to check it. The receipt is not a new post id."))
-                    .font(.subheadline).foregroundStyle(.white)
+                    .font(.subheadline).foregroundStyle(.primary)
                     .accessibilityIdentifier("square.cloud.receipt")
                 Button(action: onClose) { Text(verbatim: copy("关闭", "Close")).frame(minHeight: CYSpacing.minTouchTarget) }
                     .accessibilityIdentifier("square.cloud.receiptClose")
             } else if lock.phase == .rejected {
-                Text(verbatim: copy("没有发出去", "It was not sent")).cyText(.cardTitle).foregroundStyle(.white)
+                Text(verbatim: copy("没有发出去", "It was not sent")).cyText(.cardTitle).foregroundStyle(.primary)
                     .accessibilityIdentifier("square.cloud.rejected")
             } else if preparing || lock.phase == .sending {
                 CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在提交", "Submitting")))
@@ -355,12 +354,12 @@ import SwiftUI
                 .disabled(review == nil)
                 .accessibilityIdentifier("square.cloud.reviewPublish")
             }
-            if let notice { Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.white.opacity(0.8)) }
+            if let notice { Text(verbatim: notice).cyText(.bodyCompact).foregroundStyle(.secondary) }
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYNight.ink0)
+        .background(CYColor.bgPage)
         .task { await prepareReview() }
         .accessibilityIdentifier("square.cloud.review")
     }
@@ -376,13 +375,13 @@ import SwiftUI
 
     private func status(_ title: String, _ detail: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: title).cyText(.cardTitle).foregroundStyle(.white)
-            Text(verbatim: detail).font(.subheadline).foregroundStyle(.white.opacity(0.72))
+            Text(verbatim: title).cyText(.cardTitle).foregroundStyle(.primary)
+            Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary)
             Spacer(minLength: 0)
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYNight.ink0)
+        .background(CYColor.bgPage)
     }
 
     private func open() {
