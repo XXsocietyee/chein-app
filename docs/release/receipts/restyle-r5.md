@@ -11,7 +11,7 @@
 | text below the floor | `.font(.system(.caption2, design: .monospaced))` | `.caption` | 1 |
 | pushed-page title mode | `.navigationTitle(…)` with the mode unset (inherits large) | `+ .navigationBarTitleDisplayMode(.inline)` (City arrival evidence ×2, snapshot, merchant ops, merchant value, neutral task ×2, onsite task ×2) | 9 |
 | large title on pushed pages | `CityBoardView`, `CityMyPropertiesView` `.large` | `.inline` (both are pushed from the roam map root); lint "large title" 7 → 5 | 2 |
-| card radius | 16 / 14 on content cards (City deed compact + rows, board menu rows, roam audit section, passport track) | 12 (`CYRadius.card`) | 9 |
+| card radius | 16 / 14 on content cards (City deed compact + rows, board menu rows, roam audit section, passport track) | 12 (`CYRadius.card`) | 8 |
 | heavy shadows | roam home cards r10 @25 %, album photo r16 | r4 @12 %, r6 @50 % of overlay | 2 |
 | sheets | plain `.sheet { … }` with no detents | `Group { … }.presentationDetents([.large]).presentationDragIndicator(.visible)` (height unchanged). Skipped: share / camera / picker sheets, `cyDomainSheet` users, and views that set their own detents | 24 |
 | destructive without confirm | 隐藏这张印章 hid the received stamp at once (permanent) | `confirmationDialog` with the existing `roam.stamp.hide` / `.footer` strings | 1 |
