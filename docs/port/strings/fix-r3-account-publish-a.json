@@ -84,6 +84,57 @@
       }
     }
   },
+  "profile.edit.retrySave": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Retry save"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重试保存"
+        }
+      }
+    }
+  },
+  "profile.edit.saveFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Profile wasn't saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "资料没有保存成功"
+        }
+      }
+    }
+  },
+  "profile.edit.saving": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Saving profile…"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在保存资料"
+        }
+      }
+    }
+  },
   "profile.incompleteLink.backHome": {
     "extractionState": "manual",
     "localizations": {
