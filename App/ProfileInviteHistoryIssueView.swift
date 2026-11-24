@@ -5,8 +5,25 @@ import SwiftUI
 struct ProfileInviteHistoryIssueView: View {
     let error: Error
     var retry: (() -> Void)? = nil
+    @Environment(\.inviteHistoryIssueFullPage) private var fullPage
+    @Environment(\.inviteHistorySignIn) private var signIn
     var body: some View {
         let kind = ProfileInviteHistoryIssueKind(error)
+        if fullPage { page(kind) } else { inline(kind) }
+    }
+    /// FIN-20-4: MP cy-error fill size lg while no row is loaded: 登录 for signed-out, 重试 for ordinary failures.
+    private func page(_ kind: ProfileInviteHistoryIssueKind) -> some View {
+        let action: (() -> Void)? = kind == .signIn ? signIn : (kind.canRetry ? retry : nil)
+        return CYEmptyState(systemImage: kind == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle",
+                            LocalizedStringKey(kind.titleKey),
+                            detail: kind.detailKey.map { LocalizedStringKey($0) },
+                            messageIdentifier: "profile.inviteHistory.issue",
+                            actionTitle: action == nil ? nil : (kind == .signIn ? "auth.signIn" : "action.retry"),
+                            actionIdentifier: action == nil ? nil : "profile.inviteHistory.issue.action",
+                            kind: .failure,
+                            action: action)
+    }
+    private func inline(_ kind: ProfileInviteHistoryIssueKind) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             CYStatusChip(LocalizedStringKey(kind.titleKey), tone: .warning, systemImage: "exclamationmark.circle")
             if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
@@ -15,22 +32,16 @@ struct ProfileInviteHistoryIssueView: View {
     }
 }
 
-/// FIN-20-4: the full-page failure used while no row is loaded (MP cy-error fill, size lg).
-struct ProfileInviteHistoryPageIssueView: View {
-    let error: Error
-    var onSignIn: (() -> Void)? = nil
-    var retry: (() -> Void)? = nil
-    var body: some View {
-        let kind = ProfileInviteHistoryIssueKind(error)
-        let action: (() -> Void)? = kind == .signIn ? onSignIn : (kind.canRetry ? retry : nil)
-        CYEmptyState(systemImage: kind == .signIn ? "person.crop.circle.badge.exclamationmark" : "exclamationmark.triangle",
-                     LocalizedStringKey(kind.titleKey),
-                     detail: kind.detailKey.map { LocalizedStringKey($0) },
-                     messageIdentifier: "profile.inviteHistory.issue",
-                     actionTitle: action == nil ? nil : (kind == .signIn ? "auth.signIn" : "action.retry"),
-                     actionIdentifier: action == nil ? nil : "profile.inviteHistory.issue.action",
-                     kind: .failure,
-                     action: action)
+private struct InviteHistoryIssueFullPageKey: EnvironmentKey { static let defaultValue = false }
+private struct InviteHistorySignInKey: EnvironmentKey { static let defaultValue: (() -> Void)? = nil }
+extension EnvironmentValues {
+    var inviteHistoryIssueFullPage: Bool {
+        get { self[InviteHistoryIssueFullPageKey.self] }
+        set { self[InviteHistoryIssueFullPageKey.self] = newValue }
+    }
+    var inviteHistorySignIn: (() -> Void)? {
+        get { self[InviteHistorySignInKey.self] }
+        set { self[InviteHistorySignInKey.self] = newValue }
     }
 }
 

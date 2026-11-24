@@ -61,7 +61,7 @@ import SwiftUI
                                                presentationID: presentationID)
                         } label: {
                             // PLY-21-4: MP signup wxml:103-105 labels a cleared ticket 查看记录.
-                            if ticket.clearedFlag == true { Label("ticketWallet.play.viewRecord", systemImage: "clock.arrow.circlepath") }
+                            if ticket.clearedFlag == true { Label(c.t("查看记录", "View record"), systemImage: "clock.arrow.circlepath") }
                             else { Label("playerJourney.start", systemImage: "play.fill") }
                         }
                         .modifier(TicketWalletPlayButtonStyle(secondary: ticket.status == .ready))

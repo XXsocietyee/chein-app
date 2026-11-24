@@ -28,7 +28,7 @@ struct ProfileOrdersView: View {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, showsRefreshButton: false, load: { try await reader.profileOrders() }) { orders in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
                 VStack(spacing: 12) {
                     CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
@@ -72,6 +72,7 @@ struct ProfileOrdersView: View {
                 }
             }
         }
+        .environment(\.profileReadShowsRefreshButton, false)
         .appNavigationTitle("profile.orders.title").navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
         .onAppear { appearOrderSupport() }
@@ -275,8 +276,6 @@ struct ProfileOrderDetailView: View {
     var orderSupport: ProfileOrderSupportLookup? = nil
     var lookedUpOrderID: Int64? = nil
     var onOpenedOrder: ((Int) -> Void)? = nil
-    /// MP 登录 when a deep link opens the detail signed out. Nil keeps the state without a button.
-    var onSignIn: (() -> Void)? = nil
     @State private var ticketTarget: ProfileOrderTicketTarget?
     @State private var ticketEntryVisible = false
     @State private var ticketPresentationID = UUID()
@@ -285,7 +284,7 @@ struct ProfileOrderDetailView: View {
     @State private var copyToast: LocalizedStringKey?
     @State private var copyTone: CYToastTone = .success
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, onSignIn: onSignIn, showsRefreshButton: false, load: { try await reader.profileOrder(id: id) }) { order in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }) { order in
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
             List {
                 ProfileOrderHeroSection(order: order)
@@ -394,6 +393,7 @@ struct ProfileOrderDetailView: View {
             }
             }
         }
+        .environment(\.profileReadShowsRefreshButton, false)
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)

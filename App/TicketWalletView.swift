@@ -109,7 +109,17 @@ import SwiftUI
                         }
                     }
                 }
-                // PLY-21-6: no wallet-wide 我的队伍; the team row follows the current ticket on its detail (MP signup wxml:88-101).
+                if reader.isAuthenticated, let makeTeamCoordinator {
+                    Section {
+                        NavigationLink {
+                            TeamHomeView(coordinator: makeTeamCoordinator(), makeCoordinator: makeTeamCoordinator)
+                                .cyPushedChrome(domain: .player)
+                        } label: {
+                            Label("team.title", systemImage: "person.3")
+                        }
+                        .accessibilityIdentifier("ticketWallet.teams")
+                    }
+                }
                 // MP F-R2U-01: one lane failing leaves the other lane's tickets on screen with a quiet note, no red block.
                 if let partial = model.value(owner: key)?.partialFailure {
                     Text(LocalizedStringKey(partial.lane == .route ? "ticketWallet.partial.route" : "ticketWallet.partial.activity"))

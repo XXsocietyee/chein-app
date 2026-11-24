@@ -40,7 +40,7 @@ import SwiftUI
             case .ready:
                 if model.isCurrent, let card {
                     CharacterSheetDetailView(card: card, rpgSheet: card.rpgSheet, definitionSource: card.definitionSource,
-                                             attributeLevels: card.attributeLevels, onRefresh: { Task { await model.load() } })
+                                             attributeLevels: card.attributeLevels)
                         .refreshable { await model.load() }
                 } else {
                     CYLoadingState("characterCard.loading", messageIdentifier: "characterCard.loading")

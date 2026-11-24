@@ -29,9 +29,13 @@ import SwiftUI
     init(session: AppSession, onSignIn: (() -> Void)? = nil) {
         self.session = session
         self.onSignIn = onSignIn
-        _coordinator = State(initialValue: OrderLifecycleCoordinator(
+        _coordinator = State(initialValue: Self.makeCoordinator(session: session))
+    }
+    /// The only lifecycle coordinator factory for owned orders (list and deep-link detail share it).
+    static func makeCoordinator(session: AppSession) -> OrderLifecycleCoordinator {
+        OrderLifecycleCoordinator(
             reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader),
-            production: { [weak session] in session?.makeOrderLifecycleDispatcher() }))
+            production: { [weak session] in session?.makeOrderLifecycleDispatcher() })
     }
     var body: some View {
         ProfileOrdersView(reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
@@ -65,12 +69,11 @@ import SwiftUI
         self.session = session
         self.id = id
         self.onSignIn = onSignIn
-        _coordinator = State(initialValue: OrderLifecycleCoordinator(
-            reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader),
-            production: { [weak session] in session?.makeOrderLifecycleDispatcher() }))
+        _coordinator = State(initialValue: OwnedOrdersLifecycleHost.makeCoordinator(session: session))
     }
     var body: some View {
-        ProfileOrderDetailView(id: id, reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
+        ProfileOrderDetailView(id: id, reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader)
+            .environment(\.profileReadSignIn, onSignIn)
     }
 }
 

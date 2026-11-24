@@ -16,17 +16,14 @@ import SwiftUI
         let permit = model.permit(reader)
         List {
             if reader.isOfflineExample { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
-            // FIN-20-4: with no rows the MP shows a full-page cy-error (登录 / 当前身份不能查看 / 加载失败 + 重试).
-            if reader.identity.accountID == nil { ProfileInviteHistoryPageIssueView(error: APIError.unauthorized, onSignIn: onSignIn) }
+            if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
             else if !model.matches(reader) { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
             else if model.accessDenied, let error = model.error {
-                ProfileInviteHistoryPageIssueView(error: error, onSignIn: onSignIn)
-            }
-            else if let error = model.error, model.pagination.members.isEmpty {
-                ProfileInviteHistoryPageIssueView(error: error, onSignIn: onSignIn) { model.start(reader, permit: permit, reset: true) }
+                ProfileInviteHistoryIssueView(error: error)
             }
             else {
+                if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
                 // FIN-20-2: one hero (首购奖励积分 / 已邀请 N 人 · 已到账 M 人); no duplicate 累计邀请 row.
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), total: model.pagination.total,
                                                  coverageIncomplete: ProfileInviteHistoryPageReady.rewardCoverage(model.scan) != .complete,
@@ -53,8 +50,6 @@ import SwiftUI
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
                 if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
-                // A next-page failure keeps the rows and shows the inline retry at the bottom.
-                if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: false) } }
                 if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
                     CYPillButton("wallet.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
@@ -62,6 +57,9 @@ import SwiftUI
             }
         }
             // FIN-20-3: inline bar title, no second title in the content (type-and-chrome §2).
+            // FIN-20-4: with no rows the issue view becomes the MP full-page cy-error (登录 / 重试); with rows it stays inline.
+            .environment(\.inviteHistoryIssueFullPage, model.pagination.members.isEmpty)
+            .environment(\.inviteHistorySignIn, onSignIn)
             .cyPageTitle("social.invites.title").cyPushedChrome(domain: .player).privacySensitive()
             .onAppear { model.appear(reader) }
             .onChange(of: binding) { _, _ in model.replaceReader(reader) }

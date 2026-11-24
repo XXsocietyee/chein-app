@@ -10,8 +10,9 @@ import QuestifyCore
     var rpgSheet: CharacterRpgSheet? = nil
     var definitionSource: String? = nil
     var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
-    /// PLY-24-6: MP character/index.wxml:61 ends the ready card with a secondary 刷新角色卡. Nil hides it.
-    var onRefresh: (() -> Void)? = nil
+    /// PLY-24-6: MP character/index.wxml:61 ends the ready card with a secondary 刷新角色卡. It uses the host's
+    /// `.refreshable` action, so a host without pull-to-refresh shows no button.
+    @Environment(\.refresh) private var refreshAction
 
     @Environment(\.locale) private var locale
     @State private var showingDice = false
@@ -47,8 +48,8 @@ import QuestifyCore
                     CYCard { rpgContent(rpg) }
                 }
 
-                if let onRefresh {
-                    Button(action: onRefresh) { Text("characterCard.refresh") }
+                if let refreshAction {
+                    Button { Task { await refreshAction() } } label: { Text("characterCard.refresh") }
                         .buttonStyle(.cySecondary(fullWidth: true))
                         .accessibilityIdentifier("characterCard.refresh.ready")
                 }

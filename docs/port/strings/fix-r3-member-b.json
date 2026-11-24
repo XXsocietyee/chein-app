@@ -100,22 +100,5 @@
         }
       }
     }
-  },
-  "ticketWallet.play.viewRecord": {
-    "extractionState": "manual",
-    "localizations": {
-      "en": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "View record"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "查看记录"
-        }
-      }
-    }
   }
 }
