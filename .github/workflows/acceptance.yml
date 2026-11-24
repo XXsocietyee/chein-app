@@ -1,0 +1,257 @@
+name: Acceptance
+on:
+  push:
+    branches:
+      - 'port/**'
+      - ui/combined-r7
+      - ci/acceptance
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: check compares failing test names to the baseline; record uploads the observed names
+        type: choice
+        options:
+          - check
+          - record
+        default: check
+permissions:
+  contents: read
+env:
+  ACCEPTANCE_MODE: ${{ github.event.inputs.mode || 'check' }}
+jobs:
+  baselines:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Check mode requires baseline files
+        run: |
+          set -euo pipefail
+          if [ "$ACCEPTANCE_MODE" != "check" ]; then
+            echo "record mode: a missing baseline is not a failure"
+            exit 0
+          fi
+          missing=0
+          for path in docs/release/baselines/core.txt docs/release/baselines/appunit.txt; do
+            if [ ! -f "$path" ]; then
+              echo "baseline missing: $path"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+  gates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Scaffold
+        run: python3 -B tools/check_scaffold.py
+      - name: Typography lint
+        run: python3 -B tools/check_typography_lint.py
+      - name: Contract ratchet
+        run: python3 -B tools/contract_ratchet.py --check
+
+  debug-build:
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v4
+        with:
+          path: DerivedData
+          key: acceptance-debug-${{ hashFiles('Questify.xcodeproj/project.pbxproj', 'Package.swift') }}
+      - name: Select newest Xcode
+        run: python3 -B .github/acceptance_support.py xcode
+      - name: Simulator destination
+        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
+      - name: Debug simulator build
+        run: |
+          set -o pipefail
+          dest="$(tr -d '\n' < simulator-destination.txt)"
+          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "$dest" -derivedDataPath DerivedData -resultBundlePath debug-build.xcresult CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build | tee debug-build.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: debug-build
+          path: |
+            debug-build.log
+            debug-build.xcresult
+          if-no-files-found: ignore
+
+  core-tests:
+    needs: baselines
+    runs-on: macos-26
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Select newest Xcode
+        run: python3 -B .github/acceptance_support.py xcode
+      - name: Core package tests
+        run: |
+          set -euo pipefail
+          set +e
+          swift test --package-path . 2>&1 | tee core-tests.log
+          code="${PIPESTATUS[0]}"
+          set -e
+          echo "$code" > core-exit.txt
+          exit 0
+      - name: Collect failing names
+        id: collect
+        if: always()
+        run: python3 -B .github/acceptance_support.py collect --log core-tests.log --exit core-exit.txt --failures-out core-failures.txt --status-out core-status.txt
+      - name: Compare with baseline
+        id: gate
+        if: steps.collect.outcome == 'success'
+        run: python3 -B .github/acceptance_support.py gate --mode "$ACCEPTANCE_MODE" --baseline docs/release/baselines/core.txt --failures core-failures.txt --status core-status.txt --record baseline-core.txt
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: core-tests-log
+          path: |
+            core-tests.log
+            core-failures.txt
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: ${{ steps.gate.outcome == 'success' && env.ACCEPTANCE_MODE == 'record' }}
+        with:
+          name: baseline-core.txt
+          path: baseline-core.txt
+          if-no-files-found: error
+
+  appunit:
+    needs: baselines
+    runs-on: macos-26
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v4
+        with:
+          path: DerivedData
+          key: acceptance-appunit-${{ matrix.shard }}-${{ hashFiles('Questify.xcodeproj/project.pbxproj') }}
+      - name: Select newest Xcode
+        run: python3 -B .github/acceptance_support.py xcode
+      - name: Simulator destination
+        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
+      - name: AppUnit shard
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          python3 -B .github/acceptance_support.py only-testing --shard "$SHARD" > only-testing.args
+          dest="$(tr -d '\n' < simulator-destination.txt)"
+          set +e
+          xcodebuild -project Questify.xcodeproj -scheme QuestifyAppUnitTests -configuration Debug -sdk iphonesimulator -destination "$dest" -derivedDataPath DerivedData -resultBundlePath "appunit-${SHARD}.xcresult" CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES test $(cat only-testing.args) | tee "appunit-${SHARD}.log"
+          code="${PIPESTATUS[0]}"
+          set -e
+          echo "$code" > "appunit-${SHARD}-exit.txt"
+          exit 0
+      - name: Collect failing names
+        id: collect
+        if: always()
+        run: python3 -B .github/acceptance_support.py collect --log "appunit-${{ matrix.shard }}.log" --exit "appunit-${{ matrix.shard }}-exit.txt" --failures-out "appunit-${{ matrix.shard }}-failures.txt" --status-out "appunit-${{ matrix.shard }}-status.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: appunit-shard-${{ matrix.shard }}
+          path: |
+            appunit-${{ matrix.shard }}.log
+            appunit-${{ matrix.shard }}.xcresult
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: appunit-failures-${{ matrix.shard }}
+          path: |
+            appunit-${{ matrix.shard }}-failures.txt
+            appunit-${{ matrix.shard }}-status.txt
+          if-no-files-found: error
+
+  appunit-baseline:
+    needs: appunit
+    if: ${{ always() && !cancelled() && needs.appunit.result != 'skipped' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: appunit-failures-*
+          path: appunit-shards
+          merge-multiple: true
+      - name: Compare shard failures with baseline
+        id: gate
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          args=()
+          statuses=(appunit-shards/appunit-*-status.txt)
+          failures=(appunit-shards/appunit-*-failures.txt)
+          if [ ${#statuses[@]} -eq 0 ]; then
+            echo "no AppUnit shard status files were downloaded"
+            exit 1
+          fi
+          for path in "${statuses[@]}"; do args+=(--status "$path"); done
+          for path in "${failures[@]}"; do args+=(--failures "$path"); done
+          python3 -B .github/acceptance_support.py gate --mode "$ACCEPTANCE_MODE" --baseline docs/release/baselines/appunit.txt --record baseline-appunit.txt --expected-statuses 4 "${args[@]}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: ${{ steps.gate.outcome == 'success' && env.ACCEPTANCE_MODE == 'record' }}
+        with:
+          name: baseline-appunit.txt
+          path: baseline-appunit.txt
+          if-no-files-found: error
+
+  screenshot-plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      needed: ${{ steps.plan.outputs.needed }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Look for DEBUG fixture routes
+        id: plan
+        run: |
+          set -euo pipefail
+          needed="$(python3 -B .github/acceptance_support.py screenshot-needed)"
+          echo "needed=${needed}" >> "$GITHUB_OUTPUT"
+          echo "screenshot needed: ${needed}"
+
+  screenshots:
+    needs: screenshot-plan
+    if: needs.screenshot-plan.outputs.needed == 'true'
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Select newest Xcode
+        run: python3 -B .github/acceptance_support.py xcode
+      - name: Simulator destination
+        run: python3 -B .github/acceptance_support.py destination --out simulator-destination.txt
+      - name: Launch DEBUG fixtures and screenshot
+        run: python3 -B .github/acceptance_support.py screenshots --destination-file simulator-destination.txt --out acceptance-shots
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: acceptance-screenshots
+          path: acceptance-shots
+          if-no-files-found: ignore
