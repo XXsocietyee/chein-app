@@ -534,7 +534,9 @@ struct JourneyReportView: View {
                         MPRow(title: Text("mp.report.rankRow"), sub: report.rankBasisCount.map { Text("mp.report.rankBasis \($0)") },
                               value: report.rank.map { Text("mp.report.rank \($0)") } ?? Text("mp.report.noRank"), strong: report.rank != nil, chevron: true)
                     }
-                    .buttonStyle(.plain).accessibilityIdentifier("journeyReport.rank")
+                    .buttonStyle(.plain)
+                    .accessibilityHint(Text("mp.report.rank.hint"))  // JREPORT-9: says it opens the board
+                    .accessibilityIdentifier("journeyReport.rank")
                     if let penalty = report.penaltyText {
                         MPDivider()
                         MPRow(title: Text("mp.report.penalty"), value: Text(verbatim: penalty))
@@ -605,8 +607,9 @@ struct JourneyReportView: View {
 
     private func stat(_ value: Text, _ label: LocalizedStringKey) -> some View {
         VStack(spacing: CYSpacing.xxs) {
+            // JREPORT-8: a long 用时 (1天 3小时 12分) in a third of the width stays one line and scales down.
             value.cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                .cyWrapText(alignment: .center)
+                .lineLimit(1).minimumScaleFactor(0.6).multilineTextAlignment(.center)
             Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .frame(maxWidth: .infinity)
@@ -614,7 +617,6 @@ struct JourneyReportView: View {
     }
 }
 
-/// P8 memory as one timeline: the day is written once per change, one dot per stop, photo under its stop.
 struct JourneyNodePhotoSelection: Identifiable, Equatable {
     let nodeID: String
     var id: String { nodeID }
@@ -659,6 +661,7 @@ struct JourneyNodePhotoPager: View {
     }
 }
 
+/// P8 memory as one timeline: the day is written once per change, one dot per stop, photo under its stop.
 struct JourneyMemoryTimeline: View {
     let phase: JourneyMemoryPhase
     let onRetry: () -> Void
@@ -706,7 +709,8 @@ struct JourneyMemoryTimeline: View {
                                     AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
                                         .frame(height: 180).frame(maxWidth: .infinity)
                                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                        .accessibilityHidden(true)
+                                        // JREPORT-9: the photo is described, not silently merged into the row.
+                                        .accessibilityLabel(Text("mp.report.memory.photo \(moment.name ?? "")"))
                                 }
                             }
                             .padding(.bottom, CYSpacing.md)

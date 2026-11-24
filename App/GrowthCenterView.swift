@@ -173,11 +173,9 @@ extension RootTabSwitch {
             Spacer(minLength: CYSpacing.sm)
             if reader.offersLeaderboard {
                 NavigationLink { GrowthLeaderboardView(reader: reader) } label: {
-                    HStack(spacing: CYSpacing.xs) {
-                        Text("growth.board.link")
-                        Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
-                    }
-                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                    // GROWTH-9: the List row draws the system disclosure; no hand-made chevron beside it.
+                    Text("growth.board.link")
+                        .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 .frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
             }

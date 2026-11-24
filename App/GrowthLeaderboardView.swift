@@ -211,7 +211,7 @@ struct GrowthPodiumMark: View {
     }
 }
 
-/// Mini-program chip pair (周榜 / 总榜, 积分榜 / 成长榜): capsules, the selected one solid.
+/// Mini-program chip pair (周榜 / 总榜, 积分榜 / 成长榜) on the shared chip tabs.
 private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
     @Environment(\.cyPalette) private var palette
     let title: LocalizedStringKey
@@ -221,24 +221,14 @@ private struct GrowthBoardChips<Option: Hashable & Identifiable>: View {
     init(title: LocalizedStringKey, selection: Binding<Option>, options: [Option], key: @escaping (Option) -> String) {
         self.title = title; self._selection = selection; self.options = options; self.key = key
     }
+    @Environment(\.locale) private var locale
+    /// LEADER-7: the shared chip tabs (`CYTabs(variant: .chip)`), not a hand-rolled capsule row.
     var body: some View {
-        HStack(spacing: CYSpacing.sm) {
-            ForEach(options) { option in
-                let selected = selection == option
-                Button { selection = option } label: {
-                    Text(LocalizedStringKey(key(option)))
-                        .font(selected ? CYTypography.label.weight(.semibold) : CYTypography.label)
-                        .foregroundStyle(selected ? palette.actionPrimaryFg : palette.textPrimary)
-                        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-                        .background(selected ? palette.actionPrimaryBg : palette.bgElevated, in: Capsule())
-                }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(selected ? .isSelected : [])
-            }
-        }
-        .sensoryFeedback(.selection, trigger: selection)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(Text(title))
+        CYTabs(items: options.map { CYTabItem(id: $0, title: appLocalized(String.LocalizationValue(key($0)), locale: locale)) },
+               selection: $selection, variant: .chip)
+            .sensoryFeedback(.selection, trigger: selection)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(title))
     }
 }
 
@@ -259,9 +249,15 @@ private struct GrowthLeaderboardPodiumView: View {
     }
     private func column(_ entry: GrowthLeaderboardEntry, place: Int) -> some View {
         let side: CGFloat = place == 1 ? 96 : 76
-        let ring = place == 1 && themeDomain == .player ? palette.avatarRing : palette.borderStrong
+        // LEADER-6 (MP RING_BG): gold / pale gold / bronze rings for 1 · 2 · 3.
+        let ring = place == 1 ? Color(red: 0.96, green: 0.77, blue: 0.26)
+            : place == 2 ? Color(red: 0.90, green: 0.77, blue: 0.42) : Color(red: 0.85, green: 0.59, blue: 0.29)
         let name = GrowthCenterFormatting.nonempty(entry.nickname)
         return VStack(spacing: CYSpacing.sm) {
+            // LEADER-6: MP `gc-crown` star above the first place (decorative).
+            if place == 1 {
+                Image(systemName: "star.fill").foregroundStyle(ring).accessibilityHidden(true)
+            }
             ZStack(alignment: .bottom) {
                 GrowthMemojiAvatar(index: place - 1, side: side)
                     .overlay(Circle().strokeBorder(ring, lineWidth: 3))
