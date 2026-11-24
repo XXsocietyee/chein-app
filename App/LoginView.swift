@@ -43,7 +43,7 @@ struct LoginView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    WelcomeHero().scaleEffect(0.9).frame(height: 262).padding(.top, CYSpacing.lg)
+                    brandMark.padding(.top, CYSpacing.xl)
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text("auth.login.headline").cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
@@ -182,6 +182,26 @@ struct LoginView: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: close) } }
         }
     }
+    /// Brand mark and wordmark. Both source files are near-black, so they template to the primary text colour.
+    private var brandMark: some View {
+        VStack(spacing: CYSpacing.md) {
+            MPAsset.BrandLogo.cyLogoMark
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 88, height: 88)
+            MPAsset.BrandLogo.dLogo
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 36)
+        }
+        .foregroundStyle(CYColor.textPrimary)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: "城瘾"))
+    }
+
     private func loginField<Field: View>(icon: String, @ViewBuilder _ field: () -> Field) -> some View {
         HStack(spacing: CYSpacing.md) {
             Image(systemName: icon).font(.system(.subheadline, weight: .semibold)).foregroundStyle(CYColor.textSecondary)

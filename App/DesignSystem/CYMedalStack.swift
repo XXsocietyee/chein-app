@@ -34,6 +34,33 @@ private struct CYMedalOrder {
     var front: Int? { order.first }
 }
 
+/// Mini-program medal and badge glyphs. Unknown symbols stay SF Symbols (back, share, and other controls are not medals).
+enum CYMedalGlyph {
+    static func image(for symbol: String) -> Image? {
+        switch symbol {
+        case "rosette", "medal.fill": return MPAsset.BadgeMedal.medal3d
+        case "medal": return MPAsset.BadgeMedal.medal
+        case "seal", "seal.fill": return MPAsset.BadgeMedal.glassBadge
+        case "trophy": return MPAsset.BadgeMedal.trophy
+        case "trophy.fill": return MPAsset.BadgeMedal.glTrophy
+        case "book", "book.closed", "book.pages": return MPAsset.BadgeMedal.glBook
+        case "clock", "clock.fill": return MPAsset.BadgeMedal.glClock
+        case "storefront", "storefront.fill", "bag", "bag.fill": return MPAsset.BadgeMedal.glShop
+        case "sparkles": return MPAsset.BadgeMedal.glSpark
+        case "stamp": return MPAsset.BadgeMedal.glStamp
+        case "figure.walk": return MPAsset.BadgeMedal.glWalk
+        case "shippingbox", "shippingbox.fill": return MPAsset.BadgeMedal.micChest
+        case "mountain.2", "mountain.2.fill", "globe": return MPAsset.BadgeMedal.micEnv
+        case "key", "key.fill": return MPAsset.BadgeMedal.micKey
+        case "leaf", "leaf.fill": return MPAsset.BadgeMedal.micLeaf
+        case "moon", "moon.fill", "moon.stars", "moon.stars.fill": return MPAsset.BadgeMedal.micMoon
+        case "checkmark.seal", "checkmark.seal.fill": return MPAsset.BadgeMedal.micStamp
+        case "laurel.leading", "laurel.trailing": return MPAsset.BadgeMedal.laurel
+        default: return nil
+        }
+    }
+}
+
 /// Hexagon face: lantern bloom behind, artwork or glyph inside, foil sheen on top.
 struct CYMedalFace: View {
     let item: CYMedalItem
@@ -55,6 +82,11 @@ struct CYMedalFace: View {
                 CYCachedAsyncImage(url, role: .shelf)
                     .frame(width: side * 0.7, height: side * 0.7)
                     .clipShape(CYHexagon())
+            } else if let art = CYMedalGlyph.image(for: item.systemImage) {
+                art
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: side * 0.72, height: side * 0.72)
             } else {
                 Image(systemName: item.systemImage)
                     .font(.system(size: side * 0.36, weight: .semibold))
@@ -295,7 +327,14 @@ struct CYMedalScreen: View {
     private func statCell(_ stat: CYStoryStat) -> some View {
         HStack(spacing: CYSpacing.sm) {
             if let image = stat.systemImage {
-                Image(systemName: image).font(.title3).foregroundStyle(CYNight.lantern).frame(width: 28).accessibilityHidden(true)
+                Group {
+                    if let art = CYMedalGlyph.image(for: image) {
+                        art.resizable().scaledToFit().frame(width: 28, height: 28)
+                    } else {
+                        Image(systemName: image).font(.title3).foregroundStyle(CYNight.lantern).frame(width: 28)
+                    }
+                }
+                .accessibilityHidden(true)
             }
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(LocalizedStringKey(stat.key)).cyText(.micro).foregroundStyle(.white.opacity(0.6))
@@ -314,7 +353,10 @@ struct CYMedalScreen: View {
 
     private func recordCard(_ record: Record) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Label("medalScreen.newRecord", systemImage: "trophy.fill").cyText(.label).foregroundStyle(CYNight.lantern)
+            HStack(spacing: CYSpacing.xs) {
+                MPAsset.BadgeMedal.glTrophy.resizable().scaledToFit().frame(width: 18, height: 18).accessibilityHidden(true)
+                Text("medalScreen.newRecord").cyText(.label).foregroundStyle(CYNight.lantern)
+            }
             Text(verbatim: record.label).cyText(.meta).foregroundStyle(.white.opacity(0.66))
             Text(verbatim: record.text).cyText(.sectionTitle).foregroundStyle(.white)
             if !record.tag.isEmpty { CYStatusChip(verbatim: record.tag) }

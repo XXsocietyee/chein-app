@@ -76,12 +76,12 @@ struct CYSquareRouteMapCard: View {
             ForEach(Array(route.nodes.enumerated()), id: \.element.id) { index, node in
                 Annotation(node.title, coordinate: node.coordinate) {
                     Button { selected = selected == node.id ? nil : node.id } label: {
-                        Text(verbatim: "\(index + 1)")
-                            .cyText(.caption, weight: .bold, monospacedDigit: true)
-                            .foregroundStyle(CYNight.ink0)
-                            .frame(width: 28, height: 28)
-                            .background(Circle().fill(CYNight.lantern))
-                            .overlay(Circle().strokeBorder(CYNight.lanternHot, lineWidth: 2))
+                        CYMapMarker(kind: .route, selected: selected == node.id)
+                            .overlay {
+                                Text(verbatim: "\(index + 1)")
+                                    .cyText(.caption, weight: .bold, monospacedDigit: true)
+                                    .foregroundStyle(CYNight.ink0)
+                            }
                             .scaleEffect(selected == node.id && !reduceMotion ? 1.15 : 1)
                     }
                     .buttonStyle(.plain)

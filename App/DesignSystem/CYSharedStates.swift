@@ -415,6 +415,53 @@ public extension View {
     }
 }
 
+// MARK: - Empty illustration
+
+/// Mini-program empty art. Generic is the `cy/empty` background plus figure (the tray slot).
+/// Ticket and no-data are the other two shared empty illustrations.
+struct CYEmptyIllustration: View {
+    enum Kind { case generic, ticket, noData }
+
+    var kind: Kind = .generic
+    var size: CGFloat = 132
+
+    var body: some View {
+        ZStack {
+            switch kind {
+            case .generic:
+                MPAsset.EmptyState.emptyStateBg
+                    .resizable()
+                    .scaledToFit()
+                MPAsset.EmptyState.emptyStateFigure
+                    .resizable()
+                    .scaledToFit()
+                    .padding(size * 0.08)
+            case .ticket:
+                MPAsset.EmptyState.iconTicketEmpty
+                    .resizable()
+                    .scaledToFit()
+                    .padding(size * 0.18)
+            case .noData:
+                MPAsset.EmptyState.noData
+                    .resizable()
+                    .scaledToFit()
+            }
+        }
+        .frame(width: size * 1.2, height: size * 1.1)
+        .accessibilityHidden(true)
+    }
+
+    /// Symbol → illustration. `nil` keeps the themed state art (search stays the magnifier).
+    static func kind(matching symbol: String) -> Kind? {
+        switch symbol {
+        case "tray": return .generic
+        case "sparkles": return .noData
+        case "ticket", "ticket.fill": return .ticket
+        default: return nil
+        }
+    }
+}
+
 // MARK: - Previews (synthetic, preview-only)
 
 #Preview("Shared states - dark (player)") {

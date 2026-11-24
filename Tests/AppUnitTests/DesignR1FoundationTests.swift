@@ -64,8 +64,8 @@ final class DesignR1FoundationTests: XCTestCase {
 
     func testPlayerTabsCarryTheFiveMiniProgramLabels() {
         XCTAssertEqual(RootTab.playerTabs.map(\.playerTitleKey), ["tabBar.home", "tabBar.roam", "tabBar.publish", "tabBar.club", "tabBar.mine"])
-        XCTAssertEqual(CYDomainTabIcons.icon(for: .home, domain: .player), CYDomainTabIcon(idle: "house", selected: "house.fill"))
-        XCTAssertEqual(CYDomainTabIcons.icon(for: .mine, domain: .player).idle, "person.crop.circle")
+        XCTAssertEqual(CYDomainTabIcons.icon(for: .home, domain: .player), CYDomainTabIcon(idle: "images_icon_f1", selected: "images_icon_f01d", selectedIsOriginal: true))
+        XCTAssertEqual(CYDomainTabIcons.icon(for: .mine, domain: .player).idle, "images_icon_f5")
         XCTAssertEqual(CYDomainTabIcons.titleKey(for: .mine, domain: .player), "tabBar.mine")
     }
 

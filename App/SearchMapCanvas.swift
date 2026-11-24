@@ -98,23 +98,10 @@ struct QuestifyMapPinSymbol: View {
     @ScaledMetric(relativeTo: .body) private var diameter = 44.0
     @Environment(\.colorSchemeContrast) private var contrast
     var body: some View {
-        Image(systemName: symbol)
-            .font(.body.bold())
-            .foregroundStyle(QuestifyMapAppearance.markerGlyph)
+        CYMapMarker(symbol: symbol, selected: selected)
             .frame(width: max(44, diameter), height: max(44, diameter))
-            .background(QuestifyMapAppearance.markerFill, in: Circle())
-            .padding(4)
-            .background(QuestifyMapAppearance.surface, in: Circle())
             .overlay(Circle().strokeBorder(QuestifyMapAppearance.markerEdge,
-                lineWidth: selected ? 3 : (contrast == .increased ? 2 : 1)))
-            .overlay(alignment: .bottomTrailing) {
-                if selected {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.body.bold())
-                        .foregroundStyle(QuestifyMapAppearance.markerEdge)
-                        .background(QuestifyMapAppearance.surface, in: Circle())
-                }
-            }
+                lineWidth: selected ? 3 : (contrast == .increased ? 2 : 1)).opacity(selected ? 1 : 0))
             .accessibilityHidden(true)
     }
 }

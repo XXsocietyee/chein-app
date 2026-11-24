@@ -835,16 +835,6 @@ public struct CYAvatarView: View {
         size.rawValue * min(max(scaleFactor, 0.85), 1.35)
     }
 
-    private var monogramFont: Font {
-        switch size {
-        case .xs: return CYTypography.micro
-        case .sm: return CYTypography.caption
-        case .md: return CYTypography.label
-        case .lg: return CYTypography.sectionTitle
-        case .xl: return CYTypography.pageTitle
-        }
-    }
-
     public var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Group {
@@ -897,11 +887,8 @@ public struct CYAvatarView: View {
     }
 
     private var fallbackView: some View {
-        ZStack {
-            CYColor.brandSoft
-            Text(verbatim: Self.monogram(for: name))
-                .font(monogramFont)
-                .foregroundStyle(CYColor.brand)
-        }
+        MPAsset.AvatarDefault.dProfile
+            .resizable()
+            .scaledToFill()
     }
 }

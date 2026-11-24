@@ -656,7 +656,7 @@ struct SessionRootView: View {
 
 
     private func rootTabLabel(_ tab: RootTab) -> some View {
-        Label(LocalizedStringKey(tab.playerTitleKey), systemImage: tab.playerSystemImage)
+        CYDomainTabLabel(tab: tab, selected: selectedTab, domain: .player)
     }
 }
 

@@ -1459,8 +1459,7 @@ struct SessionMerchantRootContainerView: View {
     }
 
     private func merchantTabLabel(_ tab: MerchantRootBusinessTab) -> some View {
-        let descriptor = tab.descriptor
-        return Label(LocalizedStringKey(descriptor.titleKey), systemImage: descriptor.systemImage)
+        CYDomainTabLabel(tab: tab.rootTab, selected: coordinator.selectedMerchantTab.rootTab, domain: .merchant)
     }
 }
 
