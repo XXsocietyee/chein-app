@@ -7,6 +7,8 @@ import SwiftUI
     let query: [String: String]
     @EnvironmentObject private var session: AppSession
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    /// Perks deep link: the TEST-only template executor (nil where merchant writes are closed).
+    @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
     /// RNEAR-5 / RTEAMS-4: the signed-out team pages offer 登录, which opens 我的 (the app's sign-in home).
     private var openSignIn: (() -> Void)? {
         guard rootTabSwitch.isAvailable else { return nil }
@@ -412,6 +414,7 @@ import SwiftUI
             } else {
                 MerchantMissingParamState(title: LocalizedStringKey(MerchantOrderDetailLink.missing))
             }
+        // MC7-35-1 / MC7-35-2: settlement-detail `source` finance | ledger | club (MerchantSettlementDetailLink).
         case "pages/coop/settlement-detail/index":
             CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: query)
         case "pages/merchant/ledger/batch-detail/index":
@@ -456,16 +459,6 @@ import SwiftUI
             CoopFinanceProfitView(reader: session.cooperationFlowReader)
                 .environment(\.coopWalletReader, session.walletCommerceReader)
                 .cyPushedChrome(domain: .merchant)
-        // MC7-35-1 / MC7-35-2: settlement-detail `source` finance | ledger | club (MerchantSettlementDetailLink).
-        case "pages/coop/settlement-detail/index":
-            if let link = MerchantSettlementDetailLink.resolve(query) {
-                if link.source == .club {
-                    CoopClubSettlementDetailView(reader: session.cooperationFlowReader, link: link)
-                } else if let id = Int(link.recordID), id > 0 {
-                    CoopSettlementDetailView(reader: session.cooperationFlowReader, source: link.source == .finance ? .finance : .mybiz, id: id)
-                        .cyPushedChrome(domain: .merchant)
-                } else { settlementMissing }
-            } else { settlementMissing }
         // MC7-30-2: coop list opens on the linked tab. The topic-only scope (CooperationInboxTopicFilter) is not seeded yet.
         case "pages/coop/list/index":
             CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
@@ -485,6 +478,43 @@ import SwiftUI
         case "pages/coop/invite/index":
             CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil)
                 .cyPushedChrome(domain: .merchant)
+        // flows-g2 (round 3): merchant decor / city-node / game-node MP paths (query-free in MiniProgramPageLink).
+        // decor opens 品牌中心 with the same factory and perks / city-node destinations as the merchant tab.
+        case "pages/merchant/decor/index":
+            MerchantOperationsHomeView(reader: session.merchantOperationsReader,
+                                       destinationFactory: { session.merchantOperationsDestination($0, access: $1) })
+                .environment(\.merchantPerkTemplatesDestination, {
+                    AnyView(MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor()))
+                })
+                .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
+                .id(session.merchantOperationsReader.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/decor/gallery/index", "pages/merchant/decor/coop-setting/index", "pages/merchant/decor/ai-npc/index":
+            MerchantDecorLinkedPage(reader: session.merchantOperationsReader,
+                                    destination: page.contains("/gallery/") ? .gallery : page.contains("/coop-setting/") ? .cooperation : .character,
+                                    open: { session.merchantOperationsDestination($0, access: $1) })
+                .id(session.merchantOperationsReader.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/decor/perks/index":
+            MerchantPerkTemplatesHost(reader: session.cooperationFlowReader, executor: coopFlowWrite?.executor())
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/citynode/index":
+            session.merchantCityNodeHub()
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/citynode/create/index":
+            MerchantCityNodeCreateView(service: session.merchantContentService, placeSearch: PublishingMapKitAdapter())
+                .id(session.merchantContentService.scope)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/game-node/index":
+            // The link rule is query-free today, so `activityId` cannot arrive yet: the entry list (选择场次) opens instead.
+            if let activityID = queryID(query, "activityId") {
+                SessionMerchantGameNodeView(session: session, activityID: activityID)
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantGameNodeEntryView(service: session.merchantGameNodeService, topicID: nil)
+                    .id(session.merchantContentService.scope)
+                    .cyPushedChrome(domain: .merchant)
+            }
         case "pages/merchant/coop-center/index":
             session.merchantCoopCenterDestination()
         case "pages/coop/nearby/index":
@@ -807,12 +837,6 @@ import SwiftUI
         }
     }
 
-    /// MP settlement-detail `missing-param`: 缺少结算记录信息 + 返回.
-    private var settlementMissing: some View {
-        MerchantCoopActionState(systemImage: "doc.text.magnifyingglass", title: "merchantCoop.settlement.missingParam",
-                                actionTitle: "merchantCoop.settlement.back", action: { session.dismissNativeEntry() },
-                                identifier: "coop.settlement.missingParam")
-    }
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
