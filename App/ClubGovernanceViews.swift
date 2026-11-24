@@ -710,6 +710,7 @@ struct ClubGovernanceReadView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
+        .safeAreaInset(edge: .bottom) { topicPrimaryFooter }
         .cyGroupedSurface()
         .cyPageTitle(String.LocalizationValue(stringLiteral: "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
@@ -1548,7 +1549,7 @@ struct ClubGovernanceReadView: View {
                     snapshotGeneration == terminalGeneration && identity == access.identity && scenePhase == .active
                 }, presentation: terminalPresentation)
             Section { NavigationLink("context.rules.title") { ClubOperatingRulesView() }.accessibilityIdentifier("club.context.openRules") }
-            topicPrimary(state: topicState, stats: stats, sessions: value["activityList"].array ?? [])
+            // CLB-topic-detail-02: the phase primary is the pinned footer (`topicPrimaryFooter`), not the last row.
         } else if operation == .audienceCounts {
             let notifyPage = ClubNotifyPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
             Section {
@@ -1726,16 +1727,39 @@ struct ClubGovernanceReadView: View {
             if operation == .notificationStatus && (value["failedCount"].int ?? 0) > 0 { Text("club.gov.deliveryPending"); edit(.retryNotification) }
         }
     }
+    /// CLB-topic-detail-02 (MP wxml:322-341 `cy-bottom-bar`): the topic page's one primary stays pinned above the
+    /// home indicator on a system bar material while the page scrolls. Only a loaded, current topic overview shows it.
+    @ViewBuilder private var topicPrimaryFooter: some View {
+        if operation == .topicOverview, let snapshot, snapshotContext == readContext, identity == access.identity {
+            let stats = topicStats ?? .null
+            let sessions = snapshot.value["activityList"].array ?? []
+            let state = ClubTopicDetailPort.stateKey(snapshot.value)
+            if topicPrimaryPlan(state: state, stats: stats, sessions: sessions) != ClubTopicDetailPort.Primary.none {
+                VStack(spacing: 0) {
+                    Divider().overlay(CYColor.borderSubtle)
+                    topicPrimary(state: state, stats: stats, sessions: sessions)
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, CYSpacing.lg)
+                        .padding(.vertical, CYSpacing.sm)
+                }
+                .background(.bar)
+            }
+        }
+    }
+    private func topicPrimaryPlan(state: ClubTopicDetailPort.State, stats: ClubGovernanceValue, sessions: [ClubGovernanceValue]) -> ClubTopicDetailPort.Primary {
+        let single = sessions.count == 1 ? sessions[0]["id"].int : nil
+        return ClubTopicDetailPort.primary(state: state, directorActive: false, canDirect: stats["canDirect"] == .bool(true),
+            canManageSessions: stats["canManageSessions"] == .bool(true), hasClub: scope.clubID != nil,
+            sessionCount: sessions.count, singleSessionHasValidID: single != nil)
+    }
     /// CLB-topic-detail-02: one primary per phase (MP topic-detail onPrimary / resolvePrimary). Each phase
     /// opens the native screen that already owns it; the director itself stays in the session screen.
     @ViewBuilder private func topicPrimary(state: ClubTopicDetailPort.State, stats: ClubGovernanceValue, sessions: [ClubGovernanceValue]) -> some View {
         let single = sessions.count == 1 ? sessions[0]["id"].int : nil
-        let plan = ClubTopicDetailPort.primary(state: state, directorActive: false, canDirect: stats["canDirect"] == .bool(true),
-            canManageSessions: stats["canManageSessions"] == .bool(true), hasClub: scope.clubID != nil,
-            sessionCount: sessions.count, singleSessionHasValidID: single != nil)
+        let plan = topicPrimaryPlan(state: state, stats: stats, sessions: sessions)
         let sessionScope = single.map { ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: $0) }
         let opsScope = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID)
-        Section {
+        Group {
             switch plan {
             case .none:
                 EmptyView()
@@ -1774,7 +1798,7 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-        }.listRowBackground(Color.clear)
+        }
     }
     @ViewBuilder private func dataRows(_ rows: [ClubGovernanceValue]) -> some View {
         if rows.isEmpty {
