@@ -55,7 +55,7 @@ extension EnvironmentValues {
                 .sheet(item: Binding(get: { flow?.id == shownID ? flow : nil }, set: { next in
                     guard flow?.id == shownID else { return }
                     if next == nil { flow?.invalidate() }; flow = next
-                })) { MerchantCustomerContactSheet(flow: $0) }
+                })) { value in Group { MerchantCustomerContactSheet(flow: value) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
                 .id(flow?.id)
         }
         .onReceive(owner.objectWillChange) { _ in

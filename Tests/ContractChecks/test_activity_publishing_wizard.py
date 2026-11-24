@@ -17,9 +17,9 @@ STEPS = [
     ("content", "活动内容", "这场活动玩什么？", ["description", "imgUrl", "templateId"]),
     ("ticket", "票务与合作", "这场活动怎么卖票？", ["ticket*"]),
 ]
-QUICK_SHA = "7332c0653e2c406937a219a1d85bc9ab609b6308b4483b075d1e07d87694397d"
+QUICK_SHA = "c6f8156c2aade5d461d2d9cd602fef121e620e18dcdb9ff23463ddc6ddda32f2"
 PREFIX_SHA = "99bd9812ff2dc47075e6344a8a7b7159d298c87a02e0e7b26b8b6029208f1524"
-SUFFIX_SHA = "49feed005603cf0b6605e9c69bddb26abae5b10e8686a8dd8f0fd8ae99f58613"
+SUFFIX_SHA = "877dee84eae51bfba8b6ad26d5304d8b77017a77034324d7d97ae20392808cb0"
 
 
 def read(path):

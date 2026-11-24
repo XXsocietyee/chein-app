@@ -139,16 +139,16 @@ struct E3ClubApplyFixture: View {
         E3Page(title: t("创建俱乐部", "Create a club")) {
             ZStack(alignment: .bottomTrailing) {
                 CYIMCoverArt(seed: name.isEmpty ? "new club" : name, systemImage: "sparkles", symbolSize: 56)
-                    .frame(height: 180).frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .frame(height: 180).frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
                 Label(t("更换封面", "Change cover"), systemImage: "photo").cyText(.bodyMedium).foregroundStyle(.white)
                     .padding(.horizontal, 12).frame(minHeight: 36).background(.black.opacity(0.5), in: Capsule()).padding(CYSpacing.md)
             }
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 E3SectionTitle(title: t("基本信息", "Basics"))
                 TextField(t("俱乐部名称", "Club name"), text: $name).padding(CYSpacing.md).frame(minHeight: 52)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 TextField(t("一句话介绍", "One-line pitch"), text: $about, axis: .vertical).lineLimit(2...4).padding(CYSpacing.md).frame(minHeight: 52)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             }
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 E3SectionTitle(title: t("类型", "Category"))
@@ -185,7 +185,7 @@ struct E3ClubCalendarFixture: View {
             ForEach([(t("周三夜行：老城灯影", "Wednesday walk: old-town lights"), "19:30", t("钟楼广场", "Clock Tower Square"), "night"),
                      (t("街头摄影交流", "Street photo meetup"), "21:00", t("河畔咖啡", "Riverside Café"), "photo")], id: \.0) { e in
                 HStack(spacing: CYSpacing.md) {
-                    CYIMCoverArt(seed: e.3, systemImage: "figure.walk", symbolSize: 22).frame(width: 64, height: 64).clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    CYIMCoverArt(seed: e.3, systemImage: "figure.walk", symbolSize: 22).frame(width: 64, height: 64).clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                     VStack(alignment: .leading, spacing: 3) {
                         Text(verbatim: e.0).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(2)
                         Text(verbatim: e.1 + " · " + e.2).cyText(.meta).foregroundStyle(CYColor.textTertiary).lineLimit(2)
@@ -272,7 +272,7 @@ struct E3RichChatFixture: View {
                 Image(systemName: "arrow.up").font(.subheadline.weight(.bold)).foregroundStyle(live ? Color.white : Color.secondary)
                     .frame(width: 32, height: 32).background(live ? CYChat.sent : Color.secondary.opacity(0.25), in: Circle()).padding(.trailing, 6)
             }
-            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
         }
         .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm).background(CYColor.bgPage)
     }
@@ -296,7 +296,7 @@ struct E3InviteFixture: View {
                             CYStatusChip(verbatim: accepted ? t("已接受", "Accepted") : t("待回复", "Awaiting reply"), tone: accepted ? .success : .warning, systemImage: accepted ? "checkmark.circle" : "clock")
                             Text(verbatim: t("河畔咖啡 × 夜行者", "Riverside Café × Night Walkers")).cyText(.display).foregroundStyle(.white)
                         }.padding(CYSpacing.lg)
-                    }.clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    }.clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         E3SectionTitle(title: t("合作条款", "Terms"))
                         term("percent", t("分成", "Revenue share"), t("商家 70% · 俱乐部 30%", "Venue 70% · Club 30%"))

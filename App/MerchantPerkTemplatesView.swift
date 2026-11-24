@@ -150,12 +150,12 @@ import SwiftUI
                 Text(verbatim: row.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Spacer()
                 if row.usable {
-                    Text(typeKey(row.typeIndex)).cyText(.caption)
+                    Text(typeKey(row.typeIndex)).cyText(.meta)
                         .foregroundStyle(CYColor.brand)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.brandSoft, in: Capsule())
                 } else {
-                    Text("merchant.perks.expired").cyText(.caption)
+                    Text("merchant.perks.expired").cyText(.meta)
                         .foregroundStyle(CYColor.warningText)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.warningSoft, in: Capsule())

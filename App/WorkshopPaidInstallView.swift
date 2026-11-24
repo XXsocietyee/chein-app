@@ -34,9 +34,12 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
             installText(unavailable ? "notConfigured" : "entryScope").cyText(.bodyCompact).fixedSize(horizontal: false, vertical: true)
         }
         .sheet(item: presented) { captured in
-            WorkshopPaidInstallView(controller: captured.controller, appearance: captured.appearance, makeProfessional: makeProfessional, makeText: makeText) {
-                guard selection?.id == captured.id else { return }; presented.wrappedValue = nil
-            }.id(captured.id)
+            Group {
+                WorkshopPaidInstallView(controller: captured.controller, appearance: captured.appearance, makeProfessional: makeProfessional, makeText: makeText) {
+                    guard selection?.id == captured.id else { return }; presented.wrappedValue = nil
+                }.id(captured.id)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
@@ -143,7 +146,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                 }
             }
             .privacySensitive()
-            .navigationTitle(String(localized: LocalizedStringResource("workshopPaidInstall.title", table: "WorkshopPaidInstall", locale: locale)))
+            .navigationTitle(String(localized: LocalizedStringResource("workshopPaidInstall.title", table: "WorkshopPaidInstall", locale: locale))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { controller.close(displayed); ownedTask?.cancel(); onClose() } label: { installText("close") }
                     .accessibilityIdentifier("workshopPaidInstall.close")

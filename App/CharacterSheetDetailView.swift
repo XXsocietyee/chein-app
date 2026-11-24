@@ -309,7 +309,7 @@ import QuestifyCore
                 HStack(spacing: CYSpacing.xs) {
                     ForEach(0..<attribute.max, id: \.self) { index in
                         Image(systemName: index < attribute.value ? "star.fill" : "star")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(index < attribute.value ? CYColor.warningText : CYColor.textPlaceholder)
                     }
                 }

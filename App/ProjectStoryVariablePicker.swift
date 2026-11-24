@@ -83,7 +83,10 @@ struct ProjectStoryVariableHostIdentity: Hashable {
             }
         }
         .sheet(isPresented: controller.binding(original)) {
-            if let original { sheet(original) }
+            Group {
+                if let original { sheet(original) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }

@@ -158,7 +158,7 @@ extension EnvironmentValues {
                 Text("projectPlace.open", tableName: "ProjectNodePlacePicker")
             }.disabled(captured == nil || original != nil).accessibilityIdentifier("projectPlace.open")
         }
-        .sheet(item: controller.binding(original)) { value in ProjectNodePlacePickerSheet(controller: controller, original: value) }
+        .sheet(item: controller.binding(original)) { value in Group { ProjectNodePlacePickerSheet(controller: controller, original: value) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
         .onAppear { controller.setActive(scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in controller.setActive(phase == .active) }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }

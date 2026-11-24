@@ -230,6 +230,6 @@ private struct WorkshopOwnedNavigationTitle: ViewModifier {
     @Environment(\.locale) private var locale
     func body(content: Content) -> some View {
         content.navigationTitle(String(localized: LocalizedStringResource(
-            String.LocalizationValue(stringLiteral: "workshopOwned." + key), table: "WorkshopOwned", locale: locale)))
+            String.LocalizationValue(stringLiteral: "workshopOwned." + key), table: "WorkshopOwned", locale: locale))).navigationBarTitleDisplayMode(.inline)
     }
 }

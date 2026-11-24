@@ -184,7 +184,7 @@ struct ProjectStoryImagePreparedReferences: View {
                 if flow.state == .unauthorized { Text(text("projectStoryImage.unauthorized", "Sign in again before uploading another story image. The unresolved attempt is retained.")) }
                 if flow.state == .uploading { CYSkeleton().accessibilityIdentifier("projectStoryImage.busy") }
             }
-            .navigationTitle(flow.target.isAlbumAppend ? Text("projectAlbumImage.title", tableName: "ProjectAlbumImageAuthor") : Text(text("projectStoryImage.title", "Story image")))
+            .navigationTitle(flow.target.isAlbumAppend ? Text("projectAlbumImage.title", tableName: "ProjectAlbumImageAuthor") : Text(text("projectStoryImage.title", "Story image"))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(text("projectStoryImage.close", "Close")) { model.close(); close() }.accessibilityIdentifier("projectStoryImage.close")
             } }

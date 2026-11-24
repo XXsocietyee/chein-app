@@ -151,7 +151,7 @@ struct OpsSafetyFixtureHost: View {
                 }.padding()
             }
             .modifier(AIOutgoingSensitiveConfirmation(findings: $findings, send: { lastAction = "sent" }))
-            .navigationTitle(Text(LocalizedStringKey("opsSafety.fixture.title"), tableName: "OpsSafety"))
+            .navigationTitle(Text(LocalizedStringKey("opsSafety.fixture.title"), tableName: "OpsSafety")).navigationBarTitleDisplayMode(.inline)
         }
     }
 }

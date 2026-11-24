@@ -352,7 +352,7 @@ struct OBDragHint: View {
                     Capsule().fill(CYNight.lanternHot.opacity(0.28)).frame(width: 30, height: 4).offset(x: -p * 8 - 2)
                         .opacity(reduceMotion ? 0 : abs(p))
                     Image(systemName: "hand.point.up.left.fill")
-                        .font(.system(size: 17))
+                        .font(.body)
                         .foregroundStyle(.white)
                         .offset(x: p * 11)
                 }

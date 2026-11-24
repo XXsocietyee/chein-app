@@ -132,7 +132,10 @@ import Combine
             }
         }.cyGroupedSurface()
             .sheet(item: controller.presentationBinding) { item in
-                NavigationStack { TemplateSamplePresentationView(controller: controller, presentationID: item.id) }
+                Group {
+                    NavigationStack { TemplateSamplePresentationView(controller: controller, presentationID: item.id) }
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.viewDisappeared() }
