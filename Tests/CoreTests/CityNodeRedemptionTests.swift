@@ -46,16 +46,28 @@ final class CityNodeRedemptionTests: XCTestCase {
         for absent in ["poiId", "merchantId", "memberId", "requestId", "lat", "lng"] { XCTAssertFalse(payload.contains("name=\"\(absent)\"")) }
     }
     func testSuccessAndRejectionMessagesRemainByteExact() throws {
+        let target = try XCTUnwrap(CityNodeRedemptionTarget(code: "v1.9.citynode_8.a.b.c"))
+        let granted = try CityNodeRedemptionResult(body: body(#"{"code":200,"msg":"核销成功,券已发放玩家","data":{"poiId":9,"memberId":8,"couponId":0,"couponGranted":true}}"#), target: target)
+        XCTAssertEqual(granted.message, "核销成功,券已发放玩家"); XCTAssertTrue(granted.redeemed); XCTAssertNil(granted.unverifiedServerMessage)
+        let withheld = try CityNodeRedemptionResult(body: body(#"{"code":200,"msg":"核销成功,该券已失效或停发,未发放","data":{"poiId":9,"memberId":8,"couponId":4,"couponGranted":false}}"#), target: target)
+        XCTAssertEqual(withheld.message, "核销成功,该券已失效或停发,未发放"); XCTAssertTrue(withheld.redeemed)
+        let refused = try CityNodeRedemptionResult(body: body(#"{"code":500,"msg":"玩家未到店打卡,或该券已核销"}"#))
+        XCTAssertEqual(refused.message, "玩家未到店打卡,或该券已核销"); XCTAssertFalse(refused.redeemed); XCTAssertFalse(refused.isUnknown)
         for code in [200, 400, 403, 500] {
             let message = "  玩家未到店打卡,或该券已核销\n库存耗尽，补货后可重扫  "
             let data = try JSONSerialization.data(withJSONObject: ["code": code, "msg": message])
             let result = try CityNodeRedemptionResult(body: XCTUnwrap(JSONDecoder().decode(MerchantBusinessValue.self, from: data).object))
-            XCTAssertEqual(result.message, message); XCTAssertEqual(result.redeemed, code == 200)
+            XCTAssertEqual(result.message, CityNodeRedemptionResult.unknownMessage)
+            XCTAssertEqual(result.unverifiedServerMessage, message); XCTAssertFalse(result.redeemed)
         }
-        XCTAssertEqual(try CityNodeRedemptionResult(body: body(#"{"code":200}"#)).message, "核销成功")
-        XCTAssertEqual(try CityNodeRedemptionResult(body: body(#"{"code":500}"#)).message, "核销失败")
-        XCTAssertThrowsError(try CityNodeRedemptionResult(body: body(#"{"code":200,"msg":42}"#)))
-        XCTAssertThrowsError(try CityNodeRedemptionResult(body: body(#"{"msg":"not a result"}"#)))
+        let bareSuccess = try CityNodeRedemptionResult(body: body(#"{"code":200}"#))
+        XCTAssertEqual(bareSuccess.message, CityNodeRedemptionResult.unknownMessage); XCTAssertFalse(bareSuccess.redeemed); XCTAssertNil(bareSuccess.unverifiedServerMessage)
+        let bareFailure = try CityNodeRedemptionResult(body: body(#"{"code":500}"#))
+        XCTAssertEqual(bareFailure.message, CityNodeRedemptionResult.unknownMessage); XCTAssertFalse(bareFailure.redeemed)
+        let numericMessage = try CityNodeRedemptionResult(body: body(#"{"code":200,"msg":42}"#))
+        XCTAssertEqual(numericMessage.message, CityNodeRedemptionResult.unknownMessage); XCTAssertNil(numericMessage.unverifiedServerMessage)
+        let missingCode = try CityNodeRedemptionResult(body: body(#"{"msg":"not a result"}"#))
+        XCTAssertEqual(missingCode.message, CityNodeRedemptionResult.unknownMessage); XCTAssertEqual(missingCode.unverifiedServerMessage, "not a result")
     }
     func testCodeIsOpaqueButEmptyOrOversizedRejected() throws {
         XCTAssertThrowsError(try CityNodeRedemptionCode(" \n "))
@@ -86,11 +98,13 @@ final class CityNodeRedemptionTests: XCTestCase {
         requests = await t.requests
         XCTAssertEqual(requests.filter { $0.url!.path.hasSuffix("access/me") }.count, 3)
         XCTAssertEqual(requests.filter { $0.url!.path.hasSuffix("citynode/redeem") }.count, 1)
-        XCTAssertEqual(c.result?.message, "已发放测试券"); XCTAssertTrue(try journal.intents().isEmpty)
+        XCTAssertEqual(c.result?.message, CityNodeRedemptionResult.unknownMessage)
+        XCTAssertEqual(c.result?.unverifiedServerMessage, "已发放测试券"); XCTAssertEqual(c.result?.redeemed, false)
+        XCTAssertEqual(try journal.intents().count, 1)
     }
     @MainActor func testKnownBusinessRejectionShowsExactMessageAndNextCanStartFresh() async throws {
         let t = CityNodeRedemptionTransport(), journal = MerchantBusinessMemoryIntentStore()
-        await t.setResponse(#"{"code":400,"msg":"玩家未到店打卡,或该券已核销"}"#)
+        await t.setResponse(#"{"code":500,"msg":"玩家未到店打卡,或该券已核销"}"#)
         let session = try MerchantBusinessSession(accountID: 8, epoch: 1, token: "synthetic")
         let c = CityNodeRedemptionCoordinator(service: try service(t), journal: journal, currentSession: { session })
         await c.prepare("synthetic-code"); await c.confirm(try XCTUnwrap(c.review).id)
@@ -117,7 +131,8 @@ final class CityNodeRedemptionTests: XCTestCase {
         let c = CityNodeRedemptionCoordinator(service: try service(t), journal: journal, currentSession: { session })
         await c.prepare("never-persist-this-code"); let id = try XCTUnwrap(c.review).id
         await t.fail(); await c.confirm(id)
-        XCTAssertEqual(c.failure, "merchant.cityRedeem.unknown"); XCTAssertEqual(try journal.intents().count, 1)
+        XCTAssertNil(c.failure); XCTAssertEqual(c.result?.message, CityNodeRedemptionResult.unknownMessage)
+        XCTAssertEqual(c.result?.isUnknown, true); XCTAssertEqual(try journal.intents().count, 1)
         let saved = try String(decoding: JSONEncoder().encode(journal.intents()), as: UTF8.self)
         XCTAssertFalse(saved.contains("never-persist-this-code")); XCTAssertFalse(saved.contains("synthetic"))
         c.next(); c.invalidate(); session = try .init(accountID: 8, epoch: 2, token: "new-synthetic")
@@ -163,7 +178,8 @@ final class CityNodeRedemptionTests: XCTestCase {
         await t.setResponse(#"{"msg":"missing required status"}"#)
         let c = CityNodeRedemptionCoordinator(service: try service(t), journal: journal, currentSession: { session })
         await c.prepare("synthetic"); await c.confirm(try XCTUnwrap(c.review).id)
-        XCTAssertNil(c.result); XCTAssertEqual(c.failure, "merchant.cityRedeem.unknown")
+        XCTAssertNil(c.failure); XCTAssertEqual(c.result?.message, CityNodeRedemptionResult.unknownMessage)
+        XCTAssertEqual(c.result?.unverifiedServerMessage, "missing required status")
         XCTAssertEqual(try journal.intents().count, 1)
     }
     @MainActor func testFileJournalSurvivesNewCoordinatorAndContainsNoCode() async throws {

@@ -78,7 +78,6 @@ import FoundationNetworking
         XCTAssertEqual(paths(transport), ["/api/orient/scoring/appeal", "/api/orient/scoring/receipt"])
         let firstBody = transport.requests[0].httpBody
 
-        transport.append("{\"state\":\"NOT_FOUND\",\"kind\":\"APPEAL\",\"idempotencyKey\":\"score-key-01\"}")
         do {
             try await writer.submit(kind: .appeal, reason: "改写理由", key: "other-key", entryID: 31)
             XCTFail("a new id must not replace a locked one")
