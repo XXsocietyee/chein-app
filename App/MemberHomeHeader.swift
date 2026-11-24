@@ -49,6 +49,10 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("member.card.name")
                     HStack(spacing: 6) {
+                        // MP profile index.wxml:65-68: member level badge art for levelId 2…5.
+                        if let badge = AccountPublishLevelBadge.image(levelID: snapshot?.levelID) {
+                            badge.resizable().scaledToFit().frame(height: 16).accessibilityHidden(true)
+                        }
                         Text(verbatim: levelText).monospacedDigit()
                             .accessibilityLabel(PageTemplateVoiceOver.spoken(levelText, locale: locale))
                         Text("member.card.levelTitle", tableName: "MemberProfile")
@@ -194,15 +198,13 @@ import SwiftUI
         guard text.lowercased().hasPrefix("https://"), let url = URL(string: text), url.host != nil else { return nil }
         return url
     }
+    /// MP profile: a player without an avatar falls back to `/images/d_profile.png` (`MPAsset.AvatarDefault.dProfile`),
+    /// not a lettermark; the remote avatar draws over it once it loads.
     private var lettermark: some View {
-        let nickname = snapshot?.nickname ?? account.nickname
-        return ZStack {
+        ZStack {
             Circle().fill(palette.bgRaised)
-            if let initial = nickname.first { Text(verbatim: String(initial)).cyText(.sheetTitle).foregroundStyle(palette.textPrimary) }
-            else { Image(systemName: "person.fill").font(CYTypography.sheetTitle).foregroundStyle(palette.textPrimary) }
+            MPAsset.AvatarDefault.dProfile.resizable().scaledToFill().accessibilityHidden(true)
         }
-        // The lettermark sits in a fixed 56pt avatar; cap its growth so large Dynamic Type cannot overflow the circle.
-        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
     private var avatar: some View {
         ZStack {
@@ -219,9 +221,8 @@ import SwiftUI
         if let onEditProfile {
             Button(action: onEditProfile) {
                 avatar.overlay(alignment: .bottomTrailing) {
-                    // TODO(C7 mp-assets): swap for MPAsset icon_pen once cursor/mp-assets lands.
-                    Image(systemName: "pencil")
-                        .imageScale(.small).font(.caption.weight(.bold))
+                    // MP profile index.wxml:51 `/subpackageMember/images/icon_pen.svg`.
+                    AccountPublishMPGlyph(MPAsset.FeatureIcon.iconPen, side: 12)
                         .foregroundStyle(palette.textPrimary)
                         .frame(width: 24, height: 24)
                         .background(palette.bgRaised, in: Circle())

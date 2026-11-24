@@ -60,7 +60,11 @@ import SwiftUI
                     NavigationLink {
                         AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination,
                             market: market, legalReader: legalReader, showsCloseButton: false)
-                    } label: { Label(LocalizedStringKey(destination.title), systemImage: "megaphone.fill").environment(\.settingsTileTint, SettingsTint.orange) }
+                    } label: {
+                        // MP shezhi 营销消息与优惠券 = icon_lc_ticket.
+                        Label { Text(LocalizedStringKey(destination.title)) } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcTicket) }
+                            .environment(\.settingsTileTint, SettingsTint.orange)
+                    }
                     .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
                 } else {
                     Button { selected = destination } label: {
@@ -73,7 +77,8 @@ import SwiftUI
             }
             if showsNPCChatDataEntry {
                 Button { npcChatData = .init(coordinator: makeCoordinator().makeNPCChatDataCoordinator()) } label: {
-                    Label("npcData.title", systemImage: "text.bubble.fill").environment(\.settingsTileTint, SettingsTint.indigo)
+                    Label { Text("npcData.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcMessageSquareText) }
+                        .environment(\.settingsTileTint, SettingsTint.indigo)
                 }
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityIdentifier("npcData.open")
@@ -83,7 +88,7 @@ import SwiftUI
         Section {
             Button(role: .destructive) { selected = .cancellation } label: {
                 Label { Text(LocalizedStringKey(ComplianceDestination.cancellation.title)).foregroundStyle(CYColor.dangerText) }
-                    icon: { Image(systemName: "person.crop.circle.badge.minus") }
+                    icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcUserRoundX) }
                     .environment(\.settingsTileTint, SettingsTint.red)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }

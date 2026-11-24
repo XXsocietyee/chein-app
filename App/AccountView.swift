@@ -81,7 +81,7 @@ import SwiftUI
                     }.accessibilityIdentifier("account.growthCenter")
                     ProfileAccountLinks(reader:session.profileReader, part: .collection)
                     NavigationLink { SessionObjectCardsView().cyPushedChrome()                     } label: {
-                        CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
+                        CYListRow("objects.title", trailing: .none) { AccountPublishMPRowIcon(MPAsset.FeatureIcon.object3d) } // MP album 藏品 object-3d.png
                     }.accessibilityIdentifier("account.objectCards")
                     if session.playerGapService != nil {
                         NavigationLink { List { CityFavoriteNodesSection() }.navigationTitle(Text("playerGap.cityFavorites.title")).navigationBarTitleDisplayMode(.inline).cyPushedChrome() } label: {
@@ -132,7 +132,8 @@ import SwiftUI
                     }.accessibilityIdentifier("account.clubs")
                     }
                     if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
-                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome() } label: {
+                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
+                            .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
                         CYListRow("social.invites.title", trailing: .none) { CYRowIcon(systemImage: "person.2.badge.plus") }
                     }.accessibilityIdentifier("account.inviteHistory")
                     NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity).cyPushedChrome() } label: {
@@ -194,8 +195,11 @@ import SwiftUI
             })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
-                    Button("settings.title",systemImage:"gearshape") {
+                    Button {
                         if settingsGuideHandoff.begin() { showsSettings=true }
+                    } label: {
+                        // MP profile index.wxml:17 `/subpackageMember/images/icon_set.png`.
+                        Label { Text("settings.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconSet, side: 22) }
                     }
                     .accessibilityLabel(Text("settings.title"))
                     .accessibilityIdentifier("account.settings")

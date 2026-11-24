@@ -26,3 +26,13 @@ e4-about
 e4-marketing
 t12-marketing
 t12-marketing-empty
+# Round 2 (2026-11-24): MP assets and Core-unblocked rows. Same routes; what to look at:
+# - d2-me / e4-member: icon_pen badge, icon_set toolbar glyph, group2-5 level badge, d_profile default avatar, object-3d 藏品 row
+# - e3-social: d_profile default avatar on the public head
+# - e4-profile-edit: 路线偏好 chips under the count
+# - e4-favorites: post cards with images, 取消收藏 behind ···; 据点 rows without a cover show mylike mer1.jpg
+# - e4-settings: shezhi MP row icons (qa_person, flag_blue, icon_shop, lc_compass, icon_heart, lc_gift, lc_lock-keyhole,
+#   lc_message-square-text, lc_ticket, lc_shield-alert, lc_megaphone, icon_privacy, icon_agreement, lc_scroll-text,
+#   lc_user-round-x, lc_info, icon_logout)
+# - e4-about: cy_logo_mark.png logo, icon_agreement on both legal rows, icon_headset on 联系我们
+# - --uitesting-club-fixture owner --uitesting-club-top-tabs: 帖文 feed (fixture hasMore:false ⇒ no load-more row)

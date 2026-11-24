@@ -22,7 +22,7 @@ import SwiftUI
                         } : nil
                     )
                 } label: {
-                    Label { Text("member.privacy.title", tableName: "MemberProfile") } icon: { Image(systemName: "hand.raised") }
+                    Label { Text("member.privacy.title", tableName: "MemberProfile") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcLockKeyhole) }
                 }.accessibilityIdentifier("settings.privacyLocation")
             }
         }

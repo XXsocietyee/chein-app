@@ -322,6 +322,23 @@
       }
     }
   },
+  "profile.favoriteRemoval.more": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "More"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更多"
+        }
+      }
+    }
+  },
   "profile.incompleteLink.backHome": {
     "extractionState": "manual",
     "localizations": {
@@ -335,6 +352,40 @@
         "stringUnit": {
           "state": "translated",
           "value": "返回"
+        }
+      }
+    }
+  },
+  "settings.home.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This identity can't view account info"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看账号信息"
+        }
+      }
+    }
+  },
+  "settings.home.deniedRetry": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tap to refresh and confirm this account's access"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "点击刷新并确认当前账号权限"
         }
       }
     }
@@ -403,6 +454,23 @@
         "stringUnit": {
           "state": "translated",
           "value": "查看大图"
+        }
+      }
+    }
+  },
+  "social.startChat.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't open the chat. Try again."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "没能打开会话，请重试"
         }
       }
     }

@@ -295,7 +295,8 @@ private struct AccountCollectionFavoriteCard: View {
                               model.state.loadedScope == reader.scope, post.generation == .legacySquare else { return }
                         onOpenPost?(.init(id: post.id, generation: post.generation))
                     } label: {
-                        SquarePostContent(post: post, compact: true, showImages: false)
+                        // A4-05 (mylike.wxml:25-27): the standard post card, images included.
+                        SquarePostContent(post: post, compact: true, showImages: true)
                             .padding(CYSpacing.lg)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
@@ -310,12 +311,16 @@ private struct AccountCollectionFavoriteCard: View {
                               !model.state.isLoadingMore, model.state.moreIssue == nil else { return }
                         Task { await loadMore() }
                     }
-                    .questifyCardListRow()
-                    if let favoriteRemoval {
-                        ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
-                            isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
-                            onRemoved: { await refresh() })
+                    // A4-05: 取消收藏 sits behind the card's ··· menu (same reviewed removal flow and sheet).
+                    .overlay(alignment: .topTrailing) {
+                        if let favoriteRemoval {
+                            ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,
+                                isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope && model.state.loadedScope == renderedScope },
+                                onRemoved: { await refresh() }, presentsAsMenu: true)
+                                .padding(.trailing, CYSpacing.xs)
+                        }
                     }
+                    .questifyCardListRow()
                     NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 }
                 if let issue = model.state.moreIssue {

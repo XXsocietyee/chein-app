@@ -14,7 +14,8 @@ func playerFactOrDash(_ raw: String?) -> String {
         Section {
             NavigationLink { MemberScoreAppealListView(session: session) } label: {
                 HStack(spacing: CYSpacing.md) {
-                    CYRowIcon(systemImage: "text.bubble")
+                    // MP shezhi 我的申诉 = icon_privacy (same tile as CYRowIcon).
+                    AccountPublishMPRowIcon(MPAsset.FeatureIcon.iconPrivacy)
                     memberScoreText("score.mine.title")
                         .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)

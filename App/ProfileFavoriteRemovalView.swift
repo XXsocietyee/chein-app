@@ -62,31 +62,30 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
     let controller: ProfileFavoriteRemovalController
     let isCurrent: () -> Bool
     let onRemoved: () async -> Void
+    /// A4-05 (mylike.wxml:25-27): the saved-post card keeps 取消收藏 behind a ··· menu instead of a row of its own.
+    var presentsAsMenu = false
     @State private var presentation: ProfileFavoriteRemovalPresentation?
     @State private var lifecycle = ProfileFavoriteRemovalLifecycleDiagnostics()
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
             if isCurrent(), controller.isAvailable(post: post, collectionScope: scope) {
-                Button("profile.favoriteRemoval.open", role: .destructive) {
-                    lifecycle.record("entry.tap", scene: scenePhase, presentation: presentation, controller: controller)
-                    guard scenePhase == .active else {
-                        lifecycle.record("entry.rejectedScene", scene: scenePhase, presentation: presentation, controller: controller)
-                        return
+                if presentsAsMenu {
+                    Menu {
+                        openButton
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .cyText(.bodyMedium, weight: .semibold)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
                     }
-                    guard isCurrent() else {
-                        lifecycle.record("entry.rejectedCurrent", scene: scenePhase, presentation: presentation, controller: controller)
-                        return
-                    }
-                    guard let id = controller.begin(post: post, collectionScope: scope) else {
-                        lifecycle.record("entry.rejectedBegin", scene: scenePhase, presentation: presentation, controller: controller)
-                        return
-                    }
-                    presentation = .init(id: id, postID: post.id, scope: scope)
-                    lifecycle.record("entry.opened", scene: scenePhase, presentation: presentation, controller: controller)
-                }.disabled(controller.isBusy)
-                    .accessibilityIdentifier("profile.favoriteRemoval.open.\(post.id)")
-                    .modifier(ProfileFavoriteRemovalLifecycleEvidence(diagnostics: lifecycle))
+                    .accessibilityLabel(Text("profile.favoriteRemoval.more"))
+                    .accessibilityIdentifier("profile.favoriteRemoval.more.\(post.id)")
+                    .disabled(controller.isBusy)
+                } else {
+                    openButton
+                }
             }
         }
         .sheet(item: $presentation) { value in Group {
@@ -109,6 +108,27 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
             lifecycle.record("entryHost.disappeared", scene: scenePhase, presentation: presentation, controller: controller)
             close()
         }
+    }
+    private var openButton: some View {
+        Button("profile.favoriteRemoval.open", role: .destructive) {
+            lifecycle.record("entry.tap", scene: scenePhase, presentation: presentation, controller: controller)
+            guard scenePhase == .active else {
+                lifecycle.record("entry.rejectedScene", scene: scenePhase, presentation: presentation, controller: controller)
+                return
+            }
+            guard isCurrent() else {
+                lifecycle.record("entry.rejectedCurrent", scene: scenePhase, presentation: presentation, controller: controller)
+                return
+            }
+            guard let id = controller.begin(post: post, collectionScope: scope) else {
+                lifecycle.record("entry.rejectedBegin", scene: scenePhase, presentation: presentation, controller: controller)
+                return
+            }
+            presentation = .init(id: id, postID: post.id, scope: scope)
+            lifecycle.record("entry.opened", scene: scenePhase, presentation: presentation, controller: controller)
+        }.disabled(controller.isBusy)
+            .accessibilityIdentifier("profile.favoriteRemoval.open.\(post.id)")
+            .modifier(ProfileFavoriteRemovalLifecycleEvidence(diagnostics: lifecycle))
     }
     private func close() {
         presentation?.finish(controller: controller, isCurrent: isCurrent, onRemoved: onRemoved)

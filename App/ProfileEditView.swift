@@ -586,6 +586,16 @@ struct ProfileEditView: View {
     @State private var savingProfile = false
     @State private var saveFailed = false
     @State private var savedTick = 0
+    /// A3-09: best-effort name lookup; a failed read leaves the count row alone (no chips, no error line).
+    @MainActor private func loadPreferenceNames() async {
+        guard let reader = categoryReader, reader.isConfigured else { preferenceNames = [:]; return }
+        let identity = reader.discoveryPresentationIdentity
+        guard let values = try? await reader.discoveryCategories(type: 1), !Task.isCancelled,
+              reader.discoveryPresentationIdentity == identity else { return }
+        preferenceNames = Dictionary(values.map { ($0.id, $0.name) }, uniquingKeysWith: { first, _ in first })
+    }
+    /// A3-09: names for the route-preference chips (`discoveryCategories(type: 1)`, the picker's own read).
+    @State private var preferenceNames: [Int: String] = [:]
     /// Nil when the stored `tagIds` is unreadable: the count is then an em dash, never a stand-in 0.
     private var selectedPreferences: [Int]? {
         model.draft.routePreferenceIDs ?? ProfilePreferenceRemoval.parse(model.coordinator.snapshot?.tagIds ?? "")
@@ -651,6 +661,21 @@ struct ProfileEditView: View {
                     }.disabled(!model.canBeginTextEdit)
                     Section("context.preferences.title") {
                         LabeledContent("context.preferences.selected", value: selectedPreferences.map { String($0.count) } ?? "—")
+                        // A3-09 (gerenziliao.wxml 路线偏好): the chosen preferences as chips; ids without a loaded name are skipped.
+                        let named = (selectedPreferences ?? []).compactMap { preferenceNames[$0] }
+                        if !named.isEmpty {
+                            ClubR1WrapLayout(spacing: CYSpacing.sm) {
+                                ForEach(Array(named.enumerated()), id: \.offset) { _, name in
+                                    Text(verbatim: name)
+                                        .cyText(.meta, weight: .medium)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                                        .background(CYColor.bgRaised, in: Capsule(style: .continuous))
+                                }
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("profile.edit.preferenceChips")
+                        }
                         Button("profile.preferenceRemoval.open") { model.beginTextEdit(.preferences) }
                             .disabled(!model.canBeginTextEdit)
                             .accessibilityIdentifier("profile.preferenceRemoval.open")
@@ -742,6 +767,7 @@ struct ProfileEditView: View {
         }
         .modifier(ProfileCurrentReviewNoticeLifecycle(model: model, reader: currentReviewReader, owner: currentReviewNotice))
         .task(id: sessionRevision) { model.retirePreferencePicker(); await model.resetAndLoad(); openInitialFieldOnce() }
+        .task(id: categoryReader?.discoveryPresentationIdentity) { await loadPreferenceNames() }
         .background {
             if let edit = model.textEdit {
                 ProfileTextEditPresentationOwner(model: model, edit: edit, caseImageReader: caseImageReader, nicknameReader: nicknameReader, savedMedia: savedMedia)

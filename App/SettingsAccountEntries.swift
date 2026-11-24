@@ -24,7 +24,7 @@ import SwiftUI
                     .accessibilityIdentifier("settings.becomeClubHost")
                 NavigationLink {
                     MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
-                } label: { Label("settings.becomeMerchant", systemImage: "storefront") }
+                } label: { Label { Text("settings.becomeMerchant") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconShop) } }
                     .accessibilityIdentifier("settings.becomeMerchant")
             }
             .navigationDestination(isPresented: $pushesHostStatus) {
@@ -95,7 +95,7 @@ import SwiftUI
                     confirmation = session.signOutConfirmation(accountID: accountID)
                     confirms = confirmation != nil
                 } label: {
-                    Label("settings.signOut", systemImage: "rectangle.portrait.and.arrow.right")
+                    Label { Text("settings.signOut") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLogout) }
                         .frame(maxWidth: .infinity).foregroundStyle(CYColor.textPrimary)
                 }
                     .disabled(working)

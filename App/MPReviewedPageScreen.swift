@@ -575,6 +575,7 @@ import SwiftUI
             if let id = positiveID(query["userId"]) ?? reviewedID(query) {
                 SocialPublicProfileView(memberID: id, reader: session.socialAccountReader, squareReader: session.squareReader,
                                         actions: session.socialActionCoordinator, initialTab: query["tab"])
+                    .environment(\.socialConversationDestination, session.socialConversationDestination) // A2-03 发消息
             } else { unavailable }
         case "subpackageRoam/history/index":
             RoamHistoryView(reader: session.roamExperienceReader, toolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader)
