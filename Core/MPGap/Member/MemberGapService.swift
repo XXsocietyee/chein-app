@@ -1,0 +1,142 @@
+import Foundation
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
+
+/// Network service for `member` MP gaps (`MKT-7-1`, `MKT-10-1`, `PLY-25-3/4`, `PLY-29-4`, `FIN-17-3`).
+@MainActor
+public final class MemberGapService {
+    public static let paths: Set<String> = [
+        "api/free-explore/bundle/order/receipt",
+        "api/free-explore/bundle/catalog",
+        "api/merchant/coupon-summary",
+        "api/report/appeal",
+        "api/orient/appeal",
+        "api/invoice/orders/eligible"
+    ]
+
+    public let baseURL: URL
+    private let token: () -> String?
+    private let transport: any HTTPTransport
+
+    public init(baseURL: URL, token: @escaping () -> String?, transport: any HTTPTransport) {
+        self.baseURL = baseURL
+        self.token = token
+        self.transport = transport
+    }
+
+    func makeRequest(
+        _ path: String,
+        method: String,
+        query: [String: String] = [:],
+        json: [String: PlayWireValue]? = nil,
+        requireAuth: Bool = true
+    ) throws -> URLRequest {
+        var url = baseURL.appendingPathComponent(path)
+        if !query.isEmpty {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+            components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+            guard let built = components.url else { throw APIError.invalidRequest }
+            url = built
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if requireAuth {
+            guard let token = token(), AuthRequestBuilder.isValidToken(token) else {
+                throw APIError.invalidRequest
+            }
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+        }
+        if let json {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys]
+            request.httpBody = try encoder.encode(json)
+        }
+        return request
+    }
+
+    private func send(_ request: URLRequest) async -> PlayerGapReply {
+        do {
+            let (data, status) = try await transport.send(request)
+            return PlayerGapReply.classify(data: data, status: status)
+        } catch {
+            return .unknown
+        }
+    }
+
+    /// `MKT-7-1`: `GET /api/free-explore/bundle/order/receipt?requestId=`
+    public func fetchFreeExploreReceipt(requestID: String) async -> PlayerGapReply {
+        guard let req = try? makeRequest(
+            "api/free-explore/bundle/order/receipt",
+            method: "GET",
+            query: ["requestId": requestID]
+        ) else { return .unauthorized }
+        return await send(req)
+    }
+
+    /// `MKT-7-1`: `GET /api/free-explore/bundle/catalog?topicId=`
+    public func fetchFreeExploreCatalog(topicID: Int) async -> PlayerGapReply {
+        guard let req = try? makeRequest(
+            "api/free-explore/bundle/catalog",
+            method: "GET",
+            query: ["topicId": String(topicID)],
+            requireAuth: false
+        ) else { return .unknown }
+        return await send(req)
+    }
+
+    /// `MKT-10-1`: `GET /api/merchant/coupon-summary`
+    public func fetchMerchantCouponSummary() async -> PlayerGapReply {
+        guard let req = try? makeRequest("api/merchant/coupon-summary", method: "GET") else {
+            return .unauthorized
+        }
+        return await send(req)
+    }
+
+    /// `PLY-29-4`: `POST /api/report/appeal {reportId, reason, requestId}`
+    public func submitReportAppeal(reportID: Int, reason: String, requestID: String) async -> PlayerGapReply {
+        guard let req = try? makeRequest(
+            "api/report/appeal",
+            method: "POST",
+            json: [
+                "reportId": .number(Double(reportID)),
+                "reason": .string(reason),
+                "requestId": .string(requestID)
+            ]
+        ) else { return .unauthorized }
+        return await send(req)
+    }
+
+    /// `PLY-25-4`: `POST /api/orient/appeal {sessionId, nodeId?, entryId?, reason}`
+    public func submitOrientAppeal(
+        sessionID: Int,
+        nodeID: Int?,
+        entryID: String?,
+        reason: String
+    ) async -> PlayerGapReply {
+        var payload: [String: PlayWireValue] = [
+            "sessionId": .number(Double(sessionID)),
+            "reason": .string(reason)
+        ]
+        if let nodeID { payload["nodeId"] = .number(Double(nodeID)) }
+        if let entryID { payload["entryId"] = .string(entryID) }
+        guard let req = try? makeRequest("api/orient/appeal", method: "POST", json: payload) else {
+            return .unauthorized
+        }
+        return await send(req)
+    }
+
+    /// `FIN-17-3`: `POST /api/invoice/orders/eligible {orderId}`
+    public func checkInvoiceOrderEligible(orderID: Int) async -> PlayerGapReply {
+        guard let req = try? makeRequest(
+            "api/invoice/orders/eligible",
+            method: "POST",
+            json: ["orderId": .number(Double(orderID))]
+        ) else { return .unauthorized }
+        return await send(req)
+    }
+}
