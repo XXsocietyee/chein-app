@@ -320,9 +320,11 @@ struct JourneyLandingView: View {
                 JourneyDuoView(inviter: content.inviter, seatNo: content.seatNo)
                 if let name = content.inviter?.name { Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textSecondary) }
                 if let title = content.title {
+                    // JLAND-9: a long route name wraps to two centred lines instead of overflowing the pill.
                     Text(verbatim: title).cyText(.label).foregroundStyle(CYColor.textPrimary)
+                        .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(CYNight.ink2, in: Capsule())
+                        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 }
                 if !content.tiles.isEmpty {
                     JourneyModeTilesView(tiles: content.tiles, active: Binding(get: { content.activeMode }, set: { if let key = $0 { onSelectMode(key) } }))
