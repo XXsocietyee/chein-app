@@ -11,6 +11,7 @@ struct DiscoveryTemplateDetailView: View {
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
@@ -79,6 +80,12 @@ struct DiscoveryTemplateDetailView: View {
                                 Button {
                                     guard loadedKey == requestKey, reader.isConfigured,
                                           authoringCompletion?.isCurrent() != false else { return }
+                                    // R7-PC-A6-2 (r1 PC-A-6-3): MP `ensureLogin` before 应用 — a guest goes to sign-in.
+                                    if (reader as? AppSession)?.isSignedIn == false {
+                                        toastMessage = appLocalized("discovery.adopt.signIn", locale: locale)
+                                        if rootTabSwitch.isAvailable { (reader as? AppSession)?.dismissNativeEntry(); rootTabSwitch(.mine) }
+                                        return
+                                    }
                                     adoption = Adoption(source: item, key: requestKey)
                                 } label: { TemplateXbApplyLabel() }
                                     .buttonStyle(.plain)
@@ -219,7 +226,8 @@ struct DiscoveryTemplateDetailView: View {
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section { Text(text).cyText(.body).foregroundStyle(palette.textSecondary).textSelection(.enabled) } header: { DiscoverySectionHeader(title) }
+            // R7-PC-A6-4 (r1 PC-A-6-5): MP clamps 简介 / 规则 to 4 lines with 更多 / 收起.
+            Section { DiscoveryClampedText(text: text) } header: { DiscoverySectionHeader(title) }
                 .discoveryCardRow()
         }
     }
@@ -619,5 +627,26 @@ private struct PublicTemplateSilhouette: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .ignore)
+    }
+}
+
+/// Long template text: 4 lines with 更多, full text with 收起. Short text shows no control.
+struct DiscoveryClampedText: View {
+    let text: String
+    var lineLimit = 4
+    @State private var expanded = false
+    @Environment(\.cyPalette) private var palette
+    private var isLong: Bool { text.count > 80 || text.filter { $0 == "\n" }.count >= lineLimit }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(text).cyText(.body).foregroundStyle(palette.textSecondary).textSelection(.enabled)
+                .lineLimit(expanded || !isLong ? nil : lineLimit)
+                .fixedSize(horizontal: false, vertical: true)
+            if isLong {
+                Button(expanded ? "discovery.text.less" : "discovery.text.more") { expanded.toggle() }
+                    .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
+                    .accessibilityIdentifier("discovery.clampedText.toggle")
+            }
+        }
     }
 }

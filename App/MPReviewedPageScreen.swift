@@ -284,8 +284,11 @@ import SwiftUI
         case "pages/topic/index/index":
             if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
         case "pages/templatedetail/templatedetail":
+            // R7-PC-A6-1: MP `scope=my` is the viewer's own template (member read), never the public `api/template/info`.
+            if query["scope"] == "my", let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
+                SessionOwnedMemberTemplateDetailView(id: id).environmentObject(session)
             // PC-A-6-2: the link opens the template with 应用, as in-app entries do.
-            if let id = reviewedID(query) {
+            } else if let id = reviewedID(query) {
                 DiscoveryTemplateDetailView(id: id, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
                                             authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
                     .id(session.templateAuthoringViewIdentity)

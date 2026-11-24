@@ -138,7 +138,7 @@ struct DiscoveryTemplateNoticeSection: View {
         Section {
             VStack(alignment: .leading, spacing: 4) {
                 Text("discovery.templateDetail.notice.title").cyText(.label)
-                Text("discovery.templateDetail.notice.body").cyText(.meta).foregroundStyle(palette.textSecondary)
+                Text("discovery.templateDetail.notice.body.mp").cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("discovery.templateDetail.notice")
