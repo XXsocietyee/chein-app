@@ -271,6 +271,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
     }
 
     func editMe() {
+        Task { _ = await AccountPublishContractLane.profileEditor() }
         route = MPParityRoute(miniProgramPath: "pages/gerenziliao/gerenziliao", query: [:])
     }
 

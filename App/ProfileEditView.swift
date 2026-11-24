@@ -74,6 +74,9 @@ final class ProfileEditModel: ObservableObject {
     private var exitCommitted = false
     @Published private(set) var busy = false
     @Published private(set) var revision = 0
+    @Published private(set) var contractShownName: String?
+    @Published private(set) var contractPhoneMask: String?
+    @Published private(set) var contractIntroduction: String?
     let avatarEditorID = UUID()
     @Published private(set) var avatarLifetimeID = UUID()
     @Published private(set) var avatarPreview: RetainedSelectedImage?
@@ -105,6 +108,14 @@ final class ProfileEditModel: ObservableObject {
         lhs.id == rhs.id && ProfileCasePortfolio.sameText(lhs.caseIntroduction, rhs.caseIntroduction) && zip([lhs.nickname, lhs.introduction, lhs.avatar, lhs.wechat, lhs.casePics, lhs.tagIds],
                               [rhs.nickname, rhs.introduction, rhs.avatar, rhs.wechat, rhs.casePics, rhs.tagIds])
             .allSatisfy { $0.0.utf8.elementsEqual($0.1.utf8) }
+    }
+    var displayedName: String {
+        let shown = contractShownName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return shown.isEmpty ? draft.name : shown
+    }
+    var displayedIntroduction: String {
+        if !draft.introduction.isEmpty { return draft.introduction }
+        return contractIntroduction ?? draft.introduction
     }
     private var hasUnsavedDraft: Bool {
         guard let snapshot = coordinator.snapshot else { return false }
@@ -476,6 +487,12 @@ final class ProfileEditModel: ObservableObject {
         guard retainContext(identity: identity, viewerRevision: viewerRevision) else { return }
         // Failed refresh keeps all unsaved fields, including route preferences.
         if loaded, let snapshot = coordinator.snapshot { draft = snapshot.draft }
+        if loaded, let editor = await AccountPublishContractLane.profileEditor() {
+            guard request == generation, retainContext(identity: identity, viewerRevision: viewerRevision) else { return }
+            contractShownName = editor.shownName
+            contractPhoneMask = editor.phoneMasked
+            contractIntroduction = editor.introduction
+        }
         busy = false; revision += 1
     }
     // Retain drafts only within the exact viewer context, including role/token ABA fences.
@@ -624,10 +641,16 @@ struct ProfileEditView: View {
                     ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)
                     // Mini-program order (gerenziliao @1c80c5a): [昵称, 个人介绍], then 手机号 in its own group.
                     Section {
-                        textFieldRow(.name, value: model.draft.name).disabled(!model.canBeginTextEdit)
-                        textFieldRow(.introduction, value: model.draft.introduction).disabled(!model.canBeginTextEdit)
+                        textFieldRow(.name, value: model.displayedName).disabled(!model.canBeginTextEdit)
+                        textFieldRow(.introduction, value: model.displayedIntroduction).disabled(!model.canBeginTextEdit)
                     } header: { Text("profile.edit.details") }
-                    if let phone = model.coordinator.phoneDisplay {
+                    if let mask = model.contractPhoneMask, !mask.isEmpty {
+                        Section {
+                            LabeledContent("profile.phone.title") {
+                                Text(verbatim: mask).monospacedDigit()
+                            }.privacySensitive().accessibilityIdentifier("profile.phone.value")
+                        }
+                    } else if let phone = model.coordinator.phoneDisplay {
                         Section {
                             LabeledContent("profile.phone.title") {
                                 switch phone {
