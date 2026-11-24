@@ -443,17 +443,6 @@ struct ActivityDetailView: View {
                     }.accessibilityIdentifier("activity.openTopic")
                 }
             }
-            // R7-PC-C1-7 (r1 PC-C-1-8): MP 关于这场活动 sits on the first fold, above the people section.
-            if let text=ActivityPresentation.nonempty(detail.summary.description) {
-                Section("activity.about") {
-                        Text(verbatim:text)
-                            .cyText(.body)
-                            .fixedSize(horizontal:false,vertical:true)
-                            .textSelection(.enabled)
-                            .questifyCardSurface()
-                            .questifyCardListRow()
-                }
-            }
             ActivityPeopleSection(people: detail.people, onOpenProfile: profileAction(detail), organizerShopName: detail.organizerShopName)
             Section {
                 if detail.tickets.isEmpty {
@@ -539,6 +528,16 @@ struct ActivityDetailView: View {
     /// Secondary sections behind the "More info" disclosure.
     @ViewBuilder private func moreInfoSections(_ detail: ActivityDetail) -> some View {
         // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
+        if let text=ActivityPresentation.nonempty(detail.summary.description) {
+            Section("activity.about") {
+                Text(verbatim:text)
+                    .cyText(.body)
+                    .fixedSize(horizontal:false,vertical:true)
+                    .textSelection(.enabled)
+                    .questifyCardSurface()
+                    .questifyCardListRow()
+            }
+        }
         // Only this successful, current allowed response supplies these rows.
         // A scope/reader/activity/reread invalidation immediately removes them.
         if gateScope != nil, detail.summary.id == id {

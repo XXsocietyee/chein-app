@@ -234,29 +234,10 @@ struct MerchantContentBoundary: View {
 struct MerchantContentFields: View {
     let value: MerchantContentValue
     let names: [String]
-    @Environment(\.locale) private var locale
-    /// R7-PC-B2-5 (r1 PC-B-2-5): MP shows designed copy, not raw enum values. `status` + `auditStatus` fold into one
-    /// 状态 row (MP `deriveState`: 未通过 / 审核中 / 已确认); `termsMode` reads 权益 / 计酬 / 引流承接.
-    private func shown(_ name: String) -> String? {
-        switch name {
-        case "auditStatus" where names.contains("status"):
-            return nil
-        case "status":
-            guard let status = value["status"].integer else { return value[name].display }
-            let audit = value["auditStatus"].integer ?? 0
-            let key = status == 2 || (status == 3 && audit == 2) ? "rejected" : status == 1 ? "confirmed" : "pending"
-            return appLocalized(String.LocalizationValue("merchant.content.state." + key), locale: locale)
-        case "termsMode":
-            guard let raw = value[name].text, ["PERK", "REVSHARE", "TRAFFIC"].contains(raw) else { return value[name].display }
-            return appLocalized(String.LocalizationValue("merchant.content.terms." + raw), locale: locale)
-        default:
-            return value[name].display
-        }
-    }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             ForEach(names, id: \.self) { name in
-                if let text = shown(name), !text.isEmpty {
+                if let text = value[name].display, !text.isEmpty {
                     LabeledContent(LocalizedStringKey("merchant.content.field." + name)) { Text(verbatim: text).textSelection(.enabled) }
                         .accessibilityElement(children: .combine)
                         .accessibilityLabel(Text(LocalizedStringKey("merchant.content.field." + name)))

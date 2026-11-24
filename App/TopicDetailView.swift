@@ -29,7 +29,6 @@ struct TopicDetailView: View {
     @Environment(\.topicPricingDestination) private var pricingDestination
     @Environment(\.locale) private var locale
     @Environment(\.popupCloseActions) private var popupCloseActions
-    @Environment(\.topicFavoriteControl) private var favoriteControl
     @State private var showsPricing = false
     @State private var showingGraduateBetaConfirm = false
     @State private var showingClubTransferPicker = false
@@ -73,12 +72,7 @@ struct TopicDetailView: View {
         .toolbar {
             if let value = detail {
                 ToolbarItem(placement: .topBarTrailing) {
-                    // R7-PC-B1-1: 收藏 beside share when the like write is composed (nil control hides it).
-                    if let favoriteControl {
-                        TopicFavoriteToolbarActions(control: favoriteControl, topic: value) { topicToastMessage = $0 }
-                    } else {
-                        TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name)
-                    }
+                    TopicXcxToolbarActions(shareURL: PublicContentShareLink.topic(id: value.id), shareTitle: value.name)
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     UGCSafetyMenuButton(

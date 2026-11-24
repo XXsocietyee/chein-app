@@ -306,7 +306,9 @@ import SwiftUI
         if mode == .city {
             Button { showsFilters = true } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
                 .buttonStyle(.cySecondary(fullWidth: false)).frame(minHeight: 44).accessibilityIdentifier("searchMap.filters")
-            // R7-PC-A5-3 (r1 PC-A-5-4): MP searchmap sorts by 最近 only (`sort_type:1`); no 最热 option.
+            Picker("searchMap.sort", selection: $sortType) {
+                Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
+            }.pickerStyle(.menu).frame(minHeight: 44).accessibilityIdentifier("searchMap.sortPicker")
         }
     }
     private func selectedPlaceSummary(_ id: String, area: RoamSearchArea) -> some View {

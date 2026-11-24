@@ -55,7 +55,6 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
                     })
                     .id(session.contentDetailRevision)
-                    .modifier(TopicFavoriteInjection(session: session))
                     .environment(\.pricingChapterProjectDestination, { topicID in
                         AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
                     })

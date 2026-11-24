@@ -38,7 +38,9 @@ import SwiftUI
                     Section("searchMap.cityOptions") {
                         TextField("searchMap.tag", text: $tag).accessibilityIdentifier("searchMap.tag")
                         TextField("searchMap.cityRole", text: $cityRole).accessibilityIdentifier("searchMap.cityRole")
-                        // R7-PC-A5-3 (r1 PC-A-5-4): MP searchmap sorts by 最近 only (`sort_type:1`); no 最热 option.
+                        Picker("searchMap.sort", selection: $sortType) {
+                            Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
+                        }
                     }
                 }
                 Section("searchMap.categories") {
@@ -56,7 +58,7 @@ import SwiftUI
                     if categoryLoading {
                         ProgressView("searchMap.loading").accessibilityIdentifier("searchMap.category.loading")
                     } else if categoryFailed {
-                        Text("searchMap.categoryFailed.mp").font(.caption)
+                        Text("searchMap.categoryFailed").font(.caption)
                             .accessibilityIdentifier("searchMap.category.failed")
                         if let retryCategories {
                             Button("searchMap.retry", action: retryCategories).frame(minHeight: 44)
@@ -79,9 +81,12 @@ import SwiftUI
                         Text("globalDatePreset.disclosure").font(.footnote).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    // R7-PC-A3-3 (r1 PC-A-3-4): inline system date rows, no second sheet over 筛选 and no free-text dates.
-                    SearchMapInlineDateRow(title: "searchMap.startDate", text: $dateDraft.startDate, identifier: "searchMap.filter.start")
-                    SearchMapInlineDateRow(title: "searchMap.endDate", text: $dateDraft.endDate, identifier: "searchMap.filter.end")
+                    TextField("searchMap.startDate", text: $dateDraft.startDate).accessibilityIdentifier("searchMap.filter.start")
+                    Button("mapDatePicker.start") { openDatePicker(.start) }
+                        .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.start")
+                    TextField("searchMap.endDate", text: $dateDraft.endDate).accessibilityIdentifier("searchMap.filter.end")
+                    Button("mapDatePicker.end") { openDatePicker(.end) }
+                        .frame(minHeight: 44).accessibilityIdentifier("mapDatePicker.open.end")
                 }
                 Section("searchMap.price") {
                     TextField("searchMap.minimum", text: $minimum).keyboardType(.decimalPad)
@@ -214,45 +219,5 @@ import SwiftUI
             .pickerStyle(.wheel).labelsHidden().frame(height: wheelHeight).clipped()
             .accessibilityIdentifier(identifier)
         }.frame(maxWidth: .infinity)
-    }
-}
-
-/// One `YYYY-MM-DD` bound as an inline compact `DatePicker`. Empty shows a 选择 button; a set value can be cleared.
-/// Gregorian civil date in the device zone, the same format the presets store.
-@MainActor struct SearchMapInlineDateRow: View {
-    let title: LocalizedStringKey
-    @Binding var text: String
-    let identifier: String
-    private static var calendar: Calendar { var c = Calendar(identifier: .gregorian); c.timeZone = .current; return c }
-    private static func parse(_ value: String) -> Date? {
-        let parts = value.trimmingCharacters(in: .whitespacesAndNewlines).split(separator: "-").compactMap { Int($0) }
-        guard parts.count == 3 else { return nil }
-        return calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2]))
-    }
-    private static func format(_ date: Date) -> String {
-        let parts = calendar.dateComponents([.year, .month, .day], from: date)
-        return String(format: "%04d-%02d-%02d", parts.year ?? 1970, parts.month ?? 1, parts.day ?? 1)
-    }
-    var body: some View {
-        if let date = Self.parse(text) {
-            HStack {
-                DatePicker(title, selection: Binding(get: { date }, set: { text = Self.format($0) }), displayedComponents: .date)
-                    .environment(\.calendar, Self.calendar)
-                    .accessibilityIdentifier(identifier)
-                Button { text = "" } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-                        .frame(minWidth: 44, minHeight: 44)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(Text("searchMap.clearDate"))
-                .accessibilityIdentifier("\(identifier).clear")
-            }
-        } else {
-            Button { text = Self.format(Date()) } label: {
-                LabeledContent(title) { Image(systemName: "calendar").foregroundStyle(.secondary) }
-            }
-            .frame(minHeight: 44)
-            .accessibilityIdentifier(identifier)
-        }
     }
 }

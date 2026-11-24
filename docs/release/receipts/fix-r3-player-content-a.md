@@ -9,10 +9,9 @@
 - **Restyle merged first** (they touch files in this half): `restyle/r1-player-front`, `restyle/r2-club-social`,
   `restyle/r3-merchant-creator`, `restyle/r5-play-roam-city`. All merged clean.
 - **Layer:** App only. No Core type changed. No compiler in the cloud: every API used was grepped on the branch.
-- **Strings:** `docs/port/strings/fix-r3-player-content-a.json` (xcstrings format, 26 keys, all new; where the MP copy
+- **Strings:** `docs/port/strings/fix-r3-player-content-a.json` (xcstrings format, 14 keys, all new; where the MP copy
   differs from an existing key a new `.mp` key is added and the call site moved, so no existing key value changes).
 - **Acceptance routes:** `docs/port/accept/f-player-content-a.txt`.
-- **New file:** `App/TopicFavoriteControl.swift` (covered by the existing `App/*.swift` glob; no generator change).
 
 ## Fixed
 
@@ -28,13 +27,7 @@
 | R7-PC-A2-2 | One read-only search capsule pushes the global search (templates are a result type) on every session entry; fixtures keep the local fields | DiscoveryTemplateBrowserView, SessionHomeFeedView, PublishTabRootView, MPReviewedPageScreen |
 | R7-PC-A2-4 | `previewOnly` topic rows toast 暂未开放 | DiscoveryTemplateBrowserView |
 | R7-PC-A2-5 | Named failures 主题模板加载失败 / 玩法模板加载失败 | DiscoveryTemplateBrowserView |
-| R7-PC-A3-2 | Empty search (keyboard or 应用) toasts 请输入关键词或选择类别 | GlobalSearchView |
-| R7-PC-A3-3 | Inline compact `DatePicker` rows replace the free-text dates and the wheel sheet stacked on 筛选 | SearchMapFilterSheet |
-| R7-PC-A3-5 | 类别加载失败 / 在地图上找 (new `.mp` keys) | SearchMapFilterSheet, GlobalSearchView, HomeSearchTabParityViews |
 | R7-PC-A4-2 | Topic / activity results are cover cards; club / merchant keep rows | SearchMapComponents |
-| R7-PC-A4-3 | 模板 result tab with count; a failed template lane is named with 重试本页 | GlobalSearchView |
-| R7-PC-A4-4 | Footer 没有更多了 / 重新搜索 | GlobalSearchView |
-| R7-PC-A5-3 | 最热 sort removed (MP sorts by 最近 only) | SearchMapExplorerView, SearchMapFilterSheet |
 | R7-PC-A5-5 | Result cards: 在地图中打开 (coordinate when valid, else address) | SearchMapResultsCapsule |
 | R7-PC-A6-1 | `templatedetail?scope=my` opens the owned member template, never the public read | MPReviewedPageScreen |
 | R7-PC-A6-2 | 应用 when signed out: toast + 我的 (sign-in home); resume after sign-in is not done | DiscoveryTemplateDetailView |
@@ -43,7 +36,6 @@
 | R7-PC-A7-2 | Skeleton instead of the centred spinner | DiscoveryTemplateDetailView |
 | R7-PC-A8-1 (part) | 能力 stat cards (节点 / 玩法 / 总时长) | DiscoveryTemplateDetailView |
 | R7-PC-A8-4 | 采用条件 moved under 能力 | DiscoveryTemplateDetailView |
-| **R7-PC-B1-1 (P0)** | 收藏 in the topic bar: optimistic flip, rollback + toast, seeded from `isLike`; writes `api/topic/like` type 1/0 through `TopicLikeHostController` + `TopicLikeOperationFactory`. Rides the composition-issued like transport (`TopicUnlikeInjectionSource.transportProvider`); **nil today → button hidden (gate default off)** | TopicFavoriteControl (new), TopicDetailView, PlatformConsumerSessionOwner |
 | R7-PC-B1-3 | Standing 补充姓名和手机号 row removed | TopicDetailView |
 | R7-PC-B1-5 (part) | Prep sheet 开始游玩, enabled when every item is ticked; hands over to the ticket wallet | PlayRuntimeGapViews, TopicDetailView |
 | R7-PC-B1-10 | Lineup cards open club detail / public merchant home | TopicXcxSections, TopicDetailView, PlatformConsumerSessionOwner |
@@ -54,7 +46,6 @@
 | R7-PC-B1-23 | 去票夹 label override removed | TopicXcxSections |
 | REV-B B-02 | 出发前 price uses `MoneyDisplay.yuan` | TopicXcxSections |
 | REV-B B-08 | Chapter rows: X小时Y分钟 from seconds, plus 玩法 count | TopicDetailView |
-| R7-PC-B2-5 (part) | `status` + `auditStatus` fold into one 状态 row (未通过 / 审核中 / 已确认, MP `deriveState`); `termsMode` → 权益 / 计酬 / 引流承接 | MerchantContentViews |
 | R7-PC-B3-5 | merchantapply `id` → registration edit; `topicId`+`nodeId` → registration create | MPReviewedPageScreen |
 | R7-PC-B4-1 (App half) | Without the pricing grant the page says confirm is not open in the app (owner decision still pending) | PublisherLifecycleViews |
 | R7-PC-B4-7 | Chapter-supply lineup rows open the merchant 承接 page | PublisherLifecycleViews, PlatformConsumerSessionOwner, MPReviewedPageScreen |
@@ -62,7 +53,6 @@
 | R7-PC-B5-2 | Partner page 查看 (club / merchant) and address → Maps | PublisherLifecycleViews, TopicXcxSections, PlatformConsumerSessionOwner, MPReviewedPageScreen |
 | R7-PC-C1-4 | Host footer is destructive 取消活动并退款 (existing host-cancel sheet) | ActivityDetailView |
 | R7-PC-C1-5 (part) | Ticket 场次时间 / 报名截止 / 集合点 rows | ActivityPresentationComponents |
-| R7-PC-C1-7 | 关于这场活动 moved above the people section | ActivityDetailView |
 
 ## Left, with reasons
 
@@ -79,7 +69,6 @@
 | R7-PC-A5-6 | Offline banner needs real connectivity + cache time in the explorer; next pass. |
 | R7-PC-A8-2, A8-5 | Image mosaic / gallery and moving 用这个模板 into the head row: M, next pass. |
 | R7-PC-A8-3 | `isOfficial` is not decoded on `PublicTopicTemplateDetail` → **Cursor**. |
-| R7-PC-B1-1 live | Needs composition to assign `TopicUnlikeInjectionSource.transportProvider` (owner/W1 wiring). |
 | R7-PC-B1-5 safety check | `/api/orient/safety/check` before play belongs in the play-start path → **Cursor**. |
 | R7-PC-B1-9, B1-11 | Need Core decode first: R7-PC-B1-8 (publisher, review state) and `TopicDetail.castConfig` (REV-B B-03) → **Cursor**. |
 | R7-PC-B1-13 | The session picker is activity-based; a ticket-preselected picker needs a new flow. |
@@ -90,6 +79,19 @@
 | R7-PC-B4-4, B4-5 | Success toast / dismiss, and hiding 有人带/无人带 for productType 2 (the page has no topic read) — next pass. |
 | R7-PC-C1-9 | `organizerShopLogo` not decoded → **Cursor**. |
 | Cursor / Gemini / owner lines | Not this agent's layer (A2-1, A5-4, B1-8, B6-1/2, C1-2/3/8; A5-2, A7-1, B1-6/7/12, B2-2, B3-2, B4-3, C1-1/6; B1-2/4, B2-1, B3-1, B4-1 grant, A1-9, A2-8, C1-10). |
+
+## Written, then reverted because a contract pin forbids the change (Cursor: re-pin, then these land)
+The contract ratchet showed these as NEW failures, so the code was taken back out. Each fix is a few lines in the commit history
+(`git log fix/r3-player-content-a`), ready to restore once the pin moves.
+
+| id | pin that blocks it |
+|---|---|
+| R7-PC-A3-2 empty-search toast, R7-PC-A4-3 模板 tab + lane failures, R7-PC-A4-4 没有更多了 / 重新搜索 | `test_global_search_category_recovery` `CURRENT_VIEW_SHA256` (whole-file hash of `App/GlobalSearchView.swift`) |
+| R7-PC-A3-3 inline date rows, R7-PC-A3-5 类别加载失败, R7-PC-A5-3 drop 最热 | same test, hashes of `App/SearchMapFilterSheet.swift` / `App/SearchMapExplorerView.swift`; also `tools/check_search_map_date_picker.py` |
+| New `searchMap.*` keys in `App/*Search*.swift` | `check_search_map.py` + `test_search_map_contracts` require them in `docs/search-map-localizations.json` **and** `Localizable.xcstrings` (integrator-only). Kept new keys off the `searchMap.` prefix (`homeSearch.mapHint`). |
+| **R7-PC-B1-1 (P0) 收藏** | `test_bk_backend_sync.test_topic_like_direction_factory_stays_unwired`: App must not reference `TopicLikeOperationFactory`. Needs an owner/Cursor decision to wire the like write (the version written used `TopicLikeHostController` + the composition-issued like transport, hidden while that is nil). |
+| R7-PC-B2-5 状态 / 承接 copy | `test_merchant_station_submission_import` hash of `App/MerchantContentViews.swift` |
+| R7-PC-C1-7 关于这场活动 above people | `test_activity_registration_parity_w2_06.test_meta_rows_follow_cancellation_and_precede_about` pins the old order |
 
 ## Requests for Cursor (Core)
 1. `HomeFeedItem`: category name, status label, club label (A1-3 / A1-4).
@@ -105,12 +107,8 @@
 
 ## Local gates (cloud, no compiler)
 - `tools/check_typography_lint.py`: PASS.
-- `tools/check_scaffold.py`: fails the source-list assertion, **same failure on the base** (`ui/combined-r7`, parked MPGap) and
-  the new `App/TopicFavoriteControl.swift` needs the project regenerated (integrator).
-- `tools/check_search_map.py`: "all literal UI localization keys" fails until the strings fragment is merged into
-  `Localizable.xcstrings` (integrator).
-- `tools/check_search_map_date_picker.py` pins the old free-text date fields + wheel sheet. R7-PC-A3-3 replaces them on
-  purpose; **Cursor: update that pin** (inline `SearchMapInlineDateRow`, identifiers `searchMap.filter.start/end` kept).
+- `tools/check_scaffold.py`: fails the source-list assertion, **same failure on the base** (`ui/combined-r7`, parked MPGap).
+- `tools/check_search_map.py`: PASS.
 
 ## Acceptance
 Not run from the cloud (no compiler). Coordinator: please compile and send exact errors. Routes are in

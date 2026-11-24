@@ -3,9 +3,9 @@
 # A1 首页: hero city menu (live), 进行中 chip on 附近活动, feed eyebrow, sentinel paging (no 加载更多 button)
 d2-home
 d2-home-offline
-# A3/A4 search: 模板 tab + template-lane failure line, 没有更多了 / 重新搜索 footer, topic/activity cover cards
+# A4 search: topic/activity results as cover cards
 d2-search-results
-# A5 search map: no 最热 sort, result-card long-press 在地图中打开
+# A5 search map: result-card long-press 在地图中打开
 cur6-search-map
 cur6-search-map-failed
 # A2 template shelf: named failures (主题模板加载失败 / 玩法模板加载失败); previewOnly → 暂未开放 toast
@@ -21,6 +21,6 @@ topic-preview
 # chapter rows with X小时Y分钟 and 玩法 count, 出发前 price via MoneyDisplay, route stops with image + map link
 --uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN
 --uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN scroll:topic.chapter.11
-# C1 activity detail: 关于这场活动 above 参与者, ticket 场次 / 报名截止 / 集合点 rows
+# C1 activity detail: ticket 场次 / 报名截止 / 集合点 rows; host footer 取消活动并退款 (host fixtures only)
 e1-activity-detail
 activity-expanded
