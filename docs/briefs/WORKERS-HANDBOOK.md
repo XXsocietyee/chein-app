@@ -66,6 +66,11 @@ You don't need anyone's Mac. Every push to `port/**` runs the **Acceptance** wor
 
 A package is DONE only when its acceptance run is green and the receipt is complete.
 
+## 4b. Priority order (owner, 2026-11-24): Claude → Cursor → Gemini
+- Critical and large work goes to Claude first, then Cursor, then Gemini.
+- If two workers touch the same file or disagree on an approach, the higher-priority worker's version wins. The lower-priority worker rebases onto it.
+- The coordinator (Claude) owns integration (`ui/combined-r7`, rolling: each branch is merged as soon as its acceptance run is green) and the FINAL acceptance.
+
 ## 5. Rules (all workers)
 - **Base** `origin/ui/combined-r6`.
 - **Never push** main, master, ui/main or ui/combined-*. No force-push to another worker's branch.
