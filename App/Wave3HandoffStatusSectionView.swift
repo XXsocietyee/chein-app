@@ -169,7 +169,7 @@ public struct Wave3HandoffStatusSectionView: View {
                         Spacer()
 
                         Text(verbatim: gate.stateBadge)
-                            .font(.caption2.monospaced().weight(.semibold))
+                            .font(.caption.monospaced().weight(.semibold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(

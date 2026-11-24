@@ -240,8 +240,11 @@ struct ProfileIdentityShareSourceTicket: Equatable {
     let preview: ProfileIdentityShareModel.Preview
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.previewPresentation(for: preview), onDismiss: { model.close(preview) }) { offered in
+            .sheet(item: model.previewPresentation(for: preview), onDismiss: { model.close(preview) }) { offered in Group {
                 ProfileIdentitySharePreview(model: model, value: offered)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
     }
 }
@@ -258,6 +261,7 @@ struct ProfileIdentityShareSourceTicket: Equatable {
                     ProfileIdentitySystemShare(text: offered.text,
                         isCurrent: { model.handoffIsCurrent(offered, previewID: previewID) },
                         completion: { model.finishHandoff(offered) })
+                    .cySheet()
                 }
             }
     }

@@ -10,7 +10,7 @@ struct BeGapMerchantHubView: View {
             BeGapGateSection(access: access)
             BeGapFactSection()
         }
-        .navigationTitle(Text("beGap.hub.title", tableName: "BeGapMerchant"))
+        .navigationTitle(Text("beGap.hub.title", tableName: "BeGapMerchant")).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("beGap.hub")
         .cyDomainScreen(.merchant)
     }

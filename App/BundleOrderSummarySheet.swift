@@ -88,14 +88,14 @@ import SwiftUI
                 CYAnimatedPrice(text: priceText ?? "—", font: CYTypography.dataXL)
             }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
     }
 
     private func row<Value: View>(_ title: String, emphasized: Bool = false, @ViewBuilder value: () -> Value) -> some View {
         let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.md))
         return layout {
             Text(verbatim: title)
-                .font(emphasized ? CYTypography.bodyMedium : CYTypography.body)
+                .cyText(emphasized ? .bodyMedium : .body)
                 .foregroundStyle(emphasized ? palette.textPrimary : palette.textSecondary)
             if !stacked { Spacer(minLength: CYSpacing.sm) }
             value()
@@ -119,7 +119,7 @@ import SwiftUI
                         .cyStaggeredAppear(index: index, gate: stagger)
                     }
                 }
-                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
             }
         }
     }

@@ -219,7 +219,7 @@ struct CYRootTabBarStrip: View {
                 } label: {
                     VStack(spacing: CYSpacing.xs) {
                         Image(systemName: isSelected ? icon.selected : icon.idle)
-                            .font(.system(size: 20, weight: isSelected ? .semibold : .regular))
+                            .font(.system(.title3, weight: isSelected ? .semibold : .regular))
                             .foregroundStyle(fg)
                         Text(LocalizedStringKey(CYDomainTabIcons.titleKey(for: tab, domain: domain)))
                             .font(CYTypography.micro.weight(isSelected ? .semibold : .medium))

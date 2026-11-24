@@ -43,7 +43,7 @@ import SwiftUI
             .padding(.horizontal, CYSpacing.lg)
             .padding(.vertical, CYSpacing.md)
         }
-        .navigationTitle(Text("shelf.title", tableName: table))
+        .navigationTitle(Text("shelf.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .task { if model.state == .idle { await model.refresh() } }
         .cyAnimation(value: model.items.map(\.topicId))
         .cyRefreshable { await model.refresh() }
@@ -73,7 +73,7 @@ private struct BundleShelfRow: View {
                 }
             }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
         .accessibilityElement(children: .combine)
     }
     private var cover: some View {

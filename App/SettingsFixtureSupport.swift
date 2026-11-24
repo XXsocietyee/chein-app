@@ -65,6 +65,7 @@ import SwiftUI
             }
             .labelStyle(SettingsTileLabelStyle())
             .appNavigationTitle("settings.title")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

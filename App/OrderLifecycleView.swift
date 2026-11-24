@@ -62,10 +62,9 @@ import SwiftUI
                                            channels: coordinator.detail?.id == id ? coordinator.detail?.paymentChannels : nil)
                 OrderPartialRefundSection(settlement: coordinator.detail?.id == id ? coordinator.detail?.settlement : nil)
             }
-            Section { Text("orderLifecycle.production.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            Section {} footer: { Text("orderLifecycle.production.caution") } // native restyle r1: explanatory copy in a footer
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
         .cyHideTabBar(true)
         .safeAreaInset(edge: .bottom, spacing: 0) { pinnedPrimary }
@@ -98,11 +97,15 @@ import SwiftUI
         .sheet(item: Binding(get: { coordinator.review }, set: { if $0 == nil { model.dismiss() } })) { review in
             OrderLifecycleReviewView(review: review, canSimulate: coordinator.canSimulate, canDispatch: coordinator.canDispatch,
                 confirm: { Task { await model.confirm(review.id) } }, close: model.dismiss)
-                .cyPlayerSheetGlass()
+                .themeDomain(.player)
+                .cySheet(detents: [.large])
         }
-        .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in
+        .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in Group {
             PaymentProviderReturnSheet(flow: flow) { _ in model.closePayment() }
-                .cyPlayerSheetGlass()
+                .themeDomain(.player)
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         }
         .accessibilityIdentifier("orderLifecycle.detail")
     }
@@ -312,7 +315,7 @@ struct OrderLifecycleField: View {
                 Section {
                     VStack(spacing: CYSpacing.md) {
                         Image(systemName: review.action == .payment ? "creditcard" : review.action == .refund ? "arrow.uturn.backward.circle" : "xmark.circle")
-                            .font(CYTypography.display.weight(.regular)).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.display, weight: .regular).foregroundStyle(CYColor.textPrimary)
                             .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
                         Text(LocalizedStringKey("orderLifecycle.question." + review.action.rawValue))
                             .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
@@ -335,7 +338,7 @@ struct OrderLifecycleField: View {
                     if canDispatch {
                         if review.action == .payment {
                             Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), action: confirm)
-                                .buttonStyle(.cyPrimary(fullWidth: true))
+                                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                                 .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
                         } else {
