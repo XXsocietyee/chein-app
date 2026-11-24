@@ -1,4 +1,4 @@
-# Gemini (cloud) · Port package P5: small contract fixes + owner rulings
+# Port package P5 (owner reassigned it from Gemini to a Claude cloud agent on 2026-11-24): small contract fixes + owner rulings
 
 You run as a cloud agent. Work only from GitHub. All the repos are public.
 
@@ -17,4 +17,4 @@ You run as a cloud agent. Work only from GitHub. All the repos are public.
    - Until the workflow exists, make sure every changed Swift file passes `swiftc -parse` (if swiftc is available), and say so in the receipt.
 6. **Receipt:** `docs/release/receipts/port-p5.md`. Push.
 
-**Rules:** never push main, ui/main or ui/combined-*. No deploys. No secrets. Money stays TEST-only. Commit trailer `Co-Authored-By: Gemini <noreply@google.com>`.
+**Rules:** never push main, ui/main or ui/combined-*. No deploys. No secrets. Money stays TEST-only. Commit trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
