@@ -595,7 +595,8 @@ import SwiftUI
                     MerchantAftercareProgressView(progress: progress)
                 } else if query == .verificationRecords {
                     // Parity X5: 已核销 / 已撤销 chip tabs with counts and day groups (pages/merchant/verify-records).
-                    MerchantVerifyRecordsSections(records: snapshot.document.rows, total: snapshot.document.total)
+                    MerchantVerifyRecordsSections(records: snapshot.document.rows, total: snapshot.document.total,
+                                                  hasMore: snapshot.document.hasMore, reader: reader)
                 } else {
                     ForEach(snapshot.document.sections) { section in
                         let rows = visibleRows(section, in: snapshot.document)

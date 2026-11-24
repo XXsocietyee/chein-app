@@ -146,3 +146,79 @@ The strings are in `docs/port/strings/fix-r3-merchant-coop-a.json` (91 keys, zh-
   - `check_public_merchant_home.py` fails identically before and after (it reads a path outside the repo).
 - **Fixture routes:** `docs/port/accept/f-merchant-coop-a.txt`.
 - **Acceptance run:** none yet. The coordinator compiles the branch and runs the acceptance workflow.
+
+---
+
+## Round 2 (2026-11-24)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round2.md`, plus `wave-x10.md` and `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` at `97ee2bc9e`. The only conflict was `tools/check_typography_lint.py`, which I took from r7.
+  - r7 did **not** yet contain Cursor's merchant Core or the MP assets, so I also merged `origin/cursor/mp-assets` (`05d527e12`) and `origin/cursor/core-merchant-coop` (`c9cbcd24b`).
+  - `tools/generate_project.py` conflict: I kept both the `App/MPGap/**` and the `App/MPAssets/*` globs.
+  - I merged r7 again before the final push.
+- **Review findings:** `review/r7-rev-a`, `-b` and `-c` have **no** Claude-owned rows for merchant-coop. The Claude rows are B-02…B-16 (topic, IM, ticket wallet, club), which belong to other areas, so nothing changed here.
+- **Cursor wiring call sites:** `cursor-core-merchant-coop.md` lists no `cursor/wire-merchant-coop` call sites. I followed its "For the Claude F-agent (App)" list instead.
+
+### Fixed in round 2
+
+| id | What changed | Files |
+|---|---|---|
+| MC7-07-1 / MC7-07-2 | `pages/merchant/ledger/order-detail/index?recordType=&recordId=` opens that ledger record. `activity_ticket` and `session_fee` keep their typed key (`MerchantOrderDetailLink.record` → `.redemption(recordID:)`). A missing pair shows 缺少核销记录信息 + 返回上一页. | MPReviewedPageScreen |
+| MC7-07-3 (+) | Order-detail "missing record" also matches 记录不存在 / 记录不可见 messages, via Core `MerchantFinanceDetailLoad.isMissingRecord`. | MerchantBusinessPageGate |
+| MC7-08-4 | A batch that is 404 or 记录不存在/不可见 shows 这条结算批次不存在或已不可见 + 返回结算列表 (pops), not the generic retry. | MerchantLedgerSettlementOverview |
+| MC7-04-2 / MC7-04-3 | Verify records now append:<br>• the first page is Core's 50-row `.verificationRecords` (`hasMore` from `MerchantVerificationRecordPage`);<br>• later rows come from the existing 20-row `.redemptions(filter:"all", page:)` read (same endpoint and permission), starting at the overlapping page and de-duplicated by `recordKey`;<br>• 正在加载更多… loads when it appears; a failure turns it into 重新加载; 已经到底了 shows once every row is loaded. | MerchantVerifyRecordsSections, MerchantBusinessViews |
+| MC7-11-3 | 到店时段 reads `facts.checkin.slotBuckets` through Core `MerchantInsightSlots`: four bars (peak highlighted), percentages, and the footer 共 N 次打卡 · {peak}到店最多. The old `hourBuckets` rows are gone. | MerchantInsightSlotsSection (new), MerchantMarketingView |
+| MC7-13-3 (part) | Review tab labels show the server `filterCounts` (`reviewFilterCounts`) when present. Unknown counts keep the bare label. | MerchantBusinessViews |
+| MC7-06-1 (App part) | `pages/merchant/ledger/index?view=settlement` (or `tab=2/3`) opens the 账本 on its 结算 segment (`MPParityRoute.merchantLedgerSettlement`). The bare path is unchanged (`.merchantLedger`, so the AppUnit test still holds). | MPParityKit, SubscribeMessageTapScreens |
+| Owner #9 | The refund hero and the customer 累计消费 amounts now show `¥12.50` through the shared `MoneyDisplay` switch, instead of `CNY 12.5`. The other merchant money (ledger, aftercare list, orders) already used two-decimal `¥` formatters. | MerchantMoneyText (new), MerchantAftercareProgressView, MerchantCustomerDetailSections |
+
+### MP assets applied (`MPAsset.*`; rows from `docs/mp-assets/mapping.md`)
+
+- [x] `FeatureIcon.iconCalendar`: workbench 更多 › 核销记录 (index.wxml:292). Replaces `checkmark.seal`.
+- [x] `FeatureIcon.iconShop`: 更多 › 品牌中心 (index.wxml:316). Replaces `slider.horizontal.3`.
+- [x] `Other.navMsg`: 更多 › 协作邀请 (index.wxml:283). Replaces `envelope.badge.person.crop`.
+- [x] `FeatureIcon.iconStarFilled` / `iconStarMuted`: review header stars (reviews/index.wxml:42). Replaces `star.fill` / `star`.
+- [x] `FeatureIcon.iconBubble` / `iconPlus` / `iconCheckBlue` / `iconStarOutline`: the four manage metric cards (reviews/index.wxml:50-75).
+- [x] `FeatureIcon.iconStarSmall` / `iconStarMuted`: per-review stars (reviews/index.wxml:160). Replaces the `★ n/5` text.
+- [x] `FeatureIcon.iconCheckGreen`: 核销已验证 (reviews/index.wxml:155). Replaces `checkmark.seal`.
+- [x] `AvatarDefault.dProfile`: default avatar on the customer list and customer detail (customer/index.wxml:71, detail:29), via the new `MerchantMPAvatar`. Review authors keep the 城 monogram, as in the MP (reviews/index.wxml:149).
+- [x] `BannerCover.merchantCoopBanner`: the marketing coop entry (marketing/index.wxml:135).
+- [x] `FeatureIcon.check` + the tag icons (`baby` … `wine`, all 33): the apply 行业类型 sheet (apply/index.wxml:308 `cy-tag-sheet`). They use the `tag-library.js` merchant presets, then the keyword rules (`MerchantTagIcons`). Unmapped labels stay text-only, as in the MP.
+- [ ] `FeatureIcon.iconCopy` (customer 复制电话): the copy control is in `App/MerchantBusinessRecordViews.swift`, which is whole-file SHA-pinned (see round 1). Cursor needs to re-pin it first.
+- [ ] `FeatureIcon.iconSend` (reply send): the reply editor is in `App/MerchantBusinessEditor.swift`, which is pinned by about 20 tests.
+- [ ] `BannerCover.flavorTour` / `midlifeDay` / `oldMovie` / `treasureHunter` (insight 经营优化 cards): these live only in `App/MPGap/MerchantCoop/MerchantGapAIInsightViews.swift`, which is Gemini's (`gap/g2-ops`) and parked. I skipped it.
+- System-control glyphs stay SF Symbols, per the mapping: `ellipsis`, chevrons, `circle` (unselected), `lock`, `doc.on.doc` on non-MP rows, and the gate-state symbols.
+
+New helper files: `MerchantMPIcon.swift` (`MerchantMPIcon`, Dynamic-Type scaled and decorative; `MerchantMPAvatar`) and `MerchantTagIcons.swift`.
+
+### Still open after round 2 (requests for Cursor)
+
+- **MC7-13-3 (server tabs):** `MerchantBusinessReading.snapshot` only takes a `MerchantBusinessQuery`, and `.reviews(page:)` always sends `filter=all`.
+  - Selecting 待回复/低分/有图/平台复审 therefore still filters the loaded page locally.
+  - **Request:** a `.reviews(filter:page:)` query case (or a reader method for `MerchantReviewManageRead`), plus a `platform` case on `MerchantReviewFilter`.
+- **MC7-06-10:** the same limit. `MerchantFinanceRedemptionList(topicID:)` cannot be sent through the reader, because `.redemptions` has no `topicId`.
+  - **Request:** `.redemptions(filter:page:topicID:)`. After that, the App opens a 台账-titled list for `view=redemptions&topicId=`.
+- **MC7-04-2:** works now through `.redemptions` paging (see above). A `.verificationRecords(page:)` case would remove the overlap and de-duplication step.
+- **MC7-06-9:** `CoopFlowSettlement.Source` still has no `.ledger` case. `MerchantSettlementDetailLink.Source.ledger` exists, but `CoopSettlementDetailView` cannot read it.
+- **MC7-08-5 / batch link:** `pages/merchant/ledger/batch-detail/index` is still in the no-query list in `MiniProgramPageLink`, so `?batchId=` is rejected before the screen case runs.
+- **MC7-12-1:** campaign reads still require `marketing:write`.
+- **MC7-01-7:** `MerchantDeskManualCodeClient` exists, gated off. I did not add a 手输码 row: the gate is default-off and new gates stay off, so the row would never show. It is ready to add once the owner turns the gate on.
+- Unchanged from round 1: MC7-14-7, MC7-17-3, the hash-pinned files (MC7-13-7 `version`, MC7-12-2/3, MC7-17-4, MC7-15-6), the deferred restructures (MC7-14-1/2/5/6, MC7-15-2), and the owner and X6 rows.
+
+### Owner decisions check (`owner-decisions-1124.md`)
+
+- **#9 two decimals:** applied (above). `MoneyDisplay.current` stays `.twoDecimals`.
+- **#3, #6, #12 money:** nothing in this half writes money. Refund decisions keep the existing X6 confirm gating, and the payout account stays read-only.
+- **#5 merchant approvals:** the approve/reject screens are the existing permission-checked confirm sheets. No new write path.
+- **#7, #8, #10** (cast, GPS arrival lock, game-kit pilot gate): not in this half's pages.
+- **New gates:** none added.
+
+### Verification (round 2, cloud, no compiler)
+
+- I ran the 49 contract modules that mention any round-2 file, before and after (baseline: the merge commit, in a worktree). There are **no new failures**: the failing set is identical before and after, and every failure is pre-existing.
+- `test_category_roam_registration` (its frozen SHA history of `Localizable.xcstrings`) fails on the baseline as well.
+- **For the integrator:**
+  - new Swift files: `MerchantInsightSlotsSection`, `MerchantMPIcon`, `MerchantMoneyText`, `MerchantTagIcons`. They are all matched by `App/*.swift`, so regenerate `project.pbxproj`.
+  - `MerchantInsightSlots.peakText` is Chinese from Core (早上到店最多), so the English footer shows it as given.
+- **Strings:** 7 new keys in `docs/port/strings/fix-r3-merchant-coop-a.json` (98 keys, en + zh-Hans).
+- **Fixture routes:** unchanged (`docs/port/accept/f-merchant-coop-a.txt`). `merchant-home`, `t12-reviews`, `t12-marketing`, `merchant-customers` and `t12-ledger-batches` cover the round-2 changes.
