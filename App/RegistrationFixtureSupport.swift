@@ -173,7 +173,7 @@ struct RegistrationFixtureHostView: View {
                     }
                     .modifier(AccessibilityFixtureOptions())
             }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
     }
 }
 

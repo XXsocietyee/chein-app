@@ -254,7 +254,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 ProgressView().frame(maxWidth: .infinity)
             } else if organiser {
                 NavigationLink {
-                    List { SharedRunControlSection(activityID: activityID) }.appNavigationTitle("parityB.shared.title")
+                    List { SharedRunControlSection(activityID: activityID) }.appNavigationTitle("parityB.shared.title").navigationBarTitleDisplayMode(.inline)
                 } label: { Label("parityB.shared.open", systemImage: "dot.radiowaves.left.and.right") }
                     .accessibilityIdentifier("parityB.shared.open.\(activityID)")
             }
@@ -288,7 +288,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
             }
             .sheet(isPresented: $scanning) { Group {
                 NativeQRScanner { raw in scanning = false; Task { await verify(raw) } }
-            }.cyR1Sheet([.large]) }
+            }.cySheet(detents: [.large]) }
         }
     }
 
@@ -454,7 +454,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 }
                 .sheet(isPresented: $picking) { Group {
                     CircleThemeConfigureSheet(topicID: topicID, themeCode: topic.themeCode) { await reload() }
-                }.cyR1Sheet([.large]) }
+                }.cySheet(detents: [.large]) }
             }
         }
         .task(id: topicID) { await reload() }

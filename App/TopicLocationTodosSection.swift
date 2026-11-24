@@ -110,7 +110,7 @@ import QuestifyCore
                 },
                 onClose: { picking = nil }
             )
-        }.cyR1Sheet([.large]) }
+        }.cySheet(detents: [.large]) }
         .accessibilityIdentifier("locationTodos.sheet")
     }
 }

@@ -166,7 +166,7 @@ struct HomeHeroHeaderSectionView: View {
                     HStack(spacing: 6) {
                         Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
                             .cyWrapText()
-                        Image(systemName: "chevron.down").font(.caption2.weight(.bold))
+                        Image(systemName: "chevron.down").font(.caption.weight(.bold))
                     }
                     .cyText(.label)
                     .foregroundStyle(CYColor.textSecondary)
@@ -513,7 +513,7 @@ struct MerchantRootModeSwitchBannerView: View {
                             Image(systemName: descriptor.systemImage)
                                 .font(.subheadline)
                             Text(LocalizedStringKey(descriptor.titleKey))
-                                .font(.caption2.weight(isSelected ? .semibold : .regular))
+                                .font(.caption.weight(isSelected ? .semibold : .regular))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
@@ -1560,7 +1560,7 @@ struct PublishTabFloatingSheetView: View {
                 }
             }
         }
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .cyDomainScreen(.topicEditor)
     }
 }

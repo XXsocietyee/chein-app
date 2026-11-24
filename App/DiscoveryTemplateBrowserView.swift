@@ -131,7 +131,7 @@ struct DiscoveryTemplateBrowserView: View {
                 if tab == .topics { topicTag = key } else { gameTag = key }
                 showsAllTags = false
             }
-        }.cyR1Sheet([.large]) }
+        }.cySheet(detents: [.large]) }
         .onAppear {
             if let visit = topics.appear(reader: reader), tab == .topics, topicSelection == nil {
                 Task { await topics.load(reader: reader, visit: visit) }

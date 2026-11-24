@@ -152,6 +152,7 @@ import SwiftUI
         }
         }
         .appNavigationTitle(key: mode == .city ? "searchMap.mapTitle" : "searchMap.nearby")
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showsAllResults) {
             let renderedContext = pinSelectionContext
             SearchMapAllResultsSheet(rows: visibleCityResults == nil ? [] : pagination.rows, loading: loading,
@@ -211,7 +212,7 @@ import SwiftUI
             RoamAreaPicker { selected in
                 reader.selectManualArea(selected); area = selected; mapEnabled = false; mapCameraIdentityArea = nil; invalidate(); reader.publicLayerCoordinator?.purgeAllState()
             }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
         .sheet(isPresented: $showsFilters) {
             SearchMapFilterSheet(filter: filter, categories: categories, categoryFailed: categoryFailed,
                                  tag: tag, cityRole: cityRole, sortType: sortType,

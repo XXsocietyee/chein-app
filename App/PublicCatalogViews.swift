@@ -212,7 +212,7 @@ struct PublicCatalogDetailView: View {
                 .buttonStyle(.cyPrimary)
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .padding(CYSpacing.pageHorizontal)
-                .background(.ultraThinMaterial)
+                .background(.bar)
                 .accessibilityIdentifier("publicCatalog.detail.open")
         }
     }

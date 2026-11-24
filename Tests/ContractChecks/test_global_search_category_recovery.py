@@ -152,7 +152,10 @@ class GlobalSearchCategoryRecoveryContracts(unittest.TestCase):
                     with self.assertRaises(AssertionError): project(altered)
 
     def test_reviewed_helper_sheet_services_and_remote_explorer_are_pinned(self):
-        expected = {'Core/SearchMapReading.swift': '48a171867907765e106efead8c5fd6a97689212e17e89ee372ea4430ad38ee31', 'App/SearchMapFilterSheet.swift': 'feb11eba5ea5cb0029745012b7c36d938a9c8fa362374f229bb26ef88dedb72f', 'App/SearchMapExplorerView.swift': '8b272a7a4ee53747c73a760ce7503ec007ef38af4c6374b38a7438db27d9e449', 'App/SessionGlobalSearchView.swift': '82cbe61a1a16344170922e68741f4d8fdd88beef46a87392f1f861784073265d', 'Core/SearchMapService.swift': 'c66b17e694d089319f558734c740f1f6fd7277b6b6c70ed9e0ef7d0c68d3e514', 'Core/SearchMapContracts.swift': '4809f9d6f19ba5e747fc15f67864e557e46628b227116732ab77545d7c7c286e', 'Tests/CoreTests/SearchMapCategoryRecoveryTests.swift': '4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad'}
+        # SearchMapFilterSheet / SearchMapExplorerView re-pinned by restyle/r1-player-front (owner-approved native restyle,
+        # presentation only: cySheet detents, inline title mode, cyText tokens). Category recovery is untouched; the
+        # behavioural assertions in this class still read the same draft/tag/phase code.
+        expected = {'Core/SearchMapReading.swift': '48a171867907765e106efead8c5fd6a97689212e17e89ee372ea4430ad38ee31', 'App/SearchMapFilterSheet.swift': 'ea38605f3bbb2ad478ed1783ca018ba87d12b69cd11d6c15d1882c615f24979c', 'App/SearchMapExplorerView.swift': '0d16c2cff2e0c3e566b0e4b59397bb23af056a4eac40ead9beb84b506d933ec4', 'App/SessionGlobalSearchView.swift': '82cbe61a1a16344170922e68741f4d8fdd88beef46a87392f1f861784073265d', 'Core/SearchMapService.swift': 'c66b17e694d089319f558734c740f1f6fd7277b6b6c70ed9e0ef7d0c68d3e514', 'Core/SearchMapContracts.swift': '4809f9d6f19ba5e747fc15f67864e557e46628b227116732ab77545d7c7c286e', 'Tests/CoreTests/SearchMapCategoryRecoveryTests.swift': '4f7ed5b79dd4929b5eb828c53e1a07826e1a8b6ff78a09c0f55148faa24a4dad'}
         for path, digest in expected.items():
             with self.subTest(path=path):
                 self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest)

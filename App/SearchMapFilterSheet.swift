@@ -118,6 +118,7 @@ import SwiftUI
                 }.frame(minHeight: 44).accessibilityIdentifier("searchMap.filter.reset")
             }.textInputAutocapitalization(.never).autocorrectionDisabled()
                 .appNavigationTitle("searchMap.filters")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("searchMap.cancel") { dismiss() }.accessibilityIdentifier("searchMap.filter.cancel") }
                     ToolbarItem(placement: .confirmationAction) { Button("searchMap.apply") { commit() }.accessibilityIdentifier("searchMap.filter.apply") }
@@ -131,7 +132,7 @@ import SwiftUI
                     return true
                 } catch { return false }
             }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
     }
     private func openDatePicker(_ field: SearchMapDatePickerField) {
         datePicker = SearchMapDatePickerDraft(field: field, draft: dateDraft)
@@ -196,6 +197,7 @@ import SwiftUI
                 }.padding()
             }
             .appNavigationTitle(picker.field == .start ? "mapDatePicker.start" : "mapDatePicker.end")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("searchMap.cancel") { dismiss() }.accessibilityIdentifier("mapDatePicker.cancel")

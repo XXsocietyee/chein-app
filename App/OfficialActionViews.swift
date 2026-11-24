@@ -145,7 +145,7 @@ import SwiftUI
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }.cyR1Sheet([.medium, .large]) }
+            }.cySheet() }
     }
 }
 
@@ -189,7 +189,7 @@ import SwiftUI
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }.cyR1Sheet([.medium, .large]) }
+            }.cySheet() }
     }
     private func roleBinding(_ role: OfficialAudience, title: Bool) -> Binding<String> {
         Binding(get: { let copy = draft.copies[role] ?? OfficialCopy(); return title ? copy.title : copy.sub },
@@ -348,7 +348,7 @@ struct OfficialParticipationPresentation {
             callback?()
         }) { Group {
             if let entry = presentation.entry { OfficialActionSheet(coordinator: coordinator, command: entry.command) }
-        }.cyR1Sheet([.large]) }
+        }.cySheet(detents: [.large]) }
     }
 }
 @MainActor struct OfficialMerchantInviteEditor: View {
@@ -374,6 +374,6 @@ struct OfficialParticipationPresentation {
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }.cyR1Sheet([.medium, .large]) }
+            }.cySheet() }
     }
 }

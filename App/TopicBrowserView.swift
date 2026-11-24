@@ -60,6 +60,7 @@ struct TopicBrowserView: View {
                 Section { Text("topic.readOnly").cyText(.caption).foregroundStyle(CYColor.textTertiary) }.listRowBackground(Color.clear)
             }
             .appNavigationTitle("topic.title")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
             .searchable(text: $keyword, prompt: "topic.search")
             .task(id: key) {

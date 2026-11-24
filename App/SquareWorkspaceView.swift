@@ -216,7 +216,7 @@ import UniformTypeIdentifiers
                 _ = localMedia.accept(provider: provider, request: captured, maximumImageBytes: SquareWorkspaceService.maximumUploadImageBytes,
                     scopeIsCurrent: { localMediaScopeIsCurrent(captured.scope) })
             }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
         .onDisappear { localMedia.invalidate(); coordinator.clearRevisions() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { localMedia.invalidate(); coordinator.clearRevisions() } }
         .onChange(of: draft.workflowID) { _, _ in localMedia.invalidate(); coordinator.clearRevisions() }
@@ -274,7 +274,7 @@ import UniformTypeIdentifiers
                     }.navigationTitle("squareWorkspace.review").navigationBarTitleDisplayMode(.inline)
                 }
             } else { Text("squareWorkspace.staleReview") }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
     }
     private func localMediaScope() throws -> SquarePostLocalMediaScope {
         try .init(session: coordinator.session, draftID: draft.workflowID, lane: lane)

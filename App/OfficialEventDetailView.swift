@@ -280,8 +280,8 @@ enum OfficialDetailID {
         .cyPushedChrome(domain: .player)
         .sheet(item: $shareEvent) { event in
             CatalogShareCardView(content: shareContent(event), tint: .sunset)
-                .cyPlayerSheetGlass()
-                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.player)
+                .cySheet()
         }
         .onAppear { visible = true }
         .onDisappear { visible = false; visit = UUID() }

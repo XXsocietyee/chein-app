@@ -159,7 +159,7 @@ import SwiftUI
         .onChange(of: relatedTopicContext?.reader.scope) { _, _ in relatedTopic = nil }
         .sheet(item: $editor, onDismiss: { applyFollowReceipt() }) { item in Group {
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
-        }.cyR1Sheet([.large]) }
+        }.cySheet(detents: [.large]) }
         .sheet(item: $shareRoute) { route in CYSquareShareSheet(payload: route.payload, url: route.url) }
         .navigationDestination(isPresented: $showsAuthorProfile) {
             if let accountReader, let post, post.memberID > 0 {
@@ -188,16 +188,16 @@ import SwiftUI
         }
         .sheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
-                .presentationDetents([.large])
+                .cySheet(detents: [.large])
         }
         .sheet(isPresented: $showsWorkspaceEdit) { Group {
             if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace, initialPostID: id, initialLane: contentGeneration == .communityV1 ? .communityV1 : .legacy) }.id(workspace.session) }
-        }.cyR1Sheet([.large]) }
+        }.cySheet(detents: [.large]) }
         .sheet(item: deletionBinding) { item in Group {
             if let deletion {
                 SquareDeletionConfirmView(target: item.target, excerpt: SquareDeletionConfirmView.excerpt(post?.contents), coordinator: deletion)
             }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
         .onChange(of: deletion?.phase) { _, phase in
             // A confirmed comment deletion refreshes the thread; a deleted post leaves no stale body on screen.
             if case .done(let target)? = phase { if case .post = target { post = nil; comments = SquareCommentPagination() } else { Task { await reload() } } }

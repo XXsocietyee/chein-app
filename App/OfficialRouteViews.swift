@@ -97,7 +97,7 @@ import SwiftUI
         }
         .sheet(isPresented: $showShare) { Group {
             if case .ready(let detail) = state { CatalogShareCardView(content: shareContent(detail), tint: .ember) }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
         .task { await load() }
         .accessibilityIdentifier("officialRoute.detail")
     }

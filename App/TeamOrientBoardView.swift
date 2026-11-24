@@ -69,7 +69,7 @@ extension EnvironmentValues {
             .sheet(isPresented: $showingReportSheet) { Group {
                 // Source `team-report-sheet`: five fixed reasons, sent verbatim.
                 TeamReportReasonSheet(teamID: detail.team.id)
-            }.cyR1Sheet([.medium, .large]) }
+            }.cySheet() }
         }
     }
 

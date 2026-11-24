@@ -222,7 +222,7 @@ enum SquarePostLocalMediaPresentationState: Equatable {
                     }
                 }
             }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
     }
 }
 

@@ -68,7 +68,7 @@ struct DiscoveryTemplateDetailParitySections: View {
         DiscoveryTemplateNoticeSection()
         .sheet(item: $preview) { state in Group {
             TemplateNodePreviewSheet(state: state) { preview = nil }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
     }
 
     /// Use count and duration already render in the base metadata/presentation.

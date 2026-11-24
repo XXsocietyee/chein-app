@@ -72,7 +72,7 @@ import SwiftUI
                 .navigationTitle("square.gov.appeal").navigationBarTitleDisplayMode(.inline)
                 .toolbar { Button("square.gov.cancel") { appeal = nil; reason = "" } }
             }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
         .sheet(item: $review) { item in Group {
             NavigationStack {
                 Form {
@@ -85,7 +85,7 @@ import SwiftUI
                     Button("square.gov.cancel") { review = nil }.disabled(loading)
                 }.navigationTitle("square.gov.review").navigationBarTitleDisplayMode(.inline)
             }.interactiveDismissDisabled(loading)
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
         .cyDomainScreen(.player)
     }
     @ViewBuilder private func preferenceSection(_ snapshot: SquareGovernanceSnapshot) -> some View {

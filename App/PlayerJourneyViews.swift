@@ -37,7 +37,7 @@ enum PlayerJourneyRoute: Hashable {
             }
         }.id(session.sessionRevision).privacySensitive()
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
-        .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cyR1Sheet([.large]) }
+        .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
         .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
     }

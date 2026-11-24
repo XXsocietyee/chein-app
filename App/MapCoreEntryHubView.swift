@@ -94,7 +94,7 @@ struct MapCoreEntryHubView: View {
         .themeDomain(.player)
         .sheet(isPresented: $showsSharingExplainer) { Group {
             NavigationStack { LocationShareExplainerView() }
-        }.cyR1Sheet([.medium, .large]) }
+        }.cySheet() }
     }
 
     private func entryLabel(_ entry: MapCoreEntry) -> some View {

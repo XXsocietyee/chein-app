@@ -157,8 +157,8 @@ struct RegistrationSheetView: View {
             .modifier(RegistrationPlayerSheetHeader(onClose: { flow.leave(); dismiss() }))
             .overlay { registrationPopups }
             .cyToast(verbatimMessage: $toastMessage)
-            .sheet(isPresented: $showingTicketSheet) { Group { ticketSheetContent }.cyR1Sheet([.medium, .large]) }
-            .sheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cyR1Sheet([.medium, .large]) }
+            .sheet(isPresented: $showingTicketSheet) { Group { ticketSheetContent }.cySheet() }
+            .sheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cySheet() }
             .modifier(RegistrationOrderAndLifecycleModifier(
                 flow: flow,
                 orderReader: orderReader,
@@ -175,7 +175,7 @@ struct RegistrationSheetView: View {
                 nonRefundableConfirmed: $nonRefundableConfirmed
             ))
         }
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .accessibilityIdentifier("registration.form.sheet")
         .cyDomainScreen(.player)
     }
@@ -1060,9 +1060,9 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                     RegistrationWaitlistOrderSheet(presentation: visit.presentation, reader: orderReader,
                         isCurrent: { RegistrationWaitlistOrderVisit.permits(visit, current: orderDestination,
                             destination: flow.waitlistOrderDestination, isActive: scenePhase == .active) })
-                        .cyPlayerSheetGlass()
+                        .themeDomain(.player)
                 }
-            }.cyR1Sheet([.large]) }
+            }.cySheet(detents: [.large]) }
             .onChange(of: flow.waitlistReadKey) { _, _ in orderDestination = nil }
             .onChange(of: flow.waitlistOrderDestination) { _, _ in orderDestination = nil }
             .sheet(item: $resultOrderDestination) { presentation in Group {
@@ -1070,17 +1070,17 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                     RegistrationResultOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { resultOrderDestination == presentation &&
                             flow.resultOrderDestination == presentation.destination && scenePhase == .active })
-                        .cyPlayerSheetGlass()
+                        .themeDomain(.player)
                 }
-            }.cyR1Sheet([.large]) }
+            }.cySheet(detents: [.large]) }
             .sheet(item: $recoveredOrderDestination) { presentation in Group {
                 if let orderReader {
                     RegistrationRecoveredOrderSheet(presentation: presentation, reader: orderReader,
                         isCurrent: { recoveredOrderDestination == presentation &&
                             flow.recoveredOrderDestination == presentation.destination && scenePhase == .active })
-                        .cyPlayerSheetGlass()
+                        .themeDomain(.player)
                 }
-            }.cyR1Sheet([.large]) }
+            }.cySheet(detents: [.large]) }
             .onChange(of: flow.recoveredOrderDestination) { _, _ in recoveredOrderDestination = nil }
             .onChange(of: flow.resultOrderDestination) { _, _ in resultOrderDestination = nil }
             .onChange(of: scenePhase) { _, phase in
@@ -1093,9 +1093,9 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
                             onSaved: { if participantCoordinator.savedParticipant == nil { Task { await flow.loadParticipants() } } },
                             onCreated: { row, identity in Task { await flow.selectCreatedParticipant(row, identity: identity) } })
                     }
-                    .cyPlayerSheetGlass()
+                    .themeDomain(.player)
                 }
-            }.cyR1Sheet([.medium, .large]) }
+            }.cySheet() }
             .onChange(of: flow.identity) { _, _ in showingAddParticipant = false }
             .onChange(of: flow.participantsIdentity) { _, _ in
                 showingAddParticipant = false

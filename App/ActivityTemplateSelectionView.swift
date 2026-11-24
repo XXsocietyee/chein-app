@@ -197,7 +197,7 @@ extension ActivityTemplateSelectionOwner {
                         } }
                     }
                 }
-            }.cyR1Sheet([.large]) }
+            }.cySheet(detents: [.large]) }
     }
 }
 

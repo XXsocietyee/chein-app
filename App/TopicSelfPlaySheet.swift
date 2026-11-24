@@ -117,10 +117,10 @@ import SwiftUI
                     }.navigationTitle("contextSelfPlay.review").navigationBarTitleDisplayMode(.inline)
                 }
                 .presentationDragIndicator(.visible)
-            }.cyR1Sheet([.medium, .large]) }
+            }.cySheet() }
             .sheet(item: Binding(get: { model.flow.paymentReview }, set: { if $0 == nil { model.flow.cancelPaymentReview() } })) { review in Group {
                 TopicSelfPlayPaymentReviewSheet(review: review, confirm: { consent in Task { await model.flow.confirmExistingPayment(review, consented: consent) } }, cancel: model.flow.cancelPaymentReview)
-            }.cyR1Sheet([.medium, .large]) }
+            }.cySheet() }
             .sheet(item: Binding(get: { model.flow.result }, set: { _ in })) { result in
                 PaymentProviderReturnSheet(flow: result) { model.flow.closeResult($0) }
             }

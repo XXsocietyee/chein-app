@@ -249,7 +249,7 @@ struct SquarePostVideoPlayerRow: View {
                 }
                 SquarePostVideoComposerSection(model: model)
                 Section("square.video.readTitle") { SquarePostVideoList(videos: readSample) }
-            }.appNavigationTitle("square.video.title")
+            }.appNavigationTitle("square.video.title").navigationBarTitleDisplayMode(.large)
         }
     }
     private func pick(durationMs: Int64, bytes: Int64) {

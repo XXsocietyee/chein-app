@@ -563,7 +563,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                         Button("action.goSignIn") { showsSignIn = true }.buttonStyle(.cyPrimary)
                             .accessibilityIdentifier("playerGap.publish.goSignIn")
                     }
-                    .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.cyR1Sheet([.large]) }
+                    .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
                 case .failed(let message)?:
                     ContentUnavailableView { Label("playerGap.publish.failed", systemImage: "exclamationmark.triangle") } description: {
                         if let message, !message.isEmpty { Text(verbatim: message) }
