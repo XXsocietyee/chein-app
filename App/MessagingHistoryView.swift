@@ -238,7 +238,11 @@ struct MessagingHistoryView: View {
                     HStack(spacing: CYSpacing.sm) {
                         // R7-PC-D9-4 (MP im/chat/index.wxml:68): the counterparty's avatar, generated art as fallback.
                         IMRemoteAvatar(url: conversation?.kind == .system || conversation?.kind == .group ? nil : IMRemoteAvatar<EmptyView>.url(conversation?.counterparty?.avatar)) {
-                            CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                            if conversation?.kind == .system || conversation?.kind == .group {
+                                CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                            } else {
+                                MPAsset.AvatarDefault.dProfile.resizable().scaledToFill() // MP `/images/d_profile.png`
+                            }
                         }
                             .frame(width: 28, height: 28).clipShape(Circle())
                         if !dynamicTypeSize.isAccessibilitySize {
@@ -532,8 +536,9 @@ private struct MessagingBubble: View {
                 // Avatar sits beside the last bubble of a run; earlier ones keep the column empty.
                 if position.showsTail {
                     // R7-PC-D9-4 (MP im/chat/index.wxml:160 `senderAvatar`): generated art as fallback.
-                    IMRemoteAvatar(url: IMRemoteAvatar<EmptyView>.url(message.senderAvatar)) {
-                        CYIMCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                    // MP im/chat/index.wxml:160: `senderAvatar || avatar || '/images/d_profile.png'`.
+                    IMRemoteAvatar(url: IMRemoteAvatar<EmptyView>.url(message.senderAvatar) ?? (isGroup ? nil : IMRemoteAvatar<EmptyView>.url(conversation?.counterparty?.avatar))) {
+                        MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
                     }
                         .frame(width: avatarSize, height: avatarSize)
                         .clipShape(Circle())
