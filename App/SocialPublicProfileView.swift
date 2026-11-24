@@ -31,6 +31,9 @@ import SwiftUI
     @State private var tab = Tab.posts
     @State private var appliedInitialTab = false
     @State private var workImagePreview: SocialProfileImagePreview?
+    /// A2-03 (发消息): the IM conversation opened in place; needs a host-provided destination.
+    @State private var openedConversationID: Int?
+    @Environment(\.socialConversationDestination) private var conversationDestination
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
     @StateObject private var identityShareOwner = ProfileIdentitySharePageOwner()
     private var showsMineTab: Bool {
@@ -143,8 +146,17 @@ import SwiftUI
                                     profilePill(title, systemImage: image)
                                 }
                                 if showsStartChat {
-                                    NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: {
-                                        profilePill(Text("social.editor.startChat"), systemImage: "message")
+                                    if conversationDestination != nil {
+                                        // A2-03: MP 发消息 opens the chat directly (`api/im/start` → conversation), no editor page.
+                                        SocialProfileInlineStartChatButton(memberID: profile.id, coordinator: actions,
+                                                                           onOpen: { openedConversationID = $0 }) { title, image in
+                                            profilePill(title, systemImage: image)
+                                        }
+                                    } else {
+                                        // Hosts without an IM destination keep the reviewed editor (purpose: .startChat).
+                                        NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: {
+                                            profilePill(Text("social.editor.startChat"), systemImage: "message")
+                                        }
                                     }
                                 }
                             }
@@ -304,6 +316,9 @@ import SwiftUI
             }
             .accessibilityIdentifier("social.profile")
             .fullScreenCover(item: $workImagePreview) { preview in SocialProfileImagePreviewPager(preview: preview) }
+            .navigationDestination(item: $openedConversationID) { id in
+                if let conversationDestination { conversationDestination(id) }
+            }
             .toolbar {
                 if reader.identity.accountID != memberID, memberID > 0 {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -585,6 +600,69 @@ struct ProfileSelfCouponContext: Hashable {
     }
 }
 
+
+/// A2-03 (发消息): host-provided IM conversation screen for a `conversationId` (`MessagingHistoryView` in the app).
+/// Nil (fixtures, hosts without IM) keeps the reviewed `.startChat` editor.
+private struct SocialConversationDestinationKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    var socialConversationDestination: (@MainActor (Int) -> AnyView)? {
+        get { self[SocialConversationDestinationKey.self] }
+        set { self[SocialConversationDestinationKey.self] = newValue }
+    }
+}
+
+/// A2-03: MP `cy-profile` 发消息 (cyp wxml:97-106). One tap prepares and confirms the reviewed `.startChat` command
+/// (`api/im/start`), reads 处理中… while it runs, then hands the acknowledged `conversationId` to `onOpen`.
+@MainActor struct SocialProfileInlineStartChatButton<Label: View>: View {
+    let memberID: Int
+    let coordinator: SocialActionCoordinator
+    let onOpen: (Int) -> Void
+    @ViewBuilder let label: (Text, String?) -> Label
+    @State private var ownerID = UUID()
+    @State private var busy = false
+    @State private var failed = false
+    var body: some View {
+        VStack(spacing: CYSpacing.xxs) {
+            Button { Task { await start() } } label: {
+                if busy { label(Text("social.follow.pending"), nil) }
+                else { label(Text("social.editor.startChat"), "message") }
+            }
+            .buttonStyle(.plain)
+            .disabled(busy || coordinator.identity.accountID == nil)
+            .accessibilityValue(busy ? Text("social.follow.pending") : Text(verbatim: ""))
+            .accessibilityIdentifier("social.profile.startChat")
+            if failed {
+                Text("social.startChat.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("social.profile.startChat.failed")
+            }
+        }
+        .onDisappear {
+            coordinator.leaveScreen(target: .member(memberID), expectedIdentity: coordinator.identity, ownerID: ownerID)
+        }
+    }
+    private func start() async {
+        guard !busy else { return }
+        let identity = coordinator.identity
+        busy = true; failed = false
+        defer { busy = false }
+        do {
+            let review = try await coordinator.prepare(.startChat, target: .member(memberID), ownerID: ownerID, expectedIdentity: identity)
+            guard !Task.isCancelled, coordinator.identity == identity else { coordinator.cancel(review); return }
+            await coordinator.confirm(review)
+            if case .acknowledged(let receipt) = coordinator.state(target: .member(memberID)), let id = receipt.conversationID, id > 0,
+               coordinator.identity == identity {
+                onOpen(id)
+            } else {
+                failed = true
+            }
+        } catch {
+            if coordinator.identity == identity { failed = true }
+        }
+    }
+}
 
 struct SocialProfileImagePreview: Identifiable {
     let index: Int

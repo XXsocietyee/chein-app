@@ -6,6 +6,8 @@ import SwiftUI
     var actions: SocialActionCoordinator? = nil
     @StateObject private var model = SocialInviteHistoryModel()
     @Environment(\.cyPalette) private var palette
+    /// A2-03: re-applied on each pushed profile so 发消息 opens the chat in place.
+    @Environment(\.socialConversationDestination) private var conversationDestination
     private var groups: [(String, [SocialInvitedMember])] {
         (model.timeline(reader)?.months ?? []).map { ($0.id, $0.members) }
     }
@@ -33,6 +35,7 @@ import SwiftUI
                         ForEach(group.1) { member in
                             NavigationLink {
                                 SocialPublicProfileView(memberID: member.id, reader: reader, squareReader: squareReader, actions: actions)
+                                    .environment(\.socialConversationDestination, conversationDestination) // A2-03 发消息
                             } label: { memberRow(member) }.accessibilityIdentifier("social.invite.\(member.id)")
                         }
                     } header: {

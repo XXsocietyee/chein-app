@@ -99,7 +99,7 @@
 - **Sync:** merged `origin/ui/combined-r7` (Core K1–K10, W1, C7). One conflict, `tools/check_typography_lint.py`: took combined-r7's (newer) version. Re-checked before the final push: no newer combined-r7 commits.
 - **Review findings (`review/r7-rev-a`, `-b`, `-c`):** no row names a file or page of this half. Nothing to fix.
 - **Cursor wiring:** no `cursor/wire-account-publish` branch exists. The App-side items Cursor handed to the F-agent in `cursor-core-account-publish.md` § "F-agent App changes" for this half's pages are done below (B-SZ-05, B-SZ-09/14, B-MK-06, A8-10). The deregister / team / square rows of that list are half b's pages.
-- **New files:** `App/AccountPublishMPGlyph.swift` (`AccountPublishMPGlyph`, `AccountPublishMPRowIcon`, `AccountPublishLevelBadge`; names prefixed to avoid colliding with other agents' helpers), `App/AppSession+SettingsAccountProfile.swift`. Both are under the existing `App/*.swift` glob.
+- **New files:** `App/AppSession+SocialConversation.swift`, `App/AccountPublishMPGlyph.swift` (`AccountPublishMPGlyph`, `AccountPublishMPRowIcon`, `AccountPublishLevelBadge`; names prefixed to avoid colliding with other agents' helpers), `App/AppSession+SettingsAccountProfile.swift`. Both are under the existing `App/*.swift` glob.
 
 ### Fixed in round 2
 
@@ -112,6 +112,7 @@
 | A8-10-r7 | 发现 home feed (no club) pages: `ClubCommunityFeedCursor` in the view model, reach-bottom row (`club.community.feed.loadMore`) calls `.feed(limit: 20, beforeID:)`. A next page (posts or feed) now appends instead of blanking the list first. Fixture feed payload gains `"hasMore": false`. | ClubCommunityViews.swift, ClubCommunityFixture.swift |
 | A4-05 | 收藏 post cards show images (`showImages: true`); 取消收藏 moved into a ··· `Menu` on the card (`ProfileFavoriteRemovalEntry(presentsAsMenu: true)`, same reviewed flow and sheet; the default button style is unchanged for the removal UI-test fixture). | AccountCollectionFavoritesView.swift, ProfileFavoriteRemovalView.swift |
 | A3-09 (chips) | 路线偏好 shows the chosen preference names as chips under the count, from the picker's own `discoveryCategories(type: 1)` read; unknown ids are skipped, a failed read shows only the count. | ProfileEditView.swift |
+| A2-03 (发消息) | 发消息 acts in place: `SocialProfileInlineStartChatButton` prepares + confirms the reviewed `.startChat` command (`api/im/start`), reads 处理中…, and pushes the acknowledged `conversationId` into the IM chat (`MessagingHistoryView`, same as the `im/chat` link). Hosts opt in through the `\.socialConversationDestination` environment (`AppSession.socialConversationDestination`): the `pages/userinfo` link host and 我的 → 邀请记录 profiles. Other hosts (square, club, fixtures) have no destination and keep the reviewed editor, so `purpose: .startChat` stays. Failure: 没能打开会话，请重试 inline. | SocialPublicProfileView.swift, SocialInviteHistoryView.swift, AccountView.swift, MPReviewedPageScreen.swift, AppSession+SocialConversation.swift |
 | A7-06 | Already closed on combined-r7: `CropPageFacts.canUseOriginal` drives 使用原图. No change. | — |
 
 ### MP assets applied (`docs/mp-assets/mapping.md` rows)
@@ -161,7 +162,7 @@
 | ID | Why | Who |
 |---|---|---|
 | A2-02 | Still no role / merchant field on the public profile read. | Cursor |
-| A2-03 (发消息) | Needs a `conversation(Int) -> AnyView` factory from every `SocialPublicProfileView` host (AccountView, MPReviewedPageScreen, square/club hosts), like `NativeFriendDirectoryDetailView`. Wider than this half's files. | Claude follow-up / coordinator |
+| A2-03 (发消息, other hosts) | Square / club / activity hosts can opt in with one `.environment(\.socialConversationDestination, session.socialConversationDestination)` line on their `SocialPublicProfileView`; those files belong to other areas. | other areas' F-agents |
 | A4-04 (据点 share), A8-09-r7 | No POI / club-hub link in `PublicContentShareLink`. | Cursor |
 | A6-01 | Core keeps only the masked phone (`ProfileBoundPhoneDisplay`); `DeregistrationBoundPhone` exists but belongs to the compliance (deregister) session. Needs a profile-side bound-phone value. | Cursor |
 | A7-08-r7 (重试) | `MiniCropSession` still has no per-image retry. | Cursor |

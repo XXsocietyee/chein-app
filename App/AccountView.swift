@@ -132,7 +132,8 @@ import SwiftUI
                     }.accessibilityIdentifier("account.clubs")
                     }
                     if session.account?.effectiveRole == "club" { PayoutAccountLinks(audience: .club) }
-                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome() } label: {
+                    NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity).cyPushedChrome()
+                            .environment(\.socialConversationDestination, session.socialConversationDestination) } label: {
                         CYListRow("social.invites.title", trailing: .none) { CYRowIcon(systemImage: "person.2.badge.plus") }
                     }.accessibilityIdentifier("account.inviteHistory")
                     NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity).cyPushedChrome() } label: {
