@@ -2,14 +2,12 @@
 """consist-1 typography + chrome ratchet. Text scan, not a Swift compiler.
 
 Counts, per App/*.swift file (not App/Theme/ or CYDesignTokens.swift, which define the scale):
-  raw text style   `.font(.caption2)` and `Font.caption2` (smaller than `.caption`).
-                   Semantic Dynamic Type from `.largeTitle` through `.caption` is allowed
-                   (`.headline`, `.body`, `.title`, and the other styles in that range).
+  raw text style   a style below `.caption` (`.font(.caption2)`); semantic styles are the native rule (restyle r1)
+  large title      `navigationBarTitleDisplayMode(.large)` (tab roots use `cyRootHeader`)
   Theme.Font       `Theme.Font.body` (use `CYTypography` / `.cyText(_:)`)
   raw size         `.system(size: 14)`, `UIFont.systemFont(ofSize:)`
   back chevron     `"chevron.left"` / `"chevron.backward"` used as a back control (pagers are not counted)
   hidden back      `navigationBarBackButtonHidden(...)` other than `(false)`
-  large title      `navigationBarTitleDisplayMode(.large)` (tab roots use `cyRootHeader`)
 and compares them with tools/typography_lint_baseline.json. A count above the baseline fails, so new raw fonts,
 custom back chevrons and hidden back buttons cannot come in. Counts below the baseline pass; run --update to
 lower the baseline after a sweep (it never raises a count unless --allow-increase is given).
@@ -39,15 +37,16 @@ HIDDEN_BACK = 'hidden back'
 LARGE_TITLE = 'large title'
 KINDS = (RAW_STYLE, THEME_FONT, RAW_SIZE, BACK_CHEVRON, HIDDEN_BACK, LARGE_TITLE)
 
-# Owner rule: `.largeTitle` … `.caption` scale with Dynamic Type. `.caption2` is below that floor.
-BELOW_CAPTION = 'caption2'
+# Native iOS restyle r1 (owner, 11-24; docs/design/native-ios-r1.md §5.3): semantic Dynamic Type styles
+# (`.font(.headline)`) are legal again, so this kind now counts only styles below the `.caption` floor.
+S = 'caption2'
 RAW_STYLE_PATTERNS = (
-    re.compile(rf'(?<![\w.])Font\.{BELOW_CAPTION}\b'),
-    re.compile(rf'\.font\(\s*\.{BELOW_CAPTION}\b'),
-    re.compile(rf'\.system\(\s*\.{BELOW_CAPTION}\b'),
-    re.compile(rf'\bfont\s*:\s*\.{BELOW_CAPTION}\b'),
-    re.compile(rf'(?<![\w.])Font\s*=\s*\.{BELOW_CAPTION}\b'),
-    re.compile(rf'\?\s*\.{BELOW_CAPTION}\s*:\s*\.{BELOW_CAPTION}\b'),
+    re.compile(rf'(?<![\w.])Font\.(?:{S})\b'),
+    re.compile(rf'\.font\(\s*\.(?:{S})\b'),
+    re.compile(rf'\.system\(\s*\.(?:{S})\b'),
+    re.compile(rf'\bfont\s*:\s*\.(?:{S})\b'),
+    re.compile(rf'(?<![\w.])Font\s*=\s*\.(?:{S})\b'),
+    re.compile(rf'\?\s*\.(?:{S})\s*:\s*\.(?:{S})\b'),
 )
 THEME_FONT_RE = re.compile(r'\bTheme\.Font\.\w+')
 RAW_SIZE_RE = re.compile(r'\.system\(\s*size\s*:|\bsystemFont\s*\(\s*ofSize\s*:|\bboldSystemFont\s*\(\s*ofSize\s*:'
@@ -126,12 +125,12 @@ def compare(actual, baseline):
 
 
 HINT = {
-    RAW_STYLE: '`.caption2` is below `.caption`; use `.caption` or `.cyText(.token)`',
+    RAW_STYLE: 'nothing below `.caption`: use `.font(.caption)` or `.cyText(.caption)`',
     THEME_FONT: 'use `.cyText(.token)` / `CYTypography.token`',
     RAW_SIZE: 'use a scale token; decorative glyph sizes belong in App/DesignSystem components',
     BACK_CHEVRON: 'use the system back button (exit guard: `cyGuardedBack`; hero: `CYHeroBackButton` in `cyHeroChrome`)',
     HIDDEN_BACK: 'keep the system back; exit guards use `cyGuardedBack(when:onBack:)`',
-    LARGE_TITLE: 'large titles are for tab roots (`cyRootHeader`); pushed pages use `cyPageTitle(_:)`',
+    LARGE_TITLE: 'tab roots get the large title from `cyRootHeader`; pushed pages use `cyPageTitle(_:)` (inline)',
 }
 
 
@@ -140,7 +139,6 @@ def self_test():
         'Text("a").font(.caption)',
         'Text("b").font(.system(.title3, weight: .bold))',
         'let f: Font = .headline',
-        'Text("e").font(.caption2)',
         'Label("x", systemImage: "chevron.left").onTapGesture { dismiss() }',
         'Button { shift(-1) } label: { Image(systemName: "chevron.left") }',
         '.navigationBarBackButtonHidden(true)',
@@ -151,7 +149,8 @@ def self_test():
         'Text("d").cyText(.meta)',
     ])
     got = counts_in('App/Sample.swift', sample)
-    want = {RAW_STYLE: 1, THEME_FONT: 1, RAW_SIZE: 1, BACK_CHEVRON: 1, HIDDEN_BACK: 1, LARGE_TITLE: 1}
+    want = {THEME_FONT: 1, RAW_SIZE: 1, BACK_CHEVRON: 1, HIDDEN_BACK: 1, LARGE_TITLE: 1}
+    assert counts_in('App/Sample.swift', 'Text("e").font(.caption2)\n') == {RAW_STYLE: 1}, 'missed a below-caption style'
     assert got == want, got
     inc, dec = compare({'App/A.swift': {RAW_STYLE: 2}}, {'App/A.swift': {RAW_STYLE: 1}})
     assert inc and not dec, 'ratchet missed an increase'

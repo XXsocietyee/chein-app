@@ -28,7 +28,7 @@ import SwiftUI
             selectionChanged: { controller.cancelConfirmation() },
             recover: { Task { await controller.recover() } }, canRecover: !controller.busy && controller.current,
             openResult: { originalResult = controller.makeResultRecoveryController() })
-        .navigationTitle(Text("cityNeutral.title", tableName: table))
+        .navigationTitle(Text("cityNeutral.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("cityNeutral.screen")
         .task { await controller.load() }
         .onChange(of: controller.current) { _, current in if !current { controller.invalidate(); selections = [:]; originalResult = nil } }
@@ -42,7 +42,7 @@ import SwiftUI
         .navigationDestination(isPresented: Binding(get: { originalResult != nil }, set: { if !$0 { originalResult = nil } })) {
             if let originalResult { CityNeutralTaskResultRecoveryView(controller: originalResult) }
         }
-        .sheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in
+        .sheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
             NavigationStack {
                 Form {
                     Text(LocalizedStringKey(captured.command.kind == .accept ? "cityNeutral.accept" : "cityNeutral.submit"), tableName: table)
@@ -54,10 +54,10 @@ import SwiftUI
                     Text("cityNeutral.confirmHint", tableName: table)
                     Button { Task { await controller.confirm(captured) } } label: { Text("cityNeutral.confirmNow", tableName: table) }.disabled(!controller.canWrite)
                     Button { controller.cancelConfirmation() } label: { Text("cityNeutral.cancel", tableName: table) }
-                }.cyGroupedSurface().navigationTitle(Text("cityNeutral.confirmTitle", tableName: table))
+                }.cyGroupedSurface().navigationTitle(Text("cityNeutral.confirmTitle", tableName: table)).navigationBarTitleDisplayMode(.inline)
             }
             .cyPlayerSheetGlass()
-        }
+        }.cySheet(detents: [.large]) }
         .cyDomainScreen(.game)
         .cyHideTabBar(true)
     }

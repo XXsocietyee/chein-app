@@ -283,6 +283,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     let isCurrent: () -> Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dismiss) private var dismiss
+    @State private var confirmingHide = false
     var body: some View {
         List {
             if scenePhase == .active && scope.isCurrent && isCurrent() && stamp.isVisible {
@@ -295,9 +296,13 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                 }
                 receivedStampText("boundary").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Section {
-                    Button(role: .destructive) { RoamHiddenStamps.hide(stamp.id); dismiss() } label: {
+                    Button(role: .destructive) { confirmingHide = true } label: {
                         Label("roam.stamp.hide", systemImage: "eye.slash").frame(minHeight: 44)
                     }.accessibilityIdentifier("roam.receivedMetadata.hide")
+                    // Hiding is permanent on this device: confirm first (native destructive pattern).
+                    .confirmationDialog(Text("roam.stamp.hide.footer"), isPresented: $confirmingHide, titleVisibility: .visible) {
+                        Button("roam.stamp.hide", role: .destructive) { RoamHiddenStamps.hide(stamp.id); dismiss() }
+                    }
                 } footer: { Text("roam.stamp.hide.footer") }
             } else { receivedStampText("changed") }
         }.cyGroupedSurface().navigationTitle(receivedStampText("detail")).navigationBarTitleDisplayMode(.inline)

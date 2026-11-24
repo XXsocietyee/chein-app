@@ -152,7 +152,7 @@ public struct DeviceOrientationAndSplitViewAdaptationSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.adaptationSummary)

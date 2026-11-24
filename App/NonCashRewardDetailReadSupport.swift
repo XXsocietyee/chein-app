@@ -125,7 +125,7 @@ struct NonCashRewardReadFactsView: View {
             shown.fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel(Text(LocalizedStringKey(label)) + Text(verbatim: ", ") + shown)
                 .accessibilityIdentifier(id)
-        }.font(Theme.Font.body).padding(.vertical, Theme.Space.s1).accessibilityElement(children: .contain)
+        }.cyText(.body).padding(.vertical, Theme.Space.s1).accessibilityElement(children: .contain)
     }
     private func fact(_ availability: NonCashRewardDetailProjection.FactAvailability, id: String) -> some View {
         let labelKey = id.hasSuffix(".value") ? String(id.dropLast(".value".count)) : id

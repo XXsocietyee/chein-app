@@ -277,7 +277,7 @@ public struct CYToastPill: View {
     public var body: some View {
         HStack(spacing: CYSpacing.sm) {
             Image(systemName: tone.systemImage)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(.callout, weight: .semibold))
                 .foregroundStyle(tone.iconColor)
                 .accessibilityHidden(true)
 

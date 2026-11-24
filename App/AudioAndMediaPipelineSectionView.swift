@@ -173,7 +173,7 @@ public struct AudioAndMediaPipelineSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(
                                     (row.isGenerationFenced && !row.liveUploadOrVoiceCloneEnabled)
                                         ? CYColor.successText

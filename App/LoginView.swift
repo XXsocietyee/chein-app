@@ -150,6 +150,7 @@ struct LoginView: View {
                                 onOpenAgreement: { legalDocument = AuthEntryLegalSheet(type: .userAgreement) },
                                 onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) })
                     .sheet(item: $legalDocument) { sheet in legalNavigation(sheet) { legalDocument = nil } }
+                    .cySheet()
 #if DEBUG
                     .onAppear { recordIntegratedLoginPhase("channels_appear") }
                     .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
@@ -181,6 +182,7 @@ struct LoginView: View {
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: close) } }
         }
+        .cySheet(detents: [.large])
     }
     private func loginField<Field: View>(icon: String, @ViewBuilder _ field: () -> Field) -> some View {
         HStack(spacing: CYSpacing.md) {

@@ -100,12 +100,12 @@ struct JourneyModeTilesView: View {
                         if index > 0 { MPDivider() }
                         HStack(spacing: CYSpacing.md) {
                             Circle().fill(rule.on ? CYNight.lantern : CYColor.textTertiary).frame(width: 8, height: 8).accessibilityHidden(true)
-                            Text(rule.title).cyText(.bodyMedium)
+                            Text(rule.title).cyText(.body).foregroundStyle(CYColor.textSecondary)
                             Spacer()
                             Group {
                                 if let scope = rule.scope { Text(scope.label) } else { Text(verbatim: MPText.orDash(rule.teamText)) }
                             }
-                            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                         }
                         .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
                         .accessibilityElement(children: .combine)
@@ -136,7 +136,7 @@ struct JourneyModeTilesView: View {
                         .accessibilityHidden(true)
                     }
                 }
-                tile.nameText.cyText(.cardTitle)
+                tile.nameText.cyText(.sectionTitle)
                 if let sub = tile.subText { sub.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
             }
             .foregroundStyle(tile.available ? CYColor.textPrimary : CYColor.textTertiary)
@@ -318,11 +318,13 @@ struct JourneyLandingView: View {
                     .contentTransition(.opacity)
                     .accessibilityAddTraits(.isHeader)
                 JourneyDuoView(inviter: content.inviter, seatNo: content.seatNo)
-                if let name = content.inviter?.name { Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary) }
+                if let name = content.inviter?.name { Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textSecondary) }
                 if let title = content.title {
+                    // JLAND-9: a long route name wraps to two centred lines instead of overflowing the pill.
                     Text(verbatim: title).cyText(.label).foregroundStyle(CYColor.textPrimary)
+                        .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
                         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(CYNight.ink2, in: Capsule())
+                        .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 }
                 if !content.tiles.isEmpty {
                     JourneyModeTilesView(tiles: content.tiles, active: Binding(get: { content.activeMode }, set: { if let key = $0 { onSelectMode(key) } }))
@@ -704,7 +706,7 @@ struct JourneySeatsView: View {
                     // verify-r1 2.4: 房主 was brown text on a brown fill. Neutral tag with a crown: ink on a light chip.
                     Label { Text("mp.seats.host") } icon: { Image(systemName: "crown.fill") }
                         .labelStyle(.titleAndIcon)
-                        .font(CYTypography.micro.weight(.semibold))
+                        .cyText(.micro, weight: .semibold)
                         .foregroundStyle(CYDomainPalette(.player).actionPrimaryFg)
                         .padding(.horizontal, CYSpacing.xs).padding(.vertical, 2)
                         .background(CYDomainPalette(.player).actionPrimaryBg, in: Capsule()).offset(y: CYSpacing.sm)
@@ -790,7 +792,7 @@ private struct JourneyInviteSheet: View {
             Button("action.close") { dismiss() }.frame(minHeight: CYSpacing.minTouchTarget)
         }
         .padding(CYSpacing.pageHorizontal)
-        .presentationDetents([.medium])
+        .cySheet(detents: [.medium])
         .cyPlayerSheetGlass()
     }
 }

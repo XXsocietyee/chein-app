@@ -23,7 +23,7 @@ import SwiftUI
             }
             ForEach(["co2Label", "remainLabel"], id: \.self) { key in
                 if let line = segment[key].text, !line.isEmpty {
-                    Text(verbatim: line).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Text(verbatim: line).cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
             }
             if let enrollment = runtime?.enrollment {
@@ -70,7 +70,7 @@ import SwiftUI
                     .accessibilityIdentifier("nativePlatform.steps.count")
                 LabeledContent("nativePlatform.steps.day") { Text(verbatim: challenge.dayKey).monospacedDigit() }
                 Text("nativePlatform.steps.sharePurpose")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("nativePlatform.steps.send", systemImage: "paperplane.fill") { Task { await stage.submitReviewed(); await refresh() } }
@@ -80,7 +80,7 @@ import SwiftUI
                     .buttonStyle(CYPillButtonStyle(style: .tertiary, fullWidth: true))
             } else if stage.phase == "unknown" {
                 Text("nativePlatform.steps.unknownBoundary")
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("nativePlatform.steps.retryExact", systemImage: "arrow.clockwise") { Task { await stage.retryExact(); await refresh() } }
@@ -104,7 +104,7 @@ import SwiftUI
                     .accessibilityIdentifier("nativePlatform.steps.read")
                 if !stage.supported {
                     Text("nativePlatform.issue.unsupported")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -130,7 +130,7 @@ import SwiftUI
                 }
                 .cyText(.body)
                 .cyGroupedSurface()
-                .navigationTitle("nativePlatform.steps.purposeTitle")
+                .navigationTitle("nativePlatform.steps.purposeTitle").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativePlatform.cancel") { purpose = false } } }
                 .roleThemedPresentation()
             }
@@ -195,7 +195,7 @@ import SwiftUI
                     .accessibilityIdentifier("nativePlatform.reminder.countdown")
             }
             Text("nativePlatform.reminder.boundary")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             // Legacy subscribed is deliberately neither read nor written here.
@@ -212,7 +212,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("nativePlatform.reminder.scheduled")
                     Text(verbatim: formatted(scheduled.fireAt, zone: scheduled.timeZone))
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(palette.textSecondary)
                         .monospacedDigit()
                         .fixedSize(horizontal: false, vertical: true)
@@ -277,7 +277,7 @@ import SwiftUI
                     }
                     .cyText(.body)
                     .cyGroupedSurface()
-                    .navigationTitle("nativePlatform.reminder.purposeTitle")
+                    .navigationTitle("nativePlatform.reminder.purposeTitle").navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativePlatform.cancel") { self.reviewed = nil } } }
                     .roleThemedPresentation()
                 }
@@ -300,7 +300,7 @@ import SwiftUI
             .foregroundStyle(palette.textPrimary)
     }
     private var afterLabel: some View {
-        Text("playkitLegacy.window.after").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+        Text("playkitLegacy.window.after").cyText(.meta).foregroundStyle(palette.textSecondary)
     }
     private func refresh() async {
         guard let runtime, let stage, active else { return }

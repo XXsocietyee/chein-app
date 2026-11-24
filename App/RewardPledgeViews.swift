@@ -1476,7 +1476,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
                 }
             }
         }
-        .navigationTitle("rewards.pledge.freeze")
+        .navigationTitle("rewards.pledge.freeze").navigationBarTitleDisplayMode(.inline)
         .task {
             scoped = await entry.access() != nil
             guard scoped, entry.current()?.freeze == true else { return }

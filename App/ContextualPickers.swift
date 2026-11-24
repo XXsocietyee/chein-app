@@ -30,7 +30,7 @@ import SwiftUI
             }
             if !rows.rows.isEmpty, rows.hasMore { Button("context.picker.more") { Task { await load(reset: false) } }.disabled(busy) }
         }
-        .navigationTitle("context.route.choose").searchable(text: $keyword, prompt: "context.route.search")
+        .navigationTitle("context.route.choose").navigationBarTitleDisplayMode(.inline).searchable(text: $keyword, prompt: "context.route.search")
         .onSubmit(of: .search) { Task { await load(reset: true) } }
         .onChange(of: keyword) { _, _ in generation += 1; rows.reset(); loadedScope = nil; busy = false; failed = false }
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
@@ -83,7 +83,7 @@ import SwiftUI
                     }.frame(minHeight: 44)
                 }.accessibilityAddTraits(selection.contains(category.id) ? .isSelected : [])
             }
-        }.navigationTitle("context.preferences.title")
+        }.navigationTitle("context.preferences.title").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) { Button("action.done") {

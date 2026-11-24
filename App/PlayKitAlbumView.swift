@@ -99,7 +99,7 @@ import SwiftUI
         }
         .aspectRatio(420.0 / 620.0, contentMode: .fit)
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .shadow(color: CYColor.bgOverlay, radius: 16, y: 12)
+        .shadow(color: CYColor.bgOverlay.opacity(0.5), radius: 6, y: 3)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(photo.line.isEmpty ? Text("playkit.image") : Text(verbatim: photo.line))
     }

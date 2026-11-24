@@ -84,15 +84,18 @@ import SwiftUI
             switch PlayRuntimeAuxiliaryBinding.resolveCircleRetirement(query: query) {
             case .missingParameter:
                 PlayCircleRetiredLinkView(goHome: { session.dismissNativeEntry() })
-            case .redirectToPlay(let scope, _, _, _):
-                SessionPlayRuntimeView(session: session, destination: .journey(scope))
+            case .redirectToPlay(let scope, _, let inviteCode, let registrationID):
+                SessionPlayRuntimeView(session: session, destination: .journey(scope), inviteCode: inviteCode, registrationID: registrationID)
             }
         case "pages/play/index":
             // PLAY-10: shared / redirected play links (topicId or activityId).
+            // PLAYC-r7-1: carry inviteCode / registrationId (MP play/index.js:673, 701), validated like the circle link.
+            let invite = playLinkInviteCode(query)
+            let registration = positiveID(query["registrationId"] ?? query["regId"])
             if let id = positiveID(query["activityId"]) {
-                SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
+                SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)), registrationID: registration)
             } else if let id = positiveID(query["topicId"]) {
-                SessionPlayRuntimeView(session: session, destination: .journey(.topic(id)))
+                SessionPlayRuntimeView(session: session, destination: .journey(.topic(id)), inviteCode: invite, registrationID: registration)
             } else { unavailable }
         case "pages/activity/detail/index":
             if let id = reviewedID(query) {
@@ -612,6 +615,12 @@ import SwiftUI
 }
 
 /// Canonical positive decimal id for a named query key (already checked by `MiniProgramPageLink`).
+/// PLAYC-r7-1: the sanitized `inviteCode` of a play link (same rule as the retired circle link).
+private func playLinkInviteCode(_ query: [String: String]) -> String? {
+    if case .play(_, let inviteCode, _) = PlayCircleLegacyLink.resolve(query) { return inviteCode }
+    return nil
+}
+
 private func positiveID(_ text: String?) -> Int? {
     guard let text, text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }

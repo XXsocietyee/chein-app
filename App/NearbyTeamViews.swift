@@ -43,12 +43,16 @@ import SwiftUI
     let retryJoinedTeams: (() -> Void)?
     let discoverySources: NearbyMapDiscoverySources?
     let navigate: (NearbyTeamDestination) -> Void
+    /// RTEAMS-3: MP my-teams nav action 加入码 (`team/join?entry=code`); nil hides it.
+    let joinCodeDestination: (() -> AnyView)?
     /// `initialRadius`/`focusTeamID`/`initialTab` mirror the xcx `?radius=&teamId=` and my-teams entry options.
     init(coordinator: NearbyTeamCoordinator, context: NearbyQueryContext? = nil, joinedTeams: [OwnedTeam] = [],
          initialTab: Int = 0, initialRadius: Int? = nil, focusTeamID: NearbyTeamID? = nil, onSignIn: (() -> Void)? = nil,
          joinedTeamsStatus: NearbyOwnedTeamsStatus = .loaded, retryJoinedTeams: (() -> Void)? = nil,
          discoverySources: NearbyMapDiscoverySources? = nil,
+         joinCodeDestination: (() -> AnyView)? = nil,
          navigate: @escaping (NearbyTeamDestination) -> Void = { _ in }) {
+        self.joinCodeDestination = joinCodeDestination
         _model = StateObject(wrappedValue: NearbyTeamScreenModel(coordinator)); initialContext = context; self.joinedTeams = joinedTeams; self.navigate = navigate
         self.onSignIn = onSignIn; self.joinedTeamsStatus = joinedTeamsStatus; self.retryJoinedTeams = retryJoinedTeams
         self.discoverySources = discoverySources
@@ -122,6 +126,12 @@ import SwiftUI
         .cyPageTitle(tab == 1 ? String.LocalizationValue(stringLiteral: "nearby.mine") : String.LocalizationValue(stringLiteral: "nearby.title"))
             .toolbar {
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
+                if tab == 1, let joinCodeDestination {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink { joinCodeDestination() } label: { Label("gap.team.joinCode", systemImage: "number") }
+                            .accessibilityIdentifier("nearby.mine.joinCode")
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { Task { await refresh() } } label: { Label("nearby.refresh", systemImage: "arrow.clockwise") }
                         .disabled(model.running || !coordinator.authenticated).accessibilityIdentifier("nearby.refresh")
@@ -356,7 +366,7 @@ import SwiftUI
                 Spacer(minLength: 8)
                 NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode))
             }
-            if !team.activityName.isEmpty, !team.title.isEmpty { Text(verbatim: team.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+            if !team.activityName.isEmpty, !team.title.isEmpty { Text(verbatim: team.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
             NearbyTeamSubLine(team: team)
             NearbyTeamMembersLine(team: team)
             if !team.memberAvatars.isEmpty { NearbyTeamFaces(count: team.memberAvatars.count) }
@@ -389,7 +399,7 @@ import SwiftUI
             if coordinator.applicants.isEmpty { CYEmptyState(systemImage: "person.badge.plus", "nearby.applicants.empty") }
             ForEach(coordinator.applicants) { applicant in
                 VStack(alignment: .leading, spacing: 10) {
-                    if applicant.name.isEmpty { Text("nearby.player").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: applicant.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    if applicant.name.isEmpty { Text("nearby.player").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: applicant.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                     CYStatusChip("nearby.applicant.ticket", tone: .info, systemImage: "ticket")
                     if let date = applicant.appliedAt?.date() { LabeledContent("nearby.appliedAt") { Text(date, style: .relative) } }
                     expiry(applicant.applyExpireTime)
@@ -470,7 +480,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
                     NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: 0, members: team.joinedCount))
-                    if team.title.isEmpty { Text("nearby.w208.mine.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: team.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    if team.title.isEmpty { Text("nearby.w208.mine.untitled").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: team.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                     Spacer(minLength: 8)
                     NearbyTeamBadgeView(badge: leading ? .leader : .joined, captain: leading)
                 }
@@ -484,7 +494,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
                     NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: application.leaderAvatar.isEmpty ? 0 : 1, members: application.joinedCount))
-                    if application.title.isEmpty { Text("nearby.w208.mine.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: application.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    if application.title.isEmpty { Text("nearby.w208.mine.untitled").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: application.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
                     Spacer(minLength: 8)
                     NearbyTeamBadgeView(badge: application.status == .pending ? .pending : .rejected)
                 }
@@ -573,7 +583,7 @@ import SwiftUI
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
                     Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let applicant = snapshot.applicant, !applicant.name.isEmpty {
@@ -595,7 +605,7 @@ import SwiftUI
                             ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
                                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                                     Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
                                         .accessibilityHidden(true)
                                     Text(LocalizedStringKey(key))

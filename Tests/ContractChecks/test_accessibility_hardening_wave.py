@@ -88,7 +88,8 @@ class FPA5WalletAndGrowth(unittest.TestCase):
         wallet = src('App/WalletCommerceViews.swift')
         self.assertNotIn('.system(size:', wallet)
         self.assertIn('.font(CYTypography.data2XL).monospacedDigit()', wallet)
-        self.assertIn('CYTypography.data2XL', src('App/GrowthCenterView.swift'))
+        # restyle/r6-system-rest: GrowthCenterView spells the token .cyText(.data2XL) (native restyle r1).
+        self.assertIn('.cyText(.data2XL)', src('App/GrowthCenterView.swift'))
 
     def test_wallet_posts_announcement_when_loaded(self):
         s = src('App/WalletCommerceViews.swift')

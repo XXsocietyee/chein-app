@@ -74,7 +74,7 @@ import SwiftUI
                                     Text(distance, format: .number.precision(.fractionLength(2)))
                                 } else { Text(verbatim: "—") }
                             }
-                            .cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            .cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                             .contentTransition(.numericText())
                             .cyWrapText()
                             Text("roam.history.km").cyText(.cardTitle).foregroundStyle(CYColor.textSecondary)
@@ -96,7 +96,7 @@ import SwiftUI
                                     HStack(alignment: .firstTextBaseline, spacing: 8) {
                                         Image(systemName: "point.topleft.down.to.point.bottomright.curvepath")
                                             .font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.textPrimary).accessibilityHidden(true)
-                                        RoamRunCardTitle(record: record, font: .headline).foregroundStyle(CYColor.textPrimary).cyWrapText()
+                                        RoamRunCardTitle(record: record, style: .cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
                                         Spacer(minLength: 8)
                                         RoamRunCardDateText(record: record)
                                     }
@@ -370,11 +370,13 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
             .cyHideTabBar()
             .task(id: readKey) { showShare = false; selectedMedal = nil; load() }
             .onChange(of: readKey) { _, _ in showShare = false; selectedMedal = nil }
-            .sheet(isPresented: $showShare) { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }
+            .sheet(isPresented: $showShare) { Group { if let record = currentRecord { NavigationStack { RoamHistoryShareView(record: record, reader: reader) } } }.cySheet(detents: [.large]) }
             .sheet(item: $selectedMedal) { medal in
-                if currentRecord == medal.record {
-                    NavigationStack { RoamMedalShareView(selection: medal, reader: reader) }
-                }
+                Group {
+                    if currentRecord == medal.record {
+                        NavigationStack { RoamMedalShareView(selection: medal, reader: reader) }
+                    }
+                }.cySheet(detents: [.large])
             }
             .accessibilityIdentifier("roam.experience.session")
     }
