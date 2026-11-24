@@ -76,7 +76,12 @@ None. P5 adds no endpoint. `request_id` is an optional field on the existing, re
   - `tools/check_typography_lint.py`: **PASS**.
   - `tools/check_scaffold.py`: **FAIL**, only on `ticketWallet.perk.included` and `ticketWallet.perk.reserveRequired` missing from `Localizable.xcstrings`. This is expected: the brief forbids editing the catalog, and these keys come from `p5.json` when the integrator merges it.
   - `tools/check_contextual_flows.py`: fails at line 21 (`ContextualTopicPicker`), **identically on the base** (not new).
-  - `tools/contract_ratchet.py --check`: see the result at the end of this receipt.
+  - `tools/contract_ratchet.py --check`: **187 failing against a baseline of 184, with 3 new failures.** The base `ui/combined-r6` gives 185, with 1 new failure.
+    - Already on the base, not caused by P5: `test_workshop_paid_professional…test_current_generic_draft_cas_reuses_real_reader_with_bounded_paging`.
+    - Caused by P5, 2 new failures, both because `ticketWallet.perk.included` and `ticketWallet.perk.reserveRequired` are missing from the catalog:
+      - `test_localization_key_catalog_contract…test_no_looked_up_key_is_missing_from_every_catalog`
+      - `test_native_design_motion…test_new_copy_is_bilingual_and_does_not_require_catalog_write`
+    - These 2, and the scaffold failure above, clear when the integrator merges `docs/port/strings/p5.json` into `Localizable.xcstrings`. Nothing else in P5 fails a gate.
 - Fixtures to screenshot: `docs/port/accept/p5.txt`.
 - MP functions checked present: OR-023 title and reply copy, FE-G5/G6 entitlement row, PG-006 idempotent review submit, MC-055 governance bit, V-23 entry off. Missing: OR-023 list-row title, pending the mount hook above.
 
