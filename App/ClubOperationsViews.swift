@@ -339,7 +339,20 @@ struct ClubOperationsWorkspaceView: View {
                 )
                 // verify-r1 2.3 / N-15: the limit state says the real count once, with no unrelated save warning.
                 if value.accountRole != "club" { Text("club.ops.leaderRequired.apply") }
-                else { Text("club.ops.clubLimit.count \(value.ownedClubIDs.count)") }
+                else {
+                    Text("club.ops.clubLimit.count \(value.ownedClubIDs.count)")
+                    // CLB-create-03 (MP create wxml:25-28, js:205 goManageClub): 管理我的俱乐部 opens the owner's club on
+                    // its 管理 tab (one club → that id; otherwise the MP `owner=1` route resolves my club).
+                    NavigationLink {
+                        MPReviewedPageScreen(page: "pages/club/detail/index",
+                                             query: value.ownedClubIDs.count == 1 ? ["id": String(value.ownedClubIDs[0]), "tab": "manage"]
+                                                                                  : ["owner": "1", "tab": "manage"])
+                    } label: {
+                        Text("club.ops.clubLimit.manage").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                    .accessibilityIdentifier("club.ops.clubLimit.manage")
+                }
                 if value.accountRole != "club", let hostApplication {
                     if ClubCreatePageModel.interpret(signedIn: identity != nil, configured: access.isConfigured, loading: false, gate: ClubCreationGate(access: access), snapshot: value, readback: .received(value), onPlayerFirstEntry: false).showsHostApplication { ClubCreateHostApplicationLink(identity: identity, governance: hostApplication) }
                 }

@@ -344,7 +344,7 @@ extension EnvironmentValues {
                             }
                             .cyText(.bodyCompact)
                             .foregroundStyle(palette.textPrimary)
-                            Text("club.enroll.money.line \(money.paidText) \(money.refundedText) \(money.netText)")
+                            Text("club.enroll.money.line \(ClubMoneyText.twoDecimals(money.paidText)) \(ClubMoneyText.twoDecimals(money.refundedText)) \(ClubMoneyText.twoDecimals(money.netText))")
                                 .cyText(.numericBody)
                                 .monospacedDigit()
                                 .foregroundStyle(palette.textSecondary)

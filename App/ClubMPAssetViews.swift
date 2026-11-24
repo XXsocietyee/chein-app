@@ -86,3 +86,25 @@ struct ClubDirectionLabel: View {
         }
     }
 }
+
+/// Owner decision 9 (2026-11-24): money shows two decimals through the one shared formatter (`MoneyDisplay`).
+/// Core's club `yuanText` still renders the MP one-decimal form (¥10.5); this re-renders such text as ¥10.50 for
+/// display only. Text that is not a plain `¥` amount (for example "—") is shown unchanged. Cursor request: switch
+/// `ClubEnrollmentRoster.yuanText` to `MoneyDisplay.yuan` and drop this.
+enum ClubMoneyText {
+    static func twoDecimals(_ text: String) -> String {
+        var body = Substring(text.trimmingCharacters(in: .whitespaces))
+        var negative = false
+        if body.hasPrefix("-") { negative = true; body = body.dropFirst() }
+        guard body.hasPrefix("¥") else { return text }
+        let digits = body.dropFirst()
+        guard !digits.isEmpty, digits.allSatisfy({ $0.isASCII && ($0.isNumber || $0 == ".") }),
+              digits.filter({ $0 == "." }).count <= 1, let amount = Decimal(string: String(digits)) else { return text }
+        return (negative ? "-" : "") + MoneyDisplay.yuan(amount)
+    }
+}
+
+/// CLB-apply-07: MP club/apply required fields (`*`, aria-required).
+enum ClubHostApplyFieldCopy {
+    static let required: Set<String> = ["leaderName", "phone"]
+}

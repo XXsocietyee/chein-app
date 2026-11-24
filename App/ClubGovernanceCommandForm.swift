@@ -133,7 +133,7 @@ import SwiftUI
                 }
                 if applyStep == 1 {
                     Section {
-                        ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { fieldRow($0) }
+                        ForEach(["leaderName", "phone", "identity", "coFounders"], id: \.self) { applyFieldRow($0) }
                         if applyBlocked, (draft.text["leaderName"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: ClubPlayerCopy.applyNameGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.nameGap")
@@ -147,7 +147,7 @@ import SwiftUI
                 }
                 if applyStep == 2 {
                     Section {
-                        ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { fieldRow($0) }
+                        ForEach(["experience", "maxEventSize", "avgEventSize"], id: \.self) { applyFieldRow($0) }
                         if applyBlocked, (draft.text["experience"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: ClubPlayerCopy.applyExperienceGap(locale)).cyText(.meta).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("club.player.apply.experienceGap")
@@ -558,6 +558,30 @@ import SwiftUI
     }
     private func setApplyStep(_ next: Int) {
         if reduceMotion { applyStep = next } else { withAnimation(.easeInOut(duration: 0.2)) { applyStep = next } }
+    }
+    /// CLB-apply-07 (MP apply wxml:63-113): a persistent label above each input (`*` on the two required fields;
+    /// the optional labels already read （选填）) and the MP placeholder inside it. Choice fields keep `fieldRow`.
+    @ViewBuilder private func applyFieldRow(_ key: String) -> some View {
+        if draft.choices(key) != nil {
+            fieldRow(key)
+        } else {
+            let required = ClubHostApplyFieldCopy.required.contains(key)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                (Text(LocalizedStringKey("club.gov.field." + key))
+                 + (required ? Text(verbatim: " *").foregroundColor(CYColor.dangerText) : Text(verbatim: "")))
+                    .cyText(.label)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityHidden(true)
+                TextField(text: textBinding(key), prompt: Text(LocalizedStringKey("club.host.placeholder." + key))) {
+                    Text(LocalizedStringKey("club.gov.field." + key))
+                }
+                .keyboardType(["maxEventSize", "avgEventSize"].contains(key) ? .numberPad : .default)
+                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .accessibilityHint(required ? Text("club.host.requiredHint") : Text("club.host.optionalHint"))
+                .accessibilityIdentifier("club.gov.input." + key)
+            }
+            .padding(.vertical, CYSpacing.xs)
+        }
     }
     @ViewBuilder private func fieldRow(_ key: String) -> some View {
         if let choices = draft.choices(key) {
