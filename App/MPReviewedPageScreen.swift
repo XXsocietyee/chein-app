@@ -131,6 +131,11 @@ import SwiftUI
                                     rootTabSwitch(destination == .roam ? .roam : .home)
                                 } : nil,
                                 templateReader: session)
+            // R7-PC-D2-1: 去发布广场 / 更多玩法 leave this entry for the 发布 tab, like the mode cards.
+            .environment(\.rootTabSwitch, rootTabSwitch.isAvailable ? RootTabSwitch { tab in
+                session.dismissNativeEntry()
+                rootTabSwitch(tab)
+            } : .unavailable)
         case "subpackageA/pages/infomationdetail/infomationdetail":
             if let id = reviewedID(query) {
                 SocialInformationView(id: id, reader: session.socialAccountReader)
