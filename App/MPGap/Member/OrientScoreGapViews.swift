@@ -19,7 +19,7 @@ public struct OrientScoreLeaderboardSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "orientScore.board.title", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("orientScore.board.title"), style: .player, onClose: onClose)
             if rows.isEmpty {
                 ContentUnavailableView("orientScore.board.empty", systemImage: "list.number")
             } else {
@@ -85,7 +85,7 @@ public struct OrientScoreAppealSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: LocalizedStringKey(kind.title), style: .player, onClose: onClose)
+            CYSheetHeader(title: Text(verbatim: kind.title), style: .player, onClose: onClose)
             Form {
                 if entryID != nil {
                     Section {
@@ -99,13 +99,15 @@ public struct OrientScoreAppealSheetView: View {
                     }
                 }
 
-                Section("orientScore.appeal.reasonTitle") {
+                Section {
                     TextEditor(text: $reason)
                         .frame(minHeight: 120)
                         .onChange(of: reason) { _, newValue in
                             let clamped = OrientAppealValidator.clampReason(newValue)
                             if clamped != newValue { reason = clamped }
                         }
+                } header: {
+                    Text("orientScore.appeal.reasonTitle")
                 } footer: {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         HStack {
