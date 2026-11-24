@@ -7,6 +7,12 @@ import UIKit
     enum Destination { case journey(PlaySessionScope), director(Int), prefab(PlaySessionScope) }
     @ObservedObject var session: AppSession
     let destination: Destination
+    /// PLAYC-r7-1: MP pages/play `?inviteCode=` (old circle links and shared play links). Consumed once on open through
+    /// `api/circle-theme/session/join` (PlayCircleCoordinator.open), as MP `_consumeInviteCode` does before its first read.
+    var inviteCode: String? = nil
+    /// PLAYC-r7-1: MP `?registrationId=` (ticket-wallet links): the play page can show this ticket's 入场码.
+    var registrationID: Int? = nil
+    @State private var consumedInviteCode = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.playThemeAuxiliaryProvider) private var auxiliaryProvider
     @State private var auxiliaryStore = PlayThemeAuxiliaryStore()
@@ -35,6 +41,7 @@ import UIKit
                         themeRecordsModel: auxiliary.records,
                         backpackModel: auxiliary.backpack,
                         teamBackpackModel: teamBackpack,
+                        entryCode: registrationID.flatMap { $0 > 0 ? PlayEntryCodeContext(registrationID: $0, openTicketWallet: nil) : nil },
                         cityGameModel: session.playCityGame,
                         prefabModel: session.playPrefab(scope: scope),
                         journeyModel: { session.journeyCheck(scope: scope, topicID: model.snapshot?.result.topicID, nodeID: $0) },
@@ -57,6 +64,7 @@ import UIKit
                         .task(id: session.cityPlayerReadIdentity) { await session.loadCityGamePlayRead() }
                         .environment(\.playRuntimeGap, PlayRuntimeGapBridge.binding(session: session, scope: scope, topicID: model.snapshot?.result.topicID))
                         .task(id: session.sessionRevision) { await mountTeamAndFinish(scope: scope, model: model) }
+                        .task(id: session.sessionRevision) { await consumeInviteCode(scope: scope) }
                 } else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
                 }
             case .director(let activityID):
@@ -79,6 +87,17 @@ import UIKit
         .onChange(of: session.sessionRevision) { _, _ in session.playNativeDeviceProvider.cancel() }
         .onChange(of: scenePhase) { _, phase in if phase == .background { session.nativePlatformRuntime?.suspendMotion() }; if phase == .active { Task { await session.nativePlatformRuntime?.reconcileOwnedRequests() } }; if phase == .background || (phase != .active && !session.playNativeDeviceProvider.authorizationInFlight) { session.playNativeDeviceProvider.cancel() } }
         .onDisappear { session.playNativeDeviceProvider.cancel() }
+    }
+
+    /// PLAYC-r7-1: one join per opened link. The coordinator keeps its own guards (signed-in owner, offers read,
+    /// no open card, write grant); a refused join leaves the page as a normal topic play.
+    private func consumeInviteCode(scope: PlaySessionScope) async {
+        guard !consumedInviteCode, let code = inviteCode?.trimmingCharacters(in: .whitespacesAndNewlines), !code.isEmpty,
+              case .topic(let topicID) = scope,
+              let circle = session.playCircle(topicID: topicID) ?? session.productionPlayCircle(topicID: topicID) else { return }
+        consumedInviteCode = true
+        await circle.loadOffers()
+        await circle.open(inviteCode: code)
     }
 
     private func mountTeamAndFinish(scope: PlaySessionScope, model: PlayExperienceCoordinator) async {
