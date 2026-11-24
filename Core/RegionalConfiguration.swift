@@ -1,7 +1,7 @@
 import Foundation
 
 /// A build/deployment boundary, never inferred from language, IP, currency or storefront.
-public enum RegionalMarket: String, CaseIterable, Hashable {
+public enum RegionalMarket: String, CaseIterable, Hashable, Sendable {
     case china = "CN"
     case unitedStates = "US"
 
