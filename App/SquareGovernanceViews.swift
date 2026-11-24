@@ -31,14 +31,11 @@ import SwiftUI
     @State private var generation = UUID()
     var body: some View {
         List {
-            CYHeroHeader("square.gov.title")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if context.access.identity == nil {
                 CYPillButton("square.gov.signIn", action: context.signIn).listRowBackground(Color.clear).accessibilityIdentifier("square.gov.signIn")
             } else {
                 if loading { CYSkeleton().accessibilityIdentifier("square.gov.loading") }
                 if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("square.gov.message") }
-                CYPillButton("square.gov.refresh", style: .secondary) { Task { await reload() } }.listRowBackground(Color.clear).disabled(loading)
                 if let snapshot {
                     Button("square.gov.drafts", action: context.openDrafts)
                     preferenceSection(snapshot)
@@ -48,7 +45,8 @@ import SwiftUI
                 }
             }
         }
-        .cyHeroScreen()
+        .cyPageTitle("square.gov.title")
+        .refreshable { if context.access.identity != nil, !loading { await reload() } }
         .task { await reload() }
         .onChange(of: context.access.identity) { _, _ in
             generation = UUID(); snapshot = nil; review = nil; appeal = nil; pendingAppeal = nil; reason = ""; message = nil

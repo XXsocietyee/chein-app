@@ -18,7 +18,6 @@ struct MapCoreEntryHubView: View {
 
     var body: some View {
         List {
-            CYHeroHeader("mapCore.title", tableName: "MapCoreEntry").e1HeroRow()
             Section {
                 ForEach(MapCoreEntry.allCases, id: \.self) { entry in
                     Button { onOpen(entry) } label: { entryLabel(entry) }
@@ -90,7 +89,8 @@ struct MapCoreEntryHubView: View {
         }
         .listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("mapCore.title", tableName: "MapCoreEntry"))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
         .sheet(isPresented: $showsSharingExplainer) { Group {
             NavigationStack { LocationShareExplainerView() }
@@ -112,7 +112,7 @@ struct MapCoreEntryHubView: View {
                     if open {
                         Image(systemName: "chevron.right")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(CYColor.textTertiary)
+                            .foregroundStyle(CYColor.textSecondary)
                             .accessibilityHidden(true)
                     }
                 }
@@ -184,7 +184,6 @@ struct LocationShareExplainerView: View {
     @State private var draft = LocationShareDraft()
     var body: some View {
         Form {
-            CYHeroHeader("mapCore.share.title", tableName: "MapCoreEntry").e1HeroRow()
             Section {
                 ForEach(LocationShareDisclosure.allCases, id: \.self) { item in
                     Toggle(isOn: Binding(get: { draft.acknowledged.contains(item) }, set: { if $0 { draft.acknowledge(item) } else { draft.withdraw(item) } })) {
@@ -214,7 +213,8 @@ struct LocationShareExplainerView: View {
             }
         }
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .navigationTitle(Text("mapCore.share.title", tableName: "MapCoreEntry"))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

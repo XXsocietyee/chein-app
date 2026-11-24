@@ -38,8 +38,6 @@ import UniformTypeIdentifiers
     var body: some View {
         // Disable editor actions, not the scroll container: busy content must remain readable.
         Form {
-            CYHeroHeader("squareWorkspace.title")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Group {
                 Section {
                     Text("squareWorkspace.boundary").font(.footnote)
@@ -181,7 +179,7 @@ import UniformTypeIdentifiers
                 }
             }.disabled(coordinator.busy || (initialPostID != nil && !editReady))
         }
-        .cyHeroScreen()
+        .cyPageTitle("squareWorkspace.title")
         .toolbar {
             // Mini `cy-post-drafts` entry on the composer.
             ToolbarItem(placement: .topBarTrailing) {
