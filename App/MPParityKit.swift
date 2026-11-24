@@ -253,9 +253,8 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.passDetail { PassDetailHost(binding: make(id)) } else { unavailable }
         case .gift(let token):
             if token.isEmpty {
-                CYStateLayout(kind: .generic, title: Text("mp.gift.linkInvalid"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityIdentifier("passGift.missing")
+                // MP cy-empty missing-param: 链接已失效 + 返回 (the deep-link sheet has no system back).
+                MemberMissingLinkState(title: "mp.gift.linkInvalid", identifier: "passGift.missing")
             } else if bindings.isSignedIn?() == false {
                 CYStateLayout(kind: .generic, title: Text("mp.gift.signIn"),
                               primary: (title: "mp.pass.signIn.action", action: { PlayerJourneySignInBridge.shared.request() }),

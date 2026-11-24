@@ -1,0 +1,31 @@
+# fix-r3 member-a: member pages 1-15 (market, free-explore, coupons, invoices). One fixture route per line.
+# 1 通行证 / 2 通行证商品 / 3 领取礼品
+t5-pass-market
+t5-pass-market-error
+t5-pass-market-points
+t5-pass-detail
+t5-pass-detail-unavailable
+t5-pass-gift
+t5-pass-gift-expired
+# 4 城瘾30天通行证 / 6 游戏主题库
+t5-membership
+t5-membership-off
+t5-library
+t5-library-empty
+# 7 自由探索权益 (catalog 暂未开售 / 每人N次)
+t5-free-explore
+t5-free-explore-error
+e1-bundle-detail
+# 8 优惠券 / 9 优惠券出示 / 10 我发布的优惠券
+coupons
+coupons-empty
+member-popup-coupon-code
+merchant-coupons
+# 11-15 发票
+e5-invoice-history
+e5-invoice-empty
+e5-invoice-detail
+e5-invoice-detail-rejected
+e5-invoice-apply
+e5-invoice-titles
+member-popup-invoice-title-delete
