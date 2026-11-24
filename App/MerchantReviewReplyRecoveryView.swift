@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @MainActor private final class MerchantReviewReplyRecoveryModel: ObservableObject {
     let recovery: MerchantReviewReplyRecovery
@@ -40,7 +41,19 @@ import SwiftUI
                             Text(verbatim: MerchantReviewOriginalRecoveryCopy.open(reviewID: row.reviewID, locale: locale))
                         }.accessibilityIdentifier("merchant.reviewOriginalRecovery.open.\(row.reviewID)")
                     }
+                    // MC7-13-8 (reviews/index.wxml:3-9): 复制原请求号 and 联系平台客服 beside each unresolved reply.
+                    Button {
+                        UIPasteboard.general.setItems([["public.utf8-plain-text": row.intent.requestID]],
+                                                      options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
+                    } label: {
+                        Label("merchant.reviewRecovery.copyRequestID", systemImage: "doc.on.doc")
+                    }
+                    .accessibilityIdentifier("merchant.reviewRecovery.copy.\(row.reviewID)")
                 }
+                NavigationLink { ParticipationSupportView() } label: {
+                    Label("merchant.reviewRecovery.contactSupport", systemImage: "message")
+                }
+                .accessibilityIdentifier("merchant.reviewRecovery.support")
             }
         case .failure:
             Section {

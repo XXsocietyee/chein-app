@@ -533,6 +533,16 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
                     .accessibilityIdentifier("merchant.engagement.open")
                 }
+                // MC7-12-2: 触达记录 (pages/merchant/crm-campaigns) as its own read-only page.
+                if let engagementReader, let businessJournal, let exportRecovery, access.allows(.crmRead) {
+                    NavigationLink {
+                        MerchantCampaignHistoryHost(reader: engagementReader, journal: businessJournal, exports: exportRecovery)
+                            .id(engagementReader.scope)
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.campaigns.title", systemImage: "paperplane") }
+                    .accessibilityIdentifier("merchant.campaigns.open")
+                }
                 if let contentService {
                     NavigationLink { MerchantContentHomeView(service: contentService)
                         .environment(\.merchantContentSupplyDestination, cooperationFlowReader.map { flowReader in

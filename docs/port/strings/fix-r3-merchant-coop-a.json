@@ -67,6 +67,126 @@
     "en": "Waiting for the previous step",
     "zh-Hans": "等待上一步完成"
   },
+  "merchant.campaigns.channel.coupon": {
+    "en": "Coupon",
+    "zh-Hans": "优惠券"
+  },
+  "merchant.campaigns.channel.inApp": {
+    "en": "In-app message",
+    "zh-Hans": "站内消息"
+  },
+  "merchant.campaigns.count.delivered": {
+    "en": "Delivered",
+    "zh-Hans": "已送达"
+  },
+  "merchant.campaigns.count.frequency": {
+    "en": "Frequency limited",
+    "zh-Hans": "频次受限"
+  },
+  "merchant.campaigns.count.noConsent": {
+    "en": "No consent",
+    "zh-Hans": "未同意"
+  },
+  "merchant.campaigns.count.recipients": {
+    "en": "Recipients",
+    "zh-Hans": "名单人数"
+  },
+  "merchant.campaigns.count.undelivered": {
+    "en": "Undelivered",
+    "zh-Hans": "未送达"
+  },
+  "merchant.campaigns.denied": {
+    "en": "Your role can't view outreach history",
+    "zh-Hans": "当前身份不能查看触达记录"
+  },
+  "merchant.campaigns.detailFailed": {
+    "en": "Couldn't load outreach details",
+    "zh-Hans": "触达明细加载失败"
+  },
+  "merchant.campaigns.detailTitle": {
+    "en": "Outreach Details",
+    "zh-Hans": "触达明细"
+  },
+  "merchant.campaigns.empty": {
+    "en": "No outreach yet",
+    "zh-Hans": "还没有触达记录"
+  },
+  "merchant.campaigns.loadFailed": {
+    "en": "Couldn't load outreach history",
+    "zh-Hans": "触达记录加载失败"
+  },
+  "merchant.campaigns.noRecipients": {
+    "en": "No per-customer results for this outreach",
+    "zh-Hans": "这次触达没有逐人结果"
+  },
+  "merchant.campaigns.recentOnly": {
+    "en": "Showing the latest 20 only",
+    "zh-Hans": "仅显示最近 20 条"
+  },
+  "merchant.campaigns.recipient.delivered": {
+    "en": "Delivered",
+    "zh-Hans": "已送达"
+  },
+  "merchant.campaigns.recipient.failed": {
+    "en": "Delivery failed",
+    "zh-Hans": "投递失败"
+  },
+  "merchant.campaigns.recipient.frequency": {
+    "en": "Already reached today, skipped",
+    "zh-Hans": "今日已触达，跳过"
+  },
+  "merchant.campaigns.recipient.noConsent": {
+    "en": "Didn't opt in",
+    "zh-Hans": "未同意接收"
+  },
+  "merchant.campaigns.recipient.pending": {
+    "en": "Queued",
+    "zh-Hans": "待投递"
+  },
+  "merchant.campaigns.recipient.retryable": {
+    "en": "Not delivered yet",
+    "zh-Hans": "暂未送达"
+  },
+  "merchant.campaigns.refreshFailed": {
+    "en": "Refresh failed, try again later",
+    "zh-Hans": "刷新失败，稍后再试"
+  },
+  "merchant.campaigns.status.noEligible": {
+    "en": "No eligible customers",
+    "zh-Hans": "无可触达客户"
+  },
+  "merchant.campaigns.status.other": {
+    "en": "Other status",
+    "zh-Hans": "其他状态"
+  },
+  "merchant.campaigns.status.partialFailed": {
+    "en": "Partly undelivered",
+    "zh-Hans": "部分未送达"
+  },
+  "merchant.campaigns.status.processing": {
+    "en": "Sending",
+    "zh-Hans": "投递中"
+  },
+  "merchant.campaigns.status.ready": {
+    "en": "Queued",
+    "zh-Hans": "待投递"
+  },
+  "merchant.campaigns.status.success": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "merchant.campaigns.summary %lld %lld": {
+    "en": "Delivered %1$lld / %2$lld",
+    "zh-Hans": "送达 %1$lld / %2$lld 人"
+  },
+  "merchant.campaigns.title": {
+    "en": "Outreach History",
+    "zh-Hans": "触达记录"
+  },
+  "merchant.campaigns.untitled": {
+    "en": "Untitled outreach",
+    "zh-Hans": "未命名触达"
+  },
   "merchant.gate.aftercare.denied": {
     "en": "Your role can't view refunds and after-sales",
     "zh-Hans": "当前身份不能查看退款售后"
@@ -206,6 +326,22 @@
   "merchant.list.loadingMore": {
     "en": "Loading more…",
     "zh-Hans": "正在加载更多…"
+  },
+  "merchant.review.underPlatformReview": {
+    "en": "Under platform review",
+    "zh-Hans": "平台复审中"
+  },
+  "merchant.reviewRecovery.contactSupport": {
+    "en": "Contact Platform Support",
+    "zh-Hans": "联系平台客服"
+  },
+  "merchant.reviewRecovery.copyRequestID": {
+    "en": "Copy Original Request ID",
+    "zh-Hans": "复制原请求号"
+  },
+  "merchant.reviews.empty": {
+    "en": "No verified in-store reviews yet",
+    "zh-Hans": "还没有真实到店评价"
   },
   "merchant.workbench.coupons": {
     "en": "Manage Coupons",

@@ -456,6 +456,7 @@ import SwiftUI
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
+    private var isReviews: Bool { if case .reviews = query { return true }; return false }
     /// fix/r3-merchant-coop-a: page-specific full-page sign-in / denied / not-found / load-failed states.
     private var pageGate: MerchantBusinessPageGate? {
         MerchantBusinessPageGate.resolve(query: query, failureKey: model.aftercareLoadFailureKey ?? state.failureKey,
@@ -540,7 +541,8 @@ import SwiftUI
                             .listRowBackground(Color.clear)
                             .accessibilityIdentifier("merchant.business.empty")
                     } else {
-                        CYEmptyState(systemImage: "tray", isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty", messageIdentifier: "merchant.business.empty")
+                        // MC7-13-5 (reviews/index.wxml:30-31): 还没有真实到店评价.
+                        CYEmptyState(systemImage: "tray", isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : (isReviews ? "merchant.reviews.empty" : "merchant.business.empty"), messageIdentifier: "merchant.business.empty")
                             .listRowBackground(Color.clear)
                     }
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
@@ -959,7 +961,8 @@ import SwiftUI
                         MerchantReviewSummaryHeader(presentation: presentation)
                     }
                 }
-                ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
+                // MC7-13-6: the review header already shows its four numbers; the generic rows skip them for .reviews.
+                ForEach(summaryKeys(for: document.query), id: \.self) { key in
                     if document.query == .overview, key == "personalArrivedThisMonthNet" {
                         MerchantLedgerNetSummary(presentation: .init(value: document.summary[key]))
                             .accessibilityIdentifier("merchant.business.summary." + key)
@@ -970,6 +973,13 @@ import SwiftUI
                 }
             }
         }
+    }
+    private func summaryKeys(for query: MerchantBusinessQuery) -> [String] {
+        let reviewKeys = ["pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating"]
+        let keys = MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount"]
+            + reviewKeys + ["all", "repeat", "new", "noted", "monthlyNew"]
+        if case .reviews = query { return keys.filter { !reviewKeys.contains($0) } }
+        return keys
     }
     private func cancelBusinessReview(_ review: MerchantBusinessConfirmation) {
         guard state.confirmation?.id == review.id else { return }
@@ -1029,6 +1039,9 @@ import SwiftUI
                     MerchantLedgerRedemptionHero(hero: MerchantLedgerParity.redemptionHero(row.fields))
                 } else if row.kind == .batch, case .batch = query {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(row.fields))
+                } else if row.kind == .review {
+                    // MC7-13-7 (reviews/index.wxml:145-169): avatar + nickname, time and 平台复审中 above the card.
+                    MerchantReviewAuthorLine(fields: row.fields, fallbackTitle: row.title)
                 } else {
                 Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
