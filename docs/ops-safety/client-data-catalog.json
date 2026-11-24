@@ -59,6 +59,15 @@
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
     },
     {
+      "file": "App/ChapterStoryView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Narration autoplay switch bound to the device-local UserDefaults bool play.narrationOn (default on). No story text and nothing is uploaded.",
+      "retention": "Device-local preference until the player changes the switch or deletes the app",
+      "deletion": "Removed with the app's UserDefaults; not an account record"
+    },
+    {
       "file": "App/ClubChannelMessagingView.swift",
       "kinds": [
         "userDefaults"
@@ -518,6 +527,15 @@
       "purpose": "Application Support JSON of the pending chapter-replacement invitation intent",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ChapterStoryContracts.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Reads and writes the device-local narration autoplay bool play.narrationOn (default on). No story text and nothing is uploaded.",
+      "retention": "Device-local preference until the player changes the switch or deletes the app",
+      "deletion": "Removed with the app's UserDefaults; not an account record"
     },
     {
       "file": "Core/CityAcquisitionIdentityJournal.swift",
