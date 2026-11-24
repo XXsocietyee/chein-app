@@ -115,7 +115,7 @@ public struct WeChatAndAppleSignInNonceStateSectionView: View {
                         .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isOAuthSecurityReady ? "VERIFIED" : "WARNING")
-                        .font(.caption2.monospaced().weight(.bold))
+                        .font(.caption.monospaced().weight(.bold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
@@ -164,7 +164,7 @@ public struct WeChatAndAppleSignInNonceStateSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.isCompliant ? "COMPLIANT" : "ALERT")
-                                .font(.caption2.monospaced().weight(.semibold))
+                                .font(.caption.monospaced().weight(.semibold))
                                 .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.securitySummary)

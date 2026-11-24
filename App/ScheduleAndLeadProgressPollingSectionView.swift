@@ -176,7 +176,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(row.isVerified ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("scheduleLeadPollingAudit.rowStatus.\(row.id)")
                     }
@@ -186,7 +186,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: row.lifecycleRuleSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("scheduleLeadPollingAudit.rowRule.\(row.id)")
                 }
