@@ -187,12 +187,12 @@ struct CityPlayerView: View {
         .sheet(item: $rulesSheet, onDismiss: {
             // Keep only navigation; every authoritative parent fact is read again.
             selection = nil; reader.cancel(); readRequest = UUID()
-        }) { presentation in
+        }) { presentation in Group {
             CityPlayerRulesView(flow: presentation.flow, selectionIsCurrent: {
                 visible && scenePhase == .active && reader.pointMapContext?.readID == presentation.readID
                     && reader.state == .available(presentation.read)
             })
-        }
+        }.cySheet(detents: [.large]) }
         .onAppear { visible = true; readRequest = UUID() }
         .onChange(of: scenePhase) { _, _ in
             // Clear old state before foreground recovery; only this visible page

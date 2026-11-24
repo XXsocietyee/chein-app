@@ -5,6 +5,7 @@ struct TopicDetailView: View {
     @Environment(\.cyPalette) private var palette
     let id: Int
     let reader: any TopicReading
+    var preferSession = false
     var activityDestination: ((Int) -> AnyView)? = nil
     var publicMerchant: PublicMerchantHomeContext? = nil
     var makeAudio: (@MainActor () -> PlatformAudioPlayback)? = nil
@@ -27,9 +28,11 @@ struct TopicDetailView: View {
     @State private var generation = 0
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
+    @Environment(\.topicEditorDestination) private var editorDestination
     @Environment(\.locale) private var locale
     @Environment(\.popupCloseActions) private var popupCloseActions
     @State private var showsPricing = false
+    @State private var showsEditor = false
     @State private var showingGraduateBetaConfirm = false
     @State private var showingClubTransferPicker = false
     @State private var transferClubs: [ClubRecord] = []
@@ -350,17 +353,7 @@ struct TopicDetailView: View {
                 }
             }
             TopicDepartSection(items: TopicDepartNotes.items(for: value))
-            // C13 / Q3a: a zero or missing fact is not worth a row (MP hides them too).
-            let merchantCount = value.merchantCount.flatMap { $0 > 0 ? $0 : nil }
-            let durationSeconds = value.totalTimeSeconds.flatMap { $0 > 0 ? $0 : nil }
-            if value.startDate != nil || value.endDate != nil || merchantCount != nil || durationSeconds != nil {
-                Section {
-                    if let start = value.startDate { LabeledContent("topic.start", value: start) }
-                    if let end = value.endDate { LabeledContent("topic.end", value: end) }
-                    if let count = merchantCount { LabeledContent("topic.merchants") { Text(count, format: .number).monospacedDigit() } }
-                    if let seconds = durationSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
-                }
-            }
+            // R7-PC-B1-14 (r1 PC-B-1-10): MP has one stat bar; the duplicate start / end / merchants / duration rows are gone.
             if let records = reader as? any TopicThemeRecordsReading {
                 // Source 我的游玩记录 row; always shown, the sheet handles empty/sign-in states.
                 Section {
@@ -394,7 +387,7 @@ struct TopicDetailView: View {
                         }
                     }.accessibilityElement(children: .combine)
                 }
-                if !value.tickets.isEmpty { Text("topic.source.sessionNote").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if !value.tickets.isEmpty { Text("topic.source.sessionNote.mp").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }.id("topicXcx.anchor.sessions")
             }
             if let activities = value.activities {
@@ -419,7 +412,8 @@ struct TopicDetailView: View {
             // PC-B-1-1: MP index.wxml:126,138 shows these rows only when `info.isOwner == 1` (graduate also needs Beta).
             let ownerGraduates = value.isOwner && value.betaFlag == 1 && popupCloseActions.graduateBetaTopic != nil
             let ownerTransfers = value.isOwner && popupCloseActions.loadTransferClubs != nil && popupCloseActions.transferTopicToClub != nil
-            if ownerGraduates || ownerTransfers || popupCloseActions.saveUserPhoneAndName != nil {
+            // R7-PC-B1-3 (r1 PC-B-1-1): MP asks for name / phone inside the checkout layer only, never as a standing row.
+            if ownerGraduates || ownerTransfers {
                 Section(PlayCloseCopy.text("主题运维与快捷资料", "Topic Actions & Profile", locale)) {
                     if ownerGraduates {
                         Button {
@@ -437,20 +431,16 @@ struct TopicDetailView: View {
                         }
                         .accessibilityIdentifier("topic.transferClub.open")
                     }
-                    if popupCloseActions.saveUserPhoneAndName != nil {
-                        Button {
-                            showingContactPromptModal = true
-                        } label: {
-                            Text(verbatim: PlayCloseCopy.text("补充姓名和手机号", "Add name & phone", locale))
-                        }
-                        .accessibilityIdentifier("topic.contactPrompt.open")
-                    }
                 }
             }
             let lineup = TopicXcxFacts.lineup(value)
-            if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
+            if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup, publicMerchant: publicMerchant) } }
             // 开局前准备 (`GET api/play/setup`): hidden when neither prep items nor a play window are set.
-            PlayTopicPrepSection(topicID: id)
+            // R7-PC-B1-20: MP shows 开局前准备 only to a viewer who has joined (`is_join == 1 && prep.show`).
+            if value.isSignUp {
+                // 开始游玩 hands over to the ticket wallet, where the joined pass starts play (server checks run there).
+                PlayTopicPrepSection(topicID: id, onStart: ticketWalletDestination != nil ? { showingTickets = true } : nil)
+            }
             G6TopicCharactersSection(chapters: value.chapters)
             Section("topic.availability") {
                 // Source x-fix2 P-1 (hengyin c878fbb7d): a topic past its sale end only says 已截止, with no sign-up or unlock entry.
@@ -460,7 +450,7 @@ struct TopicDetailView: View {
                 } else {
                     Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
                 }
-                if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
+                // R7-PC-B1-14: 商家暂停营业 is said once, in the bar.
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
                     if value.canOfferPurchase && !saleClosed(value) {
@@ -487,12 +477,18 @@ struct TopicDetailView: View {
                     } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: chapter.title)
-                            // C9: `totalTime` is seconds; rounded to minutes, else the games' minutes, else hidden.
-                            if let minutes = TopicChapterCards.minutes(chapter) {
+                            // REV-B B-08: MP `metaTime` = formatTimeToChinese(totalTime) (X小时Y分钟) from seconds; else the
+                            // games' minutes (C9), else hidden. Then 节点 and 玩法 counts.
+                            if let seconds = chapter.totalTimeSeconds, seconds > 0 {
+                                LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) }.cyText(.meta)
+                            } else if let minutes = TopicChapterCards.minutes(chapter) {
                                 LabeledContent("topic.durationMinutes") { Text(minutes, format: .number).monospacedDigit() }.cyText(.meta)
                             }
                             if !chapter.nodes.isEmpty {
                                 LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
+                            }
+                            if let plays = chapter.templateCount, plays > 0 {
+                                LabeledContent("discovery.templateDetail.stat.games", value: String(plays)).cyText(.meta)
                             }
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
@@ -554,6 +550,8 @@ struct TopicDetailView: View {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },
                               openSelfPlay: { barSheetOrigin = .selfPlay; showingSelfPlay = true },
                               openPricing: pricingDestination == nil ? nil : { barSheetOrigin = .pricing; showsPricing = true },
+                              openEditor: editorDestination == nil ? nil : { showsEditor = true },
+                              preferSession: preferSession,
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
         }
@@ -562,6 +560,13 @@ struct TopicDetailView: View {
                 .modifier(TopicBarHeroDestination(sheet: .sessions, origin: .sessions, namespace: barHero)) // only the bar opens it
                 .cyPlayerSheetGlass()
                 .cyDomainSheet(detents: [.half, .full])
+        }
+        .sheet(isPresented: $showsEditor) {
+            if let editorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
+                NavigationStack { editorDestination(value.id, scope) }
+                    .cyPlayerSheetGlass()
+                    .cyDomainSheet(detents: [.full])
+            }
         }
         .sheet(isPresented: $showsPricing, onDismiss: { barSheetOrigin = nil }) {
             if let pricingDestination {

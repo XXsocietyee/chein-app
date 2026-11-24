@@ -147,7 +147,7 @@ struct PlayHUDNextStopCard: View {
                 VStack(alignment: .trailing, spacing: CYSpacing.xxs) {
                     if stop.arrowDegrees != nil {
                         Image(systemName: "location.north.fill")
-                            .font(CYTypography.sheetTitle)
+                            .cyText(.sheetTitle)
                             .foregroundStyle(palette.textPrimary)
                             .rotationEffect(.degrees(shownDegrees))
                             .frame(width: arrowSide, height: arrowSide)

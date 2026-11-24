@@ -68,12 +68,12 @@ enum CityArrivalCopy {
             }
             CYPillButton(LocalizedStringKey("cityArrival.reload"), style: .tertiary, systemImage: "arrow.clockwise", tableName: "CityArrivalEvidence") { Task { await controller.load() } }.disabled(controller.busy)
         }
-        .navigationTitle(CityArrivalCopy.text("title"))
+        .navigationTitle(CityArrivalCopy.text("title")).navigationBarTitleDisplayMode(.inline)
         .task { await controller.load() }
         .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
         .onChange(of: scenePhase) { _, phase in controller.invalidate(); if phase == .active { Task { await controller.load() } } }
         .onDisappear { controller.invalidate() }
-        .sheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in
+        .sheet(item: Binding(get: { controller.current && scenePhase == .active ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
             NavigationStack {
                 Form {
                     Text(verbatim: captured.pointTitle); CityArrivalCopy.text("confirm." + captured.command.kind.rawValue)
@@ -81,9 +81,9 @@ enum CityArrivalCopy {
                     CityArrivalCopy.text("noAutomaticEffects")
                     Button { Task { await controller.confirm(captured) } } label: { CityArrivalCopy.text("confirmNow") }.disabled(!controller.canWrite)
                     Button { controller.cancelConfirmation() } label: { CityArrivalCopy.text("cancel") }
-                }.cyGroupedSurface().navigationTitle(CityArrivalCopy.text("confirmTitle"))
+                }.cyGroupedSurface().navigationTitle(CityArrivalCopy.text("confirmTitle")).navigationBarTitleDisplayMode(.inline)
             }
-        }
+        }.cySheet(detents: [.large]) }
     }
     private func row(_ key: String, _ value: String) -> some View { LabeledContent { Text(verbatim: value).textSelection(.enabled) } label: { CityArrivalCopy.text(key) } }
 }

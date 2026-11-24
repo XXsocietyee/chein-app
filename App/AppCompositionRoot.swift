@@ -3532,8 +3532,12 @@ extension KeychainTokenStore: AppTokenStorage {}
                 throw APIError.notConfigured
             }
         } else if let route = SignedInContentDetailReadRoute(url: url, baseURL: api.baseURL) {
+            // Activity info accepts a nil token. Topic info stays a signed-in content viewer.
+            let guestActivity = route == .activity && captured.accountID == nil && captured.role == nil
+                && captured.token == nil && request.value(forHTTPHeaderField: "Authorization") == nil
+                && captured.isPublicTemplateViewer
             guard deployment.contentDetails == .activityAndTopic,
-                  captured.isSignedInContentViewer, route.accepts(request) else { throw APIError.notConfigured }
+                  (guestActivity || captured.isSignedInContentViewer), route.accepts(request) else { throw APIError.notConfigured }
         } else if OfficialPublicEventReadRoute.accepts(request, baseURL: api.baseURL) {
             let selection = officialPublicEventReadSelection
             guard deployment.regional.market == .china, deployment.reads.contains(.officialPublicEventCatalogAndDetail),

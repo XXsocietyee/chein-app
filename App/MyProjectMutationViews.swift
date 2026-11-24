@@ -86,6 +86,7 @@ import QuestifyCore
     }
 
     private var confirmationText: String {
+        if let text = model.confirmationText, !text.isEmpty { return text }
         if case .awaitingConfirmation(let mutation) = model.state { return mutation.confirmationMessage ?? "" }
         return ""
     }

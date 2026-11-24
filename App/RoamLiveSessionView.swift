@@ -170,7 +170,7 @@ import QuestifyCore
                             }.accessibilityIdentifier("roam.live.locationDenied")
                         }
                         if owner.presenceAvailable {
-                            Toggle("roam.live.presenceConsent", isOn: $presenceAccepted)
+                            Toggle("roam.live.presenceConsent", isOn: $presenceAccepted).tint(.green)
                         }
                     } footer: {
                         // Disclosure of what nearby players see; kept because it is a consent.
@@ -385,13 +385,13 @@ import QuestifyCore
                     await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
                 }
             }
-        }) {
+        }) { Group {
             CYPermissionPrimerScreen(kind: .location, onPrimary: {
                 CYPermissionSystemPrompt.notePrimed(.location)
                 locationPrimingAllowed = true
                 showingLocationPriming = false
             }, onSecondary: { showingLocationPriming = false })
-        }
+        }.cySheet(detents: [.large]) }
         .overlay {
             if confirmFinish {
                 PlayAreaRoamFinishModal(onConfirm: {
@@ -401,9 +401,9 @@ import QuestifyCore
             }
         }
         .sheet(isPresented: $showRules) {
-            NavigationStack { RoamLiveRulesView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+            NavigationStack { RoamLiveRulesView() }.cySheet()
         }
-        .sheet(item: $checkin) { target in RoamCheckinSheet(target: target) }
+        .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.cySheet(detents: [.large]) }
         .background {
             RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
         }
@@ -700,10 +700,13 @@ import QuestifyCore
             Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
             Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            CYSheetHeader(title: Text("roam.live.rules"), style: .player, onClose: { dismiss() })
+        .navigationTitle(Text("roam.live.rules")).navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
+                    .labelStyle(.iconOnly)
+            }
         }
-        .toolbar(.hidden, for: .navigationBar)
     }
 }
 
@@ -1178,7 +1181,7 @@ struct RoamPausedBrowseCopy {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: presentation.binding(for: target, owner: owner, reader: reader),
-                   onDismiss: { presentation.close(id: target.id) }) { offered in
+                   onDismiss: { presentation.close(id: target.id) }) { offered in Group {
                 NavigationStack {
                     if presentation.matches(offered, owner: owner, reader: reader) {
                         Group {
@@ -1197,7 +1200,7 @@ struct RoamPausedBrowseCopy {
                         } }
                     }
                 }
-            }
+            }.cySheet(detents: [.large]) }
     }
 }
 /// Native attachment distinguishes a covering sheet from the source leaving its hierarchy.
@@ -1268,11 +1271,13 @@ struct RoamCheckinTarget: Identifiable {
                     RoamCheckinStampRows(place: target.place)
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) {
-                CYSheetHeader(title: target.place.map { Text(verbatim: $0) } ?? Text("roamSub.w208.stamp.defaultPlace"),
-                              style: .player, onClose: { dismiss() })
+            .navigationTitle(target.place.map { Text(verbatim: $0) } ?? Text("roamSub.w208.stamp.defaultPlace")).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
+                        .labelStyle(.iconOnly)
+                }
             }
-            .toolbar(.hidden, for: .navigationBar)
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)

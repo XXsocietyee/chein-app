@@ -153,6 +153,21 @@ struct ActivityTicketCard: View {
                 CYStatusChip(verbatim: copy.t("余票待确认", "Availability unconfirmed"), systemImage: "questionmark.circle")
                     .accessibilityIdentifier("activity.ticket.inventoryUnknown.\(ticket.id)")
             }
+            // R7-PC-C1-5 (r1 PC-C-1-6): MP 场次时间 from the ticket's own start / end, then 报名截止 and 集合点.
+            if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) {
+                Label { Text(verbatim: session).monospacedDigit() } icon: { Image(systemName: "clock") }
+                    .cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("activity.ticket.session.\(ticket.id)")
+            }
+            if let deadline = ActivityPresentation.nonempty(ticket.signupDeadline) {
+                Text(verbatim: copy.t("报名截止 \(deadline)", "Sign-up closes \(deadline)"))
+                    .cyText(.meta).monospacedDigit().foregroundStyle(palette.textSecondary)
+                    .accessibilityIdentifier("activity.ticket.deadline.\(ticket.id)")
+            }
+            if let meeting = ActivityPresentation.nonempty(ticket.meetingPoint) {
+                Label { Text(verbatim: meeting) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    .cyText(.meta).foregroundStyle(palette.textSecondary)
+            }
             if let description=ActivityPresentation.nonempty(ticket.description) {
                 Text(verbatim:description)
                     .font(.subheadline)

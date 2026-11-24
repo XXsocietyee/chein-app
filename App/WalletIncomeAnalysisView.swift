@@ -1,4 +1,5 @@
 import SwiftUI
+import Accessibility
 
 /// Original income-table analysis: at most ten approved 20-row reads, not an atomic snapshot.
 @MainActor struct WalletIncomeAnalysisView: View {
@@ -119,8 +120,15 @@ import SwiftUI
                     }.padding(.vertical, CYSpacing.sm)
                 }
                 if !dynamicTypeSize.isAccessibilitySize {
+                    // R7-PC-D6-2: VoiceOver reads the month values from the chart itself (Audio Graph + data table),
+                    // without opening the disclosure below.
                     monthChart(summary)
-                        .accessibilityHidden(true)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(text("months"))
+                        .accessibilityChartDescriptor(WalletIncomeMonthChartDescriptor(
+                            months: summary.months.map { (label: $0.id, value: NSDecimalNumber(decimal: $0.amount).doubleValue,
+                                                          spoken: WalletIncomeAnalysisPresentation.text($0.amount, currency: currency, locale: locale)) },
+                            title: String(localized: "wallet.analysis.months", table: "WalletIncomeAnalysis", locale: locale)))
                     DisclosureGroup { monthRows(summary, currency: currency) } label: { text("months") }
                 } else { monthRows(summary, currency: currency) }
             } header: { text("months") }
@@ -202,5 +210,22 @@ private struct WalletIncomeAnalysisDetailStyle: LabeledContentStyle {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// R7-PC-D6-2: month income as an accessible chart (categorical x = month, y = amount).
+private struct WalletIncomeMonthChartDescriptor: AXChartDescriptorRepresentable {
+    let months: [(label: String, value: Double, spoken: String)]
+    let title: String
+    func makeChartDescriptor() -> AXChartDescriptor {
+        let x = AXCategoricalDataAxisDescriptor(title: title, categoryOrder: months.map { $0.label })
+        let maxValue = max(months.map { $0.value }.max() ?? 0, 1)
+        let spokenByValue = Dictionary(months.map { ($0.value, $0.spoken) }, uniquingKeysWith: { first, _ in first })
+        let y = AXNumericDataAxisDescriptor(title: title, range: 0...maxValue, gridlinePositions: []) { value in
+            spokenByValue[value] ?? String(format: "%.2f", value)
+        }
+        let series = AXDataSeriesDescriptor(name: title, isContinuous: false,
+                                            dataPoints: months.map { AXDataPoint(x: $0.label, y: $0.value) })
+        return AXChartDescriptor(title: title, summary: nil, xAxis: x, yAxis: y, additionalAxes: [], series: [series])
     }
 }

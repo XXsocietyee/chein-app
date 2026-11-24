@@ -35,7 +35,7 @@ import SwiftUI
             readResult: { readResult($0) }, closeResult: { controller.closeResult() }, recover: { recoverOriginal() }) {
                 CityArrivalEvidenceEntry(board: board, factory: arrivalFactory)
             }
-        .navigationTitle(Text("cityOnsite.title", tableName: table))
+        .navigationTitle(Text("cityOnsite.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("cityOnsite.screen")
         .task(id: readRequest) {
             guard visible, scenePhase == .active, !Task.isCancelled else { return }
@@ -49,7 +49,7 @@ import SwiftUI
         }
         .onChange(of: controller.current) { _, current in if !current { controller.invalidate(); selections = [:] } }
         .onDisappear { visible = false; controller.suspend(); selections = [:] }
-        .sheet(item: Binding(get: { interactive ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in
+        .sheet(item: Binding(get: { interactive ? controller.confirmation : nil }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in Group {
             NavigationStack {
                 Form {
                     Text(LocalizedStringKey(captured.command.kind == .accept ? "cityOnsite.accept" : "cityOnsite.submit"), tableName: table)
@@ -64,10 +64,10 @@ import SwiftUI
                     Text("cityOnsite.confirmHint", tableName: table)
                     Button { guard interactive else { return }; Task { await controller.confirm(captured) } } label: { Text("cityOnsite.confirmNow", tableName: table) }.disabled(!interactive || !controller.canWrite)
                     Button { controller.cancelConfirmation() } label: { Text("cityOnsite.cancel", tableName: table) }
-                }.cyGroupedSurface().navigationTitle(Text("cityOnsite.confirmTitle", tableName: table))
+                }.cyGroupedSurface().navigationTitle(Text("cityOnsite.confirmTitle", tableName: table)).navigationBarTitleDisplayMode(.inline)
             }
             .cyPlayerSheetGlass()
-        }
+        }.cySheet(detents: [.large]) }
         .cyDomainScreen(.game)
         .cyHideTabBar(true)
     }

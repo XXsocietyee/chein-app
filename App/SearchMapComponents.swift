@@ -59,13 +59,39 @@ struct SearchMapCard: View {
     let row: GlobalSearchRow
     let offline: Bool
     @Environment(\.dynamicTypeSize) private var typeSize
+    /// R7-PC-A4-2 (r1 PC-A-4-3): MP result page draws topics and activities as cover cards; clubs and merchants keep rows.
+    private var usesCoverCard: Bool { (row.kind == .topic || row.kind == .activity) && !typeSize.isAccessibilitySize }
     var body: some View {
+        if usesCoverCard { coverCard } else { rowCard }
+    }
+    private var coverCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            E1CoverArt(seed: row.title, symbol: row.kind.symbol, imageURL: offline ? nil : row.imageURL, debugLabel: false)
+                .frame(maxWidth: .infinity)
+                .frame(height: 160)
+                .clipped()
+            textColumn.padding(CYSpacing.md)
+        }
+        .background(CYColor.bgElevated)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+    private var rowCard: some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             if !typeSize.isAccessibilitySize {
                 E1CoverArt(seed: row.title, symbol: row.kind.symbol, imageURL: offline ? nil : row.imageURL, debugLabel: false)
                     .frame(width: 84, height: 84)
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
             }
+            textColumn
+            Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+        }
+        .padding(CYSpacing.md)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+    private var textColumn: some View {
+        Group {
             VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
                 Label(row.kind.titleKey, systemImage: row.kind.symbol)
                     .cyText(.caption, weight: .semibold).foregroundStyle(CYColor.textSecondary)
@@ -92,11 +118,7 @@ struct SearchMapCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
         }
-        .padding(CYSpacing.md)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .accessibilityElement(children: .combine)
     }
 }
 

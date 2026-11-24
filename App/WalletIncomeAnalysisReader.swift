@@ -11,15 +11,17 @@ struct WalletIncomeAnalysisSlice {
 
 /// The first-party income endpoint is a table; the separate asset balance array is not used here.
 struct WalletIncomeAnalysisAccumulator {
-    static let pageSize = 20
-    static let pageBudget = 10
+    /// Mini-program income analysis page size. The six-month window, not a fixed 10×20 budget, ends the read.
+    static let pageSize = WalletAnalysisPagingPolicy.mpPageSize
+    /// Runaway guard only. A full page of recent rows must not loop forever if the server never shortens the page.
+    static let runawayPageCap = 40
     private(set) var rows: [WalletLedgerRow] = []
     private(set) var pagesRead = 0
     private var observedTotal: Int?
     enum InvalidPage: Error { case changed }
 
     mutating func append(_ page: WalletPage<WalletLedgerRow>, requestedPage: Int) throws -> WalletIncomeAnalysisSlice.Stop? {
-        guard requestedPage == pagesRead + 1, requestedPage <= Self.pageBudget,
+        guard requestedPage == pagesRead + 1,
               page.page == requestedPage, page.pageSize == Self.pageSize,
               page.rows.count <= Self.pageSize, page.rows.allSatisfy({ $0.id > 0 }),
               Set(page.rows.map(\.id)).count == page.rows.count,
@@ -39,8 +41,29 @@ struct WalletIncomeAnalysisAccumulator {
         observedTotal = total
         rows.append(contentsOf: page.rows); pagesRead += 1
         if rows.count >= total { return .end }
-        if pagesRead == Self.pageBudget { return .budget }
+        if !WalletAnalysisPagingPolicy.shouldContinue(pageItemCount: page.rows.count, oldestItemDate: Self.oldestDate(page.rows), cutoffDate: Self.sixMonthCutoff()) {
+            return .end
+        }
+        if pagesRead >= Self.runawayPageCap { return .budget }
         return nil
+    }
+
+    /// Oldest Beijing `createTime` on the page. Unknown strings do not invent a date.
+    private static func oldestDate(_ rows: [WalletLedgerRow]) -> Date? {
+        rows.compactMap { row -> Date? in
+            switch BeijingServerTime(row.createTime) {
+            case .instant(let date): return date
+            case .calendarDay(let civil):
+                let parts = civil.split(separator: "-")
+                guard parts.count == 3, let year = Int(parts[0]), let month = Int(parts[1]), let dayNumber = Int(parts[2]) else { return nil }
+                return WalletIncomeDay.serverCalendar.date(from: DateComponents(year: year, month: month, day: dayNumber))
+            case .unknown: return nil
+            }
+        }.min()
+    }
+
+    private static func sixMonthCutoff(now: Date = Date()) -> Date {
+        WalletIncomeDay.serverCalendar.date(byAdding: .month, value: -6, to: now) ?? now.addingTimeInterval(-15552000)
     }
     func slice(_ stop: WalletIncomeAnalysisSlice.Stop) -> WalletIncomeAnalysisSlice {
         .init(rows: rows, pagesRead: pagesRead, stop: stop)
@@ -117,7 +140,7 @@ struct WalletIncomeAnalysisReadIdentity: Equatable {
         var accumulator = WalletIncomeAnalysisAccumulator()
         defer { if generation == stamp { loading = false } }
         do {
-            for pageNumber in 1...WalletIncomeAnalysisAccumulator.pageBudget {
+            for pageNumber in 1...WalletIncomeAnalysisAccumulator.runawayPageCap {
                 try checkCurrent(reader, scope: scope, stamp: stamp)
                 // Each page re-enters the original reader and exact narrow route. No writer,
                 // alternate endpoint, new grant, receipt recovery or transaction is involved.

@@ -204,14 +204,50 @@ import SwiftUI
     /// Kept for callers; the source shows organizer controls without a client-side publisher check.
     let publisher: Bool
     var window: OfficialServiceWindow? = nil
+    /// R7-PC-C5-3: inside the invite's own card (no second 回应 section).
+    var embedded = false
     @Environment(\.locale) private var locale
     @State private var reviewed: OfficialActionCommand?
     @State private var reviewedAction: OfficialResponseAction?
+    /// R7-PC-C5-2: the last reviewed action, kept so a failed or unconfirmed write can be retried from the card.
+    @State private var lastReviewed: (command: OfficialActionCommand, action: OfficialResponseAction)?
+    @State private var actionFailed = false
     @State private var transferHint = false
     @State private var toastMessage: String?
     private var actions: [OfficialResponseAction] { OfficialInboxPresentation.actions(for: invite) }
     var body: some View {
-        Section("officialAction.respond") {
+        Group {
+            // Embedded: one row, so the sheet and toast below attach to a single view.
+            if embedded { VStack(alignment: .leading, spacing: CYSpacing.sm) { content } } else { Section("officialAction.respond") { content } }
+        }
+        .cyToast(verbatimMessage: $toastMessage)
+        .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } }), onDismiss: {
+            // R7-PC-C5-2 (MP `cy-inline-error` 这次操作没有完成 + 重试): a rejected or unknown write stays visible on the card.
+            actionFailed = lastReviewed != nil && [.rejected, .unknown].contains(coordinator.state)
+        }) {
+            if let reviewed {
+                OfficialActionSheet(coordinator: coordinator, command: reviewed,
+                                    noticeTitleKey: reviewedAction.map { OfficialInboxPresentation.confirmationTitleKey(invite, action: $0) },
+                                    noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) })
+                    .cyDomainSheet(detents: [.half, .full])
+            }
+        }
+    }
+    @ViewBuilder private var content: some View {
+            if actionFailed, let last = lastReviewed {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Label("official.inbox.actionFailed", systemImage: "exclamationmark.circle")
+                        .cyText(.bodyCompact, weight: .semibold).foregroundStyle(CYColor.dangerText)
+                    Button("action.retry") {
+                        actionFailed = false
+                        reviewedAction = last.action
+                        reviewed = last.command
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("official.inbox.retry.\(invite.id)")
+                }
+                .accessibilityElement(children: .contain)
+            }
             if let window {
                 LabeledContent("official.privateParity.inbox.window") {
                     Text(verbatim: window.sourceText)
@@ -236,7 +272,10 @@ import SwiftUI
                     // PC-C-5-1: one confirmation. The review sheet already carries the action's MP title and body
                     // (接受本场职责 / 拒绝本场邀约 / 退出本场职责), so the generic modal step is gone.
                     reviewedAction = action
-                    reviewed = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
+                    let command = OfficialActionCommand.sourceInboxResponse(to: invite, action: action)
+                    reviewed = command
+                    lastReviewed = (command, action)
+                    actionFailed = false
                 }
                     .accessibilityIdentifier("official.inbox.\(action.rawValue.lowercased()).\(invite.id)").e1ActionRow()
             }
@@ -244,16 +283,6 @@ import SwiftUI
                 Text("official.privateParity.inbox.organizerTransferHint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     .accessibilityIdentifier("official.inbox.transferHint.\(invite.id)")
             }
-        }
-        .cyToast(verbatimMessage: $toastMessage)
-        .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil; reviewedAction = nil } })) {
-            if let reviewed {
-                OfficialActionSheet(coordinator: coordinator, command: reviewed,
-                                    noticeTitleKey: reviewedAction.map { OfficialInboxPresentation.confirmationTitleKey(invite, action: $0) },
-                                    noticeBodyKey: reviewedAction.map { OfficialInboxPresentation.confirmationBodyKey(invite, action: $0) })
-                    .cyDomainSheet(detents: [.half, .full])
-            }
-        }
     }
 }
 
@@ -308,6 +337,7 @@ struct OfficialParticipationPresentation {
     }
     var body: some View {
         let presentationID = presentation.entry?.id
+        Group { if command != nil || needsSafetyConsent {
         Section("officialAction.participation") {
             if needsSafetyConsent, let title = event.safetyNoticeTitle {
                 // MP cy-consent-check: a checkbox, never pre-checked.
@@ -338,8 +368,10 @@ struct OfficialParticipationPresentation {
                 }
                     .disabled(presentation.entry != nil || (needsSafetyConsent && !safetyConsented))
                     .accessibilityIdentifier("officialAction.participationReview").e1ActionRow()
-            } else { Text("officialAction.noAction").foregroundStyle(.secondary) }
-        }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
+            }
+            // R7-PC-C4-2: no 暂时没有需要你操作的事项 row; the page's CTA bar already states the event's state.
+        }
+        } }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
             guard let presentationID else { return }
             let callback = presentation.finishDismiss(id: presentationID)
             callback?()

@@ -135,7 +135,7 @@ import SwiftUI
             else if let restricted = owner.wallet, restricted.scope != nil {
                 VStack(spacing: 8) {
                     Text("merchant.personalIncome.boundary").cyText(.bodyCompact).foregroundStyle(.secondary).padding(.horizontal)
-                    WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true })
+                    WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true }, merchantView: true)
                         .id(ObjectIdentifier(restricted))
                 }
             } else if owner.busy { ProgressView("merchant.loading") }
@@ -290,7 +290,7 @@ extension EnvironmentValues {
             if !current { Text("merchant.personalIncome.changed") }
             else if let wallet = owner.wallet, wallet.scope != nil {
                 WalletCommerceHomeView(reader: wallet, visibility: visibility, onCooperationFinance: {},
-                    showsWithdrawalSupport: false, showsCooperationFinance: false)
+                    showsWithdrawalSupport: false, showsCooperationFinance: false, merchantView: true)
                     .id(ObjectIdentifier(wallet))
                     .environment(\.bankWithdrawalDestination, nil)
                     .environment(\.withdrawalSupportReader, nil)

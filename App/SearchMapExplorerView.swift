@@ -230,7 +230,7 @@ import SwiftUI
             guard reader.isConfigured, mode == .city, categories.isEmpty else { return }
             let ticket = categoryGate.begin(scope: reader.scope)
             do {
-                let values = try await reader.categories()
+                let values = try await reader.merchantCategories()
                 guard categoryGate.accepts(ticket, scope: reader.scope) else { return }; categories = values; categoryFailed = false
             } catch {
                 guard categoryGate.accepts(ticket, scope: reader.scope) else { return }; categoryFailed = true

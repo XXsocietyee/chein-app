@@ -75,7 +75,7 @@ struct HomeHeroHeaderSectionView: View {
                         .buttonStyle(.plain)
                         .pageTemplateControl(
                             label: Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)),
-                            hint: Text("searchMap.citySearch"),
+                            hint: Text("homeSearch.mapHint"),
                             traits: .isButton
                         )
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")

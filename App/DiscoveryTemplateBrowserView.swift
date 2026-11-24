@@ -15,6 +15,9 @@ struct DiscoveryTemplateBrowserView: View {
     let onRetryMerchantAccess: (() -> Void)?
     /// Mini-program template tab: the "+" opens the publish menu. Hidden for staff who only browse.
     let publishDestination: (() -> AnyView)?
+    /// R7-PC-A2-2 (MP `goSearch`, owner ruling 2026-10-22): templates are a result type of the one global search. When
+    /// the host supplies it, one read-only capsule pushes that search instead of the two local fields.
+    let searchDestination: (() -> AnyView)?
     @State private var tab = Shelf.topics
     @State private var topicTag: String?
     @State private var gameTag: String?
@@ -41,9 +44,10 @@ struct DiscoveryTemplateBrowserView: View {
     private var query: Query { Query(tab: tab, keyword: appliedKeyword) }
     private var hasGameKeyword: Bool { !appliedKeyword.isEmpty }
 
-    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false) {
+    init(reader: any DiscoveryReading, authoringFactory: ((DiscoveryPlayTemplate) -> TemplateAuthoringCoordinator)? = nil, authoringRevision: UInt64 = 0, imageReader: (any RetainedPublicImageReading)? = nil, authoringCompletion: TemplateAuthoringCompletionContext? = nil, templateTabScope: TemplateTabScope = .consumer, merchantAccessError: Bool = false, onRetryMerchantAccess: (() -> Void)? = nil, publishDestination: (() -> AnyView)? = nil, startOnGames: Bool = false, searchDestination: (() -> AnyView)? = nil) {
         _tab = State(initialValue: startOnGames ? .games : .topics)
         self.publishDestination = publishDestination
+        self.searchDestination = searchDestination
         self.reader = reader; self.authoringFactory = authoringFactory; self.authoringRevision = authoringRevision
         self.imageReader = imageReader; self.authoringCompletion = authoringCompletion
         self.templateTabScope = templateTabScope
@@ -88,6 +92,23 @@ struct DiscoveryTemplateBrowserView: View {
                             .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                             .accessibilityAddTraits(.isStaticText)
                             .pageTemplateReadingOrder(40)
+                        }
+                        if let searchDestination {
+                            NavigationLink { searchDestination() } label: {
+                                HStack(spacing: CYSpacing.sm) {
+                                    Image(systemName: "magnifyingglass").foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                                    Text("discovery.searchAll").cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
+                                    Spacer(minLength: 0)
+                                }
+                                .padding(.horizontal, CYSpacing.lg)
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .background(palette.bgElevated, in: Capsule(style: .continuous))
+                                .contentShape(Capsule(style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityAddTraits(.isSearchField)
+                            .accessibilityIdentifier("discovery.globalSearch")
+                            .pageTemplateReadingOrder(35)
                         }
                         Picker("discovery.shelf", selection: $tab) {
                             Text("discovery.topics").tag(Shelf.topics)
@@ -215,6 +236,7 @@ struct DiscoveryTemplateBrowserView: View {
 
     @ViewBuilder private var topicShelf: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if searchDestination == nil {
             searchPill("discovery.topicNameSearch", text: $topicKeyword, field: "discovery.topicNameSearch", submitID: "discovery.topicNameSearch.submit", submit: applyTopicSearch)
             if appliedTopicSearch.isActive {
                 HStack {
@@ -232,10 +254,11 @@ struct DiscoveryTemplateBrowserView: View {
                         .accessibilityHint(Text("discovery.topicNameSearch"))
                 }
             }
+            }
         }
         shelfChipRow(SearchDiscoveryFilterParity.topicTags(in: topics.value ?? [], selected: topicTag), field: "shelf.topic") { topicTag = $0 }
         if let error = topics.error {
-            shelfIssue(error) { Task { await loadTopics() } }
+            shelfIssue(error, failedTitle: "discovery.topicsFailed") { Task { await loadTopics() } }
         }
         if topics.isLoading {
             if topics.value == nil { CYSkeleton() } else { DiscoveryTemplateSyncingRow(hasLoadedRows: true) }
@@ -273,7 +296,9 @@ struct DiscoveryTemplateBrowserView: View {
 
     @ViewBuilder private var gameShelf: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            searchPill("discovery.search", text: $keyword, field: "discovery.search", submitID: "discovery.search.submit", submit: applySearch)
+            if searchDestination == nil {
+                searchPill("discovery.search", text: $keyword, field: "discovery.search", submitID: "discovery.search.submit", submit: applySearch)
+            }
             shelfChipRow(SearchDiscoveryFilterParity.gameTags(in: shelfGames.value ?? [], selected: gameTag), field: "shelf.game") { gameTag = $0 }
             if hasGameKeyword || gameTag != nil {
                 Button("discovery.clearFilters") {
@@ -290,7 +315,7 @@ struct DiscoveryTemplateBrowserView: View {
         if hasGameKeyword {
             if games.isLoading { CYSkeleton() }
             if let error = games.error {
-                shelfIssue(error) { Task { await loadGames() } }
+                shelfIssue(error, failedTitle: "discovery.gamesFailed") { Task { await loadGames() } }
             }
             if let rows = games.value {
                 let matched = keywordGames(rows)
@@ -309,7 +334,7 @@ struct DiscoveryTemplateBrowserView: View {
         } else {
             if home.isLoading { CYSkeleton() }
             if let error = home.error {
-                shelfIssue(error) { Task { await loadHome() } }
+                shelfIssue(error, failedTitle: "discovery.gamesFailed") { Task { await loadHome() } }
             }
             if let value = home.value {
                 if value.isEmpty { CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames") }
@@ -331,6 +356,11 @@ struct DiscoveryTemplateBrowserView: View {
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
                     Button {
+                        // R7-PC-A2-4: MP `openTopic` — a preview-only row says 暂未开放 instead of opening.
+                        if item.previewOnly {
+                            toastMessage = appLocalized("searchMap.template.previewOnly", locale: locale)
+                            return
+                        }
                         guard topicSelection == nil, topics.canOpen(reader: reader),
                               topics.value?.contains(where: { $0.id == item.id }) == true else { return }
                         topicSelection = .init(identity: reader.discoveryPresentationIdentity,
@@ -385,7 +415,8 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
-    private func shelfIssue(_ error: Error, retry: @escaping () -> Void) -> some View {
+    /// R7-PC-A2-5: the generic failure names the shelf (MP `主题模板加载失败` / `玩法模板加载失败`).
+    private func shelfIssue(_ error: Error, failedTitle: LocalizedStringKey = "discovery.loadFailed", retry: @escaping () -> Void) -> some View {
         let reason = error as? DiscoveryTemplateUnavailable
         let unauthorized = (error as? APIError) == .unauthorized
         let offline = reason == .offline || (error as? URLError)?.code == .notConnectedToInternet
@@ -404,7 +435,7 @@ struct DiscoveryTemplateBrowserView: View {
             title = "discovery.templateOffline"
             detail = "discovery.templateOfflineHint"
         } else {
-            title = "discovery.loadFailed"
+            title = failedTitle
             detail = nil
         }
         let canRetry = !unauthorized && (reason?.retryable ?? true)

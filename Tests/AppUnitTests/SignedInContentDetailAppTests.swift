@@ -45,9 +45,18 @@ import XCTest
     func testGuestAndHomeOnlyApprovalNeverDispatchDetails() async throws {
         for approved in [false, true] {
             let wire = Wire(), vault = Vault(), session = try root(wire, vault: vault, approved: approved).makeSession()
-            do { _ = try await session.activityDetail(id: 21); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
+            if approved {
+                _ = try await session.activityDetail(id: 21)
+                let activity = try XCTUnwrap(wire.requests.last)
+                XCTAssertTrue(activity.url?.path.hasSuffix("/activity/info") == true)
+                XCTAssertNil(activity.value(forHTTPHeaderField: "Authorization"))
+            } else {
+                do { _ = try await session.activityDetail(id: 21); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+                XCTAssertTrue(wire.requests.isEmpty)
+            }
+            let beforeTopic = wire.requests.count
             do { _ = try await session.topicReader.topicDetail(id: 31); XCTFail() } catch { XCTAssertEqual(error as? APIError, .unauthorized) }
-            XCTAssertTrue(wire.requests.isEmpty)
+            XCTAssertEqual(wire.requests.count, beforeTopic)
         }
         let wire = Wire(), vault = Vault(), session = try root(wire, vault: vault, approved: false).makeSession()
         await signIn(session, wire: wire)

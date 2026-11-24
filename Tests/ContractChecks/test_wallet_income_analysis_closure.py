@@ -6,8 +6,8 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def src(self,path):return (R/path).read_text()
  def testNormalEntryUsesExistingIncomeGateAndSameReader(self):
   s=self.src('App/WalletCommerceViews.swift')
-  expected='''if visibility.income {
-                    walletRow("wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }'''
+  # R7-PC-D5-2: 分析 is the quick action only (MP scene-asset-earnings); the 更多 menu no longer repeats it.
+  expected='''if visibility.income { out.append(.init(title: "wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.quick") { AnyView(WalletIncomeAnalysisView(reader: reader)) }) }'''
   self.assertIn(expected,s)
   self.assertIn('WalletCommerceHomeView(reader: session.walletHistoryReader',self.src('App/SessionWalletCommerceView.swift'))
  def testAnalysisNeverCreatesReaderGrantOrMutation(self):
@@ -17,7 +17,7 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
   self.assertIn('try await reader.read {',s);self.assertIn('$0.ledger(.income(.all), page: pageNumber',s)
  def testBudgetExactPagingValidationAndUnknownTotalFailClosed(self):
   s=self.src('App/WalletIncomeAnalysisReader.swift')
-  for text in ['static let pageSize = 20','static let pageBudget = 10','requestedPage == pagesRead + 1','page.page == requestedPage','page.pageSize == Self.pageSize','Set(page.rows.map(\\.id)).count == page.rows.count','observedTotal.map({ $0 == total }) ?? true','page.rows.count == min(Self.pageSize, total - offset)','return .unverified']:
+  for text in ['static let pageSize = WalletAnalysisPagingPolicy.mpPageSize','WalletAnalysisPagingPolicy.shouldContinue','requestedPage == pagesRead + 1','page.page == requestedPage','page.pageSize == Self.pageSize','Set(page.rows.map(\\.id)).count == page.rows.count','observedTotal.map({ $0 == total }) ?? true','page.rows.count == min(Self.pageSize, total - offset)','return .unverified']:
    self.assertIn(text,s)
  def testPermissionDenialCannotRetainPartialMoney(self):
   s=self.src('App/WalletIncomeAnalysisReader.swift')

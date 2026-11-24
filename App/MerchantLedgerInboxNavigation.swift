@@ -107,7 +107,8 @@ extension EnvironmentValues {
         ZStack {
             if ownsSource, gate.permits(source, messaging: readerOwner.reader(for: session)) {
                 MessagingHomeView(reader: readerOwner.reader(for: session), mediaReader: session.socialMessageMediaReader,
-                    senderForConversation: { session.messageSender(for: $0) }, expanded: session.imExpandedNavigation)
+                    senderForConversation: { session.messageSender(for: $0) }, expanded: session.imExpandedNavigation,
+                    merchantChrome: true)
                     .id(session.messagingViewIdentity)
             } else if gate.busy { ProgressView("merchant.loading") }
             else {

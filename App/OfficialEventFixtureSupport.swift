@@ -99,7 +99,7 @@ import SwiftUI
                 case "inbox": NavigationStack { OfficialInboxView(reader: reader) }
                 case "published": NavigationStack { OfficialPublishedView(reader: reader) }
                 case "stats": NavigationStack { OfficialBroadcastStatsView(id: 91, reader: reader) }
-                default: OfficialEventsBrowserView(reader: reader)
+                default: NavigationStack { OfficialEventsBrowserView(reader: reader) }
                 }
             }.id(scope)
         }

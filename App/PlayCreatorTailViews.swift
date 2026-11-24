@@ -53,7 +53,7 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
                            confirmTitle: tailText("lead.unlock.confirm.action"), confirmIdentifier: "playx.lead.unlock.confirm") {
                 Task { await model.unlockChapter(context: context) }
             }
-            .presentationDetents([.medium])
+            .cySheet(detents: [.medium])
         }
         .sheet(item: $releasing) { request in
             CYConfirmSheet(title: tailText("lead.release.confirm.title"),
@@ -61,7 +61,7 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
                            confirmTitle: tailText("lead.release.confirm.action"), confirmIdentifier: "playx.lead.release.confirm") {
                 Task { await model.releaseStation(request, context: context) }
             }
-            .presentationDetents([.medium])
+            .cySheet(detents: [.medium])
         }
     }
 
@@ -127,7 +127,7 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
             if let reference { flow?.reference(reference) }
             await flow?.read()
         }
-        .sheet(isPresented: $composing) { compose }
+        .sheet(isPresented: $composing) { Group { compose }.cySheet(detents: [.large]) }
     }
 
     @ViewBuilder private func content(_ flow: PlayGuardAppealFlow, _ entry: PlayGuardAppealFlow.Entry) -> some View {
@@ -187,7 +187,7 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
                 .accessibilityIdentifier("play.guard.submit")
             }
         }
-        .presentationDetents([.medium, .large])
+        .cySheet()
     }
 }
 
@@ -208,7 +208,7 @@ func appealStateText(_ state: String) -> String {
                 CYListRow(verbatim: tailText("audit.entry"), trailing: .chevron) { CYRowIcon(systemImage: "doc.text.magnifyingglass") }
             }
             .accessibilityIdentifier("myProject.audit.\(project.id)")
-            .sheet(isPresented: $open) { CreatorAuditSheet(target: target, title: project.title) }
+            .sheet(isPresented: $open) { Group { CreatorAuditSheet(target: target, title: project.title) }.cySheet(detents: [.large]) }
         }
     }
 }
@@ -241,7 +241,7 @@ func appealStateText(_ state: String) -> String {
             flow = next
             await next?.loadTimeline()
         }
-        .sheet(isPresented: $composing) { compose }
+        .sheet(isPresented: $composing) { Group { compose }.cySheet(detents: [.large]) }
         .sheet(isPresented: $picking) { imagePicker }
     }
 
@@ -356,7 +356,7 @@ func appealStateText(_ state: String) -> String {
                 .accessibilityIdentifier("myProject.audit.submit")
             }
         }
-        .presentationDetents([.medium, .large])
+        .cySheet()
     }
 
     private func rowLabel(_ row: CreatorAuditTimelineRow) -> String {

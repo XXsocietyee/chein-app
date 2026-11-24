@@ -236,7 +236,10 @@ struct MessagingHistoryView: View {
             ToolbarItem(placement: .principal) {
                 if conversation != nil {
                     HStack(spacing: CYSpacing.sm) {
-                        CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                        // R7-PC-D9-4 (MP im/chat/index.wxml:68): the counterparty's avatar, generated art as fallback.
+                        IMRemoteAvatar(url: conversation?.kind == .system || conversation?.kind == .group ? nil : IMRemoteAvatar.url(conversation?.counterparty?.avatar)) {
+                            CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                        }
                             .frame(width: 28, height: 28).clipShape(Circle())
                         if !dynamicTypeSize.isAccessibilitySize {
                             MessagingConversationName(conversation: conversation).cyText(.cardTitle).cyWrapText()
@@ -528,7 +531,10 @@ private struct MessagingBubble: View {
             if !isOwn {
                 // Avatar sits beside the last bubble of a run; earlier ones keep the column empty.
                 if position.showsTail {
-                    CYIMCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                    // R7-PC-D9-4 (MP im/chat/index.wxml:160 `senderAvatar`): generated art as fallback.
+                    IMRemoteAvatar(url: IMRemoteAvatar.url(message.senderAvatar)) {
+                        CYIMCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                    }
                         .frame(width: avatarSize, height: avatarSize)
                         .clipShape(Circle())
                 } else { Color.clear.frame(width: avatarSize, height: 1) }
@@ -561,17 +567,21 @@ private struct MessagingBubble: View {
     @Environment(\.locale) private var locale
     @State private var showMoreSheet = false
     @State private var pendingSelection: Choice?
+    @State private var peerReportClosed = false
 
     private enum Choice: Hashable {
         case poll
         case safety(IMSafetyMenu.Item)
+        /// 举报对方. Not an `IMSafetyMenu.Item`: that switch stays the message/conversation grants.
+        case peerReport
     }
 
     private var conversationID: Int { owner.scope.conversationID }
 
     var body: some View {
-        let items = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe).items.filter(granted)
-        if !items.isEmpty || createPoll != nil {
+        let menu = IMSafetyMenu(conversation: conversation, blockedByMe: blockedByMe)
+        let items = menu.items.filter(granted)
+        if !items.isEmpty || createPoll != nil || IMSafetyMenu.offersPeerReport(conversation: conversation) {
             Button {
                 showMoreSheet = true
             } label: {
@@ -579,6 +589,9 @@ private struct MessagingBubble: View {
             }
             .accessibilityLabel(Text("im.chat.more"))
             .accessibilityIdentifier("im.chat.more")
+            .alert(Text("im.chat.more.reportPeerClosed"), isPresented: $peerReportClosed) {
+                Button("d7.channelChat.ok", role: .cancel) {}
+            }
             .sheet(isPresented: $showMoreSheet, onDismiss: performPendingSelection) {
                 CYOptionSheet(
                     title: appLocalized("im.chat.more", locale: locale),
@@ -615,6 +628,15 @@ private struct MessagingBubble: View {
                 identifier: "im.chat.more.\(identifier(item))"
             ))
         }
+        if IMSafetyMenu.offersPeerReport(conversation: conversation) {
+            result.append(CYOptionSheetItem(
+                id: .peerReport,
+                title: appLocalized("im.chat.more.reportPeer", locale: locale),
+                systemImage: "exclamationmark.bubble",
+                isDanger: true,
+                identifier: "im.chat.more.reportPeer"
+            ))
+        }
         return result
     }
 
@@ -626,6 +648,9 @@ private struct MessagingBubble: View {
             createPoll?()
         case .safety(let item):
             select(item)
+        case .peerReport:
+            // CommunityMemberReportClient.writesEnabled stays false, so submit remains notConfigured.
+            peerReportClosed = true
         }
     }
 

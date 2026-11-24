@@ -87,8 +87,8 @@ struct IMUnreadBadge: View {
 
 /// Source conversation row: 56pt round avatar (bell for system), bold name,
 /// 官方 tag (type 3), mute mark, time top-right, preview line and unread badge
-/// bottom-right. Messaging never loads remote avatars, so the avatar is a clean
-/// symbol placeholder.
+/// bottom-right. R7-PC-D8-2 (MP im/list/index.wxml:141): a person's https avatar is shown; the system row and a
+/// missing or failed avatar keep the generated symbol art.
 struct IMInboxRow: View {
     let conversation: MessagingConversation
     @Environment(\.cyPalette) private var palette
@@ -96,7 +96,9 @@ struct IMInboxRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+            IMRemoteAvatar(url: conversation.kind == .system ? nil : IMRemoteAvatar.url(conversation.counterparty?.avatar)) {
+                CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+            }
                 .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
                 .clipShape(Circle())
                 .overlay(alignment: .topTrailing) {
@@ -299,5 +301,26 @@ struct IMSendGhost: View {
     }
     private var leaving: AnyTransition {
         .asymmetric(insertion: .identity, removal: AnyTransition.opacity.animation(.easeOut(duration: CYMotion.Duration.instant)))
+    }
+}
+
+/// R7-PC-D8-2 / D9-4: an IM avatar from the server (`counterparty.avatar`, `senderAvatar`), https only; the
+/// generated art stays as placeholder and failure fallback (MP falls back to its default profile image).
+struct IMRemoteAvatar<Fallback: View>: View {
+    let url: URL?
+    @ViewBuilder let fallback: () -> Fallback
+    static func url(_ raw: String?) -> URL? {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              let url = URL(string: raw), url.scheme?.lowercased() == "https", url.host?.isEmpty == false else { return nil }
+        return url
+    }
+    var body: some View {
+        if let url {
+            AsyncImage(url: url) { phase in
+                if case .success(let image) = phase { image.resizable().scaledToFill() } else { fallback() }
+            }
+        } else {
+            fallback()
+        }
     }
 }

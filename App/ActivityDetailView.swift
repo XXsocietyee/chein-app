@@ -14,21 +14,20 @@ struct ActivityDetailView: View {
     var startsWithMoreInfoOpen = false
     /// MP `pages/activity/baoming` link: open the registration sheet once the detail loads and sign-up is the action.
     var opensRegistrationOnLoad = false
-    /// MP `baoming?activityId&ticketId` (MKT-2-1): the ticket the registration sheet starts on. Ignored when the
-    /// activity has no such ticket.
-    var preselectedTicketID: Int? = nil
+    /// MP `baoming?ticketId=` (R7-PC-C2-3): preselect this ticket in the auto-opened sheet.
+    var registrationTicketID: Int? = nil
     var body: some View {
         if let session = reader as? AppSession {
             SessionActivityDetailView(id: id, session: session,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
                 hostCancelAccess: hostCancelAccess, opensRegistrationOnLoad: opensRegistrationOnLoad,
-                preselectedTicketID: preselectedTicketID)
+                registrationTicketID: registrationTicketID)
         } else {
             ActivityDetailContentView(id: id, reader: reader,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
                 peopleProfile: peopleProfile, requiredClubDestination: requiredClubDestination,
                 hostCancelAccess: hostCancelAccess, startsWithMoreInfoOpen: startsWithMoreInfoOpen,
-                opensRegistrationOnLoad: opensRegistrationOnLoad, preselectedTicketID: preselectedTicketID)
+                opensRegistrationOnLoad: opensRegistrationOnLoad, registrationTicketID: registrationTicketID)
         }
     }
 }
@@ -40,46 +39,15 @@ struct ActivityDetailView: View {
     var registrationEnabled: Bool
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var opensRegistrationOnLoad = false
-    var preselectedTicketID: Int? = nil
+    var registrationTicketID: Int? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         Group {
+            // Sign-in belongs on 立即报名. The detail read itself runs with a nil token.
             if session.account == nil {
-                VStack(spacing: CYSpacing.md) {
-                    CYStateArt(kind: .generic)
-                    Text("activity.signInRequired")
-                        .cyText(.sectionTitle)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("activity.detail.signIn")
-                    // Guests had a message and no way forward: the Passport tab hosts the sign-in entry.
-                    if rootTabSwitch.isAvailable {
-                        CYPillButton("auth.signIn", style: .secondary, fullWidth: false) { rootTabSwitch(.mine) }
-                            .accessibilityIdentifier("activity.detail.signInAction")
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
+                sessionDetail(guestSignIn: { if rootTabSwitch.isAvailable { rootTabSwitch(.mine) } })
             } else {
-                let activityIdentity = session.activityPresentationIdentity
-                let clubIdentity = session.clubIdentity
-                ActivityDetailContentView(id: id, reader: session,
-                    playReaderForActivity: playReaderForActivity,
-                    topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
-                    registrationEnabled: registrationEnabled,
-                    peopleProfile: .init(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator),
-                    requiredClubDestination: { clubID, selectionCurrent in
-                        AnyView(CoopRelationClubProfileHost(id: clubID, base: session, isCurrent: { [weak session] in
-                            guard let session else { return false }
-                            return selectionCurrent() && session.account != nil &&
-                                session.activityPresentationIdentity == activityIdentity && session.clubIdentity == clubIdentity
-                        }))
-                    },
-                    hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
-                    opensRegistrationOnLoad: opensRegistrationOnLoad, preselectedTicketID: preselectedTicketID)
-                    .environment(\.inGameChannelHost, session.inGameChannelHost)
-                    .id(session.contentDetailRevision)
+                sessionDetail(guestSignIn: nil)
             }
         }
         .appNavigationTitle("activity.details")
@@ -87,6 +55,29 @@ struct ActivityDetailView: View {
         .cyPushedChrome(domain: .player)
         .cyDomainPageBackground()
         .cyHideTabBar()
+    }
+
+    @ViewBuilder private func sessionDetail(guestSignIn: (() -> Void)?) -> some View {
+        let activityIdentity = session.activityPresentationIdentity
+        let clubIdentity = session.clubIdentity
+        ActivityDetailContentView(id: id, reader: session,
+            playReaderForActivity: playReaderForActivity,
+            topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) },
+            registrationEnabled: registrationEnabled,
+            peopleProfile: .init(reader: session.socialAccountReader, squareReader: session.squareReader, actions: session.socialActionCoordinator),
+            requiredClubDestination: { clubID, selectionCurrent in
+                AnyView(CoopRelationClubProfileHost(id: clubID, base: session, isCurrent: { [weak session] in
+                    guard let session else { return false }
+                    return selectionCurrent() && session.account != nil &&
+                        session.activityPresentationIdentity == activityIdentity && session.clubIdentity == clubIdentity
+                }))
+            },
+            hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
+            opensRegistrationOnLoad: guestSignIn == nil && opensRegistrationOnLoad,
+            registrationTicketID: registrationTicketID,
+            guestSignIn: guestSignIn)
+            .environment(\.inGameChannelHost, session.inGameChannelHost)
+            .id(session.contentDetailRevision)
     }
 }
 
@@ -102,7 +93,9 @@ struct ActivityDetailView: View {
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var startsWithMoreInfoOpen = false
     var opensRegistrationOnLoad = false
-    var preselectedTicketID: Int? = nil
+    var registrationTicketID: Int? = nil
+    /// Guest 立即报名. Nil for a signed-in reader, which opens the registration sheet instead.
+    var guestSignIn: (() -> Void)? = nil
     @State private var openedRegistrationOnLoad = false
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
@@ -124,6 +117,7 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
+    @State private var showsHostCancelFromFooter=false
     /// Continuity r1 (+): the footer pill is the zoom source of the registration / ticket-wallet sheet it opens. The first
     /// tile (`performPrimaryAction`) opens the same sheets; it sets this so they keep the plain slide-up. Cleared on dismiss.
     @State private var tileOpenedSheet = false
@@ -260,8 +254,9 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
-            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail, preselectedTicketID: preselectedTicketID) }
+            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
+            .environment(\.registrationPreselectedTicketID, registrationTicketID)
             .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
             .themeDomain(.player)
             .cySheet(detents: [.large])
@@ -618,12 +613,17 @@ struct ActivityDetailView: View {
         return false
     }
     private var primaryActionEnabled: Bool {
-        (primaryAction == .signUp && !signUpBlocked) || (primaryAction != .signUp && primaryAction != .cancelled && reader is AppSession)
+        if primaryAction == .unavailable || primaryAction == .cancelled { return false }
+        return (primaryAction == .signUp && !signUpBlocked) || (primaryAction != .signUp && reader is AppSession)
     }
     private func performPrimaryAction() {
-        if primaryAction == .signUp { guard !signUpBlocked else { return }; tileOpenedSheet = true; showsRegistration = true }
-        else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
-        else if primaryAction != .cancelled, reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
+        if primaryAction == .unavailable || primaryAction == .cancelled { return }
+        if primaryAction == .signUp {
+            guard !signUpBlocked else { return }
+            if let guestSignIn { guestSignIn(); return }
+            tileOpenedSheet = true; showsRegistration = true
+        } else if primaryAction == .continueExploring, playReaderForActivity != nil { showsPlay = true }
+        else if reader is AppSession { tileOpenedSheet = true; showsTicketWallet = true }
     }
     /// "From ¥58 · 24 going"; an unknown price or count is an em dash, never 0.
     /// Known parts only: price and attendee count joined by a dot. Nil (line hidden) when neither is known.
@@ -645,15 +645,39 @@ struct ActivityDetailView: View {
                     .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("activity.pinned.summary")
             }
-            if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
+            if let access = hostCancelAccess, !detail.isCancelled,
+               ActivityHostCancelRules.isHost(hostMemberID: detail.hostMemberID, accountID: access.accountID) {
+                // R7-PC-C1-4 (r1 PC-C-1-5): MP host footer is 取消活动并退款, not 立即报名.
+                Button(role: .destructive) { showsHostCancelFromFooter = true } label: {
+                    Text(verbatim: CoreLoopCopy(locale: locale).t("取消活动并退款", "Cancel event & refund"))
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!access.enabled)
+                .accessibilityIdentifier("activity.hostCancel.footer")
+                .sheet(isPresented: $showsHostCancelFromFooter) {
+                    ActivityHostCancelSheet(detail: detail, access: access) {
+                        showsHostCancelFromFooter = false
+                        await load()
+                    }
+                    .cyDomainSheet(detents: [.half, .full])
+                }
+            } else if primaryAction == .signUp, let block = detail.signUpBlock(now: Date()) {
                 // PC-C-1-3: nothing can be bought; the pill is disabled and names the reason (MP noTicketText).
                 CYPillButton(LocalizedStringKey(block.titleKey)) {}
                     .disabled(true)
                     .accessibilityIdentifier("activity.openRegistration.blocked")
             } else if primaryAction == .signUp {
-                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { showsRegistration = true }
+                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {
+                    if let guestSignIn { guestSignIn() } else { showsRegistration = true }
+                }
                     .cyHeroSource(ActivityFooterHeroDestination.id, in: footerHero, cornerRadius: CYRadius.pill)
                     .accessibilityIdentifier("activity.openRegistration")
+                    .accessibilityLabel(Text(LocalizedStringKey(primaryAction.titleKey)))
+            } else if primaryAction == .unavailable {
+                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) {}
+                    .disabled(true)
+                    .accessibilityIdentifier("activity.primaryAction")
                     .accessibilityLabel(Text(LocalizedStringKey(primaryAction.titleKey)))
             } else {
                 // A registered or cancelled activity never reopens the registration sheet.
@@ -690,7 +714,7 @@ struct ActivityDetailView: View {
                 phase = .loaded(result); loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
                 gateActivityID = capturedActivityID; gateReaderID = capturedReaderID
                 gateReaderIdentity = capturedReaderIdentity; gateReadID = UUID()
-                if opensRegistrationOnLoad, !openedRegistrationOnLoad, registrationEnabled, primaryAction == .signUp {
+                if guestSignIn == nil, opensRegistrationOnLoad, !openedRegistrationOnLoad, registrationEnabled, primaryAction == .signUp, !signUpBlocked {
                     openedRegistrationOnLoad = true; showsRegistration = true
                 }
             }
