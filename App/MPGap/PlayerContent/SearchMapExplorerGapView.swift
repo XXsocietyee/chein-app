@@ -126,7 +126,7 @@ public struct SearchMapExplorerGapView: View {
         }
         .sheet(item: $selectedPlace) { place in
             VStack(spacing: 0) {
-                CYSheetHeader(title: LocalizedStringKey(place.title), style: .player) {
+                CYSheetHeader(title: Text(verbatim: place.title), style: .player) {
                     selectedPlace = nil
                 }
                 List {
@@ -146,7 +146,7 @@ public struct SearchMapExplorerGapView: View {
         }
         .sheet(isPresented: $showAllResultsSheet) {
             VStack(spacing: 0) {
-                CYSheetHeader(title: "searchMap.allResults", style: .player) {
+                CYSheetHeader(title: Text("searchMap.allResults"), style: .player) {
                     showAllResultsSheet = false
                 }
                 if places.isEmpty {

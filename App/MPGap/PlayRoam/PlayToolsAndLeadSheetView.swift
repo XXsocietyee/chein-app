@@ -68,7 +68,7 @@ public struct PlayToolsAndLeadSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "playTools.title", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("playTools.title"), style: .player, onClose: onClose)
             List {
                 if lead.exists && lead.isLeader {
                     Section("playTools.lead.section") {

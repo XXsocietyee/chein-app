@@ -40,7 +40,7 @@ public struct RoamSessionToolsSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "roamTools.title", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("roamTools.title"), style: .player, onClose: onClose)
             Form {
                 if !runners.isEmpty {
                     Section("roamTools.runners.section") {

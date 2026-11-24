@@ -46,5 +46,10 @@ Walked all 30 `player-content` pages, 30 `play-roam` pages, and 29 `member` page
   - Fixed in `Core/MPGap/PlayerContent/PlayerContentGapService.swift`: aligned `fetchTopicNearbyTeams` (`GET /api/team/nearby?lat=&lng=&radius=`) and `fetchFreeExploreCatalog` (`GET /api/free-explore/bundle/catalog?topicId=`) to MP GET contracts.
   - Fixed in `Core/MPGap/Member/MemberRound2Service.swift`: added `fetchOrientScoring(sessionID:)` (`GET /api/orient/scoring?sessionId=`).
   - Remaining shared/app-level contract items (`Core/NearbyTeamService.swift`, `Core/PlayerJourneyService.swift`, and un-wired endpoints) listed in `contracts-g1-player.md` for the coordinator.
+- **External Swift symbol audit (post-coordinator note):**
+  - Checked every external type/case/method/initializer in `Core/MPGap/`, `App/MPGap/`, and `Tests/CoreTests/MPGap/` (`APIError`, `AuthRequestBuilder.isValidToken`, `HTTPTransport`, `PlayWireValue`, `PlayerGapReply`, `CYCachedAsyncImage`, `CYSheetHeader`, `CYColor`, `CYRadius`, `CYSpacing`, `cyPageTitle`, `cyText`) against `Core/` and `App/DesignSystem/`.
+  - `APIError`: verified `APIError.invalidRequest` matches `Core/APIConfiguration.swift:3-5` (`APIError.serverMessage` was not used in G1).
+  - Fixed `CYCachedAsyncImage`: changed `CYCachedAsyncImage(url: url, role: .cover/.thumbnail)` to `CYCachedAsyncImage(sourceString, role: .cover/.shelf)` matching `App/DesignSystem/CYCachedAsyncImage.swift:61-64, 169-174` (across `TopicTemplateDeckPreviewView`, `PlayerContentRound2Views`, `CityStampTearScratchCardView`, `PlayRoamRound2Views`, `MemberRound2Views`).
+  - Fixed `CYSheetHeader`: changed `title: "..."` / `LocalizedStringKey(...)` to `title: Text(...)` matching `App/DesignSystem/CYPlayerKit.swift:346-356` (across `SearchMapExplorerGapView`, `PlayerContentRound2Views`, `PlayToolsAndLeadSheetView`, `RoamSessionToolsSheetView`, `ObjectCardCategoryAndRenameSheets`, `PlayRoamRound2Views`, `OrientScoreGapViews`, `ReportAppealAndCouponSummaryViews`).
 
 DONE-ROUND-3
