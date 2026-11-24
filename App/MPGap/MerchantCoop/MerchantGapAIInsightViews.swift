@@ -62,7 +62,7 @@ public struct MerchantGapAIInsightDashboardSection: View {
 
             if !sources.isEmpty {
                 Section {
-                    ForEach(sources) { source in
+                    ForEach(Array(sources.enumerated()), id: \.offset) { _, source in
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack {
                                 Text(verbatim: source.name)
@@ -117,7 +117,12 @@ public struct MerchantGapAIInsightDashboardSection: View {
                         Button {
                             onSelectGrowTip(tip.key)
                         } label: {
-                            HStack {
+                            HStack(spacing: CYSpacing.sm) {
+                                growTipCover(for: tip.key)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 44, height: 44)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                     Text(verbatim: tip.title)
                                         .cyText(.cardTitle)
@@ -135,6 +140,15 @@ public struct MerchantGapAIInsightDashboardSection: View {
                     Text(verbatim: MerchantAIInsightCopy.growSectionTitle).cyText(.sectionTitle)
                 }
             }
+        }
+    }
+
+    private func growTipCover(for key: MerchantAIInsightGrowTip.Key) -> Image {
+        switch key {
+        case .coop: return MPAsset.BannerCover.treasureHunter
+        case .citynode: return MPAsset.BannerCover.flavorTour
+        case .coupon: return MPAsset.BannerCover.midlifeDay
+        case .aiNpc: return MPAsset.BannerCover.oldMovie
         }
     }
 }

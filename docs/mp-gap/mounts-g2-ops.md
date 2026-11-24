@@ -17,7 +17,7 @@ All new UI views live in `App/MPGap/<Area>/*.swift` with zero edits to existing 
    - **Code:** `ClubGapTopicDirectorEmbeddedSection(summary: directorSummary, onConfirmUnknownWrite: { ... }, onRetryUnknownWrite: { ... }, onOpenTool: { ... }, onToggleLeaderboardVisibility: { ... })`
 5. **`ClubGapFEReferenceSettlementSection`** (`App/MPGap/Club/ClubGapReferenceSettlementView.swift`)
    - **Target:** `App/ClubGovernanceViews.swift` (settlement view) & `App/MerchantLedgerSettlementOverview.swift`
-   - **Code:** `ClubGapFEReferenceSettlementSection(items: feSettlements, allowsMoneyWrite: allowsMoneyWrite, onMarkSettled: { ... }, onDispute: { ... })`
+   - **Code:** `ClubGapFEReferenceSettlementSection(role: .payer, items: feSettlements, allowsMoneyWrite: allowsMoneyWrite, onMarkSettled: { ids, voucherNo in ... }, onDispute: { ... })`
 
 ## Merchant-Coop
 1. **`MerchantGapAIInsightDashboardSection`** (`App/MPGap/MerchantCoop/MerchantGapAIInsightViews.swift`)
@@ -102,3 +102,50 @@ All new UI views live in `App/MPGap/<Area>/*.swift` with zero edits to existing 
 10. **`ActivityPublishGapOrganizerAndPOISection`** (`App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift`)
     - **Target:** `App/PublishingModesViews.swift`
     - **Code:** `ActivityPublishGapOrganizerAndPOISection(pickedPlaceName: placeName, isSoldLocked: isSoldLocked, organizerName: organizerName, organizerLoadFailed: organizerLoadFailed, onPickLocation: { ... }, onRetryOrganizer: { ... })`
+
+## Round 4 Additions (`audit/parity-r7-*` Gemini Queue)
+
+### Club
+10. **`ClubGapManagedProjectsDirectorSection`** (`App/MPGap/Club/ClubGapRound4Views.swift`)
+    - **Target:** `App/ClubDetailView.swift` (管理 tab)
+    - **Code:** `ClubGapManagedProjectsDirectorSection(projects: directorProjects, onOpenDirector: { topicID, activityID in ... }, onSelectSessionTool: { topicID, activityID, tool in ... })`
+11. **`ClubGapStoryMapAddressRow`** (`App/MPGap/Club/ClubGapRound4Views.swift`)
+    - **Target:** `App/ClubStoryViews.swift`
+    - **Code:** `ClubGapStoryMapAddressRow(stop: stopLocation)`
+12. **`ClubGapApplyCertImagesSection`** (`App/MPGap/Club/ClubGapRound4Views.swift`)
+    - **Target:** `App/ClubGovernanceCommandForm.swift` / `App/ClubHostApplicationMaterials.swift`
+    - **Code:** `ClubGapApplyCertImagesSection(draft: $certDraft, onAddImages: { ... }, onRetryIndex: { ... })`
+13. **`ClubGapFEReferenceRangeBar`** (`App/MPGap/Club/ClubGapRound4Views.swift`)
+    - **Target:** `App/MPGap/Club/ClubGapReferenceSettlementView.swift`
+    - **Code:** `ClubGapFEReferenceRangeBar(range: $rangeFilter, isExporting: isExporting, onExport: { ... })`
+14. **`ClubGapGroupCodeSessionPickerView`** (`App/MPGap/Club/ClubGapRound4Views.swift`)
+    - **Target:** `App/ClubGroupCodePresentation.swift`
+    - **Code:** `ClubGapGroupCodeSessionPickerView(state: groupCodeStepState, onSelectSession: { ... }, onOpenManage: { ... })`
+
+### Merchant-Coop
+11. **`MerchantGapBatchVoucherRow`** (`App/MPGap/MerchantCoop/MerchantGapRound4Views.swift`)
+    - **Target:** `App/MerchantLedgerSettlementOverview.swift` (`MerchantLedgerBatchDetailView`)
+    - **Code:** `MerchantGapBatchVoucherRow(payVoucherNo: voucherNo, onCopy: { ... })`
+12. **`MerchantGapAIInsightExtraSection`** (`App/MPGap/MerchantCoop/MerchantGapRound4Views.swift`)
+    - **Target:** `App/MerchantMarketingView.swift`
+    - **Code:** `MerchantGapAIInsightExtraSection(storeName: storeName, storeLogoURL: logoURL, heatCells: heatCells, axisFromLabel: axisFrom, poolCards: poolCards, onOpenCoopPool: { ... })`
+13. **`MerchantGapDecorInactiveEmptyView`** (`App/MPGap/MerchantCoop/MerchantGapRound4Views.swift`)
+    - **Target:** `App/MerchantOperationsViews.swift` (gallery & coop-setting)
+    - **Code:** `MerchantGapDecorInactiveEmptyView(title: emptyTitle, onGoOnboarding: { ... })`
+14. **`MerchantGapCityNodePosterAndMapViews`** (`App/MPGap/MerchantCoop/MerchantGapRound4Views.swift`)
+    - **Target:** `App/MerchantCityNodeHubView.swift` & `App/MerchantCityNodeCreateView.swift`
+    - **Code:** `MerchantGapCityNodePosterAndMapViews(codeText: codeText, addressTitle: addressTitle, latitude: lat, longitude: lng)`
+15. **`CoopGapListAndDepositActionsView`** & **`CoopGapInvitePresetsSection`** (`App/MPGap/MerchantCoop/MerchantGapRound4Views.swift`)
+    - **Target:** `App/CooperationBrowserView.swift`, `App/CooperationInviteActionSections.swift`, `App/CooperationContextualViews.swift`
+    - **Code:** `CoopGapListAndDepositActionsView(...)` / `CoopGapInvitePresetsSection(...)`
+
+### Account-Publish
+11. **`ProjectEditGapRichStoryBlocksSection`**, **`ProjectEditGapCastEditorSheet`**, **`ProjectEditGapChapterExtrasSection`** (`App/MPGap/AccountPublish/AccountPublishGapRound4Views.swift`)
+    - **Target:** `App/ProjectEditDetailForms.swift` & `App/ProjectEditView.swift`
+    - **Code:** `ProjectEditGapRichStoryBlocksSection(...)`, `ProjectEditGapCastEditorSheet(...)`, `ProjectEditGapChapterExtrasSection(...)`
+12. **`TemplateAuthoringGapRound4Section`** (`App/MPGap/AccountPublish/AccountPublishGapRound4Views.swift`)
+    - **Target:** `App/TemplateAuthoringView.swift`
+    - **Code:** `TemplateAuthoringGapRound4Section(draft: $round4Draft)`
+13. **`TeamDetailGapSaveInviteImageRow`** (`App/MPGap/AccountPublish/AccountPublishGapRound4Views.swift`)
+    - **Target:** `App/TeamHomeView.swift`
+    - **Code:** `TeamDetailGapSaveInviteImageRow(onSaveConfirmed: { ... })`

@@ -33,7 +33,11 @@ final class G2OpsGapTests: XCTestCase {
         let client = ClubEditionsEmptyReasonClient(configuration: baseConfig, transport: transport)
         let reason = try await client.fetchEmptyReason(clubID: 12, token: validToken)
         XCTAssertEqual(reason.reason, "暂未开通售票")
-        XCTAssertEqual(transport.requests.first?.url?.query, "clubId=12")
+        let req = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(req.httpMethod, "POST")
+        XCTAssertTrue(req.url?.path.hasSuffix("api/club-compensation/editions/empty-reason") == true)
+        let body = try JSONSerialization.jsonObject(with: try XCTUnwrap(req.httpBody)) as? [String: Any]
+        XCTAssertEqual(body?["clubId"] as? Int, 12)
     }
 
     func testClubTopicDirectorTypes() {
@@ -70,6 +74,13 @@ final class G2OpsGapTests: XCTestCase {
         }
         let client = ClubRemainingGapClient(configuration: baseConfig, transport: transport)
         try await client.toggleFollowAuthor(targetUserID: 7, follow: true, token: validToken)
+        let followReq = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(followReq.httpMethod, "POST")
+        XCTAssertEqual(followReq.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+        let formBody = String(data: try XCTUnwrap(followReq.httpBody), encoding: .utf8) ?? ""
+        XCTAssertTrue(formBody.contains("follow_member_id=7"))
+        XCTAssertTrue(formBody.contains("follow=1"))
+
         let answer = try await client.fetchHostNodeAnswer(topicID: 1, nodeID: 2, scope: "MERCHANT", token: validToken)
         XCTAssertEqual(answer.answerReveal, "A")
     }
@@ -83,11 +94,16 @@ final class G2OpsGapTests: XCTestCase {
         XCTAssertEqual(MerchantAIInsightMetricKind.visitors.unit, "位玩家到店")
 
         let transport = StubTransport { _ in
-            (Data(#"{"code":200,"data":[{"name":"夜游","count":5,"pct":"50%","widthPercent":50}]}"#.utf8), 200)
+            (Data(#"{"code":200,"data":{"facts":{"sources":[{"topicName":"夜游","count":6},{"topicName":"探店","count":4}]}}}"#.utf8), 200)
         }
         let client = MerchantAIInsightClient(configuration: baseConfig, transport: transport)
         let items = try await client.fetchSources(days: .days7, token: validToken)
-        XCTAssertEqual(items.first?.initial, "夜")
+        XCTAssertEqual(items.count, 2)
+        XCTAssertEqual(items.first?.name, "夜游")
+        XCTAssertEqual(items.first?.pct, "60%")
+        let req = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(req.httpMethod, "POST")
+        XCTAssertTrue(req.url?.path.hasSuffix("api/ai/merchant/insight") == true)
     }
 
     func testMerchantOperationsAndDepositGate() async throws {
@@ -97,14 +113,23 @@ final class G2OpsGapTests: XCTestCase {
         let transport = StubTransport { _ in (Data("{\"code\":200,\"data\":[]}".utf8), 200) }
         let client = MerchantGapOperationsClient(configuration: baseConfig, transport: transport)
 
-        let created = try await client.createDeposit(coopID: 9, token: validToken, allowsMoneyWrite: false)
-        let retried = try await client.retryDepositRefund(coopID: 9, token: validToken, allowsMoneyWrite: false)
+        let created = try await client.createDeposit(inviteID: 9, token: validToken, allowsMoneyWrite: false)
+        let retried = try await client.retryDepositRefund(inviteID: 9, token: validToken, allowsMoneyWrite: false)
         XCTAssertFalse(created)
         XCTAssertFalse(retried)
         XCTAssertTrue(transport.requests.isEmpty)
 
-        let stations = try await client.supplyStations(merchantID: 3, token: validToken)
+        let stations = try await client.supplyStations(topicID: 4, merchantMemberID: 3, token: validToken)
         XCTAssertTrue(stations.isEmpty)
+        let stationReq = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(stationReq.httpMethod, "GET")
+        XCTAssertTrue(stationReq.url?.query?.contains("topicId=4") == true)
+        XCTAssertTrue(stationReq.url?.query?.contains("merchantMemberId=3") == true)
+
+        _ = try await client.invitableMerchants(topicID: 4, latitude: 31.2, longitude: 121.4, token: validToken)
+        let invReq = try XCTUnwrap(transport.requests.last)
+        XCTAssertEqual(invReq.httpMethod, "POST")
+        XCTAssertTrue(invReq.url?.path.hasSuffix("api/merchant/chapter-application/invitable") == true)
     }
 
     func testMerchantRemainingModelsAndClient() async throws {
@@ -113,8 +138,10 @@ final class G2OpsGapTests: XCTestCase {
         try await client.claimExistingStore(MerchantOnboardingClaimRequest(storeName: "城瘾书店"), token: validToken)
         try await client.saveBrandContact(MerchantDecorContactDraft(contactPhone: "13800000000", wechatID: "cy_wx"), token: validToken)
         try await client.saveDecorDisplay(MerchantDecorContactDraft(address: "南京路"), token: validToken)
-        try await client.acceptTeamInvite(inviteID: 15, token: validToken)
-        XCTAssertEqual(transport.requests.count, 4)
+        XCTAssertEqual(transport.requests.count, 3)
+        XCTAssertTrue(transport.requests[0].url?.path.hasSuffix("api/merchant/claims/submit") == true)
+        XCTAssertTrue(transport.requests[1].url?.path.hasSuffix("api/merchant/update") == true)
+        XCTAssertTrue(transport.requests[2].url?.path.hasSuffix("api/merchant/decor/save") == true)
     }
 
     func testAccountPublishModelsAndClients() async throws {
@@ -130,7 +157,7 @@ final class G2OpsGapTests: XCTestCase {
                 return (Data(#"{"code":200,"data":{"topicId":88}}"#.utf8), 200)
             }
             if req.url?.path.hasSuffix("cast/voice") == true {
-                return (Data(#"{"code":200,"data":{"audioUrl":"https://example.com/a.mp3"}}"#.utf8), 200)
+                return (Data(#"{"code":200,"data":{"url":"https://example.com/a.mp3"}}"#.utf8), 200)
             }
             if req.url?.path.hasSuffix("getwxbindphone") == true {
                 return (Data(#"{"code":200,"data":{"phone":"138****0000"}}"#.utf8), 200)
@@ -138,8 +165,11 @@ final class G2OpsGapTests: XCTestCase {
             return (Data(#"{"code":200}"#.utf8), 200)
         }
         let client = AccountPublishGapClient(configuration: baseConfig, transport: transport)
-        let topicID = try await client.remixTemplate(templateID: 5, token: validToken)
+        let topicID = try await client.remixTemplate(templateID: 5, requestID: "req-1", token: validToken)
         XCTAssertEqual(topicID, 88)
+        let remixReq = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(remixReq.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded; charset=utf-8")
+
         let audioURL = try await client.previewCastVoice(topicID: 1, preset: "warm", token: validToken)
         XCTAssertEqual(audioURL, "https://example.com/a.mp3")
         try await client.handleTeamApplication(teamID: 4, memberID: 9, approved: false, token: validToken)

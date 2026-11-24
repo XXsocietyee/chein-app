@@ -149,11 +149,14 @@ public struct SquareDetailGapPlayCardSection: View {
             .padding(.vertical, CYSpacing.xs)
 
             Button(action: onToggleBookmark) {
-                Label(
-                    isBookmarked ? AccountPublishGapCopy.bookmarkRemove : AccountPublishGapCopy.bookmarkAdd,
-                    systemImage: isBookmarked ? "star.fill" : "star"
-                )
-                .cyText(.body)
+                HStack(spacing: CYSpacing.xs) {
+                    (isBookmarked ? MPAsset.FeatureIcon.iconStarFilled : MPAsset.FeatureIcon.iconStarOutline)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 18, height: 18)
+                    Text(verbatim: isBookmarked ? AccountPublishGapCopy.bookmarkRemove : AccountPublishGapCopy.bookmarkAdd)
+                        .cyText(.body)
+                }
             }
         }
     }

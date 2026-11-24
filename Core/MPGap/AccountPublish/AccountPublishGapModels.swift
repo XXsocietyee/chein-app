@@ -108,7 +108,7 @@ public struct AccountPublishGapClient {
 
     public func previewCastVoice(topicID: Int?, preset: String, token: String) async throws -> String {
         guard !preset.isEmpty else { throw APIError.invalidRequest }
-        struct VoicePreviewPayload: Decodable { let audioUrl: String }
+        struct VoicePreviewPayload: Decodable { let url: String }
         var query = [URLQueryItem(name: "preset", value: preset)]
         if let topicID, topicID > 0 {
             query.append(URLQueryItem(name: "topicId", value: String(topicID)))
@@ -120,17 +120,17 @@ public struct AccountPublishGapClient {
             queryItems: query,
             token: token
         )
-        return payload.audioUrl
+        return payload.url
     }
 
-    public func remixTemplate(templateID: Int, token: String) async throws -> Int {
-        guard templateID > 0 else { throw APIError.invalidRequest }
+    public func remixTemplate(templateID: Int, requestID: String, token: String) async throws -> Int {
+        guard templateID > 0, !requestID.isEmpty else { throw APIError.invalidRequest }
         struct RemixPayload: Decodable { let topicId: Int }
-        let payload: RemixPayload = try await MPGapHTTP.postJSON(
+        let payload: RemixPayload = try await MPGapHTTP.postForm(
             configuration: configuration,
             transport: transport,
             path: "api/template/topic-template/use",
-            body: ["templateId": templateID],
+            fields: ["id": String(templateID), "requestId": requestID],
             token: token
         )
         return payload.topicId

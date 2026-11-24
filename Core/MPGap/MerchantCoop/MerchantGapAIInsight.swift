@@ -135,12 +135,38 @@ public struct MerchantAIInsightClient {
     }
 
     public func fetchSources(days: MerchantAIInsightWindow, token: String) async throws -> [MerchantAIInsightSourceItem] {
-        try await MPGapHTTP.postJSON(
+        struct RawSource: Decodable {
+            let topicName: String?
+            let name: String?
+            let count: Int?
+        }
+        struct FactsPayload: Decodable {
+            let sources: [RawSource]?
+        }
+        struct InsightEnvelopeData: Decodable {
+            let facts: FactsPayload?
+        }
+        let data: InsightEnvelopeData = try await MPGapHTTP.postForm(
             configuration: configuration,
             transport: transport,
             path: "api/ai/merchant/insight",
-            body: ["days": days.rawValue],
+            fields: ["days": String(days.rawValue)],
             token: token
         )
+        let raw = data.facts?.sources ?? []
+        let total = max(1, raw.reduce(0) { $0 + max(0, $1.count ?? 0) })
+        let maxCount = max(1, raw.map { max(0, $0.count ?? 0) }.max() ?? 1)
+        return raw.map { row in
+            let count = max(0, row.count ?? 0)
+            let name = (row.topicName ?? row.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let pctValue = Int((Double(count) / Double(total) * 100.0).rounded())
+            let width = Double(count) / Double(maxCount) * 100.0
+            return MerchantAIInsightSourceItem(
+                name: name.isEmpty ? "未知主题" : name,
+                count: count,
+                pct: "\(pctValue)%",
+                widthPercent: width
+            )
+        }
     }
 }

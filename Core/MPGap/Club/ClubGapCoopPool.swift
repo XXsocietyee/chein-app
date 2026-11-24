@@ -91,14 +91,12 @@ public struct ClubEditionsEmptyReasonClient {
     }
 
     public func fetchEmptyReason(clubID: Int, token: String) async throws -> ClubEditionsEmptyReason {
-        guard clubID > 0, AuthRequestBuilder.isValidToken(token) else {
-            throw APIError.invalidRequest
-        }
-        return try await MPGapHTTP.getJSON(
+        guard clubID > 0 else { throw APIError.invalidRequest }
+        return try await MPGapHTTP.postJSON(
             configuration: configuration,
             transport: transport,
             path: "api/club-compensation/editions/empty-reason",
-            queryItems: [URLQueryItem(name: "clubId", value: String(clubID))],
+            body: ["clubId": clubID],
             token: token
         )
     }

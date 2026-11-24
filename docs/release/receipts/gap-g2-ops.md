@@ -84,3 +84,24 @@ DONE-ROUND-3
 - `swiftc -parse` passed on all G2 `Core/MPGap`, `App/MPGap`, and `Tests/CoreTests/MPGap` Swift files.
 
 DONE-COMPILE-FIX
+
+## 8. Round 4 (`audit/parity-r7-*` Gemini Queue)
+- Merged `origin/ui/combined-r7` first (`Already up to date` with `7fdfad1f1`).
+- Read `origin/audit/parity-r7-{club,merchant-coop,account-publish}` and translated every Gemini-owned fix-queue item into new files:
+  - **Club (`CLB-detail-09`, `CLB-r7-A-04`, `CLB-topic-story-04`, `CLB-apply-05`, `CLB-r7-D-01`, `CLB-group-code-05`):**
+    - `Core/MPGap/Club/ClubGapRound4.swift`, `App/MPGap/Club/ClubGapRound4Views.swift`
+  - **Merchant-Coop (`MC7-01..MC7-33` Gemini queue: claim DTO + search, batch voucher copy, AI insight store logo + daily heat grid + club pool cards, decor inactive `ContentUnavailableView`, AI NPC 3-sentence voice session state, city-node codeText + map preview, operator invite `api/merchant/operators/invite/accept`, deposit `api/coop/deposit/create/app` + polling behind `allowsMoneyWrite`, coop list & invite presets):**
+    - `Core/MPGap/MerchantCoop/MerchantGapRound4.swift`, `App/MPGap/MerchantCoop/MerchantGapRound4Views.swift`
+  - **Account-Publish (`C-F1` branch/gallery/line/speaker, `C-F5` cast editor sheet, `C-F7` prologue/ending/staffOpening, `C-T3` relaxOnLowHP/outcomes/scanReply/citynode, `C-D2` `team/handle {teamId, memberId, approved}`, `C-D11-r7` save invite image privacy gate, `A7-01/03/05` `MiniCropGapOverlay` `cropSize` fix):**
+    - `Core/MPGap/AccountPublish/AccountPublishGapRound4.swift`, `App/MPGap/AccountPublish/AccountPublishGapRound4Views.swift`, `App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift`
+- **Tests:** `Tests/CoreTests/MPGap/G2OpsRound4Tests.swift` covering all Round 4 Core models and clients.
+- `swiftc -parse` passed on all 26 G2 Swift files (`Core/MPGap`, `App/MPGap`, `Tests/CoreTests/MPGap`).
+
+DONE-ROUND-4
+
+## 9. Round 5 (`r7-rev-c` + `owner-decisions-1124`)
+- Closed all G2 `owner=Gemini` findings from `origin/review/r7-rev-c:docs/review/r7-rev-c.md`: `F-C03`, `F-C04`, `F-C06`, `F-C07`, `F-C08`, `F-C09`, `F-C20`, `F-C22`, `F-C23`, `F-C25`.
+- Report written to [round5-g2.md](docs/mp-gap/round5-g2.md).
+- `swiftc -parse` passed on all 26 G2 Swift files after final edits.
+- Merged `origin/ui/combined-r7` (`82388e4a5`) and replaced G2 `App/MPGap` placeholder SF Symbols/TODOs with `MPAsset` accessors (`MPAsset.AvatarDefault.dProfile`, `MPAsset.BannerCover.{treasureHunter,flavorTour,midlifeDay,oldMovie}`, `MPAsset.FeatureIcon.{introTicketMap,pin,iconShop,iconStarFilled,iconStarOutline}`).
+- `swiftc -parse` passed on all 26 G2 Swift files + `App/MPAssets/MPAsset.swift`.
