@@ -406,7 +406,7 @@ struct CityNearbyDrawer: View {
                         if detent != .large {
                             Button { set(.large) } label: {
                                 HStack(spacing: 2) { Text(verbatim: copy("全部", "All")); Image(systemName: "chevron.right").imageScale(.small) }
-                                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
+                                    .cyText(.meta).foregroundStyle(palette.textSecondary).frame(minHeight: 44)
                             }
                             .buttonStyle(.plain)
                         }

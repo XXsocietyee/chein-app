@@ -65,7 +65,6 @@ struct CitySheetHost: View {
             }
         }
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(28)
         .presentationBackground(sheetGround)
         .themeDomain(.player)
     }

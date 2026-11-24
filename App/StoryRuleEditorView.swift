@@ -141,7 +141,7 @@ import QuestifyCore
                             .foregroundStyle(row.unsupported ? .secondary : .primary)
                         Spacer()
                         Image(systemName: row.open ? "chevron.up" : "chevron.down")
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(10)
@@ -327,7 +327,7 @@ import QuestifyCore
                                 Spacer()
                                 if lRow.hasNames {
                                     Image(systemName: lRow.open ? "chevron.up" : "chevron.down")
-                                        .font(.caption2)
+                                        .font(.caption)
                                 }
                             }
                             .padding(8)
@@ -478,7 +478,7 @@ enum StoryAnswerFeedback: Equatable {
                             .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textTertiary)
                             .accessibilityHidden(true)
                     }

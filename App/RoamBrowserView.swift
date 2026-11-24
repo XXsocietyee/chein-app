@@ -189,11 +189,11 @@ struct RoamBrowserView: View {
                     }
                 }
             }
-            .sheet(item: $entryCard) { selection in
+            .sheet(item: $entryCard) { selection in Group {
                 RoamEntryActivitySheet(card: selection.card, eventDestination: nearbyEventDestination ?? eventDestination,
                     teamDestination: nearbyTeamDestination, readOnly: nearbyEventDestination != nil,
                     isCurrent: { selection.mayRemainOpen(in: entryScope) })
-            }
+            }.cySheet(detents: [.large]) }
             .onChange(of: entryScope) { _, _ in entryCard = nil }
             .onChange(of: recoveryReadOwner) { _, _ in
                 recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil)

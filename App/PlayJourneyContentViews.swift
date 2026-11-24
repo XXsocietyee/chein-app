@@ -36,7 +36,7 @@ import SwiftUI
                                 // Settle screen headline (mini-program journey-check): over the line or not, in words and icon.
                                 Label(success ? "journey.settled.passed" : "journey.settled.missed",
                                       systemImage: success ? "checkmark.seal.fill" : "xmark.seal")
-                                    .font(CYTypography.sectionTitle)
+                                    .cyText(.sectionTitle)
                                     .foregroundStyle(success ? CYColor.successText : CYColor.warningText)
                                     .frame(maxWidth: .infinity)
                                     .accessibilityIdentifier("journey.check.settledVerdict")
@@ -211,7 +211,7 @@ struct JourneyCheckDCTrack: View {
 @MainActor private struct JourneyCheckReviewPresenter: ViewModifier {
     @Bindable var model: JourneyCheckCoordinator
     func body(content: Content) -> some View {
-        content.sheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in
+        content.sheet(item: Binding(get: { model.review }, set: { if $0 == nil { model.cancelReview() } })) { review in Group {
             NavigationStack {
                 Form {
                     Section("journey.review") {
@@ -230,7 +230,7 @@ struct JourneyCheckDCTrack: View {
                         }
                     }
             }
-        }
+        }.cySheet(detents: [.large]) }
     }
 }
 @MainActor struct PlayAmbientView: View {

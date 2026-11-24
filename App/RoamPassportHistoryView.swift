@@ -121,11 +121,11 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
         .onChange(of: RoamPassportHistoryOwner(reader)) { _, _ in selected = nil; model.suspend() }
         .onDisappear { model.suspend() }
         .refreshable { await model.read(refresh) }
-        .sheet(item: $selected) { selected in
+        .sheet(item: $selected) { selected in Group {
             if selected.owner == RoamPassportHistoryOwner(reader) {
                 NavigationStack { RoamPassportRecordView(reader: reader, sessionID: selected.id, localReader: localReader, owner: selected.owner) }
             } else { passportText("changed") }
-        }
+        }.cySheet(detents: [.large]) }
         .background {
             if owner == RoamPassportHistoryOwner(reader), reader.isConfigured, reader.identity != nil,
                scenePhase == .active, model.isVisible {
@@ -231,7 +231,7 @@ private struct RoamPassportTrackView: View {
     var body: some View {
         let sketch = RoamRouteSketch(track: track, places: places)
         ZStack {
-            RoundedRectangle(cornerRadius: 16).fill(Color.accentColor.opacity(0.08))
+            RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.08))
             if sketch.track.isEmpty { Text("roam.experience.noTrack").cyText(.meta) }
             else {
                 Canvas { context, size in

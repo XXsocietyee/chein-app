@@ -125,7 +125,7 @@ struct PlayRouteNoticeRow: View {
     var body: some View {
         Label { Text(LocalizedStringKey("route.notice." + notice.rawValue), tableName: table).fixedSize(horizontal: false, vertical: true) }
             icon: { Image(systemName: notice == .switchedToFallback ? "arrow.triangle.branch" : "exclamationmark.triangle") }
-            .font(CYTypography.caption).foregroundStyle(CYColor.warningText)
+            .cyText(.caption).foregroundStyle(CYColor.warningText)
             .accessibilityIdentifier("playRecovery.routeNotice")
     }
 }
@@ -157,7 +157,7 @@ struct PlayStationPauseView: View {
             }
             if let message = notice.replacementMessage {
                 Label { Text(verbatim: message).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "arrow.triangle.branch") }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                 if let name = notice.replacementName {
                     Text("station.paused.replacement \(name)", tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 }
@@ -182,7 +182,7 @@ struct PlayLocationCaptureIssueView: View {
             if issue == .disabled {
                 Label { Text("location.denied", tableName: table).fixedSize(horizontal: false, vertical: true) }
                     icon: { Image(systemName: "location.slash") }
-                    .font(CYTypography.body)
+                    .cyText(.body)
                 Button { if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) } } label: {
                     Text("location.openSettings", tableName: table)
                 }.accessibilityIdentifier("playRecovery.location.settings")
@@ -192,7 +192,7 @@ struct PlayLocationCaptureIssueView: View {
             } else {
                 Label { Text("location.unusable", tableName: table).fixedSize(horizontal: false, vertical: true) }
                     icon: { Image(systemName: "location.magnifyingglass") }
-                    .font(CYTypography.body)
+                    .cyText(.body)
             }
         }
         .foregroundStyle(CYColor.textSecondary)
@@ -292,7 +292,7 @@ enum PlayOfflinePackEnvironment {
         }()
         Label { Text(LocalizedStringKey(key), tableName: table).fixedSize(horizontal: false, vertical: true) }
             icon: { Image(systemName: model.offlineScope == .readingOnly ? "book.closed" : "wifi") }
-            .font(CYTypography.body).accessibilityIdentifier("playRecovery.pack.offlineScope")
+            .cyText(.body).accessibilityIdentifier("playRecovery.pack.offlineScope")
     }
 
     @ViewBuilder private func assetSection(_ title: LocalizedStringKey, rows: [PlayContentManifest.Asset], manifest: PlayContentManifest) -> some View {

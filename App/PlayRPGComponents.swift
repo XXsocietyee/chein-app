@@ -16,7 +16,7 @@ import QuestifyCore
         CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 Image(systemName: "clock.badge.exclamationmark")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(CYColor.warningText)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -45,7 +45,7 @@ import QuestifyCore
             ForEach(items) { item in
                 HStack(alignment: .top, spacing: CYSpacing.md) {
                     Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(item.isDone ? CYColor.successText : CYColor.textTertiary)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
@@ -110,8 +110,7 @@ import QuestifyCore
                 }
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .cySheet()
         .cyHaptic(.impactMedium, trigger: rollTick)
         .onDisappear { settleTask?.cancel() }
     }

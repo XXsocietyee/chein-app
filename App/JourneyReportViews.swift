@@ -235,7 +235,7 @@ struct JourneyRankBoardView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { moreShown = false } } }
             }
-            .presentationDetents([.medium])
+            .cySheet(detents: [.medium])
         }
         .cyDomainScreen(.player)
     }
@@ -460,8 +460,7 @@ struct JourneyReportView: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { rankShown = false } } }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            .cySheet()
             .onAppear(perform: onLoadRank)
         }
         .sheet(isPresented: $memoryShown) {
@@ -472,16 +471,15 @@ struct JourneyReportView: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { memoryShown = false } } }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            .cySheet()
             .onAppear(perform: onLoadMemory)
         }
-        .sheet(isPresented: $feedbackShown) {
+        .sheet(isPresented: $feedbackShown) { Group {
             if case .ready(let report) = phase {
                 JourneyFeedbackSheet(nodes: report.nodes, state: feedback, onSubmit: onSubmitFeedback,
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
-        }
+        }.cySheet(detents: [.large]) }
         .cyDomainScreen(.player)
     }
 
@@ -917,7 +915,7 @@ struct JourneySettleView: View {
                             stars = value; localError = nil
                         } label: {
                             Image(systemName: value <= stars ? "star.fill" : "star")
-                                .font(CYTypography.dataXL)
+                                .cyText(.dataXL)
                                 .foregroundStyle(value <= stars ? CYNight.lantern : CYColor.textTertiary)
                                 .scaleEffect(value <= stars && !reduceMotion ? 1.08 : 1)
                                 .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.5).delay(Double(value) * 0.04), value: stars)

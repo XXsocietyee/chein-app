@@ -704,7 +704,7 @@ struct JourneySeatsView: View {
                     // verify-r1 2.4: 房主 was brown text on a brown fill. Neutral tag with a crown: ink on a light chip.
                     Label { Text("mp.seats.host") } icon: { Image(systemName: "crown.fill") }
                         .labelStyle(.titleAndIcon)
-                        .font(CYTypography.micro.weight(.semibold))
+                        .cyText(.micro, weight: .semibold)
                         .foregroundStyle(CYDomainPalette(.player).actionPrimaryFg)
                         .padding(.horizontal, CYSpacing.xs).padding(.vertical, 2)
                         .background(CYDomainPalette(.player).actionPrimaryBg, in: Capsule()).offset(y: CYSpacing.sm)
@@ -790,7 +790,7 @@ private struct JourneyInviteSheet: View {
             Button("action.close") { dismiss() }.frame(minHeight: CYSpacing.minTouchTarget)
         }
         .padding(CYSpacing.pageHorizontal)
-        .presentationDetents([.medium])
+        .cySheet(detents: [.medium])
         .cyPlayerSheetGlass()
     }
 }

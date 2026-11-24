@@ -34,7 +34,7 @@ import SwiftUI
                     if let node = decode(RoamNodeDetail.self, scenario == "poiOffline" ? Self.nodeJSON : Self.liveNodeJSON) {
                         RoamPOINodeParityCard(node: node)
                     }
-                }.navigationTitle(Text(verbatim: "POI"))
+                }.navigationTitle(Text(verbatim: "POI")).navigationBarTitleDisplayMode(.inline)
             case "poiUnavailable": RoamPOIUnavailableView(onBack: {})
             case "poiMissing": RoamPOIMissingView(onBack: {})
             case "voucherMissing": RoamCityVoucherCodeView(poiID: nil)

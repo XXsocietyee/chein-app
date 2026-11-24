@@ -19,7 +19,7 @@ import SwiftUI
                     Button { Task { await open() } } label: { Text("d7.friendInvite.tryAgain") }.buttonStyle(.bordered)
                 }
             }
-        }.font(Theme.Font.body)
+        }.cyText(.body)
             .task { await open() }
         .onChange(of: phase) { _, next in if next == .active { Task { await open() } } else { close() } }
         .onDisappear { close() }
@@ -48,7 +48,7 @@ import SwiftUI
         Group {
             if let flow { NativeFriendChannelInviteView(flow: flow, conversation: conversation).id(ObjectIdentifier(flow)) }
             else { ContentUnavailableView { Label("d7.channelInvite.unavailable", systemImage: "envelope") } }
-        }.font(Theme.Font.body)
+        }.cyText(.body)
             .task { reopen() }
         .onChange(of: phase) { _, next in if next == .active { reopen() } else { close() } }
         .onDisappear { close() }
@@ -201,8 +201,8 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .formStyle(.grouped)
-        .font(Theme.Font.body)
-        .appNavigationTitle(key: titleKey)
+        .cyText(.body)
+        .appNavigationTitle(key: titleKey).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .refreshable { guard !flow.busy else { return }; message = ""; checked = []; await flow.refresh() }
         .task { await flow.activate() }

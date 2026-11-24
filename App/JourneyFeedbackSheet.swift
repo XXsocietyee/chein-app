@@ -42,8 +42,7 @@ import SwiftUI
                 }
             }
         }
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
+        .cySheet(detents: [.large])
     }
 
     @ViewBuilder private var form: some View {

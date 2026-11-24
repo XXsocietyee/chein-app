@@ -98,7 +98,7 @@ extension EnvironmentValues {
                         }
                     },
                     trailing: HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
-                        GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
+                        GrowthCenterInteger(value: board.me.score).cyText(.data2XL)
                             .foregroundStyle(palette.textPrimary)
                             .cyWrapText()
                         Group { if board.metric == .exp { Text("u10.growth.unit.exp") } else { Text("growth.unit.point") } }
