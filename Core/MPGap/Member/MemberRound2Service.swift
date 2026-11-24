@@ -8,12 +8,12 @@ import FoundationNetworking
 @MainActor
 public final class MemberRound2Service {
     public static let paths: Set<String> = [
-        "api/registration/my",
+        "api/registration/list",
         "api/points/list",
         "api/withdrawal/list",
-        "api/club/follow",
+        "api/user/follow/action",
         "api/club/join",
-        "api/template/my/list",
+        "api/template/my-list",
         "api/orient/scoring"
     ]
 
@@ -67,23 +67,25 @@ public final class MemberRound2Service {
         }
     }
 
-    /// `FIN-16-2`: `GET /api/registration/my?pageNum=&pageSize=`
+    /// `FIN-16-2`: `POST /api/registration/list`
     public func fetchOrdersPage(pageNum: Int, pageSize: Int = 20) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/registration/my",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
+            "api/registration/list",
+            method: "POST",
+            json: [
+                "pageNum": .number(Double(pageNum)),
+                "pageSize": .number(Double(pageSize)),
+                "status": .string("0")
+            ]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `FIN-18-2`: `GET /api/points/list?pageNum=&pageSize=`
-    public func fetchPointsPage(pageNum: Int, pageSize: Int = 20) async -> PlayerGapReply {
-        guard let req = try? makeRequest(
-            "api/points/list",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
-        ) else { return .unauthorized }
+    /// `FIN-18-2`: `POST /api/points/list {}`
+    public func fetchPointsList() async -> PlayerGapReply {
+        guard let req = try? makeRequest("api/points/list", method: "POST", json: [:]) else {
+            return .unauthorized
+        }
         return await send(req)
     }
 
@@ -97,12 +99,15 @@ public final class MemberRound2Service {
         return await send(req)
     }
 
-    /// `FIN-17-4`: `POST /api/club/follow {clubId}` / `POST /api/club/join {clubId}`
-    public func followClub(clubID: Int) async -> PlayerGapReply {
+    /// `FIN-17-4`: `POST /api/user/follow/action {follow_member_id, follow}` / `POST /api/club/join {clubId}`
+    public func followClubOwner(memberID: Int, follow: Bool = true) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/club/follow",
+            "api/user/follow/action",
             method: "POST",
-            json: ["clubId": .number(Double(clubID))]
+            json: [
+                "follow_member_id": .number(Double(memberID)),
+                "follow": .string(follow ? "1" : "0")
+            ]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -116,10 +121,10 @@ public final class MemberRound2Service {
         return await send(req)
     }
 
-    /// `PLY-26-5`: `POST /api/template/my/list {operationScope}`
+    /// `PLY-26-5`: `POST /api/template/my-list {operationScope}`
     public func fetchMyTemplates(scope: TemplateShelfOperationScope) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/template/my/list",
+            "api/template/my-list",
             method: "POST",
             json: ["operationScope": .string(scope.rawValue)]
         ) else { return .unauthorized }

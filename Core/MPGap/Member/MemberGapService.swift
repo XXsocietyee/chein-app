@@ -10,7 +10,7 @@ public final class MemberGapService {
         "api/free-explore/bundle/order/receipt",
         "api/free-explore/bundle/catalog",
         "api/merchant/coupon-summary",
-        "api/report/appeal",
+        "api/community-trust/reports/appeal",
         "api/orient/appeal",
         "api/invoice/orders/eligible"
     ]
@@ -89,18 +89,18 @@ public final class MemberGapService {
         return await send(req)
     }
 
-    /// `MKT-10-1`: `GET /api/merchant/coupon-summary`
+    /// `MKT-10-1`: `POST /api/merchant/coupon-summary`
     public func fetchMerchantCouponSummary() async -> PlayerGapReply {
-        guard let req = try? makeRequest("api/merchant/coupon-summary", method: "GET") else {
+        guard let req = try? makeRequest("api/merchant/coupon-summary", method: "POST", json: [:]) else {
             return .unauthorized
         }
         return await send(req)
     }
 
-    /// `PLY-29-4`: `POST /api/report/appeal {reportId, reason, requestId}`
+    /// `PLY-29-4`: `POST /api/community-trust/reports/appeal {reportId, reason, requestId}`
     public func submitReportAppeal(reportID: Int, reason: String, requestID: String) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/report/appeal",
+            "api/community-trust/reports/appeal",
             method: "POST",
             json: [
                 "reportId": .number(Double(reportID)),

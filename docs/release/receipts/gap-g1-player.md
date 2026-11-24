@@ -57,5 +57,18 @@ Walked all 30 `player-content` pages, 30 `play-roam` pages, and 29 `member` page
 - Verified all 12 G1 errors listed in `docs/mp-gap/compile-errors-r7.md` (`MemberRound2Views.swift:112`, `OrientScoreGapViews.swift:22,88`, `ReportAppealAndCouponSummaryViews.swift:32,184`, `CityStampTearScratchCardView.swift:113`, `ObjectCardCategoryAndRenameSheets.swift:27,82`, `PlayRoamRound2Views.swift:49,125,184`) are fixed.
 - `swiftc -parse` and `python3 -B tools/check_design_lint.py` passed with 0 errors.
 
-DONE-ROUND-3
-DONE-COMPILE-FIX
+## Round 4: `audit/parity-r7` Gemini Queue + Audit Contract Fixes
+- **Audit sources:** `origin/audit/parity-r7-{player-content,play-roam,member}:docs/audit/parity-r7/<area>.md`.
+- **Contract fixes from r7 audits:**
+  - `Core/MPGap/PlayRoam/PlayRoamRound2Service.swift`: deleted `fetchRoamHistory` (`RHIST-r7-1`); switched `fetchStampAlbum` to `POST /api/roam/stamp/list` (`SALBUM-6`); switched `fetchTeamApplications` to `POST /api/team/applications` (`RTEAMS-3`).
+  - Removed redundant `App/MPGap/PlayRoam/CityStampTearScratchCardView.swift` (`RSTAMP-3`, already native in `RoamStampSlipView`).
+  - `Core/MPGap/Member/MemberGapService.swift`: switched `fetchMerchantCouponSummary` to `POST /api/merchant/coupon-summary` (`MKT-10-1`); switched `submitReportAppeal` to `POST /api/community-trust/reports/appeal` (`PLY-29-4`).
+  - `Core/MPGap/Member/MemberRound2Service.swift`: switched `fetchOrdersPage` to `POST /api/registration/list` (`FIN-16-2`), `followClubOwner` to `POST /api/user/follow/action` (`FIN-17-4`), `fetchMyTemplates` to `POST /api/template/my-list` (`PLY-26-5`), and `fetchPointsList` to `POST /api/points/list {}` (`FIN-18-2`).
+  - `App/MPGap/Member/MemberRound2Views.swift`: replaced hard-coded Chinese literals with localization keys.
+- **New Round-4 translations:**
+  - `player-content` (`PlayerContentRound4Models.swift`, `PlayerContentRound4Views.swift`): `R7-PC-B3-2` (`MerchantApplyPickerGapView`), `R7-PC-B1-12` (`TopicPostPurchaseRevealView` + `submitMarketingConsent`), `R7-PC-B2-2` (`MerchantJoinContactHostButton` + `contactHost`), `R7-PC-B1-22` (`TopicSharePosterCardView`).
+  - `play-roam` (`PlayRoamRound4Models.swift`, `PlayRoamRound4Views.swift`): `JSETTLE-r7-1` (`JourneyFinishOfferResolver`, `JourneyFinishOfferCardView`), `ROAM-13` (`RoamCityStripTabView`), `B3D-1` (`IdentityPinBadge3DParameters`), `OCARDS-2` (`ObjectCardPileAndGridView`).
+  - `member` (`MemberRound4Views.swift`): `MKT-7-1` (`FreeExploreCatalogBundleView`), `PLY-26-4` (`TemplateMineCardCoverView`), `MKT-10-5` (`CouponForbiddenPlayerActionView`).
+- **Tests:** added `Tests/CoreTests/MPGap/MPGapG1Round4Tests.swift` and updated `MPGapG1Tests.swift` + `MPGapG1Round2Tests.swift`.
+
+DONE-ROUND-4

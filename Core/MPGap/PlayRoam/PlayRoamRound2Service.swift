@@ -8,11 +8,10 @@ import FoundationNetworking
 @MainActor
 public final class PlayRoamRound2Service {
     public static let paths: Set<String> = [
-        "api/roam/history/list",
         "api/roam/city-strip",
         "api/team/applications",
         "api/rank/list",
-        "api/roam/stamp/album"
+        "api/roam/stamp/list"
     ]
 
     public let baseURL: URL
@@ -61,16 +60,6 @@ public final class PlayRoamRound2Service {
         }
     }
 
-    /// `RHIST-1`: `GET /api/roam/history/list?pageNum=&pageSize=`
-    public func fetchRoamHistory(pageNum: Int, pageSize: Int = 20) async -> PlayerGapReply {
-        guard let req = try? makeRequest(
-            "api/roam/history/list",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
-        ) else { return .unauthorized }
-        return await send(req)
-    }
-
     /// `ROAM-13`: `GET /api/roam/city-strip`
     public func fetchCityStrip() async -> PlayerGapReply {
         guard let req = try? makeRequest("api/roam/city-strip", method: "GET", requireAuth: false) else {
@@ -79,11 +68,11 @@ public final class PlayRoamRound2Service {
         return await send(req)
     }
 
-    /// `RTEAMS-3`: `GET /api/team/applications?teamId=`
+    /// `RTEAMS-3`: `POST /api/team/applications?teamId=`
     public func fetchTeamApplications(teamID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/team/applications",
-            method: "GET",
+            method: "POST",
             query: ["teamId": String(teamID)]
         ) else { return .unauthorized }
         return await send(req)
@@ -104,11 +93,11 @@ public final class PlayRoamRound2Service {
         return await send(req)
     }
 
-    /// `SALBUM-6`: `GET /api/roam/stamp/album?pageNum=&pageSize=50`
+    /// `SALBUM-6`: `POST /api/roam/stamp/list?pageNum=&pageSize=50`
     public func fetchStampAlbum(pageNum: Int, pageSize: Int = 50) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/roam/stamp/album",
-            method: "GET",
+            "api/roam/stamp/list",
+            method: "POST",
             query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
         ) else { return .unauthorized }
         return await send(req)
