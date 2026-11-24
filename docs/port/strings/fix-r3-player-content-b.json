@@ -1,4 +1,21 @@
 {
+  "guideXcx.backToList": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back to the guide"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "返回玩法列表"
+        }
+      }
+    }
+  },
   "myProject.address.open %@": {
     "extractionState": "manual",
     "localizations": {
