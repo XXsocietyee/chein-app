@@ -40,7 +40,7 @@ import QuestifyCore
             else if let outcome { report(outcome) }
             else { Section { CreatorStudioIssueView(failure: failure) { Task { await load() } } } }
         }
-        .appNavigationTitle("creatorStudio.outcome.title")
+        .appNavigationTitle("creatorStudio.outcome.title").navigationBarTitleDisplayMode(.inline)
         .task { topics = await loadTopics() }
         .task(id: query) { await load() }
         .refreshable { await load() }

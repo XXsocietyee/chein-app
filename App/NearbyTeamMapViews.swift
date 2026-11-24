@@ -16,7 +16,7 @@ struct NearbyTeamCountLine: View {
                 if loaded { Text("nearby.w208.header \(count)") } else { Text("nearby.w208.header.loading") }
             }.accessibilityIdentifier("nearby.w208.header")
         } icon: {
-            Image(systemName: "circle.fill").font(.caption2).foregroundStyle(CYColor.textSecondary)
+            Image(systemName: "circle.fill").font(.caption).foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
         }
         .cyText(.sectionTitle)

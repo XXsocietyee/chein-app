@@ -124,7 +124,7 @@ struct ExploreCompletionProvider {
             } else { CYSkeleton().accessibilityLabel(Text("exploreCompletion.loading")) }
             Section { Text("exploreCompletion.readOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
         }.cyGroupedSurface()
-        .navigationTitle("exploreCompletion.title")
+        .navigationTitle("exploreCompletion.title").navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .onAppear { model.beginPresentation() }
         .task(id: renderedPresentation) {

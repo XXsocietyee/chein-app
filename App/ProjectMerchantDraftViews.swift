@@ -12,7 +12,10 @@ import SwiftUI
                 .buttonStyle(.borderless).disabled(!controller.available).accessibilityIdentifier("projectMerchantDraft.choose")
             Text(text(controller.available ? .localReferenceOnly : .unconfigured)).cyText(.meta)
         }.sheet(item: controller.presentation(original)) { original in
-            ProjectMerchantDraftPanel(controller: controller, original: original)
+            Group {
+                ProjectMerchantDraftPanel(controller: controller, original: original)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }

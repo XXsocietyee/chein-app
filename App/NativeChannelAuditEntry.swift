@@ -75,7 +75,7 @@ import SwiftUI
         }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .navigationTitle(flow?.source == .lifecycle ? LocalizedStringKey("d7.channelAudit.historyTitle") : LocalizedStringKey("d7.channelAudit.title"))
+        .navigationTitle(flow?.source == .lifecycle ? LocalizedStringKey("d7.channelAudit.historyTitle") : LocalizedStringKey("d7.channelAudit.title")).navigationBarTitleDisplayMode(.inline)
         .task { await open() }
         .task {
             while !Task.isCancelled {
@@ -150,7 +150,7 @@ private struct NativeChannelAuditDetail: View {
         }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .navigationTitle(Text(verbatim: row.action))
+        .navigationTitle(Text(verbatim: row.action)).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
     }
 }

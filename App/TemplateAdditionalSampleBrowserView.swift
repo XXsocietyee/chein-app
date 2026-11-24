@@ -138,7 +138,10 @@ import Combine
             }
         }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .sheet(item: controller.presentationBinding) { item in
-                NavigationStack { TemplateAdditionalSamplePresentationView(controller: controller, presentationID: item.id) }
+                Group {
+                    NavigationStack { TemplateAdditionalSamplePresentationView(controller: controller, presentationID: item.id) }
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.viewDisappeared() }

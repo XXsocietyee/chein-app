@@ -134,13 +134,16 @@ struct ProjectCityStoryNodeRemovalHostIdentity:Hashable { let owner:ObjectIdenti
     func body(content:Content)->some View {
         let original=controller.confirmation
         content.sheet(item:controller.binding(original)){value in
-            NavigationStack{Form{
-                Text("projectCityNodeRemoval.warning",tableName:"ProjectCityStoryNodeRemoval")
-                ForEach(value.receipt.before.chapters.flatMap(\.nodes).filter{value.receipt.nodeIDs.contains($0.id)}){node in Text(verbatim:node.name)}
-                Button(role:.destructive){controller.confirm(value)}label:{Text("projectCityNodeRemoval.confirm",tableName:"ProjectCityStoryNodeRemoval")}
-                    .disabled(!controller.isCurrent(value)).accessibilityIdentifier("projectCityNodeRemoval.confirm")
-            }.navigationTitle(Text("projectCityNodeRemoval.title",tableName:"ProjectCityStoryNodeRemoval"))
-             .toolbar{ToolbarItem(placement:.cancellationAction){Button("action.cancel"){controller.close(value)}.accessibilityIdentifier("projectCityNodeRemoval.cancel")}}}
+            Group {
+                NavigationStack{Form{
+                    Text("projectCityNodeRemoval.warning",tableName:"ProjectCityStoryNodeRemoval")
+                    ForEach(value.receipt.before.chapters.flatMap(\.nodes).filter{value.receipt.nodeIDs.contains($0.id)}){node in Text(verbatim:node.name)}
+                    Button(role:.destructive){controller.confirm(value)}label:{Text("projectCityNodeRemoval.confirm",tableName:"ProjectCityStoryNodeRemoval")}
+                        .disabled(!controller.isCurrent(value)).accessibilityIdentifier("projectCityNodeRemoval.confirm")
+                }.navigationTitle(Text("projectCityNodeRemoval.title",tableName:"ProjectCityStoryNodeRemoval")).navigationBarTitleDisplayMode(.inline)
+                 .toolbar{ToolbarItem(placement:.cancellationAction){Button("action.cancel"){controller.close(value)}.accessibilityIdentifier("projectCityNodeRemoval.cancel")}}}
+            }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
 }

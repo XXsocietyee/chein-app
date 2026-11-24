@@ -19,7 +19,7 @@ class PublishingAIPromptChecks(unittest.TestCase):
  def test_normal_host_entry_and_stable_form_lifetime(self):
   h=read('App/PublishingAIDraftSheet.swift');v=read('App/PublishingAIPromptControls.swift')
   self.assertEqual(h.count('PublishingAIPromptControls(controller:'),1);self.assertEqual(h.count('.modifier(PublishingAIPromptLifetime('),1)
-  self.assertIn('}.navigationTitle("contextPublish.ai.title")\n            .modifier(PublishingAIPromptLifetime(',h)
+  self.assertIn('}.navigationTitle("contextPublish.ai.title").navigationBarTitleDisplayMode(.inline)\n            .modifier(PublishingAIPromptLifetime(',h)
   row=v[v.index('@MainActor struct PublishingAIPromptControls:'):v.index('@MainActor struct PublishingAIPromptLifetime:')]
   for bad in ['onDisappear','onAppear','@StateObject','scenePhase','.sheet(']:self.assertNotIn(bad,row)
   self.assertIn('if flow.candidate == nil',row);self.assertIn('.buttonStyle(.borderless)',row)

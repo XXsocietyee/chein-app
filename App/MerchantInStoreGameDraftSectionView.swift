@@ -61,7 +61,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
                     Text(verbatim: "幂等发布指令就绪 · \(command.kind.rawValue)")
                         .cyText(.label)
                     Text(verbatim: "预期版本 v\(command.expectedVersion) · 摘要 \(command.reviewedHash ?? "-")")
-                        .cyText(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityIdentifier("merchantInStoreGame.publishReady")

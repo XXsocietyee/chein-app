@@ -90,19 +90,30 @@ import UIKit
 @MainActor struct MerchantLedgerSettlementOverview: View {
     let reader: any MerchantBusinessReading
     @StateObject private var model: MerchantLedgerSettlementModel
+    @StateObject private var redemptions: MerchantLedgerRedemptionsModel
+    /// Opens 核销 rows on their detail page; nil keeps the rows read-only.
+    let journal: (any MerchantBusinessIntentStore)?
     @State private var ledgerView: MerchantR1LedgerView = .redemptions
     @Environment(\.merchantR1CumulativeRevenue) private var cumulativeRevenue
     @Environment(\.locale) private var locale
-    init(reader: any MerchantBusinessReading, initialView: MerchantR1LedgerView = .redemptions) {
+    init(reader: any MerchantBusinessReading, journal: (any MerchantBusinessIntentStore)? = nil, initialView: MerchantR1LedgerView = .redemptions) {
         self.reader = reader
+        self.journal = journal
         _model = StateObject(wrappedValue: MerchantLedgerSettlementModel(reader: reader))
+        _redemptions = StateObject(wrappedValue: MerchantLedgerRedemptionsModel(reader: reader))
         _ledgerView = State(initialValue: initialView)
     }
+    /// MC7-06-2 (ledger/index.wxml:11): a denied overview read replaces the page with the no-permission state.
+    private var accessDenied: Bool { model.state.section(.overview).failureKey == MerchantBusinessFailure.denied.key }
     var body: some View {
         let cover = Binding<MerchantLedgerBatchCover?>(get: { model.state.cover }, set: { model.childPopped($0 == nil ? model.state.cover : nil) })
+        Group {
+        if accessDenied {
+            MerchantDeniedState(title: "merchant.gate.ledger.denied", identifier: "merchant.ledger.denied")
+        } else {
         List {
             if reader.isOfflineExample {
-                Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.business.synthetic").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             // HANDOFF-R1 MR-21 / MR-20: one 账本 — the cumulative total from the workbench, the overview,
             // then a 核销 · 结算 switcher instead of two stacked lists.
@@ -121,10 +132,18 @@ import UIKit
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
-            if ledgerView == .redemptions { section(.entries) } else { section(.batches) }
+            // MC7-06-11: 核销 is the redemption ledger; 收入明细 moved under 结算 with the batches.
+            if ledgerView == .redemptions {
+                MerchantLedgerRedemptionsSections(model: redemptions, journal: journal)
+            } else {
+                section(.entries)
+                section(.batches)
+            }
         }
         .animation(.easeOut(duration: 0.18), value: ledgerView)
-        .refreshable { model.loadAll() }
+        .refreshable { model.loadAll(); await redemptions.reload() }
+        }
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { model.loadAll() } label: { Label("merchant.business.refresh", systemImage: "arrow.clockwise") }
@@ -141,7 +160,7 @@ import UIKit
                 .cyPushedChrome(domain: .merchant)
         }
         .background(MerchantLedgerSettlementLeaveAnchor(coveringChild: model.state.cover != nil, leave: { model.leave() }).frame(width: 0, height: 0))
-        .onAppear { model.appear() }
+        .onAppear { model.appear(); redemptions.appear() }
         .onDisappear { model.overviewDisappeared() }
         .onChange(of: reader.scope) { _, _ in model.appear() }
         .onChange(of: reader.authorizationGeneration) { _, _ in model.appear() }
@@ -186,6 +205,12 @@ import UIKit
                 if let strip = MerchantLedgerParity.summary(summary, canReadFinance: snapshot.access.allows("merchant:finance:read")) {
                     MerchantLedgerSummaryStrip(summary: strip, usesKit: false)
                 }
+                // MC7-06-6 (ledger/index.wxml:120): 去我的资产 under the overview hero, as MerchantBusinessPage(.overview) does.
+                MerchantLedgerAssetsEntry(reader: reader, currentSnapshot: {
+                    let current = model.state.section(.overview)
+                    guard current.phase == .loaded, current.snapshot == snapshot else { return nil }
+                    return current.snapshot
+                })
                 ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount"], id: \.self) { key in
                     if key == "personalArrivedThisMonthNet" {
                         MerchantLedgerNetSummary(presentation: .init(value: summary[key]))
@@ -313,10 +338,23 @@ import UIKit
                 let count = detailCount(snapshot.document)
                 Section {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(batch.fields))
-                    MerchantLedgerBatchStatementCard(statement: MerchantLedgerParity.batchStatementSummary(batch.fields, lineCount: count))
+                    // MC7-08-1 (batch-detail/index.wxml:16): 打款日期 under the hero, only once the batch is paid.
+                    if batch.fields.mbText("paymentState") == "PAID", let paidAt = batch.fields.mbText("paidAt") {
+                        LabeledContent("merchant.business.field.paidAt") { MerchantSettlementTimestampText(raw: paidAt) }
+                            .accessibilityIdentifier("merchant.ledgerSettlement.batch.paidAt")
+                    }
+                    MerchantLedgerBatchStatementCard(statement: MerchantLedgerParity.batchStatementSummary(batch.fields, lineCount: count),
+                                                     showsTimestamps: false)
                 }
                 detailRows(snapshot.document, id: "earnings")
                 detailRows(snapshot.document, id: "adjustments")
+                // MC7-08-3 (batch-detail/index.wxml:39-51): a labelled 打款进度 timeline (no dates for future steps),
+                // with 复制打款凭证 when paid (MC7-08-2), instead of bare createdAt/confirmedAt/paidAt strings.
+                if let progress = try? MerchantSettlementProgress(record: batch) {
+                    Section {
+                        MerchantSettlementProgressView(progress: progress, reader: reader, currentSnapshot: { model.state.slot.snapshot })
+                    }
+                }
             }
         }
         .scrollContentBackground(.hidden)

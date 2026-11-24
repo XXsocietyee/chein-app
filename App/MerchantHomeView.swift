@@ -64,16 +64,25 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                         }
                         Section {
                             if let openApplication {
-                                CYPillButton("merchant.onboarding.openApplication", action: openApplication)
-                                    .pageTemplateControl(label: Text("merchant.onboarding.openApplication"), traits: .isButton)
-                                    .accessibilityIdentifier("merchant.onboarding.entry")
-                                CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await reload() } }
-                                    .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
-                                    .accessibilityIdentifier("merchant.access.refresh")
+                                Button(action: openApplication) {
+                                    Text("merchant.onboarding.openApplication").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .pageTemplateControl(label: Text("merchant.onboarding.openApplication"), traits: .isButton)
+                                .accessibilityIdentifier("merchant.onboarding.entry")
+                                Button { Task { await reload() } } label: {
+                                    Text("merchant.refreshAccess").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.bordered)
+                                .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
+                                .accessibilityIdentifier("merchant.access.refresh")
                             } else {
-                                CYPillButton("merchant.refreshAccess") { Task { await reload() } }
-                                    .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
-                                    .accessibilityIdentifier("merchant.access.refresh")
+                                Button { Task { await reload() } } label: {
+                                    Text("merchant.refreshAccess").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .pageTemplateControl(label: Text("merchant.refreshAccess"), traits: .isButton)
+                                .accessibilityIdentifier("merchant.access.refresh")
                             }
                         }
                         .listRowBackground(Color.clear)
@@ -85,24 +94,26 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             } else if let error = access.errorKey {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     CYHeroHeader("merchant.title")
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Text(LocalizedStringKey(error))
-                            .cyText(.body)
-                            .foregroundStyle(CYColor.textSecondary)
+                    // Native restyle R3: the system unavailable state, one prominent action.
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(error), systemImage: error == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
                             .accessibilityIdentifier("merchant.access.error")
+                    } actions: {
                         if error != "merchant.access.denied" && error != "auth.expired" {
-                            CYPillButton("action.retry") { Task { await reload() } }
+                            Button("action.retry") { Task { await reload() } }
+                                .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.retry")
                         } else if error == "merchant.access.denied", let openApplication {
                             // Parity merchant/index P1: no merchant identity → 申请入驻 in place (source index.wxml:16-18).
-                            CYPillButton("merchant.gate.apply", action: openApplication)
+                            Button("merchant.gate.apply", action: openApplication)
+                                .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.apply")
                         } else if error == "auth.expired", let openSignIn {
-                            CYPillButton("merchant.gate.signIn", action: openSignIn)
+                            Button("merchant.gate.signIn", action: openSignIn)
+                                .buttonStyle(.borderedProminent)
                                 .accessibilityIdentifier("merchant.access.signIn")
                         }
                     }
-                    .cyDomainCard()
                 }
                 .padding(CYSpacing.pageHorizontal)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -197,10 +208,14 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     private func merchantGate(systemImage: String, message: LocalizedStringKey, signIn: (() -> Void)? = nil) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             CYHeroHeader("merchant.title")
-            CYEmptyState(systemImage: systemImage, message)
-            if let signIn {
-                CYPillButton("merchant.gate.signIn", action: signIn)
-                    .accessibilityIdentifier("merchant.gate.signIn")
+            ContentUnavailableView {
+                Label(message, systemImage: systemImage)
+            } actions: {
+                if let signIn {
+                    Button("merchant.gate.signIn", action: signIn)
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("merchant.gate.signIn")
+                }
             }
         }
         .padding(CYSpacing.pageHorizontal)
@@ -236,6 +251,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
     @Environment(\.merchantCoopInboxDestination) private var coopInboxDestination
     @Environment(\.merchantInboxSources) private var inboxSources
+    @Environment(\.merchantCouponManagementDestination) private var couponManagementDestination
     @State private var operationsAccess: MerchantOperationsAccess?
     @State private var businessStatus: MerchantBusinessStatus?
 
@@ -282,6 +298,17 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     }
     private var showsScanAction: Bool { access.allows(.verify) && nativeVerificationDestination != nil }
 
+    /// 品牌中心 (MerchantOperationsHomeView), shared by the header avatar and the 更多 row.
+    @ViewBuilder private func operationsHome(_ operationsReader: any MerchantOperationsReading) -> some View {
+        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
+            .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
+                { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
+            })
+            .id(operationsReader.scope)
+            .onDisappear(perform: onChildReturn)
+            .cyPushedChrome(domain: .merchant)
+    }
+
     var body: some View {
         // Source pages/merchant/index order: hero (name, revenue), quick actions (scan, customers,
         // finance), due reminders, projects, then the remaining tools ("更多") and recent activity.
@@ -326,7 +353,21 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                     .accessibilityIdentifier("merchant.store.businessStatus")
                             }
                         }
-                    } trailing: { EmptyView() }
+                    } trailing: {
+                        // MC7-01-5: MP header store avatar (index.wxml:62) opens 品牌中心 for roles that can write the profile.
+                        if access.allows(.profileWrite), let operationsReader {
+                            NavigationLink {
+                                operationsHome(operationsReader)
+                            } label: {
+                                CYAvatarView(name: displayName, size: .md)
+                                    .frame(minWidth: 44, minHeight: 44)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("merchant.operations.title"))
+                            .accessibilityIdentifier("merchant.header.brandCenter")
+                        }
+                    }
                     if access.canReadDashboard {
                         MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
                             // HANDOFF-R1 MR-20 (owner Q-C): the hero is today — 今日核销 · 今日收入 · 待处理.
@@ -442,6 +483,15 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .accessibilityIdentifier("merchant.workbench.bundleReservations")
                     }
                 }
+                // MC7-01-4: MP 更多 › 管理优惠券 (index.wxml:308) for roles holding merchant:coupon:manage.
+                if access.allows(.couponManage), let couponManagementDestination {
+                    NavigationLink {
+                        couponManagementDestination()
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.workbench.coupons", systemImage: "ticket") }
+                        .accessibilityIdentifier("merchant.workbench.coupons")
+                }
                 if let businessReader, let businessJournal {
                     NavigationLink {
                         MerchantBusinessHomeView(reader: businessReader, journal: businessJournal)
@@ -469,13 +519,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 }
                 if let operationsReader {
                     NavigationLink {
-                        MerchantOperationsHomeView(reader: operationsReader, destinationFactory: operationsDestinationFactory)
-                            .environment(\.merchantPerkTemplatesDestination, cooperationFlowReader.map { flowReader in
-                                { AnyView(MerchantPerkTemplatesHost(reader: flowReader, executor: coopFlowWrite?.executor())) }
-                            })
-                            .id(operationsReader.scope)
-                            .onDisappear(perform: onChildReturn)
-                            .cyPushedChrome(domain: .merchant)
+                        operationsHome(operationsReader)
                     } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
                     .accessibilityIdentifier("merchant.operations.open")
                 }
@@ -488,6 +532,16 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .cyPushedChrome(domain: .merchant)
                     } label: { Label("merchant.engagement.title", systemImage: "person.2.crop.square.stack") }
                     .accessibilityIdentifier("merchant.engagement.open")
+                }
+                // MC7-12-2: 触达记录 (pages/merchant/crm-campaigns) as its own read-only page.
+                if let engagementReader, let businessJournal, let exportRecovery, access.allows(.crmRead) {
+                    NavigationLink {
+                        MerchantCampaignHistoryHost(reader: engagementReader, journal: businessJournal, exports: exportRecovery)
+                            .id(engagementReader.scope)
+                            .onDisappear(perform: onChildReturn)
+                            .cyPushedChrome(domain: .merchant)
+                    } label: { Label("merchant.campaigns.title", systemImage: "paperplane") }
+                    .accessibilityIdentifier("merchant.campaigns.open")
                 }
                 if let contentService {
                     NavigationLink { MerchantContentHomeView(service: contentService)
@@ -568,7 +622,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                    route.isCurrent(reader: businessReader, journal: businessJournal) {
                     // Source 财务 opens the settlement ledger (pages/merchant/ledger), as the business workspace does.
                     if route.shortcut == .finance {
-                        MerchantLedgerSettlementOverview(reader: route.reader)
+                        MerchantLedgerSettlementOverview(reader: route.reader, journal: route.journal)
                             .environment(\.merchantR1CumulativeRevenue, dashboard.value.map { $0.revenue })
                             .onDisappear(perform: onChildReturn)
                     } else {
@@ -672,7 +726,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     private func inboxEventDestination(_ item: MerchantInboxItem) -> AnyView? {
         guard case .event(let type, _) = item.kind, type == "income" || type == "verify",
               access.allows(.finance) || access.allows(.verifyRecordRead), let businessReader else { return nil }
-        return AnyView(MerchantLedgerSettlementOverview(reader: businessReader, initialView: type == "income" ? .settlements : .redemptions)
+        return AnyView(MerchantLedgerSettlementOverview(reader: businessReader, journal: businessJournal, initialView: type == "income" ? .settlements : .redemptions)
             .environment(\.merchantR1CumulativeRevenue, dashboard.value.map { $0.revenue })
             .onDisappear(perform: onChildReturn)
             .cyPushedChrome(domain: .merchant))
@@ -766,7 +820,7 @@ struct MerchantSectionState<Value, Content: View>: View {
         if let value = model.value {
             if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
             if let error = model.errorKey {
-                Text("merchant.stale").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.stale").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 MerchantInlineFailure(errorKey: error, retry: retry)
             }
             content(value)
@@ -793,9 +847,8 @@ private struct MerchantQuickCircleAction: View {
                     .foregroundStyle(primary ? palette.actionPrimaryFg : palette.textPrimary)
                     .frame(width: diameter, height: diameter)
                     .background(primary ? palette.actionPrimaryBg : palette.bgSurface, in: Circle())
-                    .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -816,7 +869,9 @@ struct MerchantInlineFailure: View {
                 .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                CYPillButton("action.retry", style: .secondary, action: retry)
+                Button("action.retry", action: retry)
+                    .buttonStyle(.bordered)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
             }
         }
         .padding(.vertical, CYSpacing.xs)
@@ -828,23 +883,18 @@ struct MerchantFailureView: View {
     let identifier: String
     let retry: () -> Void
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            Image(systemName: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
-                .font(CYTypography.display)
-                .foregroundStyle(CYColor.textSecondary)
-            Text(LocalizedStringKey(errorKey))
-                .cyText(.body)
-                .foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center)
+        // Native restyle R3: the system unavailable state with a retry button.
+        ContentUnavailableView {
+            Label(LocalizedStringKey(errorKey), systemImage: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
                 .accessibilityIdentifier(identifier + ".error")
+        } actions: {
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
-                CYPillButton("action.retry", style: .primary, action: retry)
+                Button("action.retry", action: retry)
+                    .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier(identifier + ".retry")
             }
         }
-        .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity)
-        .cyDomainCard()
         .padding(CYSpacing.pageHorizontal)
     }
 }

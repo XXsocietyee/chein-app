@@ -49,7 +49,7 @@ struct SecondRegistrationStatsView: View {
             }
         }
         .accessibilityIdentifier("secondRegistration.content")
-        .appNavigationTitle("secondRegistration.title")
+        .appNavigationTitle("secondRegistration.title").navigationBarTitleDisplayMode(.inline)
     }
     static func transitionKey(_ row: SecondRegistrationTransition) -> String {
         "secondRegistration.transition.\(row.from.rawValue.lowercased()).\(row.to.rawValue.lowercased())"

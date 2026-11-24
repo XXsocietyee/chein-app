@@ -42,7 +42,7 @@ struct MerchantLedgerRowLabel: View {
                     case .server(let text): Text(verbatim: text)
                     }
                     if let extra = line.extraKey { Text(verbatim: MerchantOpsCopy.text(extra)).foregroundStyle(CYColor.textTertiary) }
-                }.cyText(.caption).foregroundStyle(chipColor)
+                }.cyText(.meta).foregroundStyle(chipColor)
             }
             Spacer(minLength: CYSpacing.sm)
             if let amount = copy(line.amount, line.amountKey) {
@@ -108,7 +108,7 @@ struct MerchantLedgerSummaryStrip: View {
     }
     private func cell(_ key: String, _ value: String, _ tone: Color) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: MerchantOpsCopy.text(key)).cyText(.caption).foregroundStyle(usesKit ? palette.textTertiary : CYColor.textTertiary)
+            Text(verbatim: MerchantOpsCopy.text(key)).cyText(.meta).foregroundStyle(usesKit ? palette.textTertiary : CYColor.textTertiary)
             Text(verbatim: value).cyText(.numericBody).monospacedDigit().foregroundStyle(tone)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -125,8 +125,8 @@ struct MerchantLedgerRedemptionHero: View {
                 Text(verbatim: amount).cyText(.data2XL).monospacedDigit().foregroundStyle(hero.amount == nil ? CYColor.textTertiary : CYColor.textPrimary)
             }
             switch hero.state {
-            case .key(let key): Text(verbatim: MerchantOpsCopy.text(key)).cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
-            case .server(let text): Text(verbatim: text).cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
+            case .key(let key): Text(verbatim: MerchantOpsCopy.text(key)).cyText(.meta, weight: .bold).foregroundStyle(CYColor.textSecondary)
+            case .server(let text): Text(verbatim: text).cyText(.meta, weight: .bold).foregroundStyle(CYColor.textSecondary)
             }
             LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.store"), value: hero.store ?? MerchantOpsCopy.text("merchantOps.ledger.detail.storeMissing"))
             if let accrual = hero.accrual { LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.accrual"), value: accrual) }
@@ -144,8 +144,8 @@ struct MerchantLedgerBatchHero: View {
             Text(verbatim: hero.amount ?? MerchantOpsCopy.text("merchantOps.ledger.amount.pending")).cyText(.data2XL).monospacedDigit()
                 .foregroundStyle(hero.amount == nil ? CYColor.textTertiary : CYColor.textPrimary)
             HStack {
-                Text(verbatim: MerchantOpsCopy.text(hero.stateKey)).cyText(.caption, weight: .bold).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: MerchantOpsCopy.text(hero.invoiceKey)).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: MerchantOpsCopy.text(hero.stateKey)).cyText(.meta, weight: .bold).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: MerchantOpsCopy.text(hero.invoiceKey)).cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.batchHero")
     }
@@ -153,6 +153,8 @@ struct MerchantLedgerBatchHero: View {
 
 struct MerchantLedgerBatchStatementCard: View {
     let statement: MerchantLedgerParity.BatchStatementSummary
+    /// MC7-08-3: the batch detail shows the stamps in the 打款进度 timeline instead.
+    var showsTimestamps = true
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
             Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview")
@@ -168,10 +170,10 @@ struct MerchantLedgerBatchStatementCard: View {
                 }
             } else if statement.emptyText != nil {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
-                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
-            ForEach(Array(statement.stepTimestamps.enumerated()), id: \.offset) { _, stamp in
-                Text(verbatim: stamp).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+            ForEach(Array((showsTimestamps ? statement.stepTimestamps : []).enumerated()), id: \.offset) { _, stamp in
+                Text(verbatim: stamp).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
             }
         }
         .accessibilityElement(children: .combine)
@@ -204,11 +206,11 @@ struct MerchantSettlementStatementCard: View {
             }
             if statement.returnedDetailCount == 0 {
                 Text("merchant.settlementOverview.statementEmpty", tableName: "MerchantSettlementOverview")
-                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             if !statement.hasCompleteDetailContract {
                 Text("merchant.settlementOverview.detailIncomplete", tableName: "MerchantSettlementOverview")
-                    .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
         .accessibilityElement(children: .contain)

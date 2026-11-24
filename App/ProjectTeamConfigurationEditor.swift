@@ -70,7 +70,7 @@ import SwiftUI
             }
             if model.fullEdit && !ProjectTeamConfiguration.canSubmit(model.draft, baseline: model.coordinator.snapshot) { text("unsupported").font(.caption) }
         }
-        .sheet(item: controller.binding(original)) { original in ProjectTeamConfigurationSheet(controller: controller, original: original) }
+        .sheet(item: controller.binding(original)) { original in Group { ProjectTeamConfigurationSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.draftMutationRevision) { _, _ in controller.synchronize() }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onChange(of: model.coordinator.session) { _, _ in controller.synchronize() }

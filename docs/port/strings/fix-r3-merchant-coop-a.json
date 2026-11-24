@@ -1,0 +1,366 @@
+{
+  "merchant.aftercare.notFound": {
+    "en": "No results",
+    "zh-Hans": "没有找到"
+  },
+  "merchant.aftercare.searchLoaded %lld": {
+    "en": "Searching only the %lld loaded cases",
+    "zh-Hans": "只在已加载的 %lld 笔中搜索"
+  },
+  "merchant.apply.address.openMapsHint": {
+    "en": "Opens in Maps",
+    "zh-Hans": "在地图中打开"
+  },
+  "merchant.apply.signInTitle": {
+    "en": "Sign in to apply as a merchant",
+    "zh-Hans": "登录后申请商家入驻"
+  },
+  "merchant.apply.submitted.home": {
+    "en": "Back to Home",
+    "zh-Hans": "返回首页"
+  },
+  "merchant.apply.submitted.title": {
+    "en": "Your application has been submitted",
+    "zh-Hans": "你的申请已提交"
+  },
+  "merchant.apply.timeline.completed": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "merchant.apply.timeline.license": {
+    "en": "License Verification",
+    "zh-Hans": "资质核验"
+  },
+  "merchant.apply.timeline.result": {
+    "en": "Review Result",
+    "zh-Hans": "审核结果"
+  },
+  "merchant.apply.timeline.result.active": {
+    "en": "Active",
+    "zh-Hans": "已生效"
+  },
+  "merchant.apply.timeline.result.disabled": {
+    "en": "Account disabled",
+    "zh-Hans": "账号已停用"
+  },
+  "merchant.apply.timeline.result.identityPending": {
+    "en": "Waiting for identity conditions",
+    "zh-Hans": "待身份条件完成"
+  },
+  "merchant.apply.timeline.result.rejected": {
+    "en": "Not approved",
+    "zh-Hans": "未通过"
+  },
+  "merchant.apply.timeline.review": {
+    "en": "Initial Review",
+    "zh-Hans": "资料初审"
+  },
+  "merchant.apply.timeline.reviewing": {
+    "en": "Under review by our team",
+    "zh-Hans": "审核团队审核中"
+  },
+  "merchant.apply.timeline.submit": {
+    "en": "Submit Application",
+    "zh-Hans": "提交申请"
+  },
+  "merchant.apply.timeline.submitted": {
+    "en": "Submitted",
+    "zh-Hans": "已提交"
+  },
+  "merchant.apply.timeline.title": {
+    "en": "Review Progress",
+    "zh-Hans": "审核进度"
+  },
+  "merchant.apply.timeline.waiting": {
+    "en": "Waiting for the previous step",
+    "zh-Hans": "等待上一步完成"
+  },
+  "merchant.campaigns.channel.coupon": {
+    "en": "Coupon",
+    "zh-Hans": "优惠券"
+  },
+  "merchant.campaigns.channel.inApp": {
+    "en": "In-app message",
+    "zh-Hans": "站内消息"
+  },
+  "merchant.campaigns.count.delivered": {
+    "en": "Delivered",
+    "zh-Hans": "已送达"
+  },
+  "merchant.campaigns.count.frequency": {
+    "en": "Frequency limited",
+    "zh-Hans": "频次受限"
+  },
+  "merchant.campaigns.count.noConsent": {
+    "en": "No consent",
+    "zh-Hans": "未同意"
+  },
+  "merchant.campaigns.count.recipients": {
+    "en": "Recipients",
+    "zh-Hans": "名单人数"
+  },
+  "merchant.campaigns.count.undelivered": {
+    "en": "Undelivered",
+    "zh-Hans": "未送达"
+  },
+  "merchant.campaigns.denied": {
+    "en": "Your role can't view outreach history",
+    "zh-Hans": "当前身份不能查看触达记录"
+  },
+  "merchant.campaigns.detailFailed": {
+    "en": "Couldn't load outreach details",
+    "zh-Hans": "触达明细加载失败"
+  },
+  "merchant.campaigns.detailTitle": {
+    "en": "Outreach Details",
+    "zh-Hans": "触达明细"
+  },
+  "merchant.campaigns.empty": {
+    "en": "No outreach yet",
+    "zh-Hans": "还没有触达记录"
+  },
+  "merchant.campaigns.loadFailed": {
+    "en": "Couldn't load outreach history",
+    "zh-Hans": "触达记录加载失败"
+  },
+  "merchant.campaigns.noRecipients": {
+    "en": "No per-customer results for this outreach",
+    "zh-Hans": "这次触达没有逐人结果"
+  },
+  "merchant.campaigns.recentOnly": {
+    "en": "Showing the latest 20 only",
+    "zh-Hans": "仅显示最近 20 条"
+  },
+  "merchant.campaigns.recipient.delivered": {
+    "en": "Delivered",
+    "zh-Hans": "已送达"
+  },
+  "merchant.campaigns.recipient.failed": {
+    "en": "Delivery failed",
+    "zh-Hans": "投递失败"
+  },
+  "merchant.campaigns.recipient.frequency": {
+    "en": "Already reached today, skipped",
+    "zh-Hans": "今日已触达，跳过"
+  },
+  "merchant.campaigns.recipient.noConsent": {
+    "en": "Didn't opt in",
+    "zh-Hans": "未同意接收"
+  },
+  "merchant.campaigns.recipient.pending": {
+    "en": "Queued",
+    "zh-Hans": "待投递"
+  },
+  "merchant.campaigns.recipient.retryable": {
+    "en": "Not delivered yet",
+    "zh-Hans": "暂未送达"
+  },
+  "merchant.campaigns.refreshFailed": {
+    "en": "Refresh failed, try again later",
+    "zh-Hans": "刷新失败，稍后再试"
+  },
+  "merchant.campaigns.status.noEligible": {
+    "en": "No eligible customers",
+    "zh-Hans": "无可触达客户"
+  },
+  "merchant.campaigns.status.other": {
+    "en": "Other status",
+    "zh-Hans": "其他状态"
+  },
+  "merchant.campaigns.status.partialFailed": {
+    "en": "Partly undelivered",
+    "zh-Hans": "部分未送达"
+  },
+  "merchant.campaigns.status.processing": {
+    "en": "Sending",
+    "zh-Hans": "投递中"
+  },
+  "merchant.campaigns.status.ready": {
+    "en": "Queued",
+    "zh-Hans": "待投递"
+  },
+  "merchant.campaigns.status.success": {
+    "en": "Completed",
+    "zh-Hans": "已完成"
+  },
+  "merchant.campaigns.summary %lld %lld": {
+    "en": "Delivered %1$lld / %2$lld",
+    "zh-Hans": "送达 %1$lld / %2$lld 人"
+  },
+  "merchant.campaigns.title": {
+    "en": "Outreach History",
+    "zh-Hans": "触达记录"
+  },
+  "merchant.campaigns.untitled": {
+    "en": "Untitled outreach",
+    "zh-Hans": "未命名触达"
+  },
+  "merchant.customers.updating": {
+    "en": "Updating customer list…",
+    "zh-Hans": "正在更新客户名单…"
+  },
+  "merchant.gate.aftercare.denied": {
+    "en": "Your role can't view refunds and after-sales",
+    "zh-Hans": "当前身份不能查看退款售后"
+  },
+  "merchant.gate.back": {
+    "en": "Back",
+    "zh-Hans": "返回"
+  },
+  "merchant.gate.backToPrevious": {
+    "en": "Back",
+    "zh-Hans": "返回上一页"
+  },
+  "merchant.gate.batch.missingParam": {
+    "en": "Settlement batch info is missing",
+    "zh-Hans": "缺少结算批次信息"
+  },
+  "merchant.gate.customer.backToList": {
+    "en": "Back to Customers",
+    "zh-Hans": "返回客户列表"
+  },
+  "merchant.gate.customer.loadFailed": {
+    "en": "Couldn't load customer details",
+    "zh-Hans": "客户详情加载失败"
+  },
+  "merchant.gate.customer.notFound": {
+    "en": "Customer not found",
+    "zh-Hans": "找不到这位客户"
+  },
+  "merchant.gate.customers.denied": {
+    "en": "Your role can't view customers",
+    "zh-Hans": "当前身份不能查看客户"
+  },
+  "merchant.gate.insight.denied": {
+    "en": "Your role can't view store data",
+    "zh-Hans": "当前身份不能查看店铺数据"
+  },
+  "merchant.gate.insight.loadFailed": {
+    "en": "Couldn't load store data",
+    "zh-Hans": "店铺数据加载失败"
+  },
+  "merchant.gate.insight.signIn": {
+    "en": "Please sign in first",
+    "zh-Hans": "请先登录"
+  },
+  "merchant.gate.ledger.denied": {
+    "en": "Your role can't view this merchant ledger",
+    "zh-Hans": "当前身份不能查看这份商家账本"
+  },
+  "merchant.gate.marketing.denied": {
+    "en": "Your role can't view marketing",
+    "zh-Hans": "当前身份不能查看营销"
+  },
+  "merchant.gate.marketing.loadFailed": {
+    "en": "Couldn't load merchant marketing",
+    "zh-Hans": "商家营销加载失败"
+  },
+  "merchant.gate.marketing.signIn": {
+    "en": "Sign in to view marketing",
+    "zh-Hans": "登录后查看营销"
+  },
+  "merchant.gate.payout.denied": {
+    "en": "Your role can't view the payout account",
+    "zh-Hans": "当前身份不能查看收款账户"
+  },
+  "merchant.gate.redemption.backToList": {
+    "en": "Back to Redemptions",
+    "zh-Hans": "返回核销列表"
+  },
+  "merchant.gate.redemption.loadFailed": {
+    "en": "Couldn't load redemption details",
+    "zh-Hans": "核销详情加载失败"
+  },
+  "merchant.gate.redemption.missing": {
+    "en": "This redemption record isn't visible",
+    "zh-Hans": "核销记录不可见"
+  },
+  "merchant.gate.reload": {
+    "en": "Reload",
+    "zh-Hans": "重新加载"
+  },
+  "merchant.gate.reviews.denied": {
+    "en": "Your role can't manage reviews",
+    "zh-Hans": "当前身份不能管理口碑"
+  },
+  "merchant.gate.reviews.signIn": {
+    "en": "Sign in to manage reviews",
+    "zh-Hans": "登录后查看口碑管理"
+  },
+  "merchant.gate.signIn": {
+    "en": "Sign in to view",
+    "zh-Hans": "登录后查看"
+  },
+  "merchant.gate.verifyRecords.denied": {
+    "en": "Your role can't view redemption records",
+    "zh-Hans": "当前身份不能查看核销记录"
+  },
+  "merchant.insight.aiSource %@": {
+    "en": "Based on business data and the profile as of %@; profile changes today take effect tomorrow",
+    "zh-Hans": "解读依据 %@ 的经营数据与当时的档案；今天修改的档案次日生效"
+  },
+  "merchant.insight.factsIncomplete": {
+    "en": "Store data didn't fully load",
+    "zh-Hans": "店铺数据没加载完整"
+  },
+  "merchant.insightTopicSheet.apply": {
+    "en": "Apply to Host",
+    "zh-Hans": "去申请承接"
+  },
+  "merchant.insightTopicSheet.defaultReason": {
+    "en": "A free-explore topic open for merchants",
+    "zh-Hans": "平台招商中的自由探索主题"
+  },
+  "merchant.insightTopicSheet.notNow": {
+    "en": "Not Now",
+    "zh-Hans": "先不用"
+  },
+  "merchant.ledger.coopShare": {
+    "en": "Co-op Revenue Share",
+    "zh-Hans": "合作分润"
+  },
+  "merchant.ledger.redemptions.empty": {
+    "en": "No records yet",
+    "zh-Hans": "还没有记录"
+  },
+  "merchant.ledger.redemptions.header": {
+    "en": "Redemptions & Refunds",
+    "zh-Hans": "核销与退款"
+  },
+  "merchant.ledger.redemptions.loadFailed": {
+    "en": "Couldn't load redemption records",
+    "zh-Hans": "核销记录加载失败"
+  },
+  "merchant.list.end": {
+    "en": "You've reached the end",
+    "zh-Hans": "已经到底了"
+  },
+  "merchant.list.loadingMore": {
+    "en": "Loading more…",
+    "zh-Hans": "正在加载更多…"
+  },
+  "merchant.predict.signIn": {
+    "en": "Sign in to view predictions",
+    "zh-Hans": "登录后查看预测"
+  },
+  "merchant.review.underPlatformReview": {
+    "en": "Under platform review",
+    "zh-Hans": "平台复审中"
+  },
+  "merchant.reviewRecovery.contactSupport": {
+    "en": "Contact Platform Support",
+    "zh-Hans": "联系平台客服"
+  },
+  "merchant.reviewRecovery.copyRequestID": {
+    "en": "Copy Original Request ID",
+    "zh-Hans": "复制原请求号"
+  },
+  "merchant.reviews.empty": {
+    "en": "No verified in-store reviews yet",
+    "zh-Hans": "还没有真实到店评价"
+  },
+  "merchant.workbench.coupons": {
+    "en": "Manage Coupons",
+    "zh-Hans": "管理优惠券"
+  }
+}

@@ -40,7 +40,7 @@ struct H5PlatformShellView: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                Text("h5.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                Text("h5.title").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
                     .padding(.horizontal, CYSpacing.minTouchTarget + CYSpacing.sm)
                 HStack {
                     Button(action: onClose) {

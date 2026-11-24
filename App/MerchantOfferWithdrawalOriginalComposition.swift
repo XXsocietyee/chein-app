@@ -73,7 +73,10 @@ import SwiftUI
         .onAppear { visible = true; generation = UUID() }
         .task(id: generation) { await load() }
         .sheet(isPresented: Binding(get: { activeFlow != nil && current() }, set: { if !$0 { activeFlow?.invalidate(); activeFlow = nil } })) {
-            if let activeFlow, current() { MerchantOfferWithdrawalOriginalView(flow: activeFlow) }
+            Group {
+                if let activeFlow, current() { MerchantOfferWithdrawalOriginalView(flow: activeFlow) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active { retire() } }
         .onChange(of: current()) { _, valid in if !valid { retire() } }

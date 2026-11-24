@@ -14,7 +14,7 @@ class P04PublicationPresentationCloseoutTests(unittest.TestCase):
         self.contains('ApprovedReleasePreparationView',['ApprovedReleasePublicationConfirmationView(original: captured, cancel: model.cancel, confirm: model.confirm)'])
     def testHelpersContainOnlyPresentation(self):
         source=self.source('PublisherLifecycleHostHooks').split('// P04 presentation only.')[1]
-        for value in ['.listStyle(.insetGrouped)','.font(Theme.Font.body)','.tint(Theme.Color.accent(in: domain))','.background(Theme.Color.bgPage(in: domain))','func p04FactRow()','func p04RecoveryRecord()']:self.assertIn(value,source)
+        for value in ['.listStyle(.insetGrouped)','.cyText(.body)','.tint(Theme.Color.accent(in: domain))','.background(Theme.Color.bgPage(in: domain))','func p04FactRow()','func p04RecoveryRecord()']:self.assertIn(value,source)
         for value in ['Task','@State','onAppear','onDisappear','URLRequest','coordinator','grant:','journal:','.disabled(','.id(']:self.assertNotIn(value,source)
     def testPublishConfirmationStillUsesExactCapturedConfirmation(self):
         self.contains('ApprovedReleasePublicationConfirmationView',['let original: ApprovedTopicReleasePublishFlow.Confirmation','ApprovedReleaseSummarySection(prepared: original.prepared, identifierPrefix: "approvedRelease.confirm")','primary: true) {','confirm(original)','{ cancel(original) }','.onDisappear { cancel(original) }'])

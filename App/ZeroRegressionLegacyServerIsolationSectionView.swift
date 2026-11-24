@@ -203,7 +203,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
                     .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.layer.rawValue)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).layer")
                 Text(verbatim: row.statusBadgeText)
@@ -213,7 +213,7 @@ public struct ZeroRegressionLegacyServerIsolationSectionView: View {
             }
 
             Text(verbatim: row.ruleSummaryText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("legacyServerIsolation.row.\(row.id).rule")
 

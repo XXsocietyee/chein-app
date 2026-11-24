@@ -5,7 +5,13 @@ import SwiftUI
 struct MerchantCustomerRowLabel: View {
     let row: MerchantCustomerListParity.Row
     let identifier: String
+    /// MC7-14-11 (customer/index.wxml:71): 44 pt avatar, name-initial fallback.
+    var avatarURL: URL? = nil
     var body: some View {
+        HStack(alignment: .top, spacing: CYSpacing.sm) {
+        CYAvatarView(url: avatarURL, name: row.name ?? MerchantOpsCopy.text("merchantOps.customer.unnamed"), size: .md)
+            .frame(width: 44, height: 44)
+            .accessibilityHidden(true)
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(spacing: CYSpacing.s1_5) {
                 Text(verbatim: row.name ?? MerchantOpsCopy.text("merchantOps.customer.unnamed"))
@@ -20,7 +26,8 @@ struct MerchantCustomerRowLabel: View {
             }
             let action = [row.lastAction, row.relative.map(Self.relative)].compactMap { $0 }.joined(separator: " · ")
             if !action.isEmpty { Text(verbatim: action).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-            if let note = row.latestNote { Text(verbatim: note).cyText(.caption).foregroundStyle(CYColor.textSecondary).lineLimit(2) }
+            if let note = row.latestNote { Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2) }
+        }
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(identifier)
@@ -53,7 +60,7 @@ struct MerchantCustomerListFooter: View {
     let total: Int
     var body: some View {
         Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.footer %lld", total))
-            .cyText(.caption)
+            .cyText(.meta)
             .monospacedDigit()
             .foregroundStyle(CYColor.textSecondary)
             .frame(maxWidth: .infinity)
@@ -86,11 +93,11 @@ struct MerchantCustomerNoteEditorAccessory: View {
     var body: some View {
         HStack {
             Text("merchant.customer.noteVisibility")
-                .cyText(.caption)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
             Spacer()
             Text(verbatim: MerchantCustomerListParity.noteCounterText(text))
-                .cyText(.caption, monospacedDigit: true)
+                .cyText(.meta, monospacedDigit: true)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchantOps.customer.noteCounter")
             if !text.isEmpty {

@@ -39,7 +39,7 @@ import SwiftUI
             NavigationLink("merchantNPC.resourcesTitle") {
                 MerchantNPCResourceEditor(coordinator: .init(scope: scope, client: .init(transport: transport), reader: MerchantOperationsFixtureReader(), currentScope: { scope }, grants: { grants }))
             }.accessibilityIdentifier("merchantNPC.fixture.resources")
-        }.navigationTitle("merchantNPC.synthetic")
+        }.navigationTitle("merchantNPC.synthetic").navigationBarTitleDisplayMode(.inline)
     }
 }
 #endif

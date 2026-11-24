@@ -34,7 +34,7 @@ import Combine
             }
             Section { NavigationLink("creatorRoot.rehearse") { TemplateRootRehearsalView(draft: model.draft.advanced) }.disabled(!model.draft.advanced.issues.isEmpty) }
             if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } } } }
-        }.navigationTitle("creatorRoot.rules").toolbar { EditButton() }.disabled(!model.canEdit)
+        }.navigationTitle("creatorRoot.rules").navigationBarTitleDisplayMode(.inline).toolbar { EditButton() }.disabled(!model.canEdit)
     }
 }
 
@@ -70,7 +70,7 @@ import Combine
             }
             let issues = model.draft.advanced.rootCreatorIssues.filter { $0.path.hasPrefix("variants[\(index + 1)]") }
             if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } } }
-        }.navigationTitle("creatorRoot.variant")
+        }.navigationTitle("creatorRoot.variant").navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -137,7 +137,7 @@ private struct TemplateConditionEditor: View {
                 CYPillButton("creator.add", style: .secondary) { var copy = items; copy.append(.object(["label": .string(""), "text": .string("")])); write("items", .array(copy)) }.disabled(items.count >= 8)
             }
             if viewIndex == nil { Text("creatorRoot.validation.roles") }
-        }.navigationTitle("creatorRoot.roleViews")
+        }.navigationTitle("creatorRoot.roleViews").navigationBarTitleDisplayMode(.inline)
     }
     private func itemField(_ index: Int, _ key: String) -> some View {
         TextField(LocalizedStringKey(key == "label" ? "creator.field.label" : "creatorRoot.itemText"), text: Binding(get: { items.indices.contains(index) ? items[index].object?[key]?.string ?? "" : "" }, set: { text in
@@ -389,7 +389,7 @@ enum TemplateLowHPPresetText: String, CaseIterable {
                 Button(text(.reload), action: controller.reloadAction()).accessibilityIdentifier("templateLowHP.reload")
             }
             Button(text(.cancel), action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateLowHP.cancel")
-        }.navigationTitle(text(.title))
+        }.navigationTitle(text(.title)).navigationBarTitleDisplayMode(.inline)
             .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.viewDisappeared() }
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }

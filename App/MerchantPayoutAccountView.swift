@@ -10,8 +10,14 @@ import UIKit
     @State private var state: PayoutPageState<MerchantPayoutAccount> = .loading
     @State private var copied = false
     @State private var toastMessage: String?
+    /// MC7-09-1 (payout-account/index.js:53-55): access/me without an active merchant or finance:read.
+    @State private var accessDenied = false
 
     var body: some View {
+        Group {
+        if accessDenied {
+            MerchantDeniedState(title: "merchant.gate.payout.denied", identifier: "payoutAccount.denied")
+        } else {
         List {
             // Owner 2026-11-14: the account state is a status read and always shows.
             content
@@ -24,6 +30,8 @@ import UIKit
                 .listRowBackground(Color.clear)
             }
             ClubDirectLedgerSection(scope: .merchant(topicID: nil))
+        }
+        }
         }
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.merchant)
@@ -87,7 +95,7 @@ import UIKit
         } footer: {
             if let description = account.stateDescription {
                 Text(verbatim: description)
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }
@@ -119,6 +127,12 @@ import UIKit
         if case .ready = state { hadReady = true } else { hadReady = false }
         if !refreshing || !hadReady {
             state = .loading
+        }
+        // MC7-09-1: the MP checks access/me first; a non-member or a role without finance:read gets the
+        // no-permission page (申请入驻 / 返回) instead of the generic reload card. A failed check falls through.
+        if let access = try? await session.merchantAccess() {
+            accessDenied = !access.active || !access.allows(.finance)
+            if accessDenied { return }
         }
         do {
             let account = try await PayoutReceiverBridge.call(session) { try await $0.merchantPayoutAccount(token: $1) }

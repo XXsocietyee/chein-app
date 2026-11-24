@@ -101,7 +101,10 @@ struct ProjectTicketMeetingPointHostIdentity: Hashable {
             }.disabled(capture == nil).accessibilityIdentifier("projectTicketMeetingPoint.edit")
         }
         .sheet(item: controller.binding(original)) { value in
-            ProjectTicketMeetingPointSheet(controller: controller, original: value)
+            Group {
+                ProjectTicketMeetingPointSheet(controller: controller, original: value)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onDisappear { controller.retire() }
     }

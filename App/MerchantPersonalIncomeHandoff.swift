@@ -253,14 +253,17 @@ extension EnvironmentValues {
                 source = .init(reader: reader, currentSnapshot: currentSnapshot)
             }.accessibilityIdentifier("merchant.ledger.personalAssets")
             .sheet(item: merchantLedgerAssetsPresentation($source)) { selected in
-                NavigationStack {
-                    destination(selected)
-                        .toolbar { ToolbarItem(placement: .cancellationAction) {
-                            Button(zh ? "关闭" : "Close") { close(selected) }
-                        } }
+                Group {
+                    NavigationStack {
+                        destination(selected)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) {
+                                Button(zh ? "关闭" : "Close") { close(selected) }
+                            } }
+                    }
+                    // This owner remains mounted during income/detail/history navigation.
+                    .onDisappear { close(selected) }
                 }
-                // This owner remains mounted during income/detail/history navigation.
-                .onDisappear { close(selected) }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .onChange(of: scenePhase) { _, phase in if phase != .active, let source { close(source) } }
             .onChange(of: source?.current) { _, valid in if valid == false, let source { close(source) } }

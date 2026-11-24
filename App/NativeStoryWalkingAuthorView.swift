@@ -97,7 +97,7 @@ private func storyWalkingAuthorText(_ key: String, locale: Locale) -> String {
             }
         }
         .nativeAuthorSurface()
-        .navigationTitle(text("title"))
+        .navigationTitle(text("title")).navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(true)
         .interactiveDismissDisabled(current && edited)
         .toolbar {

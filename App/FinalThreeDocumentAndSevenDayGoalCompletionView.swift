@@ -129,7 +129,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                         .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isAllGoalsCompleted ? "100% DONE" : "INCOMPLETE")
-                        .font(.caption2.monospaced().weight(.bold))
+                        .font(.caption.monospaced().weight(.bold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
@@ -172,7 +172,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: "\(row.completionPercentage)%")
-                                .font(.caption2.monospaced().weight(.semibold))
+                                .font(.caption.monospaced().weight(.semibold))
                                 .foregroundStyle(row.isFullyVerified ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.verificationSummary)

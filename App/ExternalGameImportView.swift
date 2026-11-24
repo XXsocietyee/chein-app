@@ -206,7 +206,7 @@ import WebKit
 
     private func headerCircle(_ symbol: String) -> some View {
         Image(systemName: symbol)
-            .font(CYTypography.bodyMedium)
+            .cyText(.bodyMedium)
             .foregroundStyle(palette.textPrimary)
             .frame(width: EditorKitMetric.closeVisual, height: EditorKitMetric.closeVisual)
             .background(Circle().fill(palette.brandSoft))
@@ -219,7 +219,7 @@ import WebKit
     private func installedRow(_ game: InstalledExternalGame) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             Image(systemName: "puzzlepiece.extension")
-                .font(CYTypography.bodyMedium)
+                .cyText(.bodyMedium)
                 .foregroundStyle(palette.textSecondary)
                 .frame(width: 44, height: 44)
                 .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgRaised))
@@ -245,7 +245,7 @@ import WebKit
             .accessibilityIdentifier("externalGame.run.\(game.manifest.id)")
             Menu { rowActions(game) } label: {
                 Image(systemName: "ellipsis")
-                    .font(CYTypography.bodyMedium)
+                    .cyText(.bodyMedium)
                     .foregroundStyle(palette.textSecondary)
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
@@ -343,7 +343,7 @@ import WebKit
                     Section {
                         Label(ExternalGameLibraryPresentation.message(for: check),
                               systemImage: check == .validButNotDownloadable ? "info.circle" : "exclamationmark.triangle.fill")
-                            .font(CYTypography.bodyCompact)
+                            .cyText(.bodyCompact)
                             .foregroundStyle(check == .validButNotDownloadable ? CYColor.infoText : CYColor.dangerText)
                             .accessibilityIdentifier("externalGameLinkResult")
                     }
@@ -420,7 +420,7 @@ import WebKit
                                     .fixedSize(horizontal: false, vertical: true)
                                 Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "checkmark")
-                                    .font(CYTypography.label)
+                                    .cyText(.label)
                                     .foregroundStyle(palette.textPrimary)
                                     .accessibilityHidden(true)
                             }

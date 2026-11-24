@@ -161,7 +161,7 @@ private struct PlayerPreviewArrivalPage: View {
             Button(action: next) {
                 PlayerPreviewCard {
                     Label { ConfigR4Text.text("config.preview.arrived") } icon: { Image(systemName: "mappin.and.ellipse") }
-                        .font(CYTypography.label)
+                        .cyText(.label)
                         .foregroundStyle(palette.textSecondary)
                     title
                     if !draft.description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -401,7 +401,7 @@ private struct PlayerPreviewSuccessPage: View {
                     }
                     if let medal {
                         Label { Text(verbatim: medal) } icon: { Image(systemName: "rosette") }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .foregroundStyle(palette.textPrimary)
                             .padding(.horizontal, CYSpacing.md)
                             .frame(minHeight: 32)
@@ -459,7 +459,7 @@ private struct PlayerPreviewFailurePage: View {
         VStack(spacing: CYSpacing.md) {
             PlayerPreviewCard {
                 Label { ConfigR4Text.text("config.preview.failure.title") } icon: { Image(systemName: "xmark.circle") }
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(palette.textPrimary)
                 ConfigR4Text.text("config.preview.failure.detail")
                     .cyText(.body)

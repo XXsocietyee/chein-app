@@ -16,7 +16,7 @@ struct ReferenceMapCardFixtureView: View {
                     Text("searchMap.kind.club")
                 }.accessibilityIdentifier("reference.card.invalid")
             }.padding()
-        }.appNavigationTitle("searchMap.citySearch")
+        }.appNavigationTitle("searchMap.citySearch").navigationBarTitleDisplayMode(.inline)
     }
 }
 /// Offline marker rendering fixture: never mounts MapKit or requests tiles.

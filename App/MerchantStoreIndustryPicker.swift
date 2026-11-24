@@ -43,7 +43,10 @@ import SwiftUI
             .sheet(item: Binding(get: { picker }, set: { value in
                 if value == nil { picker?.cancel() }; picker = value
             }), onDismiss: close) { value in
-                MerchantStoreIndustrySheet(model: value) { value.cancel(); picker = nil }
+                Group {
+                    MerchantStoreIndustrySheet(model: value) { value.cancel(); picker = nil }
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .onChange(of: document.coordinator.draftIdentity) { _, _ in close() }
             .onChange(of: document.coordinator.draft) { _, _ in close() }

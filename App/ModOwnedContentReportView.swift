@@ -39,7 +39,7 @@ import SwiftUI
                 CYListRow(verbatim: Cloud25Copy.value(reference.moduleId), meta: Cloud25Copy.value(reference.releaseId), trailing: .none) {
                     CYRowIcon(systemImage: "shippingbox")
                 }
-                Text(verbatim: Cloud25Copy.value(reference.contentHash)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: Cloud25Copy.value(reference.contentHash)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: text("仅举报这个原已购不可变版本。受理回执和审核状态不代表侵权判定、下架、退款或运行许可。",
                                     "Reports only this original immutable purchased version. Receipt and review status do not establish infringement, withdrawal, refund or runtime permission."))
                     .cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
@@ -107,7 +107,7 @@ import SwiftUI
     private func receiptCard(_ pending: ModOwnedReportPending) -> some View {
         CYInfoCard {
             Cloud25Header(title: text("原请求回执", "Original request receipt"))
-            Text(verbatim: pending.requestId).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: pending.requestId).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             CYStatusChip(verbatim: Cloud25Copy.value(pending.receipt?.state ?? ""), tone: tone(pending.receipt?.state), systemImage: "flag")
                 .accessibilityLabel(Text(verbatim: Cloud25Copy.value(pending.receipt?.state ?? "")))
             if let receipt = pending.receipt, receipt.state != "UNKNOWN" {

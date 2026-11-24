@@ -948,7 +948,7 @@ import SwiftUI
                 }
                 Spacer(minLength: CYSpacing.xs)
                 Text("projectEdit.nodeCountValue \(nodeCount)").foregroundStyle(.secondary)
-                    .cyText(.micro)
+                    .cyText(.meta)
                     .padding(.horizontal, CYSpacing.sm)
                     .padding(.vertical, 3)
                     .background(Capsule().fill(palette.bgPage))

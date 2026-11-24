@@ -135,7 +135,7 @@ import UIKit
                         HStack(spacing: CYSpacing.xs) {
                             Text(LocalizedStringKey(view.messageIsOurs ? "cooperation.detail.us" : "cooperation.detail.them"))
                             CooperationTimeField(key: "cooperation.created", value: row.createTime)
-                        }.cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                         .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
                         .accessibilityIdentifier("cooperation.detail.message")
@@ -143,7 +143,7 @@ import UIKit
                 if let reason = row.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: reason).cyText(.meta).foregroundStyle(CYColor.textPrimary)
-                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                         .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgSurfaceStrong))
                         .accessibilityIdentifier("cooperation.detail.handleReason")

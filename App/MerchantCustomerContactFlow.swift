@@ -101,10 +101,13 @@ import SwiftUI
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("merchant.contactFlow.close") { flow.invalidate(); dismiss() } } }
         }
         .sheet(item: Binding(get: { flow.coordinator.review }, set: { if $0 == nil && !flow.coordinator.busy { flow.cancelReview() } })) { review in
-            MerchantEngagementReviewView(review: review,
-                enabled: flow.isCurrent && flow.reader.canExecute(review.command, merchantID: flow.selection.merchantID),
-                synthetic: flow.reader.isSyntheticEnabled, busy: flow.coordinator.busy,
-                cancel: flow.cancelReview, confirm: { Task { await flow.confirm(review) } })
+            Group {
+                MerchantEngagementReviewView(review: review,
+                    enabled: flow.isCurrent && flow.reader.canExecute(review.command, merchantID: flow.selection.merchantID),
+                    synthetic: flow.reader.isSyntheticEnabled, busy: flow.coordinator.busy,
+                    cancel: flow.cancelReview, confirm: { Task { await flow.confirm(review) } })
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active { flow.invalidate() } }
         .onDisappear { if flow.coordinator.review == nil { flow.invalidate() } }
