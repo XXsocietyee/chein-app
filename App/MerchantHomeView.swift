@@ -131,6 +131,9 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
         .cyDomainPageBackground()
         .themeDomain(.merchant)
         .tint(CYDomainPalette(.merchant).brand)
+        // fix/r3-merchant-coop-b: brand-center / team / city-node dead-end states reuse these CTAs.
+        .environment(\.merchantOpenApplication, openApplication)
+        .environment(\.merchantOpenSignIn, openSignIn)
         .task(id: [reader.sessionRevision, childReturnRevision]) { await reload() }
         .onDisappear { coveredByChild = true; returnReadStartedAt = nil }
         .onAppear { if coveredByChild { coveredByChild = false; returnReadStartedAt = ProcessInfo.processInfo.systemUptime } }
