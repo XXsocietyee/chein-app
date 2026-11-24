@@ -1,0 +1,36 @@
+appId: invalid.example.questify.ios
+---
+# Merchant workbench through the wired DEBUG fixture merchant-home
+# (DesignFixtureRegistry.make -> merchantConsoleFixture(.home) -> MerchantHomeView
+# on DesignMerchantReader rich access).
+# Entries are not opened. No typed text, payment, scan, or host URL. DEBUG builds only.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+    arguments:
+      "--design-fixture": "merchant-home"
+- extendedWaitUntil:
+    visible:
+      id: "merchant.store.name"
+    timeout: 20000
+- assertVisible:
+    id: "merchant.dashboard.revenue"
+- assertVisible:
+    id: "merchant.workbench.scan"
+- assertVisible:
+    id: "merchant.workbench.more.action"
+- scrollUntilVisible:
+    element:
+      id: "merchant.orders.entry"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "merchant.orders.entry"
+- scrollUntilVisible:
+    element:
+      id: "merchant.projects.entry"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "merchant.projects.entry"

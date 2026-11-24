@@ -1,0 +1,23 @@
+appId: invalid.example.questify.ios
+---
+# Club directory through the wired DEBUG fixture d4-directory
+# (DesignFixtureRegistry.make -> D4ClubFixture(.directory) -> ClubDirectoryView).
+# The visitor fixture is already signed in and returns clubs 81 and 82.
+# The row is not opened, search is not typed, and refresh is not tapped.
+# No payment and no host URL. DEBUG builds only.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+    arguments:
+      "--design-fixture": "d4-directory"
+- extendedWaitUntil:
+    visible:
+      id: "club.directory.81"
+    timeout: 20000
+- assertVisible:
+    id: "club.directory.82"
+- assertVisible:
+    id: "club.directory.search"
+- assertVisible:
+    id: "club.directory.refresh"

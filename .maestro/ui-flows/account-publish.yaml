@@ -1,0 +1,27 @@
+appId: invalid.example.questify.ios
+---
+# Publish menu through the wired DEBUG fixture publish-menu-pro
+# (DesignFixtureRegistry.make -> PublishDesignFixtures.make -> PublishingModesView
+# with the professional and template entries supplied).
+# Links are not opened. No typed text, payment, or host URL. DEBUG builds only.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+    arguments:
+      "--design-fixture": "publish-menu-pro"
+- extendedWaitUntil:
+    visible:
+      id: "publishModes.home"
+    timeout: 20000
+- assertVisible:
+    id: "publishModes.pro.city"
+- assertVisible:
+    id: "publishModes.pro.freeExplore"
+- scrollUntilVisible:
+    element:
+      id: "publishModes.interaction"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "publishModes.interaction"
