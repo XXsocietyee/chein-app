@@ -155,7 +155,7 @@ public struct AppStorePrivacyManifestSectionView: View {
                 .accessibilityIdentifier("privacyManifestAudit.locationDecouplingBanner")
 
             Text(verbatim: requiredReasonSummaryText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("privacyManifestAudit.requiredReasonSummary")
 
@@ -167,7 +167,7 @@ public struct AppStorePrivacyManifestSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: check.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(check.isCompliant ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: check.declarationSummary)

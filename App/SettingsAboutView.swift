@@ -29,7 +29,7 @@ import UIKit
                         .frame(width: 112, height: 112)
                         .background {
                             CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
-                                .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.xl, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
                         }
                         .accessibilityHidden(true)
                     appName
@@ -64,7 +64,7 @@ import UIKit
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(LocalizedStringKey(type.titleKey))
                                 if type == .userAgreement {
-                                    Text("settingsNative.about.agreementHint").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                                    Text("settingsNative.about.agreementHint").cyText(.meta).foregroundStyle(palette.textTertiary)
                                 }
                             }
                         } icon: { Image(systemName: type == .privacyPolicy ? "hand.raised.fill" : "doc.text.fill") }
@@ -95,7 +95,6 @@ import UIKit
             }
             SettingsAttributionsSection(copyText: copyText)
         }
-        .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
         .cyPageTitle("settingsNative.about.title")
         .safeAreaInset(edge: .bottom) {
@@ -103,7 +102,7 @@ import UIKit
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     if let copyStatus {
                         Text(LocalizedStringKey(copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"))
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("settingsNative.about.copyPhone." + (copyStatus == .copied ? "copied" : "failed"))
@@ -151,11 +150,11 @@ import UIKit
             case .ready:
                 EmptyView()
             case .loading:
-                Text("settingsNative.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("settingsNative.loading").cyText(.meta).foregroundStyle(palette.textSecondary)
             case .error:
                 Text("settingsNative.about.playerCodeUnavailable").cyText(.bodyMedium).foregroundStyle(palette.textPrimary)
                     .accessibilityIdentifier("settingsNative.about.playerCodeUnavailable")
-                Text("settingsNative.about.playerCodeHint").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text("settingsNative.about.playerCodeHint").cyText(.meta).foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
             case .empty, .unknown:
                 Text(verbatim: SettingsAboutMetadataPhase.unknownText).cyText(.numericBody).foregroundStyle(palette.textSecondary)

@@ -68,7 +68,7 @@ extension ProfileContactQRSection where Upload == EmptyView {
             } footer: { Text("profile.contactQR.hint") }
             // A3-01: a new code is added from 上传二维码 on the profile page, next to this entry.
         }
-        .appNavigationTitle("profile.contactQR.title")
+        .appNavigationTitle("profile.contactQR.title").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("action.cancel", role: .cancel, action: cancel)

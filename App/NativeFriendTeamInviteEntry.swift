@@ -102,8 +102,8 @@ extension EnvironmentValues {
                 }
             }
         }
-        .font(Theme.Font.body)
-        .appNavigationTitle("d7.teamInvite.title")
+        .cyText(.body)
+        .appNavigationTitle("d7.teamInvite.title").navigationBarTitleDisplayMode(.inline)
         .onAppear { if flow == nil { open() } }
         .onChange(of: phase) { _, value in if value == .active { open() } else { close() } }
         .onDisappear { close() }

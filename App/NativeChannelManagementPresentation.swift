@@ -20,7 +20,7 @@ struct NativeChannelFlowFact: View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
             label.cyText(.meta).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(verbatim: value).font(Theme.Font.body)
+            Text(verbatim: value).cyText(.body)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

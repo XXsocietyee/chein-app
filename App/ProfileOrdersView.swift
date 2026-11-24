@@ -34,11 +34,11 @@ struct ProfileOrdersView: View {
                     CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
-                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
+                            .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     } else if rootTabSwitch.isAvailable {
                         Button("profile.orderParity.discover") { rootTabSwitch(.home) }
-                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
+                            .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
                             .accessibilityIdentifier("profile.orders.discover")
                     }
                 }
@@ -72,7 +72,7 @@ struct ProfileOrdersView: View {
                 }
             }
         }
-        .appNavigationTitle("profile.orders.title")
+        .appNavigationTitle("profile.orders.title").navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
         .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in
@@ -200,7 +200,7 @@ private struct ProfileOrderRow: View {
     }
     private func meta(_ text: Text, _ symbol: String) -> some View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).frame(width: 16).accessibilityHidden(true) }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
     }
     private var footer: some View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
@@ -371,7 +371,6 @@ struct ProfileOrderDetailView: View {
             }
             }
         }
-        .scrollContentBackground(.hidden)
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)

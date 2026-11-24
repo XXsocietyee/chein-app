@@ -54,7 +54,7 @@ enum CYPassCardPick {
         }
         .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) { await load() }
         .cyEdgeGlow(trigger: glowTick)
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .accessibilityIdentifier("ticketPass.sheet")
     }
     private struct TaskKey: Equatable { let scope: UUID; let token: Int; let active: Bool }
@@ -195,7 +195,7 @@ enum CYPassCardPick {
     private var state: CYPassState { CYPassState(ticket.status) }
     private let tearBand: CGFloat = 22
     private var shape: CYTicketPassShape {
-        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: CYRadius.xl, notch: 11, perforation: 3, perforationGap: 7)
+        CYTicketPassShape(notchY: topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: CYRadius.hero, notch: 11, perforation: 3, perforationGap: 7)
     }
 
     var body: some View {
@@ -231,7 +231,7 @@ enum CYPassCardPick {
         .cyFoilSheen(trigger: sheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
         .cyPassFoilEdge(shape, active: ticket.status == .ready)
-        .shadow(color: .black.opacity(0.40), radius: 16, y: 9)
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
         .background(GeometryReader { g in Color.clear.onAppear { cardSize = g.size }.onChange(of: g.size) { _, new in cardSize = new } })
@@ -337,7 +337,7 @@ enum CYPassCardPick {
         let side = Self.qrSide
         return VStack(spacing: CYSpacing.sm) {
             if ticket.status == .ready, let n = ticket.registrationNumber, !n.isEmpty {
-                Text(verbatim: n).font(CYTypography.sectionTitle.monospaced()).foregroundStyle(.black)
+                Text(verbatim: n).cyText(.sectionTitle).monospaced().foregroundStyle(.black)
                     .minimumScaleFactor(0.5).lineLimit(2).multilineTextAlignment(.center).textSelection(.enabled)
                     .accessibilityLabel(Text(verbatim: c.t("票号", "Ticket number"))).accessibilityValue(Text(verbatim: n))
                     .accessibilityIdentifier("ticketPass.number")
@@ -349,7 +349,7 @@ enum CYPassCardPick {
         .padding(CYSpacing.md)
         .frame(width: side, height: side)
         .padding(CYSpacing.lg)
-        .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityIdentifier("ticketPass.whiteTile")
     }
 

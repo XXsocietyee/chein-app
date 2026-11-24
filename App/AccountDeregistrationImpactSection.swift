@@ -32,7 +32,7 @@ struct AccountDeregistrationImpactSection: View {
                 HStack(alignment: .top, spacing: Theme.Space.s3) {
                     Image(systemName: Self.symbol(item.key)).font(.system(.subheadline, weight: .semibold)).foregroundStyle(.white)
                         .frame(width: 30, height: 30)
-                        .background(CYColor.warningText.gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .background(CYColor.warningText.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").cyText(.cardTitle) }
@@ -59,7 +59,7 @@ struct AccountDeregistrationImpactSection: View {
             }
             (Text("c08.display.34", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.revision)).cyText(.caption).textSelection(.enabled)
         } header: { Text("c08.display.28", tableName: "AccountDeregistrationPresentation") }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
@@ -82,8 +82,8 @@ struct AccountDeregistrationImpactConfirmation: View {
                 .focused($focused)
                 .autocorrectionDisabled().textInputAutocapitalization(.never)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 56)
-                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(matches ? CYColor.dangerText : (focused ? CYColor.textPrimary.opacity(0.4) : .clear), lineWidth: 1.5))
+                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(matches ? CYColor.dangerText : (focused ? CYColor.textPrimary.opacity(0.4) : .clear), lineWidth: 1.5))
                 .accessibilityIdentifier("compliance.impactConfirmation")
             Button(role: .destructive) { focused = false; confirming = true } label: {
                 Text("compliance.submit", tableName: "AccountCompliance")
@@ -95,7 +95,7 @@ struct AccountDeregistrationImpactConfirmation: View {
             .disabled(!matches).accessibilityIdentifier("compliance.submit")
             .sensoryFeedback(.warning, trigger: confirming) { _, new in new }
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .onDisappear { confirmation = "" }
         .sheet(isPresented: $confirming) {

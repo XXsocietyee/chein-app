@@ -206,7 +206,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
                     .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: "v\(row.schemaVersion)")
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id).schema")
                 Text(verbatim: row.statusBadgeText)

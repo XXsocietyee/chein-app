@@ -142,7 +142,7 @@ import UIKit
         }
         .onChange(of: model.avatarLifetimeID) { _, _ in discardID = nil; presentation.retire() }
         .sheet(isPresented: isPresented) {
-            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow) }
+            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow).cySheet(detents: [.large]) }
         }
     }
 }
@@ -189,7 +189,7 @@ import UIKit
                     }
                 }
             }
-            .appNavigationTitle(key: kind == .avatar ? "profile.avatar.title" : (kind == .casePicture ? "profile.case.add" : "profile.contactQR.title"))
+            .appNavigationTitle(key: kind == .avatar ? "profile.avatar.title" : (kind == .casePicture ? "profile.case.add" : "profile.contactQR.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { presentation.close(flow) } } }
         }
     }
@@ -242,7 +242,7 @@ import UIKit
                     if let preview = model.mediaPreviews[item.id], let image = UIImage(data: preview.jpeg) {
                         Image(uiImage: image).resizable().scaledToFill()
                             .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityLabel(LocalizedStringKey(kind == .casePicture ? "profile.case.newPreview" : "profile.contactQR.newPreview"))
                     }
                     Text(LocalizedStringKey(kind == .casePicture ? "profile.case.newStaged" : "profile.contactQR.newStaged"))
@@ -271,7 +271,7 @@ import UIKit
         }
         .onChange(of: model.avatarLifetimeID) { _, _ in presentation.retire() }
         .sheet(isPresented: isPresented) {
-            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow) }
+            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow).cySheet(detents: [.large]) }
         }
     }
 }

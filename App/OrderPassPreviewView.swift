@@ -26,7 +26,6 @@ struct OrderVerificationPreviewView: View {
     @State private var selected: Int?
     var body: some View {
         List {
-            Section { CYHeroHeader("orderLifecycle.pass.verification") }.e1HeroRow()
             Section {
                 Text("orderLifecycle.verification.preview").cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
                 Text(LocalizedStringKey("orderLifecycle.verification." + receipt.outcome.rawValue))
@@ -58,6 +57,6 @@ struct OrderVerificationPreviewView: View {
                 CYPillButton("orderLifecycle.verification.disabled", action: {}).disabled(true)
                     .accessibilityIdentifier("orderLifecycle.verification.disabled").e1ActionRow()
             }
-        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
+        }.listStyle(.insetGrouped).cyGroupedSurface().navigationTitle(Text("orderLifecycle.pass.verification")).navigationBarTitleDisplayMode(.inline)
     }
 }

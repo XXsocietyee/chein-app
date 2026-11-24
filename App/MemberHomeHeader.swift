@@ -55,7 +55,7 @@ import SwiftUI
                     .accessibilityIdentifier("member.card.level")
                     Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
                         .accessibilityIdentifier("member.card.city")
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
@@ -80,8 +80,9 @@ import SwiftUI
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(CYDomainPrimaryButtonStyle())
+                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                 .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
@@ -89,7 +90,7 @@ import SwiftUI
             }
             // Late values (streak, 积分) arrive in place: the card grows on `standard`, nothing else moves.
             .cyAnimation(CYMotion.standard, value: streakDays)
-            .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
             .cyStaggeredAppear(index: 0, gate: stagger)
         }
         .listRowBackground(Color.clear)
@@ -160,7 +161,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                 if reader.isConfigured, !signedOut {
                     Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
-                        .buttonStyle(.cySecondary)
+                        .buttonStyle(.bordered).buttonBorderShape(.capsule)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("member.card.retry")
                 }
