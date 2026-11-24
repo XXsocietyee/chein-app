@@ -283,6 +283,14 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .foregroundStyle(.secondary).accessibilityIdentifier("club.detail.leaderboard.locked")
                         }
                     }
+                    // CLB-r7-A-02 (MP wxml:288, D13): say so when the server could not confirm the viewer's role.
+                    if club.viewerIdentityUnavailable {
+                        Section {
+                            Text("club.detail.identityUnavailable").cyText(.meta).foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("club.detail.identityUnavailable")
+                        }
+                    }
                     // CLB-r7-A-03 (MP wxml:349-358, P-19): 治理与安全 · 封禁申诉 on 概览 for the owner and administrators only;
                     // it opens the club's governance cases, as MP `governance?mode=appeal` does.
                     if club.isOwner || club.viewerIsAdmin, let governance = management?.governance {

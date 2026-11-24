@@ -63,7 +63,7 @@ class ClubMemberPageContracts(unittest.TestCase):
     def test_edit_admin_note_and_locked_settings(self):
         view = read('App/ClubOperationsViews.swift')
         self.assertIn('if !isOwner { Text("club.ops.adminNote")', view)
-        self.assertIn('lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")', view)
+        self.assertIn('lockedCurrent.cyText(.meta).accessibilityIdentifier("club.ops.locked.current")', view)
         self.assertEqual(zh(self.catalog, 'club.ops.adminNote'), '你是管理员 · 只能改展示信息')
         self.assertEqual(zh(self.catalog, 'club.ops.locked.title'), '只有主理人能改经营配置')
         self.assertEqual(zh(self.catalog, 'club.ops.locked.quota %lld'), '保留 %lld 个')

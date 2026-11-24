@@ -22,6 +22,7 @@
 | CLB-detail-37 | Cover 160, logo 56. | App/ClubDetailView.swift |
 | CLB-detail-40 | Welcome title `.sheetTitle`. | App/ClubMemberWelcomeSheet.swift |
 | CLB-detail-41 | Invite row glyph `.cyText(.bodyMedium)`. | App/ClubMembersView.swift |
+| CLB-r7-A-02 | 概览 shows 成员身份暂时无法确认，管理员工具暂不可用。 when the detail says `viewerIdentityUnavailable`. | App/ClubDetailView.swift; strings |
 | CLB-r7-A-03 | 治理与安全 · 封禁申诉 row on 概览 for owner/admin, opening the club's cases. | App/ClubDetailView.swift; strings |
 | CLB-r7-A-05 | 结算 entry on 管理 for the owner (settlement read). | App/ClubDetailView.swift; strings |
 | CLB-topic-detail-02 (resubmit part) | Rejected topic: 修改并重新提交 opens the topic editor by id (`pages/publish/fabu?id=` → native ProjectEditView via MPReviewedPageScreen). | App/ClubGovernanceViews.swift |
@@ -62,7 +63,7 @@
 | CLB-detail-14 (inline feed) | The feed is a ScrollView/LazyVStack screen with its own pagination, composer and destinations; embedding it in the detail `List` without a compiler risks layout and lifecycle regressions. The postId path (detail-31) now pushes it automatically. Next round, with a build. |
 | CLB-detail-35 (团码 on cards) | Needs the session picker + `ClubGroupCodePresentation` on the detail; overlaps CLB-group-code-05 (Gemini). |
 | CLB-detail-22 (inline top rows + 我 row) | Needs the leaderboard read on the detail page; the avatar strip is parked (G08). |
-| CLB-detail-43, -19, -39, r7-A-02, r7-A-06, r7-A-08 | Not reached this round (P2). r7-A-08 needs an `api/club/my` read in the router. |
+| CLB-detail-43, -19, -39, r7-A-06, r7-A-08 | Not reached this round (P2). r7-A-08 needs an `api/club/my` read in the router. |
 | CLB-topic-detail-02 (pinned footer) | Moving `topicPrimary` into `.safeAreaInset` means restructuring the read view's List; left for a compiled round. |
 | CLB-topic-detail-05, -06, -10 | Round actions with native sheets (M), toggle rows that write with rollback (M) and the customer rows: not attempted without a compiler. -06's more-menu rows are parked (G12). |
 | CLB-topic-detail-11 | **Cursor request:** `ClubTopicMerchantList` strips contact fields; the copy-phone button needs a `phone` on `ClubTopicMerchantRow` (only when the merchant confirmed). |
@@ -99,5 +100,8 @@
 `cyPushedChrome(domain:)`, `cyTracksHeroScroll`, `ThemeDomain.merchant`, `Account.effectiveRole`, `ClubDetailManageGrant.permissions`, `ClubGovernanceReadView(operation:scope:identity:access:coordinator:)`, `ClubGovernanceScope(clubID:topicID:…)` defaults, `ClubGovernanceRead.cases/.settlement/.bans/.topicOverview`, `MPReviewedPageScreen(page:query:)` (needs `AppSession` as an environment object, as in PassMarketViews), `ClubGovernanceFormRoute(operation:scope:seed:)`, `ClubGovernanceValue.string/.integer`, `CYEmptyState(systemImage:_:messageIdentifier:actionTitle:actionIdentifier:actionStyle:action:)`, `rootTabSwitch.isAvailable` / `rootTabSwitch(.mine)`, `CYAvatarView(url:name:size:)`, `CYSheetDetent.full`, `CYMotion.standard`, `QuestifyCardArtwork.safeURL`, `CYColor.bgSurfaceSubtle`, `CYTextStyle` cases.
 
 ## Checks run here
-- Python contract checks that reference the changed club files: the only failures (`test_club_customer_directory_remote_admission`, `test_club_operations_contracts`, `test_category_roam_registration`, `test_profile_read_failure_remote_admission`) fail identically on the base `ui/combined-r7`.
-- No Swift build (no compiler in the cloud). Acceptance run: pending the coordinator's build.
+- **Contract checks (Python) for every test that names a changed club file**, run on this branch:
+  - Four source pins changed on purpose and were updated with the code: `test_global_chrome_domain_contract` (club page keeps the system bar), `test_club_ops_governance` (unban `inlineLink` role and its VoiceOver label), `test_club_member_pages` (`lockedCurrent.cyText(.meta)`), `test_club_detail_tabs` (`focusPostID` lands on 帖文), and the span hash in `test_club_leaderboard_member_navigation` (the apply guest state joins that span). These are Tests/ edits; Cursor may want to re-pin them in its own style.
+  - Still failing, and failing the same way on the base `ui/combined-r7`: `test_club_customer_directory_remote_admission`, `test_club_operations_contracts`, `test_club_customer_keyword_debounce`, `test_profile_read_failure_remote_admission`, `test_category_roam_registration`.
+  - `tools/check_typography_lint.py`: PASS. `tools/check_scaffold.py`: fails identically on the base.
+- **No Swift build** (no compiler in the cloud). Acceptance run: pending the coordinator's build.
