@@ -176,7 +176,6 @@ import SwiftUI
             // Pull to refresh: light tick at release; the cards reload in place (numbers roll, nothing re-enters).
             .cyRefreshable { await MainActor.run { memberRefreshToken += 1 } }
             .listSectionSpacing(CYSpacing.xl)
-            .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             // Design hand-off r1 PL-11: the root title is the tab's label (我的), not 主页 / 护照; 消息 then 设置 at the right.
             .cyRootHeader(.mine)

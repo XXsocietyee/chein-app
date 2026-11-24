@@ -46,7 +46,6 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .cyText(.body)
-        .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
         .navigationTitle(Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis"))

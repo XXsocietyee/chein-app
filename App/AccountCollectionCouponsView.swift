@@ -89,7 +89,6 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
         .cyPageTitle("accountCollection.coupons.title")
         .cyHideTabBar()

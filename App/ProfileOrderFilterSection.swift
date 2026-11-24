@@ -20,13 +20,19 @@ struct ProfileOrderFilterSection: View {
             .accessibilityLabel(Text("profile.orderFilter.title"))
             .accessibilityIdentifier("profile.orderFilter.picker")
             if isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("profile.orderFilter.empty").accessibilityIdentifier("profile.orderFilter.empty")
-                    Text("profile.orderParity.filterEmptyHint").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                // Native restyle r1 (spec §3.5): the filtered-empty state is a ContentUnavailableView with its one action.
+                ContentUnavailableView {
+                    Label { Text("profile.orderFilter.empty").accessibilityIdentifier("profile.orderFilter.empty") } icon: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
+                } description: {
+                    Text("profile.orderParity.filterEmptyHint")
                         .accessibilityIdentifier("profile.orderFilter.emptyHint")
+                } actions: {
+                    Button("profile.orderFilter.clear") { selection = .all }
+                        .buttonStyle(.bordered).buttonBorderShape(.capsule)
+                        .accessibilityIdentifier("profile.orderFilter.clear")
                 }
-                Button("profile.orderFilter.clear") { selection = .all }
-                    .accessibilityIdentifier("profile.orderFilter.clear")
             }
         }
     }

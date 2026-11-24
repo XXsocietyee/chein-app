@@ -17,7 +17,7 @@ import SwiftUI
     var body: some View {
         Form {
             Section { Text("templateOwnerConfig.readOnly").foregroundStyle(.secondary) }
-            Section { Text("templateOwnerConfig.scope").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            Section {} footer: { Text("templateOwnerConfig.scope") } // native restyle r1: explanatory copy in a footer
             if host.loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("memberTemplate.loading")).listRowBackground(Color.clear) }
             if let snapshot = host.snapshot, snapshot.id == id {
                 Section {

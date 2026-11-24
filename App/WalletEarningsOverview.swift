@@ -163,7 +163,6 @@ private struct WalletContentListStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content.listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
             .cyText(.body)
     }

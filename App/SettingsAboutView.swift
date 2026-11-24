@@ -95,7 +95,6 @@ import UIKit
             }
             SettingsAttributionsSection(copyText: copyText)
         }
-        .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
         .cyPageTitle("settingsNative.about.title")
         .safeAreaInset(edge: .bottom) {

@@ -213,7 +213,7 @@ struct TicketWalletTeamContext: Hashable {
                     }
                 }
             }
-            Section { Text("ticketTeam.readOnly").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            Section {} footer: { Text("ticketTeam.readOnly") } // native restyle r1: explanatory copy in a footer
         }
         .navigationTitle(Text("ticketTeam.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()

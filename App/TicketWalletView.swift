@@ -129,7 +129,6 @@ import SwiftUI
                 }
             }
             .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
             .cyDomainScreen(.player)
             .listSectionSpacing(20)
             .cyPageTitle("ticketWallet.title")

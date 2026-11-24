@@ -83,7 +83,6 @@ import QuestifyCore
             }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyPushedChrome(domain: .player)
         .navigationTitle(Text("orderCenter.navigation", tableName: "CreatorEditorUI")).navigationBarTitleDisplayMode(.inline)
         .task {

@@ -371,7 +371,6 @@ struct ProfileOrderDetailView: View {
             }
             }
         }
-        .scrollContentBackground(.hidden)
         .appNavigationTitle("profile.orders.detail")
         .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)

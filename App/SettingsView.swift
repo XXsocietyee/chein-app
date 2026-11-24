@@ -146,7 +146,6 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("settings.search.prompt"))
-            .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .listSectionSpacing(.custom(20))
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
@@ -288,7 +287,6 @@ private struct SettingsSearchResults: View {
                 } header: { Text("settings.search.results") }
             }
         }
-        .scrollContentBackground(.hidden)
         .labelStyle(SettingsTileLabelStyle())
     }
     @ViewBuilder private func row(_ e: Entry) -> some View {

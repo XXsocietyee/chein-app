@@ -62,10 +62,9 @@ import SwiftUI
                                            channels: coordinator.detail?.id == id ? coordinator.detail?.paymentChannels : nil)
                 OrderPartialRefundSection(settlement: coordinator.detail?.id == id ? coordinator.detail?.settlement : nil)
             }
-            Section { Text("orderLifecycle.production.caution").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            Section {} footer: { Text("orderLifecycle.production.caution") } // native restyle r1: explanatory copy in a footer
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
         .cyHideTabBar(true)
         .safeAreaInset(edge: .bottom, spacing: 0) { pinnedPrimary }
