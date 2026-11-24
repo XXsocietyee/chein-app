@@ -21,10 +21,14 @@ import SwiftUI
     @StateObject private var model: CouponManagementScreenModel
     let sessionKey: CouponManagementSession?
     let isSourceVisible: Bool
+    /// R7-MEM-10-1: `coupon/coupon?scope=MERCHANT` (merchant marketing) lists the shop's coupons; the bare page is the player's own list.
+    let scope: CouponPublishListScope
     @State private var creating = false
     @Environment(\.dismiss) private var dismiss
-    init(coordinator: CouponManagementCoordinator, sessionKey: CouponManagementSession?, isSourceVisible: Bool = false) {
+    init(coordinator: CouponManagementCoordinator, sessionKey: CouponManagementSession?, isSourceVisible: Bool = false,
+         scope: CouponPublishListScope = .merchant) {
         _model = StateObject(wrappedValue: CouponManagementScreenModel(coordinator)); self.sessionKey = sessionKey; self.isSourceVisible = isSourceVisible
+        self.scope = scope
     }
     var body: some View {
         Group {
@@ -84,7 +88,7 @@ import SwiftUI
                         }.accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
                     }
                 }
-                .refreshable { await model.core.load(); model.revision += 1 }
+                .refreshable { model.core.publishListScope = scope; await model.core.load(); model.revision += 1 }
                 .toolbar {
                     // Hidden, not disabled, when publishing is not available for this account.
                     if model.core.canReviewPublish {
@@ -102,6 +106,7 @@ import SwiftUI
         .cyPageTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false
+            model.core.publishListScope = scope
             if isSourceVisible, sessionKey != nil { await model.core.load(); model.revision += 1 }
         }
         .sheet(isPresented: $creating) {

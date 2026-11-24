@@ -393,7 +393,12 @@ import SwiftUI
         case "subpackageMember/appeal-mine/index":
             MemberScoreAppealListView(session: session)
         case "subpackageMember/invoice/index":
-            invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+            // FIN-11-1: `invoice/index?id=` opens that application (MP invoice/index.js onLoad); the bare path is the history list.
+            if let id = reviewedID(query) {
+                invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
+            } else {
+                invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+            }
         case "subpackageMember/invoice-detail/index":
             if let id = reviewedID(query) {
                 invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
@@ -430,7 +435,8 @@ import SwiftUI
                 MemberReportProgressDeepLinkScreen(reportID: Int64(id), session: session)
             } else { unavailable }
         case "subpackageMember/coupon/coupon", "subpackageMember/couponInfo/couponInfo":
-            SessionCouponManagementView().environmentObject(session)
+            // R7-MEM-10-1: coupon.js `operationScope = options.scope === 'MERCHANT' ? 'MERCHANT' : ''`.
+            SessionCouponManagementView(scope: query["scope"] == "MERCHANT" ? .merchant : .player).environmentObject(session)
         case "subpackageMember/tixian/tixian":
             WithdrawalSupportLandingView(reader: session.walletHistoryReader)
         case "subpackageMember/tixianjilu/tixianjilu", "pages/coop/withdraw/records/index":
