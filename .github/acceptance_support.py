@@ -513,6 +513,8 @@ def workflow_contract():
         raise SystemExit("acceptance-mac concurrency must be on the five self-hosted jobs")
     if jobs.count("cancel-in-progress: false") != 5:
         raise SystemExit("self-hosted concurrency must not cancel")
+    if jobs.count("queue: max") != 5:
+        raise SystemExit("self-hosted concurrency must queue pending jobs")
     runner = "runs-on: [self-hosted, macOS, ARM64, chengyin-app]"
     if jobs.count(runner) != 5:
         raise SystemExit("build, test, and screenshot jobs must use the self-hosted Mac")

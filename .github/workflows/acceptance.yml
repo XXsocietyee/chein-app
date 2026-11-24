@@ -60,6 +60,7 @@ jobs:
     concurrency:
       group: acceptance-mac
       cancel-in-progress: false
+      queue: max
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -93,6 +94,7 @@ jobs:
     concurrency:
       group: acceptance-mac
       cancel-in-progress: false
+      queue: max
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -138,6 +140,7 @@ jobs:
     concurrency:
       group: acceptance-mac
       cancel-in-progress: false
+      queue: max
     timeout-minutes: 180
     strategy:
       fail-fast: false
@@ -249,6 +252,7 @@ jobs:
     concurrency:
       group: acceptance-mac
       cancel-in-progress: false
+      queue: max
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -272,6 +276,7 @@ jobs:
     concurrency:
       group: acceptance-mac
       cancel-in-progress: false
+      queue: max
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262

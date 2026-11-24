@@ -17,7 +17,8 @@ That run is red because `macos-26` has Xcode 26.6 / iOS 26.5. This app needs Xco
 
 - Self-hosted, one Mac at a time: `debug-build`, `core-tests`, `appunit`, `screenshots`, `ui-smoke`.
   - `runs-on: [self-hosted, macOS, ARM64, chengyin-app]`
-  - Job concurrency only: `group: acceptance-mac`, `cancel-in-progress: false`
+  - Job concurrency only: `group: acceptance-mac`, `cancel-in-progress: false`, `queue: max`.
+  GitHub's default queue keeps one pending job and cancels the older pending jobs. `queue: max` is what lets the Mac jobs wait. Ubuntu jobs are not in the group.
 - Ubuntu: `baselines`, `gates`, `appunit-baseline`, `screenshot-plan`, and `record-baselines`.
   - `runs-on: ubuntu-latest`
   - No Mac concurrency, so the Python gates are not queued behind the Mac.
@@ -66,7 +67,19 @@ Screenshots still read only `docs/port/accept/*.txt`. That directory is not on t
 
 ## Runs
 
-Filled in after the pushes start.
+Times are America/Los_Angeles.
+
+- CHECK, `ci/acceptance` `57378b42a366846c77c23698a6b5f4d807847b56`, started 6:20 AM PT:
+  https://github.com/liboyang42-cpu/chengyin-app/actions/runs/45413026628
+  `baselines` failed because the name files are not committed yet. `core-tests` and `appunit` were skipped for that reason. `screenshots` was skipped. `gates` was still running the contract ratchet. `debug-build` was cancelled by the default concurrency queue. `ui-smoke` reached the Mac.
+- RECORD, `ci/baseline-record` `02d3f7c4ca2eeea1843489393a622f08586d9b7d`, started 6:20 AM PT:
+  https://github.com/liboyang42-cpu/chengyin-app/actions/runs/45413080542
+  Same default queue. `baselines` succeeded. `debug-build`, `ui-smoke`, `core-tests`, and three AppUnit shards were cancelled. One AppUnit shard stayed pending. This run cannot record a full baseline.
+- RECORD with `queue: max`, `ci/baseline-record` `7773d6c38db5bb3755b848eff113d5c34b09be31`, started 6:22 AM PT:
+  https://github.com/liboyang42-cpu/chengyin-app/actions/runs/45413447731
+  This is the record run that can keep every Mac job. Cancelling the two earlier runs returned HTTP 403, so they were left in place.
+
+The workflow files on that record commit match `ci/acceptance` after the queue fix. A later push of this receipt starts another CHECK. CHECK still fails until RECORD commits the baseline files to `ci/acceptance`. That commit uses `GITHUB_TOKEN`, so it does not start a workflow and cannot retrigger RECORD.
 
 ## Not done
 
