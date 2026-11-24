@@ -358,6 +358,57 @@
           }
         }
       }
+    },
+    "clubR3b.payout.clubMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't find this club"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到这个俱乐部"
+          }
+        }
+      }
+    },
+    "clubR3b.payout.unbindDetail": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New club income pauses until you bind again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解除后新的俱乐部收入会暂停，重新绑定后继续"
+          }
+        }
+      }
+    },
+    "clubR3b.payout.unbindTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove personal payout?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解除个人收款？"
+          }
+        }
+      }
     }
   }
 }
