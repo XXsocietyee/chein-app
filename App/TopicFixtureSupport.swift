@@ -83,12 +83,7 @@ enum TopicP3Fixtures {
         return #"""
         {"id":7,"name":"Synthetic lost-cat street","subtitle":"Follow the cat through the old lanes","productType":1,"locationCount":6,"templateCount":5,"totalChapterCount":4,
          "registrationMerchantCount":0,"totalTime":0,"selfPlay":1,"selfPlayPrice":30,"finishMedalName":"Lost-cat finder","completeRewardCouponId":12,
-         "description":"Tonight the cat did not come home. You follow its trail along the old street.
-过马路请注意红绿灯。
-
-【注意事项】
-1. 部分店铺18点打烊；
-2. 带好充电宝",
+         "description":"Tonight the cat did not come home. You follow its trail along the old street.\n过马路请注意红绿灯。\n\n【注意事项】\n1. 部分店铺18点打烊；\n2. 带好充电宝",
          "activityList":[{"id":1,"name":"Saturday session","startDate":"2030-01-05"}],
          "omsTicketList":[{"id":51,"name":"Pair ticket","price":59,"teamSize":2},{"id":52,"name":"Pair ticket","price":49,"teamSize":2},{"id":53,"name":"Single ticket","price":29}],
          "averageRating":4.5,"commentCount":2,"commentList":[{"memberNickname":"Example walker","createTime":"2030-01-02 10:00","rating":5,"contents":"Lovely evening walk."}],

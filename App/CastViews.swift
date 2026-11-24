@@ -148,7 +148,7 @@ struct CastRememberedLines: View {
                 else if audio?.state == .playing { Label("cast.voice.pause", systemImage: "pause.fill") }
                 else { Label("cast.voice.play", systemImage: "play.fill") }
             }
-            .buttonStyle(compact ? .borderless : .bordered)
+            .modifier(CastVoiceButtonStyle(compact: compact))
             .foregroundStyle(compact ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint))
             .disabled(loading)
             .accessibilityLabel(Text("cast.voice.play"))
@@ -471,5 +471,13 @@ public struct CastEndingSection: View {
             }
             .accessibilityIdentifier("cast.ending")
         }
+    }
+}
+
+/// Borderless inline, bordered on the card (a ternary cannot mix two ButtonStyle types).
+private struct CastVoiceButtonStyle: ViewModifier {
+    let compact: Bool
+    func body(content: Content) -> some View {
+        if compact { content.buttonStyle(.borderless) } else { content.buttonStyle(.bordered) }
     }
 }

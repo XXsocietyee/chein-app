@@ -167,7 +167,7 @@ public struct PlayNodeExtras: Equatable {
 
 /// Photo-record body for a station whose `photoCheck.mode` is `RECORD`.
 /// The kit submit that posts this body belongs to P4 (`PlayKitInputContract`); this only decides what is legal.
-public enum PlayPhotoRecordError: Equatable {
+public enum PlayPhotoRecordError: Error, Equatable {
     case submitPhotoCheckOnRecord
     case textConfirmedOnOrdinary
     case imageURL
