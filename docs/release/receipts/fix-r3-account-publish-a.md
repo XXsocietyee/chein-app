@@ -92,3 +92,79 @@
 - `restyle/r1`, `r3`, `r5`, `r6`: visual only, no file overlap with these fixes.
 - `gap/g2-ops` (parked AccountPublish views): not touched.
 - `cursor/*`, `port/*`: no overlap.
+
+## Round 2 (2026-11-24)
+
+- **Brief:** `origin/design/handoff-r2:docs/briefs/fix-r3-round2.md` + `owner-decisions-1124.md`.
+- **Sync:** merged `origin/ui/combined-r7` (Core K1–K10, W1, C7). One conflict, `tools/check_typography_lint.py`: took combined-r7's (newer) version. Re-checked before the final push: no newer combined-r7 commits.
+- **Review findings (`review/r7-rev-a`, `-b`, `-c`):** no row names a file or page of this half. Nothing to fix.
+- **Cursor wiring:** no `cursor/wire-account-publish` branch exists. The App-side items Cursor handed to the F-agent in `cursor-core-account-publish.md` § "F-agent App changes" for this half's pages are done below (B-SZ-05, B-SZ-09/14, B-MK-06, A8-10). The deregister / team / square rows of that list are half b's pages.
+- **New files:** `App/AccountPublishMPGlyph.swift` (`AccountPublishMPGlyph`, `AccountPublishMPRowIcon`, `AccountPublishLevelBadge`; names prefixed to avoid colliding with other agents' helpers), `App/AppSession+SettingsAccountProfile.swift`. Both are under the existing `App/*.swift` glob.
+
+### Fixed in round 2
+
+| ID | What changed | Files |
+|---|---|---|
+| B-SZ-14-r7 | Settings re-reads `POST /api/user/info` (`SettingsAccountProfileClient.refresh`) on appear and on account change; the fresh role drives the page facts and the identity rows (session role stands in until it answers; a late answer after sign-out / account switch is dropped). | SettingsView.swift, AppSession+SettingsAccountProfile.swift |
+| B-SZ-09 | 403 ⇒ `sessionFact(accessDenied: true)`; the header shows 当前身份不能查看账号信息 / 点击刷新并确认当前账号权限 as a 44 pt button that reads again (`retriesProfileOnTap`). | SettingsView.swift |
+| B-SZ-05 | 成为俱乐部主理人 uses `SettingsClubPickerService.resolveHostRoute(isClubLeader:)` with the fresh `isClubLeader`, and `isOffered(toRole:isClubLeader:)` hides the rows for a leader. Owned club ⇒ `ClubDetailView(requestedTab: .manage)`; leader without a club ⇒ the club create workspace sheet (`ClubOperationsWorkspaceView(target: .create)`; falls back to host status when operations are not composed); otherwise host status; failure ⇒ toast. The several-clubs chooser is gone (MP opens the first). `loadSettingsClubEntry` is untouched. | SettingsAccountEntries.swift |
+| B-MK-06 | Marketing merchant tile shows `merchantLogo` (https only) over the initial; `""` keeps the initial. | AccountComplianceViews.swift |
+| A8-10-r7 | 发现 home feed (no club) pages: `ClubCommunityFeedCursor` in the view model, reach-bottom row (`club.community.feed.loadMore`) calls `.feed(limit: 20, beforeID:)`. A next page (posts or feed) now appends instead of blanking the list first. Fixture feed payload gains `"hasMore": false`. | ClubCommunityViews.swift, ClubCommunityFixture.swift |
+| A4-05 | 收藏 post cards show images (`showImages: true`); 取消收藏 moved into a ··· `Menu` on the card (`ProfileFavoriteRemovalEntry(presentsAsMenu: true)`, same reviewed flow and sheet; the default button style is unchanged for the removal UI-test fixture). | AccountCollectionFavoritesView.swift, ProfileFavoriteRemovalView.swift |
+| A3-09 (chips) | 路线偏好 shows the chosen preference names as chips under the count, from the picker's own `discoveryCategories(type: 1)` read; unknown ids are skipped, a failed read shows only the count. | ProfileEditView.swift |
+| A7-06 | Already closed on combined-r7: `CropPageFacts.canUseOriginal` drives 使用原图. No change. | — |
+
+### MP assets applied (`docs/mp-assets/mapping.md` rows)
+
+- [x] `MPAsset.FeatureIcon.iconQaPerson` — Settings signed-out profile row and the 403 row
+- [x] `MPAsset.FeatureIcon.iconFlagBlue` — 成为俱乐部主理人 (full colour, not template)
+- [x] `MPAsset.FeatureIcon.iconShop` — 成为商家
+- [x] `MPAsset.FeatureIcon.iconLcCompass` — 城瘾玩法
+- [x] `MPAsset.FeatureIcon.iconHeart` — 我的收藏
+- [x] `MPAsset.FeatureIcon.iconLcGift` — 邀请与收益
+- [x] `MPAsset.FeatureIcon.iconLcLockKeyhole` — 隐私与定位
+- [x] `MPAsset.FeatureIcon.iconLcMessageSquareText` — AI 对话记录 (both the Settings row and the compliance-section row)
+- [x] `MPAsset.FeatureIcon.iconLcTicket` — 营销消息与优惠券
+- [x] `MPAsset.FeatureIcon.iconLcShieldAlert` — 帖文处置与申诉
+- [x] `MPAsset.FeatureIcon.iconLcMegaphone` — 投诉建议
+- [x] `MPAsset.FeatureIcon.iconPrivacy` — 我的申诉
+- [x] `MPAsset.FeatureIcon.iconAgreement` — 发票; 关于 用户服务协议 / 隐私保护指引; Settings legal rows other than 用户服务协议
+- [x] `MPAsset.FeatureIcon.iconLcScrollText` — Settings 用户服务协议
+- [x] `MPAsset.FeatureIcon.iconLcUserRoundX` — 账号注销
+- [x] `MPAsset.FeatureIcon.iconLcInfo` — 关于
+- [x] `MPAsset.FeatureIcon.iconLogout` — 退出账号
+- [x] `MPAsset.FeatureIcon.iconHeadset` — 关于 联系我们 (fallback row and the phone row)
+- [x] `MPAsset.BrandLogo.cyLogoMark` — 关于 logo (was the bundled `SettingsBrandMark` over cover art)
+- [x] `MPAsset.FeatureIcon.iconPen` — 我的 avatar pen badge (round-1 TODO closed)
+- [x] `MPAsset.FeatureIcon.iconSet` — 我的 toolbar settings button
+- [x] `MPAsset.BadgeMedal.group2` … `group5` — 我的 level pill for `levelId` 2–5
+- [x] `MPAsset.AvatarDefault.dProfile` — 我的 header and 个人主页 head when there is no avatar (replaces the lettermark, as the MP does for players)
+- [x] `MPAsset.FeatureIcon.object3d` — 我的 藏品 row tile
+- [x] `MPAsset.BannerCover.pagesMylikeImagesMer1` — 收藏 据点 row without a cover
+- Kept SF Symbols (system-control glyphs per the brief): `pagesMylikeImagesIconUp` (share), `pagesGerenziliaoImagesDel` and `pagesAddressImagesDClose` (delete / close ✕), chevrons, the ··· menu.
+- Not applied, no matching surface here: `dSctb` and `pagesGerenziliaoImagesMer1` (upload tile / hero; uploads are blocked on A3-01 and the native Form has no hero), `medal3d` / `stamp3d` (no album pile on the native 我的), `subpackageMemberImagesIconQaPerson` (经营团队 row is merchant-side, not on this page), the `subpackageMemberImagesTags*` set (tag library, used by the preference picker owned by `ContextualPickers.swift`), `iconBell` (talent/list has no messages button on the native 俱乐部 root; the tab bar owns 消息), the `images_cards_*` club-card glyphs and `defaultCover` (drawn inside `App/DesignSystem/CYClubCards.swift`, shared with the club area: left to the club F-agents to avoid a collision).
+
+### Owner decisions (1124)
+
+- #9 two-decimal money: the only money on these pages is 我的 ¥ 账户余额, already `.currency(code: "CNY").precision(.fractionLength(2))` (`MemberBalanceDisplay`). There is no shared Core money formatter on combined-r7 yet. **Core request (Cursor):** one shared formatter; `MemberBalanceDisplay` should then call it.
+- #12 / #3 / #6 money TEST-only: no money write on these pages. #8 arrival lock, #10 game-kit gate, #7 cast fixtures: not on these pages.
+
+### Checks
+
+- `tools/check_typography_lint.py`: PASS.
+- `tools/check_a11y_lint.py`: same 12 pre-existing "new" items as the base (none in this half's changes); one baselined item removed (`person.fill` lettermark in MemberHomeHeader).
+- ContractChecks naming a touched file (67): 7 fail before and after, same set. Zero new failures.
+- No compiler here; every API was grepped on this branch (`SettingsAccountProfileClient`, `SettingsClubPickerService.resolveHostRoute`, `ClubCommunityFeedCursor`, `ClubOperationsWorkspaceView`, `ClubR1WrapLayout`, `QuestifyCardArtwork.safeURL`, `PlayerFeedRemoteImage`, `MPAsset.*`).
+
+### Still open after round 2
+
+| ID | Why | Who |
+|---|---|---|
+| A2-02 | Still no role / merchant field on the public profile read. | Cursor |
+| A2-03 (发消息) | Needs a `conversation(Int) -> AnyView` factory from every `SocialPublicProfileView` host (AccountView, MPReviewedPageScreen, square/club hosts), like `NativeFriendDirectoryDetailView`. Wider than this half's files. | Claude follow-up / coordinator |
+| A4-04 (据点 share), A8-09-r7 | No POI / club-hub link in `PublicContentShareLink`. | Cursor |
+| A6-01 | Core keeps only the masked phone (`ProfileBoundPhoneDisplay`); `DeregistrationBoundPhone` exists but belongs to the compliance (deregister) session. Needs a profile-side bound-phone value. | Cursor |
+| A7-08-r7 (重试) | `MiniCropSession` still has no per-image retry. | Cursor |
+| A3-01, A1-01, A2-10, A4-01, A7-01/03/05 | Unchanged (Cursor upload grant / Gemini unparks). | Cursor / Gemini |
+| A2-08, A3-10, A7-02, A8-06, B-SZ-10 | Unchanged from round 1 (M/L, or wait on the owner's Settings calls). | Claude follow-up |
+| Owner rows | Unchanged (A1-02, A1-08, A3-05, A3-06/A6-02, A8-02/03, B-SZ-11/13, B-MK-01, B-MK-05 sheet). | owner |

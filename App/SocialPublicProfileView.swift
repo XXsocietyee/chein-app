@@ -494,7 +494,7 @@ struct ProfileSelfCouponContext: Hashable {
     }
 }
 
-/// Round avatar for the public profile head; a clean initial when there is no https image.
+/// Round avatar for the public profile head; the MP default avatar when there is no https image.
 @MainActor private struct ProfilePublicAvatar: View {
     let source: String?
     let name: String?
@@ -516,11 +516,11 @@ struct ProfileSelfCouponContext: Hashable {
         }
         .accessibilityHidden(true)
     }
+    /// MP cy-profile: a player without an avatar shows `/images/d_profile.png` (`MPAsset.AvatarDefault.dProfile`).
     private var placeholder: some View {
         ZStack {
             Circle().fill(.tint.opacity(0.15))
-            if let initial = name?.first { Text(verbatim: String(initial)).cyText(.sheetTitle) }
-            else { Image(systemName: "person.fill").cyText(.sheetTitle) }
+            MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
         }
     }
 }
