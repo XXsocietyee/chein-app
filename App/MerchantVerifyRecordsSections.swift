@@ -41,6 +41,9 @@ struct MerchantVerifyRecordsSections: View {
     let records: [MerchantBusinessRecord]
     /// Server total; when it exceeds the loaded rows the counts read "n+" (MP `+` when truncated).
     let total: Int?
+    /// Called when the loaded page is still short of `total`. Nil keeps the first page as it is.
+    var onNeedMore: (() -> Void)? = nil
+    var loadingMore = false
     @State private var bucket: MerchantVerifyRecordsParity.Bucket = .verified
     @Environment(\.locale) private var locale
 
@@ -50,6 +53,7 @@ struct MerchantVerifyRecordsSections: View {
     var body: some View {
         let all = rows
         let groups = MerchantVerifyRecordsParity.groups(all, bucket: bucket)
+        MerchantDeskManualCodeRow()
         Section {
             CYTabs(items: MerchantVerifyRecordsParity.Bucket.allCases.map { item in
                 let count = all.filter { $0.bucket == item }.count
@@ -82,6 +86,28 @@ struct MerchantVerifyRecordsSections: View {
                     .foregroundStyle(CYColor.textSecondary)
                 }
             }
+            // MC7-04-3: a full page still short of total asks for the next `MerchantVerificationRecordPage`.
+            // Stop when that page says there is nothing further. 已经到底了 once every record is loaded.
+            if truncated, let onNeedMore {
+                Section {
+                    Text("merchant.list.loadingMore")
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .onAppear { if !loadingMore { onNeedMore() } }
+                        .accessibilityIdentifier("merchant.verifyRecords.loadingMore")
+                }
+            } else if !truncated {
+                Section {
+                    Text("merchant.list.end")
+                        .cyText(.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .frame(maxWidth: .infinity)
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("merchant.verifyRecords.listEnd")
+                }
+            }
         }
     }
 
@@ -105,5 +131,112 @@ struct MerchantVerifyRecordsSections: View {
         .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("merchant.verifyRecords.row.\(row.id)")
+    }
+}
+
+/// Appends verify-records pages. Page 1 is the snapshot from `.verificationRecords`. Later pages use
+/// `verificationPage`. A reader that has not implemented paging leaves the first page in place.
+@MainActor struct MerchantVerificationAppendList: View {
+    let reader: any MerchantBusinessReading
+    let snapshot: MerchantBusinessSnapshot
+    @State private var extra: [MerchantBusinessRecord] = []
+    @State private var page = 1
+    @State private var hasMore: Bool
+    @State private var loading = false
+    @State private var stopped = false
+
+    init(reader: any MerchantBusinessReading, snapshot: MerchantBusinessSnapshot) {
+        self.reader = reader
+        self.snapshot = snapshot
+        _hasMore = State(initialValue: snapshot.document.hasMore)
+    }
+
+    private var records: [MerchantBusinessRecord] { snapshot.document.rows + extra }
+
+    var body: some View {
+        MerchantVerifyRecordsSections(records: records, total: snapshot.document.total,
+                                      onNeedMore: hasMore && !stopped ? { Task { await more() } } : nil,
+                                      loadingMore: loading)
+            .onChange(of: snapshot) { _, next in
+                extra = []; page = 1; stopped = false; loading = false; hasMore = next.document.hasMore
+            }
+    }
+
+    private func more() async {
+        guard hasMore, !loading, !stopped else { return }
+        loading = true
+        defer { loading = false }
+        let next = page + 1
+        do {
+            let loaded = try await reader.verificationPage(next)
+            let known = Set(records.map(\.id))
+            extra += loaded.document.rows.filter { !known.contains($0.id) }
+            page = next
+            let collected = snapshot.document.rows.count + extra.count
+            let total = loaded.document.total ?? snapshot.document.total ?? 0
+            hasMore = MerchantVerificationRecordPage.hasMore(pageRowCount: loaded.document.rows.count, collected: collected, total: total)
+        } catch let failure as MerchantBusinessFailure where failure == .disabled {
+            stopped = true
+            hasMore = false
+        } catch {
+            stopped = true
+        }
+    }
+}
+
+/// Classify-only manual code. The client is constructed with the gate off, so a valid code does not redeem.
+struct MerchantDeskManualCodeAction {
+    var resolve: @MainActor (String) async throws -> MerchantDeskManualRoute
+}
+
+private struct MerchantDeskManualCodeActionKey: EnvironmentKey {
+    static let defaultValue: MerchantDeskManualCodeAction? = nil
+}
+
+extension EnvironmentValues {
+    var merchantDeskManualCode: MerchantDeskManualCodeAction? {
+        get { self[MerchantDeskManualCodeActionKey.self] }
+        set { self[MerchantDeskManualCodeActionKey.self] = newValue }
+    }
+}
+
+private struct MerchantDeskManualCodeRow: View {
+    @Environment(\.merchantDeskManualCode) private var action
+    @State private var code = ""
+    @State private var note: String?
+
+    var body: some View {
+        if action != nil {
+            Section {
+                TextField(text: $code) { Text(verbatim: "核销码").cyText(.body) }
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .accessibilityIdentifier("merchant.desk.manualCode")
+                Button { Task { await submit() } } label: {
+                    Text(verbatim: "识别核销码").cyText(.body).frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .accessibilityIdentifier("merchant.desk.manualCode.classify")
+                if let note {
+                    Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("merchant.desk.manualCode.note")
+                }
+            }
+        }
+    }
+
+    private func submit() async {
+        if let error = MerchantDeskManualCode.validationError(code) { note = error; return }
+        guard let action else { return }
+        do {
+            switch try await action.resolve(code) {
+            case .rejected(let message): note = message
+            case .redirect(let message, _): note = message
+            case .route: note = "已识别，未提交核销"
+            }
+        } catch let failure as MerchantBusinessFailure where failure == .disabled {
+            note = "手动核销未开启"
+        } catch {
+            note = "未能识别核销码，请重试"
+        }
     }
 }

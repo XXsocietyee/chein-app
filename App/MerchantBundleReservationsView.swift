@@ -38,7 +38,8 @@ struct MerchantBundleReservationsView: View {
         case .failed:
             CYErrorState("merchant.bundleReservations.loadFailed", retryTitle: "merchant.bundleReservations.retry") { Task { await load(pull: false) } }
         case .denied:
-            CYEmptyStateView(systemImage: "lock", title: "merchant.bundleReservations.denied")
+            // MC7-05-1 (bundle-reservations/index.wxml:10-11): 申请入驻 without a merchant identity, otherwise 返回.
+            MerchantDeniedState(title: "merchant.bundleReservations.denied", identifier: "merchant.bundleReservations.denied")
         case .ready(let rows) where rows.isEmpty:
             ScrollView { CYEmptyStateView(systemImage: "calendar", title: "merchant.bundleReservations.empty").padding(.top, CYSpacing.xl) }
                 .refreshable { await load(pull: true) }

@@ -563,6 +563,11 @@ struct SessionRootView: View {
     private func chain3_3<V: View>(_ v: V) -> some View {
         v
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
+        // fix/r3-merchant-coop-a: MerchantDeniedState offers 申请入驻 only when access/me has no active merchant.
+        .environment(\.merchantCoopProfitDestination, { AnyView(CoopFinanceProfitView(reader: session.cooperationFlowReader).cyPushedChrome(domain: .merchant)) })
+        .environment(\.merchantGateActions, MerchantGateActions(
+            hasMerchantIdentity: { (try? await session.merchantAccess())?.active == true },
+            applicationDestination: { AnyView(MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)) }))
     }
 
     private func chain3_4<V: View>(_ v: V) -> some View {
@@ -601,7 +606,19 @@ struct SessionRootView: View {
             inviteDestination: { id in
                 AnyView(CooperationInviteDetailView(key: CooperationInviteKey(id: id, direction: .received),
                                                     reader: session.cooperationReader, peerReader: session.cooperationFlowReader))
+            },
+            markConversationRead: { id in
+                do { try await session.imExpandedWriter.markInboxConversationRead(conversationID: id) }
+                catch APIError.notConfigured {}
+                catch {}
             }))
+        .environment(\.merchantDeskManualCode, MerchantDeskManualCodeAction { code in
+            guard let configuration = session.regionalConfiguration?.apiConfiguration, let token = session.token else {
+                throw MerchantBusinessFailure.disabled
+            }
+            return try await MerchantDeskManualCodeClient(configuration: configuration, transport: session.runtimeHTTPTransport, gate: .off)
+                .resolve(code: code, token: token)
+        })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
         .environment(\.merchantOpsWp03Bridge, MerchantOpsWp03Bridge(

@@ -6,6 +6,8 @@ import SwiftUI
     let view: CooperationInvitePresentation
     let peerReader: (any CoopFlowReading)?
     @Environment(\.dismiss) private var dismiss
+    /// MC7-32-4: 进入项目 opens the bound topic when the list supplied the project destination.
+    @Environment(\.cooperationProjectDestination) private var projectDestination
     private var invite: CooperationInvite { view.invite }
     var body: some View {
         if view.showsContactPartner, let peerReader { accepted(peerReader) }
@@ -13,6 +15,10 @@ import SwiftUI
             switch view.footer {
             case .legacy: Text("cooperation.detail.footer.legacy").foregroundStyle(.secondary)
             case .decide:
+                if let name = invite.supplyStationName, !name.isEmpty, invite.supplyStationId != nil {
+                    Text(verbatim: name).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("cooperation.detail.supplyStation")
+                }
                 // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one.
                 handle(.accept, label: "cooperation.detail.accept", emphasis: true)
                 handle(.reject, label: "cooperation.detail.reject")
@@ -37,8 +43,16 @@ import SwiftUI
     @ViewBuilder private func accepted(_ reader: any CoopFlowReading) -> some View {
         Section("cooperation.detail.actions") {
             if let scope = view.projectScope, let topic = invite.topicId {
-                LabeledContent { Text(verbatim: "#" + String(topic)) } label: { Text("cooperation.detail.project") }
+                if let projectDestination, topic > 0 {
+                    NavigationLink {
+                        CooperationProjectNavigationDestination(topicID: topic, invite: CooperationInviteKey(id: invite.id, direction: view.direction),
+                                                                destination: projectDestination)
+                    } label: { Text("cooperation.detail.project") }
                     .accessibilityIdentifier("cooperation.detail.project.\(scope.rawValue)")
+                } else {
+                    LabeledContent { Text(verbatim: "#" + String(topic)) } label: { Text("cooperation.detail.project") }
+                        .accessibilityIdentifier("cooperation.detail.project.\(scope.rawValue)")
+                }
             }
             NavigationLink { CoopFlowRequestPreview(operation: .contact(inviteID: invite.id)) } label: { Text("cooperation.detail.contactPartner") }
                 .accessibilityIdentifier("cooperation.detail.contactPartner")
@@ -65,7 +79,13 @@ import SwiftUI
         }
     }
     private func handle(_ action: CoopFlowHandle, label: String, emphasis: Bool = false) -> some View {
-        NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: {
+        let stationID = action == .accept ? invite.supplyStationId : nil
+        return NavigationLink {
+            CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0,
+                                 supplyStationID: stationID,
+                                 supplyStationName: stationID == nil ? nil : invite.supplyStationName,
+                                 flowReader: stationID == nil ? nil : peerReader)
+        } label: {
             Text(LocalizedStringKey(label)).cyText(emphasis ? .bodyMedium : .body)
                 .foregroundStyle(emphasis ? CYColor.infoText : CYColor.textPrimary)
         }

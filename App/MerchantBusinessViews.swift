@@ -114,6 +114,16 @@ import SwiftUI
               pages.matches(scope: coordinator.reader.scope, authorizationGeneration: coordinator.reader.authorizationGeneration, access: snapshot.access) else { return nil }
         return pages.sourcePage(for: row)
     }
+    /// Client `MerchantReviewFilter` stays a presentation filter. Non-all tabs use the manage-tab names (`photos` → `photo`).
+    private func reviewsServerFilter(for query: MerchantBusinessQuery) -> String? {
+        guard case .reviews = query else { return nil }
+        switch listFilters.review {
+        case .all: return nil
+        case .pending: return "pending"
+        case .low: return "low"
+        case .photos: return "photo"
+        }
+    }
     private func load(_ requested: MerchantBusinessQuery, appendAftercare: Bool, appendReviews: Bool = false, expectedTeamResult: UUID? = nil, expectedTeamRecovery: UUID? = nil, expectedTeamMerchantID: Int? = nil) async {
         // A retired queued read must not clear a newer snapshot or its original result.
         guard !Task.isCancelled else { return }
@@ -136,7 +146,7 @@ import SwiftUI
         customerQueryAuthorization = nil
         loadGeneration += 1
         let generation = loadGeneration, scope = coordinator.reader.scope, authorization = coordinator.reader.authorizationGeneration
-        revision += 1; await coordinator.load(query)
+        revision += 1; await coordinator.load(query, reviewsServerFilter: reviewsServerFilter(for: query))
         guard generation == loadGeneration else { return }
         defer { revision += 1 }
         guard !Task.isCancelled, scope == coordinator.reader.scope, authorization == coordinator.reader.authorizationGeneration else {
@@ -455,27 +465,50 @@ import SwiftUI
         }
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
+    /// No owner scope on a configured live reader means there is no signed-in merchant session.
+    private var teamSignedOut: Bool { reader.isConfigured && !reader.isOfflineExample && reader.scope == nil }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
+    private var isReviews: Bool { if case .reviews = query { return true }; return false }
+    /// fix/r3-merchant-coop-a: page-specific full-page sign-in / denied / not-found / load-failed states.
+    private var pageGate: MerchantBusinessPageGate? {
+        MerchantBusinessPageGate.resolve(query: query, failureKey: model.aftercareLoadFailureKey ?? state.failureKey,
+                                         failure: state.failure, hasSnapshot: state.snapshot != nil, isBusy: state.isBusy,
+                                         loadedRecordMissing: state.snapshot.map { snapshot in
+                                             state.isCurrent && snapshot.document.query == query && !snapshot.document.rows.contains { $0.kind == .redemption }
+                                         } ?? false)
+    }
     @ViewBuilder private var pageContent: some View {
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
             if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             filters
-            if state.isBusy { CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading") }
-            if let key = model.aftercareLoadFailureKey ?? state.failureKey {
+            if state.isBusy {
+                if case .customers = query, state.snapshot != nil {
+                    // MC7-14-10 (customer/index.wxml:65): rows stay; one inline 正在更新客户名单… line.
+                    Label { Text("merchant.customers.updating").cyText(.meta) } icon: { ProgressView().controlSize(.mini) }
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("merchant.business.customers.updating")
+                } else {
+                    CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading")
+                }
+            }
+            if case .operators = query, teamSignedOut {
+                // MC7-29-1: MP team/index.wxml:11 登录后查看经营团队 + 登录.
+                Section { MerchantCoopSignInState(title: "merchantCoop.team.signIn", identifier: "merchant.team.signIn") }
+                    .listRowBackground(Color.clear)
+            } else if case .operators = query, state.failureKey == "merchant.business.denied" {
+                // MC7-29-2: MP team/index.wxml:12 当前身份不能查看经营团队 + 申请入驻.
+                Section { MerchantCoopApplyState(title: "merchantCoop.team.denied", identifier: "merchant.team.denied") }
+                    .listRowBackground(Color.clear)
+            } else if let key = model.aftercareLoadFailureKey ?? state.failureKey {
                 Section {
                     Text(LocalizedStringKey(key)).cyText(.body).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("merchant.business.error")
                     if case .rejected(_, let message) = state.failure, let message { Text(message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     if !state.isBusy, !state.isLocked { CYPillButton("action.retry", style: .secondary) { Task { await reload() } } }
                 }
             }
-            if case .reviews = query, MerchantReviewsPageState.isDenied(failureKey: model.aftercareLoadFailureKey ?? state.failureKey) {
-                Section { CloseW5dStateView(state: .denied, emptyTitle: "closew5d.state.empty.title", emptyMessage: "closew5d.state.empty.message") { Task { await reload() } } }
-            }
-            if case .reviews = query, MerchantReviewsPageState.showsGatedNotice(hasSnapshot: state.snapshot != nil, failureKey: state.failureKey, isBusy: state.isBusy, reviewSourceOpen: reviewSource != nil) {
-                Section { CloseW5dGatedNotice(message: "merchant.business.reviews.writeGated") }
-            }
+            // MC7-13-9: no developer notice above the review list; write gating stays in the confirm sheet.
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
             if case .reviews = query, let snapshot = state.snapshot, state.isCurrent, !state.isBusy, state.failureKey == nil {
                 MerchantReviewReplyRecoverySection(reader: reader, journal: journal, access: snapshot.access)
@@ -537,14 +570,26 @@ import SwiftUI
                             .listRowBackground(Color.clear)
                             .accessibilityIdentifier("merchant.business.empty")
                     } else {
-                        CYEmptyState(systemImage: "tray", isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : "merchant.business.empty", messageIdentifier: "merchant.business.empty")
+                        // MC7-13-5 (reviews/index.wxml:30-31): 还没有真实到店评价.
+                        CYEmptyState(systemImage: "tray", isRedemptionLedger ? "merchant.refundPreview.noRedemptions" : (isReviews ? "merchant.reviews.empty" : "merchant.business.empty"), messageIdentifier: "merchant.business.empty")
                             .listRowBackground(Color.clear)
                     }
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
-                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches"))
+                    if isAftercare {
+                        // MC7-16-2 (aftercare/index.wxml:70-71): 没有找到 + 清除搜索.
+                        ContentUnavailableView {
+                            Label("merchant.aftercare.notFound", systemImage: "magnifyingglass")
+                        } actions: {
+                            Button("merchant.business.aftercare.clearSearch") { model.listFilters.aftercareKeyword = "" }
+                        }
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("merchant.business.list.noMatches")
+                    } else {
+                    Text(LocalizedStringKey("merchant.business.list.noMatches"))
                         .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("merchant.business.list.noMatches")
+                    }
                 }
                 if query == .operators {
                     if let roster = try? MerchantOperatorRoster(document: snapshot.document) {
@@ -570,7 +615,7 @@ import SwiftUI
                     MerchantAftercareProgressView(progress: progress)
                 } else if query == .verificationRecords {
                     // Parity X5: 已核销 / 已撤销 chip tabs with counts and day groups (pages/merchant/verify-records).
-                    MerchantVerifyRecordsSections(records: snapshot.document.rows, total: snapshot.document.total)
+                    MerchantVerificationAppendList(reader: reader, snapshot: snapshot)
                 } else {
                     ForEach(snapshot.document.sections) { section in
                         let rows = visibleRows(section, in: snapshot.document)
@@ -604,9 +649,21 @@ import SwiftUI
                         .frame(maxWidth: .infinity).accessibilityIdentifier("merchant.business.reviews.listEnd")
                 }
                 if isAftercare {
+                    // MC7-16-3 / MC7-16-4 (aftercare/index.wxml:72-73): reaching the end loads the next page with a
+                    // 正在加载更多… row; with no more pages the list ends on 已经到底了.
                     if snapshot.document.hasMore {
-                        Button("merchant.business.aftercare.loadMore") { Task { await model.loadMoreAftercare() } }
-                            .disabled(state.isBusy).accessibilityIdentifier("merchant.business.aftercare.loadMore")
+                        HStack(spacing: CYSpacing.sm) {
+                            ProgressView()
+                            Text("merchant.list.loadingMore").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityElement(children: .combine)
+                        .onAppear { if !state.isBusy { Task { await model.loadMoreAftercare() } } }
+                        .accessibilityIdentifier("merchant.business.aftercare.loadMore")
+                    } else if !snapshot.document.rows.isEmpty {
+                        Text("merchant.list.end").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            .frame(maxWidth: .infinity)
+                            .accessibilityIdentifier("merchant.business.aftercare.listEnd")
                     }
                 } else if reviewSource == nil, (model.reviewLoadedPages?.page ?? 1) == 1, snapshot.document.hasMore || query.page > 1 {
                     Section {
@@ -656,7 +713,13 @@ import SwiftUI
         let presentedReview = state.confirmation
         // Preserve the outgoing host until its original dismissal consumes the review handoff.
         let presentedEditorID = editor?.id ?? pendingMutationEditorID
-        pageContent
+        Group {
+            if let pageGate {
+                MerchantBusinessPageGateView(gate: pageGate) { Task { await reload() } }
+            } else {
+                pageContent
+            }
+        }
         .scrollContentBackground(.hidden)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             // verify-r1 3.6 / Figma 183:1731: the refund decision is a pinned pair, 不同意 · 同意退款 ¥X. Each opens the
@@ -851,8 +914,7 @@ import SwiftUI
                         Text("merchant.business.segment.all").tag(0)
                         ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
                     }
-                    TextField("merchant.business.sourceStart", text: $sourceStart).textInputAutocapitalization(.never)
-                    TextField("merchant.business.sourceEnd", text: $sourceEnd).textInputAutocapitalization(.never)
+                    // MC7-14-9: the date range is picked only (no free-text 开始/结束 fields).
                     MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
                         ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
                         start: sourceStart, end: sourceEnd) { value in
@@ -896,6 +958,14 @@ import SwiftUI
                     .accessibilityHint(Text("merchant.business.aftercare.searchScope"))
                     .accessibilityIdentifier("merchant.business.aftercare.keyword")
                 if !model.listFilters.aftercareKeyword.isEmpty {
+                    // MC7-16-2: while more pages exist, say the search covers only the loaded cases, with 加载更多.
+                    if let loaded = state.snapshot, loaded.document.hasMore {
+                        Text("merchant.aftercare.searchLoaded \(loaded.document.rows.count)")
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("merchant.business.aftercare.searchLoaded")
+                        Button("merchant.business.aftercare.loadMore") { Task { await model.loadMoreAftercare() } }
+                            .disabled(state.isBusy)
+                    }
                     Button("merchant.business.aftercare.clearSearch") { model.listFilters.aftercareKeyword = "" }
                         .accessibilityIdentifier("merchant.business.aftercare.clearSearch")
                 }
@@ -908,6 +978,11 @@ import SwiftUI
                         Text(LocalizedStringKey("merchant.business.reviews.filter." + filter.rawValue)).tag(filter)
                     }
                 }.pickerStyle(.segmented).accessibilityIdentifier("merchant.business.reviews.filter")
+                    .onChange(of: model.listFilters.review) { _, selected in
+                        // 全部 stays the loaded `.reviews` page. Other tabs reload through MerchantReviewManageRead.
+                        guard selected != .all, case .reviews(let page) = query else { return }
+                        Task { await model.load(.reviews(page: page)) }
+                    }
                 if model.listFilters.review != .all {
                     Button("merchant.business.reviews.clearFilter") { model.listFilters.review = .all }
                         .accessibilityIdentifier("merchant.business.reviews.clearFilter")
@@ -950,7 +1025,8 @@ import SwiftUI
                         MerchantReviewSummaryHeader(presentation: presentation)
                     }
                 }
-                ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount", "pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating", "all", "repeat", "new", "noted", "monthlyNew"], id: \.self) { key in
+                // MC7-13-6: the review header already shows its four numbers; the generic rows skip them for .reviews.
+                ForEach(summaryKeys(for: document.query), id: \.self) { key in
                     if document.query == .overview, key == "personalArrivedThisMonthNet" {
                         MerchantLedgerNetSummary(presentation: .init(value: document.summary[key]))
                             .accessibilityIdentifier("merchant.business.summary." + key)
@@ -961,6 +1037,13 @@ import SwiftUI
                 }
             }
         }
+    }
+    private func summaryKeys(for query: MerchantBusinessQuery) -> [String] {
+        let reviewKeys = ["pendingReplyCount", "monthNewCount", "replyRatePct", "averageRating"]
+        let keys = MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount", "count", "pendingAmount", "arrivedAmount"]
+            + reviewKeys + ["all", "repeat", "new", "noted", "monthlyNew"]
+        if case .reviews = query { return keys.filter { !reviewKeys.contains($0) } }
+        return keys
     }
     private func cancelBusinessReview(_ review: MerchantBusinessConfirmation) {
         guard state.confirmation?.id == review.id else { return }
@@ -997,7 +1080,8 @@ import SwiftUI
                             MerchantAftercareRowLabel(row: line)
                         }
                     } else if row.kind == .customer, case .customers = query {
-                        MerchantCustomerRowLabel(row: MerchantCustomerListParity.row(row.fields, now: Date()), identifier: "merchantOps.customer.row.\(row.id)")
+                        MerchantCustomerRowLabel(row: MerchantCustomerListParity.row(row.fields, now: Date()), identifier: "merchantOps.customer.row.\(row.id)",
+                                                 avatarURL: row.fields.mbText("avatar").flatMap(URL.init(string:)))
                     } else if row.kind == .redemption || row.kind == .batch {
                         MerchantLedgerRowLabel(line: row.kind == .batch ? MerchantLedgerParity.batch(row.fields)
                                                    : MerchantLedgerParity.redemption(row.fields, canReadFinance: access.allows("merchant:finance:read")),
@@ -1020,6 +1104,9 @@ import SwiftUI
                     MerchantLedgerRedemptionHero(hero: MerchantLedgerParity.redemptionHero(row.fields))
                 } else if row.kind == .batch, case .batch = query {
                     MerchantLedgerBatchHero(hero: MerchantLedgerParity.batchHero(row.fields))
+                } else if row.kind == .review {
+                    // MC7-13-7 (reviews/index.wxml:145-169): avatar + nickname, time and 平台复审中 above the card.
+                    MerchantReviewAuthorLine(fields: row.fields, fallbackTitle: row.title)
                 } else {
                 Text(row.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 }
@@ -1091,8 +1178,16 @@ import SwiftUI
         }
         if access.canManageOperators {
             if row.kind == .operatorMember, row.fields.mbText("status") == "ACTIVE" {
-                Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
-                Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
+                // MC7-29-7: one trailing menu (岗位…, divider, 移除) instead of two inline buttons.
+                Menu {
+                    Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
+                    Divider()
+                    Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
+                } label: {
+                    Label("merchantCoop.team.memberActions", systemImage: "ellipsis.circle")
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityIdentifier("merchant.team.memberActions.\(row.id)")
             }
             if row.kind == .invite, row.fields.mbText("status") == "PENDING" {
                 Button("merchant.business.revokeInvite", role: .destructive) { editor = .init(kind: .revokeInvite(row)) }
@@ -1118,7 +1213,9 @@ import SwiftUI
             Button(MerchantOpsCopy.text("merchantOps.customer.batchTag.count %lld", selection.count)) { editor = .init(kind: .tag(selection.sorted().compactMap { try? .init($0) })) }
                 .accessibilityIdentifier("merchant.business.batchTag")
         }
-        if query == .operators, snapshot.access.canManageOperators {
+        // MC7-29-11: without the reviewed operator grant the invite would end on 提交暂不可用, so it stays hidden.
+        if query == .operators, snapshot.access.canManageOperators,
+           reader.canExecute(.inviteOperator(role: "MERCHANT_CHECKIN"), merchantID: snapshot.access.merchantID) {
             Button("merchant.business.inviteOperator") { editor = .init(kind: .invite) }
         }
     }

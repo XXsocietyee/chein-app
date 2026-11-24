@@ -247,6 +247,8 @@ public struct CoopFlowService {
     func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement
     func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON
+    /// Station-topic accept. Default sends nothing; the dormant handle grant is unchanged.
+    func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int) async throws -> CoopFlowJSON
 }
 extension CoopFlowReading {
     public func read(_ resource: CoopFlowRead, isCurrent: @escaping () -> Bool) async throws -> CoopFlowJSON {
@@ -256,6 +258,7 @@ extension CoopFlowReading {
         return value
     }
     public func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON { throw CoopFlowFailure.disabled }
+    public func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int) async throws -> CoopFlowJSON { throw CoopFlowFailure.disabled }
 }
 @MainActor public final class CoopFlowSessionReader: CoopFlowReading {
     private let service: CoopFlowService?
@@ -274,6 +277,9 @@ extension CoopFlowReading {
     }
     public func markInviteRead(inviteID: Int) async throws -> CoopFlowJSON {
         try await fenced { try await $0.markInviteRead(inviteID: inviteID, session: $1) }
+    }
+    public func acceptSupplyStation(inviteID: Int, reason: String?, supplyStationID: Int) async throws -> CoopFlowJSON {
+        try await fenced { try await $0.acceptSupplyStation(inviteID: inviteID, reason: reason, supplyStationID: supplyStationID, session: $1) }
     }
     private func fenced<T>(isCurrent: () -> Bool = { true }, _ operation: (CoopFlowService, CoopFlowSession) async throws -> T) async throws -> T {
         guard isCurrent() else { throw CoopFlowFailure.stale }

@@ -24,7 +24,7 @@ import SwiftUI
         case .myProjects:
             SubscribeMessageProjectsEntry(session: session)
         case .merchantLedger:
-            MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader)
+            MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal)
         default:
             CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

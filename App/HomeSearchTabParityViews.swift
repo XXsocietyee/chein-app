@@ -1339,11 +1339,8 @@ struct SessionMerchantRootContainerView: View {
                             .cyPushedChrome(domain: .merchant)
                         }
                     } else {
-                        MerchantFailureView(
-                            errorKey: "merchant.access.denied",
-                            identifier: "merchant.marketing",
-                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } }
-                        )
+                        // MC7-10-2 (marketing/index.wxml:13): 当前身份不能查看营销 + 申请入驻 (or 返回 for a member).
+                        MerchantDeniedState(title: "merchant.gate.marketing.denied", identifier: "merchant.marketing")
                     }
                 }
                 .toolbar {
@@ -1396,7 +1393,8 @@ struct SessionMerchantRootContainerView: View {
                         MerchantFailureView(
                             errorKey: "merchant.access.denied",
                             identifier: "merchant.cooperation",
-                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } }
+                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } },
+                            apply: { onReturnToConsumer(.mine) }
                         )
                     }
                 }

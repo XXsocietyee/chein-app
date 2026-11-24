@@ -316,6 +316,38 @@ import SwiftUI
             SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.mapQuery(query["params"]), startsOnMap: true, onSignIn: signIn).environmentObject(session)
         // Parity X2 / batch A #10 / batch D #6: merchant and coop MP paths open their native screens instead of
         // 该页面暂未开放 (query-free forms; the link rules still reject unknown keys).
+        case "pages/merchant/profile/index":
+            // MC7-03-2 (profile/index.js:39-64): ?id= is the legacy merchant row; poiId (MC-G03, Gemini) and both/neither
+            // stay on the invalid state.
+            if query["poiId"] == nil, let id = reviewedID(query), let row = PublicMerchantRowID(id) {
+                PublicMerchantHomeView(target: .legacyMerchantRowID(row), context: session.publicMerchantHomeContext)
+                    .cyPushedChrome()
+            } else { unavailable }
+        case "pages/merchant/ledger/index":
+            MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                             topicID: MerchantFinanceRoute.normalize(query)?.topicID)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/ledger/order-detail/index":
+            if let record = MerchantOrderDetailLink.record(query) {
+                MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                     query: .redemption(recordID: record.recordKey))
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantMissingParamState(title: LocalizedStringKey(MerchantOrderDetailLink.missing))
+            }
+        case "pages/coop/settlement-detail/index":
+            CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: query)
+        case "pages/merchant/ledger/batch-detail/index":
+            // MC7-08-5 (batch-detail/index.wxml:52): ?batchId= opens the batch; without it 缺少结算批次信息 + 返回上一页.
+            // The link rule must also accept batchId (Cursor, Core/MiniProgramPageLink.swift).
+            if let batchID = queryID(query, "batchId") {
+                MerchantLedgerBatchDetailView(reader: session.merchantBusinessReader, batchID: batchID,
+                    owner: .init(scope: session.merchantBusinessReader.scope, authorizationGeneration: session.merchantBusinessReader.authorizationGeneration),
+                    onReturn: {})
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantMissingParamState(title: "merchant.gate.batch.missingParam")
+            }
         case "pages/merchant/apply/index":
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
         case "pages/merchant/verify-records/index":

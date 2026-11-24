@@ -153,6 +153,27 @@ public struct MerchantBusinessService {
         let body = try await envelope(query.request(), token: token, transport: readTransport)
         return try .init(query: query, payload: Self.unwrap(body))
     }
+    /// Review tabs other than 全部. Does not change `.reviews(page:)`, which stays filter=all.
+    public func managedReviews(filter: String, page: Int, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessDocument {
+        let read = try MerchantReviewManageRead(filter: filter, page: page)
+        try access.require(MerchantBusinessQuery.reviews(page: page).permissions)
+        let body = try await envelope(read.request(), token: token, transport: readTransport)
+        return try read.document(from: Self.unwrap(body))
+    }
+    /// Redemption list with `topicId`. Omitted topic stays on `.redemptions(filter:page:)`.
+    public func redemptions(filter: String, page: Int, topicID: Int, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessDocument {
+        let query = MerchantBusinessQuery.redemptions(filter: filter, page: page)
+        try access.require(query.permissions)
+        let body = try await envelope(try MerchantFinanceRedemptionList.request(filter: filter, page: page, pageSize: 20, topicID: topicID), token: token, transport: readTransport)
+        return try .init(query: query, payload: Self.unwrap(body))
+    }
+    /// Verify-records page. Page 1 of the screen still uses `.verificationRecords`.
+    public func verificationPage(_ page: Int, access: MerchantBusinessAccess, token: String) async throws -> MerchantBusinessDocument {
+        let query = MerchantBusinessQuery.verificationRecords
+        try access.require(query.permissions)
+        let body = try await envelope(try MerchantVerificationRecordPage(page: page).request(), token: token, transport: readTransport)
+        return try .init(query: query, payload: Self.unwrap(body))
+    }
     /// The legacy public command API remains test-only. Production callers must use
     /// the reviewed coordinator path, which supplies a freshly verified snapshot.
     @MainActor public func execute(_ mutation: MerchantBusinessMutation, requestID: String, token: String) async throws -> MerchantBusinessReceipt {

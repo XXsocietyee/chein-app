@@ -35,7 +35,18 @@ struct MerchantOperationsHomeView: View {
                     }.accessibilityIdentifier("merchant.operations.cityEntry")
                 }
                 let blocked = MerchantOperationsHomeState.resolve(active: access.identity.active, visibleEntryCount: groups.reduce(0) { total, group in total + group.destinations.filter { access.allows($0) }.count })
-                if blocked != .content {
+                // MC7-19-3 / MC7-19-5: inactive identity → 去商家入驻; no decor grant → 当前身份不能装修店铺.
+                switch blocked {
+                case .empty:
+                    MerchantCoopApplyState(title: "merchant.decor.state.empty.title", message: "merchant.decor.state.empty.message",
+                                           actionTitle: "merchantCoop.decor.openApplication", identifier: "merchantCoop.decor.inactive")
+                        .listRowBackground(Color.clear)
+                case .denied:
+                    MerchantCoopActionState(systemImage: "lock", title: "merchantCoop.decor.denied.title", identifier: "closew5d.state.denied")
+                        .listRowBackground(Color.clear)
+                case .content:
+                    EmptyView()
+                default:
                     CloseW5dStateView(state: blocked, emptyTitle: "merchant.decor.state.empty.title", emptyMessage: "merchant.decor.state.empty.message") { Task { await load(readPermit) } }
                 }
                 if !reader.canSave && access.identity.active {
@@ -64,12 +75,16 @@ struct MerchantOperationsHomeView: View {
                         }
                     }
                 }
-                if !access.identity.active { Text("merchant.access.inactive").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             } else if let issue, loadedScope == reader.scope {
                 VStack(spacing: CYSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
                         .cyText(.display)
                         .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityHidden(true)
+                    // MC7-19-6: MP `品牌中心加载失败` title above the reason.
+                    Text("merchantCoop.decor.failed.title")
+                        .cyText(.sectionTitle)
+                        .accessibilityAddTraits(.isHeader)
                     MerchantOperationsIssueView(issue: issue)
                     CYPillButton("action.retry", style: .primary) { Task { await load(readPermit) } }
                         .accessibilityIdentifier("merchant.operations.retry")

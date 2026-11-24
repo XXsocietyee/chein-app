@@ -114,10 +114,25 @@ import SwiftUI
 struct CooperationIssueView: View {
     let issue: CooperationIssue
     var retry: (() -> Void)? = nil
+    /// MC7-30-1 / MC7-31-1: the signed-out issue offers 去登录 (injected hook, else the 我的 tab).
+    @Environment(\.merchantOpenSignIn) private var openSignIn
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    private var signIn: (() -> Void)? {
+        guard issue == .login else { return nil }
+        if let openSignIn { return openSignIn }
+        guard rootTabSwitch.isAvailable else { return nil }
+        let tabSwitch = rootTabSwitch
+        return { tabSwitch(.mine) }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(LocalizedStringKey(issue.key), systemImage: issue == .login ? "lock" : symbol)
                 .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("cooperation.issue")
+            if let signIn {
+                Button(action: signIn) { Text("merchantCoop.coop.signIn").frame(minHeight: CYSpacing.minTouchTarget) }
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("cooperation.signIn")
+            }
             if case .server(let text) = issue { Text(verbatim: text).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
             if case .forbidden(let message) = issue, let message, !message.isEmpty {
                 Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
