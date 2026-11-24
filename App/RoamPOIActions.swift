@@ -181,7 +181,7 @@ struct RoamPOIActionRows: View {
                 .cyPageTitle("roam.poi.photo.title")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { photoSheet = false } } }
             }
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .fullScreenCover(isPresented: $scanSheet) {
             NativeQRScanner { code in scanSheet = false; submit(.init(photoURL: challengePhoto, code: code)) }
         }

@@ -89,7 +89,7 @@ import SwiftUI
             .task { guard !loadedInitially else { return }; loadedInitially = true; if let window { await model.load(window: window) } }
             .sheet(item: $selectedBenefit, onDismiss: { model.closeBenefit() }) { fact in Group {
                 CityMerchantValueBenefitView(model: model, fact: fact)
-            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            }.cySheet(detents: [.large]) }
             .onDisappear { stop() }.onChange(of: phase) { _, value in if value != .active { stop() } }
         .cyDomainScreen(.merchant)
     }

@@ -705,7 +705,7 @@ struct RoamAnniversaryReadIntent {
         .background(LifetimeAttachment(lifetime: lifetime).frame(width: 0, height: 0))
         .sheet(item: detailBinding(model.presentation)) { presentation in Group {
             RoamMonthlyRecapDetailView(model: model, presentation: presentation, routeDestination: routeDestination)
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .onAppear { lifetime.appear(reader, foreground: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { lifetime.resume(reader, foreground: true) }

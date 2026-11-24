@@ -230,7 +230,7 @@ struct JourneyCheckDCTrack: View {
                         }
                     }
             }
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
     }
 }
 @MainActor struct PlayAmbientView: View {

@@ -460,8 +460,7 @@ struct JourneyReportView: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { rankShown = false } } }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            .cySheet()
             .onAppear(perform: onLoadRank)
         }
         .sheet(isPresented: $memoryShown) {
@@ -472,8 +471,7 @@ struct JourneyReportView: View {
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { memoryShown = false } } }
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            .cySheet()
             .onAppear(perform: onLoadMemory)
         }
         .sheet(isPresented: $feedbackShown) { Group {
@@ -481,7 +479,7 @@ struct JourneyReportView: View {
                 JourneyFeedbackSheet(nodes: report.nodes, state: feedback, onSubmit: onSubmitFeedback,
                                      onRecheck: onRecheckFeedback, onReset: onResetFeedback, onClose: { feedbackShown = false })
             }
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .cyDomainScreen(.player)
     }
 

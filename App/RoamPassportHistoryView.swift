@@ -125,7 +125,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
             if selected.owner == RoamPassportHistoryOwner(reader) {
                 NavigationStack { RoamPassportRecordView(reader: reader, sessionID: selected.id, localReader: localReader, owner: selected.owner) }
             } else { passportText("changed") }
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .background {
             if owner == RoamPassportHistoryOwner(reader), reader.isConfigured, reader.identity != nil,
                scenePhase == .active, model.isVisible {

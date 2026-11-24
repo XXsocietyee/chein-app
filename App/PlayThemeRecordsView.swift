@@ -41,7 +41,7 @@ import SwiftUI
                 Button { model.closeCard() } label: { Image(systemName: "xmark") }
                     .accessibilityLabel(Text("playx.themeRecords.backToList")).accessibilityIdentifier("playx.themeRecords.closeCard")
             } } }
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
     }
 
     private func rowLabel(_ row: PlayThemeHistoryRow) -> some View {

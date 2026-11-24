@@ -57,7 +57,7 @@ import UIKit
                     Button("action.back") { dismiss() }.frame(minHeight: 44)
                         .accessibilityIdentifier("media.stamp.cameraIssue.back")
                 }
-                Toggle("media.stamp.consent", isOn: $purposeAccepted).disabled(isBusy || showingCamera)
+                Toggle("media.stamp.consent", isOn: $purposeAccepted).tint(.green).disabled(isBusy || showingCamera)
             } footer: { Text("media.stamp.purpose") }
             captionSection
             if let coordinator {
@@ -154,7 +154,7 @@ import UIKit
                     primingAllowed = true
                     showingPriming = false
                 }, onSecondary: { showingPriming = false })
-            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            }.cySheet(detents: [.large]) }
             .fullScreenCover(isPresented: $showingCamera, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
                 focusedControl = coordinator?.selection == nil ? .capture : .status

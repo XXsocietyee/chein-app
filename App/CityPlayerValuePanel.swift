@@ -83,7 +83,7 @@ import SwiftUI
                             Button(CityPlayerValueCopy.string("close")) { sourceSelection = nil }
                         } }
                 }
-            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            }.cySheet(detents: [.large]) }
             .task { await model.load() }
             .onChange(of: phase) { _, value in if value != .active { stop() } }
             .onDisappear { stop() }

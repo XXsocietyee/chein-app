@@ -192,7 +192,7 @@ struct CityPlayerView: View {
                 visible && scenePhase == .active && reader.pointMapContext?.readID == presentation.readID
                     && reader.state == .available(presentation.read)
             })
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .onAppear { visible = true; readRequest = UUID() }
         .onChange(of: scenePhase) { _, _ in
             // Clear old state before foreground recovery; only this visible page

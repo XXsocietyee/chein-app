@@ -156,7 +156,7 @@ struct PlayAnswerReview: Identifiable, Equatable {
                     guard owner.confirm(offered) else { return }
                     Task { await owner.sendClaimed(offered) }
                 }, cancel: { owner.cancel(offered) })
-            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            }.cySheet(detents: [.large]) }
     }
 }
 

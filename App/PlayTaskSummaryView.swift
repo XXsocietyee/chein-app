@@ -69,7 +69,7 @@ struct PlayTaskSummaryView: View {
         .accessibilityElement(children: .contain)
         .sheet(item: $branchHistorySelection) { selection in Group {
             PlayBranchHistoryView(history: selection.presentation(snapshot: snapshot))
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .onChange(of: PlayBranchHistorySelection(snapshot: snapshot)) { _, current in
             if current != branchHistorySelection { branchHistorySelection = nil }
         }

@@ -76,7 +76,7 @@ import SwiftUI
                 }.cyGroupedSurface().cyPageTitle("advancedTeam.review")
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil } } }
             }.privacySensitive()
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .onChange(of: model.state?.version) { _, _ in review = nil }
         .onChange(of: model.isCurrent) { _, current in if !current { review = nil } }
         .onChange(of: scenePhase) { _, phase in if phase != .active { review = nil } }

@@ -280,6 +280,7 @@ struct CityRentLedgerView: View {
         .scrollContentBackground(.hidden)
         .background(palette.bgPage.ignoresSafeArea())
         .navigationTitle(Text(verbatim: copy("收租明细", "Rent ledger")))
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             await store.loadRevenue()
             notificationsOff = await UNUserNotificationCenter.current().notificationSettings().authorizationStatus == .denied

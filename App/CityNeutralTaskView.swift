@@ -57,7 +57,7 @@ import SwiftUI
                 }.cyGroupedSurface().navigationTitle(Text("cityNeutral.confirmTitle", tableName: table)).navigationBarTitleDisplayMode(.inline)
             }
             .cyPlayerSheetGlass()
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
         .cyDomainScreen(.game)
         .cyHideTabBar(true)
     }

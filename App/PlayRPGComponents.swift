@@ -110,8 +110,7 @@ import QuestifyCore
                 }
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .cySheet()
         .cyHaptic(.impactMedium, trigger: rollTick)
         .onDisappear { settleTask?.cancel() }
     }

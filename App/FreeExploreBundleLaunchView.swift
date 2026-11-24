@@ -106,7 +106,7 @@ import SwiftUI
                 }
                 .scrollContentBackground(.hidden)
                 .cyDomainScreen(.player)
-                .navigationTitle(text("review"))
+                .navigationTitle(text("review")).navigationBarTitleDisplayMode(.inline)
             }
             .cyDomainSheet(detents: [.half, .full])
         }

@@ -83,7 +83,7 @@ enum CityArrivalCopy {
                     Button { controller.cancelConfirmation() } label: { CityArrivalCopy.text("cancel") }
                 }.cyGroupedSurface().navigationTitle(CityArrivalCopy.text("confirmTitle")).navigationBarTitleDisplayMode(.inline)
             }
-        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+        }.cySheet(detents: [.large]) }
     }
     private func row(_ key: String, _ value: String) -> some View { LabeledContent { Text(verbatim: value).textSelection(.enabled) } label: { CityArrivalCopy.text(key) } }
 }

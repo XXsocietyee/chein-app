@@ -302,15 +302,16 @@ struct RoamEntryCover: View {
                     }
                 }
             }
-            // ROAM-11: one sheet header (22 pt title + ✕), no nav-bar title and no text close button.
-            .safeAreaInset(edge: .top, spacing: 0) {
-                CYSheetHeader(title: Text(verbatim: card.activity.title), style: .player, onClose: { dismiss() })
-                    .accessibilityIdentifier("roam.home.sheet.close")
+            // ROAM-11 (native restyle): system inline title + one ✕ close item.
+            .navigationTitle(Text(verbatim: card.activity.title)).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
+                        .labelStyle(.iconOnly).accessibilityIdentifier("roam.home.sheet.close")
+                }
             }
-            .toolbar(.hidden, for: .navigationBar)
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .cySheet()
         .accessibilityIdentifier("roam.home.sheet")
     }
     @ViewBuilder private func detailLink(_ title: LocalizedStringKey, identifier: String) -> some View {

@@ -164,7 +164,7 @@ struct PlayChapterPickRow: Identifiable, Equatable {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
         }
-        .presentationDetents([.medium, .large])
+        .cySheet()
     }
 
     private func subtitle(_ item: PlayChapterPickRow) -> Text {

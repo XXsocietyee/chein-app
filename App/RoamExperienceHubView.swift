@@ -102,7 +102,7 @@ import SwiftUI
                     .accessibilityIdentifier("roam.preflightRules.open")
             }
             Section("roam.motion.title") {
-                Toggle("roam.motion.reduce", isOn: $reduceMotionLocally)
+                Toggle("roam.motion.reduce", isOn: $reduceMotionLocally).tint(.green)
                     .accessibilityIdentifier("roam.motion.reduce")
                 if systemReduceMotion {
                     Text("roam.motion.system").font(.footnote).foregroundStyle(.secondary)

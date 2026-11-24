@@ -193,7 +193,7 @@ struct RoamBrowserView: View {
                 RoamEntryActivitySheet(card: selection.card, eventDestination: nearbyEventDestination ?? eventDestination,
                     teamDestination: nearbyTeamDestination, readOnly: nearbyEventDestination != nil,
                     isCurrent: { selection.mayRemainOpen(in: entryScope) })
-            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+            }.cySheet(detents: [.large]) }
             .onChange(of: entryScope) { _, _ in entryCard = nil }
             .onChange(of: recoveryReadOwner) { _, _ in
                 recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil)
