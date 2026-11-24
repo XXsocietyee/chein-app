@@ -19,7 +19,7 @@ public struct OrientScoreLeaderboardSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "orientScore.board.title", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("orientScore.board.title"), style: .player, onClose: onClose)
             if rows.isEmpty {
                 ContentUnavailableView("orientScore.board.empty", systemImage: "list.number")
             } else {
@@ -85,7 +85,7 @@ public struct OrientScoreAppealSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: LocalizedStringKey(kind.title), style: .player, onClose: onClose)
+            CYSheetHeader(title: Text(verbatim: kind.title), style: .player, onClose: onClose)
             Form {
                 if entryID != nil {
                     Section {

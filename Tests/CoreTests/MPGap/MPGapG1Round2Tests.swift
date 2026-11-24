@@ -250,6 +250,7 @@ final class MPGapG1Round2Tests: XCTestCase {
         _ = await service.followClub(clubID: 10)
         _ = await service.joinClub(clubID: 10)
         _ = await service.fetchMyTemplates(scope: .merchant)
+        _ = await service.fetchOrientScoring(sessionID: 99)
 
         XCTAssertEqual(transport.requests.compactMap { $0.url?.path }, [
             "/api/registration/my",
@@ -257,7 +258,8 @@ final class MPGapG1Round2Tests: XCTestCase {
             "/api/withdrawal/list",
             "/api/club/follow",
             "/api/club/join",
-            "/api/template/my/list"
+            "/api/template/my/list",
+            "/api/orient/scoring"
         ])
     }
 }
