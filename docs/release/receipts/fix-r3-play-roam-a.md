@@ -142,3 +142,66 @@ System-control glyphs (✕, share, search, chevrons, ⋯) stay SF Symbols.
 - Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), merge base b52f057dd vs branch: 202 failures+errors on both, identical sorted lists, **0 new**. The first run found 5 new failures (UserDefaults store not catalogued ×2, AppSession line ratchet ×2, the pinned `QuestifyMapPinSymbol(symbol: anchor.symbol, selected: anchor.id == selectedID)` string); all fixed and those suites re-run green.
 - `tools/check_typography_lint.py`: PASS. `tools/audit_client_ops_surfaces.py --check`: PASS.
 - Fixture routes added under "Round 2" in `docs/port/accept/f-play-roam-a.txt`.
+
+## Round 3 (2026-11-24 evening)
+
+Brief: `design/handoff-r2:docs/briefs/fix-r3-round3.md` (+ `wave-x10.md`, `fix-r3-round2.md`, `owner-decisions-1124.md`).
+
+- **Sync:** `git merge origin/ui/combined-r7` (b0ac0108d): fast-forward (my round 2 was already inside it). Merged again before the final push.
+- **Strings:** no new keys. The pending card uses the catalog keys `roam.poi.pending.*` (already in `Resources/Localizable.xcstrings`, en + zh-Hans) and `auth.signIn`. Cursor's raw `"查询当前状态"` / `"重新现场核验"` literals are replaced by those keys.
+
+### Round 3 · re-applied
+
+Each hunk of my round-2 commits (50329715e, 3cde18d10, 8966aa096) was checked against b0ac0108d.
+
+| round-2 item | state on b0ac0108d | re-applied on top of Cursor's / restyle's API | files |
+|---|---|---|---|
+| RPOI-3 pending check-in | Cursor's `RoamPOIActionModel` journal kept (`adopt(ownerID:)`, `armReverify`, `noteReloaded`, `RoamPendingCheckInDefaults`). Lost: storage-error state, settle-on-read by `completed != needRedeem`, recovered line, MP status line, the plain 打卡 row hidden while pending. | Model: `storageFailed` (read/begin throw → MP 本地存储异常, nothing sent), `pendingRecovered` (已确认当前已完成 / 待核销), `pendingNotShown` (MP `pendingStatusText`); `noteReloaded(poiID:completed:needRedeem:)` settles only when completed ≠ needRedeem (call site passes `detail.needRedeem`). View: one `pendingRows` card (title/message/status + 查询当前状态 + 重新现场核验) on catalog keys; the plain 打卡 row is hidden while a record is pending or storage is broken. No second journal and no AppSession change (Cursor's `checkInOwnerID` path is used). | RoamPOIActions, RoamItemDetailView |
+| poi-detail #20 登录 CTA | lost | `.signIn` error row: 登录 → `dismiss()` + `rootTabSwitch(.mine)` when available | RoamPOIActions |
+| Roam map pins by MP `categoryKey` | restyle replaced `QuestifyMapPinSymbol` with `CYMapMarker` (MP dot/pin set by SF symbol); my `art` image branch was dropped, so `.mpArt` was a no-op | `QuestifyMapPinSymbol.mpKind(_:)` passes `RoamPinCategory.markerKind` into `CYMapMarker(symbol:kind:selected:)` (unselected dot-<category>, selected pin-<category>, clusters `.cluster`). Same MP art as restyle, but the category comes from the place's MP `categoryKey`, not the symbol. | SearchMapCanvas, QuestifyDensityMap |
+| Medal MP defaults (trophy / glass badge) | restyle's `CYMedalGlyph` (by symbol) replaced `item.mpDefault`: topic medal showed `medal3d` instead of the MP trophy | `item.mpDefault?.image ?? CYMedalGlyph.image(for:)` | CYMedalStack |
+| PLAYM-2 本店权益 | duplicated: Cursor added a second perk card (verbatim 本店权益) and a blocked line that replaced **every** CTA | Removed the duplicate; kept the round-2 card (catalog key, MP gift art) and the `.verify`-only blocked CTA (MP `.mp-cta__main.is-dead`) | PlayStoreDayMerchantView |
+| Assets: tickets, passport tiles, event card, mailbox, share route art, pack foil, cover-route | present | — | — |
+| Client-data catalog row for the journal | present | — | — |
+
+### Fixed in round 3
+
+| id | what changed | files |
+|---|---|---|
+| MP-asset bug (mine, round 2) | `glass-badge.png` (and `glass-success.png`) are MP `cy-frames` sprite sheets (6 × 4 frames, 672 × 448). Drawing them whole showed 24 tiny badges. New `CYSpriteStill` crops frame 0; used by the medal face (`MPDefault.glassBadge`, and the restyle's `seal` / `seal.fill` glyph) and the medal-screen stat cells. | CYMedalStack |
+
+### Checked, nothing to change / not mounted (with reasons)
+
+| item | why |
+|---|---|
+| owner #10 pilot gate | Done on r7 (`PlayKitPilotGate.allows(eventID:)` on `gameStage`); my Core request 6 is closed. |
+| flows-g1 `pages/play/index` → mount `PlayToolsAndLeadSheetView` (PLAY-6) | Its lead rows would be a second implementation of the inline 领队 section (which has review/confirm and `performLead`), and its BGM / 旁白 / reduce-motion toggles have no app state to bind (they would be dead controls). Native ⋯ menu + leader section cover scan-arrive, chapters, SOS, group code, settle. Needs: preference state in Core before a sheet makes sense. |
+| flows-g1 `pages/roam/index` → `RoamSessionToolsSheetView` (ROAM-9) / `RoamCityStripTabView` (ROAM-13) | ROAM-9: fog / map-style / reduce-motion / presence bindings have no live-session state (presence is a start-time consent in `RoamLiveSessionView`); runners need `PlayRoamGapService` wiring (Cursor). ROAM-13: Gemini's queue in the r7 audit. |
+| flows-g1 `subpackageRoam/nearby` → `NearbyTeamsMapSheetView` (RNEAR-2) | The nearby page already has a native map (`NearbyTeamMapSection`); the parked view is a pins-only shell (audit: Gemini queue). |
+| flows-g1 history → `RoamMergedHistoryListView` (RHIST-1/2) | Native `RoamHistoryView` already reads `RoamPassportHistoryReadRoute` and has loading / error / denied / empty / unfinished / local-unreadable states; the parked list would duplicate it. |
+| mapping.md new rows on half a | `Other.glassSuccess` (play run-end celebration) has no app host (the run-end hero is a whole feature). Template shelf tabs, leaderboard memojis (`GrowthLeaderboardView`) and member-journey icons (`mycanyu`, `PlayerJourneyViews`) are not on half a's 15 pages. `printerBody` / `printerSlot` unchanged (see round 2). |
+| review/r7-rev-a/b/c, audit/parity-r7-play-roam | No commits since round 2; every Claude P1 row of half a is fixed or listed below. |
+| PLAYPOI-6 (P2) | Closed as native: `ChallengePOIView` opens Apple Maps (the `wx.openLocation` analogue). `PlatformExternalMapHost` without a `makeExternalMaps` host shows "gated", a regression. |
+
+### Still left (round 3)
+
+| id | why | owner |
+|---|---|---|
+| RTEAMS-1 | Topic page still has no team card (`TopicRouteMapAndTeamsSection` unmounted, player-content's page). | Gemini / player-content |
+| RTEAMS-3 (b), RTEAMS-5 | Unchanged: `NearbyTeamOwnedRow` has no pending count; `test_nearby_mine_read_provenance:16` and `test_nearby_deadline_text:17` still pin the row / `.font(.footnote)`. | Cursor |
+| ROAM-8 | Passport still lacks latest track thumbnail / stamp image. | Cursor + owner |
+| official-route #7 | No node `imgUrl`. | Cursor |
+| JLAND-r7-1 | Money (owner #3/#12). | owner |
+| ROAM-9, PLAY-6 sheets | See above: need preference / live-session state. | Cursor (state), then F |
+
+### Core requests for Cursor (round 3)
+
+8. Play preferences (BGM, 旁白 autoplay, reduce-motion override) and roam live-session preferences (fog on/off, map style) as app state, so the PLAY-6 / ROAM-9 tools sheets can bind real values.
+9. Unchanged from round 1/2: 1 (passport thumbnails), 2 (per-team applicant count), 3 (relax the two tests), 4 (`PlayCircleCoordinator.join(inviteCode:)`), 5 (node `imgUrl`).
+
+### Verification (round 3, cloud, no compiler)
+
+- APIs grepped on b0ac0108d before use: `CYMapMarker(symbol:kind:selected:)`, `CYMapMarkerKind` cases, `RoamPendingCheckInJournal.{read,begin,clear,markUncertain}` (all `throws`), `RoamNodeDetail.needRedeem`, `RootTabSwitch.isAvailable` / `callAsFunction(.mine)` (as in ClubGovernanceViews), `CYSpacing.xxs`, `MPAsset.BadgeMedal.{trophy,glassBadge}`, `CYMedalItem.mpDefault`. `CYSpriteStill` name grepped: unused in App/ and Core/.
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), base b0ac0108d vs branch: 112 failures + 105 errors on both, identical sorted lists, **0 new**.
+- `tools/check_typography_lint.py`: PASS.
+- Fixture routes: "Round 3" block in `docs/port/accept/f-play-roam-a.txt`.
