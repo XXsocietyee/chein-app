@@ -52,7 +52,7 @@ import SwiftUI
             Section {
                 Text("member.privacy.sheetBody", tableName: "MemberProfile")
                     .cyText(.bodyCompact)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("member.privacy.sheetBody")
             }
             Section {
@@ -64,7 +64,7 @@ import SwiftUI
                 SettingsHomeCityLocationControls(compliance: compliance)
             } header: { Text("member.privacy.homeCity.title", tableName: "MemberProfile") }
             Section {
-                Text("member.privacy.presence.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("member.privacy.presence.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 Button {
                     guard let disablePresence, !disablingPresence else { return }
                     disablingPresence = true
@@ -101,10 +101,21 @@ import SwiftUI
                 }
             }
             Section {
-                Text("member.privacy.roam.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(.secondary)
+                Text("member.privacy.roam.detail", tableName: "MemberProfile").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 if compliance != nil {
-                    CYPillButton("member.privacy.roam.withdraw", style: .secondary, tableName: "MemberProfile") { showsRoam = true }
-                        .accessibilityIdentifier("member.privacy.roam.withdraw")
+                    // B-PV-02 (native iOS): a plain disclosure row opens the withdrawal sheet; no pill inside a Form.
+                    Button { showsRoam = true } label: {
+                        HStack {
+                            Text("member.privacy.roam.withdraw", tableName: "MemberProfile").foregroundStyle(CYColor.textPrimary)
+                            Spacer(minLength: CYSpacing.sm)
+                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                                .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("member.privacy.roam.withdraw")
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
             SessionLocationHoldsSection()
@@ -265,22 +276,27 @@ struct OwnMediaRow: View {
     }
 }
 
-/// pages/privacy 「首页城市自动定位」. 开启 confirms, then records AGREE. 关闭 records REVOKE.
-/// A missing coordinator leaves both buttons visible and reports that the setting was not saved.
+/// pages/privacy 「首页城市自动定位」. B-PV-02 (native iOS, hand-off MR-40): one system `Toggle`.
+/// Turning it on confirms first, then records AGREE; turning it off records REVOKE. The initial
+/// position is the latest `privacy_policy` / `home_city_location` row; no row reads as off.
+/// A missing coordinator keeps the toggle visible and reports that the setting was not saved.
 @MainActor private struct SettingsHomeCityLocationControls: View {
     let compliance: AccountComplianceCoordinator?
     @State private var busy = false
     @State private var confirmEnable = false
+    @State private var isOn = false
+    @State private var loaded = false
     @State private var messageKey: String?
 
     var body: some View {
-        Button { confirmEnable = true } label: {
-            Text("member.privacy.homeCity.on", tableName: "MemberProfile")
+        Toggle(isOn: Binding(get: { isOn }, set: { requested in
+            guard !busy else { return }
+            if requested { confirmEnable = true } else { Task { await write(enabled: false) } }
+        })) {
+            Text("member.privacy.homeCity.title", tableName: "MemberProfile")
         }
         .disabled(busy)
-        .accessibilityIdentifier("member.privacy.homeCity.on")
-        .accessibilityLabel(Text("member.privacy.homeCity.on", tableName: "MemberProfile"))
-        .accessibilityValue(homeCitySpokenValue)
+        .accessibilityIdentifier("member.privacy.homeCity.toggle")
         .accessibilityHint(Text("member.privacy.sheetBody", tableName: "MemberProfile"))
         .confirmationDialog(Text("homeCityConsent.title"), isPresented: $confirmEnable, titleVisibility: .visible) {
             Button("homeCityConsent.agree") { Task { await write(enabled: true) } }
@@ -294,28 +310,19 @@ struct OwnMediaRow: View {
         } message: {
             Text("homeCityConsent.body")
         }
-        Button { Task { await write(enabled: false) } } label: {
-            Text("member.privacy.homeCity.off", tableName: "MemberProfile")
+        .task {
+            guard !loaded, let compliance else { return }
+            loaded = true
+            if let baseline = try? await compliance.latestHomeCityLocationConsent() {
+                isOn = baseline.consent?.matches(.homeCityLocation, event: .agree) ?? false
+            }
         }
-        .disabled(busy)
-        .accessibilityIdentifier("member.privacy.homeCity.off")
-        .accessibilityLabel(Text("member.privacy.homeCity.off", tableName: "MemberProfile"))
-        .accessibilityValue(homeCitySpokenValue)
-        .accessibilityHint(Text("member.privacy.sheetBody", tableName: "MemberProfile"))
         if let shown = messageKey {
             Text(LocalizedStringKey(shown), tableName: "MemberProfile")
                 .cyText(.bodyCompact)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("member.privacy.homeCity.status")
         }
-    }
-
-    /// No saved setting yet is unknown, spoken as an em dash. A later status sentence is the copy already on the row.
-    private var homeCitySpokenValue: Text {
-        if let messageKey {
-            return Text(LocalizedStringKey(messageKey), tableName: "MemberProfile")
-        }
-        return Text(verbatim: "—")
     }
 
     private func write(enabled: Bool) async {
@@ -329,9 +336,11 @@ struct OwnMediaRow: View {
         do {
             if enabled {
                 _ = try await compliance.recordHomeCityLocationAgree()
+                isOn = true
                 messageKey = "member.privacy.homeCity.enabled"
             } else {
                 _ = try await compliance.recordHomeCityLocationRevoke()
+                isOn = false
                 messageKey = "member.privacy.homeCity.disabled"
             }
         } catch {

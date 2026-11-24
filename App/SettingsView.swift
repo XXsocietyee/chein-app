@@ -259,6 +259,7 @@ private struct SettingsSearchResults: View {
     let session: AppSession
     let language: Binding<AppLanguage>
     @Environment(\.locale) private var locale
+    @State private var sheetDestination: ComplianceDestination?
     private struct Entry: Identifiable {
         let id: String; let key: String; let symbol: String; let tint: Color; let words: String
     }
@@ -288,6 +289,16 @@ private struct SettingsSearchResults: View {
             }
         }
         .labelStyle(SettingsTileLabelStyle())
+        .sheet(item: $sheetDestination) { destination in Group {
+            if let c = session.accountComplianceCoordinator {
+                NavigationStack {
+                    AccountComplianceSheet(coordinator: c, destination: destination, market: session.operationalMarket, legalReader: session.legalReader)
+                }
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
     }
     @ViewBuilder private func row(_ e: Entry) -> some View {
         let label = Label(LocalizedStringKey(e.key), systemImage: e.symbol).environment(\.settingsTileTint, e.tint)
@@ -296,12 +307,25 @@ private struct SettingsSearchResults: View {
         case "agreement": NavigationLink { SettingsLegalDocumentView(type: .userAgreement, market: session.operationalMarket, reader: session.legalReader) } label: { label }
         case "privacy": NavigationLink { SettingsLegalDocumentView(type: .privacyPolicy, market: session.operationalMarket, reader: session.legalReader) } label: { label }
         case "about": NavigationLink { SettingsAboutView(market: session.operationalMarket, appInformation: .current(), legalReader: session.legalReader) } label: { label }
-        case "marketing", "roam", "close":
+        case "marketing":
             if let c = session.accountComplianceCoordinator {
                 NavigationLink {
-                    AccountComplianceSheet(coordinator: c, destination: e.id == "marketing" ? .marketing : (e.id == "roam" ? .roam : .cancellation),
+                    AccountComplianceSheet(coordinator: c, destination: .marketing,
                                            market: session.operationalMarket, legalReader: session.legalReader, showsCloseButton: false)
                 } label: { label }
+            } else { label }
+        case "roam", "close":
+            // B-DR-07: the search result opens the same sheet as the Settings row (AccountComplianceSettingsSection), not a push.
+            if session.accountComplianceCoordinator != nil {
+                Button { sheetDestination = e.id == "roam" ? .roam : .cancellation } label: {
+                    HStack {
+                        label
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary)
+                    }
+                }
+                .foregroundStyle(CYColor.textPrimary)
+                .accessibilityIdentifier("settings.search.\(e.id)")
             } else { label }
         default:
             Picker(selection: language) {
