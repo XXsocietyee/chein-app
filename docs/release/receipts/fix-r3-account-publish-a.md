@@ -169,3 +169,63 @@
 | A3-01, A1-01, A2-10, A4-01, A7-01/03/05 | Unchanged (Cursor upload grant / Gemini unparks). | Cursor / Gemini |
 | A2-08, A3-10, A7-02, A8-06, B-SZ-10 | Unchanged from round 1 (M/L, or wait on the owner's Settings calls). | Claude follow-up |
 | Owner rows | Unchanged (A1-02, A1-08, A3-05, A3-06/A6-02, A8-02/03, B-SZ-11/13, B-MK-01, B-MK-05 sheet). | owner |
+
+## Round 3 (2026-11-24 evening)
+
+Base: merged `origin/ui/combined-r7` `b0ac0108d` (clean merge, no conflicts).
+
+### Round 3 · re-applied
+I checked every round-1/round-2 commit of this half against the new base, file by file (`git diff <c>^ <c>` vs HEAD, then a line-level look at every file the integration changed). Only Settings lost hunks: `SettingsView` and `SettingsAccountEntries` were restored to Cursor's side.
+
+| Lost hunk (round 2, `69d2f8243`) | Re-applied on Cursor's wiring | File |
+|---|---|---|
+| B-SZ-04 signed-out row icon → `MPAsset.FeatureIcon.iconQaPerson` | yes | SettingsView.swift |
+| B-SZ-09 403 row icon → `iconQaPerson`; second tap dropped while the read runs; 44 pt row | yes, on Cursor's `refreshAccountProfile()` / `accountProfileLoading` (no second profile read added) | SettingsView.swift |
+| 城瘾玩法 → `iconLcCompass`; 邀请与收益 → `iconLcGift` | yes | SettingsView.swift |
+| 成为俱乐部主理人 → `iconFlagBlue` | yes, on Cursor's `SettingsClubHostRouter` button (routing unchanged) | SettingsAccountEntries.swift |
+| B-MK-06 merchant logo only from a safe https URL | the other half's `merchantMark` kept; it now goes through `QuestifyCardArtwork.safeURL` (was `URL(string:)`, any scheme) | AccountComplianceViews.swift |
+
+Not re-applied, because Cursor's version already does it: the fresh `POST /api/user/info` on appear and on account change (B-SZ-14-r7), the `.denied` phase (B-SZ-09), and the host route (B-SZ-05, now `SettingsClubHostRouter`, with the create workspace pushed instead of shown as a sheet).
+
+Still present on the base, checked: A4-09-r7 `MPFavoritesLinkHost`, B-SZ-12 scene links, B-MK-07-r7 signed-out link state, A2-03 `socialConversationDestination`, A8-10-r7 feed cursor, the 收藏 / 申诉 / 投诉建议 / 隐私 MP assets, and every other file of this half (no hunk lost).
+
+### Fixed in round 3
+| ID | Change | File |
+|---|---|---|
+| MP asset `iconLcStore` (mapping row 247) | Merchant 品牌中心 card shows the MP store icon in place of the initial (shezhi.wxml:14) | SettingsView.swift (`SettingsAccountCard.brandMark`) |
+
+### Flow edges (Gemini `flows-g1/g2`, "for Claude") in this half
+| Edge | Result |
+|---|---|
+| `shezhi.js:158` merchant → `merchant/decor` | Already routed: `ProfileSettingsProfileAccess` target `.brand` opens `MerchantOperationsDocumentView(destination: .decor)`. |
+| `shezhi.js:167` → `promo` | Done in round 1 (B-SZ-15-r7). |
+| `talent/list.js:122` storeCard → `market/passes` | Already mounted: `MPPassExploreCard` on the 帖文 tab (ClubHomeView.swift:77). |
+| `talent/list.js:583` 创建俱乐部 (leader → create, else apply) | Already handled by `ClubOperationsEntryButton(target: .create, hostApplication:)`. |
+| `mylike.js:660` post / topic | Done (A4-09-r7). |
+| `mylike.js:435` → `poi-detail` | A4-01, Gemini (no POI detail screen). |
+| `address.js:44` → addressinfo | In-app: `ProfileParticipantsView` pushes `ParticipantFormView`. |
+
+### Review / audit rows
+- `review/r7-rev-a/b/c`: no Claude-owned row for this half's pages (B-14 is messaging; F-C24 is owner).
+- `parity-r7` P1 (Claude) for this half: all done, except A2-02, A4-04, A6-01, which still wait on Core (see below), and A7-02 (L).
+- A8-06 (管理 on owned cards): **closed, no change.** The current MP `talent/list` (UI-19, 2026-09-18) has no 管理 on club cards; cards only open the club page.
+
+### MP assets left as SF Symbols (rule: system-control glyphs)
+- `iconUp` (mylike 分享) stays `square.and.arrow.up`.
+- `dClose` stays `xmark`.
+
+### Checks
+- `tools/check_a11y_lint.py`: 17 new / 130 current, the same as the base without this round. None in this half's files.
+- No new string keys this round.
+
+### Still open after round 3
+| ID | Why | Who |
+|---|---|---|
+| A2-02 | `SocialPublicProfile` still has no role / merchant field. | Cursor |
+| A4-04 (据点 share), A8-09-r7 | `PublicContentShareLink` has no POI / club-hub link yet. | Cursor |
+| A6-01 | No profile-side bound-phone value. | Cursor |
+| A7-08-r7 (重试) | `MiniCropSession` has no `retryCurrent()`. | Cursor |
+| A3-01, A1-01, A2-10, A4-01, A7-01/03/05 | Upload grant / Gemini unparks. | Cursor / Gemini |
+| A7-02 | L: one cropper for avatar, cover and template. | Claude follow-up |
+| A2-08, A3-10, B-SZ-10 | P2. B-SZ-10 waits on the owner's Settings calls (B-SZ-11/13). | Claude follow-up / owner |
+| Owner rows | Unchanged. | owner |

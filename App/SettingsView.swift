@@ -48,7 +48,9 @@ struct SettingsView: View {
         Section {
             if showsAccountCard, let info = accountInfo {
                 if let route = profileOwner.route(.current(session)) {
-                    NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true) }
+                    // MP shezhi.wxml:14: the merchant row (品牌中心) carries icon_lc_store; players keep the initial avatar.
+                    NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true,
+                                                                       brandMark: route.access.target == .brand) }
                         .questifyHidesLinkIndicator()
                         .accessibilityIdentifier("settingsNative.openProfile")
                 } else {
@@ -307,12 +309,20 @@ struct SettingsAccountCard: View {
     let nickname: String
     let level: Int
     let tappable: Bool
+    /// Merchant view: MP `icon_lc_store` in place of the initial.
+    var brandMark = false
     @Environment(\.cyPalette) private var palette
     @Environment(\.themeDomain) private var themeDomain
     @Environment(\.locale) private var locale
     var body: some View {
         HStack(alignment: .center, spacing: CYSpacing.lg) {
-            Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
+            Group {
+                if brandMark {
+                    MPAsset.FeatureIcon.iconLcStore.resizable().scaledToFit().padding(16)
+                } else {
+                    Text(verbatim: String(nickname.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
+                }
+            }
                 .cyText(.dataXL).foregroundStyle(palette.textPrimary)
                 .frame(width: 60, height: 60)
                 .background(Circle().fill(palette.bgRaised))
