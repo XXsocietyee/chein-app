@@ -11,7 +11,12 @@ import SwiftUI
         switch route {
         case .playerOrderList:
             // FIN-16-4: one host for 我的订单, whatever the entry (account row, notification, deep link).
-            SessionOwnedOrdersView(session: session)
+            // R7-MEM-16-2: MP order.js:20-23 (M-25) sends a merchant view to 我的项目 instead; merchants have no orders.
+            if session.account?.effectiveRole == "merchant" {
+                SubscribeMessageProjectsEntry(session: session)
+            } else {
+                SessionOwnedOrdersView(session: session)
+            }
         case .coopList(let direction):
             CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
                                    peerReader: session.cooperationFlowReader, initialDirection: direction,

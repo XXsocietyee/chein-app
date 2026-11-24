@@ -12,6 +12,8 @@ struct ProfileReadScreen<Value, Content: View>: View {
     let issueCopy: ProfileReadIssueCopy?
     /// Sign-in action for the signed-out state (MP 登录). Nil keeps the state without a button.
     let onSignIn: (() -> Void)?
+    /// FIN-16-8: native pages refresh by pull only (restyle spec §3.1). Older hosts keep the ↻ until restyled.
+    let showsRefreshButton: Bool
     @State private var value: Value?
     @State private var refreshToast: LocalizedStringKey?
     @State private var isLoading = true
@@ -22,12 +24,14 @@ struct ProfileReadScreen<Value, Content: View>: View {
     init(reader: any ProfileReading, accessibilityPrefix: String,
          issueCopy: ProfileReadIssueCopy? = nil,
          onSignIn: (() -> Void)? = nil,
+         showsRefreshButton: Bool = true,
          load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader
         self.accessibilityPrefix = accessibilityPrefix
         self.issueCopy = issueCopy
         self.onSignIn = onSignIn
+        self.showsRefreshButton = showsRefreshButton
         self.load = load
         self.content = content
     }
@@ -41,10 +45,12 @@ struct ProfileReadScreen<Value, Content: View>: View {
         }
         .refreshable { await loadOwner.run { await reload(keepingValue: true) } }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload(keepingValue: true) } }
-                    .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
-                    .accessibilityIdentifier(accessibilityPrefix + ".refresh")
+            if showsRefreshButton {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload(keepingValue: true) } }
+                        .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
+                        .accessibilityIdentifier(accessibilityPrefix + ".refresh")
+                }
             }
         }
         .task(id: reader.identity) { loadOwner.activate(); await loadOwner.run { await reload() } }

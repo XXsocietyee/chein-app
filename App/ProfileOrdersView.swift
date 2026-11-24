@@ -28,7 +28,7 @@ struct ProfileOrdersView: View {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, load: { try await reader.profileOrders() }) { orders in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, onSignIn: onSignIn, showsRefreshButton: false, load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
                 VStack(spacing: 12) {
                     CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
@@ -135,7 +135,13 @@ private struct ProfileOrderRow: View {
     let statusKey: String
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.openURL) private var openURL
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+    static func mapURL(_ address: String) -> URL? {
+        var parts = URLComponents(string: "https://maps.apple.com/")
+        parts?.queryItems = [URLQueryItem(name: "q", value: address)]
+        return parts?.url
+    }
     var body: some View {
         // Source V3-22 card: cover | mode tag + state / name / time / place, then the 实付款 (待付款) line and its action.
         // The order number lives on the detail page only.
@@ -168,6 +174,8 @@ private struct ProfileOrderRow: View {
                 }
                 Group {
                     if let title = order.title, !title.isEmpty { Text(verbatim: title) }
+                    // FIN-16-7: MP OR-034 writes 已下架 when neither the activity nor the topic reads back.
+                    else if order.title == nil { Text(verbatim: c.t("已下架", "No longer available")) }
                     else { Text("profile.orders.untitled") }
                 }
                 .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
@@ -179,7 +187,16 @@ private struct ProfileOrderRow: View {
                     meta(Text(verbatim: date), "calendar")
                 }
                 if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
-                    meta(Text(verbatim: location), "mappin.and.ellipse")
+                    // FIN-16-7: MP onAddressTap opens the address in the map app; the card tap still opens the detail.
+                    if let mapURL = Self.mapURL(location) {
+                        Button { openURL(mapURL) } label: { meta(Text(verbatim: location), "mappin.and.ellipse") }
+                            .buttonStyle(.borderless)
+                            .frame(minHeight: 44, alignment: .leading)
+                            .accessibilityLabel(Text(verbatim: c.t("在地图中打开 ", "Open in Maps: ") + location))
+                            .accessibilityIdentifier("profile.orderRow.address")
+                    } else {
+                        meta(Text(verbatim: location), "mappin.and.ellipse")
+                    }
                 }
                 // FIN-16-5: 待付款 with payment held behind the release switch says where to pay instead of staying silent.
                 if historyState == .pendingPayment, !ReleaseMoneyWriteSwitch.paymentEnabled {
@@ -220,6 +237,9 @@ private struct ProfileOrderRow: View {
             // 立即支付 / 取消订单 stay on the detail page behind the payment gate.
             if historyState == .refunding || historyState == .refunded {
                 OrderPillLabel(title: Text(verbatim: c.t("查看退款详情", "View refund details")))
+            } else if historyState == .manualRefund {
+                // FIN-16-7: MP manual_refund reads 查看处理进度.
+                OrderPillLabel(title: Text(verbatim: c.t("查看处理进度", "View progress")))
             } else if order.registrationStatus == 1 || order.registrationStatus == 2 {
                 OrderPillLabel(title: Text(verbatim: c.t("查看详情", "View details")))
             }
@@ -255,6 +275,8 @@ struct ProfileOrderDetailView: View {
     var orderSupport: ProfileOrderSupportLookup? = nil
     var lookedUpOrderID: Int64? = nil
     var onOpenedOrder: ((Int) -> Void)? = nil
+    /// MP 登录 when a deep link opens the detail signed out. Nil keeps the state without a button.
+    var onSignIn: (() -> Void)? = nil
     @State private var ticketTarget: ProfileOrderTicketTarget?
     @State private var ticketEntryVisible = false
     @State private var ticketPresentationID = UUID()
@@ -263,7 +285,7 @@ struct ProfileOrderDetailView: View {
     @State private var copyToast: LocalizedStringKey?
     @State private var copyTone: CYToastTone = .success
     var body: some View {
-        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load: { try await reader.profileOrder(id: id) }) { order in
+        ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, onSignIn: onSignIn, showsRefreshButton: false, load: { try await reader.profileOrder(id: id) }) { order in
             ProfileOrderMeetingPointHost(order: order, requestedID: id, reader: reader) { meetingPointEntry in
             List {
                 ProfileOrderHeroSection(order: order)
@@ -325,7 +347,6 @@ struct ProfileOrderDetailView: View {
                         LabeledContent("profile.orderParity.refundApplication") { ProfileOrderCodeText(label: .refundApplication(code)) }
                     }
                     ProfileOptionalRow(key: "profile.orders.manualRefund", value: order.manualRefundCaseStatus)
-                    ProfileOptionalRow(key: "profile.orders.refundDeadline", value: order.refundDeadlineDisplay)
                 }
                 ProfileOrderSourceDetailSections(order: order)
                 ProfileOrderInvoiceSection(order: order)
@@ -351,6 +372,8 @@ struct ProfileOrderDetailView: View {
                 BundleCommerceOrderEntry(order: order, requestedID: id, origin: reader)
                 // Source 退款与客服 (报名与客服 when free): 联系客服 opens the read-only support page.
                 Section(LocalizedStringKey(order.isSourceFreeOrder ? "profile.orderP2.supportSection.free" : "profile.orderP2.supportSection")) {
+                    // R7-MEM-17-2: MP refund-main / refund-sub text (D:328-329) instead of a bare 退款截止 row.
+                    ProfileOrderRefundPolicyText(order: order)
                     NavigationLink { ParticipationSupportView() } label: {
                         Label("profile.orderP2.contactSupport", systemImage: "message")
                     }.accessibilityIdentifier("profile.order.detail.support")
@@ -567,20 +590,44 @@ private struct ProfileOrderStateNoticeSection: View {
         // Evaluated on render like the source detail; the card never triggers a read.
         if let notice = order.stateNotice() {
             Section {
-                VStack(alignment: .leading, spacing: 6) {
+                // FIN-17-7: design tokens and the shared status chip instead of raw fonts and a hand-made capsule.
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(LocalizedStringKey(notice.titleKey)).font(.headline)
+                        Text(LocalizedStringKey(notice.titleKey)).cyText(.cardTitle)
                             .accessibilityIdentifier("profile.order.detail.stateTitle")
-                        Spacer(minLength: 8)
-                        Text(LocalizedStringKey(notice.tagKey)).font(.caption)
-                            .padding(.horizontal, 8).padding(.vertical, 2)
-                            .background(Capsule().fill(CYColor.bgSurfaceSubtle))
+                        Spacer(minLength: CYSpacing.sm)
+                        CYStatusChip(LocalizedStringKey(notice.tagKey))
                             .accessibilityIdentifier("profile.order.detail.stateTag")
                     }
                     if let hint = notice.hint { Text(verbatim: hint).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-                }.padding(.vertical, 4).accessibilityElement(children: .contain)
+                }.padding(.vertical, CYSpacing.xs).accessibilityElement(children: .contain)
             }
         }
+    }
+}
+
+/// R7-MEM-17-2: MP `refundDeadlineDisplay || 支付成功后将按订单退款截止时间判断是否可原路退款。`, plus
+/// 本单未收取费用 for a free order. The settle-stage 退款进度 rows need Core fields (see receipt).
+private struct ProfileOrderRefundPolicyText: View {
+    let order: ProfileOrder
+    @Environment(\.locale) private var locale
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            if let deadline = order.refundDeadlineDisplay?.trimmingCharacters(in: .whitespacesAndNewlines), !deadline.isEmpty {
+                Text(verbatim: deadline).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+            } else {
+                Text(verbatim: c.t("支付成功后将按订单退款截止时间判断是否可原路退款。", "After payment, the order’s refund deadline decides whether it can be refunded to the original method."))
+                    .cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
+            }
+            if order.isSourceFreeOrder {
+                Text(verbatim: c.t("本单未收取费用。如需咨询报名安排，请联系客服。", "This order was free. For questions about your booking, contact support."))
+                    .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("profile.order.detail.refundPolicy")
     }
 }
 

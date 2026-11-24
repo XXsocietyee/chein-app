@@ -38,6 +38,42 @@ import SwiftUI
     }
 }
 
+/// R7-MEM-17-1: the `orderinfo?id=` deep link mounts the detail with the same lifecycle coordinator
+/// and ticket reader as 我的订单, so 取消订单 / 申请退款 and 查看票 stay on the page (MP
+/// scene-member-order-detail). Writes keep the reviewed factory's gates; payment stays TEST-gated.
+@MainActor struct SessionOwnedOrderDetailView: View {
+    @ObservedObject var session: AppSession
+    let id: Int
+    @State private var showsSignIn = false
+    var body: some View {
+        OwnedOrderDetailLifecycleHost(session: session, id: id, onSignIn: { showsSignIn = true })
+            .environment(\.freeExploreBundleReadProvider, session.freeExploreBundleReadProvider)
+            .environment(\.bundleCommerceBaseURL, session.currentRuntimeDependencyContext?.baseURL)
+            .environment(\.bundleCommercePublicMerchant, session.publicMerchantHomeContext)
+            .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
+            .id(session.ownedOrderReader.identity)
+            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
+    }
+}
+
+@MainActor struct OwnedOrderDetailLifecycleHost: View {
+    @State private var coordinator: OrderLifecycleCoordinator
+    private let session: AppSession
+    private let id: Int
+    private let onSignIn: (() -> Void)?
+    init(session: AppSession, id: Int, onSignIn: (() -> Void)? = nil) {
+        self.session = session
+        self.id = id
+        self.onSignIn = onSignIn
+        _coordinator = State(initialValue: OrderLifecycleCoordinator(
+            reader: OwnedOrderLifecycleReader(origin: session.ownedOrderReader, base: session.orderLifecycleReader),
+            production: { [weak session] in session?.makeOrderLifecycleDispatcher() }))
+    }
+    var body: some View {
+        ProfileOrderDetailView(id: id, reader: session.ownedOrderReader, lifecycleCoordinator: coordinator, ticketReader: session.ticketWalletReader, onSignIn: onSignIn)
+    }
+}
+
 /// Fences the shared lifecycle reader behind the owned-order read approval: once the approval is
 /// revoked/expired or the account changes, the scope retires and the detail read throws. It
 /// exposes no writer; `isOfflineExample` is always false so a fixture simulator is unreachable.
