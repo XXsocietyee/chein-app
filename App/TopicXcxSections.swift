@@ -460,7 +460,27 @@ struct TopicXcxRouteSection: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: stop.node.name)
                                 if let hours = stop.node.businessTime { Text(verbatim: hours).cyText(.meta) }
-                                if let address = stop.node.address { Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption) }
+                                // R7-PC-B1-18: MP stop row opens the place in the map app.
+                                if let address = stop.node.address {
+                                    if let url = TopicStopMapsLink.url(for: stop.node) {
+                                        Link(destination: url) {
+                                            Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                        }
+                                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                                        .accessibilityHint(Text("accountCollection.coupon.openInMaps"))
+                                        .accessibilityIdentifier("topic.route.stop.\(stop.id).map")
+                                    } else {
+                                        Label { Text(verbatim: address).lineLimit(1) } icon: { Image(systemName: "mappin") }.font(.caption)
+                                    }
+                                }
+                            }
+                            Spacer(minLength: 0)
+                            // R7-PC-B1-18: MP stop image.
+                            if let image = stop.node.images.first, let url = QuestifyCardArtwork.safeURL(image) {
+                                PlayerFeedRemoteImage(url: url, maxPixel: 160, placeholder: { CYColor.bgSurfaceStrong }, failure: { CYColor.bgSurfaceStrong })
+                                    .frame(width: 56, height: 56)
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                                    .accessibilityHidden(true)
                             }
                         }
                     }
@@ -579,5 +599,17 @@ extension EnvironmentValues {
     var topicLineupClubDestination: ((Int) -> AnyView)? {
         get { self[TopicLineupClubDestinationKey.self] }
         set { self[TopicLineupClubDestinationKey.self] = newValue }
+    }
+}
+
+/// Apple Maps link for a topic stop: coordinate when present, else the address text.
+enum TopicStopMapsLink {
+    static func url(for node: TopicNode) -> URL? {
+        if let lat = node.latitude, let lng = node.longitude, (-90...90).contains(lat), (-180...180).contains(lng), lat != 0 || lng != 0 {
+            var components = URLComponents(string: "https://maps.apple.com/")
+            components?.queryItems = [URLQueryItem(name: "ll", value: "\(lat),\(lng)"), URLQueryItem(name: "q", value: node.name)]
+            return components?.url
+        }
+        return HomeFeedMapsLink.url(for: node.address)
     }
 }
