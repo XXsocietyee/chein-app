@@ -131,6 +131,9 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
         .cyDomainPageBackground()
         .themeDomain(.merchant)
         .tint(CYDomainPalette(.merchant).brand)
+        // fix/r3-merchant-coop-b: brand-center / team / city-node dead-end states reuse these CTAs.
+        .environment(\.merchantOpenApplication, openApplication)
+        .environment(\.merchantOpenSignIn, openSignIn)
         .task(id: [reader.sessionRevision, childReturnRevision]) { await reload() }
         .onDisappear { coveredByChild = true; returnReadStartedAt = nil }
         .onAppear { if coveredByChild { coveredByChild = false; returnReadStartedAt = ProcessInfo.processInfo.systemUptime } }
@@ -882,12 +885,19 @@ struct MerchantFailureView: View {
     let errorKey: String
     let identifier: String
     let retry: () -> Void
+    /// MC7-28-4: MP 申请入驻 (`openApplication`) on the denied state. Nil hides it.
+    var apply: (() -> Void)? = nil
     var body: some View {
         // Native restyle R3: the system unavailable state with a retry button.
         ContentUnavailableView {
             Label(LocalizedStringKey(errorKey), systemImage: errorKey == "merchant.access.denied" ? "lock" : "exclamationmark.triangle")
                 .accessibilityIdentifier(identifier + ".error")
         } actions: {
+            if errorKey == "merchant.access.denied", let apply {
+                Button("merchant.gate.apply", action: apply)
+                    .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier(identifier + ".apply")
+            }
             if errorKey != "merchant.access.denied" && errorKey != "auth.expired" {
                 Button("action.retry", action: retry)
                     .buttonStyle(.borderedProminent)

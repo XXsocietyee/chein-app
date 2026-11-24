@@ -253,8 +253,17 @@ import SwiftUI
     let operationScope: String?
     private struct Identity: Hashable { let reader: ObjectIdentifier; let scope: String? }
     var body: some View {
-        CoopInvitationReadContent(reader: reader, operationScope: operationScope)
-            .id(Identity(reader: ObjectIdentifier(reader), scope: operationScope))
+        if reader.session == nil {
+            // MC7-31-1: one signed-out state (MP coop/invite/index.wxml:11 登录后发起协作邀请 + 去登录), not per-section text.
+            Form {
+                MerchantCoopSignInState(title: "merchantCoop.invite.signIn", identifier: "cooperation.invite.signIn")
+                    .listRowBackground(Color.clear)
+            }
+            .cyMiniListScreen().navigationTitle("context.coop.new").navigationBarTitleDisplayMode(.inline)
+        } else {
+            CoopInvitationReadContent(reader: reader, operationScope: operationScope)
+                .id(Identity(reader: ObjectIdentifier(reader), scope: operationScope))
+        }
     }
 }
 @MainActor private struct CoopInvitationReadContent: View {
@@ -316,6 +325,12 @@ import SwiftUI
                 if model.targetsFailed { CYPillButton("action.retry", style: .secondary) { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
                 if !model.busy, !model.targetsFailed, filtered.isEmpty {
                     CYEmptyState("context.picker.empty")
+                    // MC7-31-5: MP coop/invite/index.wxml:100,110 刷新合作对象.
+                    Button { Task { await model.retryTargets(permit) } } label: {
+                        Label("merchantCoop.invite.refreshTargets", systemImage: "arrow.clockwise").frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .disabled(model.targetsBusy)
+                    .accessibilityIdentifier("cooperation.invite.refreshTargets")
                 }
                 ForEach(filtered) { candidate in
                     Button { model.toggle(candidate.id, permit: permit) } label: {

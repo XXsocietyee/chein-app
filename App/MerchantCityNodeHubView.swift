@@ -63,6 +63,9 @@ struct MerchantCityNodeInlineError: View {
     @StateObject private var model: MerchantContentViewModel
     @StateObject private var claimModel: MerchantContentViewModel
     @State private var canVerify = false
+    /// MC7-24-2: MP `canManageProjects` (`merchant:project:manage`). Nil = no access reader here (fixture) → unchanged.
+    @State private var canManageProjects: Bool?
+    private var showsProjectActions: Bool { canManageProjects != false }
     @State private var showsClaim = false
     @State private var showsCreate = false
     @State private var showsInfo = false
@@ -179,15 +182,19 @@ struct MerchantCityNodeInlineError: View {
         let p = MerchantCityNodeHubProjection(list: s.value)
         intro(p.quota)
         // Source 投放节点: the screen's one primary action. A full or empty quota is explained on tap.
-        Button { goCreate(p.quota) } label: {
-            MerchantCityNodeCopy.text("merchantCityNode.place.action").frame(maxWidth: .infinity)
+        if showsProjectActions {
+            Button { goCreate(p.quota) } label: {
+                MerchantCityNodeCopy.text("merchantCityNode.place.action").frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent).controlSize(.large)
+            .opacity(p.quota.state == .full || p.quota.state == .none ? 0.5 : 1)
+            .accessibilityIdentifier("cityNodeHub.place")
         }
-        .buttonStyle(.borderedProminent).controlSize(.large)
-        .opacity(p.quota.state == .full || p.quota.state == .none ? 0.5 : 1)
-        .accessibilityIdentifier("cityNodeHub.place")
         HStack(spacing: 12) {
-            Button { openClaim() } label: { Label { MerchantCityNodeCopy.text("merchantCityNode.claim.open") } icon: { Image(systemName: "plus") } }
-                .buttonStyle(.bordered).accessibilityIdentifier("cityNodeHub.claim")
+            if showsProjectActions {
+                Button { openClaim() } label: { Label { MerchantCityNodeCopy.text("merchantCityNode.claim.open") } icon: { Image(systemName: "plus") } }
+                    .buttonStyle(.bordered).accessibilityIdentifier("cityNodeHub.claim")
+            }
             if canVerify, let businessReader, let businessJournal {
                 NavigationLink { CityNodeRedeemView(reader: businessReader, journal: businessJournal) } label: {
                     Label { MerchantCityNodeCopy.text("merchantCityNode.scan.open") } icon: { Image(systemName: "qrcode.viewfinder") }
@@ -308,9 +315,11 @@ struct MerchantCityNodeInlineError: View {
                         .accessibilityIdentifier("cityNodeHub.poster.\(row.id)")
                 }
                 Spacer()
-                Button { prepare(toggle) } label: {
-                    MerchantCityNodeCopy.text(working ? "merchantCityNode.node.working" : row.isOnline ? "merchantCityNode.node.takeOffline" : "merchantCityNode.node.putOnline")
-                }.buttonStyle(.bordered).disabled(!idle).accessibilityIdentifier("cityNodeHub.toggle.\(row.id)")
+                if showsProjectActions {
+                    Button { prepare(toggle) } label: {
+                        MerchantCityNodeCopy.text(working ? "merchantCityNode.node.working" : row.isOnline ? "merchantCityNode.node.takeOffline" : "merchantCityNode.node.putOnline")
+                    }.buttonStyle(.bordered).disabled(!idle).accessibilityIdentifier("cityNodeHub.toggle.\(row.id)")
+                }
             }
             if rowFailure(key) {
                 MerchantCityNodeInlineError(titleKey: row.isOnline ? "merchantCityNode.node.offlineFailed" : "merchantCityNode.node.onlineFailed",
@@ -329,11 +338,13 @@ struct MerchantCityNodeInlineError: View {
         await refreshVerify()
     }
     private func refreshVerify() async {
-        guard let businessReader, let merchantID = c.snapshot?.access.merchantID else { canVerify = false; return }
+        guard let businessReader, let merchantID = c.snapshot?.access.merchantID else { canVerify = false; canManageProjects = nil; return }
         let scope = service.scope
         let access = try? await businessReader.access()
         guard scope == service.scope else { return }
         canVerify = access.map { MerchantCityNodeVerifyGrant.allows(permissions: $0.permissions, accessMerchantID: $0.merchantID, contentMerchantID: merchantID) } ?? false
+        // MC7-24-2: same merchant + `merchant:project:manage`, like canVerify.
+        canManageProjects = access.map { $0.merchantID == merchantID && $0.permissions.contains("merchant:project:manage") }
     }
     private func writable(_ command: MerchantContentCommand) -> Bool {
         guard let path = try? command.request().path else { return false }
@@ -506,6 +517,13 @@ struct MerchantCityNodeInlineError: View {
                         }.frame(width: 240, height: 240).accessibilityLabel(MerchantCityNodeCopy.text("merchantCityNode.poster.title"))
                             .accessibilityIdentifier("cityNodeHub.poster.image")
                         if let name = code.nodeName { Text(verbatim: name).cyText(.cardTitle).accessibilityIdentifier("cityNodeHub.poster.name") }
+                        // MC7-24-3: a real save / share action instead of the MP long-press hint.
+                        ShareLink(item: code.imageURL) {
+                            Label("merchantCoop.cityNode.poster.save", systemImage: "square.and.arrow.down")
+                                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .accessibilityIdentifier("cityNodeHub.poster.save")
                         MerchantCityNodeCopy.text("merchantCityNode.poster.hintPrint").cyText(.bodyCompact).foregroundStyle(.secondary).multilineTextAlignment(.center)
                     case .failed(let message):
                         VStack(spacing: 10) {

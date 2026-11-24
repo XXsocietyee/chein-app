@@ -1393,7 +1393,8 @@ struct SessionMerchantRootContainerView: View {
                         MerchantFailureView(
                             errorKey: "merchant.access.denied",
                             identifier: "merchant.cooperation",
-                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } }
+                            retry: { Task { _ = await coordinator.revalidateMerchantMode(reader: session, accountID: session.account?.id) } },
+                            apply: { onReturnToConsumer(.mine) }
                         )
                     }
                 }

@@ -45,7 +45,8 @@ struct MerchantGalleryGrid: View {
                 Button(role: .destructive) { remove(index) } label: {
                     Image(systemName: "minus.circle.fill").frame(minWidth: 44, minHeight: 44)
                 }
-                .accessibilityLabel("merchant.operations.removeImage")
+                // MC7-20-3: unique label per tile (MP 删除第N张图片), not one shared 从本地草稿移除.
+                .accessibilityLabel(Text("merchantCoop.gallery.removeNth \(index + 1)"))
                 .accessibilityIdentifier("merchant.operations.gallery.remove." + String(index))
             }
             .aspectRatio(MerchantGalleryGridLayout.cellAspectRatio, contentMode: .fit)

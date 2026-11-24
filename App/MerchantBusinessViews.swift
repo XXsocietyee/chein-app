@@ -455,6 +455,8 @@ import SwiftUI
         }
     }
     private var state: MerchantBusinessCoordinator { model.coordinator }
+    /// No owner scope on a configured live reader means there is no signed-in merchant session.
+    private var teamSignedOut: Bool { reader.isConfigured && !reader.isOfflineExample && reader.scope == nil }
     private var isRedemptionLedger: Bool { if case .redemptions = query { return true }; return false }
     private var isReviews: Bool { if case .reviews = query { return true }; return false }
     /// fix/r3-merchant-coop-a: page-specific full-page sign-in / denied / not-found / load-failed states.
@@ -481,7 +483,15 @@ import SwiftUI
                     CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading")
                 }
             }
-            if let key = model.aftercareLoadFailureKey ?? state.failureKey {
+            if case .operators = query, teamSignedOut {
+                // MC7-29-1: MP team/index.wxml:11 登录后查看经营团队 + 登录.
+                Section { MerchantCoopSignInState(title: "merchantCoop.team.signIn", identifier: "merchant.team.signIn") }
+                    .listRowBackground(Color.clear)
+            } else if case .operators = query, state.failureKey == "merchant.business.denied" {
+                // MC7-29-2: MP team/index.wxml:12 当前身份不能查看经营团队 + 申请入驻.
+                Section { MerchantCoopApplyState(title: "merchantCoop.team.denied", identifier: "merchant.team.denied") }
+                    .listRowBackground(Color.clear)
+            } else if let key = model.aftercareLoadFailureKey ?? state.failureKey {
                 Section {
                     Text(LocalizedStringKey(key)).cyText(.body).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("merchant.business.error")
                     if case .rejected(_, let message) = state.failure, let message { Text(message).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
@@ -1153,8 +1163,16 @@ import SwiftUI
         }
         if access.canManageOperators {
             if row.kind == .operatorMember, row.fields.mbText("status") == "ACTIVE" {
-                Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
-                Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
+                // MC7-29-7: one trailing menu (岗位…, divider, 移除) instead of two inline buttons.
+                Menu {
+                    Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
+                    Divider()
+                    Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
+                } label: {
+                    Label("merchantCoop.team.memberActions", systemImage: "ellipsis.circle")
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityIdentifier("merchant.team.memberActions.\(row.id)")
             }
             if row.kind == .invite, row.fields.mbText("status") == "PENDING" {
                 Button("merchant.business.revokeInvite", role: .destructive) { editor = .init(kind: .revokeInvite(row)) }
@@ -1180,7 +1198,9 @@ import SwiftUI
             Button(MerchantOpsCopy.text("merchantOps.customer.batchTag.count %lld", selection.count)) { editor = .init(kind: .tag(selection.sorted().compactMap { try? .init($0) })) }
                 .accessibilityIdentifier("merchant.business.batchTag")
         }
-        if query == .operators, snapshot.access.canManageOperators {
+        // MC7-29-11: without the reviewed operator grant the invite would end on 提交暂不可用, so it stays hidden.
+        if query == .operators, snapshot.access.canManageOperators,
+           reader.canExecute(.inviteOperator(role: "MERCHANT_CHECKIN"), merchantID: snapshot.access.merchantID) {
             Button("merchant.business.inviteOperator") { editor = .init(kind: .invite) }
         }
     }

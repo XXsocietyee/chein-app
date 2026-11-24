@@ -20,7 +20,8 @@ import SwiftUI
                 }
             }
             Section("coopflow.business") {
-                link("coopflow.finance", resource: .finance)
+                // MC7-34-2: the row reads 分润明细, the page's own title.
+                link("coopflow.finance", resource: .finance, titleKey: "merchantCoop.finance.rowTitle")
                 link("coopflow.mybiz", resource: .myBusiness)
                 link("coopflow.clubs", resource: .clubs(name: nil))
                 // Hidden until nearby search is wired; the gate alone would only say it is unavailable.
@@ -47,7 +48,7 @@ import SwiftUI
         }.navigationTitle("coopflow.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("coopflow.workbench")
             .cyDomainScreen(.merchant)
     }
-    private func link(_ key: String, resource: CoopFlowRead) -> some View {
+    private func link(_ key: String, resource: CoopFlowRead, titleKey: String? = nil) -> some View {
         NavigationLink {
             Group {
                 if resource == .relations { CoopRelationDiscoveryEntry(reader: reader) }
@@ -55,7 +56,7 @@ import SwiftUI
                 else { CoopFlowReadView(reader: reader, resource: resource, title: key) }
             }
             .cyPushedChrome(domain: .merchant)
-        } label: { Text(LocalizedStringKey(key)) }.accessibilityIdentifier("coopflow.route.\(key)")
+        } label: { Text(LocalizedStringKey(titleKey ?? key)) }.accessibilityIdentifier("coopflow.route.\(key)")
     }
 }
 /// Reachable before a location provider is approved. Opening this page never requests permission.

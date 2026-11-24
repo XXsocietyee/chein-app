@@ -11,6 +11,9 @@ import SwiftUI
     let isOfflineFixture: Bool
     private let templateSeed: Int?
     @Environment(\.dismiss) private var dismiss
+    /// MC7-25-2: 登录 opens the app sign-in (injected hook, else 我的 tab); with neither it relabels to 返回.
+    @Environment(\.merchantOpenSignIn) private var openSignIn
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.merchantCityTemplateHandoffFactory) private var handoffFactory
     @StateObject private var model: MerchantContentViewModel
@@ -116,7 +119,14 @@ import SwiftUI
         } else if c.issue == "merchant.content.signedOut" || !service.isAuthenticated {
             VStack(spacing: 12) {
                 stateView(title: "merchantCityNode.create.login", sub: nil, identifier: "cityNodeCreate.login", retry: false)
-                Button { dismiss() } label: { Text("auth.signIn") }
+                Button {
+                    if let openSignIn { openSignIn() }
+                    else if rootTabSwitch.isAvailable { rootTabSwitch(.mine) }
+                    else { dismiss() }
+                } label: {
+                    Text(openSignIn != nil || rootTabSwitch.isAvailable ? LocalizedStringKey("auth.signIn") : LocalizedStringKey("action.back"))
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                }
                     .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("cityNodeCreate.login.action")
             }
