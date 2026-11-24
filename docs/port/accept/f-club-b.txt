@@ -1,0 +1,21 @@
+# fix-r3-club-b acceptance fixtures (club round-1 audit, second half: badges, notify, settlement,
+# customer-detail, checkin-detail, join-requests, group-code, customers, payout-receiver, workbench).
+# One launch-argument line per screen; zh-Hans unless noted. Screens below a root are reached by the
+# acceptance flow from that root (no dedicated fixture exists for them yet).
+# Club 管理 workspace root → 客户 / 俱乐部结算 / 群发通知 / 勋章 / 出示团码 (governance fixture host)
+--uitesting-club-governance
+# Customers list + customer detail (owner, administrator, no-permission)
+--uitesting-club-fixture customerOwner
+--uitesting-club-fixture customerAdministrator
+--uitesting-club-fixture customerDenied
+# Join requests (row 拒绝/通过, pull to refresh, secondary 刷新) and its load failure
+--uitesting-club-management-fixture owner
+--uitesting-club-management-fixture loadFailure
+# Club governance / ops design fixtures (管理 tab entries)
+--design-fixture d4-gov
+--design-fixture d4-ops
+# Personal payout receiver (MP unbind copy; area open and closed)
+--design-fixture cur3-payout-open
+--design-fixture cur3-payout-closed
+# Check-in refund consequence sheet
+--design-fixture popups-club-refund
