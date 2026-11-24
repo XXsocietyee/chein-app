@@ -237,7 +237,8 @@ enum MPParityRoute: Hashable, Identifiable {
             if let finance = MerchantFinanceRoute.normalize(query), finance.topicID != nil {
                 self = .screen(page: page, query: query)
             } else {
-                self = .merchantLedger
+                // MC7-06-1 (merchant-finance.js normalizeMerchantFinanceRoute): `view=settlement` / `tab=2|3` opens 结算.
+                self = MerchantFinanceRoute.normalize(query)?.view == .settlement ? .merchantLedgerSettlement : .merchantLedger
             }
         default:
             // The page's link rule still applies on internal paths: parity r1 gave several pages required keys

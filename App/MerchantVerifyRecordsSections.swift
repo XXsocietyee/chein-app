@@ -44,6 +44,11 @@ struct MerchantVerifyRecordsSections: View {
     /// Called when the loaded page is still short of `total`. Nil keeps the first page as it is.
     var onNeedMore: (() -> Void)? = nil
     var loadingMore = false
+    /// MC7-04-3 (round 3 re-apply): the last append failed; the footer becomes 重新加载.
+    var loadFailed = false
+    var onRetry: (() -> Void)? = nil
+    /// No further page exists even though `total` says otherwise (server stopped short).
+    var exhausted = false
     @State private var bucket: MerchantVerifyRecordsParity.Bucket = .verified
     @Environment(\.locale) private var locale
 
@@ -88,17 +93,26 @@ struct MerchantVerifyRecordsSections: View {
             }
             // MC7-04-3: a full page still short of total asks for the next `MerchantVerificationRecordPage`.
             // Stop when that page says there is nothing further. 已经到底了 once every record is loaded.
-            if truncated, let onNeedMore {
+            if loadFailed, let onRetry {
                 Section {
-                    Text("merchant.list.loadingMore")
-                        .cyText(.meta)
-                        .foregroundStyle(CYColor.textTertiary)
-                        .frame(maxWidth: .infinity)
-                        .listRowBackground(Color.clear)
-                        .onAppear { if !loadingMore { onNeedMore() } }
-                        .accessibilityIdentifier("merchant.verifyRecords.loadingMore")
+                    Button(action: onRetry) {
+                        Text("merchant.gate.reload").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("merchant.verifyRecords.loadMoreRetry")
                 }
-            } else if !truncated {
+            } else if truncated, !exhausted, let onNeedMore {
+                Section {
+                    HStack(spacing: CYSpacing.sm) {
+                        ProgressView()
+                        Text("merchant.list.loadingMore").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .listRowBackground(Color.clear)
+                    // Re-asks after each appended page while the row stays visible (onAppear fires only once).
+                    .task(id: records.count) { if !loadingMore { onNeedMore() } }
+                    .accessibilityIdentifier("merchant.verifyRecords.loadingMore")
+                }
+            } else if !truncated || exhausted {
                 Section {
                     Text("merchant.list.end")
                         .cyText(.meta)
@@ -144,6 +158,7 @@ struct MerchantVerifyRecordsSections: View {
     @State private var hasMore: Bool
     @State private var loading = false
     @State private var stopped = false
+    @State private var failed = false
 
     init(reader: any MerchantBusinessReading, snapshot: MerchantBusinessSnapshot) {
         self.reader = reader
@@ -156,15 +171,19 @@ struct MerchantVerifyRecordsSections: View {
     var body: some View {
         MerchantVerifyRecordsSections(records: records, total: snapshot.document.total,
                                       onNeedMore: hasMore && !stopped ? { Task { await more() } } : nil,
-                                      loadingMore: loading)
+                                      loadingMore: loading,
+                                      loadFailed: failed,
+                                      onRetry: { failed = false; Task { await more() } },
+                                      exhausted: !hasMore)
             .onChange(of: snapshot) { _, next in
-                extra = []; page = 1; stopped = false; loading = false; hasMore = next.document.hasMore
+                extra = []; page = 1; stopped = false; failed = false; loading = false; hasMore = next.document.hasMore
             }
     }
 
     private func more() async {
         guard hasMore, !loading, !stopped else { return }
         loading = true
+        failed = false
         defer { loading = false }
         let next = page + 1
         do {
@@ -178,8 +197,11 @@ struct MerchantVerifyRecordsSections: View {
         } catch let failure as MerchantBusinessFailure where failure == .disabled {
             stopped = true
             hasMore = false
+        } catch is CancellationError {
+            // Left the screen; the row asks again when it reappears.
         } catch {
-            stopped = true
+            // Round 3 re-apply of MC7-04-3: a transient failure offers 重新加载 instead of silently stopping.
+            failed = true
         }
     }
 }
