@@ -303,6 +303,8 @@ struct RoamShareLinkDormantNotice: View {
 @MainActor struct RoamPOINodeParityCard: View {
     let node: RoamNodeDetail
     var stampDestination: (() -> AnyView)? = nil
+    /// RPOI-2: false when the 我的进度 action row already carries the favorite toggle, so the state shows once.
+    var showsFavorite = true
     var body: some View {
         let card = RoamPOINodePresentation(node)
         VStack(alignment: .leading, spacing: 10) {
@@ -318,8 +320,10 @@ struct RoamShareLinkDormantNotice: View {
                 Text(LocalizedStringKey(card.validationKey))
                 if card.grantsCoupon { Text("roamSub.w208.poi.coupon") }
             }.cyText(.bodyCompact).accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.poi.method")
-            Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
-                .cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
+            if showsFavorite {
+                Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
+                    .cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
+            }
             if node.coordinate == nil { Label("roamSub.w208.poi.noNavigation", systemImage: "location.slash").cyText(.bodyCompact).foregroundStyle(.secondary) }
             // 投一张 is hidden: this card has no stamp-exchange coordinator to send with, so the
             // flow could only end on a disabled send button.

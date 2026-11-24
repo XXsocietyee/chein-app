@@ -202,13 +202,13 @@ struct RoamItemDetailView: View {
             else if merchantFailed {
                 merchantRetrySection(node: node)
             }
-            Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination) }
+            Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination, showsFavorite: poiActions == nil) }
             // Official place extras (play, Xiaohongshu, quotes, player reviews, photo credit); hidden without a binding.
             RoamPlaceExtrasMount(poiID: node.poiId)
             Section("roam.yourStatus") {
                 let isCompleted = poiActionModel.completedOverride ?? node.completed
                 Label(LocalizedStringKey(isCompleted ? "roam.completed" : "roam.notCompleted"), systemImage: isCompleted ? "checkmark.circle" : "circle")
-                if poiActionModel.favoriteOverride ?? node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
+                // RPOI-2: favorite shows once — the action row's toggle when writes exist, else the node card's state line.
                 if let poiActions { RoamPOIActionRows(node: node, actions: poiActions, model: poiActionModel) }
                 NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
                     .accessibilityIdentifier("media.poster.open")
