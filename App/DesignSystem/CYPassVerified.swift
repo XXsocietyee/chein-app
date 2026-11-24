@@ -79,11 +79,15 @@ struct CYPassVerifiedFace: View {
                         .frame(width: 84, height: 84)
                         .shadow(color: CYNight.lantern.opacity(landed ? 0.55 : 0), radius: 16)
                         .scaleEffect(reduceMotion || landed ? 1 : 0.6)
-                    Image(systemName: "checkmark.circle.fill")
+                    let mark = Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 28, weight: .semibold))
                         .foregroundStyle(CYNight.ink0)
                         .offset(x: 30, y: 28)
-                        .symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
+                    if #available(iOS 18.0, *) {
+                        mark.symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
+                    } else {
+                        mark
+                    }
                 }
                 .accessibilityHidden(true)
                 Text(verbatim: c.t("已入场", "You're in"))

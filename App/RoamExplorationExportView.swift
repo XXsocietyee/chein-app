@@ -368,7 +368,7 @@ private struct RoamExportFileSaveLink: View {
 
 /// Original read recovery adapted to the existing one-way delivery lease and real system callbacks.
 /// This object owns only presentation lifetime and POST reads; it grants no write permission.
-@MainActor final class RoamExportReadPresentation: ObservableObject {
+@MainActor final class RoamExportReadPresentation: @preconcurrency ObservableObject {
     let objectWillChange = ObservableObjectPublisher()
     let model: RoamExportCoordinator
     let deliveryContext = RoamExportDeliveryContext()

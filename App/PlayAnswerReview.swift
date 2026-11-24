@@ -50,7 +50,7 @@ struct PlayAnswerReview: Identifiable, Equatable {
 }
 
 /// One stable screen owner. A concrete review gets its own presenter only after it exists.
-@MainActor final class PlayAnswerReviewPresentation: ObservableObject {
+@MainActor final class PlayAnswerReviewPresentation: @preconcurrency ObservableObject {
     let model: PlayViewModel
     let objectWillChange = ObservableObjectPublisher()
     private var dismantling = false

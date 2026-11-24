@@ -41,10 +41,10 @@ public struct OwnedTopicCoverCredentials: Equatable {
 
 /// Uses only runtime producer paths. JSON and byte transports must be bounded/no-redirect in production.
 @MainActor public final class OwnedTopicCoverClient: OwnedTopicCoverServing {
-    public static let currentPath = "api/topic/cover/selection/current"
-    public static let uploadPath = "api/topic/cover/upload"
-    public static let selectPath = "api/topic/cover/selection"
-    public static let statusPath = "api/topic/cover/selection/status"
+    nonisolated public static let currentPath = "api/topic/cover/selection/current"
+    nonisolated public static let uploadPath = "api/topic/cover/upload"
+    nonisolated public static let selectPath = "api/topic/cover/selection"
+    nonisolated public static let statusPath = "api/topic/cover/selection/status"
     public static let maximumContentBytes = 10 * 1024 * 1024
     private let configuration: APIConfiguration
     private let approval: OwnedTopicCoverApproval?

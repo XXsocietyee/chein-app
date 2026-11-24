@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Combine
 
-@MainActor final class PlayPlayerActionReviewController: ObservableObject {
+@MainActor final class PlayPlayerActionReviewController: @preconcurrency ObservableObject {
     struct Ticket { fileprivate let visit: UUID; fileprivate let context: PlayPlayerActionReviewContext }
     struct Review: Identifiable {
         var id: UUID { value.id }

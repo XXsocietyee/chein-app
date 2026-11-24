@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Combine
 
-@MainActor final class PlayerTaskEvidenceReviewController: ObservableObject {
+@MainActor final class PlayerTaskEvidenceReviewController: @preconcurrency ObservableObject {
     struct Review: Identifiable {
         enum Action { case upload; case submit(PlayerTaskEvidencePreparedReview) }
         let id = UUID()

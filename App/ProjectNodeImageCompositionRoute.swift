@@ -2,8 +2,10 @@ import Foundation
 
 /// An independent node-photo command, never an image_free/topic/merchant fallback.
 enum ProjectNodeImageCompositionRoute {
+    /// Same literal as `ProjectNodeImageUploadClient.path`. That static stays main-actor isolated; this copy is what the nonisolated gate reads.
+    private static let path = "api/common/uploadOSS"
     static func accepts(_ request:URLRequest,baseURL:URL,policy:ProjectNodeImageMediaPolicy)->Bool{
-        guard request.url==baseURL.appendingPathComponent(ProjectNodeImageUploadClient.path),request.httpMethod=="POST",
+        guard request.url==baseURL.appendingPathComponent(path),request.httpMethod=="POST",
               request.httpBodyStream==nil,let body=request.httpBody,let type=request.value(forHTTPHeaderField:"Content-Type")else{return false}
         let prefix="multipart/form-data; boundary=ProjectNodeImage-"
         guard type.hasPrefix(prefix),let id=UUID(uuidString:String(type.dropFirst(prefix.count))),id.uuidString==String(type.dropFirst(prefix.count))else{return false}

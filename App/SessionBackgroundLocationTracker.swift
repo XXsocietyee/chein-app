@@ -7,7 +7,7 @@ import UIKit
 /// Roam takes a background-capable hold; play takes a foreground-only hold (`mp:pages/play/index.js:5317`
 /// `foregroundOnly: true`). Nothing here shares a location with anyone or uploads it; the sessions that
 /// hold it send their own existing reads and writes.
-@MainActor final class SessionBackgroundLocationTracker: NSObject, ObservableObject, CLLocationManagerDelegate, SessionLocationDriving {
+@MainActor final class SessionBackgroundLocationTracker: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate, SessionLocationDriving {
     static let shared = SessionBackgroundLocationTracker()
 
     private(set) lazy var ledger: SessionLocationHoldLedger = {

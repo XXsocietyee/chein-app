@@ -77,7 +77,7 @@ public struct ProjectStoryUploadedAudio: Equatable, Sendable {
 /// Matches Mini app.chooseDocument → upload-client: file plus fileType and fileName.
 /// Its default response transport and independent deployment/account approval are both off.
 @MainActor public final class ProjectStoryAudioUploadClient: ProjectStoryAudioUploading {
-    public static let path = "api/common/uploadOSS"
+    nonisolated public static let path = "api/common/uploadOSS"
     private let configuration: APIConfiguration
     private let approval: ProjectStoryAudioUploadApproval?
     private let transport: any HTTPTransport

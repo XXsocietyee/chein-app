@@ -146,7 +146,7 @@ extension AppSession: OrientScoreEntryProviding {
 
 /// Foreground, one-shot location for the SOS copy row. It never calls
 /// `requestWhenInUseAuthorization` or `startUpdatingLocation`. Not-yet-authorized returns nil.
-@MainActor final class PlayEmergencyLocationConformer: NSObject, PlayEmergencyLocationProviding, CLLocationManagerDelegate {
+@MainActor final class PlayEmergencyLocationConformer: NSObject, PlayEmergencyLocationProviding, @preconcurrency CLLocationManagerDelegate {
     var heldFix: () -> (latitude: Double, longitude: Double)? = { nil }
     private var manager: CLLocationManager?
     private var pending: CheckedContinuation<(latitude: Double, longitude: Double)?, Never>?

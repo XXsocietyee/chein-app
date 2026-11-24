@@ -96,7 +96,7 @@ import UIKit
     func start()
     func stop()
 }
-@MainActor final class PersonalLocationShareCoreLocationDriver: NSObject, PersonalLocationShareLocationDriver, CLLocationManagerDelegate {
+@MainActor final class PersonalLocationShareCoreLocationDriver: NSObject, PersonalLocationShareLocationDriver, @preconcurrency CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     var onLocation: ((CLLocation) -> Void)?
     var onAuthorization: (() -> Void)?

@@ -4,7 +4,7 @@ import UIKit
 
 /// This feature cannot request or expand permissions. It uses an already-authorized
 /// foreground fix only, and never enables background location, presence or track recording.
-@MainActor final class WalkingForegroundLocationProvider: NSObject, WalkingLocationProviding, CLLocationManagerDelegate {
+@MainActor final class WalkingForegroundLocationProvider: NSObject, WalkingLocationProviding, @preconcurrency CLLocationManagerDelegate {
     private let enabled: Bool
     private var manager: CLLocationManager?
     private var pending: CheckedContinuation<RoamDeviceFix, Error>?

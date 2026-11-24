@@ -3,7 +3,7 @@ import CoreLocation
 import UIKit
 
 /// No manager, permission request, or location access until the explicit action.
-@MainActor final class RuntimeNativeLocationProvider: NSObject, RoamDeviceLocationProviding, CLLocationManagerDelegate {
+@MainActor final class RuntimeNativeLocationProvider: NSObject, RoamDeviceLocationProviding, @preconcurrency CLLocationManagerDelegate {
     private let enabled: Bool
     private var manager: CLLocationManager?
     private var pending: CheckedContinuation<RoamDeviceFix, Error>?
