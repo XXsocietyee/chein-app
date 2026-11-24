@@ -75,6 +75,8 @@ struct ClubMPEmptyState: View {
 /// `MoneyDisplay`. Server amount text is formatted lexically (no Double round trip). A leading ¥ or sign is
 /// kept; anything that is not a plain decimal amount (「待核验」, 「—」, 「¥1,200」) is shown as sent.
 enum ClubMoneyText {
+    /// club-b round 2 name for the same two-decimal display.
+    static func twoDecimals(_ raw: String) -> String { display(raw) }
     static func display(_ raw: String) -> String {
         var body = raw.trimmingCharacters(in: .whitespaces)
         var sign = ""

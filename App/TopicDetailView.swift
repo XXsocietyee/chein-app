@@ -558,8 +558,7 @@ struct TopicDetailView: View {
                               openEditor: editorDestination == nil ? nil : { showsEditor = true },
                               preferSession: preferSession,
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
-                              heroNamespace: barHero, preferSession: prefersSessionPicker,
-                              openEditor: ownerEditorDestination == nil ? nil : { showsOwnerEditor = true })
+                              heroNamespace: barHero)
         }
         .navigationDestination(isPresented: $showsOwnerEditor) {
             if let ownerEditorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {

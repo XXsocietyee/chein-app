@@ -6,12 +6,12 @@ private let P = WalletIncomeAnalysisAccumulator.pageSize
 
 @MainActor final class WalletIncomeAnalysisClosureTests: XCTestCase {
     func testRealOriginalIncomeRouteReadsBoundedPagesToEnd() async throws {
-        let h = try Harness(total: 201); await h.model.load(h.reader)
+        let h = try Harness(total: P + 1); await h.model.load(h.reader)
         XCTAssertEqual(h.model.result?.stop, .end)
-        XCTAssertEqual(h.model.result?.rows.count, 201)
+        XCTAssertEqual(h.model.result?.rows.count, P + 1)
         XCTAssertEqual(h.model.pagesRead, 2)
         XCTAssertEqual(h.wire.requests.count, 2)
-        XCTAssertEqual(h.model.displayedResult(for: h.reader)?.rows.count, 201)
+        XCTAssertEqual(h.model.displayedResult(for: h.reader)?.rows.count, P + 1)
     }
     func testMissingTotalIsUnverifiedEvenWhenNoRecordsWereReturned() async throws {
         let h = try Harness(total: 0); h.wire.omitTotal = true
@@ -21,33 +21,31 @@ private let P = WalletIncomeAnalysisAccumulator.pageSize
         XCTAssertEqual(h.wire.requests.count, 1)
     }
     func testTenPageBudgetNeverRequestsAnEleventhPage() async throws {
-        // A full page whose oldest row is before the six-month cutoff stops. It does not keep a fixed 10-page budget.
-        let h = try Harness(total: 400); h.wire.staleDates = true
-        await h.model.load(h.reader)
-        XCTAssertEqual(h.model.result?.stop, .end)
-        XCTAssertEqual(h.model.result?.rows.count, 200)
-        XCTAssertEqual(h.wire.requests.count, 1)
+        let h = try Harness(total: P * 12 + 50); await h.model.load(h.reader)
+        XCTAssertEqual(h.model.result?.stop, .budget)
+        XCTAssertEqual(h.model.result?.rows.count, P * 10)
+        XCTAssertEqual(h.wire.requests.count, 10)
     }
     func testChangedTotalOrDuplicateBoundaryKeepsOnlyEarlierValidatedSlice() async throws {
         for duplicate in [false, true] {
-            let h = try Harness(total: 201)
+            let h = try Harness(total: P + 1)
             h.wire.changedTotal = !duplicate; h.wire.duplicateBoundary = duplicate
             await h.model.load(h.reader)
             XCTAssertEqual(h.model.result?.stop, .changed)
-            XCTAssertEqual(h.model.result?.rows.count, 200)
+            XCTAssertEqual(h.model.result?.rows.count, P)
             XCTAssertEqual(h.wire.requests.count, 2)
         }
     }
     func testTransientLaterFailureIsAnExplicitPartialRead() async throws {
-        let h = try Harness(total: 201); h.wire.secondStatus = 503
+        let h = try Harness(total: P + 1); h.wire.secondStatus = 503
         await h.model.load(h.reader)
         XCTAssertEqual(h.model.result?.stop, .interrupted)
-        XCTAssertEqual(h.model.result?.rows.count, 200)
+        XCTAssertEqual(h.model.result?.rows.count, P)
         XCTAssertFalse(h.model.unavailable)
     }
     func testHTTPAndBusiness403ClearPriorPagesRatherThanDisplayPartialMoney() async throws {
         for business in [false, true] {
-            let h = try Harness(total: 201)
+            let h = try Harness(total: P + 1)
             h.wire.secondStatus = business ? 200 : 403
             h.wire.secondCode = business ? 403 : nil
             await h.model.load(h.reader)
@@ -59,14 +57,14 @@ private let P = WalletIncomeAnalysisAccumulator.pageSize
         }
     }
     func testCurrent401ClearsResultsAndNotifiesOriginalReaderOnce() async throws {
-        let h = try Harness(total: 201); h.wire.secondStatus = 401
+        let h = try Harness(total: P + 1); h.wire.secondStatus = 401
         await h.model.load(h.reader)
         XCTAssertTrue(h.model.requiresLogin)
         XCTAssertNil(h.model.result)
         XCTAssertEqual(h.owner.unauthorized, 1)
     }
     func testCancellationSuppressesLate401AndClearsAllPublishedRows() async throws {
-        let h = try Harness(total: 201); h.wire.suspendSecond = true
+        let h = try Harness(total: P + 1); h.wire.suspendSecond = true
         let work = Task { await h.model.load(h.reader) }
         await h.wire.waitForSecond()
         h.model.cancel(); h.wire.resumeSecond(status: 401)
@@ -79,7 +77,7 @@ private let P = WalletIncomeAnalysisAccumulator.pageSize
         XCTAssertEqual(h.wire.requests.count, 2)
     }
     func testAccountChangeRejectsLatePageAndCannotExpireNewSession() async throws {
-        let h = try Harness(total: 201); h.wire.suspendSecond = true
+        let h = try Harness(total: P + 1); h.wire.suspendSecond = true
         let work = Task { await h.model.load(h.reader) }
         await h.wire.waitForSecond()
         h.owner.scope = WalletCommerceScope(namespace: "analysis-test", accountID: 8, epoch: UUID())
@@ -147,7 +145,7 @@ private let P = WalletIncomeAnalysisAccumulator.pageSize
         }()
         let total: Int
         var requests: [URLRequest] = []
-        var omitTotal = false, changedTotal = false, duplicateBoundary = false, suspendSecond = false, staleDates = false
+        var omitTotal = false, changedTotal = false, duplicateBoundary = false, suspendSecond = false
         var secondStatus: Int?, secondCode: Int?
         private var pending: CheckedContinuation<(Data, Int), Error>?
         private var waiting: CheckedContinuation<Void, Never>?
@@ -171,14 +169,12 @@ private let P = WalletIncomeAnalysisAccumulator.pageSize
             if number == 2, let status = secondStatus {
                 return (try JSONSerialization.data(withJSONObject: ["code": secondCode ?? status]), status)
             }
-            let pageSize = 200
-            let offset = (number - 1) * pageSize
-            let count = max(0, min(pageSize, total - offset))
-            let stamp = staleDates ? "2020-01-01 00:00:00" : "2026-11-01 00:00:00"
+            let offset = (number - 1) * P
+            let count = max(0, min(P, total - offset))
             let rows: [[String: Any]] = (0..<count).map { i in
                 ["id": duplicateBoundary && number == 2 ? 99_981 : 100_000 - offset - i,
                  "changeBalance": "1.2345", "currency": "USD", "changeType": 1, "eventType": 1,
-                 "createTime": stamp]
+                 "createTime": Wire.recent]
             }
             var data: [String: Any] = ["rows": rows]
             if !omitTotal { data["total"] = changedTotal && number == 2 ? total + 1 : total }

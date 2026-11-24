@@ -44,7 +44,7 @@ enum FixR3PlayRoamBFixtures {
             var report = sampleReport()
             report.nodes = report.nodes.map { node in
                 var row = node
-                if node.id != "2" { row.photoURL = URL(string: "https://example.invalid/node-\(node.id).jpg") }
+                if node.id != "2" { row.photoURL = "https://example.invalid/node-\(node.id).jpg" }
                 return row
             }
             return player(NavigationStack {

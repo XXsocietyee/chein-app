@@ -39,16 +39,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     var body: some View {
         Group {
             if session.account == nil {
-                // Missing state (not signed in): the message plus a way forward, like the activity detail.
-                VStack(spacing: CYSpacing.md) {
-                    TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
-                    if rootTabSwitch.isAvailable {
-                        CYPillButton("auth.signIn", style: .secondary, fullWidth: false) { rootTabSwitch(.mine) }
-                            .accessibilityIdentifier("topic.detail.signInAction")
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
+                TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
             } else if let message = session.contentDetailReadAvailability.messageKey {
                 ContentUnavailableView("topic.detail", systemImage: "network.slash", description: Text(LocalizedStringKey(message)))
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
@@ -64,11 +55,6 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     selfPlayDestination: { AnyView(SessionTopicSelfPlayView(session: session, topic: $0)) },
                     ticketWalletDestination: { topicID in
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
-                    }, prefersSessionPicker: prefersSessionPicker,
-                    ownerEditorDestination: { topicID, scope in
-                        var query = ["id": String(topicID)]
-                        if let scope { query["scope"] = scope }
-                        return AnyView(MPReviewedPageScreen(page: "pages/publish/fabu/index", query: query).environmentObject(session))
                     })
                     .id(session.contentDetailRevision)
                     .environment(\.pricingChapterProjectDestination, { topicID in

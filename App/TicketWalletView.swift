@@ -388,7 +388,7 @@ private struct TicketWalletRow: View {
     }
     private var art: [Color] {
         let tints: [Color] = [CYColor.brandStrong, CYColor.gameAccent, CYColor.rare, CYColor.coverFallback]
-        return tints[abs(ticket.id) % tints.count]
+        return [tints[abs(ticket.id) % tints.count].opacity(0.55), CYColor.bgSurfaceStrong]
     }
     private var coverIllustration: some View {
         ZStack(alignment: .topTrailing) {
@@ -435,14 +435,6 @@ private struct TicketWalletRow: View {
                 }
                 .padding(CYSpacing.lg)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .overlay(alignment: .topTrailing) {
-                // MP signup wxml:64 `wc__go`: round tinted badge with the shipped `icon_go.svg` arrow. Decorative; the card is the control.
-                MPAsset.FeatureIcon.iconGo.resizable().scaledToFit().frame(width: 14, height: 14)
-                    .frame(width: 31, height: 31)
-                    .background(Circle().fill(tint))
-                    .padding(CYSpacing.md)
-                    .accessibilityHidden(true)
             }
             .background(GeometryReader { Color.clear.preference(key: TicketTopHeightKey.self, value: $0.size.height) })
             .overlay(alignment: .bottom) { Rectangle().fill(.clear).frame(height: 0) }

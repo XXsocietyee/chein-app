@@ -466,21 +466,15 @@ private struct ClubDetailManageGrantKey: Hashable {
     let hasGovernance: Bool
 }
 
-/// Club cover hero: the real cover when there is one, the MP default artwork otherwise (round 2, MP assets:
-/// `club_cover_default.png` for the cover, `d_logo.png` for the logo).
+/// Club cover hero: the real cover when there is one, a clean text-free placeholder otherwise.
 private struct ClubDetailCover: View {
     let source: String?
     var seed: String = ""
     var showsSymbol = true
-    var fallback: Image? = nil
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         ZStack {
-            if let fallback {
-                fallback.resizable().scaledToFill()
-            } else {
-                CYIMCoverArt(seed: seed, symbolSize: showsSymbol ? 48 : 0)
-            }
+            CYIMCoverArt(seed: seed, symbolSize: showsSymbol ? 48 : 0)
             if let url = QuestifyCardArtwork.safeURL(source) {
                 AsyncImage(url: url, transaction: Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)) { phase in
                     if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) }
@@ -524,8 +518,7 @@ private struct ClubDetailHeader: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            ClubDetailCover(source: club.cover, seed: club.name + String(club.id), showsSymbol: false,
-                            fallback: MPAsset.BannerCover.clubCoverDefault)
+            ClubDetailCover(source: club.cover, seed: club.name + String(club.id), showsSymbol: false)
                 .frame(height: typeSize.isAccessibilitySize ? 96 : bannerHeight)
                 .frame(maxWidth: .infinity)
                 .clipped()
@@ -533,7 +526,7 @@ private struct ClubDetailHeader: View {
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     if !typeSize.isAccessibilitySize {
-                        ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: false, fallback: MPAsset.BrandLogo.dLogo)
+                        ClubDetailCover(source: club.logo, seed: club.name, showsSymbol: QuestifyCardArtwork.safeURL(club.logo) == nil)
                             .frame(width: 56, height: 56)  // CLB-detail-37: MP logo 112 rpx
                             .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                             .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYNight.glassEdgeTop, lineWidth: 1))

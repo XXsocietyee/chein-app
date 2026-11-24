@@ -233,8 +233,6 @@ struct ClubHeaderInviteButton: View {
 struct ClubHeaderShareButton: View {
     let clubID: Int
 
-    private var message: String { String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName) }
-
     var body: some View {
         if let path = ClubShareLink.club(id: clubID)?.path {
             ShareLink(item: path) {
@@ -245,12 +243,6 @@ struct ClubHeaderShareButton: View {
             .accessibilityLabel(ClubR4Text.text("r4club.header.share"))
             .accessibilityIdentifier("club.detail.share")
         }
-    }
-
-    private var glyph: some View {
-        Image(systemName: "square.and.arrow.up")
-            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
     }
 }
 

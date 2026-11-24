@@ -57,7 +57,7 @@ struct SettingsView: View {
             } else if showsSignedOut {
                 // B-SZ-04: the MP signed-out row starts sign-in.
                 Button { showsSignIn = true } label: {
-                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconQaPerson) }
+                    Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
                 }
                 .accessibilityIdentifier("settingsNative.profileSignedOut")
             }
@@ -150,26 +150,6 @@ struct SettingsView: View {
             .refresh(memberID: memberID, token: token)
     }
 
-    /// Fresh club-leader flag for 成为俱乐部主理人 (B-SZ-05); false until the read answers.
-    private var isClubLeader: Bool {
-        if case .ready(let profile)? = freshProfile { return profile.isClubLeader }
-        return false
-    }
-
-    private func refreshProfile() async {
-#if DEBUG
-        if designOverride != nil { return }
-#endif
-        guard !refreshingProfile else { return }
-        refreshingProfile = true
-        let accountID = session.account?.id
-        let result = await session.refreshSettingsAccountProfile()
-        refreshingProfile = false
-        // A read that finished after a sign-out or account switch is dropped.
-        guard session.account?.id == accountID else { return }
-        freshProfile = result
-    }
-
     private var language: Binding<AppLanguage> {
         Binding(get: { RegionalLaunchConfiguration.language(storedLanguage) },
                 set: { storedLanguage = $0.rawValue })
@@ -192,7 +172,7 @@ struct SettingsView: View {
                             makeArticleReader: { session.makeProfileGuideArticleReader($0) },
                             onOpenDestination: onOpenGuideDestination, templateReader: session)
                             .id(session.socialAccountReader.identity)
-                    } label: { Label { Text("social.guide.title") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcCompass) } }
+                    } label: { Label("social.guide.title", systemImage: "questionmark.circle") }
                         .accessibilityIdentifier("settings.playGuide")
                 }
                 .environment(\.settingsTileTint, SettingsTint.teal)
@@ -270,8 +250,6 @@ struct SettingsView: View {
         }
         .onChange(of: session.account?.id) { _, _ in Task { await refreshAccountProfile() } }
         .onDisappear { profileOwner.retire() }
-        // B-SZ-14-r7: MP onShow refetch; also when the signed-in account changes.
-        .task(id: session.account?.id) { freshProfile = nil; await refreshProfile() }
         .themeDomain(.player)
         .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))
         // Explicitly update sheets as well as the app root when preference changes.
@@ -450,7 +428,7 @@ private struct SettingsSearchResults: View {
         if bindings.journeyPromo != nil, !bindings.isMerchant {
             Section {
                 NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
-                    Label { Text("mp.account.promo") } icon: { AccountPublishMPGlyph(MPAsset.FeatureIcon.iconLcGift) }
+                    Label("mp.account.promo", systemImage: "person.2.wave.2")
                 }
                 .accessibilityIdentifier("settings.invitePromo")
             }

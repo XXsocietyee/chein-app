@@ -4,30 +4,6 @@ import SwiftUI
 /// a bundled image. `docs/mp-assets/mapping.md` rows applied here: `MPAsset.AvatarDefault.dProfile`
 /// (`/images/d_profile.png`, every club `cy-avatar` fallback).
 
-/// Avatar with the MP default: a real HTTPS avatar goes through `CYAvatarView`; no avatar shows `d_profile.png`,
-/// as the MP's `src="{{item.avatar || '/images/d_profile.png'}}"` does. Decorative; the row carries the name.
-struct ClubMPAvatar: View {
-    let url: URL?
-    let name: String
-    var size: CYAvatarSize = .md
-    @ScaledMetric(relativeTo: .body) private var scaleFactor: CGFloat = 1.0
-
-    private var dimension: CGFloat { size.rawValue * min(max(scaleFactor, 0.85), 1.35) }
-
-    var body: some View {
-        if let url, url.scheme?.lowercased() == "https" {
-            CYAvatarView(url: url, name: name, size: size)
-        } else {
-            MPAsset.AvatarDefault.dProfile
-                .resizable()
-                .scaledToFill()
-                .frame(width: dimension, height: dimension)
-                .clipShape(Circle())
-                .accessibilityHidden(true)
-        }
-    }
-}
-
 /// cursor/core-club hand-off (CLB-detail-30): club and post shares carry the MP page path from `ClubShareLink`
 /// (`/pages/club/detail/index?id=…[&postId=…]`) as an in-app `chein://mp/…` link, which `MiniProgramPageLink`
 /// already routes back to the club page. Registration attribution (CLB-detail-11) stays an owner decision.
@@ -84,23 +60,6 @@ struct ClubDirectionLabel: View {
                 icon.resizable().renderingMode(.template).scaledToFit().frame(width: side, height: side).accessibilityHidden(true)
             }
         }
-    }
-}
-
-/// Owner decision 9 (2026-11-24): money shows two decimals through the one shared formatter (`MoneyDisplay`).
-/// Core's club `yuanText` still renders the MP one-decimal form (¥10.5); this re-renders such text as ¥10.50 for
-/// display only. Text that is not a plain `¥` amount (for example "—") is shown unchanged. Cursor request: switch
-/// `ClubEnrollmentRoster.yuanText` to `MoneyDisplay.yuan` and drop this.
-enum ClubMoneyText {
-    static func twoDecimals(_ text: String) -> String {
-        var body = Substring(text.trimmingCharacters(in: .whitespaces))
-        var negative = false
-        if body.hasPrefix("-") { negative = true; body = body.dropFirst() }
-        guard body.hasPrefix("¥") else { return text }
-        let digits = body.dropFirst()
-        guard !digits.isEmpty, digits.allSatisfy({ $0.isASCII && ($0.isNumber || $0 == ".") }),
-              digits.filter({ $0 == "." }).count <= 1, let amount = Decimal(string: String(digits)) else { return text }
-        return (negative ? "-" : "") + MoneyDisplay.yuan(amount)
     }
 }
 
