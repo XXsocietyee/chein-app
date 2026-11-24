@@ -705,7 +705,7 @@ public struct PlayCompletionReview: Equatable {
     }
     /// Cast reads for this play session. Capabilities stay empty, so profile, voice and branch writes do not send.
     public func makeCastCoordinator() -> CastCoordinator {
-        CastCoordinator(service: CastService(configuration: service.configuration, transport: service.transport, enabled: []), currentSession: currentSession)
+        CastCoordinator(service: CastService(configuration: service.configuration, transport: service.transport, enabled: CastCapability.productionEnabled), currentSession: currentSession)
     }
     /// UG-05…UG-09: the hint ladder client for one node of the current route run. Nil without a route
     /// session, a current read, or both the read and hint grants. Replies for another session are dropped.

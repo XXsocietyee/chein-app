@@ -139,7 +139,7 @@ public struct ReformWorldHostWorkbenchView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -159,10 +159,10 @@ public struct ReformWorldHostWorkbenchView: View {
             ForEach(highRiskSwitches, id: \.name) { item in
                 HStack {
                     Text(verbatim: item.name)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                     Spacer()
                     Text(verbatim: item.isFailClosed ? "OFF (Fail-Closed)" : "ON (Open)")
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(item.isFailClosed ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityElement(children: .combine)
@@ -172,7 +172,7 @@ public struct ReformWorldHostWorkbenchView: View {
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)

@@ -29,8 +29,7 @@ final class RegistrationUIFormTests: XCTestCase {
         let zh = RegistrationUIMoney.display(12.5, locale: Locale(identifier: "zh_Hans_CN"), currencyCode: RegistrationUIMoney.yuanCurrencyCode)
         XCTAssertTrue(zh?.contains("12.50") == true)
     }
-    /// Owner ruling 2026-11-22 (port P5): one shared MoneyDisplay behind a single switch.
-    /// The switch keeps today's two decimals until the owner confirms the one-decimal rule.
+    /// Owner 2026-11-24: one shared MoneyDisplay, two decimals (¥12.50). The live switch stays `.twoDecimals`.
     func testMoneyDisplaySwitchDefaultsToCurrentTwoDecimals() throws {
         XCTAssertEqual(MoneyDisplay.current, .twoDecimals)
         XCTAssertEqual(MoneyDisplay.minimumFractionDigits(), 2)

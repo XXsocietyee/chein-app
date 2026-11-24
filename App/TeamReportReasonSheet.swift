@@ -11,7 +11,7 @@ import SwiftUI
             Button { presented = true } label: {
                 Text("mpfresh.teamReport.entry", tableName: "MpFresh")
                     .cyText(.meta)
-                    .foregroundStyle(CYColor.textTertiary)
+                    .foregroundStyle(CYColor.textSecondary)
                     .underline()
                     .frame(minHeight: 44)
             }
@@ -19,7 +19,7 @@ import SwiftUI
             .frame(maxWidth: .infinity)
             .accessibilityLabel(Text("mpfresh.teamReport.title", tableName: "MpFresh"))
             .accessibilityIdentifier("nearby.team.report.\(teamID)")
-            .sheet(isPresented: $presented) { TeamReportReasonSheet(teamID: teamID) }
+            .sheet(isPresented: $presented) { Group { TeamReportReasonSheet(teamID: teamID) }.cySheet() }
         }
     }
 }

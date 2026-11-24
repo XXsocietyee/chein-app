@@ -135,11 +135,14 @@ import QuestifyCore
             }
             if tab == .feedback { feedbackSections } else { ticketSections }
         }
-        .appNavigationTitle("creatorStudio.maintenance.title")
+        .appNavigationTitle("creatorStudio.maintenance.title").navigationBarTitleDisplayMode(.inline)
         .task { await model.start(loadTopics: loadTopics) }
         .refreshable { await model.reloadTickets(); await model.reloadFeedback() }
         .sheet(isPresented: $composing) {
-            CreatorTicketComposeSheet(model: model) { ticket in composing = false; openedID = ticket.ticketId; tab = .tickets }
+            Group {
+                CreatorTicketComposeSheet(model: model) { ticket in composing = false; openedID = ticket.ticketId; tab = .tickets }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .navigationDestination(item: $openedID) { id in CreatorTicketDetailView(model: model, ticketID: id) }
         .cyDomainScreen(.topicEditor)
@@ -223,7 +226,7 @@ struct CreatorFeedbackRow: View {
                     if let ticket = item.ticketId { Text("creatorStudio.feedback.inTicket \(ticket)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
                 if let content = item.content { Text(verbatim: content).cyText(.body).foregroundStyle(CYColor.textPrimary) }
-                if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 if let date = item.createdAt { Text(verbatim: String(date.prefix(16)).replacingOccurrences(of: "T", with: " ")).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }
         }.padding(.vertical, CYSpacing.xs).contentShape(Rectangle())
@@ -287,7 +290,7 @@ struct CreatorTicketStageChip: View {
                 }
             }
             .cyGroupedSurface()
-            .navigationTitle("creatorStudio.ticket.open")
+            .navigationTitle("creatorStudio.ticket.open").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
         }
     }
@@ -322,15 +325,18 @@ struct CreatorStudioWriteIssueText: View {
             else if let ticket { content(ticket) }
             else { CreatorStudioIssueView(failure: failure) { Task { await load() } } }
         }
-        .appNavigationTitle("creatorStudio.ticket.detail")
+        .appNavigationTitle("creatorStudio.ticket.detail").navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .refreshable { await load() }
         .sheet(item: $closing) { choice in
-            if let ticket {
-                CreatorTicketCloseSheet(service: model.service, ticket: ticket, resolution: choice.resolution) { updated in
-                    closing = nil; self.ticket = updated; model.replace(updated)
+            Group {
+                if let ticket {
+                    CreatorTicketCloseSheet(service: model.service, ticket: ticket, resolution: choice.resolution) { updated in
+                        closing = nil; self.ticket = updated; model.replace(updated)
+                    }
                 }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .cyDomainScreen(.topicEditor)
     }
@@ -428,7 +434,7 @@ struct CreatorTicketCloseChoice: Identifiable {
                 }
             }
             .cyGroupedSurface()
-            .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange")
+            .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
         }
     }

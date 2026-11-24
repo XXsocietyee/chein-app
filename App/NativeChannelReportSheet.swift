@@ -56,7 +56,7 @@ import SwiftUI
             }
             .nativeChannelFlowPage()
             .cyGroupedSurface()
-            .navigationTitle(Text("d7.channelReport.title"))
+            .navigationTitle(Text("d7.channelReport.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         }
         .presentationDetents([.medium, .large])

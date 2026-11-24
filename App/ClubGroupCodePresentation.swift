@@ -6,13 +6,16 @@ import UIKit
 @MainActor struct ClubGroupCodePresentation: View {
     let value: ClubGovernanceGroupCode
     let current: Bool
+    /// CLB-group-code-03 (fix-r3-club-b): re-issue in place once the code has expired. Nil while busy.
+    var onReissue: (() -> Void)? = nil
     @Environment(\.scenePhase) private var scenePhase
+    @State private var savedBrightness: CGFloat?
     var body: some View {
         TimelineView(.periodic(from: value.receivedAt, by: 1)) { timeline in
             if current, scenePhase == .active, value.isActive(at: timeline.date) {
                 if let bytes = value.inlinePNG, let image = UIImage(data: bytes) {
                     // Mini `club-game-code-sheet` card: code on white inside an ink card, then 保存.
-                    VStack(spacing: Theme.Space.s2) {
+                    VStack(spacing: CYSpacing.sm) {
                         Text("club.gov.codeAvailable").cyText(.cardTitle)
                         CYClubGameCodeCard(state: .ready, name: nil) {
                             Image(uiImage: image).interpolation(.none).resizable().scaledToFit()
@@ -33,13 +36,27 @@ import UIKit
                     Text("groupCode.imageUnavailable", tableName: "ClubGroupCodeDisplay")
                 }
             } else {
-                VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Label("club.gov.expiredCode", systemImage: "clock.badge.exclamationmark")
                         .accessibilityIdentifier("club.gov.expiredCode")
-                    // Mini-program re-issues automatically; native keeps issuance behind the reviewed command.
-                    Text("club.gov.expiredCode.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    if let onReissue {
+                        CYPillButton("clubR3b.groupCode.reissue", style: .primary, systemImage: "arrow.clockwise", action: onReissue)
+                            .accessibilityIdentifier("club.groupCode.reissue")
+                    } else {
+                        Text("club.gov.expiredCode.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
+                    }
                 }
             }
+        }
+        // CLB-group-code-08 (fix-r3-club-b): full brightness while staff scan the code; restored on leave.
+        .onAppear {
+            guard savedBrightness == nil else { return }
+            savedBrightness = UIScreen.main.brightness
+            UIScreen.main.brightness = 1
+        }
+        .onDisappear {
+            if let savedBrightness { UIScreen.main.brightness = savedBrightness }
+            savedBrightness = nil
         }
     }
 }

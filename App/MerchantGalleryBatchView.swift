@@ -23,15 +23,14 @@ import UIKit
                         if let image = UIImage(data: review.selection.jpeg) {
                             Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel("image.retained.preview")
                         }
-                        Text(verbatim: review.scope.realm)
-                        Text("image.retained.byteCount \(review.selection.jpeg.count)").cyText(.meta)
-                        Button("image.retained.confirmUpload") { Task { await batch.confirmUpload(review) } }
-                            .disabled(!batch.current || batch.selecting)
+                        // MC7-20-2: MP uploads as soon as the crop is confirmed (gallery/index.js:206-217);
+                        // no realm / byte-count lines and no separate 确认上传 step.
+                        ProgressView("image.retained.loading")
                             .accessibilityIdentifier("image.galleryBatch.confirmUpload")
                     case .uploading: ProgressView("image.retained.loading")
-                    case .uploaded(let image):
-                        Text("image.retained.uploaded")
-                        Button("image.retained.use") { batch.use(image) }.disabled(!batch.current)
+                    case .uploaded:
+                        // MC7-20-2: the uploaded photo is appended to the grid automatically.
+                        ProgressView("image.retained.loading")
                             .accessibilityIdentifier("image.galleryBatch.use")
                     case .failed: Text("image.retained.failed")
                     case .unknown: Text("image.retained.unknown")
@@ -52,8 +51,28 @@ import UIKit
             if batch.failed { Text("image.retained.failed") }
         }
         .buttonStyle(.borderless)
+        .task(id: autoStepKey) { await runAutoStep() }
         .onDisappear { batch.cancel() }
         .onChange(of: batch.current) { _, value in if batch.active && !value { batch.cancel() } }
         .onChange(of: scenePhase) { _, value in if value != .active { batch.cancel() } }
+    }
+
+    /// MC7-20-2: one key per pending automatic step (upload the reviewed crop, then append it).
+    private var autoStepKey: String {
+        guard batch.active, batch.current, let context = batch.context else { return "" }
+        switch context.uploads.state {
+        case .reviewing(let review): return "upload:\(review.selection.id)"
+        case .uploaded(let image): return "use:\(image.id)"
+        default: return ""
+        }
+    }
+
+    private func runAutoStep() async {
+        guard !autoStepKey.isEmpty, batch.current, !batch.selecting, let context = batch.context else { return }
+        switch context.uploads.state {
+        case .reviewing(let review): await batch.confirmUpload(review)
+        case .uploaded(let image): batch.use(image)
+        default: break
+        }
     }
 }

@@ -169,8 +169,11 @@ enum ApprovedReleaseOriginalRecoveryText: String, CaseIterable {
                     .accessibilityIdentifier("approvedRelease.recovery.open")
             }
         }
-        .sheet(item: controller.binding(original)) { captured in
+        .sheet(item: controller.binding(original)) { captured in Group {
             ApprovedReleaseOriginalRecoveryView(original: captured, close: { controller.close(captured) })
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         }
         .onChange(of: original.map { controller.isPresented($0) }) { _, current in
             if current == false, let original { controller.close(original) }
@@ -212,17 +215,20 @@ enum ApprovedReleaseOriginalRecoveryText: String, CaseIterable {
                     records
                 }
             }
-            .navigationTitle(text(.title))
+            .navigationTitle(text(.title)).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(text(.close), action: close).accessibilityIdentifier("approvedRelease.recovery.close")
             } }
         }
         .task(id: original.id) { reader.reload() }
-        .sheet(item: reader.resultBinding(inspection)) { captured in
+        .sheet(item: reader.resultBinding(inspection)) { captured in Group {
             // The existing result view uses the saved summary and never loads current preparation/media.
             if reader.isInspecting(captured) {
                 ApprovedReleaseSummaryResultView(original: captured, close: reader.dismiss)
             }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { _, phase in if phase != .active { close() } }
         // No onDisappear close: inspecting a saved result may cover this sheet.

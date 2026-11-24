@@ -146,10 +146,10 @@ struct PhoneSignInForm<AppleContent: View>: View {
             Image(systemName: "message.badge.filled.fill")
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(CYColor.actionPrimaryFg, CYColor.actionPrimaryBg)
-                .font(CYTypography.display)
+                .cyText(.display)
                 .frame(width: 56, height: 56)
-                .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.12), lineWidth: 1))
+                .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.12), lineWidth: 1))
                 .padding(.top, CYSpacing.xl).accessibilityHidden(true)
             Text("auth.channels.phoneTitle")
                 .cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
@@ -192,8 +192,8 @@ struct PhoneSignInForm<AppleContent: View>: View {
             }
             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(focus == .phone ? CYColor.brand : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(focus == .phone ? CYColor.brand : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
             sendButton
         }
     }
@@ -243,8 +243,8 @@ struct PhoneSignInForm<AppleContent: View>: View {
                         .cyText(.dataXL)
                         .foregroundStyle(CYColor.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 60)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                             .strokeBorder(hasError ? CYColor.dangerText : (active ? CYColor.brand : (i < chars.count ? CYColor.textPrimary.opacity(0.3) : CYColor.textPrimary.opacity(0.08))), lineWidth: active || hasError ? 2 : 1))
                         .scaleEffect(i < chars.count && !reduceMotion ? 1 : 0.98)
                         .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.6), value: chars.count)

@@ -48,9 +48,10 @@ public struct BadgeWallTwoColumnGridView: View {
                                 if let urlStr = item.imageURL, !urlStr.isEmpty {
                                     CYCachedAsyncImage(urlStr, role: .shelf)
                                 } else {
-                                    Image(systemName: item.isIdentityPin ? "pin.circle.fill" : "medal.fill")
-                                        .cyText(.display)
-                                        .foregroundStyle(CYColor.brand)
+                                    MPAsset.BadgeMedal.medalGold
+                                        .resizable()
+                                        .scaledToFit()
+                                        .padding(CYSpacing.xs)
                                 }
                             }
                             .frame(width: 72, height: 72)

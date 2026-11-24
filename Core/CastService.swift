@@ -13,6 +13,9 @@ public enum CastCapability: Hashable, Sendable {
     case castVoice
     /// `POST /api/play/run/branch`. Write. Default off.
     case castBranch
+
+    /// Owner 2026-11-24: production enables no cast capability. Fixtures opt in explicitly.
+    public static let productionEnabled: Set<CastCapability> = []
 }
 
 /// Cast contract endpoints (hengyin docs/design/cast-contract-1119.md, follow-up feat/cast-1119).

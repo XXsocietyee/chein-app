@@ -172,7 +172,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: pillar.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(
                                     (pillar.isFailClosedCompliant && !pillar.liveCashMutationEnabled)
                                         ? CYColor.successText
@@ -185,7 +185,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                     }
                     .padding(8)
                     .background(CYColor.textSecondary.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
             }
             .accessibilityIdentifier("commerceWalletSafety.pillarList")
@@ -197,7 +197,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                             .cyText(.label)
                         Spacer()
                         Text(verbatim: surface.isFlaggedOffByPolicy ? "FLAGGED-OFF" : "PARITY-READY")
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                     }
                 }
             }
@@ -205,7 +205,7 @@ public struct CommerceAndWalletSafetySectionView: View {
         }
         .padding(12)
         .background(CYColor.textSecondary.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("commerceWalletSafety.section")
     }

@@ -175,7 +175,7 @@ import SwiftUI
                     }
                 }
             }
-            .navigationTitle(Text("projectThoughts.title", tableName: "ProjectThoughtDefinitions"))
+            .navigationTitle(Text("projectThoughts.title", tableName: "ProjectThoughtDefinitions")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
             .scrollDismissesKeyboard(.interactively)
         }

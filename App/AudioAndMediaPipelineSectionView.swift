@@ -173,7 +173,7 @@ public struct AudioAndMediaPipelineSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(
                                     (row.isGenerationFenced && !row.liveUploadOrVoiceCloneEnabled)
                                         ? CYColor.successText
@@ -186,14 +186,14 @@ public struct AudioAndMediaPipelineSectionView: View {
                     }
                     .padding(8)
                     .background(CYColor.textSecondary.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
             }
             .accessibilityIdentifier("audioMediaPipeline.rowList")
         }
         .padding(12)
         .background(CYColor.textSecondary.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("audioMediaPipeline.section")
     }

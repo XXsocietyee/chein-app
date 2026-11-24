@@ -20,7 +20,7 @@ final class ReleaseMoneyWriteSwitchDerivationTests: XCTestCase {
             .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Core/ChinaReviewedRouteCapability.swift"), encoding: .utf8)
         let body = try XCTUnwrap(source.components(separatedBy: "public enum ReleaseMoneyWriteSwitch {").last)
         let release = try XCTUnwrap(body.components(separatedBy: "#else").dropFirst().first?.components(separatedBy: "#endif").first)
-        for name in ["paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"] {
+        for name in ["paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled", "refundEnabled", "hostCancelRefundEnabled"] {
             XCTAssertTrue(release.contains("public static let \(name) = false"), name)
         }
     }

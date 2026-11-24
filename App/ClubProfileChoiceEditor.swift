@@ -57,8 +57,8 @@ import SwiftUI
         }.disabled(!available).accessibilityIdentifier("club.profileChoice.open." + kind.rawValue)
     }
     @ViewBuilder private func choiceLabel(_ value: String, catalog: [String]) -> some View {
-        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
-        else { Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true) }
+        if catalog.contains(value) { Text(LocalizedStringKey("club.ops.value." + value)).cyText(.body).fixedSize(horizontal: false, vertical: true) }
+        else { Text(verbatim: value).cyText(.body).fixedSize(horizontal: false, vertical: true) }
     }
 }
 

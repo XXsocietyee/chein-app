@@ -43,6 +43,11 @@ struct RoamBrowserView: View {
     var anniversaryRouteDestination: ((String) -> AnyView)? = nil
     /// B03 开始漫游 permission notice: a static OS location-status reader (never prompts). nil hides the notice.
     var locationSettings: (any RoamLocationSettingsProviding)? = nil
+    /// ROAM-3: opened as the 漫游护照与工具 sheet over the City map root. The sheet has no second map, GO or
+    /// large 漫游 title: it opens on the passport tab under an inline sheet title with one ✕.
+    var presentedAsSheet = false
+    @Environment(\.dismiss) private var dismiss
+    @State private var appliedSheetDefaults = false
     @State private var homeTab: RoamHomeTab = .start
     @State private var celebrations = CYCelebrationCenter()
     @State private var entryCard: RoamNearbyEventsEntrySelection?
@@ -84,7 +89,7 @@ struct RoamBrowserView: View {
         #endif
         return .compact
     }
-    private var mapMode: Bool { showsMap && cameraScope != nil }
+    private var mapMode: Bool { showsMap && cameraScope != nil && !presentedAsSheet }
 
     private var effectiveReader: any RoamReading {
         if layer == .events, let nearbyEventsReader { return nearbyEventsReader }
@@ -189,11 +194,11 @@ struct RoamBrowserView: View {
                     }
                 }
             }
-            .sheet(item: $entryCard) { selection in
+            .sheet(item: $entryCard) { selection in Group {
                 RoamEntryActivitySheet(card: selection.card, eventDestination: nearbyEventDestination ?? eventDestination,
                     teamDestination: nearbyTeamDestination, readOnly: nearbyEventDestination != nil,
                     isCurrent: { selection.mayRemainOpen(in: entryScope) })
-            }
+            }.cySheet(detents: [.large]) }
             .onChange(of: entryScope) { _, _ in entryCard = nil }
             .onChange(of: recoveryReadOwner) { _, _ in
                 recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil)
@@ -205,6 +210,7 @@ struct RoamBrowserView: View {
                 if tab == .start { recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil) }
             }
             .onAppear {
+                if presentedAsSheet && !appliedSheetDefaults { appliedSheetDefaults = true; homeTab = .passport }
                 guard !trackedRoamStart else { return }
                 trackedRoamStart = true
                 MiniProgramAnalytics.track(analytics, "roam_start", bizType: "roam", pagePath: "/pages/roam/index")
@@ -223,7 +229,8 @@ struct RoamBrowserView: View {
                 .cyPushedChrome()
             }
             // verify-r1 2.5 / N-12: the same root header as the other tabs (large title on the left), not a centred one.
-            .cyRootHeader(.roam)
+            // ROAM-3: as a sheet, the system inline sheet title + ✕ instead of a second large 漫游 root title.
+            .modifier(RoamBrowserHeader(asSheet: presentedAsSheet, onClose: { dismiss() }))
             .toolbar(mapMode ? .hidden : .automatic, for: .navigationBar)
             .modifier(RoamSearchableUnlessMap(enabled: !mapMode, text: $query))
             .task(id: requestKey) {
@@ -296,9 +303,11 @@ struct RoamBrowserView: View {
                 Button("roam.area.title", systemImage: "mappin.and.ellipse", action: onChooseArea)
                     .accessibilityIdentifier("roam.chooseArea")
             }
-            Button { showsMap.toggle() } label: {
-                Label(LocalizedStringKey(showsMap ? "roam.listOnly" : "roam.showMap"), systemImage: showsMap ? "list.bullet" : "map")
-            }.accessibilityIdentifier("roam.display.toggle")
+            if !presentedAsSheet {
+                Button { showsMap.toggle() } label: {
+                    Label(LocalizedStringKey(showsMap ? "roam.listOnly" : "roam.showMap"), systemImage: showsMap ? "list.bullet" : "map")
+                }.accessibilityIdentifier("roam.display.toggle")
+            }
             if let onOpenAccount {
                 Button("tabBar.passport", systemImage: "book.closed", action: onOpenAccount)
                     .accessibilityIdentifier("roam.account.open")
@@ -479,7 +488,7 @@ struct RoamBrowserView: View {
                     // Title top-left; the ONE overflow menu top-right (area, list, account, passport tools, refresh).
                     HStack(alignment: .center) {
                         Text("roam.title").cyText(.pageTitle).foregroundStyle(.white)
-                            .lineLimit(2).minimumScaleFactor(0.6).layoutPriority(1)
+                            .lineLimit(2).layoutPriority(1)
                             .shadow(color: .black.opacity(0.5), radius: 6).accessibilityAddTraits(.isHeader)
                         Spacer(minLength: 0)
                         overflowMenu { CYGlassLabel(systemImage: "ellipsis") }
@@ -547,7 +556,7 @@ struct RoamBrowserView: View {
                     if snapshot.isRetained {
                         Label("roamRetained.previous", systemImage: "clock.arrow.circlepath")
                             .fixedSize(horizontal: false, vertical: true)
-                        Text("roamRetained.readOnly").font(.subheadline).foregroundStyle(.secondary)
+                        Text("roamRetained.readOnly").cyText(.bodyCompact).foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("roamRetained.notice")
                         ForEach(retainedRows) { item in
@@ -649,13 +658,13 @@ struct RoamItemRow: View {
                 RoamTitle(item.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 Text(item.kindLabel).cyText(.caption).foregroundStyle(CYColor.textTertiary)
                 if showsCurrentReadStatus, case .place(let place) = item {
-                    RoamPlaceReadStatusLabel(status: place.readStatus).font(.caption)
+                    RoamPlaceReadStatusLabel(status: place.readStatus).cyText(.meta)
                 }
-                if let address = item.address, !address.isEmpty { Text(verbatim: address).font(.subheadline) }
+                if let address = item.address, !address.isEmpty { Text(verbatim: address).cyText(.bodyCompact) }
                 if let distance = item.distance, distance >= 0, distance.isFinite {
                     RoamDistanceLabel(meters: distance)
                 }
-                if item.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash").font(.caption) }
+                if item.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash").cyText(.meta) }
             }
             Spacer(minLength: 0)
             if navigable { Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).font(.caption) }
@@ -677,6 +686,26 @@ private struct RoamSearchableUnlessMap: ViewModifier {
     @Binding var text: String
     @ViewBuilder func body(content: Content) -> some View {
         if enabled { content.searchable(text: $text, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "roam.search") } else { content }
+    }
+}
+
+/// ROAM-3: tab-root header on the page, inline sheet title + one ✕ cancellation item in the sheet.
+private struct RoamBrowserHeader: ViewModifier {
+    let asSheet: Bool
+    let onClose: () -> Void
+    @ViewBuilder func body(content: Content) -> some View {
+        if asSheet {
+            content
+                .appNavigationTitle("roam.passportSheet.title").navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(action: onClose) { Label("action.close", systemImage: "xmark") }
+                            .labelStyle(.iconOnly).accessibilityIdentifier("roam.passportSheet.close")
+                    }
+                }
+        } else {
+            content.cyRootHeader(.roam)
+        }
     }
 }
 

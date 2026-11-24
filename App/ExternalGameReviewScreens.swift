@@ -12,8 +12,11 @@ import QuestifyCore
 
     var body: some View {
         catalogBody
-            .sheet(isPresented: $showCreatorMonetization) {
+            .sheet(isPresented: $showCreatorMonetization) { Group {
                 ExternalGameCreatorMonetizationSheet(model: model, session: session)
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
     }
 
@@ -194,7 +197,7 @@ import QuestifyCore
 
     var body: some View {
         submissionsBody
-            .navigationTitle(W8Text.t("我的提交", "My submissions"))
+            .navigationTitle(W8Text.t("我的提交", "My submissions")).navigationBarTitleDisplayMode(.inline)
             .accessibilityIdentifier("externalGame.submissions.root")
             .fileImporter(isPresented: $picking, allowedContentTypes: [.json, .data], allowsMultipleSelection: false) { result in
                 guard case .success(let urls) = result, let url = urls.first else { return }
@@ -310,7 +313,7 @@ import QuestifyCore
                     .accessibilityAddTraits(.isHeader)
             }
             .padding(CYSpacing.lg)
-            .navigationTitle(Text(verbatim: W8Text.t("年龄分级", "Age rating")))
+            .navigationTitle(Text(verbatim: W8Text.t("年龄分级", "Age rating"))).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     CurA11yTextButton(
@@ -373,7 +376,7 @@ import QuestifyCore
                 .accessibilityHint(Text("curA11y.external.block.hint", tableName: "CurA11y"))
                 .accessibilityAddTraits(blocked ? .isSelected : [])
             }
-            .navigationTitle(Text(verbatim: W8Text.t("举报", "Report")))
+            .navigationTitle(Text(verbatim: W8Text.t("举报", "Report"))).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     CurA11yTextButton(
@@ -535,7 +538,7 @@ import QuestifyCore
                     }
                 }
             }
-            .navigationTitle(W8Text.t("创作者变现与绑定", "Creator Monetization"))
+            .navigationTitle(W8Text.t("创作者变现与绑定", "Creator Monetization")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(W8Text.t("关闭", "Close")) { dismiss() }

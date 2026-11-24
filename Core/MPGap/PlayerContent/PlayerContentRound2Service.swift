@@ -4,21 +4,20 @@ import FoundationNetworking
 #endif
 
 /// Round-2 service methods for `player-content` MP gaps:
-/// `PC-A-2-1`, `PC-A-4-2`, `PC-A-5-1/5`, `PC-A-6-2`, `PC-B-3-2`, `PC-D-1-3/6`, `PC-D-4-2`, `PC-D-9-1/3`.
+/// `PC-A-2-1`, `PC-A-4-2`, `PC-A-5-5`, `PC-B-3-2`, `PC-D-1-3/6`, `PC-D-4-2`, `PC-D-9-1/3`.
 @MainActor
 public final class PlayerContentRound2Service {
     public static let paths: Set<String> = [
         "api/template/list",
         "api/search/unified",
         "api/category/list",
-        "api/template/my/info",
         "api/merchant/info",
         "api/registration/merchant/list",
         "api/merchant/chapter-application/mine",
         "api/activity/cancel_preview",
         "api/coop/finance",
         "api/im/read",
-        "api/report/create"
+        "api/im/report"
     ]
 
     public let baseURL: URL
@@ -36,11 +35,14 @@ public final class PlayerContentRound2Service {
         method: String,
         query: [String: String] = [:],
         json: [String: PlayWireValue]? = nil,
+        form: [String: String]? = nil,
         requireAuth: Bool = true
     ) throws -> URLRequest {
         var url = baseURL.appendingPathComponent(path)
         if !query.isEmpty {
-            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+            guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                throw APIError.invalidRequest
+            }
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
             guard let built = components.url else { throw APIError.invalidRequest }
             url = built
@@ -61,6 +63,12 @@ public final class PlayerContentRound2Service {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]
             request.httpBody = try encoder.encode(json)
+        } else if let form {
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            var components = URLComponents()
+            components.queryItems = form.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+            let encoded = (components.percentEncodedQuery ?? "").replacingOccurrences(of: "+", with: "%2B")
+            request.httpBody = Data(encoded.utf8)
         }
         return request
     }
@@ -74,89 +82,86 @@ public final class PlayerContentRound2Service {
         }
     }
 
-    /// `PC-A-2-1`: `POST /api/template/list {pageNum, pageSize: 50, keyword?}`
+    /// `PC-A-2-1`: `POST /api/template/list` (form `pageNum`, `pageSize=50`, `keyword?`)
     public func fetchTemplateShelfPage(pageNum: Int, keyword: String? = nil) async -> PlayerGapReply {
-        var payload: [String: PlayWireValue] = [
-            "pageNum": .number(Double(pageNum)),
-            "pageSize": .number(Double(TemplateShelfPagination.mpPageSize))
+        var form: [String: String] = [
+            "pageNum": String(pageNum),
+            "pageSize": String(TemplateShelfPagination.mpPageSize)
         ]
-        if let keyword, !keyword.isEmpty { payload["keyword"] = .string(keyword) }
-        guard let req = try? makeRequest("api/template/list", method: "POST", json: payload, requireAuth: false) else {
+        if let keyword, !keyword.isEmpty { form["keyword"] = keyword }
+        guard let req = try? makeRequest("api/template/list", method: "POST", form: form, requireAuth: false) else {
             return .unknown
         }
         return await send(req)
     }
 
-    /// `PC-A-4-2`: `POST /api/search/unified {keyword, pageNum, pageSize}`
+    /// `PC-A-4-2`: `POST /api/search/unified` (form `keyword`, `pageNum`, `pageSize`)
     public func searchUnified(keyword: String, pageNum: Int = 1, pageSize: Int = 20) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/search/unified",
             method: "POST",
-            json: [
-                "keyword": .string(keyword),
-                "pageNum": .number(Double(pageNum)),
-                "pageSize": .number(Double(pageSize))
+            form: [
+                "keyword": keyword,
+                "pageNum": String(pageNum),
+                "pageSize": String(pageSize)
             ]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `PC-A-5-5`: `GET /api/category/list?type=MERCHANT`
+    /// `PC-A-5-5`: `POST /api/category/list` (form `type=MERCHANT`)
     public func fetchMerchantCategories() async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/category/list",
-            method: "GET",
-            query: ["type": "MERCHANT"],
+            method: "POST",
+            form: ["type": "MERCHANT"],
             requireAuth: false
         ) else { return .unknown }
         return await send(req)
     }
 
-    /// `PC-A-6-2`: `GET /api/template/my/info?id=&operationScope=`
-    public func fetchMyTemplateDetail(id: Int, operationScope: String?) async -> PlayerGapReply {
-        var query = ["id": String(id)]
-        if let operationScope, !operationScope.isEmpty { query["operationScope"] = operationScope }
-        guard let req = try? makeRequest("api/template/my/info", method: "GET", query: query) else {
+    /// `PC-B-3-2`: `POST /api/merchant/info`
+    public func fetchMerchantPrefillInfo() async -> PlayerGapReply {
+        guard let req = try? makeRequest("api/merchant/info", method: "POST", form: [:]) else {
             return .unauthorized
         }
         return await send(req)
     }
 
-    /// `PC-B-3-2`: `GET /api/merchant/info`
-    public func fetchMerchantPrefillInfo() async -> PlayerGapReply {
-        guard let req = try? makeRequest("api/merchant/info", method: "GET") else { return .unauthorized }
-        return await send(req)
-    }
-
-    /// `PC-D-1-6`: `GET /api/registration/merchant/list` + `GET /api/merchant/chapter-application/mine`
+    /// `PC-D-1-6`: `POST /api/registration/merchant/list` + `POST /api/merchant/chapter-application/mine`
     public func fetchMerchantRegistrations() async -> PlayerGapReply {
-        guard let req = try? makeRequest("api/registration/merchant/list", method: "GET") else { return .unauthorized }
+        guard let req = try? makeRequest("api/registration/merchant/list", method: "POST", form: [:]) else {
+            return .unauthorized
+        }
         return await send(req)
     }
 
     public func fetchMerchantChapterApplications() async -> PlayerGapReply {
-        guard let req = try? makeRequest("api/merchant/chapter-application/mine", method: "GET") else {
+        guard let req = try? makeRequest("api/merchant/chapter-application/mine", method: "POST", form: [:]) else {
             return .unauthorized
         }
         return await send(req)
     }
 
-    /// `PC-D-1-3`: `POST /api/activity/cancel_preview {id}`
+    /// `PC-D-1-3`: `POST /api/activity/cancel_preview` (form `id`)
     public func fetchActivityCancelPreview(activityID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/activity/cancel_preview",
             method: "POST",
-            json: ["id": .number(Double(activityID))]
+            form: ["id": String(activityID)]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `PC-D-4-2`: `GET /api/coop/finance?pageNum=&pageSize=`
+    /// `PC-D-4-2`: `POST /api/coop/finance`
     public func fetchCoopFinance(pageNum: Int = 1, pageSize: Int = 20) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/coop/finance",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
+            method: "POST",
+            json: [
+                "pageNum": .integer(Int64(pageNum)),
+                "pageSize": .integer(Int64(pageSize))
+            ]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -174,14 +179,14 @@ public final class PlayerContentRound2Service {
         return await send(req)
     }
 
-    /// `PC-D-9-3`: `POST /api/report/create {targetType: "MEMBER", targetId, reason}`
+    /// `PC-D-9-3`: `POST /api/im/report {targetType: "MEMBER", targetId, reason}`
     public func reportPeerMember(memberID: Int, reason: String) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/report/create",
+            "api/im/report",
             method: "POST",
             json: [
                 "targetType": .string("MEMBER"),
-                "targetId": .number(Double(memberID)),
+                "targetId": .integer(Int64(memberID)),
                 "reason": .string(reason)
             ]
         ) else { return .unauthorized }

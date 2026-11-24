@@ -51,7 +51,7 @@ import SwiftUI
                         // 「过线了 / 没过线」 comes from the receipt; the client never judges.
                         Label { Text(verbatim: success ? c("Over the line", "过线了") : c("Short of the line", "没过线")) }
                             icon: { Image(systemName: success ? "checkmark.seal.fill" : "xmark.seal") }
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(success ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("play.check.verdict")
                     }
@@ -140,6 +140,8 @@ import SwiftUI
 /// play window and `openNow` are the server's. Platform rules stay server-side at start.
 @MainActor struct PlayTopicPrepSection: View {
     let topicID: Int
+    /// R7-PC-B1-5 (r1 PC-B-1-4): MP prep layer 开始游玩, enabled once every item is ticked. Nil hides it.
+    var onStart: (() -> Void)? = nil
     @Environment(\.playRuntimeTopicClient) private var makeClient
     @Environment(\.locale) private var locale
     @State private var read: PlayTopicSetup.Read?
@@ -196,6 +198,23 @@ import SwiftUI
                             Text(verbatim: item.text)
                         }
                     }
+                }
+                if let onStart, !setup.closed {
+                    Section {
+                        Button {
+                            showing = false
+                            // Let this sheet finish closing before the host presents the next one.
+                            Task { @MainActor in try? await Task.sleep(nanoseconds: 400_000_000); onStart() }
+                        } label: {
+                            Text("play.prep.start").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.cyPrimary(fullWidth: true))
+                        .disabled(!setup.ready(ticked: ticked))
+                        .accessibilityIdentifier("play.prep.start")
+                    } footer: {
+                        if !setup.ready(ticked: ticked) { Text("play.prep.startHint") }
+                    }
+                    .listRowBackground(Color.clear)
                 }
             }
             .navigationTitle(Text(verbatim: CYKitCopy(locale: locale)("Pre-game prep", "开局前准备"))).navigationBarTitleDisplayMode(.inline)

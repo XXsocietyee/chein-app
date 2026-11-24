@@ -30,7 +30,7 @@ import SwiftUI
                             if let informationDestination { informationDestination(row) }
                             else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
                         } label: {
-                            CYListRow(verbatim: row.title, meta: row.summary, trailing: .none) { SocialInformationArt(id: row.id).frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)) }
+                            CYListRow(verbatim: row.title, meta: row.summary, trailing: .none) { SocialInformationArt(id: row.id).frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)) }
                         }.accessibilityIdentifier("social.information.\(row.id)")
                     }
                 }
@@ -47,6 +47,8 @@ import SwiftUI
     let id: Int
     let reader: any SocialAccountReading
     @Environment(\.dismiss) private var dismiss
+    /// R7-PC-D3-1 (MP infomationdetail.js:90-94 `setNavigationBarTitle(detail.title)`): the bar shows the article title.
+    @State private var articleTitle: String?
     var body: some View {
         List {
             // Mini-program missing-param shell: 链接已失效 with one 返回.
@@ -60,10 +62,13 @@ import SwiftUI
                     case .ready(let article):
                         SocialInformationCover(id: article.id, title: article.title, created: page.createTimeDisplay)
                             .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                            .onAppear { articleTitle = article.title }
                         if let contents = article.contents, page.bodyKey == nil { SocialArticleContentView(contents: contents) }
                         else { CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InformationDetailPageModel.Copy.noContent)) }
                     case .empty(.removed):
-                        CYEmptyState(systemImage: "doc", LocalizedStringKey(InformationDetailPageModel.Copy.removed))
+                        // R7-PC-D3-4 (MP infomationdetail.wxml:21-23): the removed state leads back to the list.
+                        CYEmptyState(systemImage: "doc", LocalizedStringKey(InformationDetailPageModel.Copy.removed),
+                                     actionTitle: "guideXcx.backToList", action: { dismiss() })
                             .accessibilityIdentifier(page.accessibilityIdentifier ?? "")
                     case .empty(.incompleteLink):
                         CYEmptyState(systemImage: "link", LocalizedStringKey(InformationDetailPageModel.Copy.incompleteLink))
@@ -78,7 +83,7 @@ import SwiftUI
             }
         }
         .cyGroupedSurface()
-        .cyPageTitle("guideXcx.detailTitle") // PC-D-3-1: inline; the article title in the cover is the object name
+        .modifier(SocialInformationTitle(articleTitle: articleTitle))
         .cyDomainPageBackground()
         .themeDomain(.player)
         .tint(CYDomainPalette(.player).brand)
@@ -92,7 +97,7 @@ struct SocialInformationArt: View {
     var large = false
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        RoundedRectangle(cornerRadius: large ? CYRadius.lg : CYRadius.sm, style: .continuous)
+        RoundedRectangle(cornerRadius: large ? CYRadius.card : CYRadius.inner, style: .continuous)
             .fill(palette.bgElevated)
             .overlay(alignment: large ? .topTrailing : .center) {
                 Image(systemName: abs(id) % 2 == 0 ? "text.book.closed" : "doc.text")
@@ -126,5 +131,17 @@ struct SocialInformationCover: View {
             Divider().overlay(CYColor.borderSubtle)
         }
         .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+    }
+}
+
+/// R7-PC-D3-1: 玩法详情 while loading, then the article's own title (inline).
+private struct SocialInformationTitle: ViewModifier {
+    let articleTitle: String?
+    func body(content: Content) -> some View {
+        if let articleTitle, !articleTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            content.cyPageTitle(verbatim: articleTitle)
+        } else {
+            content.cyPageTitle("guideXcx.detailTitle")
+        }
     }
 }

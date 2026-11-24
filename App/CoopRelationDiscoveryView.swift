@@ -111,18 +111,18 @@ extension EnvironmentValues {
             if reader.session == nil {
                 // Parity relation P1: MP copy 登录后查看发现 (not 协作邀请).
                 Text("cooprelation.login")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             else if loadedKey == key && model.failed {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(CYTypography.sectionTitle)
+                        .cyText(.sectionTitle)
                         .foregroundStyle(CYColor.warningText)
                         .accessibilityHidden(true)
                     Text("coopflow.read.failed")
-                        .font(CYTypography.body)
+                        .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooprelation.failed")
@@ -137,19 +137,25 @@ extension EnvironmentValues {
                 Section {
                     if value.hasInvalidRows(tab) {
                         Text("cooprelation.partial")
-                            .font(CYTypography.meta)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("cooprelation.partial")
+                        // MC7-28-5: the partial notice offers 重新加载 (relation/index.wxml:67-68).
+                        Button { Task { await reload() } } label: {
+                            Label("cooprelation.reload", systemImage: "arrow.clockwise").frame(minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .disabled(model.isLoading)
+                        .accessibilityIdentifier("cooprelation.partial.reload")
                     }
                     if value.rows(tab).isEmpty && !value.hasInvalidRows(tab) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Image(systemName: tab == .merchants ? "storefront" : "person.3")
-                                .font(CYTypography.sectionTitle)
+                                .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .accessibilityHidden(true)
                             Text(tab == .merchants ? "cooprelation.emptyMerchants" : "cooprelation.emptyClubs")
-                                .font(CYTypography.body)
+                                .cyText(.body)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("cooprelation.empty")
@@ -176,7 +182,7 @@ extension EnvironmentValues {
                             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 card(row)
                                 Text("cooprelation.unavailable")
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.textSecondary)
                                     .fixedSize(horizontal: false, vertical: true)
                             }.accessibilityIdentifier("cooprelation.unavailable.\(row.kind.rawValue).\(row.id)")
@@ -261,7 +267,7 @@ extension EnvironmentValues {
         if let image = profiles?.image { image(source).accessibilityLabel(Text("cooprelation.image")) }
         else {
             Label("cooprelation.image", systemImage: "photo")
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityLabel(Text("cooprelation.image"))
         }
@@ -306,7 +312,7 @@ private struct CoopRelationContextLabel: View {
                 LabeledContent("cooprelation.topic", value: context.topicName ?? String(topicID))
                 if let chapterID = context.chapterID { LabeledContent("cooprelation.chapter", value: String(chapterID)) }
             }
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .monospacedDigit()
             .foregroundStyle(CYColor.textSecondary)
             .accessibilityIdentifier("cooprelation.displayContext")

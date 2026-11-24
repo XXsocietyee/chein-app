@@ -33,6 +33,7 @@ struct SearchMapResultsCapsuleView: View {
 /// 全部 N 个结果 sheet. It renders the explorer's current rows only; it never reads by itself.
 struct SearchMapAllResultsSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     let rows: [ActivitySummary]
     let loading: Bool
     let failed: Bool
@@ -58,7 +59,7 @@ struct SearchMapAllResultsSheet: View {
                     }
                     if loading {
                         ForEach(0..<3, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 18).fill(.secondary.opacity(0.1)).frame(height: 96).accessibilityHidden(true)
+                            RoundedRectangle(cornerRadius: 20).fill(.secondary.opacity(0.1)).frame(height: 96).accessibilityHidden(true)
                         }
                     } else if failed && rows.isEmpty {
                         CYErrorStateView(
@@ -85,6 +86,8 @@ struct SearchMapAllResultsSheet: View {
                     ForEach(rows) { row in
                         Button { open(row) } label: { SearchMapActivityCard(item: row, offline: offline) }
                             .buttonStyle(QuestifyCardButtonStyle())
+                            // R7-PC-A5-5: MP result-card address opens the place in the map app.
+                            .modifier(HomeFeedOpenPlaceInMaps(url: SearchMapPlaceLink.url(for: row), openURL: openURL))
                             .accessibilityIdentifier("searchMap.w208.sheet.activity.\(row.id)")
                     }
                 }.padding()
@@ -97,5 +100,19 @@ struct SearchMapAllResultsSheet: View {
                 }
             }
         }
+    }
+}
+
+/// Apple Maps link for a result: the coordinate when valid (with the place name), else the address text.
+enum SearchMapPlaceLink {
+    static func url(for row: ActivitySummary) -> URL? {
+        let name = [row.addressName, row.address, row.name]
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }.first { !$0.isEmpty }
+        guard row.hasValidCoordinates, let lat = row.latitude, let lng = row.longitude else {
+            return HomeFeedMapsLink.url(for: row.addressName ?? row.address)
+        }
+        var components = URLComponents(string: "https://maps.apple.com/")
+        components?.queryItems = [URLQueryItem(name: "ll", value: "\(lat),\(lng)"), URLQueryItem(name: "q", value: name ?? "\(lat),\(lng)")]
+        return components?.url
     }
 }

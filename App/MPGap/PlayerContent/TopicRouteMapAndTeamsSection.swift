@@ -67,7 +67,7 @@ public struct TopicRouteMapAndTeamsSection: View {
                                 onSelectPin(pin)
                             } label: {
                                 Text("\(pin.sequence)")
-                                    .cyText(.caption, weight: .bold, monospacedDigit: true)
+                                    .cyText(.meta, weight: .bold, monospacedDigit: true)
                                     .foregroundStyle(CYColor.actionPrimaryFg)
                                     .frame(width: 26, height: 26)
                                     .background(pin.isCompleted ? CYColor.brand : CYColor.actionPrimaryBg)
@@ -102,7 +102,7 @@ public struct TopicRouteMapAndTeamsSection: View {
                                 .foregroundStyle(CYColor.textSecondary)
                             if team.missingCount > 0 {
                                 Text("还差 \(team.missingCount) 人")
-                                    .cyText(.caption, monospacedDigit: true)
+                                    .cyText(.meta, monospacedDigit: true)
                                     .foregroundStyle(CYColor.brand)
                             }
                         }
@@ -134,7 +134,7 @@ public struct TopicRouteMapAndTeamsSection: View {
                                     }
                                     if let addr = card.address, !addr.isEmpty {
                                         Text(addr)
-                                            .cyText(.caption)
+                                            .cyText(.meta)
                                             .foregroundStyle(CYColor.textSecondary)
                                     }
                                 }

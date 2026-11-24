@@ -52,6 +52,8 @@ struct PassMembershipContent: Equatable {
     var expiring = false
     var daysLeft: Int? = nil
     var daysTotal: Int? = nil
+    /// Server `overview.terms` (OR-024). Server text wins over the fixed renewal / refund lines.
+    var terms: PlatformPassTermFacts = .empty
 }
 
 enum PassMembershipPhase: Equatable {
@@ -118,7 +120,7 @@ struct PassMembershipView: View {
                             MPRow(title: Text("mp.member.library"),
                                   sub: content.themeCount.map { Text("mp.member.library.count \($0)") },
                                   chevron: true,
-                                  leading: AnyView(Image(systemName: "seal.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
+                                  leading: AnyView(Image(systemName: "seal.fill").cyText(.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
                         }
                     }
                     .buttonStyle(.cyPressable)
@@ -151,15 +153,25 @@ struct PassMembershipView: View {
     }
 
     /// `platform-pass.js` `factRows`: 购买前须知 from server facts; a missing fact is left out, never invented.
-    /// 续费 / 退款规则 are the fixed OR-024 lines (不自动续费 / 退款为整单).
+    /// 可玩主题 = library count, else `terms.coverage`; 适用范围 = `terms.seat`; 有效期 = `terms.period`, else plan days.
+    /// 续费 / 退款规则 use the server text when `overview.terms` sent it, else the fixed OR-024 lines (`termRows`).
     private func termFacts(_ content: PassMembershipContent) -> some View {
         var rows: [(Text, Text)] = []
+        let terms = content.terms
+        func server(_ value: String?) -> String? {
+            guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+            return text
+        }
         if let count = content.themeCount { rows.append((Text("mp.member.fact.themes"), Text("mp.member.fact.themes.value \(count)"))) }
-        if let code = content.selectedPlan, let days = content.validDays[code] {
+        else if let coverage = server(terms.coverage) { rows.append((Text("mp.member.fact.themes"), Text(verbatim: coverage))) }
+        if let seat = server(terms.seat) { rows.append((Text("mp.member.fact.seat"), Text(verbatim: seat))) }
+        if let period = server(terms.period) {
+            rows.append((Text("mp.member.fact.period"), Text(verbatim: period)))
+        } else if let code = content.selectedPlan, let days = content.validDays[code] {
             rows.append((Text("mp.member.fact.period"), Text("mp.member.plan.days \(days)")))
         }
-        rows.append((Text("mp.member.fact.renewal"), Text("mp.member.fact.renewal.value")))
-        rows.append((Text("mp.member.fact.refund"), Text("mp.member.fact.refund.value")))
+        rows.append((Text("mp.member.fact.renewal"), server(terms.renewal).map { Text(verbatim: $0) } ?? Text("mp.member.fact.renewal.value")))
+        rows.append((Text("mp.member.fact.refund"), server(terms.refund).map { Text(verbatim: $0) } ?? Text("mp.member.fact.refund.value")))
         return VStack(alignment: .leading, spacing: CYSpacing.sm) {
             MPSectionHeader(title: "mp.member.fact.title")
             MPCard {
@@ -438,7 +450,7 @@ struct PassLibraryCardView: View {
                     if let kindText { tag(kindText) }
                     if let city = card.city { tag(Text(verbatim: city)) }
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                         .accessibilityHidden(true)
                 }
                 .padding(.top, CYSpacing.xxs)
@@ -460,7 +472,7 @@ struct PassLibraryCardView: View {
                 Spacer()
                 if let city = card.city {
                     Label { Text(verbatim: city) } icon: { Image(systemName: "mappin") }
-                        .font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.caption).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .cyNightGlass(in: Capsule())
                 }
@@ -502,7 +514,6 @@ struct PassRevealPaidFacts: Hashable {
     @State private var route: MPParityRoute?
     @State private var timeline: Task<Void, Never>?
     @State private var skipVisible = false
-    @GestureState private var pressingSkip = false
 
     /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
     private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
@@ -525,6 +536,8 @@ struct PassRevealPaidFacts: Hashable {
                 }
             }
         }
+        // B-PR-06-r7: the MP stage runs behind a transparent nav bar.
+        .toolbarBackground(.hidden, for: .navigationBar)
         .mpParityRouteDestination($route)
         .onAppear(perform: start)
         .onDisappear { timeline?.cancel() }
@@ -549,17 +562,29 @@ struct PassRevealPaidFacts: Hashable {
                     .scaleEffect(step >= 2 ? 1 : 0.4)
                     .opacity(step >= 2 ? 1 : 0)
                     .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
+                    // B-PR-02: after the reveal the key keeps a slow idle breath (MP idle frame loop); Reduce Motion stays still.
+                    .phaseAnimator([false, true]) { view, phase in
+                        view.scaleEffect(step >= 8 && !reduceMotion && phase ? 1.04 : 1)
+                            .shadow(color: CYNight.passGold2.opacity(step >= 8 && !reduceMotion && phase ? 0.55 : 0.2), radius: phase ? 28 : 12)
+                    } animation: { _ in .easeInOut(duration: 1.6) }
             }
             .frame(height: 320)
-            .contentShape(Rectangle())
-            .onTapGesture { if full, step < 8 { finish() } }
             .accessibilityHidden(true)
             Spacer()
             VStack(spacing: CYSpacing.md) {
-                eyebrow.cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).revealIn(step >= 5, reduceMotion: reduceMotion)
-                title.cyText(.display).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
-                if let line { line.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
-                CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
+                // B-PR-04: MP eyebrow is spaced caps (≈0.32 em) in white 72%, text sits on the gold wash with a soft shadow.
+                eyebrow.cyText(.label).tracking(3.5).foregroundStyle(Color.white.opacity(0.72)).revealIn(step >= 5, reduceMotion: reduceMotion)
+                title.cyText(.display).foregroundStyle(Color.white).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
+                if let line { line.cyText(.body).foregroundStyle(Color.white.opacity(0.78)).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
+                Button(action: go) {
+                    Text(LocalizedStringKey(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary"))
+                        .cyText(.bodyMedium, weight: .semibold)
+                        .foregroundStyle(CYNight.ink0)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color.white, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
                     // B-PR-01: no destination bound → the CTA says so by being disabled, never a silent no-op.
                     .disabled(paid == nil ? bindings.membership == nil : bindings.passLibrary == nil)
                     .accessibilityIdentifier("passReveal.start")
@@ -570,22 +595,28 @@ struct PassRevealPaidFacts: Hashable {
         .padding(.horizontal, CYSpacing.xxl)
         .padding(.bottom, CYSpacing.xxl)
         .accessibilityElement(children: .contain)
+        .shadow(color: CYNight.passGold0.opacity(0.45), radius: 8, y: 1)
         }
-        .opacity(pressingSkip && full && step < 8 && !reduceMotion ? 0.8 : 1)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .updating($pressingSkip) { _, state, _ in
-                    if full, step < 8, !reduceMotion { state = true }
-                }
-        )
-        .simultaneousGesture(TapGesture().onEnded { if full, step < 8 { finish() } })
+        // B-PR-05: only the toolbar 跳过 skips; the stage has no tap/drag skip and no press dim.
         .background(alignment: .bottom) {
-            LinearGradient(colors: [.clear, CYNight.ember.opacity(0.28), CYNight.lantern.opacity(0.18)], startPoint: .top, endPoint: .bottom)
-                .frame(height: 420)
-                .opacity(step >= 4 ? 1 : 0)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.6), value: step >= 4)
-                .ignoresSafeArea()
-                .accessibilityHidden(true)
+            // B-PR-02: MP gold wash over the lower 62 % of the stage.
+            GeometryReader { proxy in
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    LinearGradient(stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: CYNight.passGold0, location: 0.30),
+                        .init(color: CYNight.passGold1, location: 0.55),
+                        .init(color: CYNight.passGold2, location: 0.80),
+                        .init(color: CYNight.passGold3, location: 1),
+                    ], startPoint: .top, endPoint: .bottom)
+                    .frame(height: proxy.size.height * 0.62)
+                    .offset(y: step >= 4 ? 0 : proxy.size.height * 0.62)
+                }
+            }
+            .animation(reduceMotion ? nil : .timingCurve(0.2, 0.7, 0.2, 1, duration: 1.1), value: step >= 4)
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
         }
     }
 

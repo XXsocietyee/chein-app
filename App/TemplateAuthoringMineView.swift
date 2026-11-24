@@ -26,6 +26,12 @@ import SwiftUI
     @State private var locked = true
     @State private var readSnapshot = false
     @State private var toastMessage: LocalizedStringKey?
+    @Environment(\.themeDomain) private var themeDomain
+    @Environment(\.roleTheme) private var roleTheme
+    /// MP `mytemplate` writes `scope=MERCHANT` only for the merchant theme. A player page omits it.
+    private var shelfOperationScope: String? {
+        (themeDomain == .merchant || roleTheme == .merchant) ? "MERCHANT" : nil
+    }
     var body: some View {
         List {
             // PLY-26-3: the title is the bar's inline title. X12: no 刷新 pill next to pull-to-refresh.
@@ -273,12 +279,19 @@ import SwiftUI
         readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot
         readMessageKey = coordinator.shelfReader.messageKey; messageKey = coordinator.shelfMessageKey; locked = coordinator.shelfLocked
     }
+    private func applyShelfScope() {
+        let scope = shelfOperationScope
+        coordinator.operationScope = scope
+        coordinator.shelfReader.operationScope = scope
+    }
     private func prepare(_ id: Int, _ action: TemplateOwnShelfAction, marketStatusTarget: Int? = nil) {
         guard !busy, appliedKeyword == keyword, !coordinator.shelfReader.isShowingRefreshSnapshot else { return }
+        applyShelfScope()
         coordinator.prepareShelf(templateID: id, action: action, marketStatusTarget: marketStatusTarget); review = coordinator.shelfReview; sync()
     }
     private func loadMore() async {
         guard !busy, appliedKeyword == keyword else { return }
+        applyShelfScope()
         let stamp = viewRequest; busy = true; review = nil; coordinator.cancelShelfReview()
         await coordinator.shelfReader.loadMore()
         guard stamp == viewRequest, !Task.isCancelled else { return }
@@ -293,6 +306,7 @@ import SwiftUI
     }
     private func refresh() async {
         guard !busy else { return }
+        applyShelfScope()
         appliedKeyword = keyword
         let stamp = UUID(); viewRequest = stamp
         defer {

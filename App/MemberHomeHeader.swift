@@ -10,6 +10,12 @@ import SwiftUI
     var onOpenTickets: (() -> Void)? = nil
     /// 积分 opens the place its ledger lives (钱包 → 积分明细). Nil keeps the number static.
     var onOpenPoints: (() -> Void)? = nil
+    /// A1-07: MP 如何获取积分 next to 积分 opens the earn/spend rules (积分任务). Nil hides the button.
+    var onOpenPointsHelp: (() -> Void)? = nil
+    /// A1-04: MP avatar (pen badge) opens 编辑个人资料 for the signed-in member. Nil keeps the avatar decorative.
+    var onEditProfile: (() -> Void)? = nil
+    /// A1-09: MP 账户余额 card opens the wallet. Nil keeps the balance display-only.
+    var onOpenBalance: (() -> Void)? = nil
     /// Bump from the owning screen's pull-to-refresh to reload identity and growth together.
     var refreshToken: Int = 0
     var avatarAccess: MemberIdentityAvatarAccess? = nil
@@ -37,7 +43,7 @@ import SwiftUI
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
             (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))) {
-                avatar
+                avatarControl
                 VStack(alignment: .leading, spacing: 6) {
                     name.cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -55,7 +61,7 @@ import SwiftUI
                     .accessibilityIdentifier("member.card.level")
                     Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
                         .accessibilityIdentifier("member.card.city")
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
@@ -80,8 +86,9 @@ import SwiftUI
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(CYDomainPrimaryButtonStyle())
+                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                 .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
@@ -89,7 +96,7 @@ import SwiftUI
             }
             // Late values (streak, 积分) arrive in place: the card grows on `standard`, nothing else moves.
             .cyAnimation(CYMotion.standard, value: streakDays)
-            .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
             .cyStaggeredAppear(index: 0, gate: stagger)
         }
         .listRowBackground(Color.clear)
@@ -160,7 +167,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                 if reader.isConfigured, !signedOut {
                     Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
-                        .buttonStyle(.cySecondary)
+                        .buttonStyle(.bordered).buttonBorderShape(.capsule)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("member.card.retry")
                 }
@@ -206,7 +213,32 @@ import SwiftUI
             }
         }.frame(width: 72, height: 72).clipShape(Circle())
         .overlay { levelRing }
-        .accessibilityHidden(true)
+    }
+    /// A1-04: self avatar is the MP `onAvatarTap` control (72 pt, pen badge, label 编辑个人资料).
+    @ViewBuilder private var avatarControl: some View {
+        if let onEditProfile {
+            Button(action: onEditProfile) {
+                avatar.overlay(alignment: .bottomTrailing) {
+                    // TODO(C7 mp-assets): swap for MPAsset icon_pen once cursor/mp-assets lands.
+                    Image(systemName: "pencil")
+                        .imageScale(.small).font(.caption.weight(.bold))
+                        .foregroundStyle(palette.textPrimary)
+                        .frame(width: 24, height: 24)
+                        .background(palette.bgRaised, in: Circle())
+                        .overlay { Circle().strokeBorder(palette.borderSubtle, lineWidth: 1) }
+                        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(Circle())
+            }
+            .buttonStyle(.cyPressable)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("profile.edit.avatarControl"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityIdentifier("member.card.avatar")
+        } else {
+            avatar.accessibilityHidden(true)
+        }
     }
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
     private func stat(_ value: String?, id: String, key: String.LocalizationValue) -> CYPlainStat {
@@ -234,6 +266,23 @@ import SwiftUI
     /// 积分: label (with a chevron when it opens the ledger), then the number in the stat-hero style. It rolls in
     /// tabular digits only when the value really changes (xrefs-1 Adopt 3), never on a plain visit.
     @ViewBuilder private var pointsBlock: some View {
+        HStack(alignment: .top, spacing: CYSpacing.xs) {
+            pointsValueBlock
+            if let onOpenPointsHelp {
+                // A1-07: MP 如何获取积分 (cyp wxml:297) → 积分任务 sheet. 44 pt target.
+                Button(action: onOpenPointsHelp) {
+                    Image(systemName: "info.circle").imageScale(.medium)
+                        .foregroundStyle(palette.textSecondary)
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("member.card.pointsHelp"))
+                .accessibilityIdentifier("member.card.pointsHelp")
+            }
+        }
+    }
+    @ViewBuilder private var pointsValueBlock: some View {
         let content = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             HStack(spacing: CYSpacing.xs) {
                 Text("member.card.points", tableName: "DesignR1")
@@ -265,7 +314,17 @@ import SwiftUI
         }
     }
 
-    private func balanceBlock(_ balance: String) -> some View {
+    @ViewBuilder private func balanceBlock(_ balance: String) -> some View {
+        if let onOpenBalance {
+            // A1-09: MP whole 账户余额 card opens earnings (cyp wxml:219-231).
+            Button(action: onOpenBalance) { balanceContent(balance).contentShape(Rectangle()) }
+                .buttonStyle(.cyPressable)
+                .accessibilityAddTraits(.isButton)
+        } else {
+            balanceContent(balance)
+        }
+    }
+    private func balanceContent(_ balance: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             Text("member.card.balance", tableName: "MemberProfile")
                 .cyText(.meta).foregroundStyle(palette.textSecondary)

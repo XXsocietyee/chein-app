@@ -54,7 +54,7 @@ struct RoamHomeTabPicker: View {
                 VStack(alignment: .leading) {
                     Image(systemName: spec.symbol).font(.title3.weight(.semibold)).accessibilityHidden(true)
                     Spacer(minLength: 8)
-                    Text(verbatim: "NO.0\(number)").font(.system(.caption2, design: .monospaced).weight(.semibold))
+                    Text(verbatim: "NO.0\(number)").cyText(.caption, weight: .semibold).monospaced()
                 }
                 .foregroundStyle(.black.opacity(0.78))
                 .padding(12).frame(width: 84, alignment: .leading)
@@ -69,7 +69,7 @@ struct RoamHomeTabPicker: View {
             .frame(minWidth: 260, minHeight: 92)
             .background(.white)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: .black.opacity(0.25), radius: 10, y: 4)
+            .shadow(color: .black.opacity(0.12), radius: 4, y: 2)
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
@@ -138,7 +138,7 @@ struct RoamHomeTabPicker: View {
             } else if model.visibleTeamState(reader: reader) == .failed {
                 VStack(alignment: .leading, spacing: 6) {
                     Label { Text("roam.nearbyEvents.teamsFailed", tableName: "RoamNearbyEvents") } icon: { Image(systemName: "exclamationmark.triangle") }
-                        .font(.caption).foregroundStyle(.secondary)
+                        .cyText(.meta).foregroundStyle(.secondary)
                     Button("action.retry", action: refresh).frame(minHeight: 44)
 
                         .accessibilityIdentifier("roam.home.peek.teamsRetry")
@@ -302,15 +302,16 @@ struct RoamEntryCover: View {
                     }
                 }
             }
-            // ROAM-11: one sheet header (22 pt title + ✕), no nav-bar title and no text close button.
-            .safeAreaInset(edge: .top, spacing: 0) {
-                CYSheetHeader(title: Text(verbatim: card.activity.title), style: .player, onClose: { dismiss() })
-                    .accessibilityIdentifier("roam.home.sheet.close")
+            // ROAM-11 (native restyle): system inline title + one ✕ close item.
+            .navigationTitle(Text(verbatim: card.activity.title)).navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: { Label("action.close", systemImage: "xmark") }
+                        .labelStyle(.iconOnly).accessibilityIdentifier("roam.home.sheet.close")
+                }
             }
-            .toolbar(.hidden, for: .navigationBar)
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .cySheet()
         .accessibilityIdentifier("roam.home.sheet")
     }
     @ViewBuilder private func detailLink(_ title: LocalizedStringKey, identifier: String) -> some View {

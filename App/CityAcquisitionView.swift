@@ -107,7 +107,7 @@ import SwiftUI
             .cyHeroScreen()
             .roleTheme(.player)
             .accessibilityIdentifier("city.acquisition.screen")
-            .sheet(item: confirmationBinding) { captured in confirmationSheet(captured) }
+            .sheet(item: confirmationBinding) { captured in Group { confirmationSheet(captured) }.cySheet(detents: [.large]) }
             .task(id: readID) { guard visible, scenePhase == .active, !Task.isCancelled else { return }; await controller.open(activity: controller.activityID) }
             .onAppear { visible = true; controller.activate(); readID = UUID() }
             .onChange(of: scenePhase) { _, phase in

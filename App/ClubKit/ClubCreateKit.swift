@@ -18,13 +18,13 @@ struct ClubR1OptionCard: View {
             HStack(spacing: CYSpacing.md) {
                 if let systemImage {
                     Image(systemName: systemImage)
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .frame(width: 40, height: 40)
-                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgRaised))
+                        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgRaised))
                         .accessibilityHidden(true)
                 }
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     title
                         .cyText(.bodyMedium)
                         .foregroundStyle(palette.textPrimary)
@@ -36,19 +36,19 @@ struct ClubR1OptionCard: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(isSelected ? palette.textPrimary : palette.textTertiary)
                     .scaleEffect(isSelected || reduceMotion ? 1 : 0.85)
                     .accessibilityHidden(true)
             }
             .padding(CYSpacing.md)
             .frame(minHeight: 64)
-            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
+            .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
             .overlay {
-                RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                     .strokeBorder(isSelected ? palette.textPrimary : palette.borderSubtle, lineWidth: isSelected ? 1.5 : 1)
             }
-            .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.7), value: isSelected)
         }
         .buttonStyle(.plain)
@@ -168,7 +168,7 @@ struct ClubCreateCityRow: View {
                 Text(verbatim: city.isEmpty ? clubR1("create.city.placeholder", locale) : city)
                     .foregroundStyle(city.isEmpty ? (hasError ? palette.danger : palette.textPlaceholder) : palette.textSecondary)
                 Image(systemName: "chevron.right")
-                    .font(CYTypography.label.weight(.semibold))
+                    .cyText(.label, weight: .semibold)
                     .foregroundStyle(palette.textTertiary)
                     .accessibilityHidden(true)
             }
@@ -178,10 +178,11 @@ struct ClubCreateCityRow: View {
         }
         .buttonStyle(.plain)
         .accessibilityHint(Text(verbatim: clubR1("create.city.hint", locale)))
-        .sheet(isPresented: $showsPicker) {
+        .sheet(isPresented: $showsPicker) { Group {
             ClubCreateCityPicker(current: currentCity, selection: city.isEmpty ? nil : city) { picked in
                 city = picked
             }
+        }.cySheet()
         }
     }
 }
@@ -210,9 +211,9 @@ struct ClubCreateCityPicker: View {
                 }
                 .cyText(.body)
             }
-            .padding(.horizontal, CYSpacing.s2_5)
+            .padding(.horizontal, CYSpacing.md)
             .frame(minHeight: 36)
-            .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgSurfaceSubtle))
+            .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgSurfaceSubtle))
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     if let here = lists.current {
                         ClubR1Group(header: clubR1("create.city.current", locale)) { row(here) }

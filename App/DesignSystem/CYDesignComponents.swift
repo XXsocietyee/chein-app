@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - 1. Card Surface & Container (CYCard)
 
 public enum CYCardVariant: Sendable {
-    /// Standard card surface (`CYColor.bgSurface`, subtle border).
+    /// Standard card surface (`CYColor.bgSurface`, radius 12, no border, no shadow).
     case surface
     /// Elevated card surface (`CYColor.bgElevated`, soft drop shadow in light mode, hairline border in dark mode).
     case elevated
@@ -22,7 +22,7 @@ public struct CYCardSurfaceModifier: ViewModifier {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.lg,
+        radius: CGFloat = CYRadius.card,
         padding: CGFloat = CYSpacing.lg
     ) {
         self.variant = variant
@@ -45,28 +45,20 @@ public struct CYCardSurfaceModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let showLightShadow = variant == .elevated && colorScheme == .light
+        // Native restyle r1 (spec §3.3): no shadow; elevation comes from the surface colour.
+        let showLightShadow = false
         content
             .padding(padding)
             .background(shape.fill(backgroundColor))
-            .overlay {
-                if colorScheme == .dark && (variant == .elevated || variant == .surface) {
-                    VStack(spacing: 0) {
-                        Rectangle()
-                            .fill(CYColor.cardHighlight)
-                            .frame(height: 0.5)
-                        Spacer(minLength: 0)
-                    }
-                    .clipShape(shape)
-                    .allowsHitTesting(false)
-                }
-            }
+            // Native restyle (spec §3.3): elevation comes from the grouped surface colour; Increase Contrast adds a
+            // 1 pt separator edge (the chengyin-ios `questifyCardSurface`).
+            .modifier(CYIncreaseContrastEdge(radius: radius))
             .shadow(
                 color: showLightShadow ? CYColor.cardShadowColor : Color.clear,
-                // A clear shadow still costs an offscreen blur pass; zero it unless it is drawn.
-                radius: showLightShadow ? 8 : 0,
+                // Native restyle: light shadow only (no heavy shadows). A clear shadow still costs a blur pass.
+                radius: showLightShadow ? 3 : 0,
                 x: 0,
-                y: showLightShadow ? 2 : 0
+                y: showLightShadow ? 1 : 0
             )
     }
 }
@@ -75,10 +67,40 @@ public extension View {
     /// Applies the standard Chengyin card surface and continuous squircle radius (no outer stroke border).
     func cyCardSurface(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.lg,
+        radius: CGFloat = CYRadius.card,
         padding: CGFloat = CYSpacing.lg
     ) -> some View {
         modifier(CYCardSurfaceModifier(variant: variant, radius: radius, padding: padding))
+    }
+}
+
+/// A 1 pt separator edge drawn only when the user turns on Increase Contrast (native-ios-r1 §3.3).
+struct CYIncreaseContrastEdge: ViewModifier {
+    let radius: CGFloat
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        content.overlay {
+            if contrast == .increased {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(CYColor.borderStrong, lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+}
+
+public extension View {
+    /// The one content-card surface (native restyle r1, spec §3.3): `bgSurface`, radius 12, 16 padding, no shadow.
+    func cyCard(padding: CGFloat = CYSpacing.lg) -> some View {
+        cyCardSurface(variant: .surface, radius: CYRadius.card, padding: padding)
+    }
+
+    /// A card placed as a `List` row (spec §3.3): no row background or separator, 6 pt vertical row insets.
+    func cyCardRow() -> some View {
+        listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
     }
 }
 
@@ -91,7 +113,7 @@ public struct CYCard<Content: View>: View {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.lg,
+        radius: CGFloat = CYRadius.card,
         padding: CGFloat = CYSpacing.lg,
         @ViewBuilder content: () -> Content
     ) {
@@ -243,8 +265,10 @@ public enum CYButtonSize: Sendable, Hashable {
         }
     }
 
+    /// Native restyle (native-ios-r1 §3.6): every button is a capsule (`buttonBorderShape(.capsule)`), so `isPill`
+    /// no longer changes the shape. Kept for call-site compatibility.
     func cornerRadius(isPill: Bool) -> CGFloat {
-        isPill || self == .xs ? CYRadius.pill : CYRadius.md
+        CYRadius.pill
     }
 }
 
@@ -268,7 +292,7 @@ public struct CYButtonSpinner: View {
     public var body: some View {
         if reduceMotion {
             Image(systemName: "ellipsis")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(.subheadline, weight: .bold))
                 .foregroundStyle(tint)
                 .frame(width: 16, height: 16)
         } else {
@@ -375,9 +399,8 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 
@@ -417,9 +440,8 @@ public struct CYSecondaryButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 
@@ -459,9 +481,8 @@ public struct CYGhostButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 
@@ -501,9 +522,8 @@ public struct CYDestructiveButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 
@@ -835,16 +855,6 @@ public struct CYAvatarView: View {
         size.rawValue * min(max(scaleFactor, 0.85), 1.35)
     }
 
-    private var monogramFont: Font {
-        switch size {
-        case .xs: return CYTypography.micro
-        case .sm: return CYTypography.caption
-        case .md: return CYTypography.label
-        case .lg: return CYTypography.sectionTitle
-        case .xl: return CYTypography.pageTitle
-        }
-    }
-
     public var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Group {
@@ -897,11 +907,8 @@ public struct CYAvatarView: View {
     }
 
     private var fallbackView: some View {
-        ZStack {
-            CYColor.brandSoft
-            Text(verbatim: Self.monogram(for: name))
-                .font(monogramFont)
-                .foregroundStyle(CYColor.brand)
-        }
+        MPAsset.AvatarDefault.dProfile
+            .resizable()
+            .scaledToFill()
     }
 }

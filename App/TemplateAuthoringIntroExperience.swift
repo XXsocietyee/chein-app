@@ -110,14 +110,14 @@ import Combine
         let cardLayout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
             : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.sm))
-        VStack(alignment:.leading,spacing:20) {
+        VStack(alignment:.leading,spacing:CYSpacing.xl) {
             if let examples = controller.visibleExamples, !examples.rows.isEmpty {
                 cardLayout {
                     ForEach(Array(examples.rows.enumerated()),id:\.offset) { index, item in
-                        VStack(alignment:.leading,spacing:6) {
+                        VStack(alignment:.leading,spacing:CYSpacing.s1_5) {
                             DiscoveryArtwork(source:item.imgUrl,height:150)
                                 .frame(maxWidth:.infinity)
-                                .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                             Text(verbatim:examples.categoryName(at:index))
                                 .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)
@@ -141,7 +141,7 @@ import Combine
                 case .idle,.loading:
                     CYSkeleton().frame(maxWidth:.infinity,minHeight:150)
                 case .failed:
-                    VStack(alignment:.leading,spacing:8) {
+                    VStack(alignment:.leading,spacing:CYSpacing.sm) {
                         Text("creatorIntro.failed",tableName:"CreatorIntroExamples").cyText(.meta).foregroundStyle(palette.danger)
                         Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
                             .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
@@ -154,7 +154,7 @@ import Combine
                 case .unavailable: EmptyView()
                 }
             }
-            VStack(alignment:.leading,spacing:4) {
+            VStack(alignment:.leading,spacing:CYSpacing.xs) {
                 // Mini-program weight order: the lead line is the bold claim, the tail is the lighter follow-on.
                 // C-I4: MP 46 rpx for both lines (23 pt) → `sheetTitle` 22 bold, both in ink.
                 Text("publishParity.intro.lead").cyText(.sheetTitle).foregroundStyle(palette.textPrimary)

@@ -227,7 +227,7 @@ public struct RegionalEndpointAllowlistSectionView: View {
                     .accessibilityIdentifier("regionalAllowlist.legacyHost.detail")
             }
             .padding(8)
-            .background(RoundedRectangle(cornerRadius: 8).fill(CYColor.dangerText.opacity(0.08)))
+            .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(CYColor.dangerText.opacity(0.08)))
             .accessibilityIdentifier("regionalAllowlist.legacyHost.banner")
 
             ForEach(snapshot.rows) { row in
@@ -235,7 +235,7 @@ public struct RegionalEndpointAllowlistSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(CYColor.textSecondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(CYColor.textSecondary.opacity(0.08)))
         .accessibilityIdentifier("regionalAllowlist.section")
     }
 
@@ -278,7 +278,7 @@ public struct RegionalEndpointAllowlistSectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(CYColor.textSecondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(CYColor.textSecondary.opacity(0.06)))
         .accessibilityIdentifier("regionalAllowlist.row.\(row.id)")
     }
 }

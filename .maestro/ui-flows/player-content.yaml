@@ -1,0 +1,33 @@
+appId: invalid.example.questify.ios
+---
+# Player content through the wired DEBUG fixture e1-discovery
+# (DesignFixtureRegistry.make -> E1Fixture.make -> DiscoveryHomeView,
+# topic browsing on, DiscoveryFixtureReader content).
+# Routes and templates are not opened. No typed text, payment, or host URL.
+# DEBUG builds only.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+    arguments:
+      "--design-fixture": "e1-discovery"
+- extendedWaitUntil:
+    visible:
+      id: "discovery.openRoutes"
+    timeout: 20000
+- assertVisible:
+    id: "discovery.openTemplates"
+- scrollUntilVisible:
+    element:
+      id: "discovery.play.701"
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: "discovery.play.701"
+- scrollUntilVisible:
+    element:
+      id: "discovery.play.702"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "discovery.play.702"

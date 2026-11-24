@@ -146,7 +146,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -182,27 +182,27 @@ public struct PublishTopicAndCommentModerationSectionView: View {
 
             HStack(spacing: 8) {
                 Text(verbatim: snapshot.topicDetailEndpoint)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .accessibilityIdentifier("publishTopicModeration.topicDetailEndpoint")
                 Text(verbatim: snapshot.commentListEndpoint)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("publishTopicModeration.commentListEndpoint")
             }
 
             HStack(spacing: 8) {
                 Text(verbatim: snapshot.ugcReportEndpoint)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .accessibilityIdentifier("publishTopicModeration.ugcReportEndpoint")
                 Text(verbatim: snapshot.ugcBlockUserEndpoint)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("publishTopicModeration.ugcBlockEndpoint")
             }
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityElement(children: .contain)
@@ -212,7 +212,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
     private var ugcGuidelineBannerView: some View {
         HStack(spacing: 8) {
             Text(verbatim: snapshot.hasActiveUgcViolationBanner ? "UGC_VIOLATION_BLOCKED" : "UGC_1_2_READY")
-                .font(.caption2.monospaced().weight(.bold))
+                .font(.caption.monospaced().weight(.bold))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(
@@ -241,7 +241,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
             ForEach(snapshot.checks) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Text(verbatim: row.domainCode)
-                        .font(.caption2.monospaced().weight(.bold))
+                        .font(.caption.monospaced().weight(.bold))
                         .frame(width: 86, alignment: .leading)
                         .accessibilityIdentifier("publishTopicModeration.row.\(row.id).domain")
 

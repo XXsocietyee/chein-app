@@ -6,60 +6,57 @@ import SwiftUI
 @MainActor struct BundleReservationsView: View {
     let order: BundleOrderReadModel
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .largeTitle) private var artHeight: CGFloat = 112
     private let table = BundleOrderStatusPresentation.table
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader(verbatim: ChannelCopy.text("预约", "Reservations", locale: locale)) {
-                    CYCoverArt(seed: "bundle-reservations", symbol: "calendar", showsDebugLabel: false)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: artHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        .accessibilityHidden(true)
-                }
-                if order.isLegacy {
-                    CYEmptyState(systemImage: "doc.text", "order.legacy", tableName: table)
-                } else if order.reservations.isEmpty {
-                    CYEmptyState(systemImage: "calendar", "reservations.empty", tableName: table, messageIdentifier: "bundle.reservations.empty")
-                } else {
-                    VStack(spacing: CYSpacing.md) {
-                        ForEach(order.reservations, id: \.id) { row in reservationCard(row) }
-                    }
+        // Native restyle r1 (spec §3.2): an inset-grouped list with a system inline title.
+        List {
+            Section {
+                CYCoverArt(seed: "bundle-reservations", symbol: "calendar", showsDebugLabel: false)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: artHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
+                    .accessibilityHidden(true)
+            }
+            .cyCardRow()
+            if order.isLegacy {
+                Section { CYEmptyState(systemImage: "doc.text", "order.legacy", tableName: table) }
+                    .cyCardRow()
+            } else if order.reservations.isEmpty {
+                Section { CYEmptyState(systemImage: "calendar", "reservations.empty", tableName: table, messageIdentifier: "bundle.reservations.empty") }
+                    .cyCardRow()
+            } else {
+                Section {
+                    ForEach(order.reservations, id: \.id) { row in reservationRow(row) }
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.bottom, CYSpacing.xxl)
         }
-        .cyDomainPageBackground()
+        .listStyle(.insetGrouped)
+        .navigationTitle(Text(verbatim: ChannelCopy.text("预约", "Reservations", locale: locale)))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
-        .cyHeroScreen()
         .cyAnimation(value: order.reservations.map(\.id))
     }
 
-    private func reservationCard(_ row: BundleReservationRow) -> some View {
+    private func reservationRow(_ row: BundleReservationRow) -> some View {
         let tone = statusTone(row.status)
-        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             CYListRow(verbatim: statusLine(row), meta: shown(row.startAt), trailing: .none) {
-                CYCoverArt(seed: row.id.text, symbol: tone.symbol, showsDebugLabel: false, cornerRadius: CYRadius.sm)
-                    .frame(width: 56, height: 56)
+                CYCoverArt(seed: row.id.text, symbol: tone.symbol, showsDebugLabel: false, cornerRadius: CYRadius.inner)
+                    .frame(width: 44, height: 44)
                     .accessibilityHidden(true)
             }
             Text(verbatim: shown(row.id.text))
                 .cyText(.caption)
                 .monospacedDigit()
-                .foregroundStyle(palette.textTertiary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityLabel(Text(verbatim: shown(row.id.text)))
         }
-        .padding(CYSpacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 
     /// Known statuses use catalog copy. A blank status is unknown (em dash). Any other server string stays verbatim, including a real "0".

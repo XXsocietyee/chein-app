@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Bottom-sheet detents from DESIGN.md Part 4 (`peek 30%`, `half 60%`, `full 80%`).
+/// Bottom-sheet detents. Native iOS restyle r1: `half` and `full` are the system `.medium` / `.large` detents;
+/// `peek` (30%) stays a fraction because the system has no smaller standard detent.
 public enum CYSheetDetent: Sendable, Hashable {
     case peek
     case half
@@ -9,14 +10,14 @@ public enum CYSheetDetent: Sendable, Hashable {
     public var presentationDetent: PresentationDetent {
         switch self {
         case .peek: return .fraction(0.30)
-        case .half: return .fraction(0.60)
-        case .full: return .fraction(0.80)
+        case .half: return .medium
+        case .full: return .large
         }
     }
 }
 
-/// Top grabber + domain glass/card container matching DESIGN.md Part 4 Sheet anatomy:
-/// 24pt top radius, 36×4pt handle (`sheetHandle`), player glass `rgba(44,44,46,.98)`, sheet card `#3A3A3C` / `#F8F9FA`.
+/// Sheet content container (native iOS restyle r1): system drag indicator and system sheet corners, domain
+/// sheet surface, optional title row with a system-style close button (44pt target).
 public struct CYSheetContainer<Content: View>: View {
     private let title: String?
     private let closeIdentifier: String?
@@ -40,14 +41,9 @@ public struct CYSheetContainer<Content: View>: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            Capsule(style: .continuous)
-                .fill(palette.sheetHandle)
-                .frame(
-                    width: Theme.length("--cy-sheet-immersive-grab-w"),
-                    height: Theme.length("--cy-sheet-immersive-grab-h")
-                )
-                .padding(.top, CYSpacing.s2_5)
-                .padding(.bottom, CYSpacing.sm)
+            // Native restyle r1: the system drag indicator replaces the drawn grabber.
+            Color.clear
+                .frame(height: CYSpacing.xl)
                 .accessibilityHidden(true)
 
             if title != nil || onClose != nil {
@@ -62,11 +58,10 @@ public struct CYSheetContainer<Content: View>: View {
                     Spacer(minLength: CYSpacing.sm)
                     if let onClose {
                         Button(action: onClose) {
-                            Image(systemName: "xmark")
-                                .font(.system(size: 14, weight: .semibold))
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .symbolRenderingMode(.hierarchical)
                                 .foregroundStyle(palette.textSecondary)
-                                .frame(width: 30, height: 30)
-                                .background(Circle().fill(palette.sheetCard))
                                 .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
                                 .contentShape(Rectangle())
                         }
@@ -86,21 +81,13 @@ public struct CYSheetContainer<Content: View>: View {
                 .padding(.bottom, CYSpacing.lg)
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
-        .background(
-            UnevenRoundedRectangle(
-                topLeadingRadius: CYRadius.sheet,
-                bottomLeadingRadius: 0,
-                bottomTrailingRadius: 0,
-                topTrailingRadius: CYRadius.sheet,
-                style: .continuous
-            )
-            .fill(palette.sheetGlass)
-            .ignoresSafeArea(edges: .bottom)
-        )
+        .background(palette.sheetGlass.ignoresSafeArea(edges: .bottom))
+        .presentationDragIndicator(.visible)
     }
 }
 
-/// Domain-styled modal/sheet presentation helper applying spec detents, 24pt sheet radius, and role surface.
+/// Domain-styled sheet presentation: system detents (`.medium` / `.large`), visible drag indicator, system corners and
+/// background in the role appearance (native-ios-r1 §3.4).
 public extension View {
     func cyDomainSheet(
         detents: [CYSheetDetent] = [.half, .full],
@@ -109,9 +96,21 @@ public extension View {
         let mapped = Set(detents.map(\.presentationDetent))
         return self
             .modifier(CYDomainSheetDetentsModifier(detents: mapped, selection: selection))
-            .presentationDragIndicator(.hidden)
-            .presentationCornerRadius(CYRadius.sheet)
-            .presentationBackground(CYColor.sheetGlass)
+            .presentationDragIndicator(.visible)
+            .roleThemedPresentation()
+    }
+}
+
+public extension View {
+    /// The one sheet chrome (native restyle r1, spec §3.4). Apply to the sheet's root (usually a `NavigationStack`
+    /// with an inline title and 取消 / 完成 toolbar items): system detents, visible drag indicator, system corners and
+    /// background in the role's appearance.
+    func cySheet(
+        detents: Set<PresentationDetent> = [.medium, .large],
+        selection: Binding<PresentationDetent>? = nil
+    ) -> some View {
+        modifier(CYDomainSheetDetentsModifier(detents: detents, selection: selection))
+            .presentationDragIndicator(.visible)
             .roleThemedPresentation()
     }
 }
@@ -243,7 +242,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
                         HStack(spacing: CYSpacing.md) {
                             if let systemImage = item.systemImage {
                                 Image(systemName: systemImage)
-                                    .font(.system(size: 18, weight: .semibold))
+                                    .font(.system(.body, weight: .semibold))
                                     .foregroundStyle(rowColor)
                                     .frame(width: 24)
                                     .accessibilityHidden(true)
@@ -263,7 +262,7 @@ public struct CYOptionSheet<ID: Hashable>: View {
                             Spacer(minLength: CYSpacing.sm)
                             if isSelected {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 14, weight: .bold))
+                                    .font(.system(.subheadline, weight: .bold))
                                     .foregroundStyle(palette.textPrimary)
                                     .accessibilityHidden(true)
                             }

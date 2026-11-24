@@ -64,8 +64,8 @@ final class DesignR1FoundationTests: XCTestCase {
 
     func testPlayerTabsCarryTheFiveMiniProgramLabels() {
         XCTAssertEqual(RootTab.playerTabs.map(\.playerTitleKey), ["tabBar.home", "tabBar.roam", "tabBar.publish", "tabBar.club", "tabBar.mine"])
-        XCTAssertEqual(CYDomainTabIcons.icon(for: .home, domain: .player), CYDomainTabIcon(idle: "house", selected: "house.fill"))
-        XCTAssertEqual(CYDomainTabIcons.icon(for: .mine, domain: .player).idle, "person.crop.circle")
+        XCTAssertEqual(CYDomainTabIcons.icon(for: .home, domain: .player), CYDomainTabIcon(idle: "images_icon_f1", selected: "images_icon_f01d", selectedIsOriginal: true))
+        XCTAssertEqual(CYDomainTabIcons.icon(for: .mine, domain: .player).idle, "images_icon_f5")
         XCTAssertEqual(CYDomainTabIcons.titleKey(for: .mine, domain: .player), "tabBar.mine")
     }
 
@@ -78,11 +78,11 @@ final class DesignR1FoundationTests: XCTestCase {
         assertHex(primary.foreground, 0x0A0A0A, scheme: .dark, "primary black label")
         let secondary = CYPillButtonStyle.tokens(style: .secondary, isEnabled: true, in: player)
         assertHex(secondary.fill, 0x1C1C1E, scheme: .dark, "secondary #1C1C1E pill")
-        assertHex(secondary.foreground, 0xF8F8F8, scheme: .dark, "secondary white label, never dark on grey")
+        assertHex(secondary.foreground, 0xFFFFFF, scheme: .dark, "secondary white label (system label), never dark on grey")
         let onSheet = CYPillButtonStyle.tokens(style: .secondary, isEnabled: true, in: player, onSheet: true)
         assertHex(onSheet.fill, 0x3B3B3D, scheme: .dark, "secondary steps up to surface-3 on a sheet")
         let tertiary = CYPillButtonStyle.tokens(style: .tertiary, isEnabled: true, in: player)
-        assertHex(tertiary.foreground, 0xF8F8F8, alpha: 0.7, scheme: .dark, "tertiary text at 70%")
+        assertHex(tertiary.foreground, 0xFFFFFF, alpha: 0.7, scheme: .dark, "tertiary text at 70% of the system label")
         let merchant = CYPillButtonStyle.tokens(style: .primary, isEnabled: true, in: CYDomainPalette(.merchant))
         assertHex(merchant.fill, 0x000000, scheme: .light, "merchant primary black pill")
     }

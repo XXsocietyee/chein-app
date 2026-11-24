@@ -49,7 +49,7 @@ struct ProfileBadgesView: View {
                 }
             }
         }
-        .appNavigationTitle("profile.badges.title")
+        .appNavigationTitle("profile.badges.title").navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.player)
     }
     private func badgeLink(_ badge: ProfileBadgeSelection, identifier: String) -> some View {

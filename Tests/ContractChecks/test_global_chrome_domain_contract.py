@@ -149,10 +149,11 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             detail = read_swift(rel)
             self.assertNotIn(".cyHeroPushedChrome(", detail)
             self.assertIn(".cyPushedChrome(domain: .player)", detail)
-        # Parity r1 (type-and-chrome §3): the club page moved to cyHeroChrome + CYHeroBackButton in the hero overlay.
+        # CLB-detail-32 (owner native-iOS rule 11-24): the club page keeps the system bar and system back.
         club = read_swift("App/ClubDetailView.swift")
-        self.assertIn("cyHeroChrome(heroScrolledAway: heroScrolledAway", club)
-        self.assertIn("CYHeroBackButton()", club)
+        self.assertNotIn(".cyHeroChrome(", club)
+        self.assertNotIn("CYHeroBackButton()", club)
+        self.assertIn(".cyPushedChrome(domain: viewerDomain)", club)
 
         # Standard L2+ non-hero pushed detail views must not wrap back chevrons in glass hero pills.
         for rel in ("App/OfficialEventDetailView.swift", "App/DiscoveryTemplateDetailView.swift", "App/ProfileEditView.swift"):
@@ -178,14 +179,16 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
             self.assertIn("CYFooterBar", read_swift(rel), f"{rel} must use CYFooterBar for its pinned footer action bar.")
 
     def test_sheets_use_player_sheet_glass_and_no_cynight_chrome(self):
-        role_theme = read_swift("App/Theme/RoleTheme.swift")
+        # Native restyle (native-ios-r1 §3.4): sheets use the system corners and background in the role
+        # appearance. cyPlayerSheetGlass() stays as the player-appearance sheet modifier at every call site below.
+        role_theme = strip_swift_comments(read_swift("App/Theme/RoleTheme.swift"))
         self.assertIn("func cyPlayerSheetGlass()", role_theme)
-        self.assertIn("CYRadius.sheet", role_theme)
-        self.assertIn(".sheetGlass", role_theme)
+        self.assertIn(".themeDomain(.player)", role_theme)
+        self.assertNotIn("presentationCornerRadius", role_theme)
 
         confirm_sheet = read_swift("App/DesignSystem/CYConfirmSheet.swift")
         self.assertIn("CYColor.sheetGlass", confirm_sheet)
-        self.assertIn("CYRadius.sheet", confirm_sheet)
+        self.assertNotIn("presentationCornerRadius", strip_swift_comments(confirm_sheet))
         self.assertNotIn("CYNight", strip_swift_comments(confirm_sheet))
 
         for rel in (
@@ -204,19 +207,33 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
 
         for rel in (
             "App/QuestifyApp.swift",
-            "App/AccountView.swift",
-            "App/ActivityDetailView.swift",
             "App/TopicDetailView.swift",
-            "App/RegistrationSheetView.swift",
-            "App/TicketPassSheet.swift",
             "App/CatalogShareCardView.swift",
-            "App/SettingsView.swift",
             "App/ContextualReviewComposer.swift",
             "App/JourneyLandingViews.swift",
             "App/PlayStoreDayMerchantView.swift",
-            "App/BundleDetailView.swift",
         ):
             self.assertIn("cyPlayerSheetGlass", read_swift(rel), f"{rel} must apply cyPlayerSheetGlass() on sheets.")
+
+        # restyle/r4-me-account (native iOS r1, spec §3.4): R4 sheets use the system sheet (no custom corner or
+        # glass background) but stay in the player role's appearance.
+        for rel in (
+            "App/AccountView.swift",
+            "App/TicketPassSheet.swift",
+            "App/SettingsView.swift",
+            "App/BundleDetailView.swift",
+        ):
+            src = strip_swift_comments(read_swift(rel))
+            self.assertIn(".themeDomain(.player)", src, f"{rel} sheets must stay in the player role.")
+            self.assertNotIn("presentationCornerRadius", src, f"{rel} must use the system sheet corners.")
+
+        # Native restyle R1 (owner-approved, spec native-ios-r1 §2.2/§3.4): the player glass is retired on R1 sheets.
+        # They keep the player domain tokens and use the one system sheet chrome (detents + drag indicator).
+        for rel in ("App/ActivityDetailView.swift", "App/RegistrationSheetView.swift"):
+            src = strip_swift_comments(read_swift(rel))
+            self.assertNotIn("cyPlayerSheetGlass", src, f"{rel} uses the system sheet chrome.")
+            self.assertIn(".themeDomain(.player)", src, f"{rel} keeps player tokens on its sheets.")
+            self.assertIn(".cySheet(", src, f"{rel} uses cySheet detents and drag indicator.")
 
 
 if __name__ == "__main__":

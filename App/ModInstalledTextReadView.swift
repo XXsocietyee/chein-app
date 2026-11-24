@@ -36,9 +36,12 @@ import SwiftUI
         .onAppear { visible = true }
         .onDisappear { visible = false; reader?.retire(); reader = nil }
         .sheet(item: presented) { captured in
-            ModInstalledTextReadView(reader: captured) {
-                captured.retire(); guard reader === captured else { return }; presented.wrappedValue = nil
-            }.id(captured.id)
+            Group {
+                ModInstalledTextReadView(reader: captured) {
+                    captured.retire(); guard reader === captured else { return }; presented.wrappedValue = nil
+                }.id(captured.id)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
@@ -116,8 +119,8 @@ import SwiftUI
             CYFactRow(label: Text(verbatim: zh ? "许可" : "License"), value: Cloud25Copy.value(value.licenseId))
             CYFactRow(label: Text(verbatim: zh ? "版本" : "Release"), value: Cloud25Copy.value(value.releaseId))
             CYFactRow(label: Text(verbatim: zh ? "原安装稿" : "Original draft"), value: String(value.draftId))
-            Text(verbatim: Cloud25Copy.value(value.contentHash)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-            Text(verbatim: Cloud25Copy.value(value.bindingHash)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: Cloud25Copy.value(value.contentHash)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: Cloud25Copy.value(value.bindingHash)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -151,7 +154,7 @@ import SwiftUI
         CYInfoCard {
             Cloud25Header(title: zh ? "原冻结用途条款" : "Frozen use terms")
             CYFactRow(label: Text(verbatim: zh ? "条款版本" : "Terms version"), value: Cloud25Copy.value(value.termsVersion))
-            Text(verbatim: Cloud25Copy.value(value.termsHash)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: Cloud25Copy.value(value.termsHash)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             CYFactRow(label: Text(verbatim: zh ? "使用期限" : "Use duration"), value: Cloud25Copy.value(value.useDuration))
             CYFactRow(label: Text(verbatim: zh ? "更新政策" : "Update policy"), value: Cloud25Copy.value(value.updatePolicy))
             CYFactRow(label: Text(verbatim: zh ? "再分发" : "Redistribution"), value: Cloud25Copy.value(value.redistribution))

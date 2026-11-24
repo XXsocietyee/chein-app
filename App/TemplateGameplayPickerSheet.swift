@@ -65,11 +65,13 @@ struct TemplateGameplayPickerSheet: View {
         }
     }
 
+    /// C-T8 (MP utils/publish/node-game-catalog.js CATEGORIES): 问答 / 互动 / 挑战. 拍照 sits with 问答 as in the MP;
+    /// the on-site checks (scan, GPS) and the sensor game are 挑战. The MP's 推理 games are not authorable here yet.
     static func categoryKey(_ method: TemplateAuthoringMethod) -> String {
         switch method {
-        case .text, .choice: return "config.gameplay.category.quiz"
-        case .photo, .scan, .gps: return "config.gameplay.category.onSite"
-        case .manual, .preference, .sensor: return "config.gameplay.category.other"
+        case .text, .choice, .photo: return "config.gameplay.category.quiz"
+        case .manual, .preference: return "config.gameplay.category.interact"
+        case .scan, .gps, .sensor: return "config.gameplay.category.challenge"
         }
     }
 }

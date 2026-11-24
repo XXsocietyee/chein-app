@@ -64,7 +64,10 @@ import UIKit
                 if let name = row.topicName {
                     // Hero: generated cover under the topic name so the invite reads as a card, not a form row.
                     ZStack(alignment: .bottomLeading) {
-                        CYIMCoverArt(seed: name, systemImage: "handshake.fill", symbolSize: 44)
+                        // MC7-32-2: the invite's real cover (generated art only as the fallback), dimmed once closed.
+                        CoopCloudCoverBanner(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(name, fallback: "invite-\(row.id)"))
+                            .opacity((row.status ?? 0) >= 2 ? 0.6 : 1)
+                            .accessibilityHidden(true)
                         LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom)
                         Text(verbatim: name).cyText(.sheetTitle).foregroundStyle(.white)
                             .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
@@ -135,7 +138,7 @@ import UIKit
                         HStack(spacing: CYSpacing.xs) {
                             Text(LocalizedStringKey(view.messageIsOurs ? "cooperation.detail.us" : "cooperation.detail.them"))
                             CooperationTimeField(key: "cooperation.created", value: row.createTime)
-                        }.cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                         .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
                         .accessibilityIdentifier("cooperation.detail.message")
@@ -143,7 +146,7 @@ import UIKit
                 if let reason = row.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: reason).cyText(.meta).foregroundStyle(CYColor.textPrimary)
-                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
                         .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgSurfaceStrong))
                         .accessibilityIdentifier("cooperation.detail.handleReason")

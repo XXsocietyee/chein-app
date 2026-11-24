@@ -166,11 +166,6 @@ import SwiftUI
         }, service: { makeActivityCover?() })
         Form {
             Section {
-                CYHeroHeader("title", tableName: "ActivityEditing")
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-            }
-            Section {
                 CYStatusChip(verbatim: editingStatusLabel, tone: editingStatusTone, systemImage: editingStatusSymbol)
                     .accessibilityIdentifier("activityEdit.status")
                 if !owner.rejection.isEmpty {
@@ -254,7 +249,8 @@ import SwiftUI
         }
         .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
-        .cyHeroScreen()
+        .navigationTitle(Text("title", tableName: "ActivityEditing"))
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear { owner.appear(active: scenePhase == .active); cover.appear(active: scenePhase == .active) }
         .onDisappear { if !cover.hasNativeSelection { owner.disappear() } }
         .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active); owner.setActive(phase == .active) }

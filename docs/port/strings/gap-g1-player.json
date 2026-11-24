@@ -462,5 +462,113 @@
   "passOrder.actionGated": {
     "zh-Hans": "通行证订单取消与退款当前版本暂未开放。",
     "en": "Platform-pass order cancellation and refund are gated."
+  },
+  "merchantApply.location.title": {
+    "zh-Hans": "承接地点",
+    "en": "Location"
+  },
+  "merchantApply.location.field": {
+    "zh-Hans": "承接地点",
+    "en": "Address"
+  },
+  "merchantApply.location.addressDetail": {
+    "zh-Hans": "详细地址",
+    "en": "Address Detail"
+  },
+  "merchantApply.rule.title": {
+    "zh-Hans": "承接说明",
+    "en": "Hosting Instructions"
+  },
+  "merchantApply.rule.placeholder": {
+    "zh-Hans": "填写可用空间、接待安全条件、拍摄许可、现场可配置物料",
+    "en": "Space, safety, filming, and on-site setup"
+  },
+  "merchantApply.pic.title": {
+    "zh-Hans": "承接图片",
+    "en": "Site Photos"
+  },
+  "topicReveal.marketingConsent": {
+    "zh-Hans": "接收该商家的活动与优惠通知",
+    "en": "Receive merchant updates and offers"
+  },
+  "topicShare.qrCode": {
+    "zh-Hans": "分享二维码",
+    "en": "Share QR Code"
+  },
+  "finishOffer.passBadge": {
+    "zh-Hans": "通行证优惠",
+    "en": "Pass Offer"
+  },
+  "finishOffer.productBadge": {
+    "zh-Hans": "完局推荐",
+    "en": "Recommended"
+  },
+  "finishOffer.gatedNote": {
+    "zh-Hans": "当前版本暂未开放购买",
+    "en": "Purchase unavailable in this build"
+  },
+  "objects.pile.gather": {
+    "zh-Hans": "收拢或散开藏品堆",
+    "en": "Gather or spread cards"
+  },
+  "orderDetail.inviteTeammates": {
+    "zh-Hans": "叫上队友",
+    "en": "Invite Teammates"
+  },
+  "orderDetail.seatsEntry": {
+    "zh-Hans": "同行席位",
+    "en": "Seats"
+  },
+  "orderDetail.club.joined": {
+    "zh-Hans": "已加入",
+    "en": "Joined"
+  },
+  "orderDetail.club.followOrJoin": {
+    "zh-Hans": "关注 / 加入俱乐部",
+    "en": "Follow / Join Club"
+  },
+  "participation.freeExploreBundle": {
+    "zh-Hans": "自由探索权益",
+    "en": "Free-Explore Bundle"
+  },
+  "participation.editMerchantApply": {
+    "zh-Hans": "去修改",
+    "en": "Edit Application"
+  },
+  "bundle.catalog.empty": {
+    "zh-Hans": "暂无参与商家",
+    "en": "No participating merchants"
+  },
+  "bundle.catalog.merchants": {
+    "zh-Hans": "参与商家",
+    "en": "Participating Merchants"
+  },
+  "bundle.catalog.openTopic": {
+    "zh-Hans": "查看主题详情",
+    "en": "View Topic"
+  },
+  "couponManagement.forbidden.title": {
+    "zh-Hans": "当前身份不能查看优惠券",
+    "en": "Coupons unavailable for current role"
+  },
+  "couponManagement.forbidden.applyMerchant": {
+    "zh-Hans": "申请入驻",
+    "en": "Apply as Merchant"
+  },
+  "roamHistory.title": {
+    "zh-Hans": "漫游记录",
+    "en": "Roam History"
+  },
+  "orientScore.syncTasks.confirmTitle": {
+    "zh-Hans": "确认同步本场任务？",
+    "en": "Sync tasks for this session?"
+  },
+  "orientScore.settleRun.confirmTitle": {
+    "zh-Hans": "确认结束并结算本场？",
+    "en": "Settle and end this run?"
+  },
+  "common.cancel": {
+    "zh-Hans": "取消",
+    "en": "Cancel"
   }
 }

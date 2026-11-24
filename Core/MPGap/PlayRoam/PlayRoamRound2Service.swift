@@ -4,15 +4,14 @@ import FoundationNetworking
 #endif
 
 /// Round-2 Core service methods for `play-roam` MP gaps:
-/// `ROAM-13`, `RTEAMS-3`, `JREPORT-3`, `SALBUM-6`.
+/// `RTEAMS-3`, `JREPORT-3`, `SALBUM-6`.
 /// RHIST-r7-1: passport history is `RoamPassportHistoryReadRoute` (`GET /api/roam/passport/history`), not a list invented here.
 @MainActor
 public final class PlayRoamRound2Service {
     public static let paths: Set<String> = [
-        "api/roam/city-strip",
         "api/team/applications",
         "api/rank/list",
-        "api/roam/stamp/album"
+        "api/roam/stamp/list"
     ]
 
     public let baseURL: URL
@@ -29,11 +28,15 @@ public final class PlayRoamRound2Service {
         _ path: String,
         method: String,
         query: [String: String] = [:],
+        json: [String: PlayWireValue]? = nil,
+        form: [String: String]? = nil,
         requireAuth: Bool = true
     ) throws -> URLRequest {
         var url = baseURL.appendingPathComponent(path)
         if !query.isEmpty {
-            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+            guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                throw APIError.invalidRequest
+            }
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
             guard let built = components.url else { throw APIError.invalidRequest }
             url = built
@@ -49,6 +52,18 @@ public final class PlayRoamRound2Service {
             }
             request.setValue(token, forHTTPHeaderField: "Authorization")
         }
+        if let json {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys]
+            request.httpBody = try encoder.encode(json)
+        } else if let form {
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            var components = URLComponents()
+            components.queryItems = form.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+            let encoded = (components.percentEncodedQuery ?? "").replacingOccurrences(of: "+", with: "%2B")
+            request.httpBody = Data(encoded.utf8)
+        }
         return request
     }
 
@@ -61,20 +76,12 @@ public final class PlayRoamRound2Service {
         }
     }
 
-    /// `ROAM-13`: `GET /api/roam/city-strip`
-    public func fetchCityStrip() async -> PlayerGapReply {
-        guard let req = try? makeRequest("api/roam/city-strip", method: "GET", requireAuth: false) else {
-            return .unknown
-        }
-        return await send(req)
-    }
-
-    /// `RTEAMS-3`: `GET /api/team/applications?teamId=`
+    /// `RTEAMS-3`: `POST /api/team/applications {teamId}`
     public func fetchTeamApplications(teamID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/team/applications",
-            method: "GET",
-            query: ["teamId": String(teamID)]
+            method: "POST",
+            json: ["teamId": .integer(Int64(teamID))]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -93,12 +100,12 @@ public final class PlayRoamRound2Service {
         return await send(req)
     }
 
-    /// `SALBUM-6`: `GET /api/roam/stamp/album?pageNum=&pageSize=50`
+    /// `SALBUM-6`: `POST /api/roam/stamp/list` (form `pageNum`, `pageSize=50`)
     public func fetchStampAlbum(pageNum: Int, pageSize: Int = 50) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/roam/stamp/album",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
+            "api/roam/stamp/list",
+            method: "POST",
+            form: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
         ) else { return .unauthorized }
         return await send(req)
     }

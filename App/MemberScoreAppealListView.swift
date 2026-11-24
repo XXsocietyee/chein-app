@@ -82,6 +82,12 @@ func playerFactOrDash(_ raw: String?) -> String {
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
                 }
+                if flow.loaded && !flow.rows.isEmpty && !flow.hasMore && !flow.busy {
+                    // R7-MEM-30-1: MP appeal-mine footer 已经到底了.
+                    Text("u9cde.report.end").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                        .accessibilityIdentifier("score.mine.end")
+                }
                 if flow.hasMore {
                     CYPillButton("score.mine.more", style: .secondary, tableName: "MemberScoreAppealList") { load(rendered, more: true) }
                         .disabled(flow.busy)
@@ -119,7 +125,7 @@ func playerFactOrDash(_ raw: String?) -> String {
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberScoreText("score.mine.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
-        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { LoginView(intent: .player).environmentObject(session) }
+        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .sheet(isPresented: $showsReputation) { MemberScoreReputationSheet(current: flow?.reputation) }
         .accessibilityIdentifier("score.mine.list")
         .navigationDestination(item: $selection) { MemberScoreAppealDetailView(selection: $0, session: session) }
@@ -187,21 +193,22 @@ private struct MemberScoreAppealRowLabel: View {
         Group {
             if typeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    MemberScoreStatusChip(status: row.status)
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         CYRowIcon(systemImage: symbol)
                         copy
                     }
+                    MemberScoreStatusChip(status: row.status)
                 }
             } else {
+                // PLY-30-6: MP rp-row__head puts the title first and the status tag trailing.
                 HStack(alignment: .center, spacing: CYSpacing.md) {
-                    MemberScoreStatusChip(status: row.status)
                     CYRowIcon(systemImage: symbol)
                     copy
                     Spacer(minLength: CYSpacing.sm)
+                    MemberScoreStatusChip(status: row.status)
                     if showsChevron {
                         Image(systemName: "chevron.right")
-                            .font(.footnote.weight(.semibold))
+                            .cyText(.meta, weight: .semibold)
                             .foregroundStyle(CYColor.textTertiary)
                             .accessibilityHidden(true)
                     }
@@ -269,7 +276,7 @@ struct MemberScoreChipChrome<Label: View>: View {
 
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
-            Image(systemName: symbol).font(.caption2.weight(.bold)).accessibilityHidden(true)
+            Image(systemName: symbol).font(.caption.weight(.bold)).accessibilityHidden(true)
             label().cyText(.caption)
         }
         .foregroundStyle(foreground)

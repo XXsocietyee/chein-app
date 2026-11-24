@@ -1,0 +1,16 @@
+# F-agent play-roam, half a (fix/r3-play-roam-a): fixture screens to screenshot. One launch per line (DEBUG launch arguments).
+# Format: <launch arguments>  # <what to check>. Synthetic data only; no backend, no remote images.
+--uitesting-roam-home -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # ROAM-10: 漫游 map title wraps (no 60 % shrink); tickets NO.01–NO.04 monospaced caption token
+--uitesting-roam-home --uitesting-roam-home-sheet -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # ROAM-3: sheet mode — inline title 漫游护照与工具 + ✕, opens on 漫游护照, no second map / GO / large 漫游 title, no 地图/列表 toggle in ⋯
+--uitesting-roam-home --uitesting-roam-home-sheet -AppleLanguages (en) -AppleLocale en_US  # ROAM-3 English: "Roam passport and tools"
+--uitesting-roam-experience --uitesting-roam-experience-scenario liveSession -AppleLanguages (zh-Hans) -AppleLocale zh_CN tap:roam.experience.live.open  # ROAM-4: full-bleed fog map, HUD glass card on top, status list in the detent panel above 开始/暂停/结束 bar
+--uitesting-module playExperience -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # PLAY-2: story map ground (stops + dashed order line) or placeholder when no coordinates; PLAY-3: ⋯ menu has 扫码到达 while one stop is current; PLAY-4: HUD distance in 米 / 公里
+--uitesting-module playExperience -AppleLanguages (en) -AppleLocale en_US  # PLAY-4: HUD distance in m / km; PLAY-3 "Scan to arrive"
+--uitesting-module playCircleLink --play-circle-link-query topicId=71&inviteCode=AB12  # PLAYC-r7-1: redirect to play; invite consumed once through circle-theme/session/join (fixture transport)
+--roam-subpage-fixture voucherDisabled -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RCODE-3 (disabled path keeps its empty state)
+--roam-subpage-fixture history -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RHIST-5: km total data2XL, run-card titles cardTitle
+--roam-subpage-fixture poiLive -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RPOI-2: favorite state shows once (card line only when no action row)
+--roam-subpage-fixture stampExchanged -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RSTAMP-5: one inline title (城市贴纸 / 今日城市签), content starts with the date · place meta line
+--roam-subpage-fixture stampNoExchange -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RSTAMP-5 not-exchanged slip
+--design-fixture nearby-empty  # 我的队伍 tab regression check (加入码 toolbar shows only on the Session host, which passes the join-code page)
+--nearby-team-fixture -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # nearby / my-teams segmented page (regression check after RTEAMS-3 init change)

@@ -137,7 +137,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                         .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isWithinBudget ? "OK" : "OVER_BUDGET")
-                        .font(.caption2.monospaced().weight(.bold))
+                        .font(.caption.monospaced().weight(.bold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(

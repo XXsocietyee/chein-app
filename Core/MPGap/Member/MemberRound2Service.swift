@@ -8,13 +8,13 @@ import FoundationNetworking
 @MainActor
 public final class MemberRound2Service {
     public static let paths: Set<String> = [
-        "api/registration/my",
+        "api/registration/my-joined",
         "api/points/list",
         "api/withdrawal/list",
-        "api/club/follow",
+        "api/user/follow/action",
         "api/club/join",
-        "api/template/my/list",
-        "api/orient/scoring"
+        "api/template/my-list",
+        "api/orient/scoring/session/{}"
     ]
 
     public let baseURL: URL
@@ -31,14 +31,17 @@ public final class MemberRound2Service {
         _ path: String,
         method: String,
         query: [String: String] = [:],
-        json: [String: PlayWireValue]? = nil
+        json: [String: PlayWireValue]? = nil,
+        form: [String: String]? = nil
     ) throws -> URLRequest {
         guard let token = token(), AuthRequestBuilder.isValidToken(token) else {
             throw APIError.invalidRequest
         }
         var url = baseURL.appendingPathComponent(path)
         if !query.isEmpty {
-            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+            guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                throw APIError.invalidRequest
+            }
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
             guard let built = components.url else { throw APIError.invalidRequest }
             url = built
@@ -54,6 +57,12 @@ public final class MemberRound2Service {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]
             request.httpBody = try encoder.encode(json)
+        } else if let form {
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            var components = URLComponents()
+            components.queryItems = form.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+            let encoded = (components.percentEncodedQuery ?? "").replacingOccurrences(of: "+", with: "%2B")
+            request.httpBody = Data(encoded.utf8)
         }
         return request
     }
@@ -67,42 +76,46 @@ public final class MemberRound2Service {
         }
     }
 
-    /// `FIN-16-2`: `GET /api/registration/my?pageNum=&pageSize=`
+    /// `FIN-16-2`: `POST /api/registration/my-joined` (form `pageNum`, `pageSize`)
     public func fetchOrdersPage(pageNum: Int, pageSize: Int = 20) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/registration/my",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
+            "api/registration/my-joined",
+            method: "POST",
+            form: [
+                "pageNum": String(pageNum),
+                "pageSize": String(pageSize)
+            ]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `FIN-18-2`: `GET /api/points/list?pageNum=&pageSize=`
-    public func fetchPointsPage(pageNum: Int, pageSize: Int = 20) async -> PlayerGapReply {
-        guard let req = try? makeRequest(
-            "api/points/list",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
-        ) else { return .unauthorized }
+    /// `FIN-18-2`: `POST /api/points/list` (form `{}`)
+    public func fetchPointsList() async -> PlayerGapReply {
+        guard let req = try? makeRequest("api/points/list", method: "POST", form: [:]) else {
+            return .unauthorized
+        }
         return await send(req)
     }
 
-    /// `FIN-19-1`: `GET /api/withdrawal/list?pageNum=&pageSize=`
+    /// `FIN-19-1`: `POST /api/withdrawal/list` (form `pageNum`, `pageSize`)
     public func fetchWithdrawalsPage(pageNum: Int, pageSize: Int = 20) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/withdrawal/list",
-            method: "GET",
-            query: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
+            method: "POST",
+            form: ["pageNum": String(pageNum), "pageSize": String(pageSize)]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `FIN-17-4`: `POST /api/club/follow {clubId}` / `POST /api/club/join {clubId}`
-    public func followClub(clubID: Int) async -> PlayerGapReply {
+    /// `FIN-17-4`: `POST /api/user/follow/action` (form `follow_member_id`, `follow`) / `POST /api/club/join`
+    public func followClubOwner(memberID: Int, follow: Bool = true) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/club/follow",
+            "api/user/follow/action",
             method: "POST",
-            json: ["clubId": .number(Double(clubID))]
+            form: [
+                "follow_member_id": String(memberID),
+                "follow": follow ? "1" : "0"
+            ]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -111,27 +124,26 @@ public final class MemberRound2Service {
         guard let req = try? makeRequest(
             "api/club/join",
             method: "POST",
-            json: ["clubId": .number(Double(clubID))]
+            form: ["clubId": String(clubID)]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `PLY-26-5`: `POST /api/template/my/list {operationScope}`
+    /// `PLY-26-5`: `POST /api/template/my-list` (form `operationScope`)
     public func fetchMyTemplates(scope: TemplateShelfOperationScope) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/template/my/list",
+            "api/template/my-list",
             method: "POST",
-            json: ["operationScope": .string(scope.rawValue)]
+            form: ["operationScope": scope.rawValue]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `PLY-25-2`: `GET /api/orient/scoring?sessionId=`
+    /// `PLY-25-2`: `GET /api/orient/scoring/session/{id}`
     public func fetchOrientScoring(sessionID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
-            "api/orient/scoring",
-            method: "GET",
-            query: ["sessionId": String(sessionID)]
+            "api/orient/scoring/session/\(sessionID)",
+            method: "GET"
         ) else { return .unauthorized }
         return await send(req)
     }

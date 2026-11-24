@@ -25,7 +25,7 @@ struct ClubNodeAnswerContent: View {
             if let feedback = nonEmpty(value["feedbackText"]) {
                 LabeledContent("club.gov.field.feedbackText") { Text(verbatim: feedback).foregroundStyle(.secondary) }
             }
-            Text("club.story.answer.notice").font(.footnote).foregroundStyle(.secondary)
+            Text("club.story.answer.notice").cyText(.meta).foregroundStyle(.secondary)  // CLB-topic-story-09
         }
     }
     private func nonEmpty(_ value: ClubGovernanceValue) -> String? {

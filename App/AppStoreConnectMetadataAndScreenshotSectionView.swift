@@ -170,7 +170,7 @@ public struct AppStoreConnectMetadataAndScreenshotSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(row.isReady ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.specificationSummary)
@@ -179,14 +179,14 @@ public struct AppStoreConnectMetadataAndScreenshotSectionView: View {
                     }
                     .padding(8)
                     .background(CYColor.textSecondary.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 }
             }
             .accessibilityIdentifier("ascMetadataMatrix.rowList")
         }
         .padding(12)
         .background(CYColor.textSecondary.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("ascMetadataMatrix.section")
     }

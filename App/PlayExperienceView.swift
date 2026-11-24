@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 /// Integration entry for migrated runtime. Factories are scope-specific, optional, and
 /// never create provider/network permissions as a side effect of opening the screen.
@@ -500,21 +501,21 @@ import SwiftUI
                     if let snapshot = model.snapshot {
                         let cards = PlayRunKeepsakes.evidence(in: snapshot)
                         if !cards.isEmpty {
-                            Text("playx.evidence.title").font(.headline)
+                            Text("playx.evidence.title").cyText(.cardTitle)
                             ForEach(cards) { card in
                                 VStack(alignment: .leading, spacing: 4) {
-                                    if let title = card.title { Text(verbatim: title).font(.headline) }
-                                    Text(verbatim: card.text).font(.body)
+                                    if let title = card.title { Text(verbatim: title).cyText(.cardTitle) }
+                                    Text(verbatim: card.text).cyText(.body)
                                 }
                                 .accessibilityIdentifier("playx.evidence.\(card.id)")
                             }
                         }
                         let photos = PlayRunKeepsakes.photos(in: snapshot)
                         if !photos.isEmpty {
-                            Text("playx.photos.title").font(.headline)
+                            Text("playx.photos.title").cyText(.cardTitle)
                             ForEach(photos) { photo in
                                 VStack(alignment: .leading, spacing: 4) {
-                                    if let title = photo.title { Text(verbatim: title).font(.subheadline) }
+                                    if let title = photo.title { Text(verbatim: title).cyText(.bodyCompact) }
                                     PlayStationArtwork(image: PlayStationImage(source: photo.url, tier: .station), title: photo.title ?? "")
                                 }
                                 .accessibilityIdentifier("playx.photos.\(photo.id)")
@@ -587,7 +588,7 @@ import SwiftUI
                         if ending.hasStory {
                             if !ending.opener.isEmpty { Text(verbatim: ending.opener) }
                             ForEach(Array(ending.fragments.enumerated()), id: \.offset) { _, fragment in
-                                VStack(alignment: .leading) { Text(verbatim: fragment.name).font(.headline); if let text = fragment.text, !text.isEmpty { Text(verbatim: text) } }
+                                VStack(alignment: .leading) { Text(verbatim: fragment.name).cyText(.cardTitle); if let text = fragment.text, !text.isEmpty { Text(verbatim: text) } }
                             }
                         } else { Text("playx.ending.empty").accessibilityIdentifier("playx.ending.empty") }
                     }
@@ -620,7 +621,8 @@ import SwiftUI
             ToolbarItem(placement: .topBarTrailing) {
                 // 游玩工具: 切换章节 when the route has more than one chapter (also after the run is done), 紧急求助 always.
                 PlayToolsMenu(showsChapters: (model.snapshot?.result.chapters.count ?? 0) > 1, showsEmergency: model.snapshot != nil,
-                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true })
+                              openChapters: { showChapterPicker = true }, openEmergency: { showEmergencyHelp = true },
+                              openScanArrival: hudStop == nil ? nil : { if let id = hudStop?.node.id { selectedNode = id } })
             }
         }
         .accessibilityIdentifier("playx.overview")
@@ -645,7 +647,7 @@ import SwiftUI
     /// Map-first play screen: static map ground, glass clock / route map / end on top, the one primary
     /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
     private var orientationContent: some View {
-        CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: { runHeader }, floating: { runFloating },
+        CYMapScaffold(detent: .medium, map: { PlayStoryMapGround(snapshot: model.snapshot) }, controls: { runHeader }, floating: { runFloating },
                       panel: { orientationList })
     }
     /// The one current stop of a live run, for the play HUD (401:4731). nil while branches are a choice, before the
@@ -762,7 +764,7 @@ import SwiftUI
             NavigationLink {
                 JourneyNarrativeView(model: narrative, imageReader: narrativeImageReader, makeAudio: makeAudio, mediaScope: mediaScope)
             } label: {
-                VStack(alignment: .leading) { Text(LocalizedStringKey(query.titleKey)); if let subtitle { Text(verbatim: subtitle).font(.caption) } }
+                VStack(alignment: .leading) { Text(LocalizedStringKey(query.titleKey)); if let subtitle { Text(verbatim: subtitle).cyText(.meta) } }
             }.accessibilityIdentifier("journey.record.open." + query.key)
         }
     }
@@ -913,6 +915,7 @@ import SwiftUI
     private var helpEnabled: Bool { help?.enabled == true && help?.identity.nodeID == nodeID }
     private var gameStage: PlayGameStage? {
         guard let result = model.snapshot?.result else { return nil }
+        guard PlayKitPilotGate.allows(eventID: result.topicID) else { return nil }
         return PlayGameStage.resolve(nodeID: nodeID, nodes: result.nodes, chapters: result.chapters)
     }
     var body: some View {
@@ -1313,12 +1316,12 @@ import SwiftUI
                     .accessibilityIdentifier("playx.question.image")
             }
             if let perk = node.perk {
-                if perk.included == true { Text("playx.perk.included").font(.subheadline) }
-                if let spend = perk.extraSpendText, !spend.isEmpty { Text(verbatim: spend).font(.subheadline) }
-                if perk.reserveRequired == true { Text("playx.perk.reserve").font(.subheadline) }
+                if perk.included == true { Text("playx.perk.included").cyText(.bodyCompact) }
+                if let spend = perk.extraSpendText, !spend.isEmpty { Text(verbatim: spend).cyText(.bodyCompact) }
+                if perk.reserveRequired == true { Text("playx.perk.reserve").cyText(.bodyCompact) }
             }
             if let mode = PlayCompletionModePresentation(raw: node.completionMode) {
-                Text(LocalizedStringKey(mode.titleKey)).font(.subheadline).accessibilityIdentifier("playx.completion.mode")
+                Text(LocalizedStringKey(mode.titleKey)).cyText(.bodyCompact).accessibilityIdentifier("playx.completion.mode")
             }
             if model.extras[node.id]?.photoCheckMode == "RECORD" {
                 Button("playkit.photo.continueWithout") {
@@ -1327,7 +1330,7 @@ import SwiftUI
                         if let advanced { Task { await PlayKitInputContract.postRecord(submission, through: advanced) } }
                     }
                 }
-                .font(.body)
+                .cyText(.body)
                 .disabled(continuedWithoutPhoto)
                 .accessibilityIdentifier("playkit.photo.continueWithout")
             }
@@ -1521,7 +1524,7 @@ struct PlayExperienceIssueView: View {
     var body: some View {
         VStack(alignment: .leading) {
             if case .rejected(let code, let message) = issue {
-                Label("playx.rejected", systemImage: "exclamationmark.circle").font(.headline)
+                Label("playx.rejected", systemImage: "exclamationmark.circle").cyText(.cardTitle)
                 Text(verbatim: message ?? String(code)).fixedSize(horizontal: false, vertical: true)
             } else { Text(LocalizedStringKey(issue == .disabled ? "playx.disabled" : issue == .staleSession ? "playx.session.changed" : issue == .unsupported ? "playx.unsupported" : "playx.error")) }
             // OWN-OPT-072: unknown result or server error carries the server request reference for support.
@@ -1613,7 +1616,18 @@ struct PlayExperienceIssueView: View {
                                              reload: { Task { await model.loadLead(context: context) } })
                 } else if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
-                    if lead.exists, case .activity(let activityID) = model.scope { LeadMemberTicketScanButton(activityID: activityID) }
+                    if lead.exists, case .activity(let activityID) = model.scope {
+                        LeadMemberTicketScanButton(activityID: activityID)
+                        // PLAY-8: MP 展示整团码 (`leadShowGroupCode` → scene qr-group-code for this activity). The club
+                        // group-code page issues and shows it; its own access check covers a leader without club rights.
+                        NavigationLink {
+                            MPReviewedPageScreen(page: "pages/club/group-code/index", query: ["activityId": String(activityID)])
+                                .cyPushedChrome()
+                        } label: {
+                            Label("playTools.lead.showGroupCode", systemImage: "qrcode")
+                        }
+                        .accessibilityIdentifier("playx.lead.showGroupCode")
+                    }
                     TextField("playx.lead.text", text: $text, axis: .vertical).accessibilityIdentifier("playx.lead.text")
                     if !lead.exists { actionButton(context: context, .start) }
                     else {
@@ -1740,5 +1754,47 @@ extension PlayExperienceView {
                     }
                 }
             }
+    }
+}
+
+/// PLAY-2: MP pages/play story map (wxml:102, 145): the route's stops and dashed order line drawn as the play
+/// screen's ground, with no chrome. Read-only and not interactive (the full route map stays one push away);
+/// it shows only what PlayRouteMapPresentation already exposes (no story, answers or player position).
+/// A route without coordinates keeps the placeholder ground.
+@MainActor private struct PlayStoryMapGround: View {
+    let snapshot: PlaySnapshot?
+    var body: some View {
+        if let snapshot, let presentation = PlayRouteMapPresentation(snapshot: snapshot), !presentation.mappedStops.isEmpty {
+            let points = presentation.mappedStops.compactMap(\.coordinate).map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) }
+            Map(initialPosition: .region(CYMapRegion.boundingRegion(coordinates: points)), interactionModes: []) {
+                ForEach(presentation.segments) { segment in
+                    MapPolyline(coordinates: [
+                        CLLocationCoordinate2D(latitude: segment.start.latitude, longitude: segment.start.longitude),
+                        CLLocationCoordinate2D(latitude: segment.end.latitude, longitude: segment.end.longitude),
+                    ])
+                    .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, dash: [6, 5]))
+                }
+                ForEach(presentation.mappedStops) { stop in
+                    if let location = stop.coordinate {
+                        Annotation("", coordinate: CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)) {
+                            Image(systemName: stop.state.symbol)
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(stop.state == .current ? CYColor.textOnAccent : Color.primary)
+                                .padding(6)
+                                .background(stop.state == .current ? CYColor.actionPrimaryBg : Color(uiColor: .systemBackground), in: Circle())
+                        }
+                    }
+                }
+            }
+            .mapStyle(.standard(elevation: .flat, emphasis: .muted))
+            .environment(\.colorScheme, .light)
+            .background { CYMapPlaceholder(fog: false) }
+            // Decorative ground: the stop list in the panel carries the same facts for VoiceOver.
+            .accessibilityHidden(true)
+            .allowsHitTesting(false)
+            .id(presentation.mappedStops.map(\.id))
+        } else {
+            CYMapPlaceholder()
+        }
     }
 }

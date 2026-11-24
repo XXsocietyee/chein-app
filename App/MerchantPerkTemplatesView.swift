@@ -13,11 +13,17 @@ import SwiftUI
     @State private var pendingDelete: MerchantPerkTemplateRow?
     @State private var validEndEnabled = false
     @State private var validEndDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+    /// MC7-21-3: the row whose delete last ran, so a failed delete can be retried in place.
+    @State private var lastDeleteID: Int?
 
     var body: some View {
         content
             .cyPageTitle("merchant.perks.title")
             .toolbar {
+                if writesEnabled && model.phase == .ready && !model.rows.isEmpty {
+                    // MC7-21-6: delete is reachable without swipe (edit mode).
+                    ToolbarItem(placement: .topBarLeading) { EditButton().disabled(model.isBusy) }
+                }
                 if writesEnabled {
                     ToolbarItem(placement: .primaryAction) {
                         Button("merchant.perks.add") { openForm() }
@@ -50,11 +56,17 @@ import SwiftUI
                 onConfirm: {
                     if let row = pendingDelete {
                         pendingDelete = nil
+                        lastDeleteID = row.id
                         Task { await model.delete(id: row.id) }
                     }
                 }
             )
             .cyDomainScreen(.merchant)
+            // MC7-21-2: the form stays open while saving and closes only on a confirmed save.
+            .onChange(of: model.action) { _, action in
+                if action == .saved { showingForm = false }
+                if action == .deleted { lastDeleteID = nil }
+            }
     }
 
     private var deleteDialogPresented: Binding<Bool> {
@@ -82,9 +94,9 @@ import SwiftUI
             .themeDomain(.merchant)
             .accessibilityIdentifier("merchant.perks.permission")
         case .failed:
-            CYErrorState(kind: .server, message: "merchant.perks.failed.detail") {
-                Task { await model.load() }
-            }
+            // MC7-21-4: MP title 权益加载失败 above the reason.
+            CYErrorStateView(title: "merchant.perks.failed.title", message: "merchant.perks.failed.detail",
+                             retryTitle: "action.retry", onRetry: { Task { await model.load() } })
             .cyDomainPageBackground()
             .themeDomain(.merchant)
             .accessibilityIdentifier("merchant.perks.failed")
@@ -100,6 +112,8 @@ import SwiftUI
                     .listRowBackground(Color.clear)
                 }
                 ForEach(model.rows) { row in rowView(row) }
+                    .onDelete(perform: rowDeleteAction)
+                    .deleteDisabled(model.isBusy)
             }
             .scrollContentBackground(.hidden)
             .cyDomainScreen(.merchant)
@@ -118,7 +132,14 @@ import SwiftUI
         case .invalid: bannerText("merchant.perks.invalid", tint: CYColor.dangerText)
         case .notAvailableYet: bannerText("merchant.perks.notAvailable", tint: CYColor.textSecondary)
         case .permissionDenied: bannerText("merchant.perks.permission.detail", tint: CYColor.dangerText)
-        case .failed: bannerText("merchant.perks.actionFailed", tint: CYColor.dangerText)
+        case .failed:
+            bannerText("merchant.perks.actionFailed", tint: CYColor.dangerText)
+            if let id = lastDeleteID, writesEnabled, model.rows.contains(where: { $0.id == id }) {
+                // MC7-21-3: 重试删除 re-runs the same row's delete.
+                Button("merchantCoop.perks.retryDelete") { Task { await model.delete(id: id) } }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("merchant.perks.retryDelete")
+            }
         }
     }
 
@@ -150,23 +171,24 @@ import SwiftUI
                 Text(verbatim: row.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Spacer()
                 if row.usable {
-                    Text(typeKey(row.typeIndex)).cyText(.caption)
+                    Text(typeKey(row.typeIndex)).cyText(.meta)
                         .foregroundStyle(CYColor.brand)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.brandSoft, in: Capsule())
                 } else {
-                    Text("merchant.perks.expired").cyText(.caption)
+                    Text("merchant.perks.expired").cyText(.meta)
                         .foregroundStyle(CYColor.warningText)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYColor.warningSoft, in: Capsule())
                 }
             }
             HStack(spacing: 12) {
-                if let retail = row.retailValue { fact("merchant.perks.retail", NSDecimalNumber(decimal: retail).stringValue) }
-                if let cost = row.unitCost { fact("merchant.perks.cost", NSDecimalNumber(decimal: cost).stringValue) }
+                // MC7-21-1: ¥ with two decimals, monospaced digits (MP perks/index.wxml:75-80).
+                if let retail = row.retailValue { fact("merchant.perks.retail", Self.yuan(retail)) }
+                if let cost = row.unitCost { fact("merchant.perks.cost", Self.yuan(cost)) }
                 if let quota = row.quota { fact("merchant.perks.quota", String(quota)) }
                 if let end = row.validEnd { fact("merchant.perks.validUntil", end) }
-            }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            }.cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .swipeActions {
@@ -182,7 +204,12 @@ import SwiftUI
         }
     }
 
+    static func yuan(_ value: Decimal) -> String {
+        "¥" + value.formatted(.number.precision(.fractionLength(2)).locale(Locale(identifier: "en_US_POSIX")))
+    }
+
     private func openForm() {
+        lastDeleteID = nil
         draft = MerchantPerkTemplateDraft(); validEndEnabled = false
         model.dismissAction()
         showingForm = true
@@ -196,20 +223,24 @@ import SwiftUI
                     Text("merchant.perks.type.coupon").tag(1)
                     Text("merchant.perks.type.discount").tag(2)
                 }
+                // MC7-21-5: each invalid field shows its own hint right under it.
+                let invalid = invalidFields
                 TextField("merchant.perks.form.name", text: $draft.name)
+                fieldHint(.name, invalid)
                 TextField("merchant.perks.form.retail", text: $draft.retailValue).keyboardType(.decimalPad)
+                fieldHint(.retailValue, invalid)
                 TextField("merchant.perks.form.cost", text: $draft.unitCost).keyboardType(.decimalPad)
+                fieldHint(.unitCost, invalid)
                 TextField("merchant.perks.form.quota", text: $draft.quota).keyboardType(.numberPad)
+                fieldHint(.quota, invalid)
                 Toggle("merchant.perks.form.hasValidity", isOn: $validEndEnabled)
                 if validEndEnabled {
                     DatePicker("merchant.perks.form.validEnd", selection: $validEndDate, in: MerchantPerkValidityDraft.minimum(now: Date())..., displayedComponents: .date)
                         .environment(\.timeZone, MerchantPerkValidityDraft.timeZone).environment(\.calendar, MerchantPerkValidityDraft.calendar)
+                    fieldHint(.validEnd, invalid)
                 }
-                if let field = MerchantPerkTemplateFormPort.firstInvalidField(draft, validEnd: validEndEnabled ? Self.wire(validEndDate) : "", now: Date()),
-                   MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled) {
-                    Text(LocalizedStringKey("merchant.perks.form.hint." + field.rawValue)).cyText(.meta).foregroundStyle(.secondary)
-                        .accessibilityIdentifier("merchant.perks.form.hint")
-                }
+                // MC7-21-2: save progress and failures stay inside the open form.
+                formStatus
                 if !model.canWrite(.deleteTemplate(id: 1)) {
                     Text("merchant.perks.notAvailable").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }
@@ -228,7 +259,7 @@ import SwiftUI
                 }
             }
         }
-        .interactiveDismissDisabled(MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled))
+        .interactiveDismissDisabled(model.isBusy || MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled))
         .cyModalConfirm(
             isPresented: confirmingDiscard,
             title: appLocalized("merchant.perks.discard.title", locale: locale),
@@ -241,6 +272,70 @@ import SwiftUI
                 showingForm = false
             }
         )
+    }
+
+    /// Every field that fails its MP rule (same rules as `MerchantPerkTemplateFormPort.firstInvalidField`, checked one by one).
+    private var invalidFields: Set<MerchantPerkTemplateFormPort.Field> {
+        guard MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled) else { return [] }
+        let validEnd = validEndEnabled ? Self.wire(validEndDate) : ""
+        var result: Set<MerchantPerkTemplateFormPort.Field> = []
+        var probe = draft
+        // Walk the MP guard order: replace each reported field with a known-good value and ask again.
+        var end = validEnd
+        for _ in 0..<5 {
+            guard let field = MerchantPerkTemplateFormPort.firstInvalidField(probe, validEnd: end, now: Date()) else { break }
+            result.insert(field)
+            switch field {
+            case .name: probe.name = "x"
+            case .retailValue: probe.retailValue = "1"
+            case .unitCost: probe.unitCost = ""
+            case .quota: probe.quota = "1"
+            case .validEnd: end = ""
+            }
+        }
+        return result
+    }
+
+    @ViewBuilder private func fieldHint(_ field: MerchantPerkTemplateFormPort.Field, _ invalid: Set<MerchantPerkTemplateFormPort.Field>) -> some View {
+        if invalid.contains(field) {
+            Text(LocalizedStringKey("merchant.perks.form.hint." + field.rawValue)).cyText(.meta).foregroundStyle(CYColor.dangerText)
+                .accessibilityIdentifier("merchant.perks.form.hint")
+        }
+    }
+
+    @ViewBuilder private var formStatus: some View {
+        switch model.action {
+        case .saving:
+            ProgressView("merchant.perks.saving").accessibilityIdentifier("merchant.perks.form.saving")
+        case .unconfirmed, .failed, .invalid, .permissionDenied:
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(formStatusKey)
+                    .cyText(.bodyCompact)
+                    .foregroundStyle(model.action == .unconfirmed ? CYColor.warningText : CYColor.dangerText)
+                Button("merchantCoop.perks.requery") { Task { await model.load() } }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("merchant.perks.form.requery")
+            }
+            .accessibilityIdentifier("merchant.perks.form.status")
+        default:
+            EmptyView()
+        }
+    }
+
+    private var formStatusKey: LocalizedStringKey {
+        switch model.action {
+        case .unconfirmed: return "merchant.perks.unconfirmed"
+        case .invalid: return "merchant.perks.invalid"
+        case .permissionDenied: return "merchant.perks.permission.detail"
+        default: return "merchant.perks.actionFailed"
+        }
+    }
+
+    private var rowDeleteAction: ((IndexSet) -> Void)? {
+        guard writesEnabled else { return nil }
+        return { offsets in
+            if let index = offsets.first, model.rows.indices.contains(index) { pendingDelete = model.rows[index] }
+        }
     }
 
     private var formReady: Bool {
@@ -261,7 +356,7 @@ import SwiftUI
     private func submit() {
         var value = draft
         value.validEnd = validEndEnabled ? Self.wire(validEndDate) : ""
-        showingForm = false
+        lastDeleteID = nil
         Task { await model.save(value) }
     }
 }

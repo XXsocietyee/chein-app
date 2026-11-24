@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 @MainActor final class StoreCharacterModel: ObservableObject {
@@ -34,7 +35,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
 
     var body: some View {
         content
-            .navigationTitle(c.screen == .home ? t("storeCharacter.title.home") : t("storeCharacter.title.avatar"))
+            .navigationTitle(c.screen == .home ? t("storeCharacter.title.home") : t("storeCharacter.title.avatar")).navigationBarTitleDisplayMode(.inline)
             // type-and-chrome §3: the coordinator decides (avatar sub-screen, unsaved text, saving); the system back
             // and swipe return as soon as nothing needs guarding.
             .cyGuardedBack(when: c.screen != .home || c.saving || !c.home.sameText(c.saved)) {
@@ -144,7 +145,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .denied(let reason):
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
@@ -161,7 +162,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
             // A current read refusal is not a network failure or a new initial-admission exit.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "lock")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
@@ -181,7 +182,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .failed(let message):
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "exclamationmark.triangle")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.load.failedTitle")
                     .cyText(.cardTitle)
@@ -240,14 +241,14 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                         .accessibilityIdentifier("aiNPC.hero.badge")
                     if let reason = c.saved.rejectionReason {
                         (t("storeCharacter.hero.rejectReason") + Text(verbatim: reason))
-                            .cyText(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("aiNPC.hero.rejectReason")
                     }
                 }
             } else {
                 t("storeCharacter.avatar.previewCaption")
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }
@@ -323,7 +324,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                         Spacer()
                     }
                 }
-                .buttonStyle(.questifyPrimary).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
+                .buttonStyle(.borderedProminent).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
             }
         }
     }
@@ -356,21 +357,31 @@ struct StoreCharacterPreview: View {
     var body: some View {
         Group {
             if let preset = avatar.preset { MerchantNPCPresetArtwork(avatar: preset) }
-            else {
-                // The saved photo avatar is a remote image; this build shows a neutral placeholder.
-                ZStack {
-                    Color.secondary.opacity(0.15)
-                    VStack(spacing: 6) {
-                        Image(systemName: "person.crop.square").font(.largeTitle).accessibilityHidden(true)
-                        t("storeCharacter.hero.photoSaved").cyText(.meta)
-                    }.foregroundStyle(.secondary)
+            else if let url = photoURL {
+                // MC7-23-3: render the saved photo avatar (MP ai-npc/index.wxml:26) instead of a grey placeholder.
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { photoPlaceholder }
                 }
-            }
+            } else { photoPlaceholder }
         }
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: side * 0.16))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("aiNPC.preview")
+    }
+    /// Absolute https photo references only; a site-relative path keeps the placeholder (no base URL here).
+    private var photoURL: URL? {
+        guard case .photo(let source) = avatar, source.hasPrefix("https://"), let url = URL(string: source) else { return nil }
+        return url
+    }
+    private var photoPlaceholder: some View {
+        ZStack {
+            Color.secondary.opacity(0.15)
+            VStack(spacing: 6) {
+                Image(systemName: "person.crop.square").font(.largeTitle).accessibilityHidden(true)
+                t("storeCharacter.hero.photoSaved").cyText(.meta)
+            }.foregroundStyle(.secondary)
+        }
     }
 }
 
@@ -461,7 +472,37 @@ private struct StoreCharacterFieldSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                if let edit = c.field {
+                if let edit = c.field, edit.field == .persona {
+                    // MC7-23-4: MP M-28 性格三选一 (温柔 / 可爱 / 毒舌), no free text. The Chinese label is the saved
+                    // value (MP writes the label into `persona`; the `personality` enum is a Core follow-up).
+                    Section {
+                        ForEach(Self.personas.indices, id: \.self) { index in
+                            let option = Self.personas[index]
+                            Button {
+                                c.updateField(option.value)
+                                c.saveField()
+                            } label: {
+                                HStack {
+                                    Text(option.title).foregroundStyle(CYColor.textPrimary)
+                                    Spacer()
+                                    if edit.value == option.value {
+                                        Image(systemName: c.saving ? "clock" : "checkmark").foregroundStyle(CYColor.brand).accessibilityHidden(true)
+                                    }
+                                }
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .contentShape(Rectangle())
+                            }
+                            .disabled(c.saving || c.saveLocked)
+                            .accessibilityAddTraits(edit.value == option.value ? [.isSelected] : [])
+                            .accessibilityIdentifier("aiNPC.persona." + option.id)
+                        }
+                    }
+                    if let notice = c.notice { Section { StoreCharacterNoticeText(notice: notice) } }
+                    if let issue = c.saveIssue { Section { StoreCharacterSaveIssueView(model: model, issue: issue) } }
+                    if let confirmation = c.saveConfirmation, case .field = confirmation.origin {
+                        StoreCharacterSaveConfirmationSection(model: model, confirmation: confirmation)
+                    }
+                } else if let edit = c.field {
                     Section {
                         TextField(text: Binding(get: { c.field?.value ?? "" }, set: { c.updateField($0) }),
                                   axis: edit.field.multiline ? .vertical : .horizontal) { label(edit.field) }
@@ -492,8 +533,14 @@ private struct StoreCharacterFieldSheet: View {
             }
         }
         .interactiveDismissDisabled(c.saving || c.field.map { $0.value != $0.initial } == true)
-        .cyDomainSheet(detents: c.field?.field.multiline == true ? [.full] : [.half])
+        .cyDomainSheet(detents: c.field?.field.multiline == true && c.field?.field != .persona ? [.full] : [.half])
         .themeDomain(.merchant)
+    }
+    /// MP `PERSONALITIES` (ai-npc/index.js:30): key, saved Chinese label, display title.
+    static var personas: [(id: String, value: String, title: LocalizedStringKey)] {
+        [("gentle", "温柔", "merchantCoop.npc.persona.gentle"),
+         ("cute", "可爱", "merchantCoop.npc.persona.cute"),
+         ("savage", "毒舌", "merchantCoop.npc.persona.savage")]
     }
     private func label(_ field: StoreCharacterField) -> Text {
         switch field {
@@ -516,8 +563,8 @@ private struct StoreCharacterPresetSheet: View {
                         Button { c.pickPreset(preset.id) } label: {
                             VStack(spacing: 6) {
                                 MerchantNPCPresetArtwork(avatar: preset).frame(width: 88, height: 88)
-                                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(c.presetPick == preset.id ? Color.accentColor : .clear, lineWidth: 3))
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                                    .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(c.presetPick == preset.id ? Color.accentColor : .clear, lineWidth: 3))
                                 Text(LocalizedStringKey(preset.titleKey)).cyText(.meta)
                             }
                         }
@@ -528,7 +575,7 @@ private struct StoreCharacterPresetSheet: View {
                 }
                 .padding()
                 Button { c.confirmPreset() } label: { t("storeCharacter.preset.use").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
+                    .buttonStyle(.borderedProminent).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
             }
             .navigationTitle(t("storeCharacter.preset.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -542,6 +589,22 @@ private struct StoreCharacterVoiceSheet: View {
     @ObservedObject var model: StoreCharacterModel
     private var c: StoreCharacterCoordinator { model.coordinator }
     private var status: StoreCharacterVoiceState.Status { c.voice?.status ?? .none }
+    /// MC7-23-5: 试听原录音 / 暂停试听 of the enrolled sample (MP `playVoice`).
+    @State private var samplePlayer: AVPlayer?
+    @State private var samplePlaying = false
+    private var sampleURL: URL? {
+        guard let sample = c.voice?.sample, sample.hasPrefix("https://") else { return nil }
+        return URL(string: sample)
+    }
+    private func toggleSample() {
+        if samplePlaying { samplePlayer?.pause(); samplePlaying = false; return }
+        guard let url = sampleURL else { return }
+        let player = samplePlayer ?? AVPlayer(url: url)
+        samplePlayer = player
+        player.seek(to: .zero)
+        player.play()
+        samplePlaying = true
+    }
     var body: some View {
         NavigationStack {
             List {
@@ -562,7 +625,15 @@ private struct StoreCharacterVoiceSheet: View {
                 case .ready:
                     Section {
                         t("storeCharacter.voice.readyBody").accessibilityIdentifier("aiNPC.voice.ready")
-                        Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
+                        if sampleURL != nil {
+                            Button { toggleSample() } label: {
+                                Label(samplePlaying ? "merchantCoop.npc.voice.pauseSample" : "merchantCoop.npc.voice.playSample",
+                                      systemImage: samplePlaying ? "pause.circle" : "play.circle")
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityIdentifier("aiNPC.voice.playSample")
+                        }
+                        Button { samplePlayer?.pause(); samplePlaying = false; c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
                     }
                 case .none, .failed:
                     if status == .failed { Section { t("storeCharacter.voice.failedBody").foregroundStyle(CYColor.dangerText) } }
@@ -589,6 +660,10 @@ private struct StoreCharacterVoiceSheet: View {
             }
         }
         .interactiveDismissDisabled(c.voiceBusy)
+        .onDisappear { samplePlayer?.pause(); samplePlaying = false }
+        .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.didPlayToEndTimeNotification)) { note in
+            if let item = note.object as? AVPlayerItem, item === samplePlayer?.currentItem { samplePlaying = false }
+        }
     }
     private var title: Text {
         if c.recording != nil { return t("storeCharacter.voice.titleConfirm") }
@@ -609,7 +684,7 @@ private struct StoreCharacterVoiceSheet: View {
             .accessibilityElement().accessibilityLabel(t("storeCharacter.voice.progress"))
             t("storeCharacter.voice.sentence1")
             Button {} label: { t("storeCharacter.voice.hold").frame(maxWidth: .infinity) }
-                .buttonStyle(.questifyPrimary).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
+                .buttonStyle(.borderedProminent).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
             t("storeCharacter.voice.recordingUnavailable").cyText(.bodyCompact).foregroundStyle(.secondary)
             if c.canRecord {
                 Button { c.useSyntheticRecording() } label: { t("storeCharacter.voice.useSample") }

@@ -141,6 +141,9 @@ struct OfficialOrganizerConsoleView: View {
     @Environment(\.locale) private var locale
     @State private var confirming: OfficialOrganizerAction?
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+    @Environment(\.dismiss) private var dismissConsole
+    /// MP `cy-field maxlength="200" show-count` on every organizer text field (R7-PC-C7-1).
+    private static let fieldLimit = 200
 
     init(eventID: Int, access: any OfficialOrganizerAccess) {
         _model = StateObject(wrappedValue: OfficialOrganizerConsoleModel(eventID: eventID, access: access))
@@ -156,8 +159,10 @@ struct OfficialOrganizerConsoleView: View {
                     .accessibilityLabel(Text(c.t("正在读取主办权限…", "Checking organizer access…")))
                     .accessibilityIdentifier("official.organizer.loading")
             case .denied(let reason):
+                // R7-PC-C7-2 (MP official-organizer/index.wxml:26 primary="返回").
                 CYEmptyStateView(systemImage: "lock", title: LocalizedStringKey(c.t("无权管理这场活动", "You can't manage this event")),
-                                 description: LocalizedStringKey(reason.map(c.tr) ?? c.t("当前账号不是这场活动的主办方", "This account is not a host of this event")))
+                                 description: LocalizedStringKey(reason.map(c.tr) ?? c.t("当前账号不是这场活动的主办方", "This account is not a host of this event")),
+                                 actionTitle: "action.back", action: { dismissConsole() })
                     .accessibilityIdentifier("official.organizer.denied")
             case .error:
                 CYErrorStateView(title: LocalizedStringKey(c.t("没有读到主办状态", "Couldn't load organizer status")),
@@ -169,7 +174,7 @@ struct OfficialOrganizerConsoleView: View {
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
-        .navigationTitle(c.t("主办控制台", "Organizer console"))
+        .navigationTitle(Text("official.organizer.title"))
         .navigationBarTitleDisplayMode(.inline)
         .task { await model.load() }
         .refreshable { await model.load() }
@@ -221,13 +226,13 @@ struct OfficialOrganizerConsoleView: View {
                     Text(verbatim: "·")
                     Text(verbatim: controlText)
                 }.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                // R7-PC-C7-2 (MP index.wxml:38-39): 暂停原因 while paused; 最近恢复说明 while running.
                 if model.state?.control == .paused {
                     if let r = model.state?.pausedReason, !r.isEmpty {
                         Text(verbatim: c.t("暂停原因：", "Pause reason: ") + r).cyText(.meta)
                     }
-                    if let n = model.state?.resumeNote, !n.isEmpty {
-                        Text(verbatim: c.t("恢复说明：", "Resume note: ") + n).cyText(.meta)
-                    }
+                } else if let n = model.state?.resumeNote, !n.isEmpty {
+                    Text(verbatim: c.t("最近恢复说明：", "Latest resume note: ") + n).cyText(.meta)
                 }
             }
             .accessibilityElement(children: .combine)
@@ -327,10 +332,12 @@ struct OfficialOrganizerConsoleView: View {
     }
     private var resumeSection: some View {
         Section {
-            TextField(c.t("风险处理说明（必填）", "How the risk was handled (required)"), text: $model.resumeReason, axis: .vertical)
+            TextField(c.t("风险处理说明（必填）", "How the risk was handled (required)"),
+                      text: Binding(get: { model.resumeReason }, set: { model.resumeReason = String($0.prefix(Self.fieldLimit)) }), axis: .vertical)
                 .lineLimit(2...5).disabled(model.controlsLocked)
                 .accessibilityLabel(c.t("风险处理说明", "Risk handling note"))
                 .accessibilityIdentifier("official.organizer.resume.reason")
+            counter(model.resumeReason)
             formErrorText(.resume)
             hintText(.resume)
             actionButton(.resume)
@@ -342,18 +349,36 @@ struct OfficialOrganizerConsoleView: View {
         let binding = Binding(get: { model.pause[field] ?? OfficialOrganizerPauseEntry() }, set: { model.pause[field] = $0 })
         return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(fieldLabel(field)).cyText(.bodyMedium)
-            Picker(fieldLabel(field), selection: binding.preset) {
-                Text(c.t("不选预设", "No preset")).tag("")
-                ForEach(Array(presets.enumerated()), id: \.offset) { i, zh in Text(presetLabel(field, i, zh)).tag(zh) }
-            }.pickerStyle(.menu).labelsHidden().frame(minHeight: 44)
-            TextField(c.t("补充文字", "Add details"), text: binding.extra, axis: .vertical)
+            // R7-PC-C7-1 (MP index.wxml:71 `oo-chips`): one tap picks a preset, a second tap clears it.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: CYSpacing.sm) {
+                    ForEach(Array(presets.enumerated()), id: \.offset) { i, zh in
+                        CYFilterChip(verbatim: presetLabel(field, i, zh), isSelected: binding.wrappedValue.preset == zh) {
+                            binding.wrappedValue.preset = binding.wrappedValue.preset == zh ? "" : zh
+                        }
+                    }
+                }
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(verbatim: fieldLabel(field)))
+            TextField(c.t("补充说明（没有合适选项时必填）", "Add details (required if no preset fits)"),
+                      text: Binding(get: { binding.wrappedValue.extra }, set: { binding.wrappedValue.extra = String($0.prefix(Self.fieldLimit)) }),
+                      axis: .vertical)
                 .lineLimit(1...4)
                 .accessibilityLabel(fieldLabel(field))
+            counter(binding.wrappedValue.extra)
         }
         .disabled(model.controlsLocked)
         .accessibilityIdentifier("official.organizer.pause.\(field)")
     }
 
+    /// MP `show-count`: n/200 under the field.
+    private func counter(_ text: String) -> some View {
+        Text(verbatim: "\(text.count)/\(Self.fieldLimit)")
+            .cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textSecondary)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .accessibilityLabel(Text("official.organizer.counter \(text.count) \(Self.fieldLimit)"))
+    }
     private func actionButton(_ action: OfficialOrganizerAction) -> some View {
         Button {
             if model.canStart(action), model.validate(action) { confirming = action }

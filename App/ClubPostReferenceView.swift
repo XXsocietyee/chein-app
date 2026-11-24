@@ -89,7 +89,7 @@ private struct ClubCloud14Thumb: View {
                 }
             }
             .frame(width: 40, height: 40)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
             .accessibilityHidden(true)
     }
 }

@@ -6,10 +6,10 @@ enum CYPillStyle { case primary, secondary, tertiary }
 /// (level-up, lobby start, play, result screens).
 enum CYPillSize { case regular, moment }
 
-/// The player kit button (`Player/Button`, design hand-off r1 §2 and PL-10/PL-12).
-/// Primary = white pill (black label on the player stage; black pill on merchant light), 16 Semibold, full width.
-/// Secondary = dark pill (`#1C1C1E` on the player stage) with a white label: never grey-filled with dark text.
-/// Tertiary = text button, 15 pt at 70% ink. One primary per screen (owner rule). Disabled keeps contrast, no opacity drop.
+/// The player kit button (`Player/Button`, design hand-off r1 §2 and PL-10/PL-12), drawn by the system since the
+/// native restyle (native-ios-r1 §3.6): primary = `.borderedProminent` in the monochrome accent (white pill with a black
+/// label on the player stage; black pill on merchant light); secondary = `.bordered`; tertiary = `.borderless`.
+/// One primary per screen (owner rule).
 struct CYPillButton: View {
     private let title: LocalizedStringKey
     private let tableName: String?
@@ -73,8 +73,45 @@ struct CYPillButton: View {
                     Text(title, tableName: tableName)
                 }
             }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: fullWidth ? .infinity : nil)
         }
-        .buttonStyle(CYPillButtonStyle(style: style, fullWidth: fullWidth, compact: compact, size: size))
+        .modifier(CYNativeButtonChrome(style: style, size: compact ? .regular : size))
+    }
+}
+
+/// Native restyle (native-ios-r1 §3.6): the pill is the system button.
+/// primary → `.borderedProminent`, secondary → `.bordered`, tertiary → `.borderless`, all `.large` + capsule.
+/// The monochrome accent (near-white on the player stage, black on merchant light) is the tint, and the label colour
+/// is set explicitly so a near-white fill never carries a white label (spec §2.2 gotcha). The system draws the
+/// press and disabled states, so there is no second press animation.
+struct CYNativeButtonChrome: ViewModifier {
+    let style: CYPillStyle
+    var size: CYPillSize = .regular
+
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.isEnabled) private var isEnabled
+
+    func body(content: Content) -> some View {
+        let tokens = CYPillButtonStyle.tokens(style: style, isEnabled: isEnabled, in: palette)
+        styled(content)
+            .foregroundStyle(tokens.foreground)
+            .controlSize(size == .moment ? .extraLarge : .large)
+            .buttonBorderShape(.capsule)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+    }
+
+    @ViewBuilder
+    private func styled(_ content: Content) -> some View {
+        switch style {
+        case .primary:
+            content.buttonStyle(.borderedProminent).tint(palette.actionPrimaryBg)
+        case .secondary:
+            content.buttonStyle(.bordered).tint(palette.textPrimary)
+        case .tertiary:
+            content.buttonStyle(.borderless).tint(palette.textSecondary)
+        }
     }
 }
 
@@ -109,11 +146,12 @@ struct CYPillButtonStyle: ButtonStyle {
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: size == .moment && !compact ? momentHeight : height)
             .background(shape.fill(fill))
             .contentShape(shape)
-            .cyPressEffect(configuration.isPressed && isEnabled, reduceMotion: reduceMotion)
+            // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+            .opacity(configuration.isPressed && isEnabled ? 0.7 : 1)
     }
 
-    /// 16 Semibold label (`.callout` is 16 pt at the default size and follows Dynamic Type).
-    static let labelFont: Font = .system(.callout, design: .default).weight(.semibold)
+    /// The system button label (`.headline`, native-ios-r1 §2.1 `button`); follows Dynamic Type.
+    static let labelFont: Font = .headline
     /// Tertiary text button, 15 pt (`.subheadline`, Dynamic Type).
     static let tertiaryFont: Font = .system(.subheadline, design: .default)
 

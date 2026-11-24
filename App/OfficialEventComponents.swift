@@ -189,8 +189,9 @@ struct OfficialEventCard: View {
     var body: some View {
         QuestifyImageEntityCard(imageSource: event.coverImage, title: event.title, subtitle: event.subtitle,
                                 fallbackTitle: "official.untitled", fallbackSymbol: "sparkles") {
-            Label(LocalizedStringKey(event.statusKey), systemImage: "calendar")
-                .cyText(.label).foregroundStyle(CYColor.brand)
+            // R7-PC-C3-2 (MP list/index.wxml:57 `cy-badge type="status"`): tone follows the status, `play` when live.
+            CYStatusChip(LocalizedStringKey(event.statusKey), tone: OfficialEventStatusStyle.tone(event.status),
+                         systemImage: OfficialEventStatusStyle.symbol(event.status))
             if event.paused { Label("official.status.paused", systemImage: "pause.circle").foregroundStyle(CYColor.warningText) }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 4) {
@@ -311,4 +312,17 @@ struct OfficialRecordValue: View {
         }.frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
     }
+}
+
+/// MP `utils/activity-status.js` STATUS table (variant + live) for `official_event.status`.
+enum OfficialEventStatusStyle {
+    static func tone(_ status: Int?) -> CYStatusTone {
+        switch status {
+        case 2: return .info
+        case 3: return .success
+        default: return .neutral
+        }
+    }
+    /// MP `icon="{{item._live ? 'play' : ''}}"`: 报名中 / 进行中 carry the play glyph; other states have none.
+    static func symbol(_ status: Int?) -> String? { status == 2 || status == 3 ? "play.fill" : nil }
 }

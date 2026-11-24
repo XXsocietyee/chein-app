@@ -21,10 +21,14 @@ import SwiftUI
     @StateObject private var model: CouponManagementScreenModel
     let sessionKey: CouponManagementSession?
     let isSourceVisible: Bool
+    /// R7-MEM-10-1: `coupon/coupon?scope=MERCHANT` (merchant marketing) lists the shop's coupons; the bare page is the player's own list.
+    let scope: CouponPublishListScope
     @State private var creating = false
     @Environment(\.dismiss) private var dismiss
-    init(coordinator: CouponManagementCoordinator, sessionKey: CouponManagementSession?, isSourceVisible: Bool = false) {
+    init(coordinator: CouponManagementCoordinator, sessionKey: CouponManagementSession?, isSourceVisible: Bool = false,
+         scope: CouponPublishListScope = .merchant) {
         _model = StateObject(wrappedValue: CouponManagementScreenModel(coordinator)); self.sessionKey = sessionKey; self.isSourceVisible = isSourceVisible
+        self.scope = scope
     }
     var body: some View {
         Group {
@@ -54,7 +58,7 @@ import SwiftUI
                     }
                     ForEach(model.core.rows) { row in
                         NavigationLink {
-                            CouponManagementDetailView(model: model, id: row.id)
+                            CouponManagementDetailView(model: model, id: row.id, scope: scope)
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.s1_5) {
                                 Text(row.name ?? appLocalized("couponManagement.coupon", locale: locale))
@@ -84,7 +88,7 @@ import SwiftUI
                         }.accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
                     }
                 }
-                .refreshable { await model.core.load(); model.revision += 1 }
+                .refreshable { model.core.publishListScope = scope; await model.core.load(); model.revision += 1 }
                 .toolbar {
                     // Hidden, not disabled, when publishing is not available for this account.
                     if model.core.canReviewPublish {
@@ -102,13 +106,14 @@ import SwiftUI
         .cyPageTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false
+            model.core.publishListScope = scope
             if isSourceVisible, sessionKey != nil { await model.core.load(); model.revision += 1 }
         }
         .sheet(isPresented: $creating) {
             NavigationStack { CouponManagementEditor(model: model) }
                 .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .onChange(of: sessionKey) { _, _ in creating = false; model.synchronize() }
         .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }
@@ -137,6 +142,7 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     @Environment(\.locale) private var locale
     @ObservedObject var model: CouponManagementScreenModel
     let id: CouponDefinitionID
+    let scope: CouponPublishListScope
     var body: some View {
         List {
             CouponManagementNotice(model: model, surface: .detail)
@@ -180,11 +186,11 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .cyPageTitle("couponManagement.detail")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { model.run { await model.core.load() } } label: { Label("couponManagement.refresh", systemImage: "arrow.clockwise") }
+                Button { model.run { model.core.publishListScope = scope; await model.core.load() } } label: { Label("couponManagement.refresh", systemImage: "arrow.clockwise") }
                     .disabled(model.working)
             }
         }
-        .task { await model.core.load(); model.revision += 1 }
+        .task { model.core.publishListScope = scope; await model.core.load(); model.revision += 1 }
         .onDisappear { model.cancelReview() }
         .cyDomainScreen(.merchant)
     }
@@ -220,7 +226,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     var body: some View {
         let page = self.page
         Form {
-            Section { CYHeroHeader("couponManagement.create") }.e1HeroRow()
             CouponManagementNotice(model: model, surface: .editor)
             switch page.phase {
             case .ready:
@@ -258,7 +263,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .environment(\.calendar, CouponValidityTime.calendar)
         .formStyle(.grouped)
         .cyGroupedSurface()
-        .cyHeroScreen()
         .cyDomainScreen(.topicEditor)
         .scrollDismissesKeyboard(.interactively)
         .cyPageTitle("couponManagement.create")

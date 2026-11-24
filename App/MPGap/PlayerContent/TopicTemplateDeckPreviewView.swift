@@ -120,10 +120,11 @@ public struct TopicTemplateDeckPreviewView: View {
             } else {
                 CYColor.coverFallback
                     .overlay {
-                        Image(systemName: "map")
-                            .cyText(.display)
-                            .foregroundStyle(CYColor.textSecondary)
+                        MPAsset.BannerCover.homeRouteCityPlaceholder
+                            .resizable()
+                            .scaledToFill()
                     }
+                    .clipped()
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(card.isCover ? preview.name : card.title)

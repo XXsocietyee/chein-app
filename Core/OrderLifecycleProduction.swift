@@ -219,6 +219,7 @@ public enum OrderLifecycleProductionResult {
         if review.action == .payment {
             return configuration.externalCheckoutApproved && configuration.devicePaymentApproved && document != nil && provider?.isConfigured == true
         }
+        if review.action == .refund, !ReleaseMoneyWriteSwitch.isEnabled(.refund) { return false }
         return true
     }
     private func check(_ review: OrderLifecycleReview, visible: () -> Bool) throws {

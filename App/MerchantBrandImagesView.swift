@@ -38,10 +38,13 @@ import SwiftUI
     func body(content: Content) -> some View {
         content
         .sheet(item: $document.brandImagesPresentation) { value in
-            MerchantBrandImagesSheet(model: value) {
-                guard document.brandImagesPresentation?.id == value.id else { return }
-                close()
+            Group {
+                MerchantBrandImagesSheet(model: value) {
+                    guard document.brandImagesPresentation?.id == value.id else { return }
+                    close()
+                }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: document.coordinator.reader.scope) { _, _ in close() }
         .onChange(of: document.coordinator.draftIdentity) { _, _ in close() }

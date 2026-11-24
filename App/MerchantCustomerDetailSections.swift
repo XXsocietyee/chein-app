@@ -34,13 +34,19 @@ import SwiftUI
             if canRead {
                 // Source customer/detail order: name and 累计实付 first, then 客户概览, 参与记录, 标签与备注, 跟进与触达.
                 Section {
-                    Text(verbatim: detail.customer.title).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    // MC7-15-4 (customer/detail/index.wxml:29): the customer avatar (initial fallback) beside the name.
+                    HStack(spacing: CYSpacing.sm) {
+                        CYAvatarView(url: detail.customer.fields.mbText("avatar").flatMap(URL.init(string:)),
+                                     name: detail.customer.title, size: .lg)
+                            .accessibilityHidden(true)
+                        Text(verbatim: detail.customer.title).cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     MerchantCustomerIdentityLine(lastInteraction: detail.lastInteractionAt)
                     LabeledContent("merchant.business.field.paidAmount") {
                         switch paidCardState {
                         case .amount(let text):
-                            Text(verbatim: text).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                            Text(verbatim: text).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                                 .monospacedDigit()
                         case .unknown:
                             Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")
@@ -73,7 +79,7 @@ import SwiftUI
                                 Text(LocalizedStringKey(latest.kind.titleKey))
                                 LabeledContent("merchant.customerDetail.recordTime") { timestamp(latest.occurredAt) }
                                 if latest.kind == .refunded {
-                                    Text("merchant.customerDetail.refundTimeBoundary").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                                    Text("merchant.customerDetail.refundTimeBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                             } else {
                                 Text("merchant.customerDetail.orderUncertain").cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -104,7 +110,8 @@ import SwiftUI
                             Text(verbatim: note.description ?? "").fixedSize(horizontal: false, vertical: true)
                         }.accessibilityIdentifier("merchant.customerDetail.latestNote")
                     } else if detail.hasNotes {
-                        Text("merchant.customerDetail.latestNoteUnknown").foregroundStyle(CYColor.textTertiary)
+                        // MC7-15-6: no developer-voiced 无法确定最新备注… line; the notes themselves are in the history.
+                        EmptyView()
                     } else if detail.systemTags.isEmpty && detail.merchantTags.isEmpty {
                         Text("merchant.customerDetail.tagsAndNotesEmpty").foregroundStyle(CYColor.textTertiary)
                     }
@@ -141,7 +148,7 @@ import SwiftUI
             if let description = event.description { Text(verbatim: description).cyText(.body) }
             LabeledContent("merchant.customerDetail.recordTime") { timestamp(event.occurredAt) }
             if event.kind == .refunded {
-                Text("merchant.customerDetail.refundTimeBoundary").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.customerDetail.refundTimeBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             if let corrects = event.record.fields["correctsNoteId"]?.integer, corrects > 0 {
                 LabeledContent("merchant.business.field.correctsNoteId", value: "#\(corrects)")

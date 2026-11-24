@@ -23,7 +23,8 @@ import SwiftUI
             if boundOwner == session.teamViewIdentity,
                session.nearbyTeamCoordinator.session == session.nearbyTeamSession {
                 NearbyTeamsView(coordinator: session.nearbyTeamCoordinator, context: context, joinedTeams: joinedTeams, initialTab: initialTab, focusTeamID: focusTeamID, onSignIn: onSignIn,
-                    joinedTeamsStatus: joinedTeamsStatus, retryJoinedTeams: retryJoinedTeams, discoverySources: discoverySources) {
+                    joinedTeamsStatus: joinedTeamsStatus, retryJoinedTeams: retryJoinedTeams, discoverySources: discoverySources,
+                    joinCodeDestination: { AnyView(TeamInvitationEntryView(makeCoordinator: { session.makeTeamCoordinator() }, onLogin: onSignIn).cyPushedChrome()) }) {
                         guard destination == nil, boundOwner == renderedOwner,
                               session.teamViewIdentity == renderedOwner, session.nearbyTeamSession == renderedSession,
                               session.nearbyTeamCoordinator.session == renderedSession else { return }

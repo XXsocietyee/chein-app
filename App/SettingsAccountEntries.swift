@@ -4,37 +4,21 @@ import SwiftUI
 /// (成为俱乐部主理人 / 成为商家) right after the profile row, and 退出账号 at the end.
 @MainActor struct SettingsIdentityApplicationEntries: View {
     @ObservedObject var session: AppSession
-    @Environment(\.locale) private var locale
+    /// Fresh settings profile. The apply rows stay hidden until this read says the viewer is not a club leader.
+    var profile: SettingsAccountProfile?
     @State private var loadingClubs = false
     @State private var pushesHostStatus = false
+    @State private var pushesClubCreate = false
     @State private var selectedClubID: Int?
-    @State private var clubPickerChoices: [ClubRecord] = []
-    @State private var showsClubPicker = false
+    @State private var hostRouter: SettingsClubHostRouter?
     @State private var toastMessage: LocalizedStringKey?
     @State private var toastTone: CYToastTone = .info
 
     var body: some View {
-        if SettingsIdentityApplications.isOffered(toRole: session.account?.effectiveRole) {
+        if let profile, SettingsIdentityApplications.isOffered(toRole: profile.role, isClubLeader: profile.isClubLeader) {
             Section {
                 Button {
-                    guard !loadingClubs else { return }
-                    loadingClubs = true
-                    Task {
-                        let outcome = await session.loadSettingsClubEntry()
-                        loadingClubs = false
-                        switch outcome {
-                        case .applyForHost:
-                            pushesHostStatus = true
-                        case .openClub(let club):
-                            selectedClubID = club.id
-                        case .chooseClub(let clubs):
-                            clubPickerChoices = clubs
-                            showsClubPicker = true
-                        case .failed(let message):
-                            toastTone = .warning
-                            toastMessage = LocalizedStringKey(message)
-                        }
-                    }
+                    openClubHost(isClubLeader: profile.isClubLeader)
                 } label: { Label("settings.becomeClubHost", systemImage: "flag") }
                     .disabled(loadingClubs)
                     .accessibilityIdentifier("settings.becomeClubHost")
@@ -47,21 +31,50 @@ import SwiftUI
                 ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: session.clubIdentity,
                                        access: session.clubGovernanceAccess, coordinator: session.clubGovernanceCoordinator)
             }
+            .navigationDestination(isPresented: $pushesClubCreate) {
+                clubCreate
+            }
             .navigationDestination(item: $selectedClubID) { clubID in
                 ClubDetailView(id: clubID, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
                                management: session.clubManagementContext, community: session.clubCommunityContext,
-                               publicRoster: session.clubPublicRosterReader)
-            }
-            .sheet(isPresented: $showsClubPicker) {
-                MemberSettingsClubPickerSheet(clubs: clubPickerChoices, onSelect: { club in
-                    showsClubPicker = false
-                    selectedClubID = club.id
-                }, onClose: {
-                    showsClubPicker = false
-                })
-                .cyDomainSheet(detents: [.half])
+                               publicRoster: session.clubPublicRosterReader,
+                               requestedTab: ClubDetailTab(rawValue: SettingsClubHostRoute.manageTab))
             }
             .cyToast(message: $toastMessage, tone: toastTone)
+        }
+    }
+
+    /// `SettingsClubHostRouter.resolve`: a second tap is dropped while `POST /api/club/my` is in flight.
+    private func openClubHost(isClubLeader: Bool) {
+        guard !loadingClubs, let config = session.regionalConfiguration?.apiConfiguration else { return }
+        let router = hostRouter ?? SettingsClubHostRouter(configuration: config, transport: session.compositionTransport)
+        hostRouter = router
+        guard !router.isLoading else { return }
+        loadingClubs = true
+        Task {
+            let route = await router.resolve(token: session.token, isClubLeader: isClubLeader)
+            loadingClubs = false
+            guard let route else { return }
+            switch route {
+            case .applyForHost:
+                pushesHostStatus = true
+            case .createClub:
+                pushesClubCreate = true
+            case .openManage(let club):
+                selectedClubID = club.id
+            case .failed(let message):
+                toastTone = .warning
+                toastMessage = LocalizedStringKey(message)
+            }
+        }
+    }
+
+    @ViewBuilder private var clubCreate: some View {
+        if let operations = session.clubManagementContext.operations {
+            ClubOperationsWorkspaceView(target: .create, identity: session.clubIdentity, access: operations.access,
+                                        coordinator: operations.coordinator, hostApplication: session.clubManagementContext.governance)
+        } else {
+            CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
         }
     }
 }

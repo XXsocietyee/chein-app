@@ -48,7 +48,7 @@ import SwiftUI
                 }
             }
             Section {
-                Toggle("media.poster.consent", isOn: $purposeAccepted).disabled(isBusy || showingScanner)
+                Toggle("media.poster.consent", isOn: $purposeAccepted).tint(.green).disabled(isBusy || showingScanner)
                 CYPillButton("media.poster.scan") { scanGeneration += 1; showingScanner = true }
                     .listRowBackground(Color.clear)
                     .disabled(!purposeAccepted || !cameraEnabled || coordinator?.available != true || availability != .available || !canScan)

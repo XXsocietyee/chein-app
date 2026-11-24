@@ -70,11 +70,17 @@ struct RoamRunCardDateText: View {
 struct RoamRunCardTitle: View {
     let record: RoamHistoryRecord
     var font: Font = .title3
+    /// RHIST-5: a type token wins over `font` (Dynamic Type through `.cyText`).
+    var style: CYTextStyle? = nil
     var body: some View {
         switch RoamRunCardPresentation(record).title {
-        case .zone(let zone): Text("roamSub.w208.history.zoneTitle \(zone)").font(font).bold()
-        case .city: Text("roam.experience.cityWalk").font(font).bold()
+        case .zone(let zone): styled(Text("roamSub.w208.history.zoneTitle \(zone)"))
+        case .city: styled(Text("roam.experience.cityWalk"))
         }
+    }
+    private func styled(_ text: Text) -> Text {
+        if let style { return text.cyText(style).bold() }
+        return text.font(font).bold()
     }
 }
 
@@ -253,6 +259,7 @@ struct RoamShareLinkDormantNotice: View {
                 }
             }.padding()
         }.navigationTitle(Text("roamSub.w208.session.title"))
+            .navigationBarTitleDisplayMode(.inline)
             .task(id: token) { await load() }
         .cyDomainScreen(.player)
     }
@@ -296,6 +303,8 @@ struct RoamShareLinkDormantNotice: View {
 @MainActor struct RoamPOINodeParityCard: View {
     let node: RoamNodeDetail
     var stampDestination: (() -> AnyView)? = nil
+    /// RPOI-2: false when the 我的进度 action row already carries the favorite toggle, so the state shows once.
+    var showsFavorite = true
     var body: some View {
         let card = RoamPOINodePresentation(node)
         VStack(alignment: .leading, spacing: 10) {
@@ -311,8 +320,10 @@ struct RoamShareLinkDormantNotice: View {
                 Text(LocalizedStringKey(card.validationKey))
                 if card.grantsCoupon { Text("roamSub.w208.poi.coupon") }
             }.cyText(.bodyCompact).accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.poi.method")
-            Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
-                .cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
+            if showsFavorite {
+                Label(LocalizedStringKey(node.favorited ? "roamSub.w208.poi.favorited" : "roamSub.w208.poi.favorite"), systemImage: node.favorited ? "heart.fill" : "heart")
+                    .cyText(.bodyCompact).foregroundStyle(.secondary).accessibilityIdentifier("roamSub.w208.poi.favoriteState")
+            }
             if node.coordinate == nil { Label("roamSub.w208.poi.noNavigation", systemImage: "location.slash").cyText(.bodyCompact).foregroundStyle(.secondary) }
             // 投一张 is hidden: this card has no stamp-exchange coordinator to send with, so the
             // flow could only end on a disabled send button.
@@ -400,11 +411,10 @@ struct RoamPOIMissingView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(LocalizedStringKey(RoamStampSlip.titleKey(kind: kind))).cyText(.sheetTitle)
-                    HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt) + " ·"); placeText }
-                        .cyText(.body).foregroundStyle(.secondary)
-                }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.stamp.header")
+                // RSTAMP-5: the kind title is the inline nav title only; the content keeps the `date · place` line.
+                HStack(spacing: 4) { Text(verbatim: RoamStampSlip.dateLabel(openedAt) + " ·"); placeText }
+                    .cyText(.meta).foregroundStyle(.secondary)
+                    .accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.stamp.header")
                 if let receipt { RoamStampSlipView(slip: RoamStampSlip(receipt), place: placeText, openedAt: openedAt) }
                 else { writeStep }
             }.padding()
@@ -567,15 +577,6 @@ struct RoamPOIMissingView: View {
 }
 
 /// `citynode-code` title (node name, default 据点). 出示给商家扫码,即可领取优惠券 sits under the code in VerificationCodeView.
-struct RoamCityVoucherHeading: View {
-    let title: String?
-    var body: some View {
-        VStack(spacing: 6) {
-            if let title { Text(verbatim: title).cyText(.sheetTitle) } else { Text("roamSub.w208.voucher.defaultName").cyText(.sheetTitle) }
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("roamSub.w208.voucher.heading")
-    }
-}
-
 /// Exchanged stamp photo on the city-stamp print slip (mini-program `sgslip__photo`).
 /// Reuses the album card's remote-image rule; strings are existing keys.
 struct RoamStampSlipPhotoView: View {

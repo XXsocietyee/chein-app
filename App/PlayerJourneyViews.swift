@@ -37,7 +37,7 @@ enum PlayerJourneyRoute: Hashable {
             }
         }.id(session.sessionRevision).privacySensitive()
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
-        .sheet(isPresented: $login) { LoginView(intent: .player) }
+        .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
         .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
     }
@@ -128,6 +128,9 @@ enum PlayerJourneyRoute: Hashable {
     @State private var loading = false
     @State private var issue: ParticipationLoadIssue?
     @State private var generation = UUID()
+    /// R7-MEM-22-1: MP mycanyu onShow reloads after a pushed play or wallet route; that reload keeps rows and shows no pill.
+    @State private var hasAppeared = false
+    @State private var quietReload = false
     var body: some View {
         List {
             Section {
@@ -137,10 +140,15 @@ enum PlayerJourneyRoute: Hashable {
                 }.pickerStyle(.segmented).accessibilityIdentifier("playerJourney.filter")
             }
             if !reader.isAuthenticated { PlayerJourneyLogin(key: "playerJourney.parity.login", signIn: signIn) }
-            else if loading && (rows == nil || rowsScope != reader.scope) { ProgressView("playerJourney.parity.loading") }
+            else if loading && (rows == nil || rowsScope != reader.scope) {
+                // PLY-22-4: first load shows skeleton rows (MP cy-skeleton), not a spinner.
+                CYSkeleton().listRowBackground(Color.clear)
+                    .accessibilityLabel(Text("playerJourney.parity.loading"))
+                    .accessibilityIdentifier("playerJourney.loading")
+            }
             else if let rows, rowsScope == reader.scope {
                 let visible = rows.filter { filter.matches($0) }
-                if loading {
+                if loading && !quietReload {
                     Text("playerJourney.parity.refreshing").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .accessibilityIdentifier("playerJourney.refreshing")
                 }
@@ -168,9 +176,18 @@ enum PlayerJourneyRoute: Hashable {
         }.cyGroupedSurface()
         .cyDomainScreen(.player)
         .cyPageTitle("playerJourney.participations")
-        .task(id: reader.scope) { resetPresentation(); rows = nil; await load() }
+        // A re-run of this task on return (same scope, rows loaded) leaves the quiet onAppear reload to keep the rows.
+        .task(id: reader.scope) {
+            guard rows == nil || rowsScope != reader.scope else { return }
+            resetPresentation(); rows = nil; await load()
+        }
         .onChange(of: reader.scope) { _, _ in resetPresentation() }
         .refreshable { await load() }
+        .onAppear {
+            defer { hasAppeared = true }
+            guard hasAppeared, rows != nil, rowsScope == reader.scope, selected == nil, !loading else { return }
+            Task { quietReload = true; await load(); quietReload = false }
+        }
         .onDisappear { generation = UUID() }
         .sheet(item: $selected, onDismiss: {
             let pending = nextRoute; nextRoute = nil
@@ -269,7 +286,7 @@ private extension ParticipationRecord {
 /// Never invented artwork: a fixed symbol when the source cover is absent or not https.
 private struct ParticipationCoverPlaceholder: View {
     var body: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous).fill(CYNight.ink2)
+        RoundedRectangle(cornerRadius: 12, style: .continuous).fill(CYColor.bgSurfaceSubtle)
             .frame(height: 136).frame(maxWidth: .infinity)
             .overlay { Image(systemName: "map").imageScale(.large).foregroundStyle(CYColor.textSecondary) }
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")

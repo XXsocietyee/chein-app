@@ -65,7 +65,7 @@ import SwiftUI
                     .padding(CYSpacing.lg).padding(.top, 64).frame(maxWidth: .infinity, alignment: .leading)
                     .background(LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom))
             }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .cyHeroParallax(height: heroHeight)
     }
 
@@ -79,13 +79,13 @@ import SwiftUI
                 }
                 if let days = content.extras?.validityDays {
                     Label { Text(verbatim: copy.t("购买后 \(days) 天内有效", "Valid for \(days) days after purchase")) } icon: { Image(systemName: "calendar.badge.clock") }
-                        .font(CYTypography.caption).foregroundStyle(palette.info)
+                        .cyText(.caption).foregroundStyle(palette.info)
                         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
                         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.infoSoft))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
             .accessibilityElement(children: .combine)
         }
     }
@@ -103,7 +103,7 @@ import SwiftUI
                         .cyStaggeredAppear(index: index, gate: stagger)
                     }
                 }
-                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
             }
         }
     }
@@ -129,7 +129,7 @@ import SwiftUI
                         .accessibilityElement(children: .combine)
                     }
                 }
-                .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
             }
         }
     }
@@ -154,7 +154,7 @@ import SwiftUI
                     .foregroundStyle(palette.textPrimary)
             }
             .tint(palette.textSecondary)
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         }
     }
 
@@ -192,7 +192,7 @@ import SwiftUI
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [compactDetent, .large], selection: $summaryDetent)
         .presentationDragIndicator(.visible)
         .cyHaptic(.impactLight, trigger: summaryDetent)
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
     }
 }
 

@@ -9,7 +9,7 @@ INSERTION = '''        if row.kind == .customer, compact {
             MerchantCustomerContactSummary(record: row, access: access)
         }
 '''
-BASE_VIEW_SHA256 = 'df348eace98a6a880b3dc8186318ea7a4e790508216006df341b45671e834ca9'
+BASE_VIEW_SHA256 = '0011675e43766e2cef16e49304cceffb8f4c22793016590727bfd32337447fdd'
 
 
 class MerchantCustomerContactContracts(unittest.TestCase):

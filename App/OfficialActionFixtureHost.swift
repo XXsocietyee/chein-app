@@ -32,7 +32,7 @@ import SwiftUI
                     .accessibilityIdentifier("officialAction.openBroadcast")
                 NavigationLink("official.inbox.title") { OfficialInboxView(reader: OfficialFixtureReader(), actions: coordinator) }
                     .accessibilityIdentifier("official.inbox.open.\(OfficialFixtureReader.Scenario.content.rawValue)")
-            }.navigationTitle("officialAction.fixture")
+            }.navigationTitle("officialAction.fixture").navigationBarTitleDisplayMode(.inline)
         }
     }
 }

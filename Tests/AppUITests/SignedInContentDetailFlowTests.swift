@@ -141,8 +141,10 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         app.tabBars.buttons["Activities"].tap()
         let card = app.buttons["activity.row.21"]
         XCTAssertTrue(card.waitForExistence(timeout: 5)); card.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["activity.detail.signIn"].firstMatch.waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["contentDetail.fixture.requests"].label, "0")
+        XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.descendants(matching: .any)["activity.detail.signIn"].firstMatch.exists)
+        XCTAssertTrue(app.buttons["activity.openRegistration"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["contentDetail.fixture.requests"].label, "1")
     }
     func testHomeListApprovalAloneDoesNotGrantDetail() {
         let app = launch(["--content-detail-unapproved"])

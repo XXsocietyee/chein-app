@@ -58,9 +58,35 @@ enum RoamDeviceFixGCJ {
     @Published private(set) var checkInSuccess: RoamNodeCompletion?
     /// Retry resends the same answer / photo / code instead of asking again.
     private(set) var lastEvidence = RoamPOICheckInEvidence.none
+    /// RPOI-3: the signed-in owner. Empty skips the journal so a check-in with no account still reports the location failure.
+    var ownerID: String?
+    @Published private(set) var pending: RoamPendingCheckInRecord?
+    private let journal = RoamPendingCheckInDefaults()
+    private var nextReverify = false
     private var token = 0
 
-    func reset() { favoriteOverride = nil; completedOverride = nil; needRedeemOverride = nil; favoritePhase = .idle; checkInPhase = .idle; checkInSuccess = nil; token += 1 }
+    func reset() {
+        favoriteOverride = nil; completedOverride = nil; needRedeemOverride = nil
+        favoritePhase = .idle; checkInPhase = .idle; checkInSuccess = nil; pending = nil; nextReverify = false; token += 1
+    }
+
+    func adopt(ownerID: String?, poiID: Int) {
+        self.ownerID = ownerID.flatMap { JourneyLoopSource.isID($0) ? $0 : nil }
+        refreshPending(poiID: poiID)
+    }
+
+    func armReverify() { nextReverify = true }
+    func disarmReverify() { nextReverify = false }
+
+    func refreshPending(poiID: Int) { pending = stored(poiID: poiID) }
+
+    /// 查询当前状态: a completed node drops the attempt. An open node leaves the record.
+    func noteReloaded(poiID: Int, completed: Bool) {
+        if completed, let record = stored(poiID: poiID), record.poiID == String(poiID), let slot = slot(poiID: poiID) {
+            _ = try? RoamPendingCheckInJournal.clear(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID, attemptID: record.attemptID)
+        }
+        refreshPending(poiID: poiID)
+    }
 
     func toggleFavorite(poiID: Int, current: Bool, actions: RoamPOIActions) {
         guard favoritePhase != .working else { return }
@@ -76,19 +102,122 @@ enum RoamDeviceFixGCJ {
         }
     }
 
-    func checkIn(poiID: Int, evidence: RoamPOICheckInEvidence = .none, actions: RoamPOIActions) {
+    func checkIn(poiID: Int, evidence: RoamPOICheckInEvidence = .none, actions: RoamPOIActions, reverify: Bool = false) {
         guard checkInPhase != .working else { return }
+        let again = reverify || nextReverify
+        nextReverify = false
         checkInPhase = .working; checkInSuccess = nil; lastEvidence = evidence
         let mine = token
+        let opened = openAttempt(poiID: poiID, reverify: again)
+        if case .blocked = opened {
+            guard mine == token else { return }
+            refreshPending(poiID: poiID)
+            checkInPhase = .idle
+            return
+        }
         Task {
             do {
                 let receipt = try await actions.complete(poiID, evidence)
                 guard mine == token else { return }
+                applyReceipt(opened, poiID: poiID, receipt: receipt)
                 completedOverride = !receipt.needRedeem; needRedeemOverride = receipt.needRedeem
                 checkInSuccess = receipt; checkInPhase = .idle
-            } catch is CancellationError { if mine == token { checkInPhase = .idle } }
-            catch { if mine == token { checkInPhase = .failed(Self.map(error)) } }
+            } catch is CancellationError {
+                if mine == token { rollbackFresh(opened, poiID: poiID); checkInPhase = .idle }
+            } catch {
+                if mine == token {
+                    let failure = Self.map(error)
+                    applyFailure(opened, poiID: poiID, failure: failure)
+                    checkInPhase = .failed(failure)
+                }
+            }
         }
+    }
+
+    private struct Slot { let ownerID: String; let poiID: String; let key: String }
+    private enum Opened { case skipped, blocked, begun(Slot, attemptID: String, unknownBefore: Bool, fresh: Bool) }
+
+    private func slot(poiID: Int) -> Slot? {
+        guard let ownerID else { return nil }
+        let poi = String(poiID)
+        guard let key = RoamPendingCheckInJournal.storageKey(ownerID: ownerID, poiID: poi) else { return nil }
+        return Slot(ownerID: ownerID, poiID: poi, key: key)
+    }
+
+    private func stored(poiID: Int) -> RoamPendingCheckInRecord? {
+        guard let slot = slot(poiID: poiID) else { return nil }
+        return try? RoamPendingCheckInJournal.read(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID)
+    }
+
+    /// A fresh begin needs an empty slot. Re-verify reuses the same attempt. No owner means no journal.
+    private func openAttempt(poiID: Int, reverify: Bool) -> Opened {
+        guard let slot = slot(poiID: poiID) else { return .skipped }
+        let existing = try? RoamPendingCheckInJournal.read(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID)
+        let attemptID: String
+        if reverify {
+            guard let existing else { return .blocked }
+            attemptID = existing.attemptID
+        } else if existing != nil {
+            return .blocked
+        } else {
+            attemptID = UUID().uuidString.replacingOccurrences(of: "-", with: "")
+        }
+        let unknownBefore = reverify || existing?.uncertain == true
+        do {
+            _ = try RoamPendingCheckInJournal.begin(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID,
+                                                    attemptID: attemptID, reverify: reverify)
+        } catch { return .blocked }
+        return .begun(slot, attemptID: attemptID, unknownBefore: unknownBefore, fresh: !reverify)
+    }
+
+    private func applyReceipt(_ opened: Opened, poiID: Int, receipt: RoamNodeCompletion) {
+        guard case .begun(let slot, let attemptID, let unknownBefore, _) = opened else { return }
+        var data: [String: Any] = [
+            "needRedeem": receipt.needRedeem,
+            "alreadyClaimed": receipt.alreadyClaimed,
+            "completed": !receipt.needRedeem
+        ]
+        if let id = receipt.poiID { data["poiId"] = id }
+        let accepted = RoamPendingCheckInJournal.receiptAccepted(code: "200", poiID: slot.poiID, data: data)
+        apply(opened, code: "200", message: nil, accepted: accepted, unknownBefore: unknownBefore, attemptID: attemptID, slot: slot, poiID: poiID)
+    }
+
+    /// Location and sign-in fail before the POST, so a fresh begin is removed. A sent failure is classified by `step`.
+    private func applyFailure(_ opened: Opened, poiID: Int, failure: Failure) {
+        switch failure {
+        case .locationDenied, .locationUnavailable, .signIn:
+            rollbackFresh(opened, poiID: poiID)
+        case .rejected(let message):
+            guard case .begun(let slot, let attemptID, let unknownBefore, _) = opened else { return }
+            apply(opened, code: "500", message: message, accepted: false, unknownBefore: unknownBefore, attemptID: attemptID, slot: slot, poiID: poiID)
+        case .network:
+            guard case .begun(let slot, let attemptID, let unknownBefore, _) = opened else { return }
+            apply(opened, code: "fail", message: nil, accepted: false, unknownBefore: unknownBefore, attemptID: attemptID, slot: slot, poiID: poiID)
+        }
+    }
+
+    private func apply(_ opened: Opened, code: String, message: String?, accepted: Bool, unknownBefore: Bool,
+                       attemptID: String, slot: Slot, poiID: Int) {
+        _ = opened
+        let decision = RoamPendingCheckInJournal.step(code: code, message: message, receiptAccepted: accepted, unknownBefore: unknownBefore)
+        switch decision {
+        case .clear:
+            _ = try? RoamPendingCheckInJournal.clear(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID, attemptID: attemptID)
+        case .keepPreviousUnknown:
+            break
+        case .unknown:
+            _ = try? RoamPendingCheckInJournal.markUncertain(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID)
+        }
+        refreshPending(poiID: poiID)
+    }
+
+    private func rollbackFresh(_ opened: Opened, poiID: Int) {
+        guard case .begun(let slot, let attemptID, _, let fresh) = opened, fresh else {
+            refreshPending(poiID: poiID)
+            return
+        }
+        _ = try? RoamPendingCheckInJournal.clear(journal, key: slot.key, ownerID: slot.ownerID, poiID: slot.poiID, attemptID: attemptID)
+        refreshPending(poiID: poiID)
     }
 
     static func map(_ error: Error) -> Failure {
@@ -107,6 +236,8 @@ struct RoamPOIActionRows: View {
     let node: RoamNodeDetail
     let actions: RoamPOIActions
     @ObservedObject var model: RoamPOIActionModel
+    var ownerID: String? = nil
+    var onReload: () -> Void = {}
     @Environment(\.openURL) private var openURL
     @Environment(\.challengePOIPhotoUploader) private var makePhotoUploader
     @Environment(\.locale) private var locale
@@ -147,6 +278,15 @@ struct RoamPOIActionRows: View {
             .accessibilityIdentifier("roam.poi.checkin")
             Text("roam.poi.checkIn.footer").cyText(.bodyCompact).foregroundStyle(.secondary)
         }
+        if model.pending != nil {
+            Text("roam.poi.pending").cyText(.body).foregroundStyle(.secondary)
+                .accessibilityIdentifier("roam.poi.pending")
+            Button("查询当前状态") { onReload() }.frame(minHeight: 44)
+                .accessibilityIdentifier("roam.poi.pending.query")
+            Button("重新现场核验") { model.armReverify(); startCheckIn() }.frame(minHeight: 44)
+                .disabled(model.checkInPhase == .working)
+                .accessibilityIdentifier("roam.poi.pending.reverify")
+        }
         if case .failed(let failure) = model.checkInPhase {
             failureRow(failure, retry: { model.checkIn(poiID: node.poiId, evidence: model.lastEvidence, actions: actions) })
         }
@@ -158,7 +298,7 @@ struct RoamPOIActionRows: View {
         }
         .alert("roam.poi.answer.title", isPresented: $answerPrompt) {
             TextField("roam.poi.answer.placeholder", text: $answerText)
-            Button("action.cancel", role: .cancel) {}
+            Button("action.cancel", role: .cancel) { model.disarmReverify() }
             Button("roam.poi.answer.submit") { submit(.init(answer: answerText, photoURL: challengePhoto)) }
         }
         .sheet(isPresented: $choiceSheet) {
@@ -166,10 +306,10 @@ struct RoamPOIActionRows: View {
                           items: node.quizOptions.map { CYOptionSheetItem(id: $0.id, title: $0.id + ". " + $0.text) },
                           selectedID: nil,
                           onSelect: { id in choiceSheet = false; submit(.init(answer: id, photoURL: challengePhoto)) },
-                          onClose: { choiceSheet = false })
+                          onClose: { choiceSheet = false; model.disarmReverify() })
                 .cyDomainSheet(detents: [.half])
         }
-        .sheet(isPresented: $photoSheet) {
+        .sheet(isPresented: $photoSheet) { Group {
             NavigationStack {
                 ScrollView {
                     ChallengePOIPhotoCapture(lead: node.photoRequireDesc, uploader: makePhotoUploader?(node.poiId), confirmed: false) { url in
@@ -179,9 +319,9 @@ struct RoamPOIActionRows: View {
                     .padding(CYSpacing.pageHorizontal)
                 }
                 .cyPageTitle("roam.poi.photo.title")
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { photoSheet = false } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { photoSheet = false; model.disarmReverify() } } }
             }
-        }
+        }.cySheet(detents: [.large]) }
         .fullScreenCover(isPresented: $scanSheet) {
             NativeQRScanner { code in scanSheet = false; submit(.init(photoURL: challengePhoto, code: code)) }
         }
@@ -190,6 +330,8 @@ struct RoamPOIActionRows: View {
             if case .failed = next { return true }
             return false
         }
+        .onAppear { model.adopt(ownerID: ownerID, poiID: node.poiId) }
+        .onChange(of: ownerID) { _, value in model.adopt(ownerID: value, poiID: node.poiId) }
     }
 
     /// RPOI-1: route the check-in by `validationMethod`, as scene-roam-poi-detail `startInteraction` does:
@@ -222,7 +364,7 @@ struct RoamPOIActionRows: View {
                 Label("roam.poi.location.unavailable", systemImage: "location.slash").cyText(.body)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .rejected(let message):
-                Label { Text(verbatim: message) } icon: { Image(systemName: "exclamationmark.triangle") }.font(.subheadline)
+                Label { Text(verbatim: message) } icon: { Image(systemName: "exclamationmark.triangle") }.cyText(.bodyCompact)
                 Button("action.retry", action: retry).frame(minHeight: 44)
             case .signIn:
                 Label("roam.poi.signIn", systemImage: "person.crop.circle.badge.exclamationmark").cyText(.body)
@@ -233,4 +375,10 @@ struct RoamPOIActionRows: View {
         }
         .accessibilityIdentifier("roam.poi.action.error")
     }
+}
+
+/// UserDefaults behind `RoamPendingCheckInJournal`. The `:photo` sibling is never written here.
+final class RoamPendingCheckInDefaults: RoamPendingCheckInStoring {
+    func data(forKey key: String) -> Data? { UserDefaults.standard.data(forKey: key) }
+    func set(_ data: Data?, forKey key: String) { UserDefaults.standard.set(data, forKey: key) }
 }

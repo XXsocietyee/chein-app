@@ -35,12 +35,12 @@ enum WorkshopLicenseLibraryPresentation {
                             } label: {
                                 VStack(alignment: .leading, spacing: Theme.Space.s2) {
                                     Text(verbatim: item.moduleId).cyText(.sectionTitle)
-                                    Text(verbatim: item.purchasedVersionId).font(Theme.Font.body).foregroundStyle(.secondary)
+                                    Text(verbatim: item.purchasedVersionId).cyText(.body).foregroundStyle(.secondary)
                                     if let key = WorkshopLicenseLibraryPresentation.statusKey(item.status) {
                                         WorkshopCommerceLibraryState(label: Text(LocalizedStringKey(key), tableName: "WorkshopCommerce"), raw: item.status)
                                     } else {
                                         // Keep an unrecognised original state visible; never invent ACTIVE.
-                                        Text(verbatim: item.status).font(Theme.Font.body).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                        Text(verbatim: item.status).cyText(.body).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                                     }
                                 }.fixedSize(horizontal: false, vertical: true)
                                     .accessibilityElement(children: .combine)
@@ -96,9 +96,9 @@ enum WorkshopLicenseLibraryPresentation {
             }
         }
         .listStyle(.insetGrouped)
-        .font(Theme.Font.body)
+        .cyText(.body)
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(String(localized: LocalizedStringResource("workshopCommerce.library.title", table: "WorkshopCommerce", locale: locale)))
+        .navigationTitle(String(localized: LocalizedStringResource("workshopCommerce.library.title", table: "WorkshopCommerce", locale: locale))).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task { await read() }
         .onChange(of: session.sessionRevision) { _, _ in Task { await read() } }

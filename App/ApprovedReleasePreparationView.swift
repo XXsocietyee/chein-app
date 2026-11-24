@@ -89,8 +89,11 @@ import SwiftUI
         }
         .themeDomain(.player)
         .task(id: original.id) { await model.load() }
-        .sheet(item: model.confirmationBinding(confirmation)) { captured in
+        .sheet(item: model.confirmationBinding(confirmation)) { captured in Group {
             ApprovedReleasePublicationConfirmationView(original: captured, cancel: model.cancel, confirm: model.confirm)
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         }
         .onDisappear { original.publisher?.close(); original.flow.close() }
     }
@@ -230,7 +233,7 @@ struct Cloud02ScreenHeader: View {
                 CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false)
                     .frame(maxWidth: .infinity)
                     .frame(height: coverHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityHidden(true)
             }
             CYHeroHeader(title, tableName: tableName)

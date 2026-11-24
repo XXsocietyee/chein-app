@@ -19,12 +19,13 @@ import SwiftUI
             .onChange(of: role) { _, _ in consider() }
             .onChange(of: current) { _, _ in consider() }
             .onDisappear { flow.clear() }
-            .sheet(item: Binding(get: { current ? flow.presentation : nil }, set: { value in if value == nil { flow.clear() } })) { original in
+            .sheet(item: Binding(get: { current ? flow.presentation : nil }, set: { value in if value == nil { flow.clear() } })) { original in Group {
                 ClubMemberWelcomeLiveSheet(flow: flow, originalID: original.id, close: { flow.dismiss(original.id) }, goEvents: {
                     guard current, flow.presentation?.id == original.id, original.identity == identity,
                           original.club.id == club.id, original.namespace == namespace else { return }
                     flow.dismiss(original.id); goEvents()
                 })
+            }.cySheet()
             }
     }
     private func consider() { flow.consider(club: club, identity: identity, namespace: namespace, role: role, active: current) }
@@ -62,7 +63,7 @@ import SwiftUI
                             if value.club.name.isEmpty { Text("welcome.title", tableName: "ClubMemberWelcome") }
                             else { Text("welcome.titleNamed \(value.club.name)", tableName: "ClubMemberWelcome") }
                         }
-                        .cyText(.display)
+                        .cyText(.sheetTitle)  // CLB-detail-40: MP welcome title is the sheet title size
                         .foregroundStyle(CYColor.textPrimary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
@@ -77,7 +78,14 @@ import SwiftUI
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(CYSpacing.lg)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                    }
+                    if let perk = value.memberPricePerk {
+                        Text(verbatim: perk)
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("club.welcome.memberPrice")
                     }
                     VStack(alignment: .leading, spacing: 0) {
                         step("text.bubble", Text(LocalizedStringKey(value.postingKey), tableName: "ClubMemberWelcome"))
@@ -86,7 +94,7 @@ import SwiftUI
                         Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
                         step("person.3", Text("welcome.overview", tableName: "ClubMemberWelcome"))
                     }
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 }
                 .padding(.horizontal, CYSpacing.xxl)
                 .padding(.bottom, CYSpacing.lg)

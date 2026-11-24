@@ -186,7 +186,7 @@ private struct ObjectBadgeShowcase: View {
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: ChannelCopy.text("已点亮", "Lit up", locale: locale))
-                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .accessibilityAddTraits(.isHeader)
             CYAlbumPager(items: items, height: 312, pageLabel: { page, count in
@@ -228,10 +228,10 @@ private struct ObjectBadgeShowcasePage: View {
             CYFoilMedal(unlocked: true, size: 150) {
                 ZStack {
                     LinearGradient(colors: [Color(hue: 0.12, saturation: 0.7, brightness: 0.9).opacity(0.9), Color(hue: 0.08, saturation: 0.7, brightness: 0.4)], startPoint: .top, endPoint: .bottom)
-                    Image(systemName: "medal.fill").font(CYTypography.display).foregroundStyle(.white.opacity(0.92))
+                    Image(systemName: "medal.fill").cyText(.display).foregroundStyle(.white.opacity(0.92))
                 }
             }
-            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+            Text(verbatim: name).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
             if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained, tone: .success, systemImage: "checkmark.seal.fill") }
             else { CYStatusChip("profile.badges.unlocked", tone: .success, systemImage: "checkmark.seal.fill") }
@@ -245,22 +245,22 @@ private struct ObjectBadgeShowcasePage: View {
     private var back: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(badge.familyKey).cyText(.meta).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: "medal.fill").foregroundStyle(CYAlbumMotion.gold).accessibilityHidden(true)
             }
             Divider()
-            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: name).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             if let obtained, !obtained.isEmpty {
                 CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
             }
             Text(verbatim: ChannelCopy.text("获得条件", "How it was earned", locale: locale))
-                .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                .cyText(.meta).foregroundStyle(palette.textSecondary)
             Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
-                .font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+                .cyText(.caption).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .cyAlbumCard(padding: CYSpacing.lg)
@@ -316,8 +316,32 @@ struct ObjectBadgeWallBadgeLabel: View {
             // Titles wrap on word boundaries only (one column at accessibility sizes keeps the width generous).
             Group { if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) } }
                 .allowsTightening(true)
-            CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success).singleLine()
+            // BWALL-5 (MP badge-wall wxml:38): locked → condition ?? 尚未点亮; lit → obtained date ?? 已点亮.
+            Text(verbatim: Self.meta(badge, locale: locale)).cyText(.meta).foregroundStyle(.secondary)
+                // The meta may be a condition or a date; VoiceOver still hears the lit state.
+                .accessibilityValue(Text(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked"))
         }
+    }
+
+    static func meta(_ badge: ProfileBadgeSelection, locale: Locale) -> String {
+        func nonempty(_ value: String?) -> String? {
+            guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else { return nil }
+            return value
+        }
+        /// MP `displayDate`: `YYYY-MM-DD` from a date or date-time string; anything else is not shown.
+        func day(_ value: String?) -> String? {
+            guard let value = nonempty(value), value.count >= 10 else { return nil }
+            let head = String(value.prefix(10))
+            return head.range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) == nil ? nil : head
+        }
+        let condition: String?
+        let obtained: String?
+        switch badge {
+        case .identity(let value): condition = nonempty(value.unlockHint); obtained = day(value.unlockTime)
+        case .medal(let value): condition = nonempty(value.displayCondition); obtained = day(value.getTime)
+        }
+        if badge.isLocked { return condition ?? appLocalized("objects.badge.meta.locked", locale: locale) }
+        return obtained ?? appLocalized("profile.badges.unlocked", locale: locale)
     }
 }
 
@@ -362,7 +386,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                 VStack(spacing: CYSpacing.xl) {
                     stage
                     VStack(spacing: CYSpacing.sm) {
-                        Text(verbatim: displayName).font(CYTypography.display).multilineTextAlignment(.center)
+                        Text(verbatim: displayName).cyText(.display).multilineTextAlignment(.center)
                             .foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: CYSpacing.sm) { statusChips }
@@ -378,7 +402,7 @@ struct ObjectBadgeWallBadgeLabel: View {
             if valid, !badge.isLocked {
                 ShareLink(item: ChannelCopy.text("我在「城瘾」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on 城瘾", locale: locale)) {
                     Label { Text(verbatim: ChannelCopy.text("分享徽章", "Share badge", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
-                        .font(CYTypography.cardTitle).foregroundStyle(palette.actionPrimaryFg)
+                        .cyText(.cardTitle).foregroundStyle(palette.actionPrimaryFg)
                         .frame(maxWidth: .infinity, minHeight: 56).background(palette.actionPrimaryBg, in: Capsule())
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
@@ -423,7 +447,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                 if media == nil || badge.image.isEmpty {
                     ZStack {
                         LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Image(systemName: "medal.fill").font(CYTypography.data2XL).foregroundStyle(.white.opacity(0.92))
+                        Image(systemName: "medal.fill").cyText(.data2XL).foregroundStyle(.white.opacity(0.92))
                             .symbolEffect(.bounce, value: celebrate && !reduceMotion)
                     }
                 } else {
@@ -441,25 +465,25 @@ struct ObjectBadgeWallBadgeLabel: View {
     private var stageBack: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                Text(badge.familyKey).cyText(.meta).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: badge.isLocked ? "lock.fill" : "medal.fill")
                     .foregroundStyle(badge.isLocked ? palette.textTertiary : CYAlbumMotion.gold).accessibilityHidden(true)
             }
             Divider()
-            Text(verbatim: displayName).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: displayName).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             if let obtained, !obtained.isEmpty {
                 CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
             }
             CYFactRow(label: Text(verbatim: ChannelCopy.text("状态", "Status", locale: locale)),
                       value: ChannelCopy.text(badge.isLocked ? "未解锁" : "已点亮", badge.isLocked ? "Locked" : "Unlocked", locale: locale))
             Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
-                .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                .cyText(.meta).foregroundStyle(palette.textSecondary)
             Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
-                .font(CYTypography.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 0)
             Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
-                .font(CYTypography.caption).foregroundStyle(palette.textTertiary)
+                .cyText(.caption).foregroundStyle(palette.textTertiary)
         }
         .frame(maxWidth: .infinity, minHeight: 212, alignment: .topLeading)
         .cyAlbumCard(padding: CYSpacing.lg)
@@ -472,11 +496,11 @@ struct ObjectBadgeWallBadgeLabel: View {
     private var requirementCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
-                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
+                .cyText(.sectionTitle).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
             Text(verbatim: requirement.isEmpty ? "—" : requirement)
-                .font(CYTypography.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
+                .cyText(.body).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
             if case .identity(let value) = badge, !value.statement.isEmpty, value.statement != requirement {
-                Text(verbatim: value.statement).font(CYTypography.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: value.statement).cyText(.meta).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.lg)
             .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
@@ -530,7 +554,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                     }
                     .accessibilityIdentifier("objects.badge.turntable")
                 if let hint = table.hintKey {
-                    Text(LocalizedStringKey(hint)).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    Text(LocalizedStringKey(hint)).cyText(.meta).foregroundStyle(palette.textSecondary)
                         .accessibilityIdentifier("objects.badge.turntableHint")
                 }
                 if !parameters.subtitle.isEmpty {

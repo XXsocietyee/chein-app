@@ -213,7 +213,7 @@ import SwiftUI
     private func metric<Value: View>(_ title: LocalizedStringKey, systemImage: String, @ViewBuilder value: () -> Value) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Image(systemName: systemImage)
-                .font(CYTypography.meta.weight(.semibold))
+                .cyText(.meta, weight: .semibold)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
             value()

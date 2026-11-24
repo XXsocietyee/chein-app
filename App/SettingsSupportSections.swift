@@ -48,7 +48,7 @@ import UIKit
                 Label {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("settingsNative.about.title")
-                        Text("settingsNative.about.entryHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("settingsNative.about.entryHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 } icon: { Image(systemName: "info.circle.fill") }
             }
@@ -190,7 +190,7 @@ struct SettingsTileLabelStyle: LabelStyle {
                 .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .frame(width: 30, height: 30)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous))
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityHidden(true)
             configuration.title
                 .fixedSize(horizontal: false, vertical: true)

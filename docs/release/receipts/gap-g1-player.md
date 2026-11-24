@@ -57,5 +57,29 @@ Walked all 30 `player-content` pages, 30 `play-roam` pages, and 29 `member` page
 - Verified all 12 G1 errors listed in `docs/mp-gap/compile-errors-r7.md` (`MemberRound2Views.swift:112`, `OrientScoreGapViews.swift:22,88`, `ReportAppealAndCouponSummaryViews.swift:32,184`, `CityStampTearScratchCardView.swift:113`, `ObjectCardCategoryAndRenameSheets.swift:27,82`, `PlayRoamRound2Views.swift:49,125,184`) are fixed.
 - `swiftc -parse` and `python3 -B tools/check_design_lint.py` passed with 0 errors.
 
-DONE-ROUND-3
-DONE-COMPILE-FIX
+## Round 4: `audit/parity-r7` Gemini Queue + Audit Contract Fixes
+- **Audit sources:** `origin/audit/parity-r7-{player-content,play-roam,member}:docs/audit/parity-r7/<area>.md`.
+- **Contract fixes from r7 audits:**
+  - `Core/MPGap/PlayRoam/PlayRoamRound2Service.swift`: deleted `fetchRoamHistory` (`RHIST-r7-1`); switched `fetchStampAlbum` to `POST /api/roam/stamp/list` (`SALBUM-6`); switched `fetchTeamApplications` to `POST /api/team/applications` (`RTEAMS-3`).
+  - Removed redundant `App/MPGap/PlayRoam/CityStampTearScratchCardView.swift` (`RSTAMP-3`, already native in `RoamStampSlipView`).
+  - `Core/MPGap/Member/MemberGapService.swift`: switched `fetchMerchantCouponSummary` to `POST /api/merchant/coupon-summary` (`MKT-10-1`); switched `submitReportAppeal` to `POST /api/community-trust/reports/appeal` (`PLY-29-4`).
+  - `Core/MPGap/Member/MemberRound2Service.swift`: switched `fetchOrdersPage` to `POST /api/registration/list` (`FIN-16-2`), `followClubOwner` to `POST /api/user/follow/action` (`FIN-17-4`), `fetchMyTemplates` to `POST /api/template/my-list` (`PLY-26-5`), and `fetchPointsList` to `POST /api/points/list {}` (`FIN-18-2`).
+  - `App/MPGap/Member/MemberRound2Views.swift`: replaced hard-coded Chinese literals with localization keys.
+- **New Round-4 translations:**
+  - `player-content` (`PlayerContentRound4Models.swift`, `PlayerContentRound4Views.swift`): `R7-PC-B3-2` (`MerchantApplyPickerGapView`), `R7-PC-B1-12` (`TopicPostPurchaseRevealView` + `submitMarketingConsent`), `R7-PC-B2-2` (`MerchantJoinContactHostButton` + `contactHost`), `R7-PC-B1-22` (`TopicSharePosterCardView`).
+  - `play-roam` (`PlayRoamRound4Models.swift`, `PlayRoamRound4Views.swift`): `JSETTLE-r7-1` (`JourneyFinishOfferResolver`, `JourneyFinishOfferCardView`), `ROAM-13` (`RoamCityStripTabView`), `B3D-1` (`IdentityPinBadge3DParameters`), `OCARDS-2` (`ObjectCardPileAndGridView`).
+  - `member` (`MemberRound4Views.swift`): `MKT-7-1` (`FreeExploreCatalogBundleView`), `PLY-26-4` (`TemplateMineCardCoverView`), `MKT-10-5` (`CouponForbiddenPlayerActionView`).
+- **Tests:** added `Tests/CoreTests/MPGap/MPGapG1Round4Tests.swift` and updated `MPGapG1Tests.swift` + `MPGapG1Round2Tests.swift`.
+- **Merged `origin/ui/combined-r7` (`97ee2bc9e`):** pulled coordinator `Section` header/footer fixes, fixed `PlayerContentRound4Views.swift` `Section { } header: { Text(...) } footer: { ... }`, and added missing `roamHistory.title` to `docs/port/strings/gap-g1-player.json`.
+
+DONE-ROUND-4
+
+## Round 5: `r7-rev-c` Findings + Owner Decisions + MPAsset Annotations
+- **Report:** [`docs/mp-gap/round5-g1.md`](file:///Users/fanning/orca/workspaces/native-ios/DES-ag3/docs/mp-gap/round5-g1.md)
+- **Closed `origin/review/r7-rev-c:docs/review/r7-rev-c.md` (`owner=Gemini`, G1):**
+  - P0s: `F-C01`, `F-C03` (form-encoded POSTs), `F-C04` (`api/im/report`, `api/orient/scoring/appeal`, `api/registration/my-joined`, `api/orient/scoring/session/<id>`), `F-C05` (removed invented `recoverOfficialBroadcast`, `fetchMyTemplateDetail`, `greetRunner`, `fetchCityStrip`), `F-C06` (GET -> POST across merchant/coop/nearby/team/withdrawal endpoints), `F-C07` (param keys `latitude`/`longitude`/`radius`, `activityId`, `teamId`), `F-C26` (removed `URLComponents!` force-unwraps, switched integer IDs to `.integer(Int64(id))`).
+  - P2s: `F-C12` (`OrientScoreGapViews` `.confirmationDialog` for `onSync`/`onSettle`), `F-C13` (`.cyText(.micro/.caption)` -> `.cyText(.meta)` across 9 files), `F-C14`/`F-C25` (`NearbyAndHistoryGapViews` `CYAvatarView` replacing monogram), `F-C15` (wired `MPAsset.BannerCover.homeRouteCityPlaceholder`, `MPAsset.BadgeMedal.medalGold`, `MPAsset.MapMarker.dSmapicon`, `MPAsset.BrandLogo.cyLogoMark` after merging `origin/ui/combined-r7` `82388e4a5`).
+- **Owner decisions (`owner-decisions-1124.md`):** two-decimal money (`¥39.00`, `¥68.00`) in `JourneyFinishOfferResolver`; GPS arrival lock and TEST-only money writes preserved.
+- **Localization & tests:** added `orientScore.syncTasks.confirmTitle`, `orientScore.settleRun.confirmTitle`, `common.cancel` (`zh-Hans` + `en`) to `docs/port/strings/gap-g1-player.json`; updated `MPGapG1Round2Tests.swift` and `MPGapG1Round4Tests.swift`.
+
+DONE-ROUND-5

@@ -9,6 +9,9 @@ import SwiftUI
     /// Zoom source in the wallet (iOS 18); nil keeps the default push.
     var heroNamespace: Namespace.ID? = nil
     var heroID: Int? = nil
+    /// PLY-21-3: the pass sheet's 开始游戏 pill pushes this page and starts play once the fresh read allows it.
+    var autoStartsPlay = false
+    @State private var didAutoStart = false
     @Environment(\.ticketWalletPlayProvider) private var playProvider
     @Environment(\.mpParity) private var mpParity
     @Environment(\.locale) private var locale
@@ -56,7 +59,11 @@ import SwiftUI
                                   playReadOwner == playProvider.owner else { return }
                             playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: playProvider,
                                                presentationID: presentationID)
-                        } label: { Label("playerJourney.start", systemImage: "play.fill") }
+                        } label: {
+                            // PLY-21-4: MP signup wxml:103-105 labels a cleared ticket 查看记录.
+                            if ticket.clearedFlag == true { Label(c.t("查看记录", "View record"), systemImage: "clock.arrow.circlepath") }
+                            else { Label("playerJourney.start", systemImage: "play.fill") }
+                        }
                         .modifier(TicketWalletPlayButtonStyle(secondary: ticket.status == .ready))
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("ticketWallet.play.open")
@@ -173,6 +180,12 @@ import SwiftUI
            let provider, provider.owner == playProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured)?.id == id, captured == key {
             playReadOwner = provider.owner
+            if autoStartsPlay, !didAutoStart, let ticket = model.value(owner: captured),
+               playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: provider) {
+                didAutoStart = true
+                playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: provider,
+                                   presentationID: playEntry.presentationID)
+            }
         }
     }
 }

@@ -99,7 +99,7 @@ import SwiftUI
                 List {
                     NavigationLink("social.targetPost") { SquareDetailView(id: 701, reader: reader) }
                         .accessibilityIdentifier("fixture.relatedPost")
-                }.appNavigationTitle("square.title")
+                }.cyPageTitle("square.title")
                     .toolbar { Button("social.fixtureSwitchAccount") {
                         reader = SquareFixtureReader(scenario: reader.scenario)
                         topicReader = SquareRelatedTopicFixtureReader()

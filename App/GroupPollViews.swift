@@ -252,5 +252,5 @@ import SwiftUI
     }
 }
 struct GroupPollUnavailableView: View {
-    var body: some View { ContentUnavailableView("poll.title", systemImage: "chart.bar.xaxis", description: Text("poll.disabled")).navigationTitle(Text("poll.title")) }
+    var body: some View { ContentUnavailableView("poll.title", systemImage: "chart.bar.xaxis", description: Text("poll.disabled")).navigationTitle(Text("poll.title")).navigationBarTitleDisplayMode(.inline) }
 }

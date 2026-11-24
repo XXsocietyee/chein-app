@@ -244,7 +244,7 @@ struct RoamPlaceExtrasSection: View {
                                 }
                                 if let stars = review.stars {
                                     Label { Text(verbatim: String(stars)) } icon: { Image(systemName: "star.fill") }
-                                        .font(CYTypography.caption).foregroundStyle(CYNight.lantern)
+                                        .cyText(.caption).foregroundStyle(CYNight.lantern)
                                         .accessibilityLabel(Text(verbatim: c.t("\(stars) 星", "\(stars) stars")))
                                 }
                                 Text(verbatim: review.text).cyText(.bodyCompact).lineLimit(4)
@@ -267,7 +267,7 @@ struct RoamPlaceExtrasSection: View {
                 ForEach(1...5, id: \.self) { value in
                     Button { myStars = value } label: {
                         Image(systemName: value <= myStars ? "star.fill" : "star")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(value <= myStars ? CYNight.lantern : CYColor.textTertiary)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     }

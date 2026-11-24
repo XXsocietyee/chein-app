@@ -40,7 +40,7 @@ struct CoopFlowRequestPreview: View {
                 } else {
                     // Gated, not removed: production keeps merchant writes closed (ReviewedAreaSwitch).
                     Button("coopflow.submit") {}.disabled(true).accessibilityIdentifier("coopflow.submit.disabled")
-                    Text("coopflow.submit.gated").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("coopflow.submit.gated").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         }
@@ -149,7 +149,7 @@ struct CoopFlowTemplateEditor: View {
             }
             else { Text("coopflow.template.required").foregroundStyle(.secondary) }
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.template.new")
+        }.navigationTitle("coopflow.template.new").navigationBarTitleDisplayMode(.inline)
             .modifier(MerchantPerkValidityStablePresentation(value: $validEnd, session: $calendarSession,
                 appliedValue: $calendarAppliedValue, appliedContext: $calendarAppliedContext, context: {
                     guard let session = currentCalendarSession?() else { return nil }
@@ -175,13 +175,16 @@ struct CoopFlowReasonEditor: View {
                 NavigationLink("coopflow.reviewAction") { CoopFlowRequestPreview(operation: .complaint(topicID: topicID, reason: reason)) }
             }
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.complaint.prepare")
+        }.navigationTitle("coopflow.complaint.prepare").navigationBarTitleDisplayMode(.inline)
     }
 }
 struct CoopFlowHandleEditor: View {
     let inviteID: Int
     let action: CoopFlowHandle
     let currentStatus: Int
+    var supplyStationID: Int? = nil
+    var supplyStationName: String? = nil
+    var flowReader: (any CoopFlowReading)? = nil
     @Environment(\.locale) private var locale
     @State private var reason = ""
     @State private var confirmHandle = false
@@ -218,6 +221,10 @@ struct CoopFlowHandleEditor: View {
         Form {
             LabeledContent("coopflow.field.id", value: String(inviteID))
             Text(LocalizedStringKey("coopflow.handle." + String(action.rawValue)))
+            if action == .accept, let supplyStationName, !supplyStationName.isEmpty {
+                Text(verbatim: supplyStationName).cyText(.body).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityIdentifier("coopflow.supplyStation")
+            }
             TextField("coopflow.field.reason", text: $reason, axis: .vertical)
                 .onChange(of: reason) { _, value in if value.count > 100 { reason = String(value.prefix(100)) } }
             Text(verbatim: "\(reason.count) / 100").font(.caption).foregroundStyle(.secondary)
@@ -233,7 +240,7 @@ struct CoopFlowHandleEditor: View {
             Text("coopflow.contract.notice")
             CoopFlowSafetyNotice()
         }
-        .navigationTitle("coopflow.reviewAction")
+        .navigationTitle("coopflow.reviewAction").navigationBarTitleDisplayMode(.inline)
         .cyModalConfirm(
             isPresented: confirmHandle,
             title: modalTitle,
@@ -248,13 +255,29 @@ struct CoopFlowHandleEditor: View {
             onCancel: { confirmHandle = false },
             onConfirm: {
                 confirmHandle = false
-                proceedPreview = true
+                if let supplyStationID, action == .accept {
+                    Task { await submitStation(supplyStationID) }
+                } else {
+                    proceedPreview = true
+                }
             }
         )
         .navigationDestination(isPresented: $proceedPreview) {
             CoopFlowRequestPreview(operation: .handle(inviteID: inviteID, action: action, reason: reason))
         }
         .cyToast(verbatimMessage: $toastMessage)
+    }
+
+    /// Station accept uses `acceptSupplyStation` after the name is shown and the confirm is accepted.
+    /// The 3-argument `.handle` path is the one without a station. The dormant grant still sends nothing.
+    private func submitStation(_ stationID: Int) async {
+        let note = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        do {
+            guard let flowReader else { throw CoopFlowFailure.disabled }
+            _ = try await flowReader.acceptSupplyStation(inviteID: inviteID, reason: note.isEmpty ? nil : note, supplyStationID: stationID)
+        } catch {
+            toastMessage = MerchantAreaCopy.text("接受未发送", "Acceptance was not sent", locale)
+        }
     }
 }
 /// Context is supplied only by a current, approved merchant chapter application.
@@ -318,7 +341,7 @@ struct CoopFlowOfferEditor: View {
             if circleMode && circle.profile == nil { Text("coopflow.circle.complete") }
             Text("coopflow.offer.rules")
             CoopFlowSafetyNotice()
-        }.disabled(!sourceIsCurrent()).navigationTitle("coopflow.offer.title")
+        }.disabled(!sourceIsCurrent()).navigationTitle("coopflow.offer.title").navigationBarTitleDisplayMode(.inline)
     }
     @ViewBuilder private var circleFields: some View {
         Section("coopflow.circle.title") {
@@ -389,7 +412,7 @@ struct CoopFlowOfferEditor: View {
             } else { Text("coopflow.invite.sessionChanged") }
         }
         .cyGroupedSurface()
-        .navigationTitle("coopflow.invite.title")
+        .navigationTitle("coopflow.invite.title").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("coopflow.invite.cancel") {
@@ -434,7 +457,7 @@ struct CoopFlowReviewEditor: View {
                 CoopFlowRequestPreview(operation: .review(topicID: topicID, memberID: memberID, rating: rating, comment: comment))
             }
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.reviews")
+        }.navigationTitle("coopflow.reviews").navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -480,7 +503,7 @@ struct CoopFlowReviewEditor: View {
             } else if reader.session == nil { Text("cooperation.login") }
             else { CYSkeleton(variant: .row).accessibilityLabel(Text("cooperation.loading")) }
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.attach")
+        }.navigationTitle("coopflow.attach").navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: model.previewBinding()) { preview in
                 if model.current(preview) {
                     CoopFlowRequestPreview(operation: .attachPerks(inviteID: preview.inviteID, templateIDs: preview.templateIDs))
@@ -609,7 +632,7 @@ struct CoopFlowSupplyManagementView: View {
             }
             Text("coopflow.offer.rules")
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.supply")
+        }.navigationTitle("coopflow.supply").navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.merchant)
     }
 }

@@ -99,11 +99,11 @@ import SwiftUI
                     .background(.bar)
                 }
             }
-            .navigationTitle("contextSelfPlay.title")
+            .navigationTitle("contextSelfPlay.title").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.flow.leave(); dismiss() } } }
             .task { await model.flow.open() }
             .onDisappear { model.flow.leave() }
-            .sheet(item: Binding(get: { model.flow.review }, set: { if $0 == nil { model.flow.cancelReview() } })) { review in
+            .sheet(item: Binding(get: { model.flow.review }, set: { if $0 == nil { model.flow.cancelReview() } })) { review in Group {
                 NavigationStack {
                     Form {
                         Text(verbatim: model.flow.topic.name).cyText(.sectionTitle)
@@ -114,13 +114,13 @@ import SwiftUI
                         Link("contextSelfPlay.noticeLink", destination: review.document.officialURL)
                         Button("contextSelfPlay.confirm") { Task { await model.flow.confirm(review) } }.accessibilityIdentifier("contextSelfPlay.confirm")
                         Button("action.cancel", role: .cancel) { model.flow.cancelReview() }
-                    }.navigationTitle("contextSelfPlay.review")
+                    }.navigationTitle("contextSelfPlay.review").navigationBarTitleDisplayMode(.inline)
                 }
                 .presentationDragIndicator(.visible)
-            }
-            .sheet(item: Binding(get: { model.flow.paymentReview }, set: { if $0 == nil { model.flow.cancelPaymentReview() } })) { review in
+            }.cySheet() }
+            .sheet(item: Binding(get: { model.flow.paymentReview }, set: { if $0 == nil { model.flow.cancelPaymentReview() } })) { review in Group {
                 TopicSelfPlayPaymentReviewSheet(review: review, confirm: { consent in Task { await model.flow.confirmExistingPayment(review, consented: consent) } }, cancel: model.flow.cancelPaymentReview)
-            }
+            }.cySheet() }
             .sheet(item: Binding(get: { model.flow.result }, set: { _ in })) { result in
                 PaymentProviderReturnSheet(flow: result) { model.flow.closeResult($0) }
             }
@@ -149,7 +149,7 @@ import SwiftUI
                 TopicPrice(value: topic.selfPlayPrice, label: "topic.selfPlayPrice")
                 Text("contextSelfPlay.validity")
                 Text("contextSelfPlay.unavailable")
-            }.navigationTitle("contextSelfPlay.title")
+            }.navigationTitle("contextSelfPlay.title").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         }
     }

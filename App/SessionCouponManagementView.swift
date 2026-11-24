@@ -13,9 +13,11 @@ extension EnvironmentValues {
 /// merchant:marketing:read; operation-specific permissions still require fresh confirmation.
 @MainActor struct SessionCouponManagementView: View {
     @EnvironmentObject private var session: AppSession
+    /// Merchant marketing entries keep the default (`scope=MERCHANT`); the MP link without `scope` is the player list.
+    var scope: CouponPublishListScope = .merchant
     var body: some View {
         CouponManagementView(coordinator: session.couponManagementCoordinator,
-                             sessionKey: session.couponManagementSession, isSourceVisible: true)
+                             sessionKey: session.couponManagementSession, isSourceVisible: true, scope: scope)
             .id(session.couponManagementSession)
     }
 }

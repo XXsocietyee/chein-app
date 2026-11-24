@@ -39,8 +39,6 @@ extension EnvironmentValues {
     }
     var body: some View {
         Form {
-            CYHeroHeader("squareReport.title")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Text(LocalizedStringKey(context?.coordinator.service.synthetic == true ? "squareReport.synthetic" : "squareReport.boundary"))
                     .cyText(.bodyCompact).accessibilityIdentifier("squareReport.boundary")
@@ -90,7 +88,7 @@ extension EnvironmentValues {
             }
         }
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .cyPageTitle("squareReport.title")
         .scrollDismissesKeyboard(.interactively).privacySensitive()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -144,7 +142,7 @@ extension EnvironmentValues {
                                     Spacer(minLength: CYSpacing.sm)
                                     if reasonCode == reason.id {
                                         Image(systemName: "checkmark")
-                                            .font(CYTypography.label)
+                                            .cyText(.label)
                                             .foregroundStyle(CYColor.brand)
                                             .accessibilityHidden(true)
                                     }

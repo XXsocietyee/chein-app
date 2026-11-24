@@ -370,13 +370,27 @@ private struct CYShareMedalArt: View {
     let content: CYShareCardContent
     let tint: CYShareCardTint
     var size: CGFloat = 150
+
+    /// Gold is the completion medal. Silver and bronze follow when the title or symbol names that metal.
+    /// A stamp share (`mappin.and.ellipse` on a medal card) uses the 3D stamp.
+    private var medalImage: Image {
+        let blob = (content.artSymbol + " " + content.title + " " + content.artSeed).lowercased()
+        if blob.contains("bronze") || blob.contains("铜") { return MPAsset.BadgeMedal.medalBronze }
+        if blob.contains("silver") || blob.contains("银") { return MPAsset.BadgeMedal.medalSilver }
+        if content.artSymbol == "mappin.and.ellipse" { return MPAsset.BadgeMedal.stamp3d }
+        if content.artSymbol == "storefront.fill" { return MPAsset.BadgeMedal.glShop }
+        if content.artSymbol == "medal" { return MPAsset.BadgeMedal.medal }
+        return MPAsset.BadgeMedal.medalGold
+    }
+
     var body: some View {
         CYFoilMedal(unlocked: true, size: size, tint: tint.primary) {
             ZStack {
                 CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: false, showsGlyph: false)
-                Image(systemName: content.artSymbol)
-                    .font(.system(size: size * 0.4, weight: .semibold))
-                    .foregroundStyle(.white)
+                medalImage
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size * 0.62, height: size * 0.62)
                     .shadow(color: .black.opacity(0.4), radius: 4, y: 2)
             }
         }

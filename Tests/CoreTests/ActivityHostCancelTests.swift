@@ -54,6 +54,8 @@ final class ActivityHostCancelRulesTests: XCTestCase {
         XCTAssertEqual(p4, .unknownCount)
     }
     func testCancelSendsTrimmedReasonAndMapsOutcome() async throws {
+        defer { ReleaseMoneyWriteSwitch.testDerivation = nil }
+        ReleaseMoneyWriteSwitch.testDerivation = { $0 == .hostCancelRefund }
         let t = CancelTransport()
         t.replies = [(#"{"code":200,"msg":"refunded"}"#, 200), (#"{"code":400,"msg":"late"}"#, 200), ("x", 502)]
         let a = try make(t)

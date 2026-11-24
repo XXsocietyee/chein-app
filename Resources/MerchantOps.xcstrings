@@ -2591,13 +2591,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your role cannot settle predictions"
+            "value": "Your role cannot publish prediction answers"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前岗位不能结算竞猜"
+            "value": "当前身份不能公布预测答案"
           }
         }
       }
@@ -2631,7 +2631,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有等你给答案的竞猜"
+            "value": "没有等你给答案的预测"
           }
         }
       }
@@ -2767,7 +2767,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "有 %lld 轮竞猜待给答案"
+            "value": "有 %lld 轮预测待给答案"
           }
         }
       }

@@ -55,7 +55,8 @@ struct CYEmptyState: View {
             detail: detailVerbatim.map { Text(verbatim: $0) } ?? detail.map { Text($0, tableName: tableName) },
             primary: actionTitle.flatMap { title in action.map { (title: title, action: $0) } },
             primaryStyle: actionStyle,
-            primaryIdentifier: actionIdentifier
+            primaryIdentifier: actionIdentifier,
+            emptyIllustration: CYEmptyIllustration.kind(matching: systemImage)
         )
         .cyIdentifier(messageIdentifier)
     }

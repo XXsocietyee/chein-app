@@ -47,7 +47,7 @@ enum MerchantAreaPopupFixtures {
                 CYPillButton("merchant.coopField.discard") { showModal = true }
             }
             .padding(CYSpacing.lg)
-            .navigationTitle(Text(verbatim: "编辑门店字段"))
+            .navigationTitle(Text(verbatim: "编辑门店字段")).navigationBarTitleDisplayMode(.inline)
         }
         .cyModalConfirm(
             isPresented: $showModal,
@@ -76,7 +76,7 @@ enum MerchantAreaPopupFixtures {
                 CYPillButton("action.leave") { showModal = true }
             }
             .padding(CYSpacing.lg)
-            .navigationTitle(Text(verbatim: "互动模板编辑"))
+            .navigationTitle(Text(verbatim: "互动模板编辑")).navigationBarTitleDisplayMode(.inline)
         }
         .cyModalConfirm(
             isPresented: $showModal,
@@ -130,7 +130,7 @@ enum MerchantAreaPopupFixtures {
                 CYPillButton("creatorEditor.keys.rename") { presented = true }
             }
             .padding(CYSpacing.lg)
-            .navigationTitle(Text(verbatim: "重命名状态键"))
+            .navigationTitle(Text(verbatim: "重命名状态键")).navigationBarTitleDisplayMode(.inline)
         }
         .cyPromptModalOverlay(
             isPresented: $presented,
@@ -198,7 +198,7 @@ enum MerchantAreaPopupFixtures {
                 }
             }
             .padding(CYSpacing.lg)
-            .navigationTitle(Text(verbatim: "合作详情"))
+            .navigationTitle(Text(verbatim: "合作详情")).navigationBarTitleDisplayMode(.inline)
         }
         .cyToast(verbatimMessage: $toastMessage, tone: .info)
     }

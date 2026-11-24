@@ -18,6 +18,7 @@ public struct ClubOwnerRefundService {
     public func cancel(registrationID: Int, token: String, check: () throws -> Void) async throws -> ClubOwnerRefundReceipt {
         // Must fail before request creation, transport, or token use in production.
         guard let offline else { throw ClubOwnerRefundFailure.disabled }
+        guard ReleaseMoneyWriteSwitch.isEnabled(.refund) else { throw ClubOwnerRefundFailure.disabled }
         let request = try request(registrationID: registrationID, token: token)
         try check(); try Task.checkCancellation()
         let result: (Data, Int)

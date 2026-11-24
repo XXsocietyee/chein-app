@@ -254,7 +254,7 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 ProgressView().frame(maxWidth: .infinity)
             } else if organiser {
                 NavigationLink {
-                    List { SharedRunControlSection(activityID: activityID) }.appNavigationTitle("parityB.shared.title")
+                    List { SharedRunControlSection(activityID: activityID) }.appNavigationTitle("parityB.shared.title").navigationBarTitleDisplayMode(.inline)
                 } label: { Label("parityB.shared.open", systemImage: "dot.radiowaves.left.and.right") }
                     .accessibilityIdentifier("parityB.shared.open.\(activityID)")
             }
@@ -286,9 +286,9 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                 if let serverNote { Text(verbatim: serverNote).cyText(.meta).foregroundStyle(color) }
                 else if let note { Text(note).cyText(.meta).foregroundStyle(color) }
             }
-            .sheet(isPresented: $scanning) {
+            .sheet(isPresented: $scanning) { Group {
                 NativeQRScanner { raw in scanning = false; Task { await verify(raw) } }
-            }
+            }.cySheet(detents: [.large]) }
         }
     }
 
@@ -448,13 +448,13 @@ struct FinishRouteAnalyticsModifier: ViewModifier {
                     Text("parityB.circle.review").cyText(.cardTitle)
                     if let day = topic.reviewedOn { Text("parityB.circle.reviewedOn \(day)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                     else { Text("parityB.circle.notReviewed").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                    Text("parityB.circle.reviewHint").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                    Text("parityB.circle.reviewHint").cyText(.caption).foregroundStyle(CYColor.textSecondary)
                     CYPillButton("parityB.circle.pick", style: .secondary) { picking = true }
                         .accessibilityIdentifier("parityB.circle.pick")
                 }
-                .sheet(isPresented: $picking) {
+                .sheet(isPresented: $picking) { Group {
                     CircleThemeConfigureSheet(topicID: topicID, themeCode: topic.themeCode) { await reload() }
-                }
+                }.cySheet(detents: [.large]) }
             }
         }
         .task(id: topicID) { await reload() }

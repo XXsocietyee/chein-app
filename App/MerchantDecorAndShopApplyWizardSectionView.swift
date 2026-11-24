@@ -186,7 +186,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(Color.secondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -212,11 +212,11 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Text(verbatim: snapshot.poiDetailEndpoint)
-                    .font(.caption2.monospaced().weight(.semibold))
+                    .font(.caption.monospaced().weight(.semibold))
                     .accessibilityIdentifier("merchantDecorWizard.poiEndpoint")
                 Spacer()
                 Text(verbatim: snapshot.isDecorJsonCompliant ? "JSON 契约通过" : "JSON 契约异常")
-                    .cyText(.caption, weight: .semibold)
+                    .cyText(.meta, weight: .semibold)
                     .accessibilityIdentifier("merchantDecorWizard.decorComplianceBadge")
             }
 
@@ -226,23 +226,23 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
 
             HStack(spacing: 6) {
                 Text(verbatim: snapshot.decorSaveEndpoint)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .accessibilityIdentifier("merchantDecorWizard.decorSaveEndpoint")
                 Text(verbatim: snapshot.decorSaveContentType)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchantDecorWizard.decorContentType")
             }
 
             Text(verbatim: snapshot.decorSaveJsonPreview)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
                 .accessibilityIdentifier("merchantDecorWizard.decorJsonPreview")
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityElement(children: .contain)
@@ -257,7 +257,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                     .accessibilityIdentifier("merchantDecorWizard.wizardHeader")
                 Spacer()
                 Text(verbatim: snapshot.shopApplyEndpoint)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("merchantDecorWizard.shopApplyEndpoint")
             }
@@ -275,12 +275,12 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                                 .cyText(.meta, weight: .semibold)
                                 .accessibilityIdentifier("merchantDecorWizard.step.\(step.id).title")
                             Text(verbatim: step.stepCode)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                                 .accessibilityIdentifier("merchantDecorWizard.step.\(step.id).code")
                         }
                         Text(verbatim: step.summary)
-                            .cyText(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("merchantDecorWizard.step.\(step.id).summary")
                     }
@@ -288,7 +288,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
                     Spacer()
 
                     Text(verbatim: step.statusBadgeText)
-                        .cyText(.caption, weight: .semibold)
+                        .cyText(.meta, weight: .semibold)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(Color.accentColor.opacity(0.14)))
@@ -307,11 +307,11 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(spacing: 6) {
                 Text(verbatim: snapshot.npcVoiceStatusEndpoint)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .accessibilityIdentifier("merchantDecorWizard.npcVoiceEndpoint")
                 Spacer()
                 Text(verbatim: snapshot.npcVoiceSynthesisStateText)
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .accessibilityIdentifier("merchantDecorWizard.npcVoiceStatusText")
             }
 
@@ -319,11 +319,11 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
 
             HStack(spacing: 6) {
                 Text(verbatim: snapshot.merchantInsightEndpoint)
-                    .font(.caption2.monospaced().weight(.semibold))
+                    .font(.caption.monospaced().weight(.semibold))
                     .accessibilityIdentifier("merchantDecorWizard.insightEndpoint")
                 Spacer()
                 Text(verbatim: snapshot.insightTopLevelKeys.joined(separator: ", "))
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .accessibilityIdentifier("merchantDecorWizard.insightTopLevelKeys")
@@ -335,7 +335,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityElement(children: .contain)

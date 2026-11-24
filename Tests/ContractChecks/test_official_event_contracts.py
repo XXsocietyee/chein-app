@@ -45,7 +45,9 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertIn('private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }', browser)
         self.assertIn('let visible = page.visible', browser)
         self.assertIn('OfficialActivityListCoordinator.project(query: query', browser)
-        self.assertIn('CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))', browser)
+        # R7-PC-C3-3: MP EMPTY_COPY has one title line per tab; only the search keeps its second line.
+        self.assertIn('detail: query.isSearching ? LocalizedStringKey(query.emptyDetailKey) : nil)', browser)
+        self.assertIn('LocalizedStringKey(query.emptyTitleKey)', browser)
         model = read("Core/OfficialEventContracts.swift")
         self.assertIn('let visible = query.visible(rows)', model)
         self.assertIn('.init(bucket: bucket, keyword: bucket.isSearchable ? keyword : "")', model)

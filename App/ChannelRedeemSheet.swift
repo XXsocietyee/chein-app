@@ -92,10 +92,10 @@ struct ChannelRedeemSheet: View {
     }
 
     private func labeled(_ title: LocalizedStringKey, _ value: String) -> some View {
-        HStack {
+        LabeledContent {
+            Text(verbatim: value).monospacedDigit()
+        } label: {
             Text(title)
-            Spacer()
-            Text(verbatim: value)
         }
         .cyText(.body)
         .frame(minHeight: CYSpacing.minTouchTarget)

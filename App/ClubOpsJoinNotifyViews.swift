@@ -67,16 +67,27 @@ struct ClubOpsPageFailureSection: View {
     /// X3 (parity r2): the one reason line under the page title (server sentence or generic key).
     var reason: Text? = nil
     let retry: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(copy.titleKey),
-                    tableName: copy.table,
-                    messageIdentifier: "clubOps.pageFailure.title",
-                    kind: .failure
-                )
+                if let literal = copy.literalTitle {
+                    Text(verbatim: literal)
+                        .cyText(.cardTitle)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("clubOps.pageFailure.title")
+                } else {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(copy.titleKey),
+                        tableName: copy.table,
+                        messageIdentifier: "clubOps.pageFailure.title",
+                        kind: .failure
+                    )
+                }
                 if let reason {
                     reason
                         .cyText(.bodyCompact)
@@ -86,8 +97,13 @@ struct ClubOpsPageFailureSection: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.gov.error")
                 }
-                CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
-                    .accessibilityIdentifier("clubOps.pageFailure.retry")
+                if copy.prefersBack {
+                    CYPillButton(verbatim: locale.pick("返回", "Back"), style: .secondary, action: { dismiss() })
+                        .accessibilityIdentifier("clubOps.pageFailure.back")
+                } else {
+                    CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
+                        .accessibilityIdentifier("clubOps.pageFailure.retry")
+                }
             }
             .e1ActionRow()
         }

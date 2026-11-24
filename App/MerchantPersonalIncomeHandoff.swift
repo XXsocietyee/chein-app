@@ -135,7 +135,7 @@ import SwiftUI
             else if let restricted = owner.wallet, restricted.scope != nil {
                 VStack(spacing: 8) {
                     Text("merchant.personalIncome.boundary").cyText(.bodyCompact).foregroundStyle(.secondary).padding(.horizontal)
-                    WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true })
+                    WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true }, merchantView: true)
                         .id(ObjectIdentifier(restricted))
                 }
             } else if owner.busy { ProgressView("merchant.loading") }
@@ -253,14 +253,17 @@ extension EnvironmentValues {
                 source = .init(reader: reader, currentSnapshot: currentSnapshot)
             }.accessibilityIdentifier("merchant.ledger.personalAssets")
             .sheet(item: merchantLedgerAssetsPresentation($source)) { selected in
-                NavigationStack {
-                    destination(selected)
-                        .toolbar { ToolbarItem(placement: .cancellationAction) {
-                            Button(zh ? "关闭" : "Close") { close(selected) }
-                        } }
+                Group {
+                    NavigationStack {
+                        destination(selected)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) {
+                                Button(zh ? "关闭" : "Close") { close(selected) }
+                            } }
+                    }
+                    // This owner remains mounted during income/detail/history navigation.
+                    .onDisappear { close(selected) }
                 }
-                // This owner remains mounted during income/detail/history navigation.
-                .onDisappear { close(selected) }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .onChange(of: scenePhase) { _, phase in if phase != .active, let source { close(source) } }
             .onChange(of: source?.current) { _, valid in if valid == false, let source { close(source) } }
@@ -287,7 +290,7 @@ extension EnvironmentValues {
             if !current { Text("merchant.personalIncome.changed") }
             else if let wallet = owner.wallet, wallet.scope != nil {
                 WalletCommerceHomeView(reader: wallet, visibility: visibility, onCooperationFinance: {},
-                    showsWithdrawalSupport: false, showsCooperationFinance: false)
+                    showsWithdrawalSupport: false, showsCooperationFinance: false, merchantView: true)
                     .id(ObjectIdentifier(wallet))
                     .environment(\.bankWithdrawalDestination, nil)
                     .environment(\.withdrawalSupportReader, nil)

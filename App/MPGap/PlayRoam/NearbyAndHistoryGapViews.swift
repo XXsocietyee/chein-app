@@ -35,12 +35,13 @@ public struct NearbyTeamsMapSheetView: View {
                         selectedTeamID = team.id
                         onSelectTeam(team)
                     } label: {
-                        Text(String(team.leaderName.prefix(1)))
-                            .cyText(.label, weight: .bold)
-                            .foregroundStyle(CYColor.actionPrimaryFg)
-                            .frame(width: 34, height: 34)
-                            .background(selectedTeamID == team.id ? CYColor.brand : CYColor.actionPrimaryBg)
-                            .clipShape(Circle())
+                        // TODO: MPAsset.Avatar.dProfile (`images/d_profile.png`) when cursor/mp-assets lands
+                        CYAvatarView(
+                            url: URL(string: team.leaderAvatarURL ?? ""),
+                            name: team.leaderName,
+                            size: .sm,
+                            showAccentRing: selectedTeamID == team.id
+                        )
                     }
                     .buttonStyle(.plain)
                 }
@@ -71,7 +72,13 @@ public struct NearbyTeamsMapSheetView: View {
                             Button {
                                 onSelectTeam(team)
                             } label: {
-                                HStack {
+                                HStack(spacing: CYSpacing.sm) {
+                                    // TODO: MPAsset.Avatar.dProfile (`images/d_profile.png`) when cursor/mp-assets lands
+                                    CYAvatarView(
+                                        url: URL(string: team.leaderAvatarURL ?? ""),
+                                        name: team.leaderName,
+                                        size: .sm
+                                    )
                                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                         Text(team.teamName).cyText(.cardTitle)
                                         Text("队长 \(team.leaderName)")

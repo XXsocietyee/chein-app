@@ -59,7 +59,7 @@ import SwiftUI
                         Text("contextPublish.mode.confirmBody")
                         Text(LocalizedStringKey(copy.product == .city ? "projectEdit.city" : "projectEdit.freeExplore"))
                         Text(verbatim: copy.draft.name)
-                    }.navigationTitle("contextPublish.mode.confirmTitle")
+                    }.navigationTitle("contextPublish.mode.confirmTitle").navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.cancel(copy) }.accessibilityIdentifier("projectRemote.copy.cancel") }
                         ToolbarItem(placement: .confirmationAction) {

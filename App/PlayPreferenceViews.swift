@@ -206,7 +206,7 @@ import SwiftUI
             else if !sourceIsCurrent() { PlayExperienceIssueView(issue: .staleSession) }
             else { currentContent }
         }
-        .privacySensitive().navigationTitle("playx.os.title").accessibilityIdentifier("playx.os.view")
+        .privacySensitive().navigationTitle("playx.os.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.os.view")
         .task(id: ReadID(active: scenePhase == .active, current: sourceIsCurrent())) {
             guard scenePhase == .active, sourceIsCurrent() else { presentation.retire(); return }
             presentation.activate()

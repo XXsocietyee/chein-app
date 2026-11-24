@@ -43,7 +43,7 @@ struct LoginView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    WelcomeHero().scaleEffect(0.9).frame(height: 262).padding(.top, CYSpacing.lg)
+                    brandMark.padding(.top, CYSpacing.xl)
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text("auth.login.headline").cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
@@ -67,8 +67,8 @@ struct LoginView: View {
                                         .onSubmit { submit() }
                                 }
                             }
-                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(shownErrorKey != nil ? CYColor.dangerText.opacity(0.7) : CYColor.textPrimary.opacity(0.08), lineWidth: 1))
+                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(shownErrorKey != nil ? CYColor.dangerText.opacity(0.7) : CYColor.textPrimary.opacity(0.08), lineWidth: 1))
                             if let key = shownErrorKey {
                                 Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
                                     .font(.footnote.weight(.medium)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")
@@ -150,6 +150,7 @@ struct LoginView: View {
                                 onOpenAgreement: { legalDocument = AuthEntryLegalSheet(type: .userAgreement) },
                                 onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) })
                     .sheet(item: $legalDocument) { sheet in legalNavigation(sheet) { legalDocument = nil } }
+                    .cySheet()
 #if DEBUG
                     .onAppear { recordIntegratedLoginPhase("channels_appear") }
                     .onDisappear { recordIntegratedLoginPhase("channels_disappear") }
@@ -181,7 +182,28 @@ struct LoginView: View {
             }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: close) } }
         }
+        .cySheet(detents: [.large])
     }
+    /// Brand mark and wordmark. Both source files are near-black, so they template to the primary text colour.
+    private var brandMark: some View {
+        VStack(spacing: CYSpacing.md) {
+            MPAsset.BrandLogo.cyLogoMark
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(width: 88, height: 88)
+            MPAsset.BrandLogo.dLogo
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .frame(height: 36)
+        }
+        .foregroundStyle(CYColor.textPrimary)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: "城瘾"))
+    }
+
     private func loginField<Field: View>(icon: String, @ViewBuilder _ field: () -> Field) -> some View {
         HStack(spacing: CYSpacing.md) {
             Image(systemName: icon).font(.system(.subheadline, weight: .semibold)).foregroundStyle(CYColor.textSecondary)

@@ -1,5 +1,15 @@
 import SwiftUI
 
+private struct ClubProfileDraftFlowKey: EnvironmentKey {
+    static let defaultValue: ClubProfileLocalDraftFlow? = nil
+}
+extension EnvironmentValues {
+    var clubProfileDraftFlow: ClubProfileLocalDraftFlow? {
+        get { self[ClubProfileDraftFlowKey.self] }
+        set { self[ClubProfileDraftFlowKey.self] = newValue }
+    }
+}
+
 /// Session host owns access/coordinator and passes a published identity. This additive
 /// entry can be mounted on ClubHome (.create) and ClubDetail (.club(id)).
 struct ClubOperationsEntryButton: View {
@@ -39,7 +49,7 @@ struct ClubOperationsEntryButton: View {
                 if let result = pendingWelcomeReturn, result.matches(target: target, identity: identity, access: access) {
                     onWelcomeConfirmedReturn?(result)
                 }
-            }) { opened in
+            }) { opened in Group {
                 NavigationStack {
                     ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator,
                         hostApplication: hostApplication, onConfirmedChange: { result in
@@ -53,6 +63,7 @@ struct ClubOperationsEntryButton: View {
                             pendingWelcomeReturn = result
                         })
                 }.id(opened.id)
+            }.cySheet(detents: [.large])
             }
             .onChange(of: identity) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
             .onChange(of: ObjectIdentifier(access)) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
@@ -71,6 +82,7 @@ struct ClubOperationsWorkspaceView: View {
     var onWelcomeConfirmedChange: ((ClubWelcomeNoteConfirmedReturn) -> Void)? = nil
     var onEnterClubManagement: ((ClubCreateToManageDestination) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
     @StateObject private var profileChoice = ClubProfileChoiceController()
@@ -172,9 +184,22 @@ struct ClubOperationsWorkspaceView: View {
     var body: some View {
         Form {
             if loading { ProgressView().accessibilityIdentifier("club.ops.loading") }
-            if identity == nil { Text("club.ops.signedOut") }
+            // CLB-create-03 (MP create wxml:16-28): guest → 登录; a failed check → 重新检查.
+            if identity == nil {
+                CYEmptyState(systemImage: "person.crop.circle", "club.ops.signedOut",
+                             actionTitle: rootTabSwitch.isAvailable ? "club.host.signIn.action" : nil,
+                             actionIdentifier: "club.ops.signIn", actionStyle: .primary,
+                             action: rootTabSwitch.isAvailable ? { dismiss(); rootTabSwitch(.mine) } : nil)
+                    .listRowBackground(Color.clear)
+            }
             else if !access.isConfigured { Text("club.ops.unavailable") }
-            if let errorKey { Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error") }
+            if let errorKey {
+                Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
+                if !loading, identity != nil {
+                    Button("club.ops.recheck") { Task { await load() } }
+                        .accessibilityIdentifier("club.ops.recheck")
+                }
+            }
             if let serverMessage { Text(verbatim: serverMessage).textSelection(.enabled) }
             if let snapshot, !(target == .create && isCreateOutcomeUnknown) { content(snapshot) }
             if target == .create, case .outcomeUnknown = state, !loading, scenePhase == .active, let identity, access.identity == identity, access.isConfigured, case .outcomeUnknown = coordinator.state(target: .create), case .received = coordinator.readback(target: .create) {
@@ -218,13 +243,14 @@ struct ClubOperationsWorkspaceView: View {
             if !profileDraftEnabled { Text("club.ops.discardMessage") }
             else { Text("localDraft.closeMessage", tableName: "ClubProfileLocalDraft") }
         }
-        .sheet(item: $review, onDismiss: cancelReview) { pending in
+        .sheet(item: $review, onDismiss: cancelReview) { pending in Group {
             NavigationStack {
                 ClubOperationsReviewView(review: pending, canSubmit: coordinator.writeAvailability != .unverified, isExample: coordinator.writeAvailability == .syntheticOnly, onCancel: cancelReview) {
                     review = nil; state = .preflighting
                     Task { await confirm(pending) }
                 }
             }.interactiveDismissDisabled(state == .preflighting || state == .submitting)
+        }.cySheet(detents: [.large])
         }
         .background {
             if let session = profileChoice.session {
@@ -280,14 +306,14 @@ struct ClubOperationsWorkspaceView: View {
         let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
         return layout {
             Image(systemName: "person.3.fill")
-                .font(.title2).foregroundStyle(CYColor.textSecondary)
+                .cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)  // CLB-edit-06
                 .frame(width: 56, height: 56)
-                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: club.name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 if let city = club.city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(verbatim: city).font(.subheadline).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: city).cyText(.body).foregroundStyle(CYColor.textSecondary)
                 }
                 CYStatusChip(club.isOwner ? "club.ops.owner" : "club.ops.administrator", systemImage: club.isOwner ? "crown" : "person.badge.key")
             }
@@ -295,8 +321,8 @@ struct ClubOperationsWorkspaceView: View {
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
+        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYColor.borderSubtle))
         .accessibilityElement(children: .combine)
         .questifyCardListRow()
     }
@@ -410,6 +436,7 @@ struct ClubOperationsWorkspaceView: View {
                 NavigationLink {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
+                        .environment(\.clubProfileDraftFlow, profileDraft)
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
@@ -491,10 +518,17 @@ struct ClubOperationsWorkspaceView: View {
     }
     @ViewBuilder private var postCreateManagementClosure: some View {
         let flow = createToManageFlow
+        // CLB-create-02 (MP create wxml:29-31): 俱乐部已创建, then 名称 · 城市; semantic type, no raw headline.
         Text(LocalizedStringKey(Self.createStatusKey(flow.blockReason)))
-            .font(flow.canEnterManagement ? .headline : .body)
+            .cyText(flow.canEnterManagement ? .cardTitle : .body)
             .foregroundStyle(flow.canEnterManagement ? .primary : .secondary)
             .accessibilityIdentifier("clubCreateManage.status")
+        let createdFacts = [draft.name, draft.city].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        if flow.canEnterManagement, !createdFacts.isEmpty {
+            Text(verbatim: createdFacts.joined(separator: " · "))
+                .cyText(.meta).foregroundStyle(.secondary)
+                .accessibilityIdentifier("clubCreateManage.facts")
+        }
         Button {
             if let destination = Self.performEnterClubManagement(
                 access: access,
@@ -1108,7 +1142,7 @@ private struct ClubOperationsProfileForm: View {
     @ViewBuilder private var createDirectionSection: some View {
         // HANDOFF-R1 MC-10: direction chips (multi, at most 3); a fourth tap only shows the limit note.
         Section {
-            ClubR1WrapLayout(spacing: CYSpacing.s2_5) {
+            ClubR1WrapLayout(spacing: CYSpacing.md) {
                 ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
                     let selected = draft.activityPrefs.contains(value)
                     ClubR1Chip(title: Text(LocalizedStringKey("club.ops.value." + value)), isSelected: selected) {
@@ -1247,7 +1281,7 @@ private struct ClubOperationsProfileForm: View {
     @ViewBuilder private var editSections: some View {
         Section("club.ops.basics") {
             // cy-scene-club-edit admin-note: administrators may only edit display information.
-            if !isOwner { Text("club.ops.adminNote").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
+            if !isOwner { Text("club.ops.adminNote").cyText(.meta).foregroundStyle(.secondary).accessibilityIdentifier("club.ops.adminNote") }
             field("name", text: $draft.name)
             field("city", text: $draft.city)
             field("keywords", text: $draft.keywords)
@@ -1264,7 +1298,7 @@ private struct ClubOperationsProfileForm: View {
             // Locked card instead of disabled toggles, echoing the current owner-only values.
             Section("club.ops.signupSettings") {
                 Text("club.ops.locked.title").cyText(.bodyMedium)
-                lockedCurrent.font(.footnote).accessibilityIdentifier("club.ops.locked.current")
+                lockedCurrent.cyText(.meta).accessibilityIdentifier("club.ops.locked.current")
             }
         } else {
             Section("club.ops.signupSettings") {
@@ -1282,8 +1316,12 @@ private struct ClubOperationsProfileForm: View {
                     .accessibilityIdentifier("club.ops.joinPolicy")
                 }
                 LabeledContent {
-                    field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing).frame(maxWidth: 96)
+                    // CLB-edit-08 (MP edit wxml:138): the quota reads with its unit 「个」.
+                    HStack(spacing: CYSpacing.xs) {
+                        field("quota", text: $draft.memberReservedQuota).keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing).frame(maxWidth: 96)
+                        Text("club.ops.quotaUnit").foregroundStyle(.secondary)
+                    }
                 } label: {
                     Text("club.ops.quota").accessibilityIdentifier("clubQuota.visibleLabel")
                 }
@@ -1331,7 +1369,7 @@ private struct ClubOperationsProfileForm: View {
                               axis: axis)
             .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
-        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(spacing: 2) {
                 Text(labelKey)
                 if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }

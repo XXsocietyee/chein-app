@@ -44,6 +44,7 @@ import Foundation
               now().timeIntervalSince(review.createdAt) >= 0, now().timeIntervalSince(review.createdAt) <= 120,
               let credential = client.credentials(), credential.session == review.session, let journal else { return .notSent }
         let descriptor = descriptor(review.action)
+        if descriptor.path == "api/activity/cancel", !ReleaseMoneyWriteSwitch.isEnabled(.hostCancelRefund) { return .notSent }
         guard client.permits(descriptor.path, grant: descriptor.grant, credential: credential) else { return .notSent }
         busy = true; defer { busy = false }
         let record = OperationPendingRecord(operationID: review.id, ownerKey: review.session.storageKey, targetKey: "publisherLifecycle:\(review.authority.resource.id)")

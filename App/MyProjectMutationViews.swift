@@ -54,7 +54,7 @@ import QuestifyCore
             case .unavailable:
                 Label(W8Text.t("暂未开放：此操作暂时无法在 App 内完成。", "Not available yet: this action can't be done in the app yet."),
                       systemImage: "exclamationmark.circle")
-                    .font(CYTypography.body)
+                    .cyText(.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("myProject.mutation.unavailable")
@@ -86,6 +86,7 @@ import QuestifyCore
     }
 
     private var confirmationText: String {
+        if let text = model.confirmationText, !text.isEmpty { return text }
         if case .awaitingConfirmation(let mutation) = model.state { return mutation.confirmationMessage ?? "" }
         return ""
     }

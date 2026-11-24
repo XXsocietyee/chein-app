@@ -254,7 +254,7 @@ struct AlbumKitFixture: View {
                             .frame(height: 200).cyFoilSheen(trigger: flipped ? 0 : 1)
                     } back: {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text(verbatim: "NO. 0041").font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: "NO. 0041").cyText(.caption).monospaced().foregroundStyle(CYColor.textTertiary)
                             Text(verbatim: "Old Town tea house").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             CYFactRow(label: Text(verbatim: "Collected on"), value: AlbumFixtures.stamp(daysAgo: 1).prefix(10).description)
                             Spacer(minLength: 0)

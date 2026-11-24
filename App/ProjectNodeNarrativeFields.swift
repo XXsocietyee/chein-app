@@ -120,32 +120,35 @@ struct ProjectNodeNarrativeHostIdentity: Hashable {
         }, set: { next in
             if next == nil, let original { controller.close(original) }
         })) { value in
-            NavigationStack {
-                Form {
-                    if controller.isCurrent(value) {
-                        Section { Text(verbatim: value.name) }
-                        Section("projectNodeNarrative.title") {
-                            TextField("projectNodeNarrative.title", text: controller.binding(value), axis: .vertical)
-                                .lineLimit(6...16).accessibilityIdentifier("projectNodeNarrative.text")
-                            if controller.text.utf16.count > ProjectNodeNarrative.maximumLength {
-                                Text("projectNodeNarrative.tooLong").accessibilityIdentifier("projectNodeNarrative.tooLong")
+            Group {
+                NavigationStack {
+                    Form {
+                        if controller.isCurrent(value) {
+                            Section { Text(verbatim: value.name) }
+                            Section("projectNodeNarrative.title") {
+                                TextField("projectNodeNarrative.title", text: controller.binding(value), axis: .vertical)
+                                    .lineLimit(6...16).accessibilityIdentifier("projectNodeNarrative.text")
+                                if controller.text.utf16.count > ProjectNodeNarrative.maximumLength {
+                                    Text("projectNodeNarrative.tooLong").accessibilityIdentifier("projectNodeNarrative.tooLong")
+                                }
                             }
+                            if controller.saveUnconfirmed { Section { Text("projectNodeNarrative.saveUnconfirmed") } }
+                        } else { Text("projectNodeNarrative.stale").accessibilityIdentifier("projectNodeNarrative.stale") }
+                    }.modifier(ProjectEditorFormSurface())
+                    .navigationTitle("projectNodeNarrative.title").navigationBarTitleDisplayMode(.inline)
+                    .scrollDismissesKeyboard(.interactively)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("projectNodeNarrative.cancel") { controller.close(value) }
                         }
-                        if controller.saveUnconfirmed { Section { Text("projectNodeNarrative.saveUnconfirmed") } }
-                    } else { Text("projectNodeNarrative.stale").accessibilityIdentifier("projectNodeNarrative.stale") }
-                }.modifier(ProjectEditorFormSurface())
-                .navigationTitle("projectNodeNarrative.title").navigationBarTitleDisplayMode(.inline)
-                .scrollDismissesKeyboard(.interactively)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("projectNodeNarrative.cancel") { controller.close(value) }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("projectNodeNarrative.save") { controller.save(value) }
-                            .disabled(!controller.canSave(value)).accessibilityIdentifier("projectNodeNarrative.save")
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("projectNodeNarrative.save") { controller.save(value) }
+                                .disabled(!controller.canSave(value)).accessibilityIdentifier("projectNodeNarrative.save")
+                        }
                     }
                 }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onDisappear { controller.retire() }
     }

@@ -35,7 +35,10 @@ struct ProjectEditPreparedReviewLease: Equatable {
         content.sheet(item: Binding<ProjectEditConfirmation?>(get: {
             guard let value = model.confirmation, model.reviewIsCurrent(value) else { return nil }; return value
         }, set: { next in if next == nil, let original { model.cancelReview(original) } })) { value in
-            ProjectEditPreparedReviewDestination(model: model, original: value)
+            Group {
+                ProjectEditPreparedReviewDestination(model: model, original: value)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }

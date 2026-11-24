@@ -43,6 +43,7 @@ import SwiftUI
             }
         }
         .appNavigationTitle("topicXcx.records.title")
+        .navigationBarTitleDisplayMode(.inline)
         .task(id: reader.scope) { await load(reset: true) }
         .accessibilityIdentifier("topic.records")
         .cyDomainScreen(.player)

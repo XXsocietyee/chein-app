@@ -81,7 +81,8 @@ enum ReviewedAreaSwitch {
 
     static func releaseMoneyDerivation(_ kind: ReleaseMoneyWriteKind, host: String?) -> Bool {
         switch kind {
-        case .payment: return moneyPayments(host: host)
+        // Owner 2026-11-24 (D2): refunds and host-cancel refunds count as money, so they share the payment gate.
+        case .payment, .refund, .hostCancelRefund: return moneyPayments(host: host)
         case .payout, .withdrawal: return payout(host: host)
         case .virtualGoods: return false
         }

@@ -37,7 +37,8 @@ import SwiftUI
                 authoringCompletion: session.templateAuthoringCompletionContext,
                 publishDestination: {
                     AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch))
-                }
+                },
+                searchDestination: { AnyView(SessionLinkedSearchView().environmentObject(session)) }
             )
             .id(session.templateAuthoringViewIdentity)
         case "pages/templatedetail/topic-preview/index", "pages/templatedetail/topic-detail/index":
@@ -84,15 +85,18 @@ import SwiftUI
             switch PlayRuntimeAuxiliaryBinding.resolveCircleRetirement(query: query) {
             case .missingParameter:
                 PlayCircleRetiredLinkView(goHome: { session.dismissNativeEntry() })
-            case .redirectToPlay(let scope, _, _, _):
-                SessionPlayRuntimeView(session: session, destination: .journey(scope))
+            case .redirectToPlay(let scope, _, let inviteCode, let registrationID):
+                SessionPlayRuntimeView(session: session, destination: .journey(scope), inviteCode: inviteCode, registrationID: registrationID)
             }
         case "pages/play/index":
             // PLAY-10: shared / redirected play links (topicId or activityId).
+            // PLAYC-r7-1: carry inviteCode / registrationId (MP play/index.js:673, 701), validated like the circle link.
+            let invite = playLinkInviteCode(query)
+            let registration = positiveID(query["registrationId"] ?? query["regId"])
             if let id = positiveID(query["activityId"]) {
-                SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)))
+                SessionPlayRuntimeView(session: session, destination: .journey(.activity(id)), registrationID: registration)
             } else if let id = positiveID(query["topicId"]) {
-                SessionPlayRuntimeView(session: session, destination: .journey(.topic(id)))
+                SessionPlayRuntimeView(session: session, destination: .journey(.topic(id)), inviteCode: invite, registrationID: registration)
             } else { unavailable }
         case "pages/activity/detail/index":
             if let id = reviewedID(query) {
@@ -101,15 +105,17 @@ import SwiftUI
         case "pages/activity/baoming/baoming":
             // PC-C-2 routing: MP baoming is the registration step of one activity; land on its detail with the sheet open.
             if let id = reviewedID(query, key: "activityId") {
-                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true)
+                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true,
+                                   registrationTicketID: positiveID(query["ticketId"]))
             } else { unavailable }
         case "pages/activity/official-organizer/index":
             if let id = reviewedID(query), let access = session.officialActionCoordinator?.organizer {
                 OfficialOrganizerConsoleView(eventID: id, access: access)
             } else { unavailable }
         case "pages/activity/list/index":
+            // R7-PC-C3-1: pushed into the caller's stack; system back, no extra 关闭.
             OfficialEventsBrowserView(reader: session.officialEventReader, actions: session.officialActionCoordinator,
-                                      onClose: { session.dismissNativeEntry() }, onLogin: signIn)
+                                      onClose: nil, onLogin: signIn)
         case "pages/activity/official-detail/index":
             if let id = reviewedID(query) {
                 // PC-C-4-5: guests get a working 登录; THEME missions open their topic (same wiring as 首页).
@@ -117,9 +123,10 @@ import SwiftUI
                                         topicLinks: OfficialTopicLinks(reader: session.topicReader, destination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }))
             } else { unavailable }
         case "pages/activity/official-inbox/index":
-            OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
+            // R7-PC-C5-1: guests get a 登录 button, as on the MP.
+            OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
         case "pages/activity/official-mine/index":
-            OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
+            OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
         case "subpackageA/pages/infomation/infomation":
             // PC-D-2-1: the mode cards keep their 去看看 (MP switchTab to 首页 / 漫游).
             SocialPlayGuideView(reader: session.socialAccountReader,
@@ -128,13 +135,19 @@ import SwiftUI
                                     rootTabSwitch(destination == .roam ? .roam : .home)
                                 } : nil,
                                 templateReader: session)
+            // R7-PC-D2-1: 去发布广场 / 更多玩法 leave this entry for the 发布 tab, like the mode cards.
+            .environment(\.rootTabSwitch, rootTabSwitch.isAvailable ? RootTabSwitch { tab in
+                session.dismissNativeEntry()
+                rootTabSwitch(tab)
+            } : .unavailable)
         case "subpackageA/pages/infomationdetail/infomationdetail":
             if let id = reviewedID(query) {
                 SocialInformationView(id: id, reader: session.socialAccountReader)
             } else { unavailable }
         case "subpackageA/pages/assetcenter/income-detail/income-detail":
             // PC-D-4-1: no coop-finance grant on this host, so no 主办分润 button (same as SessionWalletCommerceView).
-            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false)
+            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false,
+                             merchantView: query["theme"] == "merchant")
         case "subpackageA/pages/assetcenter/earnings/index":
             SessionWalletCommerceView().environmentObject(session)
         case "subpackageA/pages/assetcenter/analysis/index":
@@ -165,7 +178,9 @@ import SwiftUI
         case "subpackageRoam/citynode-code/index":
             RoamCityVoucherCodeView(poiID: positiveID(query["poiId"]), name: query["name"])
         case "subpackageP3/pages/stamp-album/index/index":
-            RoamStampAlbumView(reader: session.roamExperienceReader)
+            // SALBUM-r7-1: the session camera, so 打开集邮相机 is not the disabled bare camera.
+            RoamStampAlbumView(reader: session.roamExperienceReader,
+                               stampDestination: { [session] in AnyView(SessionRoamStampCameraView().environmentObject(session)) })
         case "subpackageP3/pages/badge-wall/index/index":
             ObjectBadgeWallView(reader: session.profileReader, media: session.makeObjectCardImageLoader())
         case "subpackageP3/pages/object-cards/index/index":
@@ -189,15 +204,38 @@ import SwiftUI
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/topic/merchantapply/index":
-            // The application form lives on the topic's chapters screen (MerchantContentEditor is presented from there).
-            if let topicID = reviewedID(query, key: "topicId") {
+            // R7-PC-B3-5: MP merchantapply with a registration `id` edits it; with `topicId` + `nodeId` it is the 承接 form
+            // for that node. A bare `topicId` keeps the chapters screen the form is opened from.
+            if let registrationID = reviewedID(query) {
+                MerchantContentEditView(service: session.merchantContentService, query: .registration(id: registrationID), kind: .registrationEdit(registrationID))
+                    .cyPushedChrome()
+            } else if let topicID = reviewedID(query, key: "topicId"), let nodeID = reviewedID(query, key: "nodeId") {
+                MerchantContentEditView(service: session.merchantContentService, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: nodeID))
+                    .cyPushedChrome()
+            } else if let topicID = reviewedID(query, key: "topicId") {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: topicID))
                     .cyPushedChrome()
             } else { unavailable }
-        case "pages/topic/pricing/index", "pages/topic/pricing/partner/index":
+        case "pages/topic/pricing/partner/index":
+            // R7-PC-B5-1 (P0): MP partner page (`topicId`, `toType`, `toId`) — the partner's terms, not the pricing page.
+            if let topicID = reviewedID(query, key: "topicId"), let context = session.publisherLifecycleContext,
+               let row = PublisherPartnerLink.lineup(type: query["toType"], id: reviewedID(query, key: "toId")) {
+                PublisherPartnerView(topicID: topicID, row: row, client: context.client)
+                    .environment(\.topicLineupClubDestination, { clubID in
+                    AnyView(MPReviewedPageScreen(page: "pages/club/detail/index", query: ["id": String(clubID)]).environmentObject(session))
+                })
+                .environment(\.topicLineupMerchantDestination, { memberID in
+                    guard let owner = PublicMerchantOwnerID(memberID) else { return AnyView(EmptyView()) }
+                    return AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
+                })
+            } else { unavailable }
+        case "pages/topic/pricing/index":
             // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
             if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
                 PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
+                    .environment(\.pricingChapterProjectDestination, { topicID in
+                    AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
+                })
             } else { unavailable }
         case "pages/publish/fabu/index", "pages/publish/topicadd/topicadd":
             topicEditor
@@ -226,7 +264,8 @@ import SwiftUI
         case "pages/club/detail/index":
             // MP detail onLoad: `tab` = manage | overview; `owner` without an id resolves my own club.
             if let id = reviewedID(query) {
-                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil })
+                clubDetail(id, tab: ClubDetailTab(rawValue: query["tab"] ?? "").flatMap { [.manage, .overview].contains($0) ? $0 : nil },
+                           postID: positiveID(query["postId"]))
             } else if query["owner"] != nil { ownedClubs } else { unavailable }
         case "pages/club/workbench/index":
             // CLB-workbench-01/02: the workbench is the club page's 管理 tab; no id → my own club.
@@ -256,6 +295,8 @@ import SwiftUI
         case "pages/club/group-code/index":
             if let activity = queryID(query, "activityId") {
                 clubGovernance { g in ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: .init(topicID: queryID(query, "topicId"), activityID: activity)), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+            } else if let topic = queryID(query, "topicId") {
+                clubRead(.topicOverview, .init(clubID: queryID(query, "clubId"), topicID: topic), needsClub: false)
             } else { unavailable }
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
@@ -273,18 +314,45 @@ import SwiftUI
             // MP governance onLoad (ClubGovernanceEntryRoute): manage → the governance workspace; report / appeal → 我的平台工单.
             switch ClubGovernanceEntryRoute.resolve(query) {
             case .success(let route):
-                if case .manage = route.mode {
-                    clubGovernance { g in ClubGovernanceWorkspaceView(clubID: route.clubID, identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
-                } else { clubRead(.cases, .init(clubID: route.clubID), needsClub: true) }
+                // CLB-governance-11 (MP governance js:197-228): report opens the report form seeded with its target and
+                // label; manage opens 成员治理 (the ban list and member actions); appeal opens the cases.
+                switch route.mode {
+                case .manage:
+                    clubRead(.bans, .init(clubID: route.clubID), needsClub: true)
+                case .report(let type, let targetID, let label):
+                    clubGovernance { g in
+                        ClubGovernanceCommandForm(route: .init(operation: .report, scope: .init(clubID: route.clubID),
+                                                               seed: ["targetType": .string(type.rawValue), "targetId": .integer(targetID),
+                                                                      "targetName": .string(label)]),
+                                                  identity: session.clubIdentity, access: g.access, coordinator: g.coordinator)
+                    }
+                case .appeal:
+                    clubRead(.cases, .init(clubID: route.clubID), needsClub: true)
+                }
             case .failure: unavailable
             }
         case "pages/club/roles/index":
             clubRead(.roles, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
+        case "pages/topic/catalog/index":
+            // A canonical id is the topic screen. Every other catalog link, including a non-canonical id, is home.
+            if let link = MiniProgramPageLink(path: page, query: query), case .topic(let id) = link.catalogDestination {
+                SessionTopicDetailView(id: id, session: session)
+            } else if rootTabSwitch.isAvailable {
+                MPTabHandoff { session.dismissNativeEntry(); rootTabSwitch(.home) }
+            } else {
+                SessionHomeFeedView().environmentObject(session)
+            }
         case "pages/topic/index/index":
-            if let id = reviewedID(query) { SessionTopicDetailView(id: id, session: session) } else { unavailable }
-        case "pages/templatedetail/templatedetail":
-            // PC-A-6-2: the link opens the template with 应用, as in-app entries do.
             if let id = reviewedID(query) {
+                let preferSession = MiniProgramPageLink(path: page, query: query)?.opensSessionPickerFirst == true
+                SessionTopicDetailView(id: id, session: session, preferSession: preferSession)
+            } else { unavailable }
+        case "pages/templatedetail/templatedetail":
+            // R7-PC-A6-1: MP `scope=my` is the viewer's own template (member read), never the public `api/template/info`.
+            if query["scope"] == "my", let id = positiveID(query["id"]).flatMap(MemberPlayTemplateID.init(rawValue:)) {
+                SessionOwnedMemberTemplateDetailView(id: id).environmentObject(session)
+            // PC-A-6-2: the link opens the template with 应用, as in-app entries do.
+            } else if let id = reviewedID(query) {
                 DiscoveryTemplateDetailView(id: id, reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) },
                                             authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext)
                     .id(session.templateAuthoringViewIdentity)
@@ -294,11 +362,15 @@ import SwiftUI
                 SquareDetailView(id: id, reader: session.squareReader, accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
             } else { unavailable }
         case "subpackageMember/orderinfo/orderinfo":
+            // R7-MEM-17-1: the same lifecycle coordinator and ticket reader as 我的订单, so cancel / refund and 查看票 stay.
             if let id = reviewedID(query) {
-                ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
-                    .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
+                SessionOwnedOrderDetailView(session: session, id: id)
+            } else if let outTradeNo = query["outTradeNo"] {
+                // FIN-17-6: MP orderinfo.js:7-15 opens the order-center entry prefilled; without the G2 grant, 我的订单.
+                if let service = CreatorEditorProduction.orderCenter(session: session) {
+                    OrderCenterEntryView(model: OrderCenterEntryModel(service: service), initialOutTradeNo: outTradeNo)
+                } else { SessionOwnedOrdersView(session: session) }
             }
-            else if query["outTradeNo"] != nil { SessionOwnedOrdersView(session: session) }
             else { unavailable }
         case "pages/merchant/index/index":
             SessionMerchantOverviewView(session: session)
@@ -311,6 +383,38 @@ import SwiftUI
             SessionLinkedSearchView(initialQuery: MPSearchLinkQuery.mapQuery(query["params"]), startsOnMap: true, onSignIn: signIn).environmentObject(session)
         // Parity X2 / batch A #10 / batch D #6: merchant and coop MP paths open their native screens instead of
         // 该页面暂未开放 (query-free forms; the link rules still reject unknown keys).
+        case "pages/merchant/profile/index":
+            // MC7-03-2 (profile/index.js:39-64): ?id= is the legacy merchant row; poiId (MC-G03, Gemini) and both/neither
+            // stay on the invalid state.
+            if query["poiId"] == nil, let id = reviewedID(query), let row = PublicMerchantRowID(id) {
+                PublicMerchantHomeView(target: .legacyMerchantRowID(row), context: session.publicMerchantHomeContext)
+                    .cyPushedChrome()
+            } else { unavailable }
+        case "pages/merchant/ledger/index":
+            MerchantLedgerSettlementOverview(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                             topicID: MerchantFinanceRoute.normalize(query)?.topicID)
+                .cyPushedChrome(domain: .merchant)
+        case "pages/merchant/ledger/order-detail/index":
+            if let record = MerchantOrderDetailLink.record(query) {
+                MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal,
+                                     query: .redemption(recordID: record.recordKey))
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantMissingParamState(title: LocalizedStringKey(MerchantOrderDetailLink.missing))
+            }
+        case "pages/coop/settlement-detail/index":
+            CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: query)
+        case "pages/merchant/ledger/batch-detail/index":
+            // MC7-08-5 (batch-detail/index.wxml:52): ?batchId= opens the batch; without it 缺少结算批次信息 + 返回上一页.
+            // The link rule must also accept batchId (Cursor, Core/MiniProgramPageLink.swift).
+            if let batchID = queryID(query, "batchId") {
+                MerchantLedgerBatchDetailView(reader: session.merchantBusinessReader, batchID: batchID,
+                    owner: .init(scope: session.merchantBusinessReader.scope, authorizationGeneration: session.merchantBusinessReader.authorizationGeneration),
+                    onReturn: {})
+                    .cyPushedChrome(domain: .merchant)
+            } else {
+                MerchantMissingParamState(title: "merchant.gate.batch.missingParam")
+            }
         case "pages/merchant/apply/index":
             MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
         case "pages/merchant/verify-records/index":
@@ -326,9 +430,24 @@ import SwiftUI
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
-            // B-SZ-12: `?scene=settings-deregister` opens 账号注销; the other scenes open Settings itself.
+            // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
+            // unavailable scenes (and settings-identity-picker, whose entries live on Settings) open Settings itself.
             if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
+            } else if query["scene"] == "settings-profile", session.account != nil {
+                ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,
+                                currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader,
+                                savedMedia: session.profileSavedMediaReaders)
+            } else if query["scene"] == "settings-feedback" {
+                ProfileComplaintDeepLinkScreen(session: session)
+            } else if query["scene"] == "settings-likes" {
+                MPFavoritesLinkHost(session: session)
+                    .id(session.profileFavoritesReader.scope)
+            } else if query["scene"] == "settings-how-to-play" {
+                ProfileGuideHost(reader: session.makeProfileGuideReader(),
+                                 makeArticleReader: { session.makeProfileGuideArticleReader($0) },
+                                 onOpenDestination: nil, templateReader: session)
+                    .id(session.socialAccountReader.identity)
             } else {
                 // Settings reads the unread badge owner (NativeChannelNotificationSettingsEntry); the link sheet sits
                 // outside the root's badge lifecycle, so it carries its own (no push binding, reads only).
@@ -340,6 +459,14 @@ import SwiftUI
             if let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .marketing, market: session.operationalMarket,
                                        legalReader: session.legalReader, showsCloseButton: false)
+            } else if session.account == nil {
+                // B-MK-07-r7: MP marketing/index.wxml:3 login gate — a signed-out link says so and offers 登录.
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "compliance.marketing.signedOut",
+                             messageIdentifier: "compliance.marketing.signedOut",
+                             actionTitle: openSignIn == nil ? nil : "compliance.marketing.signIn",
+                             actionIdentifier: "compliance.marketing.signIn", actionStyle: .primary, action: openSignIn)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .cyPageTitle("compliance.marketing")
             } else { unavailable }
         case "pages/gerenziliao/gerenziliao":
             // JSEAT-3: the lobby's 编辑 opens the same own-profile editor as 我的 → 编辑资料.
@@ -351,10 +478,8 @@ import SwiftUI
             } else { unavailable }
         case "pages/mylike/mylike":
             // A6 / X1: 我的收藏 from a link, with the same readers the 我的 page passes.
-            AccountCollectionFavoritesView(reader: session.profileFavoritesReader, onOpenTopic: { _ in },
-                                           favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope),
-                                           communityGate: session.squareReader)
-                .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+            // A4-09-r7: topic and post taps use the same favourite navigation owners as 我的 (AccountView).
+            MPFavoritesLinkHost(session: session)
                 .id(session.profileFavoritesReader.scope)
         case "pages/addressinfo/addressinfo":
             // X1: the participant form; `?id=` edits that participant.
@@ -371,7 +496,8 @@ import SwiftUI
             // A5-02: the link gets the same coordinator as 我的 › 参与人信息, so add / edit / delete stay available.
             ProfileParticipantsView(reader: session.participantReader, coordinator: session.participantCoordinator)
         case "subpackageMember/order/order":
-            SessionOwnedOrdersView(session: session)
+            if session.account?.effectiveRole == "merchant" { SubscribeMessageProjectsEntry(session: session) }
+            else { SessionOwnedOrdersView(session: session) }
         case "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo", "subpackageMember/signupInfo2/signupInfo2":
             // One shared wallet host: 开始游戏, pending orders, sign-in; `focusId` lands on that registration.
             SessionTicketWalletHost(isPushed: true, focusTopicID: reviewedID(query, key: "topicId"),
@@ -386,17 +512,25 @@ import SwiftUI
         case "subpackageMember/mycanyu/mycanyu":
             SessionPlayerJourneyView(destination: .participations).environmentObject(session)
         case "subpackageMember/myinvite/myinvite":
-            SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator)
+            SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, onSignIn: openSignIn)
         case "subpackageMember/report-mine/index":
             SquareReportProgressView(session: session)
         case "subpackageMember/appeal-mine/index":
             MemberScoreAppealListView(session: session)
         case "subpackageMember/invoice/index":
-            invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+            // FIN-11-1: `invoice/index?id=` opens that application (MP invoice/index.js onLoad); the bare path is the history list.
+            if let id = reviewedID(query) {
+                invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
+            } else {
+                invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+            }
         case "subpackageMember/invoice-detail/index":
             if let id = reviewedID(query) {
                 invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
-            } else { unavailable }
+            } else {
+                // R7-MEM-12-1: MP `cy-empty kind="missing-param"` + 返回, not the generic unavailable placeholder.
+                MemberMissingLinkState(identifier: "invoiceDetail.missing")
+            }
         case "subpackageMember/invoice-apply/index":
             invoice { InvoiceLaunchApplyView(model: $0, onSignIn: signIn) }
         case "subpackageMember/invoice-titles/index":
@@ -406,9 +540,12 @@ import SwiftUI
         case "subpackageMember/points-history/index":
             PassMarketPointsBridge.destination(for: session)()
         case "subpackageMember/coupon-wallet/index", "subpackageMember/coupon-qr/index":
-            // coupon-qr needs the owner-scoped coupon selection to mint a code; the link lands on the wallet,
-            // one tap from the code (the code page itself re-checks the owner).
-            AccountCollectionCouponsView(reader: session.accountCollectionReader)
+            // coupon-qr needs the owner-scoped coupon selection to mint a code. The link lands on the wallet, which
+            // pushes the code once the owner's list holds that history id unused (R7-MEM-9-1); otherwise the list stays.
+            AccountCollectionCouponsView(reader: session.accountCollectionReader,
+                                         focusHistoryID: page.hasSuffix("coupon-qr/index")
+                                            ? (reviewedID(query, key: "couponHistoryId") ?? reviewedID(query, key: "historyId") ?? reviewedID(query))
+                                            : nil)
         case "subpackageMember/free-explore/index":
             freeExplore
         case "subpackageMember/complaint/index":
@@ -423,11 +560,14 @@ import SwiftUI
                 MemberReportProgressDeepLinkScreen(reportID: Int64(id), session: session)
             } else { unavailable }
         case "subpackageMember/coupon/coupon", "subpackageMember/couponInfo/couponInfo":
-            SessionCouponManagementView().environmentObject(session)
+            // R7-MEM-10-1: coupon.js `operationScope = options.scope === 'MERCHANT' ? 'MERCHANT' : ''`.
+            SessionCouponManagementView(scope: query["scope"] == "MERCHANT" ? .merchant : .player).environmentObject(session)
         case "subpackageMember/tixian/tixian":
             WithdrawalSupportLandingView(reader: session.walletHistoryReader)
         case "subpackageMember/tixianjilu/tixianjilu", "pages/coop/withdraw/records/index":
-            WithdrawalHistoryView(reader: session.walletHistoryReader)
+            WithdrawalHistoryView(reader: session.walletHistoryReader,
+                                  domain: page == "pages/coop/withdraw/records/index" ? .merchant : .player,
+                                  onSignIn: openSignIn)
         case "pages/coop/withdraw/index":
             CoopWithdrawNoticeView(isSignedIn: session.account != nil)
         case "pages/userinfo/userinfo":
@@ -466,10 +606,10 @@ import SwiftUI
 
     @Environment(\.clubBadgeHostFactory) private var badgeHost
 
-    private func clubDetail(_ id: Int, tab: ClubDetailTab?) -> some View {
+    private func clubDetail(_ id: Int, tab: ClubDetailTab?, postID: Int? = nil) -> some View {
         ClubDetailView(id: id, reader: session, onSignIn: {}, actionCoordinator: session.clubActionCoordinator,
                        management: session.clubManagementContext, community: session.clubCommunityContext,
-                       publicRoster: session.clubPublicRosterReader, requestedTab: tab)
+                       publicRoster: session.clubPublicRosterReader, requestedTab: tab, focusPostID: postID)
     }
 
     private var ownedClubs: some View {
@@ -612,6 +752,12 @@ import SwiftUI
 }
 
 /// Canonical positive decimal id for a named query key (already checked by `MiniProgramPageLink`).
+/// PLAYC-r7-1: the sanitized `inviteCode` of a play link (same rule as the retired circle link).
+private func playLinkInviteCode(_ query: [String: String]) -> String? {
+    if case .play(_, let inviteCode, _) = PlayCircleLegacyLink.resolve(query) { return inviteCode }
+    return nil
+}
+
 private func positiveID(_ text: String?) -> Int? {
     guard let text, text.utf8.count <= 18, text.utf8.allSatisfy({ (48...57).contains($0) }),
           let value = Int(text), value > 0, String(value) == text else { return nil }
@@ -642,5 +788,53 @@ private struct MPTabHandoff: View {
         Color.clear
             .accessibilityHidden(true)
             .onAppear { guard !done else { return }; done = true; perform() }
+    }
+}
+
+
+/// A4-09-r7: `pages/mylike/mylike` from a link. Same readers, selection guards and destinations as
+/// 我的 › 我的收藏 (AccountView), so 主题 and 帖文 taps open their detail instead of doing nothing.
+@MainActor private struct MPFavoritesLinkHost: View {
+    @ObservedObject var session: AppSession
+    @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
+    @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
+    var body: some View {
+        let reader = session.profileFavoritesReader
+        AccountCollectionFavoritesView(reader: reader, onOpenTopic: { id in
+            guard let selected = reader.selectTopic(id, renderedScope: reader.scope) else { return }
+            _ = savedTopicOwner.open(selected, scope: reader.scope)
+        }, onOpenPost: { route in
+            guard let selected = reader.selectPost(route, renderedScope: reader.scope) else { return }
+            _ = savedPostOwner.open(selected, scope: reader.scope)
+        }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: reader.scope),
+           communityGate: session.squareReader)
+            .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+            .background {
+                ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
+                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id).cyPushedChrome()
+                }
+                ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in
+                    ProfileFavoriteDetailDestination(selection: selected,
+                        makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+                        accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
+                        .id(selected.id)
+                        .cyPushedChrome()
+                }
+            }
+            .onChange(of: session.profileFavoritesReader.scope) { _, scope in
+                savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
+            }
+    }
+}
+
+/// Builds the one lineup row a partner deep link names, through the public pricing-preview decoder (the row init is
+/// Core-internal). `toType` is `club` or `merchant`.
+enum PublisherPartnerLink {
+    static func lineup(type: String?, id: Int?) -> PublisherLineup? {
+        guard let type = type?.trimmingCharacters(in: .whitespacesAndNewlines), ["club", "merchant"].contains(type),
+              let id, id > 0 else { return nil }
+        let row: ProjectEditJSON = .object(["toType": .string(type), "toId": .number(Decimal(id))])
+        return (try? PublisherPricingPreview(.object(["priceMin": .number(0), "lineup": .array([row])])))?.lineup.first
     }
 }

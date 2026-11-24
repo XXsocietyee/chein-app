@@ -11,7 +11,7 @@ import FoundationNetworking
 // PROCESSING, UNKNOWN, MANUAL_PAYOUT and APPROVED are never "refunded".
 
 public enum BundleMoneyWriteGate {
-    /// Hard-closed. This does not read `ReleaseMoneyWriteSwitch`, so flipping that switch does not open a refund POST.
+    /// Hard-closed. A refund POST also requires `ReleaseMoneyWriteSwitch.refundEnabled`, which stays false in Release.
     public static let allowsRefundApply = false
     public static let allowsPayment = false
     public static let allowsPayout = false
@@ -48,7 +48,9 @@ public enum BundleMoneyWriteGate {
     private let onUnauthorized: (FreeExploreLaunchSession) -> Void
     private static let responseCap = 1_048_576
 
-    public var permitsWrites: Bool { isCurrent && writeAllowed() && BundleMoneyWriteGate.allowsRefundApply }
+    public var permitsWrites: Bool {
+        isCurrent && writeAllowed() && BundleMoneyWriteGate.allowsRefundApply && ReleaseMoneyWriteSwitch.isEnabled(.refund)
+    }
     private var isCurrent: Bool { currentSession() == session }
 
     public init(session: FreeExploreLaunchSession, authorization: String, transport: any HTTPTransport,

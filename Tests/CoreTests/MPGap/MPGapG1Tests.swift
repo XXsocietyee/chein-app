@@ -92,7 +92,7 @@ final class MPGapG1Tests: XCTestCase {
             "/api/roam/nearby-runners",
             "/api/comment/delete",
             "/api/merchant/coupon-summary",
-            "/api/report/appeal"
+            "/api/community-trust/reports/appeal"
         ])
     }
 }

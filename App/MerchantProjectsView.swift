@@ -49,10 +49,10 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             .merchantRootHeaderRow()
                     }
                     Section {
-                        if page.hasUnloadedRows { Text("merchant.projects.partial").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                        if page.hasUnloadedRows { Text("merchant.projects.partial").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
                         if let error = model.errorKey {
-                            Text("merchant.stale").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                            Text("merchant.stale").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             MerchantInlineFailure(errorKey: error, retry: { Task { await reload() } })
                         }
                     }
@@ -103,7 +103,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                                 MerchantProjectCardContext(project: project)
                                 if let text = project.startTime, !text.isEmpty {
                                     Label(text, systemImage: "calendar")
-                                        .cyText(.caption)
+                                        .cyText(.meta)
                                         .monospacedDigit()
                                         .foregroundStyle(CYColor.textSecondary)
                                 }
@@ -121,7 +121,7 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                             opsProject = project
                         } label: {
                             Image(systemName: "ellipsis.circle")
-                                .font(CYTypography.sectionTitle)
+                                .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textSecondary)
                                 .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
@@ -314,7 +314,7 @@ private struct MerchantProjectSummary: View {
                     .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
                 Text("merchant.summarySnapshot")
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                 MerchantProjectCardContext(project: project)
                 MerchantCountRow("merchant.recordID", value: project.projectID)
@@ -329,7 +329,7 @@ private struct MerchantProjectSummary: View {
                     CYPillButton("merchant.projectWorkspace.open", style: .primary, action: openWorkspace)
                         .accessibilityIdentifier("merchant.projectWorkspace.open")
                     Text("merchant.projectWorkspace.explanation")
-                        .cyText(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                 }
             }

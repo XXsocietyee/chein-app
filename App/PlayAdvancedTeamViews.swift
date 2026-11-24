@@ -58,7 +58,7 @@ import SwiftUI
             if reviewIssue { CYStatusChip("advancedTeam.reviewChanged", tone: .warning, systemImage: "exclamationmark.triangle").accessibilityIdentifier("advancedTeam.reviewChanged") }
         }
         }.accessibilityIdentifier("advancedTeam.controls")
-        .sheet(item: $review) { captured in
+        .sheet(item: $review) { captured in Group {
             NavigationStack {
                 Form {
                     Section("advancedTeam.review") {
@@ -76,7 +76,7 @@ import SwiftUI
                 }.cyGroupedSurface().cyPageTitle("advancedTeam.review")
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil } } }
             }.privacySensitive()
-        }
+        }.cySheet(detents: [.large]) }
         .onChange(of: model.state?.version) { _, _ in review = nil }
         .onChange(of: model.isCurrent) { _, current in if !current { review = nil } }
         .onChange(of: scenePhase) { _, phase in if phase != .active { review = nil } }

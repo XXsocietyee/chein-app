@@ -111,8 +111,10 @@ public struct MyProjectHTTPMutator: MyProjectMutating {
 
     public func perform(_ request: MyProjectMutationRequest) async -> MyProjectMutationOutcome {
         let relativePath = request.path.hasPrefix("/") ? String(request.path.dropFirst()) : request.path
-        if relativePath == "api/activity/cancel", !(await allowsCancelActivity()) {
-            return .unavailable
+        if relativePath == "api/activity/cancel" {
+            guard await allowsCancelActivity(), ReleaseMoneyWriteSwitch.isEnabled(.hostCancelRefund) else {
+                return .unavailable
+            }
         }
         guard let config = await configuration(), let rawToken = await tokenProvider() else {
             return .unavailable

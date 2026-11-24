@@ -45,6 +45,8 @@ struct ClubManagementView: View {
     @State private var ownerID = UUID()
     @State private var screenIdentity: ClubReadIdentity?
     @State private var reviewReasonDraft = ""
+    /// CLB-join-requests-05 (fix-r3-club-b): the last acknowledged action, for the MP toast 已通过 / 已拒绝.
+    @State private var acknowledgedAction: ClubManagementAction?
 
     var body: some View {
         List {
@@ -110,7 +112,8 @@ struct ClubManagementView: View {
                                     Button {
                                         Task { await prepare(.reject, memberID: request.id, attachment: attachment, source: source) }
                                     } label: { Label { Text(verbatim: clubR1("request.reject", locale)) } icon: { Image(systemName: "xmark") } }
-                                    .tint(CYColor.textTertiary)
+                                    // CLB-join-requests-08 (fix-r3-club-b): a legible danger tint for 拒绝.
+                                    .tint(CYColor.dangerText)
                                 }
                             }
                             .listRowInsets(Self.gutterInsets)
@@ -118,7 +121,7 @@ struct ClubManagementView: View {
                             .listRowSeparator(.hidden)
                         }
                     } header: {
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text("club.management.requests")
                                 .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textPrimary)
@@ -163,8 +166,9 @@ struct ClubManagementView: View {
                         }
                     }
                 }
+                // CLB-join-requests-06 (fix-r3-club-b): pull to refresh is the main path; this stays a secondary pill.
                 Button("club.management.refresh") { Task { await refresh() } }
-                    .buttonStyle(CYPillButtonStyle(style: loadIssue == nil ? .primary : .secondary))
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
                     .accessibilityIdentifier("club.management.refresh")
                     .listRowInsets(Self.gutterInsets)
@@ -176,6 +180,9 @@ struct ClubManagementView: View {
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
         .cyPageTitle("club.management.title")
+        .refreshable { await refresh() }
+        // CLB-join-requests-05 (fix-r3-club-b), MC-21: a handled card slides out when the readback replaces the list.
+        .animation(.easeOut(duration: 0.16), value: snapshot?.requests.map(\.id))
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {
             guard screenContext != readContext || snapshot == nil && state == .idle else { return }
@@ -306,7 +313,7 @@ struct ClubManagementView: View {
     private func requestRow(_ request: ClubManagementRequest) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 ClubOpsJoinRequestRowText(request: request)
                     .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
@@ -340,7 +347,7 @@ struct ClubManagementView: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(alignment: .center, spacing: CYSpacing.md) {
                 personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) {
                         Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     } else {
@@ -411,7 +418,11 @@ struct ClubManagementView: View {
         case .checking, .submitting: ProgressView().accessibilityLabel(Text("club.management.loading"))
         case .notSent: statusLine("club.management.not_sent", symbol: "paperplane")
         case .acknowledged(let receipt):
-            if let message = receipt.message { serverMessage(message) } else { statusLine("club.management.acknowledged", symbol: "checkmark.circle") }
+            if let message = receipt.message { serverMessage(message) }
+            else if !readbackUnavailable, let action = acknowledgedAction, action != .remove {
+                // CLB-join-requests-05: the row has already left (readback); MP toast 已通过 / 已拒绝.
+                statusLine(action == .approve ? "clubR3b.join.approved" : "clubR3b.join.rejected", symbol: "checkmark.circle")
+            } else { statusLine("club.management.acknowledged", symbol: "checkmark.circle") }
         case .rejected(let failure):
             if let message = failure.message { serverMessage(message) } else { statusLine("club.management.rejected", symbol: "xmark.circle") }
             if let row = RequestReferenceRow(pathFragment: "/api/club/") { row }
@@ -429,7 +440,7 @@ struct ClubManagementView: View {
     private func statusLine(_ key: LocalizedStringKey, symbol: String, identifier: String? = nil) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
             Image(systemName: symbol)
-                .font(CYTypography.body.weight(.semibold))
+                .cyText(.body, weight: .semibold)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
             Text(key)
@@ -515,7 +526,12 @@ struct ClubManagementView: View {
             NavigationStack {
                 Form {
                     Section {
-                        CYHeroHeader(LocalizedStringKey("club.management." + pending.action.rawValue))
+                        // CLB-join-requests-09 (fix-r3-club-b): a sheet title, not a 34 pt hero.
+                        Text(LocalizedStringKey("club.management." + pending.action.rawValue))
+                            .cyText(.sheetTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .listRowInsets(Self.gutterInsets)
                     .listRowBackground(Color.clear)
@@ -618,6 +634,8 @@ struct ClubManagementView: View {
         default: break
         }
         if case .acknowledged = state {
+            acknowledgedAction = pending.action
+            CYHaptics.success.play()
             // Navigate back only after a definite server acknowledgement. A failed
             // readback remains visible on the list; it never fabricates new rows.
             selection = nil

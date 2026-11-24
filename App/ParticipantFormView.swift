@@ -200,6 +200,15 @@ struct ParticipantFormView: View {
     @FocusState private var focusedField: ProfileParticipantValidationField?
     let onSaved: () -> Void
     let onCreated: (ProfileParticipant, ProfileReadIdentity) -> Void
+    @State private var savedTick = 0
+    private func requiredLabel(_ key: LocalizedStringKey) -> some View {
+        HStack(spacing: 2) {
+            Text(key)
+            Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text("participant.form.required"))
+    }
 
     init(id: Int? = nil, reader: any ProfileReading, coordinator: ParticipantMutationCoordinator,
          onSaved: @escaping () -> Void = {},
@@ -242,33 +251,33 @@ struct ParticipantFormView: View {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
                 Form {
+                    // Native iOS: the inline nav title is the one title (参与人信息); the purpose line heads the fields.
                     Section {
-                        CYHeroHeader(model.id == nil ? "participant.form.add" : "participant.form.edit", subtitle: "participant.form.purpose")
-                            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                            .listRowBackground(Color.clear)
-                    }
-                    Section {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("profile.participants.name", systemImage: "person").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        // A6-04: MP addressinfo rows are "label * | input" (wxml:18-34): a native labelled row with a
+                        // red required mark, not an icon label stacked over each field.
+                        LabeledContent {
                             TextField("profile.participants.name", text: $model.draft.fullName, prompt: Text("participant.form.namePrompt"))
                             .textContentType(.name).textInputAutocapitalization(.words)
+                            .multilineTextAlignment(.trailing)
                             .submitLabel(.next).focused($focusedField, equals: .name)
                             .onSubmit { focusedField = .phone }
                             .accessibilityIdentifier("participant.form.name")
-                        }
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("profile.participants.phone", systemImage: "phone").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        } label: { requiredLabel("profile.participants.name") }
+                        LabeledContent {
                             TextField("profile.participants.phone", text: $model.draft.mobilePhone, prompt: Text("participant.form.phonePrompt"))
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
+                            .multilineTextAlignment(.trailing)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
                             .onSubmit { focusedField = model.reviewForSave() }
                             .accessibilityIdentifier("participant.form.phone")
-                        }
+                        } label: { requiredLabel("profile.participants.phone") }
                         // Input errors sit in red under the fields (ui-spec States).
                         if let field = model.validationIssue {
                             Text(LocalizedStringKey(field.messageKey)).cyText(.bodyCompact).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
                         }
+                    } header: {
+                        Text("participant.form.purpose").textCase(nil)
                     } footer: {
                         // Phone rule up front, so the red error is never the first time the rule is seen.
                         if model.validationIssue == nil {
@@ -278,6 +287,14 @@ struct ParticipantFormView: View {
                     .disabled(model.operation.preventsNewMutation)
                     if let issue = model.issue {
                         Section { ParticipantIssueText(issue: issue) }
+                    }
+                    if savedTick > 0 {
+                        // A6-05: MP toast 参与人信息已保存 before navigateBack (addressinfo.js:209).
+                        Section {
+                            Label("participant.form.savedToast", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(CYColor.successText)
+                                .accessibilityIdentifier("participant.form.saved")
+                        }
                     }
                     CYScreenOfflineWriteSection(
                         routes: ["/api/user/address/action"],
@@ -311,11 +328,14 @@ struct ParticipantFormView: View {
             }
         }
         .interactiveDismissDisabled(model.busy)
+        .sensoryFeedback(.success, trigger: savedTick)
         .alert("participant.form.confirmSave", isPresented: $model.showConfirmation) {
             Button("participant.form.save") {
                 Task {
                     if await model.confirmMutation() {
                         if let row = model.coordinator.savedParticipant, let identity = model.coordinator.identity { onCreated(row, identity) }
+                        savedTick += 1
+                        try? await Task.sleep(for: .milliseconds(700))
                         onSaved(); dismiss()
                     }
                 }
