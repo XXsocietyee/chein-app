@@ -31,6 +31,7 @@ import SwiftUI
             return .object(["state": .string("NOT_FOUND"), "requestId": .string(requestID), "inviteId": .null, "topicId": .null, "toId": .null, "inviteType": .null, "toType": .null, "scope": .null])
         case .inviteRequests: return .object(["rows": .array([]), "nextCursor": .null, "hasMore": .bool(false)])
         case .supplyStations: return .object(["requiresSupplyStation": .bool(true), "stations": .array([])])
+        case .clubSettlementSummary: return .object(["topics": .array([])])
         }
     }
     func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement {

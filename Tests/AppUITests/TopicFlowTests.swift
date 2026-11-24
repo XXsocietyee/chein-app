@@ -224,8 +224,9 @@ final class TopicFlowTests: XCTestCase {
     func testKnownEmptyTopicReviewsUseChineseEmptyStateWithoutZeroStars() {
         launch("reviewsEmpty", language: "zh-Hans")
         revealAndTap(app.buttons["topic.row.7"])
-        XCTAssertEqual(revealReview("topic.reviews.count").label, "评价总数、0")
+        // P3 / C13: a known zero is said once by the empty line; no 「评价总数 0」 row.
         XCTAssertEqual(revealReview("topic.reviews.empty").label, "这条路线还没有评价。")
+        XCTAssertFalse(app.staticTexts["topic.reviews.count"].exists)
         XCTAssertFalse(app.staticTexts["topic.reviews.average"].exists)
         XCTAssertFalse(app.staticTexts["topic.reviews.averageUnknown"].exists)
         XCTAssertFalse(app.staticTexts["topic.reviews.previewUnavailable"].exists)

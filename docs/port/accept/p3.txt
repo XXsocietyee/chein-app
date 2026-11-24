@@ -1,0 +1,10 @@
+# Port P3 · route detail: fixture screens to screenshot (one fixture route per line; DEBUG launch arguments).
+# Format: <launch arguments>  # <what to check>. Lines starting with # are comments.
+# All data is synthetic (App/TopicFixtureSupport.swift, TopicP3Fixtures); no backend, no remote images.
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # hero, 节点介绍 chapter cards (3 cards, 结局 hidden; 含 3 个玩法 · 约 30 分钟 / 约 15 分钟 / 约 1 分钟), story-only 活动内容
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN scroll:topic.depart.0  # 出发前: 自玩门票 ¥30, Pair ticket ¥49 起 · 2 人同玩一张票, Single ticket ¥29, 含 4 个章节、6 个站点、5 个玩法, 中途可暂停, 勋章, 优惠券, 3 practical notes
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN scroll:topic.chapter.11  # 章节 rows: 时长（分钟）30 (was 1800), no 0 rows; reviews with no 「评价预览」 small print and no 积分 note
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (en) -AppleLocale en_US  # English copy of the chapter cards and Before you go
+--uitesting-module topic --uitesting-topic-scenario routeDetail -AppleLanguages (zh-Hans) -AppleLocale zh_CN tap:topic.chapterCard.11  # card 11 expanded in place (description shown, one open at a time)
+--uitesting-module topic --uitesting-topic-scenario routeDetailSparse -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # 0/empty hiding: no chapter cards, no 出发前, no 商家 0 / 时长 0 rows, no 0 review total
+--uitesting-module topic --uitesting-topic-scenario reviewsEmpty -AppleLanguages (zh-Hans) -AppleLocale zh_CN tap:topic.row.7  # known-empty reviews said once (这条路线还没有评价。), no 评价总数 0

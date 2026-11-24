@@ -332,28 +332,33 @@ struct TopicDetailView: View {
                 }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
-            if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
-            // 主题介绍 + 活动内容 (mini-program `det3` second block): long introduction, then what the activity includes.
-            let includes = TopicXcxFacts.includes(value)
-            if value.introduction != nil || !includes.isEmpty {
+            // P3 mount point for P1's `TopicCastRow` (人物 row, port plan r1 C8). P1 owns the view; P3's final wiring
+            // commit replaces this comment once P1 has merged, e.g.:
+            //   if let cast = value.castConfig, !cast.cast.isEmpty { Section("topic.cast") { TopicCastRow(config: cast) } }
+            // 节点介绍 (MP `det4`, owner 2026-11-19): one card per chapter, endings excluded (port plan r1 C9).
+            TopicChapterCardsSection(cards: TopicChapterCards.cards(chapters: value.chapters, routeCover: value.imageURL))
+            // 活动内容 (MP `det3`, 2026-11-21): the story only. Practical lines from the same text, prices, what is
+            // included, pause/resume and finishing rewards move to 出发前 below (port plan r1 C13).
+            let story = TopicDepartNotes.split(value.introduction).story
+            if !story.isEmpty {
                 Section {
-                    if let introduction = value.introduction {
-                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                            Text("topicXcx.section.contents").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                            Text(verbatim: introduction).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
-                        }
-                    } else if !includes.isEmpty {
-                        Text("topicXcx.section.contents").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-                        TopicXcxIncludes(rows: includes)
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text("topicXcx.section.contents").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                        Text(verbatim: story).cyText(.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                            .accessibilityIdentifier("topic.story")
                     }
                 }
             }
-            if value.startDate != nil || value.endDate != nil || value.merchantCount != nil || value.totalTimeSeconds != nil {
+            TopicDepartSection(items: TopicDepartNotes.items(for: value))
+            // C13 / Q3a: a zero or missing fact is not worth a row (MP hides them too).
+            let merchantCount = value.merchantCount.flatMap { $0 > 0 ? $0 : nil }
+            let durationSeconds = value.totalTimeSeconds.flatMap { $0 > 0 ? $0 : nil }
+            if value.startDate != nil || value.endDate != nil || merchantCount != nil || durationSeconds != nil {
                 Section {
                     if let start = value.startDate { LabeledContent("topic.start", value: start) }
                     if let end = value.endDate { LabeledContent("topic.end", value: end) }
-                    if let count = value.merchantCount { LabeledContent("topic.merchants", value: String(count)) }
-                    if let seconds = value.totalTimeSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
+                    if let count = merchantCount { LabeledContent("topic.merchants") { Text(count, format: .number).monospacedDigit() } }
+                    if let seconds = durationSeconds { LabeledContent("topic.durationSeconds") { TopicXcxDurationText(seconds: seconds) } }
                 }
             }
             if let records = reader as? any TopicThemeRecordsReading {
@@ -464,13 +469,11 @@ struct TopicDetailView: View {
                     }
                 }
             }
+            // C13: the empty state is said once (TopicReviewsContent), with no 0 total and no small print under the
+            // reviews (MP `det6`: 还没有评价 card, else rating + 基于 N 条评论 + list).
             Section("topic.comments") {
-                if (value.commentCount ?? value.comments.count) == 0 {
-                    Text("topicXcx.reviews.emptyTitle").cyText(.cardTitle).accessibilityIdentifier("topic.reviews.emptyPrompt")
-                }
                 CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
-                Text("activity.reviewPointsNote").cyText(.meta).foregroundStyle(CYColor.textTertiary)
             }
             .environment(\.ugcSafetySubjectID, value.id)
             Section {
@@ -484,10 +487,13 @@ struct TopicDetailView: View {
                     } label: {
                         VStack(alignment: .leading) {
                             Text(verbatim: chapter.title)
-                            if let minutes = chapter.totalTimeMinutes {
-                                LabeledContent("topic.durationMinutes", value: String(minutes)).cyText(.meta)
+                            // C9: `totalTime` is seconds; rounded to minutes, else the games' minutes, else hidden.
+                            if let minutes = TopicChapterCards.minutes(chapter) {
+                                LabeledContent("topic.durationMinutes") { Text(minutes, format: .number).monospacedDigit() }.cyText(.meta)
                             }
-                            LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
+                            if !chapter.nodes.isEmpty {
+                                LabeledContent("topic.visibleChapterStops", value: String(chapter.nodes.count)).cyText(.meta)
+                            }
                         }
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }

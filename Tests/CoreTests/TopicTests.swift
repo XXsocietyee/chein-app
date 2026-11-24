@@ -179,7 +179,9 @@ final class TopicTests: XCTestCase {
     func testNestedDetailPreservesOrderAndUnknownAmounts() throws {
         let d = try decode(TopicDetail.self, TopicSyntheticFixtures.detailJSON)
         XCTAssertEqual(d.chapters.map(\.id), [11, 12]); XCTAssertEqual(d.chapters[0].nodes.map(\.id), [21, 22])
-        XCTAssertEqual(d.chapters[0].totalTimeMinutes, 90)
+        // P3 C9: chapter `totalTime` is seconds ("90" → 90 s → about 2 minutes), never 90 minutes.
+        XCTAssertEqual(d.chapters[0].totalTimeSeconds, 90)
+        XCTAssertEqual(TopicChapterCards.minutes(d.chapters[0]), 2)
         XCTAssertEqual(d.chapters[0].nodes[0].images, ["one", "two", "three"])
         XCTAssertNil(d.chapters[0].nodes[0].template?.validationMethod)
         XCTAssertEqual(d.chapters[0].nodes[0].template?.validationMethodText, "Ask the host")

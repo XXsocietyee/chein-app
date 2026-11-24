@@ -26,3 +26,15 @@ public struct IMConversationReplyPolicy: Equatable {
         }
     }
 }
+
+/// OR-023: a system conversation (type 2) is always titled 「城瘾小助手」 (`messaging.system`),
+/// whatever counterparty nickname the list returns. Its reply notice reads
+/// 「城瘾小助手不接收回复」 (`im.reply.systemNotice`, docs/port/strings/p5.json).
+/// Mount hook: `MessagingConversationName` (App/MessagingComponents.swift, not owned by P5)
+/// checks this before the nickname; `MessagingHomeView` search already does.
+public enum IMConversationTitlePolicy {
+    public static let assistantTitleKey = "messaging.system"
+    public static func usesAssistantTitle(_ conversation: MessagingConversation?) -> Bool {
+        conversation?.kind == .system
+    }
+}

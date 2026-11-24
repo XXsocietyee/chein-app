@@ -28,10 +28,16 @@ import SwiftUI
     /// Team run: the shared pool section. Hidden unless the server reports an enabled pool.
     var teamPool: TeamPoolHintModel? = nil
     var approvedArtworkHosts: Set<String> = []
+    /// Called after POOL_TRIM so the host can re-read the trimmed letter pool. Default does nothing.
+    var onPoolTrimmed: () -> Void = {}
+    /// Stage analytics codes. Nil until the play host passes the current node.
+    var analyticsNodeID: Int? = nil
+    var analyticsKit: String? = nil
     let close: () -> Void
     @State private var confirmLevel: Int?
     @State private var confirmSkip = false
     @Environment(\.offlineWriteSession) private var offlineWriteSession
+    @Environment(\.analyticsEventClient) private var analytics
 
     /// Design hand-off r1 PL-15: the hint is a `fit` → `.medium` sheet titled 要点提示吗 (no longer a centred dialog).
     /// The free count is a tag; when the server did not send it, the tag reads "—" with the reason under it.
@@ -72,7 +78,11 @@ import SwiftUI
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("playHelp.panel")
         }
-        .onAppear { model.markSavedRequests() }
+        .onAppear {
+            model.markSavedRequests()
+            PlayStageAnalytics.track(analytics, .hintOpen, nodeID: analyticsNodeID, kit: analyticsKit)
+        }
+        .onChange(of: model.poolTrimGeneration) { _, _ in onPoolTrimmed() }
         .overlay {
             if let level = confirmLevel, let row = model.row(level) {
                 CYModal(
@@ -112,6 +122,7 @@ import SwiftUI
                     onCancel: { confirmSkip = false },
                     onConfirm: {
                         confirmSkip = false
+                        PlayStageAnalytics.track(analytics, .stageSkip, nodeID: analyticsNodeID, kit: analyticsKit)
                         Task {
                             await SessionOfflineSyncModel.shared.performWriteOptIn(
                                 environmentSession: offlineWriteSession.session,

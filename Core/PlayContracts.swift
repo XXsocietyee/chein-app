@@ -79,6 +79,27 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
     /// Retain unknown configuration rather than silently bypassing its prerequisite.
     public let advancedConfig: PlayJSONValue?
     public let externalGame: PlayNodeExternalGameBinding?
+    /// Station photo. Nil when absent. `imgHidden` suppresses it even if a URL arrived (F07).
+    public let imageURL: String?
+    public let imgHidden: Bool?
+    /// Game / template cover (`storyImg`). Distinct from the station photo.
+    public let storyImage: String?
+    public let visited: Bool?
+    public let visitTime: PlayVisitTime?
+    public let visitCheck: PlayVisitCheck?
+    public let visitRadius: Int?
+    /// Missing is not locked unless `PlayRuntimePortRouteGate.storyLockMissingIsLocked` is on.
+    public let storyLocked: Bool?
+    public let visitedByTeam: Bool?
+    public let fragmentText: String?
+    public let cardHookLong: String?
+    /// When true the server hid the address; do not show `address` even if a stale value arrived.
+    public let addressHidden: Bool?
+    public let perk: PlayNodePerk?
+    /// Finished-node evidence card (`feedbackText`). Kept beside the station image chain.
+    public let feedbackText: String?
+    /// Player photo of a finished station (`picUrl`). Not the station `imgUrl`.
+    public let photoURL: String?
 
     private enum CodingKeys: String, CodingKey {
         case nodeId, name, npc, address, latitude, longitude, sortId, done, arrived, selfReported, hasGame, gameDone, locked, validationMethod
@@ -86,6 +107,8 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         case hookText, storyText, gameTitle, ruleInstructions, rule, requiredMaterials, duration, difficulty
         case players, photoRequireDesc, photoDesc, businessTime, openStatus, crowded, inStoreLoad, serviceCapacity, expectedWaitMinutes, quantityUnavailable, routeNodeState, lockReason, weatherLocked
         case unlockAfterNodeId, chapterId, xp, puzzleScore, completionMode, sensorType, advancedConfigJson, externalGame
+        case imgUrl, imgHidden, storyImg, visited, visitTime, visitCheck, visitRadius, storyLocked, visitedByTeam
+        case fragmentText, cardHookLong, addressHidden, perk, feedbackText, picUrl
     }
     private enum ServiceCapacityKeys: String, CodingKey { case perHour }
     public init(from decoder: Decoder) throws {
@@ -144,6 +167,22 @@ public struct PlayNode: Decodable, Equatable, Identifiable {
         sensorType = try c.decodeIfPresent(String.self, forKey: .sensorType)
         advancedConfig = try c.decodeIfPresent(PlayJSONValue.self, forKey: .advancedConfigJson)
         externalGame = try? c.decodeIfPresent(PlayNodeExternalGameBinding.self, forKey: .externalGame)
+        // Additive: a bad optional must not fail the node the rest of the route already decoded.
+        imageURL = (try? c.decodeIfPresent(String.self, forKey: .imgUrl)) ?? nil
+        imgHidden = (try? c.decodeIfPresent(Bool.self, forKey: .imgHidden)) ?? nil
+        storyImage = (try? c.decodeIfPresent(String.self, forKey: .storyImg)) ?? nil
+        visited = (try? c.decodeIfPresent(Bool.self, forKey: .visited)) ?? nil
+        visitTime = (try? c.decodeIfPresent(PlayVisitTime.self, forKey: .visitTime)) ?? nil
+        visitCheck = ((try? c.decodeIfPresent(String.self, forKey: .visitCheck)) ?? nil).flatMap { PlayVisitCheck(rawValue: $0.uppercased()) }
+        visitRadius = (try? c.playInt(.visitRadius)) ?? nil
+        storyLocked = (try? c.decodeIfPresent(Bool.self, forKey: .storyLocked)) ?? nil
+        visitedByTeam = (try? c.decodeIfPresent(Bool.self, forKey: .visitedByTeam)) ?? nil
+        fragmentText = (try? c.decodeIfPresent(String.self, forKey: .fragmentText)) ?? nil
+        cardHookLong = (try? c.decodeIfPresent(String.self, forKey: .cardHookLong)) ?? nil
+        addressHidden = (try? c.decodeIfPresent(Bool.self, forKey: .addressHidden)) ?? nil
+        perk = (try? c.decodeIfPresent(PlayNodePerk.self, forKey: .perk)) ?? nil
+        feedbackText = (try? c.decodeIfPresent(String.self, forKey: .feedbackText)) ?? nil
+        photoURL = (try? c.decodeIfPresent(String.self, forKey: .picUrl)) ?? nil
     }
     public var hasAdvancedPrerequisite: Bool {
         guard let advancedConfig else { return false }
@@ -188,13 +227,20 @@ public struct PlayChapter: Decodable, Equatable, Identifiable {
     public let description: String?
     /// Narration from the same authorized /api/play/nodes response.
     public let audioURL: String?
-    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl }
+    /// Nil when the server omitted it. A missing flag stays locked unless a visited place belongs to the chapter.
+    public let chapterLocked: Bool?
+    /// `img_arr` / `imgArr`, split by `PlayStationImageResolver`. Malformed input is an empty list.
+    public let images: [String]
+    private enum CodingKeys: String, CodingKey { case chapterId, name, description, audioUrl, chapterLocked, imgArr }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         guard let id = try c.playInt(.chapterId), id > 0 else { throw APIError.malformedResponse }
         self.id = id; name = try c.decodeIfPresent(String.self, forKey: .name)
         description = try c.decodeIfPresent(String.self, forKey: .description)
         audioURL = try c.decodeIfPresent(String.self, forKey: .audioUrl)
+        if let value = try? c.decodeIfPresent(Bool.self, forKey: .chapterLocked) { chapterLocked = value }
+        else { chapterLocked = nil }
+        images = PlayStationImageResolver.list((try? c.decodeIfPresent(PlayWireValue.self, forKey: .imgArr)) ?? nil)
     }
 }
 
@@ -268,11 +314,21 @@ public struct PlayNodesResult: Decodable, Equatable {
     /// The viewer's `play_team` id for a team run (channels contract §5, item 17). Nil when absent or malformed;
     /// a bad value never fails the route.
     public let teamID: Int?
+    /// Raw `topicCover` for the station image chain. `themeFacts.coverURL` is the https URL the title card already uses.
+    public let topicCover: String?
+    /// Both counts or neither. A mismatched pair fails the route; a missing pair stays nil.
+    public let storyUnlocked: Int?
+    public let storyTotal: Int?
+    public let runStartMode: PlayRunStartMode?
+    public let altStations: [PlayAltStation]
+    /// Only an explicit `true` hides chapter progress. Missing or a non-bool stays nil.
+    public let perkOnly: Bool?
     private enum CodingKeys: String, CodingKey {
         case topicId, topicName, topicDesc, mode, playable, registered, leadSpectator, selfPlay, total, doneCount, teamId
         case timeNote, expiresAt, nodes, chapters, routeState, eggs
         case topicAiGenerated, productType, topicCover
         case lookJSON = "look_json"
+        case storyUnlocked, storyTotal, runStartMode, altStations, perkOnly
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -290,11 +346,23 @@ public struct PlayNodesResult: Decodable, Equatable {
         chapters = try c.decodeIfPresent([PlayChapter].self, forKey: .chapters) ?? []
         routeState = try c.decodeIfPresent(PlayRouteState.self, forKey: .routeState)
         teamID = (try? c.playInt(.teamId)).flatMap { $0 }.flatMap { $0 > 0 ? $0 : nil }
+        let coverRaw = (try? c.decodeIfPresent(String.self, forKey: .topicCover)) ?? nil
+        topicCover = coverRaw
         themeFacts = PlayThemeServerFacts(
             aiGenerated: (try? c.decode(Bool.self, forKey: .topicAiGenerated)) == true,
             productType: PlayThemeServerFacts.lenientInt(c, .productType),
-            coverURL: PlayThemeServerFacts.coverURL(try? c.decode(String.self, forKey: .topicCover)),
+            coverURL: PlayThemeServerFacts.coverURL(coverRaw),
             look: PlayThemeLookTokens.read(c, .lookJSON))
+        let unlocked = try c.playInt(.storyUnlocked)
+        let stories = try c.playInt(.storyTotal)
+        if let unlocked, let stories, stories >= 0, (0...stories).contains(unlocked) {
+            storyUnlocked = unlocked; storyTotal = stories
+        } else if unlocked == nil, stories == nil {
+            storyUnlocked = nil; storyTotal = nil
+        } else { throw APIError.malformedResponse }
+        runStartMode = (try? c.decodeIfPresent(PlayRunStartMode.self, forKey: .runStartMode)) ?? nil
+        altStations = PlayAltStation.unique(from: (try? c.decodeIfPresent(PlayWireValue.self, forKey: .altStations)) ?? nil)
+        perkOnly = (try? c.decodeIfPresent(Bool.self, forKey: .perkOnly)) ?? nil
         guard Set(nodes.map(\.id)).count == nodes.count, Set(chapters.map(\.id)).count == chapters.count,
               total.map({ $0 >= 0 }) ?? true, doneCount.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
     }
@@ -354,5 +422,123 @@ extension KeyedDecodingContainer {
             if value == "false" || value == "0" { return false }
         }
         throw APIError.malformedResponse
+    }
+}
+
+/// Free-exploration visit method. Unknown values stay nil; they are never guessed as GPS.
+public enum PlayVisitCheck: String, Codable, Equatable, Sendable {
+    case gps = "GPS"
+    case scan = "SCAN"
+    case online = "ONLINE"
+}
+
+/// Server visit time: epoch milliseconds, or a display string when that is all the payload carries.
+public enum PlayVisitTime: Codable, Equatable, Sendable {
+    case epochMilliseconds(Int64)
+    case text(String)
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if c.decodeNil() { throw DecodingError.valueNotFound(PlayVisitTime.self, .init(codingPath: c.codingPath, debugDescription: "visitTime")) }
+        if let millis = try? c.decode(Int64.self), millis > 0 { self = .epochMilliseconds(millis); return }
+        if let number = try? c.decode(Double.self), number.isFinite, number > 0, let millis = Int64(exactly: number.rounded(.towardZero)) {
+            self = .epochMilliseconds(millis); return
+        }
+        if let text = try? c.decode(String.self) {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let millis = Int64(trimmed), millis > 0 { self = .epochMilliseconds(millis); return }
+            if !trimmed.isEmpty { self = .text(trimmed); return }
+        }
+        throw DecodingError.dataCorruptedError(in: c, debugDescription: "visitTime")
+    }
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.singleValueContainer()
+        switch self {
+        case .epochMilliseconds(let value): try c.encode(value)
+        case .text(let value): try c.encode(value)
+        }
+    }
+}
+
+/// hengyin #866. DESK and ALT are how a run starts, not a node's completion mode.
+public enum PlayRunStartMode: String, Codable, Equatable, Sendable {
+    case desk = "DESK"
+    case alt = "ALT"
+}
+
+public struct PlayAltStation: Equatable, Identifiable, Sendable {
+    public let id: Int
+    public let name: String?
+    public let longitude: Double?
+    public let latitude: Double?
+    public init(id: Int, name: String?, longitude: Double?, latitude: Double?) {
+        self.id = id; self.name = name; self.longitude = longitude; self.latitude = latitude
+    }
+    /// Keeps the first row for each positive id. A bad row is dropped; it does not fail the route.
+    static func unique(from raw: PlayWireValue?) -> [PlayAltStation] {
+        guard let rows = raw?.array else { return [] }
+        var seen = Set<Int>()
+        var result: [PlayAltStation] = []
+        for row in rows {
+            guard let id = row["id"].tolerantInteger, id > 0, seen.insert(id).inserted else { continue }
+            let longitude = row["longitude"].double
+            let latitude = row["latitude"].double
+            result.append(PlayAltStation(
+                id: id,
+                name: row["name"].text,
+                longitude: longitude?.isFinite == true ? longitude : nil,
+                latitude: latitude?.isFinite == true ? latitude : nil))
+        }
+        return result
+    }
+}
+
+/// Optional start fields for `/api/play/arrive`. Built here; the live request does not
+/// merge them until the durable journal can store them (see the P2 receipt).
+public struct PlayRunStartRequest: Equatable {
+    public let mode: PlayRunStartMode
+    public let altStationID: Int?
+    public init(mode: PlayRunStartMode, altStationID: Int? = nil, offered: [PlayAltStation] = []) throws {
+        switch mode {
+        case .desk:
+            guard altStationID == nil else { throw APIError.invalidRequest }
+        case .alt:
+            guard let altStationID, offered.contains(where: { $0.id == altStationID }) else { throw APIError.invalidRequest }
+        }
+        self.mode = mode
+        self.altStationID = mode == .alt ? altStationID : nil
+    }
+    public var fields: [String: String] {
+        var result = ["startMode": mode.rawValue]
+        if let altStationID { result["altStationId"] = String(altStationID) }
+        return result
+    }
+}
+
+/// hengyin #866 perk terms. A non-bool `included` fails this object so the node keeps `perk == nil`.
+public struct PlayNodePerk: Decodable, Equatable, Sendable {
+    public let included: Bool?
+    public let extraSpendText: String?
+    public let reserveRequired: Bool?
+}
+
+/// Node `completionMode`. DESK / ALT are run-level (`PlayRunStartMode`) and do not map here.
+public enum PlayCompletionModePresentation: Equatable, Sendable {
+    case solved, assisted, revealed, skipped
+    public init?(raw: String?) {
+        switch raw {
+        case "SOLVED": self = .solved
+        case "ASSISTED": self = .assisted
+        case "REVEALED": self = .revealed
+        case "SKIPPED": self = .skipped
+        default: return nil
+        }
+    }
+    public var titleKey: String {
+        switch self {
+        case .solved: return "playx.completion.solved"
+        case .assisted: return "playx.completion.assisted"
+        case .revealed: return "playx.completion.revealed"
+        case .skipped: return "playx.completion.skipped"
+        }
     }
 }

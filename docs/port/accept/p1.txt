@@ -1,0 +1,7 @@
+# No DEBUG launch argument opens ChapterStoryView by itself.
+# PlayExperienceFixtureHostView (ModuleFixture.playExperience) mounts PlayExperienceView, which pushes the chapter.
+# JourneyContentFixtureHostView (ModuleFixture.journeyContent) mounts PlayJourneyCheckView, which shows JourneyRoleViewSection.
+# Cast has no fixture route. Do not invent one.
+--uitesting-module playExperience --uitesting-play-experience-scenario classic
+--uitesting-module journeyContent --uitesting-journey-scenario roleA
+--uitesting-module journeyContent --uitesting-journey-scenario roleSolo

@@ -216,6 +216,14 @@ import SwiftUI
             if let title = raw["name"].text { Text(verbatim: title).cyText(.cardTitle) }
             ForEach(Array((raw["blocks"].array ?? []).enumerated()), id: \.offset) { _, block in
                 switch block["type"].text {
+                case "text" where block["optional"].bool == true:
+                    let paragraphs = (block["content"].text ?? "").components(separatedBy: .newlines).compactMap { line -> String? in
+                        let line = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                        return line.isEmpty ? nil : line
+                    }
+                    if !paragraphs.isEmpty {
+                        ChapterOptionalReadingCard(subtitle: block["who"].text, paragraphs: paragraphs)
+                    }
                 case "text", "voice", "reveal":
                     if let who = block["who"].text { Text(verbatim: who).cyText(.meta) }
                     if let content = block["content"].text { Text(verbatim: content) }
