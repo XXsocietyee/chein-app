@@ -164,7 +164,7 @@ import SwiftUI
                 OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + state.state.rawValue), systemImage: "ticket", emphasized: true)
                     .accessibilityIdentifier("orderLifecycle.state")
                 HStack(alignment: .center, spacing: CYSpacing.md) {
-                    if !typeSize.isAccessibilitySize { OrderCoverTile(systemImage: "ticket", size: 64, seed: detail.title ?? "") }
+                    if !typeSize.isAccessibilitySize { OrderCoverTile(systemImage: "ticket", size: 64, seed: detail.title ?? "", fallback: MPAsset.EmptyState.iconTicketEmpty) }
                     Group {
                         if let title = detail.title, !title.isEmpty { Text(verbatim: title) }
                         else { Text("orderLifecycle.untitled") }

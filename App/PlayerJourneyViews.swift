@@ -256,13 +256,13 @@ private struct ParticipationRow: View {
                 Label {
                     if let range = ParticipationDateText.range(start: record.order.ownerStartDate, end: record.order.ownerEndDate) { Text(verbatim: range).monospacedDigit() }
                     else { Text("playerJourney.timeTBD") }
-                } icon: { Image(systemName: "clock") }
+                } icon: { ParticipationMPGlyph(image: MPAsset.BrandLogo.dCyIcon) }
                 .cyText(.meta).foregroundStyle(.secondary)
                 Label {
                     Text(LocalizedStringKey(record.modeKey))
                         + Text(verbatim: " · ")
                         + (record.address.map { Text(verbatim: $0) } ?? Text("playerJourney.placeTBD"))
-                } icon: { Image(systemName: "mappin.and.ellipse") }
+                } icon: { ParticipationMPGlyph(image: MPAsset.BrandLogo.dCyIcon2) }
                 .cyText(.meta).foregroundStyle(.secondary)
                 // MP verification badge 已核销 / 未核销 / — (mycanyu.js:113-114, PLY-22-2).
                 CYStatusChip(LocalizedStringKey(record.verificationKey))
@@ -312,8 +312,16 @@ private struct ParticipationCoverPlaceholder: View {
                     end: detail.record.order.ownerEndDate)
                 if detail.nodeName != nil || detail.cooperateDate != nil {
                     Section {
-                        if let node = detail.nodeName { LabeledContent("playerJourney.parity.finalNode") { Text(verbatim: node) } }
-                        if let date = detail.cooperateDate { LabeledContent("playerJourney.cooperateDate") { Text(verbatim: date) } }
+                        if let node = detail.nodeName {
+                            LabeledContent { Text(verbatim: node) } label: {
+                                Label { Text("playerJourney.parity.finalNode") } icon: { ParticipationMPGlyph(image: MPAsset.FeatureIcon.dCyinfo1) }
+                            }
+                        }
+                        if let date = detail.cooperateDate {
+                            LabeledContent { Text(verbatim: date) } label: {
+                                Label { Text("playerJourney.cooperateDate") } icon: { ParticipationMPGlyph(image: MPAsset.FeatureIcon.dCyinfo2) }
+                            }
+                        }
                     }
                 }
                 // Source result cards sit above the verification stats.
@@ -343,7 +351,14 @@ private struct ParticipationCoverPlaceholder: View {
                 }
                 if detail.rules != nil {
                     // Source mycanyuinfo renders its fixed exit/pause text whenever ruleInstructions is present.
-                    Section("playerJourney.rules") { Text("playerJourney.parity.fixedRules").accessibilityIdentifier("playerJourney.rules") }
+                    Section("playerJourney.rules") {
+                        // MP mycanyuinfo wxml:110 puts the shipped `d_cyinfo4.png` figure beside the fixed rule text.
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            MPAsset.FeatureIcon.dCyinfo4.resizable().scaledToFit().frame(width: 36, height: 36).accessibilityHidden(true)
+                            Text("playerJourney.parity.fixedRules").fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("playerJourney.rules")
+                        }
+                    }
                 }
                 if let rawID = detail.templateID, let id = MemberPlayTemplateID(rawValue: rawID) {
                     Section("playerJourney.template") {
@@ -474,5 +489,15 @@ private struct PlayerJourneyIssue: View {
         if error as? APIError == .unauthorized { return "playerJourney.login" }
         if error as? APIError == .notConfigured { return "playerJourney.notConfigured" }
         return "playerJourney.failed"
+    }
+}
+
+/// MP mycanyu wxml:34/37 and participation-detail wxml:45/56 draw the shipped row icons
+/// (`d_cyIcon` date, `d_cyIcon2` mode · place, `d_cyinfo1` node, `d_cyinfo2` reception time) as images.
+struct ParticipationMPGlyph: View {
+    let image: Image
+    @ScaledMetric(relativeTo: .caption) private var side: CGFloat = 14
+    var body: some View {
+        image.resizable().scaledToFit().frame(width: side, height: side).accessibilityHidden(true)
     }
 }

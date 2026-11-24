@@ -263,20 +263,20 @@ private struct ProfileOrderRow: View {
                 .fixedSize(horizontal: false, vertical: true)
                 // Source row shows the owner's MM.dd HH:mm range; otherwise keep the literal date.
                 if let range = ProfileOrderTimeRangeText.text(start: order.startDate, end: order.endDate) {
-                    meta(Text(verbatim: range).monospacedDigit(), "clock").accessibilityIdentifier("profile.orderRow.timeRange")
+                    meta(Text(verbatim: range).monospacedDigit(), mp: MPAsset.FeatureIcon.dOrderIcon).accessibilityIdentifier("profile.orderRow.timeRange")
                 } else if let date = order.participateDate ?? order.startDate, !date.isEmpty {
-                    meta(Text(verbatim: date), "calendar")
+                    meta(Text(verbatim: date), mp: MPAsset.FeatureIcon.dOrderIcon)
                 }
                 if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
                     // FIN-16-7: MP onAddressTap opens the address in the map app; the card tap still opens the detail.
                     if let mapURL = Self.mapURL(location) {
-                        Button { openURL(mapURL) } label: { meta(Text(verbatim: location), "mappin.and.ellipse") }
+                        Button { openURL(mapURL) } label: { meta(Text(verbatim: location), mp: MPAsset.FeatureIcon.dOrderIcon2) }
                             .buttonStyle(.borderless)
                             .frame(minHeight: 44, alignment: .leading)
                             .accessibilityLabel(Text(verbatim: c.t("在地图中打开 ", "Open in Maps: ") + location))
                             .accessibilityIdentifier("profile.orderRow.address")
                     } else {
-                        meta(Text(verbatim: location), "mappin.and.ellipse")
+                        meta(Text(verbatim: location), mp: MPAsset.FeatureIcon.dOrderIcon2)
                     }
                 }
                 // FIN-16-5: 待付款 with payment held behind the release switch says where to pay instead of staying silent.
@@ -300,6 +300,13 @@ private struct ProfileOrderRow: View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).frame(width: 16).accessibilityHidden(true) }
             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
     }
+    /// MP order card icons (`d_orderIcon.png` time, `d_orderIcon2.png` address), drawn as shipped.
+    private func meta(_ text: Text, mp icon: Image) -> some View {
+        Label { text.fixedSize(horizontal: false, vertical: true) } icon: {
+            icon.resizable().scaledToFit().frame(width: 16, height: 16).accessibilityHidden(true)
+        }
+        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+    }
     private var footer: some View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
                                                   : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
@@ -308,7 +315,7 @@ private struct ProfileOrderRow: View {
             HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
                 // Source: 待付款 while registrationStatus == 1, otherwise 实付款.
                 Text(order.registrationStatus == 1 ? "u9cde.orders.payable" : "profile.orders.paid").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
+                Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")
                     .cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
                     .cyWrapText()
             }
@@ -616,7 +623,7 @@ private struct ProfileOrderHeroSection: View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 // Unknown money is an em dash, never ¥0.
-                Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
+                Text(verbatim: order.actualPaidAmount.map(ProfileOrderYuan.text) ?? "—")
                     .cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                 if let title {
                     Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
@@ -722,12 +729,18 @@ private struct ProfileOrderCodeText: View {
     }
 }
 
+/// Owner decision #9 (11-24): money shows two decimals (¥12.50) through the one shared formatter.
+/// `OwnedOrderMoneyText` keeps the exact decimal digits; `MoneyDisplay.text` pads them lexically (no Double).
+enum ProfileOrderYuan {
+    static func text(_ amount: Decimal) -> String { "¥" + MoneyDisplay.text(OwnedOrderMoneyText.string(amount)) }
+}
+
 /// FIN-17-2: real money reads "¥x" like the MP and the list row, with no currency caveat.
 private struct ProfileOrderAmountLabel: View {
     let amount: Decimal?
     var body: some View {
         if let amount {
-            Text(verbatim: "¥" + OwnedOrderMoneyText.string(amount)).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: ProfileOrderYuan.text(amount)).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
         } else { Text("activity.priceUnknown").foregroundStyle(CYColor.textSecondary) }
     }
 }

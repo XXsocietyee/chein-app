@@ -86,8 +86,8 @@ enum CYPassCardPick {
                         if playProvider != nil, ticket.status == .ready, ticket.action == .detail, !ticket.isWalletLocked,
                            TicketWalletPlayEntry.entry(ticket: ticket, requestedID: ticket.id) != nil {
                             Button { playDetailID = ticket.id } label: {
-                                if ticket.clearedFlag == true { Label(c.t("查看记录", "View record"), systemImage: "clock.arrow.circlepath") }
-                                else { Label("playerJourney.start", systemImage: "play.fill") }
+                                if ticket.clearedFlag == true { Label { Text(verbatim: c.t("查看记录", "View record")) } icon: { TicketWalletPlayGlyph() } }
+                                else { Label { Text("playerJourney.start") } icon: { TicketWalletPlayGlyph() } }
                             }
                             .buttonStyle(.cyPrimary(fullWidth: true))
                             .frame(maxWidth: 360)
@@ -388,3 +388,13 @@ private struct TicketPassTopHeightKey: PreferenceKey {
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
+
+/// MP signup wxml:105 `wl-start__play`: the shipped `icon_play.svg` in front of 开始游戏 / 查看记录.
+/// The imageset is a template, so it takes the button's foreground colour.
+struct TicketWalletPlayGlyph: View {
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 14
+    var body: some View {
+        MPAsset.FeatureIcon.iconPlay.renderingMode(.template).resizable().scaledToFit()
+            .frame(width: side, height: side).accessibilityHidden(true)
+    }
+}
