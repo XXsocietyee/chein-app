@@ -86,7 +86,8 @@ public struct CYSheetContainer<Content: View>: View {
     }
 }
 
-/// Domain-styled sheet presentation: system detents (`.medium` / `.large`), visible drag indicator, system corner radius, role surface.
+/// Domain-styled sheet presentation: system detents (`.medium` / `.large`), visible drag indicator, system corners and
+/// background in the role appearance (native-ios-r1 §3.4).
 public extension View {
     func cyDomainSheet(
         detents: [CYSheetDetent] = [.half, .full],
@@ -96,7 +97,6 @@ public extension View {
         return self
             .modifier(CYDomainSheetDetentsModifier(detents: mapped, selection: selection))
             .presentationDragIndicator(.visible)
-            .presentationBackground(CYColor.sheetGlass)
             .roleThemedPresentation()
     }
 }

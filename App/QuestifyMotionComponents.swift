@@ -139,7 +139,7 @@ private struct QuestifyPrimaryLabel: View {
             .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
             .padding(.vertical, controlSize == .large ? Theme.Space.s3_5 : Theme.Space.s2)
             .padding(.horizontal, controlSize == .large ? Theme.Space.s5 : Theme.Space.s3_5)
-            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: fillsWidth ? CYSpacing.minTouchTarget : nil)
+            .frame(maxWidth: fillsWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
             .background(Theme.Color.actionPrimaryBackground(in: domain), in: Capsule())
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1) : 0.4)
             .contentShape(Capsule())
