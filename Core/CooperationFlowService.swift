@@ -17,6 +17,9 @@ public enum CoopFlowRead: Equatable {
     case inviteRequests(before: String?, limit: Int)
     /// GET `/api/coop/supply-stations?topicId=&merchantMemberId=`.
     case supplyStations(topicID: Int, merchantMemberID: Int)
+    /// Coop settlement detail `source=club`. GET `/api/club/settlement/summary?clubId=`.
+    /// Read only: this case does not withdraw, adjust, or rewrite an amount.
+    case clubSettlementSummary(clubID: Int)
     public var path: String {
         switch self {
         case .invitations: return "api/coop/list"; case .pool: return "api/coop/pool/list"
@@ -37,12 +40,13 @@ public enum CoopFlowRead: Equatable {
         case .inviteRequest: return "api/coop/invite/request"
         case .inviteRequests: return "api/coop/invite/requests"
         case .supplyStations: return "api/coop/supply-stations"
+        case .clubSettlementSummary: return "api/club/settlement/summary"
         }
     }
     /// GET reads send the query and no body. Every other read stays a JSON POST.
     public var usesGet: Bool {
         switch self {
-        case .officialMerchantInvites, .inviteRequest, .inviteRequests, .supplyStations: return true
+        case .officialMerchantInvites, .inviteRequest, .inviteRequests, .supplyStations, .clubSettlementSummary: return true
         default: return false
         }
     }
@@ -55,6 +59,8 @@ public enum CoopFlowRead: Equatable {
             return items
         case .supplyStations(let topicID, let merchantMemberID):
             return [URLQueryItem(name: "topicId", value: String(topicID)), URLQueryItem(name: "merchantMemberId", value: String(merchantMemberID))]
+        case .clubSettlementSummary(let clubID):
+            return [URLQueryItem(name: "clubId", value: String(clubID))]
         default: return []
         }
     }
@@ -87,6 +93,9 @@ public enum CoopFlowRead: Equatable {
             return .object([:])
         case .supplyStations(let topicID, let merchantMemberID):
             guard topicID > 0, merchantMemberID > 0 else { throw APIError.invalidRequest }
+            return .object([:])
+        case .clubSettlementSummary(let clubID):
+            guard clubID > 0 else { throw APIError.invalidRequest }
             return .object([:])
         default: return .object([:])
         }

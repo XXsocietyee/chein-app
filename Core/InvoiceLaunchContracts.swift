@@ -4,6 +4,8 @@ public enum InvoiceLaunchIssue: Error, Equatable {
     case invalid, malformed, disabled, staleSession, unauthorized, unavailable
     case rejected(String), outcomeUnknown, pendingConflict, storageUnavailable
     case originalReadUnavailable
+    /// Original-request read answered `INVOICE_NOT_FOUND`. Not a rollback and not a transport failure.
+    case notFound
 }
 
 /// Legacy routes plus separately approved original-receipt routes verified at c6eac3.
@@ -509,7 +511,7 @@ public struct InvoiceLaunchApplyPage: Equatable {
         switch issue {
         case .disabled:
             return hidden()
-        case .outcomeUnknown, .originalReadUnavailable, .pendingConflict:
+        case .outcomeUnknown, .originalReadUnavailable, .pendingConflict, .notFound:
             return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .unknown, lines: [], titles: [])
         case .staleSession, .unauthorized:
             return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .error(Key.session), lines: [], titles: [])
