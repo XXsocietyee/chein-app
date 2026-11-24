@@ -108,7 +108,7 @@ public struct LocalizationCompletenessSectionView: View {
                         .cyText(.bodyMedium)
                     Spacer()
                     Text(verbatim: snapshot.isAllComplete ? "PASS" : "CHECK")
-                        .font(.caption2.monospaced().weight(.bold))
+                        .font(.caption.monospaced().weight(.bold))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
@@ -155,7 +155,7 @@ public struct LocalizationCompletenessSectionView: View {
 
                         VStack(alignment: .trailing, spacing: 2) {
                             Text(verbatim: row.supportedLocales.joined(separator: " + "))
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(.secondary)
                             Text(verbatim: row.isBilingualComplete ? "0 缺失" : "缺失 \(row.missingKeyCount)")
                                 .cyText(.caption, weight: .semibold)
