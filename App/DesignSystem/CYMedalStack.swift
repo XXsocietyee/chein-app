@@ -20,6 +20,8 @@ struct CYMedalItem: Identifiable, Equatable {
             case .glassBadge: MPAsset.BadgeMedal.glassBadge
             }
         }
+        /// `glass-badge` is the MP `cy-frames` sheet (6 × 4 frames of 112 px), not a single picture.
+        var isSprite: Bool { self == .glassBadge }
     }
 }
 
@@ -73,6 +75,29 @@ enum CYMedalGlyph {
         default: return nil
         }
     }
+    /// `glass-badge` (seal) is a 6 × 4 `cy-frames` sheet; draw one frame of it, never the whole sheet.
+    static func isSprite(_ symbol: String) -> Bool { symbol == "seal" || symbol == "seal.fill" }
+}
+
+/// One frame of an MP `cy-frames` sprite sheet (default: `glass-badge` / `glass-success`, 6 columns × 4 rows,
+/// frame 0 = the front-facing still). Static: the medal deck and stat cells never animate it.
+struct CYSpriteStill: View {
+    let sheet: Image
+    var columns = 6
+    var rows = 4
+    var index = 0
+    var body: some View {
+        GeometryReader { proxy in
+            let w = proxy.size.width, h = proxy.size.height
+            sheet.resizable().interpolation(.high)
+                .frame(width: w * CGFloat(columns), height: h * CGFloat(rows))
+                .offset(x: -w * CGFloat(index % columns), y: -h * CGFloat(index / columns))
+                .frame(width: w, height: h, alignment: .topLeading)
+                .clipped()
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .accessibilityHidden(true)
+    }
 }
 
 /// Hexagon face: lantern bloom behind, artwork or glyph inside, foil sheen on top.
@@ -98,10 +123,14 @@ struct CYMedalFace: View {
                     .clipShape(CYHexagon())
             } else if let art = item.mpDefault?.image ?? CYMedalGlyph.image(for: item.systemImage) {
                 // The page's own MP default (trophy / glass badge) wins over the symbol-derived glyph.
-                art
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: side * 0.72, height: side * 0.72)
+                if item.mpDefault.map(\.isSprite) ?? CYMedalGlyph.isSprite(item.systemImage) {
+                    CYSpriteStill(sheet: art).frame(width: side * 0.72, height: side * 0.72)
+                } else {
+                    art
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: side * 0.72, height: side * 0.72)
+                }
             } else {
                 Image(systemName: item.systemImage)
                     .font(.system(size: side * 0.36, weight: .semibold))
@@ -344,7 +373,8 @@ struct CYMedalScreen: View {
             if let image = stat.systemImage {
                 Group {
                     if let art = CYMedalGlyph.image(for: image) {
-                        art.resizable().scaledToFit().frame(width: 28, height: 28)
+                        if CYMedalGlyph.isSprite(image) { CYSpriteStill(sheet: art).frame(width: 28, height: 28) }
+                        else { art.resizable().scaledToFit().frame(width: 28, height: 28) }
                     } else {
                         Image(systemName: image).font(.title3).foregroundStyle(CYNight.lantern).frame(width: 28)
                     }

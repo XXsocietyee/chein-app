@@ -23,3 +23,9 @@
 --uitesting-module playExperience -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # MP assets: station without photo shows the cover-route illustration; reward medal without image shows trophy, new badges show glass-badge
 --uitesting-module playExperience --uitesting-play-experience-scenario mode2 -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # MP assets: free-exploration card pack body is pack-foil.png with the topic name in black
 --roam-subpage-fixture poiLive -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RPOI-3 regression: no pending record → 你的状态 rows unchanged (pending UI needs a live journal record; device check by coordinator)
+# Round 3 (2026-11-24 evening)
+--uitesting-module merchant-city-npc --w2-19-page playMerchant --w2-19-scenario perk -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # re-apply check: exactly ONE 本店权益 card (the merge had two)
+--uitesting-module merchant-city-npc --w2-19-page playMerchant --w2-19-scenario perkBlocked -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # re-apply check: blocked line replaces only the 出示核销码 CTA; arrive/scan steps keep their CTA
+--uitesting-roam-home -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # map view: place markers are the MP dot-<category> (unselected) / pin-<category> (selected) by MP categoryKey; clusters dot-cluster
+--uitesting-module playExperience -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # medals: new badges show ONE glass-badge frame (not the 6x4 sprite sheet); topic medal without image shows trophy
+--roam-subpage-fixture poiLive -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RPOI-3 regression: no pending record → normal 打卡 row; with a record (device) → 打卡结果待确认 card + 查询当前状态 + 重新现场核验, no plain 打卡 row
