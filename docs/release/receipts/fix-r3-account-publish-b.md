@@ -75,7 +75,7 @@
 ## Checks run in the cloud
 
 - `tools/contract_ratchet.py --check` on the merged base, before my edits: 195 failing, 11 new against the 184 baseline. All 11 come from the restyle merges.
-- After my edits, the 2 new failures I introduced were fixed: `test_native_ui_accessibility_semantics` (legal footer pin) and `test_settings_native` (one NavigationStack). The final run is listed below.
+- After my edits, the 2 new failures I introduced were fixed: `test_native_ui_accessibility_semantics` (legal footer pin) and `test_settings_native` (one NavigationStack). Final run on `aae081a4a`: **195 failing, baseline 184, new 11**. This is the same set as the merged base, so this branch adds 0 new failures.
 - `tools/check_typography_lint.py`: PASS.
 - `tools/check_appsession_ratchet.py`: PASS. `AppSession.swift` is untouched.
 - `tools/check_scaffold.py` fails on `origin/ui/combined-r7` as well (pre-existing); no new Swift files were added.
