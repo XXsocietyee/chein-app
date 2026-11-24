@@ -81,8 +81,8 @@ final class WalletNumberLocalizationTests: XCTestCase {
         let expense = try row(#"{"id":1,"changeBalance":"1234.5","changeType":2,"currency":"USD"}"#)
         let income = try row(#"{"id":2,"changeBalance":"-1234.5","changeType":1,"currency":"USD"}"#)
         let format = WalletFormatting(locale: english)
-        XCTAssertEqual(format.signed(expense, points: false, income: true), "−1,234.5")
-        XCTAssertEqual(format.signed(income, points: false, income: true), "+1,234.5")
+        XCTAssertEqual(format.signed(expense, points: false, income: true), "−1,234.50")
+        XCTAssertEqual(format.signed(income, points: false, income: true), "+1,234.50")
         XCTAssertEqual(expense.signedText(points: false, income: true), "−1234.5")
         XCTAssertEqual(income.changeBalance?.text, "-1234.5")
     }
@@ -91,7 +91,7 @@ final class WalletNumberLocalizationTests: XCTestCase {
         let unknown = try row(#"{"id":1,"changeBalance":"-1234.5","changeType":99}"#)
         let missing = try row(#"{"id":2,"changeType":1}"#)
         let format = WalletFormatting(locale: english)
-        XCTAssertEqual(format.signed(unknown, points: false, income: true), "-1,234.5")
+        XCTAssertEqual(format.signed(unknown, points: false, income: true), "-1,234.50")
         XCTAssertEqual(format.signed(missing, points: false, income: true), appLocalized("wallet.unknown", locale: english))
     }
 
