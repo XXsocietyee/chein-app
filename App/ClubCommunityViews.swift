@@ -527,7 +527,6 @@ struct ClubCommunityPostTile: View {
     var openDetail: (() -> Void)? = nil
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
-    @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
     private var canLike: Bool {
         let target = clubID ?? post.clubID
@@ -576,10 +575,12 @@ struct ClubCommunityPostTile: View {
                     }
                     .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
                     .accessibilityIdentifier("club.community.repost.\(post.id)")
-                    ShareLink(item: ClubPostShareText.text(post: post, locale: locale)) {
-                        Label("club.community.share", systemImage: "square.and.arrow.up")
+                    if let path = ClubShareLink.post(clubID: clubID, postID: post.id)?.path {
+                        ShareLink(item: path) {
+                            Label("club.community.share", systemImage: "square.and.arrow.up")
+                        }
+                        .accessibilityIdentifier("club.community.share.\(post.id)")
                     }
-                    .accessibilityIdentifier("club.community.share.\(post.id)")
                 }
                 Menu {
                     if allows(.update(content: post.content, images: post.images, requestID: "display")) { Button("club.community.edit") { editing = true } }
@@ -869,17 +870,6 @@ struct ClubCommunityComposer: View {
             model.busy || uploading || imageBridge.isBusy || ClubPostEditDraft(content: content, images: images) !=
                 ClubPostEditDraft(content: $0.content, images: $0.images)
         } ?? false)
-    }
-}
-
-/// Share text for a club post: the club name and the first line of the post. Club posts have no
-/// universal link yet, so this is plain text (MP shares a card to `pages/club/detail?id=&postId=`).
-enum ClubPostShareText {
-    static func text(post: ClubCommunityPost, locale: Locale) -> String {
-        let excerpt = post.content.split(separator: "\n").first.map(String.init).map { String($0.prefix(60)) } ?? ""
-        let club = post.clubName.isEmpty ? locale.pick("俱乐部", "Club") : post.clubName
-        return excerpt.isEmpty ? locale.pick("来看看「\(club)」的帖子", "A post from \(club)")
-            : locale.pick("「\(club)」：\(excerpt)", "\(club): \(excerpt)")
     }
 }
 

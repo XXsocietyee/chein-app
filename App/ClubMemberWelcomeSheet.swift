@@ -80,6 +80,13 @@ import SwiftUI
                         .padding(CYSpacing.lg)
                         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                     }
+                    if let perk = value.memberPricePerk {
+                        Text(verbatim: perk)
+                            .cyText(.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("club.welcome.memberPrice")
+                    }
                     VStack(alignment: .leading, spacing: 0) {
                         step("text.bubble", Text(LocalizedStringKey(value.postingKey), tableName: "ClubMemberWelcome"))
                         Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)

@@ -109,7 +109,7 @@ import SwiftUI
                     }
                 }
                 if let issue = schedule.issue(now: clock.date) {
-                    Section { ClubSeriesScheduleIssueLabel(issue: issue).accessibilityIdentifier("club.schedule.error") }
+                    Section { ClubSeriesScheduleIssueLabel(issue: issue, weeklyHorizon: schedule.weeklyHorizonMessage(now: clock.date)).accessibilityIdentifier("club.schedule.error") }
                 }
                 if stale || !canApply() { Section { Text("club.schedule.expired").accessibilityIdentifier("club.schedule.expired") } }
                 Section {
@@ -158,8 +158,11 @@ import SwiftUI
 
 struct ClubSeriesScheduleIssueLabel: View {
     let issue: ClubSeriesScheduleDraft.Issue
+    var weeklyHorizon: String? = nil
     var body: some View {
-        if issue == .futureOnly { Text("club.schedule.futureOnly", tableName: "ClubSeriesSchedule") }
+        if issue == .weeklyHorizon, let weeklyHorizon, !weeklyHorizon.isEmpty {
+            Text(verbatim: weeklyHorizon)
+        } else if issue == .futureOnly { Text("club.schedule.futureOnly", tableName: "ClubSeriesSchedule") }
         else { Text(LocalizedStringKey(issue.localizationKey)) }
     }
 }

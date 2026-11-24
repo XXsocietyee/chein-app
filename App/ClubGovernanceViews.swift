@@ -1318,7 +1318,16 @@ struct ClubGovernanceReadView: View {
             }
             Section("club.gov.section.members") {
                 ForEach([ClubGovernanceRead.roles, .bans, .cases, .audienceCounts, .dissolutionBlockers], id: \.rawValue) { read in
-                    if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
+                    if read == .bans {
+                        if snapshot.permissions?.canGovernMembers == true { link(read) }
+                    } else if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
+                }
+                if snapshot.permissions?.permissions.contains("club:member:manage") == true,
+                   snapshot.permissions?.canGovernMembers != true {
+                    Text(verbatim: ClubGovernancePermissions.memberGovernanceDenial)
+                        .cyText(.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("club.memberGovernance.denied")
                 }
             }
             if let events = snapshot.permissions?.eventAccesses, !events.isEmpty {
@@ -1390,7 +1399,10 @@ struct ClubGovernanceReadView: View {
             Section { link(.members) }
         } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
             ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed, role: .inlineDestructive)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) },
-                scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value)
+                scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value,
+                showsBan: snapshot.permissions?.canGovernMembers == true,
+                memberGovernanceDenial: snapshot.permissions?.permissions.contains("club:member:manage") == true && snapshot.permissions?.canGovernMembers != true
+                    ? ClubGovernancePermissions.memberGovernanceDenial : nil)
         } else if operation == .cases, let cases = try? ClubOpsCaseList(snapshot: snapshot) {
             ClubOpsCaseSection(list: cases, report: cases.canReport ? AnyView(edit(.report)) : nil, appeal: cases.canAppeal ? AnyView(edit(.appeal)) : nil,
                 scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value)
@@ -1789,7 +1801,7 @@ struct ClubGovernanceReadView: View {
                     NavigationLink { ClubGovernanceEventView(scope: .init(clubID: scope.clubID, topicID: scope.topicID, activityID: id), identity: identity, access: access, coordinator: coordinator) } label: { Text("club.gov.eventID \(id)") }
                 }
                 if operation == .members, let id = row["memberId"].int, row["isOwner"] == .bool(false) {
-                    edit(.ban, seed: ["targetMemberId": .integer(id)])
+                    if snapshot?.permissions?.canGovernMembers == true { edit(.ban, seed: ["targetMemberId": .integer(id)]) }
                     if snapshot?.permissions?.roleCodes.contains("CLUB_OWNER") == true { edit(.transferOwner, seed: ["targetMemberId": .integer(id)]) }
                 }
                 if operation == .bans, row["sourceType"] == .string("CLUB"), row["status"] == .string("ACTIVE") { edit(.unban, seed: ["banId": row["id"], "version": row["version"]]) }
@@ -1824,7 +1836,8 @@ struct ClubGovernanceEventView: View {
                     CYListRow(LocalizedStringKey("club.gov." + operation.rawValue), trailing: .chevron) { CYRowIcon(systemImage: "calendar") }
                 }
             }
-            if groupCodePage.map({ !$0.hidden && $0.sessions?.contains(where: { $0.id == scope.activityID }) == true }) ?? (scope.topicID != nil) {
+            if let activity = scope.activityID, activity > 0,
+               groupCodePage.map({ !$0.hidden && $0.sessions?.contains(where: { $0.id == activity }) == true }) ?? true {
                 NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator) } label: {
                     CYListRow("club.gov.action.issueGroupCode", trailing: .chevron) { CYRowIcon(systemImage: "qrcode") }
                 }

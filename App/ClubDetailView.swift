@@ -26,6 +26,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var reportingClub = false
     /// r4 workbench (`170:1744`): 待审批 / 去审批 push 入会申请 from the 管理 tab's head.
     @State private var showsApprovals = false
+    /// Owner-stage Now card. Nil keeps the approvals headline.
+    @State private var ownerStage: ClubOwnerStageResolution?
     @State private var heroScrolledAway = false
     @State private var loadedClubName: String?
     @State private var openedTopicID: Int?
@@ -36,6 +38,35 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     /// CLB-detail-27 (MP detail wxml:1-2, js:784-787): a merchant account sees the club on the merchant light page.
     private var viewerDomain: ThemeDomain {
         (reader as? AppSession)?.account?.effectiveRole == "merchant" ? .merchant : .player
+    }
+    /// Facts the lead-progress reads already fetch. Admins resolve immediately. A failed read leaves the approvals card.
+    private func loadOwnerStage(club: ClubRecord, manage: Bool) async {
+        guard manage, club.canGovern, !Task.isCancelled else { ownerStage = nil; return }
+        if !club.isOwner {
+            ownerStage = ClubOwnerStageMachine.resolve(.init(isOwner: false, canGovern: true, clubID: club.id, topicState: "ready"))
+            return
+        }
+        guard let session = reader as? AppSession, let governance = management?.governance else { ownerStage = nil; return }
+        let context = ClubLeadProgressContext(club: club, clubReader: reader, reader: session.cooperationFlowReader,
+                                              access: governance.access, projects: session.creatorContentReader)
+        guard context.canRead else { ownerStage = nil; return }
+        let current = { !Task.isCancelled }
+        do {
+            let fresh = try await reader.clubDetail(id: club.id, isCurrent: current)
+            guard current(), fresh.id == club.id, fresh.isOwner else { return }
+            let topics = try await governance.access.read(.topics, scope: .init(clubID: club.id), options: [:]) {
+                guard current() else { throw CancellationError() }
+            }
+            guard current() else { return }
+            let invitations = try await session.cooperationFlowReader.read(.invitations, isCurrent: current)
+            guard current() else { return }
+            let page = try await session.creatorContentReader.projects(query: .init(type: "all", state: "all", ownerType: "club"))
+            guard current() else { return }
+            ownerStage = ClubOwnerStageNow.resolve(club: fresh, topics: topics, invitations: invitations, projects: page)
+        } catch {
+            guard current() else { return }
+            ownerStage = nil
+        }
     }
     /// CLB-detail-20 / CLB-r7-A-01: MP `club.isOwner || canManageActivities` (access/me `club:activity:manage`).
     private func canManageActivities(_ club: ClubRecord) -> Bool {
@@ -84,6 +115,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // management rows below keep their order (项目 · 合作与期次 · 管理).
                 if tab == .manage, club.canGovern {
                     ClubWorkbenchSection(summary: ClubWorkbenchSummary(club: club),
+                                         ownerStage: ownerStage,
                                          onApprovals: management == nil ? nil : { showsApprovals = true },
                                          onEvents: { selectedTab = tabs.select(.events, from: tab) })
                 }
@@ -319,6 +351,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             .cyDomainPageBackground()
             .cyTracksHeroScroll($heroScrolledAway)
             .onChange(of: club.name, initial: true) { _, name in loadedClubName = name }
+            .task(id: "\(club.id)|\(tab.rawValue)|\(club.isOwner)|\(club.canGovern)|\(reader.clubIdentity.accountID ?? 0)") {
+                await loadOwnerStage(club: club, manage: tab == .manage)
+            }
             // CLB-detail-32 (owner native-iOS rule 11-24): the system bar and system back stay visible; the club's
             // name appears inline once the hero has scrolled away.
             .cyPushedChrome(domain: viewerDomain)
@@ -330,7 +365,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             .toolbar {
                 // MC-22: share sits in the bar beside the system back (a glass circle on iOS 26+ bars).
-                ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubName: club.name) }
+                ToolbarItem(placement: .topBarTrailing) { ClubHeaderShareButton(clubID: club.id) }
             }
             .navigationDestination(item: $openedTopicID) { topicID in
                 // CLB-r7-A-01 (MP goTopic js:2957-2966): governors and activity managers open the club topic-detail;

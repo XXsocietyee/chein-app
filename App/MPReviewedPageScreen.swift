@@ -257,6 +257,8 @@ import SwiftUI
         case "pages/club/group-code/index":
             if let activity = queryID(query, "activityId") {
                 clubGovernance { g in ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: .init(topicID: queryID(query, "topicId"), activityID: activity)), identity: session.clubIdentity, access: g.access, coordinator: g.coordinator) }
+            } else if let topic = queryID(query, "topicId") {
+                clubRead(.topicOverview, .init(clubID: queryID(query, "clubId"), topicID: topic), needsClub: false)
             } else { unavailable }
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {

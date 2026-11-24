@@ -41,17 +41,18 @@ import SwiftUI
             } else if failure == .forbidden || (loadedKey == key && model?.permitted == false) {
                 denied
             } else if let failure {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(failure.localizationKey),
-                    messageIdentifier: "clubOpsEvent.error",
-                    actionTitle: "action.retry",
-                    actionIdentifier: "clubOpsEvent.retry",
-                    actionStyle: .primary,
-                    kind: .failure
-                ) { Task { await load() } }
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                VStack(spacing: CYSpacing.md) {
+                    Text(verbatim: ClubOpsNetworkFailureClassifier.eventOpsHubTitle(failure))
+                        .cyText(.cardTitle)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("clubOpsEvent.error")
+                    CYPillButton("action.retry", style: .primary) { Task { await load() } }
+                        .accessibilityIdentifier("clubOpsEvent.retry")
+                }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             } else if loadedKey == key, let model {
                 ForEach(model.sections, id: \.self) { section in self.section(section, model: model) }
             }

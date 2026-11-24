@@ -58,15 +58,17 @@ struct ClubWorkbenchSummary: Equatable {
 /// Each element is its own list row so its button is the only tap target in that row.
 struct ClubWorkbenchSection: View {
     let summary: ClubWorkbenchSummary
+    /// Owner-stage Now card. Nil keeps the approvals headline.
+    var ownerStage: ClubOwnerStageResolution? = nil
     /// Opens 入会申请 (nil when the viewer has no management context: the tile and the card stay visible, not tappable).
     let onApprovals: (() -> Void)?
-    /// 待核销 and 本周场次 live on the 活动 tab (sessions, 核销).
+    /// 待核销 and 本周场次 live on the 活动 tab (sessions, 核销). Hidden when the count is unknown.
     let onEvents: () -> Void
 
     var body: some View {
         Section {
-            if summary.now != .unknown {
-                ClubWorkbenchNowCard(now: summary.now, onApprove: onApprovals)
+            if summary.now != .unknown || ownerStage != nil {
+                ClubWorkbenchNowCard(now: summary.now, ownerStage: ownerStage, onApprove: onApprovals)
                     .listRowInsets(Self.insets)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
@@ -74,10 +76,14 @@ struct ClubWorkbenchSection: View {
             HStack(spacing: CYSpacing.sm) {
                 ClubWorkbenchTile(titleKey: "r4club.tile.approvals", value: summary.pendingApprovals,
                                   identifier: "club.workbench.tile.approvals", action: onApprovals)
-                ClubWorkbenchTile(titleKey: "r4club.tile.checkins", value: summary.pendingCheckins,
-                                  identifier: "club.workbench.tile.checkins", action: onEvents)
-                ClubWorkbenchTile(titleKey: "r4club.tile.sessions", value: summary.sessionsThisWeek,
-                                  identifier: "club.workbench.tile.sessions", action: onEvents)
+                if summary.pendingCheckins != nil {
+                    ClubWorkbenchTile(titleKey: "r4club.tile.checkins", value: summary.pendingCheckins,
+                                      identifier: "club.workbench.tile.checkins", action: onEvents)
+                }
+                if summary.sessionsThisWeek != nil {
+                    ClubWorkbenchTile(titleKey: "r4club.tile.sessions", value: summary.sessionsThisWeek,
+                                      identifier: "club.workbench.tile.sessions", action: onEvents)
+                }
             }
             .listRowInsets(Self.insets)
             .listRowBackground(Color.clear)
@@ -92,18 +98,24 @@ struct ClubWorkbenchSection: View {
 /// Club/Now Card: eyebrow 现在要做 with a status dot, one line, and at most one primary.
 struct ClubWorkbenchNowCard: View {
     let now: ClubWorkbenchSummary.Now
+    var ownerStage: ClubOwnerStageResolution? = nil
     let onApprove: (() -> Void)?
     @State private var pulsing = false
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @QuestifyReduceMotion private var reduceMotion
 
+    /// A resolved owner stage is the one line. It does not add a second primary beside 去处理.
+    private var showsOwnerStage: Bool { ownerStage != nil }
+
     private var actionable: Bool {
+        if showsOwnerStage { return false }
         if case .approvals = now { return true }
         return false
     }
 
     private var headline: String {
+        if let ownerStage { return ownerStage.label }
         switch now {
         case .approvals(let count):
             return String(format: ClubR4Text.string("r4club.now.approvals", locale: locale), count)
@@ -129,6 +141,13 @@ struct ClubWorkbenchNowCard: View {
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("club.workbench.now.headline")
+            if let hint = ownerStage?.hint, !hint.isEmpty {
+                Text(verbatim: hint)
+                    .cyText(.body)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("club.workbench.now.hint")
+            }
             if actionable, let onApprove {
                 Button(action: onApprove) {
                     ClubR4Text.text("r4club.now.approve")
@@ -210,19 +229,20 @@ struct ClubHeaderInviteButton: View {
     }
 }
 
-/// Share in the navigation bar (a glass circle on iOS 26+ bars): the same text invitation.
+/// Share in the navigation bar (a glass circle on iOS 26+ bars): the club detail path.
 struct ClubHeaderShareButton: View {
-    let clubName: String
-    @Environment(\.locale) private var locale
+    let clubID: Int
 
     var body: some View {
-        ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
-            Image(systemName: "square.and.arrow.up")
-                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                .contentShape(Rectangle())
+        if let path = ClubShareLink.club(id: clubID)?.path {
+            ShareLink(item: path) {
+                Image(systemName: "square.and.arrow.up")
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(ClubR4Text.text("r4club.header.share"))
+            .accessibilityIdentifier("club.detail.share")
         }
-        .accessibilityLabel(ClubR4Text.text("r4club.header.share"))
-        .accessibilityIdentifier("club.detail.share")
     }
 }
 

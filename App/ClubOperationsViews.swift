@@ -1,5 +1,15 @@
 import SwiftUI
 
+private struct ClubProfileDraftFlowKey: EnvironmentKey {
+    static let defaultValue: ClubProfileLocalDraftFlow? = nil
+}
+extension EnvironmentValues {
+    var clubProfileDraftFlow: ClubProfileLocalDraftFlow? {
+        get { self[ClubProfileDraftFlowKey.self] }
+        set { self[ClubProfileDraftFlowKey.self] = newValue }
+    }
+}
+
 /// Session host owns access/coordinator and passes a published identity. This additive
 /// entry can be mounted on ClubHome (.create) and ClubDetail (.club(id)).
 struct ClubOperationsEntryButton: View {
@@ -426,6 +436,7 @@ struct ClubOperationsWorkspaceView: View {
                 NavigationLink {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
+                        .environment(\.clubProfileDraftFlow, profileDraft)
                 } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")

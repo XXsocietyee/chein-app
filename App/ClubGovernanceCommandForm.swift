@@ -72,6 +72,7 @@ import SwiftUI
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.clubProfileDraftFlow) private var profileDraftFlow
     @QuestifyReduceMotion private var reduceMotion
     @State private var audienceVisible = false
     @State private var scheduleSession: ClubSeriesScheduleSession?
@@ -208,7 +209,7 @@ import SwiftUI
                                 .accessibilityIdentifier("club.schedule.formConversion")
                         }
                         if let issue = ClubSeriesScheduleDraft(form: draft, now: Date()).issue(now: Date()) {
-                            ClubSeriesScheduleIssueLabel(issue: issue)
+                            ClubSeriesScheduleIssueLabel(issue: issue, weeklyHorizon: ClubSeriesScheduleDraft(form: draft, now: Date()).weeklyHorizonMessage(now: Date()))
                         }
                     } else { Text("club.schedule.choose") }
                 }
@@ -258,7 +259,7 @@ import SwiftUI
             if busy { ProgressView() }
             if let review {
                 Section {
-                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
+                    ClubGovernanceFactRows(value: .object(review.command.fields), fields: Array(review.command.fields.keys).sorted().filter { $0 != "expiresAtEpochMs" && $0 != "durationDays" && $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, showUnknown: true, localizesEnums: true)
                     if route.operation == .createSeries, review.command.fields["defaultLeadMemberId"] == .null {
                         LabeledContent("club.gov.field.defaultLeadMemberId") { Text("clubOpsEvent.lead.ownerDefault", tableName: "ClubOpsEvent") }
                             .accessibilityIdentifier("clubOpsEvent.review.ownerDefault")
@@ -330,7 +331,7 @@ import SwiftUI
                     .buttonStyle(.questifyPrimary)
                     .frame(maxWidth: .infinity)
                     .listRowBackground(Color.clear)
-                    .disabled(busy || locked || identity == nil)
+                    .disabled(busy || locked || identity == nil || !groupCodeCanIssue)
                     .accessibilityIdentifier("club.gov.prepare")
                 } else if route.operation != .hostApply {
                 // CLB-notify-01 (fix-r3-club-b): MP 预览受众 before the send, not a generic 下一步.
@@ -484,7 +485,7 @@ import SwiftUI
         }
         // CLB-group-code-02 (fix-r3-club-b): MP issues the code as the page opens (index.js:93-135).
         .task {
-            guard route.operation == .issueGroupCode, review == nil, receipt == nil, groupCode == nil, failure == nil else { return }
+            guard route.operation == .issueGroupCode, groupCodeCanIssue, review == nil, receipt == nil, groupCode == nil, failure == nil else { return }
             await submitDirectly()
         }
         .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; retirePresentation(); coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
@@ -617,8 +618,13 @@ import SwiftUI
     }
     private func textBinding(_ key: String) -> Binding<String> { Binding(get: { draft.text[key] ?? "" }, set: { draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func flagBinding(_ key: String) -> Binding<Bool> { Binding(get: { draft.flags[key] ?? false }, set: { draft.flags[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
+    /// Issuing a group code sends `{activityId}`. A topic-only link never reaches this submit.
+    private var groupCodeCanIssue: Bool {
+        route.operation != .issueGroupCode || (route.scope.activityID ?? 0) > 0
+    }
     /// One-tap submit for commands whose MP page has no review step (customer 保存, group code 出示).
     private func submitDirectly() async {
+        guard groupCodeCanIssue else { return }
         await prepare()
         if let pending = review { await confirm(pending) }
     }
@@ -686,6 +692,7 @@ import SwiftUI
             let value = try await coordinator.confirm(review)
             guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true
+            if route.operation == .dissolve { profileDraftFlow?.clearAfterConfirmedDissolve() }
             if returnsToRoster { attendanceReturn?.acknowledged(review, value) }
             caseSubmissionReturn?.acknowledged(review)
             if returnsToRoles { roleManagementReturn?.acknowledged(review, value) }

@@ -1022,7 +1022,8 @@ final class AppSession: ObservableObject {
         } else if comment != nil { throw ClubCommunityFailure.invalid }
         guard try currentCommunitySession() == captured else { throw ClubCommunityFailure.stale }
         return .init(identity: captured.identity, clubID: clubID, joined: membership.isJoined, owner: membership.isOwner,
-            administrator: membership.viewerIsAdmin, post: freshPost, comment: freshComment)
+            administrator: membership.viewerIsAdmin, post: freshPost, comment: freshComment,
+            memberPostAllowed: membership.memberPostAllowed)
     }
     // Independent personal-sharing approvals. Restoring metadata never grants location access.
     private var personalLocationShareReadApproval: PersonalLocationShareEndpointApproval? = nil

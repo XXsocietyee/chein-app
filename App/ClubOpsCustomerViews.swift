@@ -5,16 +5,27 @@ struct ClubOpsFailureSection: View {
     /// X3 (parity r2): the one reason line under the page title when the page copy has no detail of its own.
     var reason: Text? = nil
     let retry: () -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(copy.titleKey),
-                    tableName: "ClubOpsCustomer",
-                    messageIdentifier: "clubOps.failure.title",
-                    kind: .failure
-                )
+                if let literal = copy.literalTitle {
+                    Text(verbatim: literal)
+                        .cyText(.cardTitle)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("clubOps.failure.title")
+                } else {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(copy.titleKey),
+                        tableName: "ClubOpsCustomer",
+                        messageIdentifier: "clubOps.failure.title",
+                        kind: .failure
+                    )
+                }
                 if let detail = copy.detailKey {
                     Text(LocalizedStringKey(detail), tableName: "ClubOpsCustomer")
                         .cyText(.body)
@@ -32,7 +43,10 @@ struct ClubOpsFailureSection: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.gov.error")
                 }
-                if let key = copy.retryKey {
+                if let back = copy.backTitle {
+                    CYPillButton(verbatim: locale.pick(back, "Back"), style: .secondary, action: { dismiss() })
+                        .accessibilityIdentifier("clubOps.failure.back")
+                } else if let key = copy.retryKey {
                     CYPillButton(LocalizedStringKey(key), style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsCustomer", action: retry)
                         .accessibilityIdentifier("clubOps.failure.retry")
                 }

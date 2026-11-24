@@ -96,6 +96,8 @@ struct ClubOpsGovernanceMembersSection: View {
     var scope: ClubGovernanceScope? = nil
     var capability: ClubOpsGovernanceCapability? = nil
     var document: ClubGovernanceValue? = nil
+    var showsBan = true
+    var memberGovernanceDenial: String? = nil
     private var page: ClubOpsGovernancePage? {
         guard let scope, let capability else { return nil }
         return ClubOpsGovernancePage.project(members: document, scope: scope, capability: capability, includeBans: false, includeMembers: true, includeCases: false)
@@ -109,6 +111,12 @@ struct ClubOpsGovernanceMembersSection: View {
             if let text = countText {
                 Text("clubOpsGov.count.members \(text)", tableName: "ClubOpsGovernance").cyText(.meta).foregroundStyle(CYColor.textSecondary).monospacedDigit().accessibilityIdentifier(ClubOpsGovernancePage.Accessibility.memberCount)
             }
+            if let memberGovernanceDenial {
+                Text(verbatim: memberGovernanceDenial)
+                    .cyText(.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("club.memberGovernance.denied")
+            }
             if roster.members.isEmpty {
                 CYEmptyState(systemImage: "person.2", "clubOpsGov.members.empty", tableName: "ClubOpsGovernance", messageIdentifier: "clubOpsGov.members.empty")
                     .listRowBackground(Color.clear)
@@ -119,8 +127,10 @@ struct ClubOpsGovernanceMembersSection: View {
                     ClubOpsGovernanceCopy.member(member.nickname, id: member.id).cyText(.cardTitle)
                     HStack(spacing: CYSpacing.sm) {
                         // CLB-governance-18: VoiceOver names the member on 封禁 / 转让.
-                        ban(member).foregroundStyle(CYColor.dangerText)
-                            .accessibilityLabel(Text("club.gov.a11y.ban \(member.nickname ?? "#\(member.id)")"))
+                        if showsBan {
+                            ban(member).foregroundStyle(CYColor.dangerText)
+                                .accessibilityLabel(Text("club.gov.a11y.ban \(member.nickname ?? "#\(member.id)")"))
+                        }
                         if roster.viewerIsOwner {
                             transfer(member).accessibilityLabel(Text("club.gov.a11y.transfer \(member.nickname ?? "#\(member.id)")"))
                         }
@@ -400,9 +410,11 @@ struct ClubOpsBanDurationPicker: View {
 struct ClubOpsBanExpiryReview: View {
     let fields: [String: ClubGovernanceValue]
     var body: some View {
-        if let value = fields["expiresAtEpochMs"], let text = ClubOpsGovernanceClock.minute(value) {
-            LabeledContent { Text("clubOpsGov.until \(text)", tableName: "ClubOpsGovernance") } label: { ClubOpsGovernanceCopy.text("clubOpsGov.duration") }
-                .accessibilityIdentifier("clubOpsGov.review.expiry")
+        if let days = fields["durationDays"]?.int, ClubGovernanceFormDraft.banDayChoices.contains(days) {
+            LabeledContent {
+                Text("clubOpsGov.days \(days)", tableName: "ClubOpsGovernance")
+            } label: { ClubOpsGovernanceCopy.text("clubOpsGov.duration") }
+            .accessibilityIdentifier("clubOpsGov.review.expiry")
         }
     }
 }
