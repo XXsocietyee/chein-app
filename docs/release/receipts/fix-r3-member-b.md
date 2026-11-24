@@ -202,3 +202,14 @@ Strings: `ticketPass.pager.position`, `orientScore.board.{open,loading,failed,re
 | PLY-21-6 (P1) | Still blocked by `test_ticket_wallet_team.py:16`, which was not retired on r7. |
 | PLY-21-4 (rest), FIN-16-7 (rest), R7-MEM-17-2 (rest) | The same Core requests as before: the game flag, the `ProfileOrder` cover and the settle fields. |
 | MP free-explore deep link (member-a's page 7) | `MPReviewedPageScreen.freeExplore` `?registrationId=` mounts a bare `ProfileOrderDetailView`, without `SessionOwnedOrderDetailView`'s bundle environment, so its 自由探索权益 entry can't read. It isn't changed here because page 7 is half a. The fix is a one-line swap to `SessionOwnedOrderDetailView(session:id:)`. |
+
+### Round 3 verification (cloud, contract layer only)
+- **`tools/contract_ratchet.py --check`:** 218 failing against a baseline of 184, so 34 new. I ran all 34 on an untouched `b0ac0108d` worktree, and 33 of them fail there too: they are r7-wide (search map, settings, merchant, club and so on).
+  - The one this branch adds is `test_localization_key_catalog_contract…test_no_looked_up_key_is_missing_from_every_catalog`. It flags the round-3 keys that so far exist only in `docs/port/strings/fix-r3-member-b.json`.
+  - It goes green once the coordinator runs `tools/merge_localization_fragments.py`, the same as earlier rounds.
+- **The 21 ContractChecks modules that name an edited file:** 18 pass. The other 3 (`test_category_roam_registration`, `test_merchant_project_workspace_entry` and `test_design_system_component_contracts`) fail identically on the base.
+- `tools/check_player_journey_screens.py` and `tools/check_typography_lint.py` pass.
+- **Not run here:** the Xcode build, `swift test`, AppUnit and screenshots, because there is no compiler in the cloud.
+  - Every API was grepped on r7: `OrientSessionService.leaderboard`, `OrientScoreFormat.centi`, `squareGovernanceAccess().token`, `AuthRequestBuilder.isValidToken`, `writer.submit(…nodeID:)`, `CommunityTrustPlayerService.appeal`, `SessionOwnedOrderDetailView(session:id:)`, `QuestifyCardArtwork.safeURL`, and the MPGap view initializers.
+  - The coordinator should compile.
+- `origin/ui/combined-r7` was re-fetched before the final push. It is still b0ac0108d, which is already merged.
