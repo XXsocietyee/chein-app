@@ -8,6 +8,7 @@ import FoundationNetworking
 public struct SearchMapService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -133,11 +134,18 @@ public struct SearchMapService {
         if object.keys.contains("aggregatedQueryEnabled"), (object["aggregatedQueryEnabled"] as? Bool) != false {
             throw APIError.invalidRequest
         }
-        var request = try baseRequest("api/map/public-layers", token: token)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = body
-        let envelope = try await execute(request)
+        let key = InFlightReadKey.bytes(method: "POST", path: "api/map/public-layers", body: body, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = try self.baseRequest("api/map/public-layers", token: token)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        let envelope = try checked(response)
         guard let root = try JSONSerialization.jsonObject(with: envelope) as? [String: Any],
               let data = root["data"], !(data is NSNull) else { throw APIError.malformedResponse }
         return try JSONSerialization.data(withJSONObject: data)
@@ -184,24 +192,48 @@ public struct SearchMapService {
         if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
     }
     private func form(_ path: String, fields: [String:String], token: String?) async throws -> Data {
-        try await execute(AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token))
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            let request = try AuthRequestBuilder.makeFormRequest(url: self.configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return try checked(response)
     }
     private func json(_ path: String, fields: [String:Any], token: String?) async throws -> Data {
-        var request = try baseRequest(path, token: token)
-        request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: fields)
-        return try await execute(request)
+        let keyBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+        let key = InFlightReadKey.bytes(method: "POST", path: path, body: keyBody, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = try self.baseRequest(path, token: token)
+            request.httpMethod = "POST"; request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONSerialization.data(withJSONObject: fields)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return try checked(response)
     }
     private func get(_ path: String, fields: [String:String], token: String?) async throws -> Data {
-        var request = try baseRequest(path, token: token)
-        if !fields.isEmpty {
-            guard var parts = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
-            parts.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
-            // Spring/Servlet query parsing treats raw + as space, unlike URLComponents.
-            parts.percentEncodedQuery = parts.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
-            guard let url = parts.url else { throw APIError.invalidRequest }; request.url = url
+        let items = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
+        let key = InFlightReadKey.query(path: path, items: items, token: token ?? "")
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = try self.baseRequest(path, token: token)
+            if !fields.isEmpty {
+                guard var parts = URLComponents(url: request.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
+                parts.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
+                // Spring/Servlet query parsing treats raw + as space, unlike URLComponents.
+                parts.percentEncodedQuery = parts.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+                guard let url = parts.url else { throw APIError.invalidRequest }; request.url = url
+            }
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
         }
-        return try await execute(request)
+        try Task.checkCancellation()
+        return try checked(response)
     }
     private func baseRequest(_ path: String, token: String?) throws -> URLRequest {
         try validate(token)
@@ -211,10 +243,9 @@ public struct SearchMapService {
         if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
         return request
     }
-    private func execute(_ request: URLRequest) async throws -> Data {
-        try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
-        try Task.checkCancellation()
+    /// Status stays outside the join, so a finished read is dropped and the next call sends again.
+    private func checked(_ response: InFlightHTTPBody) throws -> Data {
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         let code = try decode(SearchMapStatus.self, data).code

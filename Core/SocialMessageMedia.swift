@@ -24,6 +24,8 @@ public enum SocialMediaFailure: Error, Equatable { case invalidURL, originNotApp
 /// Approved origins are explicit deployment configuration; no wildcard storage hosts.
 public struct SocialMessageMediaService {
     public static let maximumBytes = 12 * 1024 * 1024
+    /// Call sites build a new service per image. The absolute URL is the join key; the value is not kept.
+    private static let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     private let approvedOrigins: Set<String>
     private let transport: any HTTPTransport
     private let authorize: (@MainActor (SocialMessageMedia) async throws -> Void)?
@@ -40,12 +42,16 @@ public struct SocialMessageMediaService {
         try Task.checkCancellation()
         try await authorize?(media)
         try Task.checkCancellation()
-        var request = URLRequest(url: media.url)
-        request.httpMethod = "GET"; request.httpShouldHandleCookies = false
-        request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
-        request.setValue("image/*", forHTTPHeaderField: "Accept")
-        let (data, status) = try await transport.send(request)
+        let response = try await Self.reads.join(media.url.absoluteString) {
+            var request = URLRequest(url: media.url)
+            request.httpMethod = "GET"; request.httpShouldHandleCookies = false
+            request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
+            request.setValue("image/*", forHTTPHeaderField: "Accept")
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         guard (200..<300).contains(status) else { throw SocialMediaFailure.unavailable }
         guard data.count <= Self.maximumBytes else { throw SocialMediaFailure.tooLarge }
         // Signature gate before UI decoding. Size-limited transport remains an enablement

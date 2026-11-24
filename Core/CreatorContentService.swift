@@ -5,6 +5,7 @@ import Foundation
 public struct CreatorContentService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -48,10 +49,15 @@ public struct CreatorContentService {
     }
     private func post(_ path: String, fields: [String: String], token: String) async throws -> Data {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
         try Task.checkCancellation()
-        let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
-        let (data, status) = try await transport.send(request)
+        let response = try await reads.join(key) {
+            let request = try AuthRequestBuilder.makeFormRequest(url: self.configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else {
             if let envelope = try? JSONDecoder().decode(StatusEnvelope.self, from: data), let message = envelope.message {

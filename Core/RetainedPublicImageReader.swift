@@ -15,11 +15,20 @@ import FoundationNetworking
     public init(enabled: Bool = false, origins: Set<String> = []) { self.enabled = enabled; self.origins = origins }
     public func image(url: URL) async throws -> Data {
         guard enabled, RetainedImageOrigin.accepts(url, origins: origins) else { throw RetainedImageFailure.disabled }
-        let loader = RetainedBoundedImageDownload()
-        return try await withTaskCancellationHandler(operation: {
-            try Task.checkCancellation()
-            return try await loader.load(url)
-        }, onCancel: { loader.cancel() })
+        return try await RetainedPublicImageFlights.load(url)
+    }
+}
+/// Call sites construct a new reader. Two callers of the same absolute URL share the transfer already running.
+private enum RetainedPublicImageFlights {
+    static let reads = InFlightReadCoalescer<Data>()
+    static func load(_ url: URL) async throws -> Data {
+        try await reads.join(url.absoluteString) {
+            let loader = RetainedBoundedImageDownload()
+            return try await withTaskCancellationHandler(operation: {
+                try Task.checkCancellation()
+                return try await loader.load(url)
+            }, onCancel: { loader.cancel() })
+        }
     }
 }
 /// A fresh ephemeral no-redirect download, rejecting headers/chunks over the selected-image bound.

@@ -14,6 +14,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let avatarTransport: (any ProfileAvatarDispatching)?
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport, avatarTransport: (any ProfileAvatarDispatching)? = nil) {
         self.configuration = configuration; self.transport = transport; self.avatarTransport = avatarTransport
     }
@@ -24,13 +25,18 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
     }
     private struct Response: Decodable { let code: Int; let msg: String?; let errorCode: String? }
     public func read(token: String) async throws -> ProfileEditSnapshot {
-        var request = try request("api/user/info", token: token)
-        let boundary = "ProfileRead-" + UUID().uuidString
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.httpBody = Data("--\(boundary)--\r\n".utf8)
+        let key = InFlightReadKey.fields(method: "POST", path: "api/user/info", fields: [:], token: token)
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
+        let response = try await reads.join(key) {
+            var request = try self.request("api/user/info", token: token)
+            let boundary = "ProfileRead-" + UUID().uuidString
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+            request.httpBody = Data("--\(boundary)--\r\n".utf8)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
         try Task.checkCancellation()
+        let (data, status) = (response.data, response.status)
         let envelope = try? JSONDecoder().decode(Response.self, from: data)
         guard (200..<300).contains(status), envelope?.code == 200 else {
             throw ProfileReadFailure(httpStatus: status, code: envelope?.code, message: envelope?.msg)

@@ -8,6 +8,7 @@ import FoundationNetworking
 public struct RoamService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -45,11 +46,19 @@ public struct RoamService {
     }
     public func merchantDetail(id: Int, token: String? = nil) async throws -> RoamMerchantDetail {
         guard id > 0 else { throw APIError.invalidRequest }
-        var request = try request("api/merchant/public-detail", token: token)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["id": id])
-        let data = try await execute(request)
+        let body = try JSONSerialization.data(withJSONObject: ["id": id])
+        let key = InFlightReadKey.bytes(method: "POST", path: "api/merchant/public-detail", body: body, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = try self.request("api/merchant/public-detail", token: token)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        let data = try checked(response)
         let result = try decode(RoamMerchantDetail.self, data)
         guard result.merchant.id == id else { throw APIError.malformedResponse }
         return result
@@ -112,22 +121,36 @@ public struct RoamService {
         return result
     }
     private func get(_ path: String, query: [String: String] = [:], token: String, nodeDetail: Bool = false) async throws -> Data {
-        var value = try request(path, token: token)
-        if !query.isEmpty {
-            guard var url = URLComponents(url: value.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
-            url.queryItems = query.keys.sorted().map { URLQueryItem(name: $0, value: query[$0]) }
-            guard let result = url.url else { throw APIError.invalidRequest }; value.url = result
+        let items = query.keys.sorted().map { URLQueryItem(name: $0, value: query[$0]) }
+        let key = InFlightReadKey.query(path: path, items: items, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var value = try self.request(path, token: token)
+            if !query.isEmpty {
+                guard var url = URLComponents(url: value.url!, resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
+                url.queryItems = query.keys.sorted().map { URLQueryItem(name: $0, value: query[$0]) }
+                guard let result = url.url else { throw APIError.invalidRequest }; value.url = result
+            }
+            let (data, status) = try await self.transport.send(value)
+            return InFlightHTTPBody(data: data, status: status)
         }
-        return try await execute(value, nodeDetail: nodeDetail)
+        try Task.checkCancellation()
+        return try checked(response, nodeDetail: nodeDetail)
     }
     private func post(_ path: String, fields: [String: String], token: String) async throws -> Data {
-        let value = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
-        return try await execute(value)
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            let value = try AuthRequestBuilder.makeFormRequest(url: self.configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
+            let (data, status) = try await self.transport.send(value)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return try checked(response)
     }
-    private func execute(_ request: URLRequest, nodeDetail: Bool = false) async throws -> Data {
-        try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
-        try Task.checkCancellation()
+    /// Status stays outside the join. Writes stay on `writeMutation` and are not joined.
+    private func checked(_ response: InFlightHTTPBody, nodeDetail: Bool = false) throws -> Data {
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         if nodeDetail, status == 410 { throw RoamReadFailure.nodeUnavailable }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
