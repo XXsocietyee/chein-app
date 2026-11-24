@@ -40,6 +40,9 @@ enum TemplateShelfArt {
         }
     }
 
+    /// `art.js` FEATURED_GAMES order: the 玩法 tab's top paging rail.
+    static let featuredGameTitles = ["一桌任务宾果", "分支故事接力", "招牌菜限时盲猜", "闭眼味觉师", "城市取景任务", "小队竞速点亮",
+                                     "拍下这一刻", "咖啡风味人格"]
     /// `game-covers.js` GAMES: the 25 shelf plays, title → `covers/game/<slug>.jpg`.
     static func gameCover(_ title: String?) -> Image? {
         switch (title ?? "").trimmingCharacters(in: .whitespacesAndNewlines) {

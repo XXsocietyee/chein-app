@@ -331,6 +331,19 @@ struct DiscoveryTemplateBrowserView: View {
                     gameSection("discovery.searchResults", rows: shown, verbatimTitle: locale.pick(tag.zh, tag.en))
                 } else { gameSection("discovery.searchResults", rows: shown) }
             }
+        } else if let rows = shelfGames.value, !SearchDiscoveryFilterParity.shelfGames(rows).isEmpty {
+            // R7-PC-A2-3 / A2-6 (MP shelf/index.js:340 `buildGames`): the default 玩法 view is built from the paged
+            // `api/template/list` rows: the FEATURED_GAMES paging rail, then one shelf per GROUPS entry.
+            let shelf = SearchDiscoveryFilterParity.shelfGames(rows)
+            let featured = TemplateShelfArt.featuredGameTitles.compactMap { title in
+                shelf.first { $0.title.trimmingCharacters(in: .whitespacesAndNewlines) == title }
+            }
+            if !featured.isEmpty { featuredGameRail(featured) }
+            gameSection("discovery.shelf.group.shop", rows: SearchDiscoveryFilterParity.games(rows, matching: "shop"))
+            gameSection("discovery.shelf.group.team", rows: SearchDiscoveryFilterParity.games(rows, matching: "team"))
+            gameSection("discovery.shelf.group.city", rows: SearchDiscoveryFilterParity.games(rows, matching: "city"))
+        } else if shelfGames.isLoading, shelfGames.value == nil {
+            CYSkeleton()
         } else {
             if home.isLoading { CYSkeleton() }
             if let error = home.error {
@@ -393,6 +406,33 @@ struct DiscoveryTemplateBrowserView: View {
                         .accessibilityIdentifier("discovery.topic.\(item.id)")
                 }
             }
+        }
+    }
+    /// MP `featGames` swiper (shelf/index.wxml:49-78): one large bundled-cover card per page, with page dots.
+    @ViewBuilder private func featuredGameRail(_ rows: [DiscoveryPlayTemplate]) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSectionHeader("discovery.featured")
+            TabView {
+                ForEach(rows, id: \.id) { item in
+                    NavigationLink {
+                        DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
+                    } label: {
+                        if let art = TemplateShelfArt.gameCover(item.title) {
+                            TemplateShelfArtHeroCard(art: art, title: Text(verbatim: item.title), meta: item.description)
+                        } else {
+                            CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.bottom, CYSpacing.xl)
+                    .pageTemplateGroupedCard(label: gameCardLabel(item), traits: .isButton)
+                    .accessibilityIdentifier("discovery.play.featured.\(item.id)")
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+            .indexViewStyle(.page(backgroundDisplayMode: .interactive))
+            .aspectRatio(16.0 / 11.5, contentMode: .fit)
+            .accessibilityIdentifier("discovery.featuredGames")
         }
     }
     @ViewBuilder private func gameSection(_ title: LocalizedStringKey, rows: [DiscoveryPlayTemplate], hero: Bool = false, verbatimTitle: String? = nil) -> some View {

@@ -209,7 +209,7 @@ Not run from the cloud (no compiler). Coordinator: please compile and send exact
 
 - **Brief:** `design/handoff-r2:docs/briefs/fix-r3-round3.md` (+ `wave-x10.md`, `fix-r3-round2.md`, `owner-decisions-1124.md`).
 - **Sync:** merged `origin/ui/combined-r7` @ `b0ac0108d`. No textual conflict. Before the final push it is merged again.
-- **Strings:** 1 new key (`topic.source.sessionRow.hint`) in `docs/port/strings/fix-r3-player-content-a.json`, en + zh-Hans (25 keys in total).
+- **Strings:** 4 new keys (`topic.source.sessionRow.hint`, `discovery.shelf.group.shop/team/city`) in `docs/port/strings/fix-r3-player-content-a.json`, en + zh-Hans (28 keys in total).
 - **Acceptance routes:** Round 3 block appended to `docs/port/accept/f-player-content-a.txt`.
 
 ### Round 3 · re-applied
@@ -238,6 +238,7 @@ Each round-2 commit (`5be7191a3`, `6d471bc22`, `f5b96cf93`, `505f1174c`, `d2400b
 | R7-PC-B1-13 | Free-explore session rows are buttons (MP `bindtap="bmClick"`) that open the in-page session picker. They have a VoiceOver hint and id `topic.session.row`. The MP also preselects the tapped ticket **by name** in the picker. The app's preselect (`registrationPreselectedTicketID`) is by id and is set inside `ActivityDetailView`, so name preselect is a half-b change (`RegistrationSheetView`). | TopicDetailView |
 | MP assets: shelf art | New `TemplateShelfArt`, a port of `shelf/art.js` THEMES (18 topic names, exact match then prefix match like `themeKey`) and `game-covers.js` GAMES (25 play titles), mapped to the bundled `MPAsset.BannerCover.*` covers. A known title always uses the bundled cover, as in the MP ("不依赖接口回来的 imgUrl"). Applied to the template shelf (hero card + row thumbs, topics and plays), the play-template detail head (MP `detailCover`) and the topic-template detail head (MP `topicArt`). | TemplateShelfArt (new), DiscoveryTemplateBrowserView, DiscoveryTemplateDetailView |
 | MP asset: home card default | `HomeFeedShelfCard` uses `CYImageCard.fallbackArtwork(MPAsset.BannerCover.homeRouteCityPlaceholder)` (MP `index.wxml:216`). The design system added that input after round 2. | HomeFeedView |
+| R7-PC-A2-3 / A2-6 | The default 玩法 view is now the MP `buildGames`: the 精选 paging rail (`FEATURED_GAMES` order, bundled covers, page dots) and one shelf each for 到店互动 / 小队协作 / 城市探索 (`GROUPS`, through Core `SearchDiscoveryFilterParity.games(_, matching: "shop"/"team"/"city")`). Both are built from the paged `api/template/list` rows (Core A2-1). `api/template/homeData` sections remain only as the fallback when the list has no shelf play, as in fixtures. While the list loads, the page shows a skeleton. | DiscoveryTemplateBrowserView, TemplateShelfArt |
 | R7-PC-A8-2 (rest) | Closed as obsolete. The current MP `topic-detail/index.wxml` has no image mosaic (the owner simplified it on 11-14). The node-image gallery is done (round 2). | — |
 
 ### MP assets (mapping.md), round 3
@@ -274,7 +275,7 @@ Each round-2 commit (`5be7191a3`, `6d471bc22`, `f5b96cf93`, `505f1174c`, `d2400b
 |---|---|
 | R7-PC-B1-21 | `TopicChapter.locked` still not decoded (MP `topic-motion.js:160`). **Cursor.** |
 | R7-PC-A8-3, C1-9, B3-4, C1-8 | Still need Core: `isOfficial`, `organizerShopLogo`, `MerchantApplyXcx.allMissing`, a distinct not-found error. None are on combined-r7 @ b0ac0108d. |
-| R7-PC-A2-3 / A2-6 | Core paging landed (A2-1), and the MP name→art tables are now ported. Still to do: the grouped 玩法 shelves (`GAME_TAG_GROUPS`, `TOPIC_SHELVES`), the featured rail, and dropping `homeData`. That is M-sized and the next pass for this half. |
+| Topic tab shelves (MP `buildTopics`: 全部主题 columns + `TOPIC_SHELVES`, `FEATURED_TOPICS` rail) | The 玩法 tab is done (above). The topic tab keeps its existing sections; `TOPIC_SHELVES` needs the topic duration / tag tests exposed by Core (`SearchDiscoveryFilterParity` has the tags, not the shelves). Next pass. |
 | R7-PC-A1-1 relocate, A1-7 share, A3-4, A4-1, A5-6, B2-3, B3-3 | Unchanged from round 2 (no API, or hash-pinned files). |
 | Gemini MPGap copy | `TopicTemplatePreviewData.fromWire` builds Chinese-only strings in Core (「N 分钟」「N 章节」); the deck therefore shows Chinese under en. **Gemini:** move them to catalog keys. |
 
