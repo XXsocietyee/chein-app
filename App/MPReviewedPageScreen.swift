@@ -326,9 +326,24 @@ import SwiftUI
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
-            // B-SZ-12: `?scene=settings-deregister` opens 账号注销; the other scenes open Settings itself.
+            // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
+            // unavailable scenes (and settings-identity-picker, whose entries live on Settings) open Settings itself.
             if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
+            } else if query["scene"] == "settings-profile", session.account != nil {
+                ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,
+                                currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader,
+                                savedMedia: session.profileSavedMediaReaders)
+            } else if query["scene"] == "settings-feedback" {
+                ProfileComplaintDeepLinkScreen(session: session)
+            } else if query["scene"] == "settings-likes" {
+                MPFavoritesLinkHost(session: session)
+                    .id(session.profileFavoritesReader.scope)
+            } else if query["scene"] == "settings-how-to-play" {
+                ProfileGuideHost(reader: session.makeProfileGuideReader(),
+                                 makeArticleReader: { session.makeProfileGuideArticleReader($0) },
+                                 onOpenDestination: nil, templateReader: session)
+                    .id(session.socialAccountReader.identity)
             } else {
                 // Settings reads the unread badge owner (NativeChannelNotificationSettingsEntry); the link sheet sits
                 // outside the root's badge lifecycle, so it carries its own (no push binding, reads only).

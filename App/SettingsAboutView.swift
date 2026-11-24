@@ -75,13 +75,31 @@ import UIKit
             } header: { Text("settingsNative.about.linksSection") }
             .labelStyle(SettingsTileLabelStyle())
             if let phone = model.contactPhone {
+                // B-AB-05: the MP about page has no footer bar; copying the number is the contact row's own action.
                 Section {
-                    Text(verbatim: phone)
-                        .cyText(.numericBody)
-                        .foregroundStyle(palette.textPrimary)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityIdentifier("settingsNative.about.contactPhone")
+                    HStack(spacing: CYSpacing.md) {
+                        Text(verbatim: phone)
+                            .cyText(.numericBody)
+                            .foregroundStyle(palette.textPrimary)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityIdentifier("settingsNative.about.contactPhone")
+                        Button { copy(phone) } label: {
+                            Image(systemName: "doc.on.doc")
+                                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(Text("settingsNative.about.copyPhone"))
+                        .accessibilityIdentifier("settingsNative.about.copyPhone")
+                    }
+                    if let copyStatus {
+                        Text(LocalizedStringKey(copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"))
+                            .cyText(.meta)
+                            .foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("settingsNative.about.copyPhone." + (copyStatus == .copied ? "copied" : "failed"))
+                    }
                 } header: { Text("settingsNative.about.contact") } footer: { Text("settingsNative.about.contactSource") }
             } else {
                 // B-AB-03: the MP always offers 联系我们; without a phone the support contact page is the way in.
@@ -97,26 +115,6 @@ import UIKit
         }
         .cyDomainPageBackground()
         .cyPageTitle("settingsNative.about.title")
-        .safeAreaInset(edge: .bottom) {
-            if let phone = model.contactPhone {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    if let copyStatus {
-                        Text(LocalizedStringKey(copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"))
-                            .cyText(.meta)
-                            .foregroundStyle(palette.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("settingsNative.about.copyPhone." + (copyStatus == .copied ? "copied" : "failed"))
-                    }
-                    CYPillButton("settingsNative.about.copyPhone", systemImage: "doc.on.doc") {
-                        copy(phone)
-                    }
-                    .accessibilityIdentifier("settingsNative.about.copyPhone")
-                }
-                .padding(CYSpacing.lg)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(palette.bgPage)
-            }
-        }
         .onDisappear { copyStatus = nil; showsPlayerCodePending = false; toastMessage = nil }
         .cyToast(message: $toastMessage, tone: copyStatus == .failed ? .warning : .info)
     }
@@ -138,7 +136,7 @@ import UIKit
                     .accessibilityLabel(Text("settingsNative.about.playerCode"))
                 } else {
                     Image(systemName: "qrcode")
-                        .font(.largeTitle).imageScale(.large)
+                        .cyText(.pageTitle).imageScale(.large)
                         .foregroundStyle(palette.textTertiary.opacity(0.5))
                         .accessibilityHidden(true)
                     RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
@@ -189,7 +187,8 @@ import UIKit
     }
 
     private var appName: some View {
-        Text(verbatim: "chein - 城瘾")
+        // B-AB-04: MP about/index.wxml:24 shows the product name 城瘾 only.
+        Text(verbatim: "城瘾")
             .cyText(.pageTitle)
             .foregroundStyle(palette.textPrimary)
             .multilineTextAlignment(.center)
