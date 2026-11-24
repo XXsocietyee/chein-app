@@ -279,11 +279,13 @@ struct JourneyRankBoardView: View {
     private func hero(rank: Int, board: JourneyRankBoard) -> some View {
         VStack(spacing: CYSpacing.sm) {
             HStack(spacing: CYSpacing.sm) {
-                Image(systemName: "laurel.leading").font(CYTypography.data2XL)
+                // MP rank-board wxml:12/:20: the shipped `laurel.svg`, the right branch mirrored (MP assets).
+                MPAsset.BadgeMedal.laurel.resizable().scaledToFit().frame(width: 48, height: 110).accessibilityHidden(true)
                 Text(verbatim: String(heroOn ? rank : 0))
                     .cyText(.data2XL).monospacedDigit()
                     .contentTransition(.numericText(value: Double(heroOn ? rank : 0)))
-                Image(systemName: "laurel.trailing").font(CYTypography.data2XL)
+                MPAsset.BadgeMedal.laurel.resizable().scaledToFit().frame(width: 48, height: 110)
+                    .scaleEffect(x: -1, y: 1).accessibilityHidden(true)
             }
             .foregroundStyle(CYNight.lanternHot)
             .scaleEffect(heroOn ? 1 : 0.6)
@@ -518,23 +520,17 @@ struct JourneyReportView: View {
             }
         }.cySheet(detents: [.large]) }
         .sheet(item: $nodePhoto) { photo in
-            NavigationStack {
-                AsyncImage(url: photo.url) { phase in
-                    switch phase {
-                    case .success(let image): image.resizable().scaledToFit()
-                    case .failure: CYEmptyState(systemImage: "photo", "mp.report.photos.empty")
-                    default: ProgressView()
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(CYNight.ink0)
-                .navigationTitle(Text("mp.report.photos.title"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { nodePhoto = nil } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
-            }
-            .cySheet()
+            // JREPORT-2 (MP `previewNodePhoto` → wx.previewImage over every node photo): paged, opened on the tapped one.
+            JourneyNodePhotoPages(photos: nodePhotos, selected: photo.id, onClose: { nodePhoto = nil })
+                .cySheet()
         }
         .cyDomainScreen(.player)
+    }
+
+    /// Every https node photo of this run, in node order (the pager's pages).
+    private var nodePhotos: [JourneyNodePhoto] {
+        guard case .ready(let report) = phase else { return [] }
+        return report.nodes.compactMap { JourneyNodePhoto.url($0.photoURL).map(JourneyNodePhoto.init(url:)) }
     }
 
     private func ready(_ report: JourneyReport) -> some View {
@@ -574,7 +570,9 @@ struct JourneyReportView: View {
                         MPRow(title: Text("mp.report.rankRow"), sub: report.rankBasisCount.map { Text("mp.report.rankBasis \($0)") },
                               value: report.rank.map { Text("mp.report.rank \($0)") } ?? Text("mp.report.noRank"), strong: report.rank != nil, chevron: true)
                     }
-                    .buttonStyle(.plain).accessibilityIdentifier("journeyReport.rank")
+                    .buttonStyle(.plain)
+                    .accessibilityHint(Text("mp.report.rank.hint"))  // JREPORT-9: says it opens the board
+                    .accessibilityIdentifier("journeyReport.rank")
                     if let penalty = report.penaltyText {
                         MPDivider()
                         MPRow(title: Text("mp.report.penalty"), value: Text(verbatim: penalty))
@@ -605,10 +603,12 @@ struct JourneyReportView: View {
                         let row = MPRow(title: node.name.map { Text(verbatim: $0) } ?? Text("mp.report.node"),
                                         sub: node.mode.map { $0 == .skipped ? Text("mp.report.node.skipped") : Text("mp.report.node.revealed") },
                                         value: node.score.map { Text(verbatim: String($0)) } ?? Text("mp.report.node.notScored"),
-                                        chevron: JourneyNodePhoto.url(node.photoURL) != nil)
+                                        chevron: JourneyNodePhoto.url(node.photoURL) != nil,
+                                        leading: JourneyNodePhoto.url(node.photoURL).map { AnyView(Self.nodeThumb($0)) })
                         if let photo = JourneyNodePhoto.url(node.photoURL) {
                             Button { nodePhoto = JourneyNodePhoto(url: photo) } label: { row }
                                 .buttonStyle(.plain)
+                                .accessibilityLabel(Text("mp.report.node.photo \(node.name ?? "")"))
                                 .accessibilityIdentifier("journeyReport.node.photo." + node.id)
                         } else {
                             row
@@ -641,6 +641,14 @@ struct JourneyReportView: View {
         Rectangle().fill(CYColor.borderSubtle).frame(width: 1, height: 28).accessibilityHidden(true)
     }
 
+    /// JREPORT-2 (MP report wxml:53-54): a 44 pt thumb of the player's own photo; the row button opens the viewer.
+    static func nodeThumb(_ url: URL) -> some View {
+        AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
+            .frame(width: 44, height: 44)
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .accessibilityHidden(true)
+    }
+
     /// The 战报 stats the report can actually read, in the frame's order: 完成站点, 用时, 得分.
     static func stats(_ report: JourneyReport) -> [(label: LocalizedStringKey, value: String)] {
         var rows: [(label: LocalizedStringKey, value: String)] = []
@@ -652,12 +660,47 @@ struct JourneyReportView: View {
 
     private func stat(_ value: Text, _ label: LocalizedStringKey) -> some View {
         VStack(spacing: CYSpacing.xxs) {
+            // JREPORT-8: a long 用时 (1天 3小时 12分) in a third of the width stays one line and scales down.
             value.cyText(.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                .cyWrapText(alignment: .center)
+                .lineLimit(1).minimumScaleFactor(0.6).multilineTextAlignment(.center)
             Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// JREPORT-2: the station-photo viewer. One page per photo; swipe moves between them; system close item.
+struct JourneyNodePhotoPages: View {
+    let photos: [JourneyNodePhoto]
+    @State var selected: String
+    let onClose: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            TabView(selection: $selected) {
+                ForEach(photos) { photo in
+                    AsyncImage(url: photo.url) { phase in
+                        switch phase {
+                        case .success(let image): image.resizable().scaledToFit()
+                        case .failure: CYEmptyState(systemImage: "photo", "mp.report.photos.empty")
+                        default: ProgressView()
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .tag(photo.id)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: photos.count > 1 ? .automatic : .never))
+            .background(CYNight.ink0)
+            .navigationTitle(Text("mp.report.photos.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(action: onClose) { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly)
+                }
+            }
+        }
     }
 }
 
@@ -709,7 +752,8 @@ struct JourneyMemoryTimeline: View {
                                     AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { CYNight.ink2 }
                                         .frame(height: 180).frame(maxWidth: .infinity)
                                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                        .accessibilityHidden(true)
+                                        // JREPORT-9: the photo is described, not silently hidden.
+                                        .accessibilityLabel(Text("mp.report.memory.photo \(moment.name ?? "")"))
                                 }
                             }
                             .padding(.bottom, CYSpacing.md)
@@ -897,6 +941,15 @@ struct JourneySettleView: View {
         }
     }
 
+    /// Core hands the MP label (`RUN_START_MODE_LABEL`); the two known labels read from the catalog, anything else as sent.
+    static func startModeLabel(_ text: String) -> Text {
+        switch text {
+        case "桌面完成": Text("mp.settle.startMode.desk")
+        case "替代站开局": Text("mp.settle.startMode.alt")
+        default: Text(verbatim: text)
+        }
+    }
+
     // 1 overview (204:15096): the seal, result, topic, rank, then score / stops. The score counts up once the text is
     // in; nothing redraws. Beats follow the moment table (seal from 0, text +950 ms, chips 0 / 50 / 90).
     private func overview(_ report: JourneyReport) -> some View {
@@ -945,9 +998,14 @@ struct JourneySettleView: View {
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("journeySettle.assisted")
                 }
+                // JSETTLE-4 (MP settle wxml:29): 开局 cell, catalog words for the two known labels.
                 if report.showsStartMode, let start = report.startModeText {
-                    Text(verbatim: start).cyText(.body).multilineTextAlignment(.center)
-                        .accessibilityIdentifier("journeySettle.startMode")
+                    VStack(spacing: CYSpacing.xxs) {
+                        Self.startModeLabel(start).cyText(.cardTitle).multilineTextAlignment(.center)
+                        Text("mp.settle.startMode").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("journeySettle.startMode")
                 }
             }
             .settleRise(overviewOn, 3, skipped: skipped, reduceMotion: reduceMotion)
