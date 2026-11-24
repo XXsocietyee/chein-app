@@ -253,7 +253,8 @@ struct InvoiceLaunchWriteNotice: Equatable {
 func invoiceText(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "InvoiceLaunchUI") }
 func invoiceAmount(_ value: Decimal, locale: Locale) -> String {
     let formatter = NumberFormatter(); formatter.locale = locale; formatter.numberStyle = .decimal
-    formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2
+    // Owner decision 9: the shared money rule (`MoneyDisplay`, two decimals).
+    formatter.minimumFractionDigits = MoneyDisplay.minimumFractionDigits(); formatter.maximumFractionDigits = MoneyDisplay.maximumFractionDigits
     return formatter.string(from: NSDecimalNumber(decimal: value)) ?? "—"
 }
 /// Known money stays the two-place formatter, including 0.00. A non-finite amount is the page-model em dash.
