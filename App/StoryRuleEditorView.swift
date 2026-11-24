@@ -452,7 +452,7 @@ enum StoryAnswerFeedback: Equatable {
             .padding(.vertical, CYSpacing.sm)
             .frame(minHeight: CYSpacing.minTouchTarget)
             .background(selected ? CYColor.brandSoft : CYColor.bgSurfaceSubtle,
-                        in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                        in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -564,7 +564,7 @@ enum StoryAnswerFeedback: Equatable {
             .cyText(.body)
             .padding(.horizontal, CYSpacing.md)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         }
 
         if let feedback = answerFeedback[node.nodeId] {

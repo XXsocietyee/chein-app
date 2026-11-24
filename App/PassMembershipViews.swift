@@ -499,7 +499,7 @@ struct PassLibraryCardView: View {
                 // photo-card__logo: the 城 mark.
                 Text("mp.library.cityMark").cyText(.caption, weight: .bold).foregroundStyle(CYColor.textPrimary)
                     .frame(width: 28, height: 28)
-                    .cyNightGlass(in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                    .cyNightGlass(in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                     .accessibilityHidden(true)
                 if card.freeWithPass {
                     Text("mp.library.free").cyText(.caption).foregroundStyle(CYNight.ink0)

@@ -14,7 +14,7 @@ public struct CYSkeletonBlock: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isDimmed = false
 
-    public init(height: CGFloat = 16, cornerRadius: CGFloat = CYRadius.xs) {
+    public init(height: CGFloat = 16, cornerRadius: CGFloat = CYRadius.sm) {
         self.height = height
         self.cornerRadius = cornerRadius
     }

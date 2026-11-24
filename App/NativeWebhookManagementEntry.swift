@@ -270,7 +270,7 @@ enum NativeWebhookSheet: String, Identifiable {
             .presentationDetents(sheet == .confirmation ? [.medium, .large] : [.large])
             .presentationDragIndicator(.visible)
         }
-        .onChange(of: scenePhase) { phase in
+        .onChange(of: scenePhase) { _, phase in
             if phase == .active { Task { await model.foreground() } }
             else { model.background() }
         }

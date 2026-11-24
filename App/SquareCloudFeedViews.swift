@@ -565,7 +565,7 @@ struct SquareCloudCompletedActivityPicker: View {
                         AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Color.clear }
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                 Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
                 Text(verbatim: copy("完成 \(SquareStravaCard.nodeText(done: item.doneCount, total: item.total)) · 已通关", "Done \(SquareStravaCard.nodeText(done: item.doneCount, total: item.total)) · cleared"))

@@ -41,7 +41,7 @@ import AVFoundation
             motion = manager
         case .soundPeak:
             let session = AVAudioSession.sharedInstance()
-            switch session.recordPermission {
+            switch AVAudioApplication.shared.recordPermission {
             case .granted: break
             case .denied: throw PlayKitSensorError.permissionDenied
             case .undetermined:
@@ -125,7 +125,7 @@ import AVFoundation
 
     private func startAudio(token: UUID) throws {
         let session = AVAudioSession.sharedInstance()
-        guard session.recordPermission == .granted else { throw PlayKitSensorError.permissionDenied }
+        guard AVAudioApplication.shared.recordPermission == .granted else { throw PlayKitSensorError.permissionDenied }
         previousAudioSession = (session.category, session.mode, session.categoryOptions)
         try session.setCategory(.record, mode: .measurement, options: [])
         try session.setActive(true); audioSessionActive = true

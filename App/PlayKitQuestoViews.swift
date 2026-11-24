@@ -184,9 +184,9 @@ typealias PlayKitAccusationWrite = (String) -> Void
                 .font(.system(.title, design: .serif).weight(.bold))
                 .foregroundStyle(CYColor.textPrimary)
                 .frame(width: 34, height: 44)
-                .background(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous)
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
                     .fill(given ? CYColor.bgRaised : CYColor.bgElevated))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous)
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
                     .strokeBorder(projection.solved ? CYNight.verify : (active ? CYColor.textPrimary : CYColor.borderStrong), lineWidth: active ? 2 : 1))
                 .offset(y: active && !reduceMotion ? -2 : 0)
                 .scaleEffect(popped == cell.slot.index && !reduceMotion ? 1.12 : 1)
@@ -490,7 +490,7 @@ typealias PlayKitAccusationWrite = (String) -> Void
                     Button { openClue = index; confirmOpen = false } label: {
                         Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textPrimary)
                             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
-                            .background(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).fill(CYColor.bgElevated))
+                            .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgElevated))
                             .rotationEffect(.degrees(reduceMotion ? 0 : Self.pinTilt[index % Self.pinTilt.count]))
                     }
                     .buttonStyle(.plain)

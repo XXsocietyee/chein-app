@@ -340,8 +340,8 @@ struct CYMapCallout: View {
                 .foregroundStyle(.black)
                 .lineLimit(2)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
-                .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
-                .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(Color.black.opacity(selected ? 0.9 : 0), lineWidth: 2))
+                .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).strokeBorder(Color.black.opacity(selected ? 0.9 : 0), lineWidth: 2))
             Image(systemName: "arrowtriangle.down.fill").font(.system(size: 9)).foregroundStyle(.white).offset(y: -1)
         }
     }

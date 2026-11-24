@@ -16,7 +16,7 @@ import AVFoundation
     private var ended: (() -> Void)?
     func startAfterExplicitMicrophoneIntent(grants: ShopNPCGrants, onEnded: @escaping () -> Void) throws {
         guard grants.voiceAllowed, grants.microphone, recorder == nil,
-              AVAudioSession.sharedInstance().recordPermission == .granted else { throw ShopNPCFailure.disabled }
+              AVAudioApplication.shared.recordPermission == .granted else { throw ShopNPCFailure.disabled }
         ended = onEnded
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("shop-npc-\(UUID().uuidString).m4a")
         do {

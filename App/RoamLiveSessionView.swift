@@ -774,7 +774,7 @@ struct RoamLiveStatTile: View {
 
 struct RoamLiveElapsedCopy {
     let locale: Locale
-    private var chinese: Bool { locale.languageCode == "zh" }
+    private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     var title: String { chinese ? "本次前台用时" : "Foreground time" }
     var unknown: String { "—" }
     var hint: String {

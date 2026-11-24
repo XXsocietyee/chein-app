@@ -154,7 +154,7 @@ public struct CYSkeleton: View {
     }
 
     private func bar(fraction: CGFloat, height: CGFloat, highlight: Bool) -> some View {
-        RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous)
+        RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous)
             .fill(fillColor(highlight: highlight))
             .frame(height: height)
             .modifier(CYFractionWidth(fraction: fraction))

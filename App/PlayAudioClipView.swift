@@ -13,7 +13,7 @@ import SwiftUI
         cancelRecording()
         let session = AVAudioSession.sharedInstance()
         let allowed: Bool
-        switch session.recordPermission {
+        switch AVAudioApplication.shared.recordPermission {
         case .granted: allowed = true
         case .denied: allowed = false
         default:

@@ -62,7 +62,7 @@ public struct CYMiniDueStrip<Content: View>: View {
             .padding(.horizontal, CYSpacing.md)
             .padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).fill(CYColor.dangerSoft))
+            .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.dangerSoft))
     }
 }
 
