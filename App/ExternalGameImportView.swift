@@ -206,6 +206,7 @@ import WebKit
 
     private func headerCircle(_ symbol: String) -> some View {
         Image(systemName: symbol)
+            .accessibilityHidden(true)
             .cyText(.bodyMedium)
             .foregroundStyle(palette.textPrimary)
             .frame(width: EditorKitMetric.closeVisual, height: EditorKitMetric.closeVisual)

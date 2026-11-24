@@ -307,6 +307,7 @@ struct UGCReportSheet: View {
                         tableName: "UGCSafety"
                     ) {
                         Image(systemName: "shield.lefthalf.filled")
+                            .accessibilityHidden(true)
                             .cyText(.pageTitle)
                             .foregroundStyle(CYColor.brand)
                     }

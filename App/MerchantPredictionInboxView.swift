@@ -237,6 +237,7 @@ extension MerchantPredictionReading {
             else if model.phase == .failed {
                 VStack(spacing: CYSpacing.md) {
                     Image(systemName: "exclamationmark.triangle")
+                        .accessibilityHidden(true)
                         .cyText(.display)
                         .foregroundStyle(CYColor.textSecondary)
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error"))

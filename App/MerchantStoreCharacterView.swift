@@ -144,6 +144,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .denied(let reason):
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
+                    .accessibilityHidden(true)
                     .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
@@ -161,6 +162,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
             // A current read refusal is not a network failure or a new initial-admission exit.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "lock")
+                    .accessibilityHidden(true)
                     .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
@@ -181,6 +183,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .failed(let message):
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "exclamationmark.triangle")
+                    .accessibilityHidden(true)
                     .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.load.failedTitle")
