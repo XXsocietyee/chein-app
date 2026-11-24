@@ -1401,6 +1401,11 @@ struct ClubGovernanceReadView: View {
                 Section {
                     CYStatusChip("club.host.done.active", tone: .success)
                         .accessibilityLabel(Text("club.host.done.status")).accessibilityValue(Text("club.host.done.active"))
+                    // CLB-apply-11 (MP apply wxml:177): 主理人 <leaderName> when the status read carries it.
+                    if let leader = value["leaderName"].string?.trimmingCharacters(in: .whitespacesAndNewlines), !leader.isEmpty {
+                        LabeledContent("club.host.done.leaderLabel") { Text(verbatim: leader) }
+                            .accessibilityIdentifier("club.host.done.leader")
+                    }
                     LabeledContent("club.host.done.limitLabel") {
                         Text(verbatim: ClubHostApplyPageModel(loading: false, snapshot: snapshot, capabilityGranted: access.isConfigured,
                                                               allowance: value["allowance"]).allowance.displayText)
@@ -2090,7 +2095,25 @@ struct ClubGovernanceEventView: View {
         .onChange(of: tab) { _, _ in invalidateSelection() }
         .refreshable { await reload() }
     }
-    private func chapterPicker(_ chapters: [ClubStoryChapter]) -> some View {
+    /// CLB-topic-story-10: at accessibility sizes the chapter chips would scroll off; a menu picker keeps every
+    /// chapter one tap away.
+    @ViewBuilder private func chapterPicker(_ chapters: [ClubStoryChapter]) -> some View {
+        if typeSize.isAccessibilitySize {
+            Picker(selection: Binding(get: { selectedChapter }, set: { id in
+                guard let chapter = chapters.first(where: { $0.id == id }), presentation?.chapters.contains(chapter) == true else { return }
+                selectedChapter = id; invalidateSelection()
+            })) {
+                ForEach(chapters) { chapter in ClubStoryChapterTitle(chapter: chapter).tag(chapter.id) }
+            } label: { Text("club.story.sections") }
+            .pickerStyle(.menu)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .accessibilityIdentifier("club.story.chapterMenu")
+            .cyHaptic(.selection, trigger: selectedChapter)
+        } else {
+            chapterChips(chapters)
+        }
+    }
+    private func chapterChips(_ chapters: [ClubStoryChapter]) -> some View {
         ScrollView(.horizontal) {
             HStack(spacing: CYSpacing.sm) {
                 ForEach(chapters) { chapter in

@@ -31,6 +31,18 @@ enum ClubOpsGovernanceCopy {
     }
 }
 
+/// CLB-governance-16 (MP governance wxss:7,17-22): ban and case status are plain coloured text, not pills.
+/// Active bans read red, pending cases amber, everything else secondary.
+private struct ClubOpsStatusText: View {
+    enum Tone { case danger, warning, neutral }
+    let label: Text
+    var tone: Tone = .neutral
+    var body: some View {
+        label.cyText(.label)
+            .foregroundStyle(tone == .danger ? CYColor.dangerText : (tone == .warning ? CYColor.warningText : CYColor.textSecondary))
+    }
+}
+
 private struct ClubOpsTag: View {
     let label: Text
     var isDanger: Bool = false
@@ -71,7 +83,7 @@ struct ClubOpsBanSection: View {
                     HStack(alignment: .firstTextBaseline) {
                         Text("clubOpsGov.banTarget \(ClubOpsGovernanceCopy.member(row.nickname, id: row.targetMemberID))", tableName: "ClubOpsGovernance").cyText(.cardTitle)
                         Spacer()
-                        ClubOpsTag(label: ClubOpsGovernanceCopy.text("clubOpsGov.banStatus." + row.status.rawValue), isDanger: row.status == .active)
+                        ClubOpsStatusText(label: ClubOpsGovernanceCopy.text("clubOpsGov.banStatus." + row.status.rawValue), tone: row.status == .active ? .danger : .neutral)
                     }
                     ClubOpsGovernanceCopy.banLine(source: row.source, bannedAt: row.bannedAt, expiry: row.expiry, platformOnly: row.platformOnly)
                         .cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -218,7 +230,7 @@ struct ClubOpsCaseSection: View {
                         }
                     }
                     Spacer()
-                    ClubOpsTag(label: ClubOpsGovernanceCopy.text("clubOpsGov.caseStatus." + row.status.rawValue))
+                    ClubOpsStatusText(label: ClubOpsGovernanceCopy.text("clubOpsGov.caseStatus." + row.status.rawValue), tone: row.status == .pending ? .warning : .neutral)
                 }.accessibilityIdentifier("clubOpsGov.case.\(row.id)")
             }
         } header: { Text("club.gov.cases") }

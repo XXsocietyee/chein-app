@@ -193,7 +193,14 @@ struct ClubOperationsWorkspaceView: View {
                     .listRowBackground(Color.clear)
             }
             else if !access.isConfigured { Text("club.ops.unavailable") }
-            if let errorKey {
+            if target != .create, errorKey == "club.ops.error.forbidden" {
+                // CLB-edit-07 (MP scene-club-edit wxml:5): a dedicated 暂无编辑权限 state with 返回俱乐部.
+                CYEmptyState(systemImage: "lock", "club.ops.edit.noPermission",
+                             messageIdentifier: "club.ops.error",
+                             actionTitle: "club.ops.edit.backToClub", actionIdentifier: "club.ops.edit.backToClub",
+                             actionStyle: .secondary, kind: .generic, action: { dismiss() })
+                    .listRowBackground(Color.clear)
+            } else if let errorKey {
                 Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error")
                 if !loading, identity != nil {
                     Button("club.ops.recheck") { Task { await load() } }
