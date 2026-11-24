@@ -39,6 +39,8 @@ struct ClubManagementView: View {
     private var contextMatches: Bool { screenContext == readContext && screenIdentity == identity && access.identity == identity && screenRevision == viewerRevision }
     @State private var failed = false
     @State private var serverReadMessage: String?
+    /// CLB-join-requests-06: network vs service failure of the last list read (nil while it succeeds).
+    @State private var loadFailureKind: ClubOpsNetworkFailureClassifier.Kind?
     @State private var denied = false
     @State private var readbackUnavailable = false
     @State private var generation: UInt64 = 0
@@ -68,7 +70,7 @@ struct ClubManagementView: View {
                 }
                 let loadIssue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil)
                 if let issue = loadIssue {
-                    ClubOpsJoinRequestLoadIssue(issue: issue, disabled: loading || state == .checking || state == .awaitingConfirmation || state == .submitting) { Task { await refresh() } }
+                    ClubOpsJoinRequestLoadIssue(issue: issue, literalTitle: loadFailureKind.map { ClubOpsNetworkFailureClassifier.title(for: .joinRequests, kind: $0) }, disabled: loading || state == .checking || state == .awaitingConfirmation || state == .submitting) { Task { await refresh() } }
                 }
                 if failed {
                     // The mini page title replaces the generic unavailable line; denial keeps its own copy.
@@ -288,7 +290,8 @@ struct ClubManagementView: View {
         return shown.isEmpty ? "—" : shown
     }
     private func personAvatar(raw: String?, fallback: String) -> some View {
-        CYAvatarView(url: QuestifyCardArtwork.safeURL(raw), name: fallback, size: .md)
+        // MP join-requests `item.avatar || '/images/d_profile.png'` (round 2 MP asset).
+        ClubMPAvatar(url: QuestifyCardArtwork.safeURL(raw), name: fallback, size: .md)
             .accessibilityHidden(true)
     }
     /// MC-21 row buttons: 拒绝 (secondary) and 通过 (primary), 12 pt apart, 44 pt targets. Both open the same review.
@@ -573,7 +576,7 @@ struct ClubManagementView: View {
               state != .checking, state != .awaitingConfirmation, state != .submitting else { return }
         generation &+= 1; let run = generation; let captured = identity; let revision = viewerRevision
         let source = readContext
-        loading = true; failed = false; serverReadMessage = nil; denied = false
+        loading = true; failed = false; serverReadMessage = nil; denied = false; loadFailureKind = nil
         stale = snapshot != nil
         state = coordinator.state(clubID: clubID)
         do {
@@ -587,6 +590,7 @@ struct ClubManagementView: View {
                 stale = true
             } else { snapshot = nil; stale = false }
             failed = true; loading = false
+            loadFailureKind = ClubOpsNetworkFailureClassifier.classify(error)
             serverReadMessage = (error as? ClubReadFailure)?.message
             denied = (error as? ClubReadFailure)?.isForbidden == true
         }

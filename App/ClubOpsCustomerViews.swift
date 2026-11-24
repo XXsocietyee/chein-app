@@ -5,16 +5,24 @@ struct ClubOpsFailureSection: View {
     /// X3 (parity r2): the one reason line under the page title when the page copy has no detail of its own.
     var reason: Text? = nil
     let retry: () -> Void
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(copy.titleKey),
-                    tableName: "ClubOpsCustomer",
-                    messageIdentifier: "clubOps.failure.title",
-                    kind: .failure
-                )
+                // fix-r3-club-b round 2 (CLB-customer-detail-05, CLB-settlement-10): the Core sentence wins over the
+                // generic key (网络连接失败 vs 结算数据暂不可用; a customer refusal keeps the server sentence).
+                if let literal = copy.literalTitle {
+                    CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: literal, kind: .failure)
+                        .accessibilityIdentifier("clubOps.failure.title")
+                } else {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(copy.titleKey),
+                        tableName: "ClubOpsCustomer",
+                        messageIdentifier: "clubOps.failure.title",
+                        kind: .failure
+                    )
+                }
                 if let detail = copy.detailKey {
                     Text(LocalizedStringKey(detail), tableName: "ClubOpsCustomer")
                         .cyText(.body)
@@ -32,7 +40,12 @@ struct ClubOpsFailureSection: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.gov.error")
                 }
-                if let key = copy.retryKey {
+                if let back = copy.backTitle {
+                    // MP customer-detail refused state: the server sentence + 返回 (terminal, no reload).
+                    Button { dismiss() } label: { Text(verbatim: back) }
+                        .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                        .accessibilityIdentifier("clubOps.failure.back")
+                } else if let key = copy.retryKey {
                     CYPillButton(LocalizedStringKey(key), style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsCustomer", action: retry)
                         .accessibilityIdentifier("clubOps.failure.retry")
                 }
@@ -90,12 +103,14 @@ struct ClubOpsFailureSection: View {
         Section {
             if list.rows.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYEmptyState(
-                        systemImage: filtered ? "line.3.horizontal.decrease.circle" : "person.2",
-                        LocalizedStringKey(filtered ? "clubOps.customers.filteredEmpty" : "clubOps.customers.empty"),
-                        tableName: "ClubOpsCustomer",
-                        kind: filtered ? .search : .generic
-                    )
+                    if filtered {
+                        // MP 没有符合条件的客户 has no kind, so no illustration (cy-empty legacy default).
+                        CYEmptyState(systemImage: "line.3.horizontal.decrease.circle", "clubOps.customers.filteredEmpty",
+                                     tableName: "ClubOpsCustomer", kind: .search)
+                    } else {
+                        // Round 2 MP asset: 还没有客户 is cy-empty kind="empty", the MP two-layer illustration.
+                        ClubMPEmptyState(title: Text("clubOps.customers.empty", tableName: "ClubOpsCustomer"))
+                    }
                     if filtered {
                         Text("clubOps.customers.filteredEmptyDetail", tableName: "ClubOpsCustomer")
                             .cyText(.body)
@@ -151,7 +166,8 @@ struct ClubOpsCustomerRowView: View {
             : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         stack {
             // CLB-customers-02 (parity r2): CYAvatarView with the customer's avatar and an initial fallback (MP cy-avatar).
-            CYAvatarView(url: row.avatar.flatMap(URL.init(string:)), name: row.displayName ?? initial, size: .md)
+            // Round 2 MP asset: cy-avatar falls back to images/d_profile.png only when there is no name.
+            ClubMPAvatar(url: row.avatar.flatMap(URL.init(string:)), name: row.displayName ?? "", size: .md, usesDefaultFace: false)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
@@ -225,9 +241,9 @@ struct ClubOpsCustomerRowView: View {
             CYAvatarView(url: url, name: detail.displayName ?? "—", size: .lg)
                 .accessibilityHidden(true)
         } else {
-            CYCoverArt(seed: detail.displayName ?? "—", symbol: "person", showsDebugLabel: false, showsGlyph: false)
-                .frame(width: avatarSide, height: avatarSide)
-                .clipShape(Circle())
+            // Round 2 MP asset: MP cy-avatar shows the initial for a named customer and images/d_profile.png
+            // otherwise; the generated cover art is gone.
+            ClubMPAvatar(url: nil, name: detail.displayName ?? "", size: .lg, usesDefaultFace: false)
                 .accessibilityHidden(true)
         }
     }
@@ -342,7 +358,8 @@ struct ClubOpsCustomerRowView: View {
     /// Withheld stays the permission sentence. Unknown is the page model's em dash, never 0.
     private var paidText: String? {
         if let paid = page?.paidAmount { return paid.displayText }
-        return detail.paidAmountText
+        // Owner decision 9: server amount text reads with two decimals (¥12.50).
+        return detail.paidAmountText.map(ClubMoneyText.display)
     }
     @ViewBuilder private var interaction: some View {
         // CLB-customer-detail-06 (parity r2): the remark already has its own card, so it is not repeated here.

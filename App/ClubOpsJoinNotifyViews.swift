@@ -22,11 +22,15 @@ struct ClubOpsJoinRequestActionLabel: View {
 
 struct ClubOpsJoinRequestLoadIssue: View {
     let issue: ClubOpsJoinRequestCopy.LoadIssue
+    /// CLB-join-requests-06 (fix-r3-club-b round 2): Core's classifier sentence, 网络连接失败 or 入会申请加载失败.
+    var literalTitle: String? = nil
     let disabled: Bool
     let retry: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            if issue == .failed {
+            if issue == .failed, let literalTitle {
+                CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: literalTitle, kind: .failure)
+            } else if issue == .failed {
                 CYEmptyState(systemImage: "exclamationmark.triangle", "clubOpsJoin.failed", tableName: "ClubOpsJoinNotify", kind: .failure)
             } else {
                 Label {
@@ -67,16 +71,24 @@ struct ClubOpsPageFailureSection: View {
     /// X3 (parity r2): the one reason line under the page title (server sentence or generic key).
     var reason: Text? = nil
     let retry: () -> Void
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYEmptyState(
-                    systemImage: "exclamationmark.triangle",
-                    LocalizedStringKey(copy.titleKey),
-                    tableName: copy.table,
-                    messageIdentifier: "clubOps.pageFailure.title",
-                    kind: .failure
-                )
+                // fix-r3-club-b round 2 (CLB-notify-04): Core's classifier sentence (网络连接失败 vs 通知工具暂时不可用)
+                // wins over the generic key whenever it is set.
+                if let literal = copy.literalTitle {
+                    CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: literal, kind: .failure)
+                        .accessibilityIdentifier("clubOps.pageFailure.title")
+                } else {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(copy.titleKey),
+                        tableName: copy.table,
+                        messageIdentifier: "clubOps.pageFailure.title",
+                        kind: .failure
+                    )
+                }
                 if let reason {
                     reason
                         .cyText(.bodyCompact)
@@ -86,8 +98,15 @@ struct ClubOpsPageFailureSection: View {
                         .frame(maxWidth: .infinity)
                         .accessibilityIdentifier("club.gov.error")
                 }
-                CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
-                    .accessibilityIdentifier("clubOps.pageFailure.retry")
+                if copy.prefersBack {
+                    // An invalid topic link is terminal in the MP: 返回, not reload.
+                    Button { dismiss() } label: { Text("clubR3b.checkin.back") }
+                        .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                        .accessibilityIdentifier("clubOps.pageFailure.back")
+                } else {
+                    CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
+                        .accessibilityIdentifier("clubOps.pageFailure.retry")
+                }
             }
             .e1ActionRow()
         }

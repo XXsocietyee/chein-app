@@ -2046,7 +2046,9 @@ struct ClubGovernanceFactRows: View {
     @Environment(\.locale) private var locale
     /// CLB-notify-02 (parity r2): a server enum (ALL_MEMBERS, IN_APP, AVAILABLE…) reads as its catalog word
     /// (`club.gov.choice.*`) instead of the raw constant; an enum the catalog does not know stays as sent.
-    private func shown(_ text: String) -> String {
+    private func shown(_ text: String, key: String = "") -> String {
+        // Owner decision 9 (fix-r3-club-b round 2): money facts read ¥12.50 through `MoneyDisplay`.
+        if ClubMoneyText.amountKeys.contains(key) { return ClubMoneyText.display(text) }
         guard localizesEnums, text.range(of: "^[A-Z][A-Z0-9_]+$", options: .regularExpression) != nil else { return text }
         let key = "club.gov.choice." + text
         let word = appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale)
@@ -2056,7 +2058,7 @@ struct ClubGovernanceFactRows: View {
     var body: some View {
         ForEach(fields, id: \.self) { key in
             if let text = value[key].text, !text.isEmpty {
-                LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text(verbatim: shown(text)).textSelection(.enabled) }.accessibilityIdentifier("club.gov.fact." + key)
+                LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text(verbatim: shown(text, key: key)).textSelection(.enabled) }.accessibilityIdentifier("club.gov.fact." + key)
             } else if let flag = value[key].bool {
                 LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text(flag ? "club.gov.yes" : "club.gov.no") }
             } else if let values = value[key].array, values.allSatisfy({ $0.text != nil }) {

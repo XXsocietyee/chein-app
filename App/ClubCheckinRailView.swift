@@ -175,12 +175,17 @@ struct ClubCheckinDetailRows: View {
     }
     private var identityBlock: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            if let avatar = text("avatar") {
-                SquareImage(source: avatar)
-                    .frame(width: 48, height: 48)
-                    .clipShape(Circle())
-                    .accessibilityHidden(true)
+            // MP `detail.avatar || '/images/d_profile.png'`: the default face, never an empty slot (round 2 MP asset).
+            Group {
+                if let avatar = text("avatar") {
+                    SquareImage(source: avatar)
+                } else {
+                    MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                }
             }
+            .frame(width: 48, height: 48)
+            .clipShape(Circle())
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: text("displayName") ?? "—")
                     .cyText(.cardTitle)
@@ -243,7 +248,8 @@ struct ClubCheckinDetailRows: View {
         return raw
     }
     private func row(_ title: LocalizedStringKey, _ key: String) -> some View {
-        LabeledContent(title) { Text(verbatim: text(key) ?? "—").monospacedDigit() }
+        // Owner decision 9: amounts read ¥12.50 through `MoneyDisplay` (via `ClubMoneyText`).
+        LabeledContent(title) { Text(verbatim: text(key).map { ClubMoneyText.amountKeys.contains(key) ? ClubMoneyText.display($0) : $0 } ?? "—").monospacedDigit() }
             .cyText(.bodyCompact)
             .foregroundStyle(palette.textPrimary)
     }

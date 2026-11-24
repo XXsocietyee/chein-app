@@ -85,7 +85,8 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         case .empty:
             // CLB-r7-D-04 (fix-r3-club-b): MP 还没有自己的俱乐部 offers 创建俱乐部.
             Section {
-                CYEmptyState(systemImage: "person.3", "payoutReceiver.noClub", tableName: "PayoutReceiver", messageIdentifier: "payoutReceiver.noClub")
+                // Round 2 MP asset: cy-empty kind="empty" carries the MP two-layer illustration.
+                ClubMPEmptyState(title: Text("payoutReceiver.noClub", tableName: "PayoutReceiver"), messageIdentifier: "payoutReceiver.noClub")
                 ClubCreateMyClubLink(identity: session.clubIdentity)
             }
         case .failed where missingClub:
@@ -205,7 +206,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 switch state {
                 case .loading: Section { CYLoadingStateView(rows: 3) }
                 case .empty:
-                    Section { CYEmptyState(systemImage: "tray", "clubSettlement.empty", tableName: "PayoutReceiver", messageIdentifier: "clubSettlement.mine.empty") }
+                    Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver"), messageIdentifier: "clubSettlement.mine.empty") }
                 case .failed(let issue):
                     Section {
                         PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable")
@@ -268,7 +269,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
             } else {
                 switch state {
                 case .loading: Section { CYLoadingStateView(rows: 3) }
-                case .empty: Section { CYEmptyState(systemImage: "tray", "clubSettlement.empty", tableName: "PayoutReceiver") }
+                case .empty: Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver")) }
                 case .failed(let issue):
                     Section {
                         PayoutReceiverIssueText(issue: issue, fallbackKey: "clubSettlement.unavailable")
@@ -291,7 +292,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
         if !summary.personal { ClubDirectLedgerSection(scope: .club(clubID: clubID, topicID: nil)) }
         if summary.isOwner { ClubPayoutReceiverLink(clubID: clubID) }
         if summary.isEmpty {
-            Section { CYEmptyState(systemImage: "tray", "clubSettlement.empty", tableName: "PayoutReceiver", messageIdentifier: "clubSettlement.empty") }
+            Section { ClubMPEmptyState(title: Text("clubSettlement.empty", tableName: "PayoutReceiver"), messageIdentifier: "clubSettlement.empty") }
         }
         if !summary.topics.isEmpty {
             Section {
@@ -300,7 +301,7 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     Text("clubSettlement.settled", tableName: "PayoutReceiver").cyText(.label).foregroundStyle(CYColor.textSecondary)
                     if let amount = summary.settledAmountText {
-                        Text(verbatim: amount).cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        Text(verbatim: ClubMoneyText.display(amount)).cyText(.data2XL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     } else {
                         Text(verbatim: ClubOpsGovernanceCount.unknownDisplay).cyText(.data2XL).monospacedDigit()
                             .foregroundStyle(CYColor.textPrimary)
@@ -324,12 +325,12 @@ enum PayoutPageState<Value: Equatable>: Equatable {
                         HStack {
                             Text(verbatim: row.name).cyText(.cardTitle)
                             Spacer()
-                            if let amount = row.amountText { Text(verbatim: amount).monospacedDigit() }
+                            if let amount = row.amountText { Text(verbatim: ClubMoneyText.display(amount)).monospacedDigit() }
                             else { Text("clubSettlement.chip.unverified", tableName: "PayoutReceiver") }
                         }
-                        Text("clubSettlement.original \(row.originalAmountText)", tableName: "PayoutReceiver").cyText(.meta)
-                        Text("clubSettlement.adjustment \(row.executedAdjustmentText)", tableName: "PayoutReceiver").cyText(.meta)
-                        Text("clubSettlement.net \(row.netAmountText)", tableName: "PayoutReceiver").cyText(.meta)
+                        Text("clubSettlement.original \(ClubMoneyText.display(row.originalAmountText))", tableName: "PayoutReceiver").cyText(.meta)
+                        Text("clubSettlement.adjustment \(ClubMoneyText.display(row.executedAdjustmentText))", tableName: "PayoutReceiver").cyText(.meta)
+                        Text("clubSettlement.net \(ClubMoneyText.display(row.netAmountText))", tableName: "PayoutReceiver").cyText(.meta)
                         Text(verbatim: row.arrivedText).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         if row.showsPaidText { Text(verbatim: row.paidText).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         CYStatusChip(verbatim: payoutText(row.chipKey, locale),
