@@ -49,8 +49,8 @@ import QuestifyCore
             let state = try? await host.setLikeDirection(topicID: id, direction: TopicLikeDirection(liked: !was))
             busy.remove(id)
             switch state {
-            case .confirmed(let liked)?: overrides[id] = liked
-            case .sending?, .awaitingReadback?: break
+            case .some(.confirmed(let liked)): overrides[id] = liked
+            case .some(.sending), .some(.awaitingReadback): break
             default:
                 overrides[id] = was
                 toast = appLocalized("topic.favorite.failed", locale: locale)
