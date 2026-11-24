@@ -10,6 +10,7 @@ import SwiftUI
     @State private var filter = "all"
     @State private var withdraw = InvoiceLaunchWithdrawFlow()
     @State private var toast: String?
+    @ScaledMetric(relativeTo: .caption) private var metaIconSize: CGFloat = 12
     @State private var openTitles = false
     @State private var openApply = false
     private var rows: [InvoiceLaunchApplication] {
@@ -123,14 +124,21 @@ import SwiftUI
                     .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
             }
+            // MP `moh-ico`: d_orderIcon (申请于) and d_orderIcon2 (issuer · N 笔订单), 12 pt at the meta size.
             if row.createTime != nil {
-                Text(verbatim: invoiceString("appliedAt") + " " + invoiceTime(row.createTime, locale: locale)).cyText(.meta)
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                    metaIcon(MPAsset.FeatureIcon.dOrderIcon)
+                    Text(verbatim: invoiceString("appliedAt") + " " + invoiceTime(row.createTime, locale: locale)).cyText(.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .cyWrapText()
+                }
+            }
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                metaIcon(MPAsset.FeatureIcon.dOrderIcon2)
+                Text(verbatim: issuerLine(row)).cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                     .cyWrapText()
             }
-            Text(verbatim: issuerLine(row)).cyText(.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .cyWrapText()
             HStack(spacing: CYSpacing.xs) {
                 invoiceText("invoiceAmount").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: invoiceLaunchDisplayedAmount(row.totalAmount, locale: locale))
@@ -141,6 +149,11 @@ import SwiftUI
         }
         .padding(.vertical, CYSpacing.xs)
         .accessibilityElement(children: .combine)
+    }
+    private func metaIcon(_ image: Image) -> some View {
+        image.resizable().scaledToFit()
+            .frame(width: metaIconSize, height: metaIconSize)
+            .accessibilityHidden(true)
     }
     /// Source `{issuerName · }N 笔订单`.
     private func issuerLine(_ row: InvoiceLaunchApplication) -> String {
