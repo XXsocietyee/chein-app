@@ -226,14 +226,14 @@ struct Cloud03Cover: View {
         Color.clear
             .aspectRatio(1.6, contentMode: .fit)
             .overlay {
-                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.lg)
+                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.hero)
             }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .accessibilityHidden(true)
     }
 }
 
-/// One visible title, from `CYHeroHeader` / `cyHeroScreen`. Page gutters are 16pt.
+/// One visible title: the system inline navigation title (native restyle r1). Page gutters are 16pt.
 struct Cloud03Screen<Content: View>: View {
     let title: String
     var subtitle: String?
@@ -251,15 +251,25 @@ struct Cloud03Screen<Content: View>: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
                 Cloud03Cover(seed: seed, symbol: symbol)
-                CYHeroHeader(verbatim: title, subtitle: subtitle)
+                // Native restyle r1 (spec §3.1): the title is the system inline navigation title, not a second
+                // in-content hero title. The subtitle stays as body copy.
+                if let subtitle {
+                    Text(verbatim: subtitle)
+                        .cyText(.body)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 content()
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.top, CYSpacing.md)
             .padding(.bottom, CYSpacing.jumbo)
         }
         .scrollDismissesKeyboard(.interactively)
+        .navigationTitle(Text(verbatim: title))
+        .navigationBarTitleDisplayMode(.inline)
         .cyDomainPageBackground()
         .themeDomain(.player)
     }

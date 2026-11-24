@@ -153,7 +153,7 @@ struct CYTodayMedallion: View {
                     .opacity(animates && breathe ? 1 : 0.8)
             }
             Image(systemName: symbol)
-                .font(.system(size: 22, weight: .semibold))
+                .font(.system(.title2, weight: .semibold))
                 .foregroundStyle(lit ? CYNight.lanternHot : .white)
                 .frame(width: 56, height: 56)
                 .background(Circle().fill(.ultraThinMaterial).overlay(Circle().fill(CYNight.glassFill)))

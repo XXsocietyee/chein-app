@@ -76,6 +76,7 @@ enum MemberParityFixture {
                 MemberBenefitsSection(reader: reader, earningsDestination: { AnyView(Text(verbatim: "Synthetic earnings").accessibilityIdentifier("member.fixture.earnings")) })
             }
             .navigationTitle(Text(verbatim: "Member fixture"))
+            .navigationBarTitleDisplayMode(.inline)
             .alert(Text(verbatim: "Synthetic ticket wallet"), isPresented: $showsTickets) { Button { } label: { Text(verbatim: "OK") } }
         }
     }

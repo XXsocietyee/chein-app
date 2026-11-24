@@ -56,6 +56,7 @@ import Observation
         NavigationStack {
             List { ProfileSelfOrdersEntry(memberID: memberID, social: social, access: access) }
                 .navigationTitle("Synthetic profile orders")
+                .navigationBarTitleDisplayMode(.inline)
         }
         .safeAreaInset(edge: .bottom) {
             VStack {

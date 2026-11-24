@@ -195,7 +195,7 @@ struct PostGovernanceRow: Identifiable, Equatable {
                     .lineLimit(3...6).disabled(submitting)
                     .onChange(of: reason) { _, value in if value.count > Self.reasonMax { reason = String(value.prefix(Self.reasonMax)) } }
                     .padding(CYSpacing.md)
-                    .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                     .accessibilityIdentifier("settings.postGov.reason")
                 HStack {
                     Text(verbatim: "\(reason.count)/\(Self.reasonMax)").cyText(.caption).foregroundStyle(CYColor.textTertiary).monospacedDigit()

@@ -60,7 +60,7 @@ import SwiftUI
                 Button(role: .destructive) { Task { await canceler.confirm(on: model) } } label: {
                     Text(verbatim: phrase("确认取消", "Confirm cancellation"))
                 }
-                .buttonStyle(CYPillButtonStyle(style: .primary))
+                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                 .accessibilityLabel(Text(verbatim: phrase("确认取消", "Confirm cancellation")))
                 CYPillButton(verbatim: phrase("返回", "Back"), style: .secondary) { model.dismiss() }
                     .accessibilityLabel(Text(verbatim: phrase("返回", "Back")))

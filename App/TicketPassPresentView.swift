@@ -25,7 +25,7 @@ import SwiftUI
                     tile.opacity(checkedIn ? 0.6 : 1)
                     if checkedIn {
                         Label { Text(verbatim: c.t("已入场，玩得开心", "You're in. Have fun.")) } icon: { Image(systemName: "checkmark.circle.fill") }
-                            .font(CYTypography.cardTitle).foregroundStyle(CYNight.verify)
+                            .cyText(.cardTitle).foregroundStyle(CYNight.verify)
                             .transition(.opacity.combined(with: .scale(scale: 0.96)))
                             .accessibilityIdentifier("ticketWallet.present.checkedIn")
                     }
@@ -63,7 +63,7 @@ import SwiftUI
             Spacer()
             Button(action: onClose) {
                 Image(systemName: "xmark")
-                    .font(CYTypography.label)
+                    .cyText(.label)
                     .foregroundStyle(CYColor.textPrimary)
                     .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget)
                     .background(CYColor.actionSecondary, in: Circle())
@@ -86,7 +86,7 @@ import SwiftUI
                     Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") }
                 }
                 if let place = ticket.addressName, !place.isEmpty {
-                    Label { Text(verbatim: place).lineLimit(1) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    Label { Text(verbatim: place).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
             }
             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -109,23 +109,23 @@ import SwiftUI
         VStack(spacing: CYSpacing.md) {
             if let number = ticket.registrationNumber, !number.isEmpty {
                 Text(verbatim: number)
-                    .font((typeSize.isAccessibilitySize ? CYTypography.sectionTitle : CYTypography.display).monospaced())
+                    .cyText(typeSize.isAccessibilitySize ? .sectionTitle : .display).monospaced()
                     .foregroundStyle(.black)
                     .minimumScaleFactor(0.5).lineLimit(2)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.xxl)
                     .frame(maxWidth: .infinity)
-                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .textSelection(.enabled)
                     .accessibilityLabel(Text(verbatim: c.t("票号", "Ticket number")))
                     .accessibilityValue(Text(verbatim: number))
                     .accessibilityIdentifier("ticketWallet.present.number")
             } else {
                 Image(systemName: "ticket")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xxl)
-                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityHidden(true)
             }
             Text(verbatim: c.t("到场出示", "Show at the venue")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)

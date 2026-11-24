@@ -63,7 +63,7 @@ import SwiftUI
                 }
             }
         }
-        .appNavigationTitle("profile.caseRemoval.title")
+        .appNavigationTitle("profile.caseRemoval.title").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.caseRemoval.cancel")

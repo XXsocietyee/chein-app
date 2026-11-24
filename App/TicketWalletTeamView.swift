@@ -168,7 +168,6 @@ struct TicketWalletTeamContext: Hashable {
     var body: some View {
         let offeredPresentation = model.presentation
         List {
-            CYHeroHeader("ticketTeam.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if !model.ownerIsCurrent { CYEmptyState(systemImage: "lock", "ticketTeam.changed") }
             else {
                 if let issue = model.issue {
@@ -214,9 +213,9 @@ struct TicketWalletTeamContext: Hashable {
                     }
                 }
             }
-            Section { Text("ticketTeam.readOnly").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+            Section {} footer: { Text("ticketTeam.readOnly") } // native restyle r1: explanatory copy in a footer
         }
-        .cyHeroScreen()
+        .navigationTitle(Text("ticketTeam.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .onAppear { visible = true; if scenePhase == .active { model.scheduleList(model.appear()) } }
         .onDisappear { visible = false; model.end() }

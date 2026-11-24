@@ -82,10 +82,9 @@ import SwiftUI
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: model.presentation(for: review, current: current),
-                   onDismiss: { model.cancel(id: review.id) }) { offered in
+                   onDismiss: { model.cancel(id: review.id) }) { offered in Group {
                 NavigationStack {
                     Form {
-                        Section { CYHeroHeader("profile.orderMap.review") }.e1HeroRow()
                         Section {
                             Text("profile.orderMap.disclosure")
                             if !offered.context.destination.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -100,12 +99,15 @@ import SwiftUI
                         }.disabled(!model.owns(offered, current: current()))
                             .accessibilityIdentifier("profile.orderMap.confirm").e1ActionRow()
                     }
-                    .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+                    .formStyle(.grouped).cyGroupedSurface().navigationTitle(Text("profile.orderMap.review")).navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button("action.cancel") { model.cancel(id: offered.id) }
                             .accessibilityIdentifier("profile.orderMap.cancel")
                     } }
                 }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
     }
 }

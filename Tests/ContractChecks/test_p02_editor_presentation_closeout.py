@@ -40,7 +40,7 @@ class P02EditorPresentationCloseoutTests(unittest.TestCase):
     def testOverviewStillUsesCapturedDestination(self):
         self.contains('ProjectDraftNodeOverview', ['controller.choose(row.id, captured: capture, in: original)', 'controller.destinationBinding(selected)', 'ProjectDraftNodeOverviewDestination(controller: controller, original: destination)', '.onDisappear { controller.retire() }'])
     def testCoverKeepsExactAssetAndClose(self):
-        self.contains('OwnedTopicCoverImageView', ['Text(verbatim: original.flow.asset.sourceVersion)', 'model.close(); close()', '.cyHeroScreen()'])
+        self.contains('OwnedTopicCoverImageView', ['Text(verbatim: original.flow.asset.sourceVersion)', 'model.close(); close()', '.navigationBarTitleDisplayMode(.inline)'])  # restyle/r4: system inline title replaces cyHeroScreen
     def testAddedHelpersHaveSingleDefinition(self):
         sources = '\n'.join(path.read_text() for path in (ROOT/'App').glob('*.swift'))
         self.assertEqual(sources.count('struct ProjectEditorFormSurface: ViewModifier'), 1)
