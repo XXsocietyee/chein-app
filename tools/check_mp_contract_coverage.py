@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-"""List mini-program request( calls against Core endpoints and Core tests.
+"""List mini-program HTTP calls against Core endpoints and Core tests.
 
 Scans production JavaScript under chengyinhub-xcx (public repo
-liboyang42-cpu/hengyin). A row is a call whose callee identifier is
-request, including receiver.request(. function request( definitions are
-not rows. sendRequest( and req( are different identifiers and are not
-counted.
+liboyang42-cpu/hengyin). A row is a call whose callee is request,
+sendRequest, req, or uploadFile, including wx.request( and
+wx.uploadFile(. function definitions and a method shorthand name(...) {
+are not rows. subscribe.request([...]) is not an HTTP row, and neither is
+require("...subscribe.js").request([...]).
 
 This extracts literal arguments only. It does not parse JavaScript.
 A path, method, or field list that is not a literal is left unknown, and
-the row stays MISSING. Same-file request helpers are used only when the
-helper body contains one literal /api URL or one literal method.
+the row stays MISSING. A call that only forwards url, with no path string,
+stays missing-endpoint. A spread or Object.assign source that follows a
+url literal can replace it, so that literal is not kept. Same-file request
+helpers are used only when the helper body contains one literal /api URL
+or one literal method.
 
 Columns, tab-separated:
   MP file:line    Core symbol or MISSING    test or MISSING
@@ -22,7 +26,7 @@ treated as pinned.
 
 usage:
   python3 tools/check_mp_contract_coverage.py --mp-root /path/to/chengyinhub-xcx
-exit 0 always when the scan runs. exit 2 when no request( calls are found.
+exit 0 always when the scan runs. exit 2 when no contract calls are found.
 """
 from __future__ import annotations
 
@@ -37,6 +41,11 @@ SKIP_DIRS = {
     "images", "scripts", ".git",
 }
 METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"}
+CALLEES = ("sendRequest", "uploadFile", "request", "req")
+REGEX_BEFORE = {
+    "return", "throw", "case", "else", "typeof", "void", "delete",
+    "in", "of", "instanceof", "yield", "await", "do", "new",
+}
 TYPE_RE = re.compile(
     r"\b(?:public\s+|private\s+|internal\s+|open\s+|final\s+|actor\s+)*"
     r"(?:struct|enum|class|extension|actor)\s+([A-Za-z_][A-Za-z0-9_]*)"
@@ -66,6 +75,51 @@ def strip_comments(text):
         out.append(c)
         i += 1
     return "".join(out)
+
+
+def skip_regex_literal(text, i):
+    """Return the index after a /regex/flags form, or -1.
+
+    A slash is treated as a regex only when the previous token cannot end
+    an expression. This is a scan, not a JavaScript parse. A slash that does
+    not close before the next newline is left alone.
+    """
+    n = len(text)
+    if i >= n or text[i] != "/":
+        return -1
+    if i + 1 < n and text[i + 1] in "/*":
+        return -1
+    k = i - 1
+    while k >= 0 and text[k] in " \t\r\n":
+        k -= 1
+    if k >= 0:
+        prev = text[k]
+        if prev in ")]}":
+            return -1
+        if prev.isalnum() or prev in "_$":
+            end = k + 1
+            while k >= 0 and (text[k].isalnum() or text[k] in "_$"):
+                k -= 1
+            if text[k + 1:end] not in REGEX_BEFORE:
+                return -1
+    j, in_class = i + 1, False
+    while j < n:
+        if text[j] == "\\":
+            j += 2
+            continue
+        if text[j] == "\n":
+            return -1
+        if text[j] == "[" and not in_class:
+            in_class = True
+        elif text[j] == "]" and in_class:
+            in_class = False
+        elif text[j] == "/" and not in_class:
+            j += 1
+            while j < n and text[j].isalpha():
+                j += 1
+            return j
+        j += 1
+    return -1
 
 
 def match_bracket(text, open_at):
@@ -109,6 +163,11 @@ def match_bracket(text, open_at):
                 i += 1
             i = min(n, i + 2)
             continue
+        if c == "/":
+            end = skip_regex_literal(text, i)
+            if end > i:
+                i = end
+                continue
         if c == text[open_at]:
             depth += 1
         elif c == close:
@@ -131,6 +190,11 @@ def split_top(text, delimiter):
                 quote = ""
             i += 1
             continue
+        if c == "/":
+            end = skip_regex_literal(text, i)
+            if end > i:
+                i = end
+                continue
         if c in "\"'`":
             quote = c
         elif c in "([{":
@@ -240,16 +304,20 @@ def is_api(pattern):
 def call_facts(args_src):
     args = [part.strip() for part in split_top(args_src, ",") if part.strip()]
     path, templated, method, fields = None, False, None, None
-    option = None
+    closed, loose = None, None
     for arg in args:
         if arg.startswith("{") and arg.endswith("}"):
             keys = object_keys(arg)
             if keys and ("url" in keys or "method" in keys or "data" in keys):
-                option = arg
+                closed, loose = arg, None
                 continue
-    chosen = option or ""
-    if chosen:
-        for part in split_top(chosen[1:-1], ","):
+            if keys is None and object_effects(arg):
+                closed, loose = None, arg
+                continue
+        elif arg.startswith("Object.assign") and assign_sets_url(arg):
+            closed, loose = None, arg
+    if closed:
+        for part in split_top(closed[1:-1], ","):
             piece = part.strip()
             key, sep, value = piece.partition(":")
             if not sep:
@@ -266,17 +334,21 @@ def call_facts(args_src):
                     method = literal
             elif key == "data":
                 fields = fields_from_data(value)
-    else:
-        for arg in args:
-            literal = string_literal(arg)
-            if literal in METHODS and method is None:
-                method = literal
-                continue
-            found = path_pattern(arg)
-            if path is None and found and is_api(found[0]):
-                path, templated = found
-                continue
-        fields = data_argument(args)
+        return path, templated, method, fields
+    if loose:
+        found = loose_facts(loose)
+        if found is not None:
+            return found
+    for arg in args:
+        literal = string_literal(arg)
+        if literal in METHODS and method is None:
+            method = literal
+            continue
+        found = path_pattern(arg)
+        if path is None and found and is_api(found[0]):
+            path, templated = found
+            continue
+    fields = data_argument(args)
     return path, templated, method, fields
 
 
@@ -342,8 +414,192 @@ def fields_from_data(expr):
     return None
 
 
+def depth0_colon(piece):
+    """Split key and value on a colon that is not inside a string, bracket, or regex."""
+    depth, quote, i, n = 0, "", 0, len(piece)
+    while i < n:
+        c = piece[i]
+        if quote:
+            if c == "\\":
+                i += 2
+                continue
+            if c == quote:
+                quote = ""
+            i += 1
+            continue
+        if c in "\"'`":
+            quote = c
+            i += 1
+            continue
+        if c == "/":
+            end = skip_regex_literal(piece, i)
+            if end > i:
+                i = end
+                continue
+        if c in "([{":
+            depth += 1
+        elif c in ")]}" and depth:
+            depth -= 1
+        elif c == ":" and depth == 0:
+            return piece[:i], piece[i + 1:]
+        i += 1
+    return None, None
+
+
+def object_effects(text):
+    """url, method, and data keys written on one object literal.
+
+    A spread clears those three inside this object. A method shorthand is
+    ignored. A shorthand url, method, or data has no literal value. Returns
+    an empty dict when none of the three keys appear.
+    """
+    body = text.strip()
+    if len(body) < 2 or not body.startswith("{") or not body.endswith("}"):
+        return {}
+    effects = {}
+    for part in split_top(body[1:-1], ","):
+        piece = part.strip()
+        if not piece:
+            continue
+        if piece.startswith("..."):
+            effects["url"] = (None, False)
+            effects["method"] = None
+            effects["data"] = None
+            continue
+        key, value = depth0_colon(piece)
+        if key is None:
+            ident = piece.strip()
+            if ident == "url":
+                effects["url"] = (None, False)
+            elif ident == "method":
+                effects["method"] = None
+            elif ident == "data":
+                effects["data"] = None
+            continue
+        key = key.strip()
+        literal = string_literal(key)
+        if literal is not None:
+            key = literal
+        elif not re.fullmatch(r"[A-Za-z_$][\w$]*", key):
+            continue
+        if key not in ("url", "method", "data"):
+            continue
+        value = value.strip()
+        if key == "url":
+            found = path_pattern(value)
+            if found and is_api(found[0]):
+                effects["url"] = found
+            else:
+                effects["url"] = (None, False)
+        elif key == "method":
+            literal = string_literal(value)
+            effects["method"] = literal if literal in METHODS else None
+        else:
+            effects["data"] = fields_from_data(value)
+    return effects
+
+
+def apply_effects(effects, path, templated, method, fields):
+    if "url" in effects:
+        found = effects["url"]
+        if found[0] is None:
+            path, templated = None, False
+        else:
+            path, templated = found
+    if "method" in effects:
+        method = effects["method"]
+    if "data" in effects:
+        fields = effects["data"]
+    return path, templated, method, fields
+
+
+def assign_sets_url(text):
+    open_at = text.find("(")
+    close = match_bracket(text, open_at) if open_at >= 0 else -1
+    if close < 0:
+        return False
+    for part in split_top(text[open_at + 1:close], ","):
+        piece = part.strip()
+        if piece.startswith("{") and piece.endswith("}") and "url" in object_effects(piece):
+            return True
+    return False
+
+
+def loose_facts(expr):
+    """Path, method, and fields from an object the closed-key reader rejected.
+
+    Object.assign sources are applied left to right. A source that is not an
+    object literal may replace url, method, and data, so an earlier literal
+    is dropped. None means this expression is not an options object.
+    """
+    text = expr.strip()
+    if text.startswith("Object.assign"):
+        open_at = text.find("(")
+        close = match_bracket(text, open_at) if open_at >= 0 else -1
+        if close < 0 or text[close + 1:].strip():
+            return None
+        path, templated, method, fields = None, False, None, None
+        for part in split_top(text[open_at + 1:close], ","):
+            piece = part.strip()
+            if not piece or piece == "{}":
+                continue
+            if piece.startswith("{") and piece.endswith("}"):
+                path, templated, method, fields = apply_effects(
+                    object_effects(piece), path, templated, method, fields)
+            else:
+                path, templated, method, fields = None, False, None, None
+        return path, templated, method, fields
+    effects = object_effects(text)
+    if not effects:
+        return None
+    return apply_effects(effects, None, False, None, None)
+
+
 def line_of(text, index):
     return text.count("\n", 0, index) + 1
+
+
+def callee_at(raw, i):
+    if i and (raw[i - 1].isalnum() or raw[i - 1] in "_$"):
+        return ""
+    for name in CALLEES:
+        if not raw.startswith(name, i):
+            continue
+        nxt = i + len(name)
+        if nxt < len(raw) and (raw[nxt].isalnum() or raw[nxt] in "_$"):
+            continue
+        return name
+    return ""
+
+
+def receiver_name(raw, ident_at):
+    j = ident_at - 1
+    while j >= 0 and raw[j] in " \t\r\n":
+        j -= 1
+    if j < 0 or raw[j] != ".":
+        return ""
+    end = j
+    j -= 1
+    while j >= 0 and (raw[j].isalnum() or raw[j] in "_$"):
+        j -= 1
+    return raw[j + 1:end]
+
+
+def array_argument(args):
+    text = args.strip()
+    if not text.startswith("["):
+        return False
+    end = match_bracket(text, 0)
+    return end == len(text) - 1
+
+
+def is_subscribe_array(raw, ident_at, args):
+    """subscribe.request([...]) and require('...subscribe.js').request([...])."""
+    if not array_argument(args):
+        return False
+    if receiver_name(raw, ident_at) == "subscribe":
+        return True
+    return "subscribe.js" in raw[max(0, ident_at - 96):ident_at]
 
 
 def find_calls(text):
@@ -363,8 +619,14 @@ def find_calls(text):
             quote = c
             i += 1
             continue
-        if raw.startswith("request", i) and (i == 0 or not (raw[i - 1].isalnum() or raw[i - 1] in "_$")):
-            j = i + len("request")
+        if c == "/":
+            end = skip_regex_literal(raw, i)
+            if end > i:
+                i = end
+                continue
+        name = callee_at(raw, i)
+        if name:
+            j = i + len(name)
             while j < n and raw[j] in " \t\r\n":
                 j += 1
             if j < n and raw[j] == "(":
@@ -379,7 +641,11 @@ def find_calls(text):
                 if re.search(r"function\s*$", prefix) or (after < n and raw[after] == "{"):
                     i = close + 1
                     continue
-                calls.append((line_of(raw, i), raw[j + 1:close], i))
+                args = raw[j + 1:close]
+                if name == "request" and is_subscribe_array(raw, i, args):
+                    i = close + 1
+                    continue
+                calls.append((line_of(raw, i), args, i))
                 i = close + 1
                 continue
         i += 1
@@ -640,12 +906,16 @@ def collect(mp_root, core_root, test_root):
         text = open(path, encoding="utf-8", errors="replace").read()
         helper_url, helper_method = helper_bindings(text)
         rel = os.path.relpath(path, mp_root).replace(os.sep, "/")
-        for line, args, _at in find_calls(text):
+        stripped = strip_comments(text)
+        for line, args, at in find_calls(text):
             pattern, templated, method, fields = call_facts(args)
-            if pattern is None and helper_url:
-                pattern, templated = normalize_path(helper_url), False
-            if method is None and helper_method and "method" not in args:
-                method = helper_method
+            # The same-file helper is the function named request. Other callees
+            # keep only the path and method written on that call.
+            if callee_at(stripped, at) == "request":
+                if pattern is None and helper_url:
+                    pattern, templated = normalize_path(helper_url), False
+                if method is None and helper_method and "method" not in args:
+                    method = helper_method
             symbol = None
             if pattern and not templated:
                 symbol = choose_symbol(exact.get(pattern, []), pattern)
@@ -687,7 +957,7 @@ def main(argv):
         return 2
     rows = collect(args.mp_root, core, tests)
     if not rows:
-        print("no request( calls", file=sys.stderr)
+        print("no contract calls", file=sys.stderr)
         return 2
     matched = sum(row["symbol"] != "MISSING" and row["test"] != "MISSING" for row in rows)
     missing_endpoint = sum(row["symbol"] == "MISSING" for row in rows)

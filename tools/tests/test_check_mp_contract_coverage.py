@@ -1,4 +1,4 @@
-"""Literal request( coverage. This does not parse JavaScript."""
+"""Literal HTTP-call coverage. This does not parse JavaScript."""
 import os
 import subprocess
 import tempfile
@@ -87,6 +87,7 @@ class ContractCoverageTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             body = [line for line in result.stdout.splitlines() if line.startswith("utils/")]
             self.assertEqual(body, [
+                "utils/roam-presence-privacy.js:2\tRoamPresenceVisibilityContract.path\tMISSING",
                 "utils/roam-presence-privacy.js:4\tRoamPresenceVisibilityContract.path\tMISSING",
                 "utils/roam-presence-privacy.js:5\tRoamPresenceVisibilityContract.path\tMISSING",
             ])
@@ -117,6 +118,74 @@ class ContractCoverageTests(unittest.TestCase):
                 "utils/read.js:1\tChinaReviewedRouteCapability.history\tMISSING",
                 "utils/read.js:2\tChinaReviewedRouteCapability.capsuleDetail\tMISSING",
                 "utils/read.js:3\tChinaReviewedRouteCapability.capsuleList\tMISSING",
+            ])
+
+    def test_new_callees_and_non_literal_arguments_keep_only_literal_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            mp = os.path.join(tmp, "xcx")
+            write(os.path.join(mp, "pages/scan.js"), r"""
+                function sendRequest(options) { return options; }
+                function req(url, method, data) { return url; }
+                function uploadFile(file) { return file; }
+                function request(url, method, data) { return url; }
+                subscribe.request(['coopStatus']);
+                require('./subscribe.js').request(['refund']);
+                sendRequest({ url: '/api/literal', method: 'POST', data: { note: 'n' } });
+                sendRequest({
+                  url: '/api/shorthand',
+                  method: 'POST',
+                  data: { note: 'n' },
+                  success(res) { return res; }
+                });
+                sendRequest(Object.assign({}, opts, { url: '/api/assigned', method: 'POST', data: { k: 1 } }));
+                sendRequest(Object.assign({ url: '/api/maybe' }, extra));
+                sendRequest(payload);
+                sendRequest({ url, method, data });
+                sendRequest({ url: '/api/hidden-by-spread', method: 'GET', ...extra });
+                sendRequest({ ...extra, url: '/api/after-spread', method: 'PUT', data: { z: 1 } });
+                req('/api/req-path', 'GET', { b: 1 });
+                req('/api/req-no-data', 'GET');
+                wx.request({ url: '/api/wx', method: 'GET', data: {} });
+                wx.uploadFile({ url: '/api/upload', name: 'file' });
+                request('/api/epoch', 'GET', { id: 1 }, ++readEpoch);
+                const precise = raw.replace(/"(?:\\.|[^"\\])*"/g, "x");
+                sendRequest({ url: '/api/after-regex', method: 'GET', data: {} });
+            """)
+            write(os.path.join(tmp, "Core", "Routes.swift"), """
+                public enum CovRoutes {
+                    public static let literal = "api/literal"
+                    public static let shorthand = "api/shorthand"
+                    public static let assigned = "api/assigned"
+                    public static let afterSpread = "api/after-spread"
+                    public static let reqPath = "api/req-path"
+                    public static let reqNoData = "api/req-no-data"
+                    public static let wx = "api/wx"
+                    public static let upload = "api/upload"
+                    public static let epoch = "api/epoch"
+                    public static let afterRegex = "api/after-regex"
+                }
+            """)
+            result = subprocess.run(
+                ["python3", TOOL, "--mp-root", mp, "--core", os.path.join(tmp, "Core"),
+                 "--tests", os.path.join(tmp, "Tests")],
+                check=False, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            body = [line for line in result.stdout.splitlines() if line.startswith("pages/")]
+            self.assertEqual(body, [
+                "pages/scan.js:7\tCovRoutes.literal\tMISSING",
+                "pages/scan.js:8\tCovRoutes.shorthand\tMISSING",
+                "pages/scan.js:14\tCovRoutes.assigned\tMISSING",
+                "pages/scan.js:15\tMISSING\tMISSING",
+                "pages/scan.js:16\tMISSING\tMISSING",
+                "pages/scan.js:17\tMISSING\tMISSING",
+                "pages/scan.js:18\tMISSING\tMISSING",
+                "pages/scan.js:19\tCovRoutes.afterSpread\tMISSING",
+                "pages/scan.js:20\tCovRoutes.reqPath\tMISSING",
+                "pages/scan.js:21\tCovRoutes.reqNoData\tMISSING",
+                "pages/scan.js:22\tCovRoutes.wx\tMISSING",
+                "pages/scan.js:23\tCovRoutes.upload\tMISSING",
+                "pages/scan.js:24\tCovRoutes.epoch\tMISSING",
+                "pages/scan.js:26\tCovRoutes.afterRegex\tMISSING",
             ])
 
 
