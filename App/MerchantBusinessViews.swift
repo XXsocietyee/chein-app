@@ -307,7 +307,7 @@ import SwiftUI
         let renderedKey = accessKey
         let queuedRequest = accessModel.request
         List {
-            if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.synthetic") }
+            if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("merchant.business.synthetic") }
             // Entry does not grant report access; the destination rechecks original APP permissions.
             NavigationLink { SessionCityMerchantValueView() } label: { CityMerchantValueCopy.text("merchantTitle") }
                 .accessibilityIdentifier("cityValue.merchant.entry")
@@ -460,7 +460,7 @@ import SwiftUI
         let renderedTeamScope = reader.scope
         let renderedTeamAuthorization = reader.authorizationGeneration
         List {
-            if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+            if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             filters
             if state.isBusy { CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading") }
             if let key = model.aftercareLoadFailureKey ?? state.failureKey {

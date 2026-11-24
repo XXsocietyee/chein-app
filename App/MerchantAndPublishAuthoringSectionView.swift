@@ -158,7 +158,7 @@ public struct MerchantAndPublishAuthoringSectionView: View {
                     .cyText(.cardTitle)
                 Spacer()
                 Text(verbatim: headerBadgeText)
-                    .cyText(.caption, weight: .semibold)
+                    .cyText(.meta, weight: .semibold)
                     .foregroundStyle(snapshot.isAuditReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("merchantPublishAudit.statusBadge")
             }
@@ -179,7 +179,7 @@ public struct MerchantAndPublishAuthoringSectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(pillar.isVerified ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("merchantPublishAudit.pillarStatus.\(pillar.id)")
                     }
@@ -189,7 +189,7 @@ public struct MerchantAndPublishAuthoringSectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.gateSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("merchantPublishAudit.pillarGate.\(pillar.id)")
                 }

@@ -594,7 +594,7 @@ struct MerchantOnboardingIdentitySection: View {
             Text("merchant.onboarding.identity.title")
         } footer: {
             Label { Text("merchant.onboarding.identity.privacy") } icon: { Image(systemName: "lock.fill") }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(palette.textSecondary)
                 .accessibilityIdentifier("merchant.onboarding.identity.privacy")
         }
@@ -682,7 +682,7 @@ struct MerchantOnboardingIdentitySection: View {
     @ViewBuilder private func fieldError(_ key: String?, id: String) -> some View {
         if let key {
             Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.dangerText)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("merchant.onboarding.identity.error.\(id)")

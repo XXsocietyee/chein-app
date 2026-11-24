@@ -51,7 +51,7 @@ struct MerchantTopicTemplateShelfView: View {
                             VStack(alignment: .leading, spacing: 6) {
                                 MerchantTopicRemoteImage(url: template.imageURL)
                                     .frame(width: 140, height: 100).clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                Text(verbatim: template.title).cyText(.bodyMedium).lineLimit(1)
+                                Text(verbatim: template.title).cyText(.bodyMedium).lineLimit(2)
                                 HStack(spacing: 8) {
                                     if let players = template.players { Text(verbatim: players) }
                                     if let minutes = template.durationMinutes { Text("merchant.wire2.template.minutes \(minutes)") }

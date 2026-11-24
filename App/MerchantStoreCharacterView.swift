@@ -144,7 +144,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .denied(let reason):
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
@@ -161,7 +161,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
             // A current read refusal is not a network failure or a new initial-admission exit.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "lock")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
@@ -181,7 +181,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .failed(let message):
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "exclamationmark.triangle")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.load.failedTitle")
                     .cyText(.cardTitle)
@@ -240,14 +240,14 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                         .accessibilityIdentifier("aiNPC.hero.badge")
                     if let reason = c.saved.rejectionReason {
                         (t("storeCharacter.hero.rejectReason") + Text(verbatim: reason))
-                            .cyText(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("aiNPC.hero.rejectReason")
                     }
                 }
             } else {
                 t("storeCharacter.avatar.previewCaption")
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }

@@ -283,7 +283,7 @@ enum MerchantGameNodeCopy {
         .accessibilityElement(children: .contain).accessibilityIdentifier("gameNode.hero")
     }
     private func fact(_ value: Text, _ label: String) -> some View {
-        VStack(spacing: CYSpacing.xxs) { value.cyText(.numericBody).monospacedDigit(); MerchantGameNodeCopy.text(label).cyText(.micro).foregroundStyle(CYColor.textSecondary) }
+        VStack(spacing: CYSpacing.xxs) { value.cyText(.numericBody).monospacedDigit(); MerchantGameNodeCopy.text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             .frame(maxWidth: .infinity)
     }
     private func runbook(_ station: MerchantGameNodeStation) -> some View {

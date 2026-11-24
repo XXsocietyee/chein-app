@@ -184,7 +184,7 @@ import SwiftUI
                     MerchantCityNodeCopy.text(titles[index]).font(.caption.weight(states[index] == .doing ? .bold : .regular))
                     if let stamp = stamps[index] {
                         Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.station.today", stamp.formatted(date: .omitted, time: .shortened)))
-                            .cyText(.caption).foregroundStyle(.secondary)
+                            .cyText(.meta).foregroundStyle(.secondary)
                     }
                 }.frame(maxWidth: .infinity).accessibilityElement(children: .combine)
                     .accessibilityIdentifier("cityNodeCreate.station.\(index).\(states[index].rawValue)")

@@ -165,7 +165,7 @@ struct MerchantInboxPreviewSection: View {
                 .frame(width: 28, height: 28)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                title(item).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                title(item).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
                 if let sub = subtitle(item) {
                     sub.cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(1)
                 }
