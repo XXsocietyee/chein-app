@@ -100,12 +100,12 @@ struct JourneyModeTilesView: View {
                         if index > 0 { MPDivider() }
                         HStack(spacing: CYSpacing.md) {
                             Circle().fill(rule.on ? CYNight.lantern : CYColor.textTertiary).frame(width: 8, height: 8).accessibilityHidden(true)
-                            Text(rule.title).cyText(.bodyMedium)
+                            Text(rule.title).cyText(.body).foregroundStyle(CYColor.textSecondary)
                             Spacer()
                             Group {
                                 if let scope = rule.scope { Text(scope.label) } else { Text(verbatim: MPText.orDash(rule.teamText)) }
                             }
-                            .cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                            .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                         }
                         .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
                         .accessibilityElement(children: .combine)
@@ -136,7 +136,7 @@ struct JourneyModeTilesView: View {
                         .accessibilityHidden(true)
                     }
                 }
-                tile.nameText.cyText(.cardTitle)
+                tile.nameText.cyText(.sectionTitle)
                 if let sub = tile.subText { sub.cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
             }
             .foregroundStyle(tile.available ? CYColor.textPrimary : CYColor.textTertiary)
@@ -318,7 +318,7 @@ struct JourneyLandingView: View {
                     .contentTransition(.opacity)
                     .accessibilityAddTraits(.isHeader)
                 JourneyDuoView(inviter: content.inviter, seatNo: content.seatNo)
-                if let name = content.inviter?.name { Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary) }
+                if let name = content.inviter?.name { Text(verbatim: name).cyText(.label).foregroundStyle(CYColor.textSecondary) }
                 if let title = content.title {
                     Text(verbatim: title).cyText(.label).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
