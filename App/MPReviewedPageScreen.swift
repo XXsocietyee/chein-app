@@ -195,7 +195,13 @@ import SwiftUI
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: topicID))
                     .cyPushedChrome()
             } else { unavailable }
-        case "pages/topic/pricing/index", "pages/topic/pricing/partner/index":
+        case "pages/topic/pricing/partner/index":
+            // R7-PC-B5-1 (P0): MP partner page (`topicId`, `toType`, `toId`) — the partner's terms, not the pricing page.
+            if let topicID = reviewedID(query, key: "topicId"), let context = session.publisherLifecycleContext,
+               let row = PublisherPartnerLink.lineup(type: query["toType"], id: reviewedID(query, key: "toId")) {
+                PublisherPartnerView(topicID: topicID, row: row, client: context.client)
+            } else { unavailable }
+        case "pages/topic/pricing/index":
             // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
             if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
                 PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
@@ -646,5 +652,16 @@ private struct MPTabHandoff: View {
         Color.clear
             .accessibilityHidden(true)
             .onAppear { guard !done else { return }; done = true; perform() }
+    }
+}
+
+/// Builds the one lineup row a partner deep link names, through the public pricing-preview decoder (the row init is
+/// Core-internal). `toType` is `club` or `merchant`.
+enum PublisherPartnerLink {
+    static func lineup(type: String?, id: Int?) -> PublisherLineup? {
+        guard let type = type?.trimmingCharacters(in: .whitespacesAndNewlines), ["club", "merchant"].contains(type),
+              let id, id > 0 else { return nil }
+        let row: ProjectEditJSON = .object(["toType": .string(type), "toId": .number(Decimal(id))])
+        return (try? PublisherPricingPreview(.object(["priceMin": .number(0), "lineup": .array([row])])))?.lineup.first
     }
 }
