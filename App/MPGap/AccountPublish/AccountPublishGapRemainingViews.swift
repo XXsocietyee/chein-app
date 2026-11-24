@@ -24,64 +24,66 @@ public struct ProfileEditGapPhoneBindRow: View {
     }
 }
 
-/// Mount hook for `MiniCropView` (`AP-G06`):
-/// Dimmed outer frame + circular logo cropper / rule-of-thirds grid + `还原` reset action.
+/// Mount hook for `MiniCropView` (`AP-G06` / `A7-01/03/05`):
+/// Dimmed outer frame + circular logo cropper / rule-of-thirds grid + `还原` reset action,
+/// aligned to the exact computed `cropSize` from `MiniCropGeometry.frame(ratio:)`.
 public struct MiniCropGapOverlay: View {
     public let shape: CropGapShape
+    public let cropSize: CGSize
     public let onReset: () -> Void
 
-    public init(shape: CropGapShape, onReset: @escaping () -> Void) {
+    public init(shape: CropGapShape, cropSize: CGSize, onReset: @escaping () -> Void) {
         self.shape = shape
+        self.cropSize = cropSize
         self.onReset = onReset
     }
 
     public var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            GeometryReader { proxy in
-                let size = min(proxy.size.width, proxy.size.height) * 0.8
-                ZStack {
-                    Color.black.opacity(0.45)
-                        .mask(
-                            Rectangle()
-                                .overlay(
-                                    Group {
-                                        if shape == .circle {
-                                            Circle().frame(width: size, height: size)
-                                        } else {
-                                            Rectangle().frame(width: size, height: size)
-                                        }
-                                    }
-                                    .blendMode(.destinationOut)
-                                )
-                        )
-                        .compositingGroup()
-                        .allowsHitTesting(false)
-
-                    if shape == .circle {
-                        Circle()
-                            .stroke(Color.white.opacity(0.9), lineWidth: 1.5)
-                            .frame(width: size, height: size)
-                    } else {
+            ZStack {
+                Color.black.opacity(0.45)
+                    .mask(
                         Rectangle()
-                            .stroke(Color.white.opacity(0.9), lineWidth: 1.5)
-                            .frame(width: size, height: size)
                             .overlay(
-                                Path { path in
-                                    let third = size / 3
-                                    path.move(to: CGPoint(x: third, y: 0))
-                                    path.addLine(to: CGPoint(x: third, y: size))
-                                    path.move(to: CGPoint(x: third * 2, y: 0))
-                                    path.addLine(to: CGPoint(x: third * 2, y: size))
-                                    path.move(to: CGPoint(x: 0, y: third))
-                                    path.addLine(to: CGPoint(x: size, y: third))
-                                    path.move(to: CGPoint(x: 0, y: third * 2))
-                                    path.addLine(to: CGPoint(x: size, y: third * 2))
+                                Group {
+                                    if shape == .circle {
+                                        Circle().frame(width: cropSize.width, height: cropSize.height)
+                                    } else {
+                                        Rectangle().frame(width: cropSize.width, height: cropSize.height)
+                                    }
                                 }
-                                .stroke(Color.white.opacity(0.4), lineWidth: 0.75)
+                                .blendMode(.destinationOut)
                             )
-                    }
+                    )
+                    .compositingGroup()
+                    .allowsHitTesting(false)
+
+                if shape == .circle {
+                    Circle()
+                        .stroke(Color.white.opacity(0.9), lineWidth: 1.5)
+                        .frame(width: cropSize.width, height: cropSize.height)
+                } else {
+                    Rectangle()
+                        .stroke(Color.white.opacity(0.9), lineWidth: 1.5)
+                        .frame(width: cropSize.width, height: cropSize.height)
+                        .overlay(
+                            Path { path in
+                                let thirdW = cropSize.width / 3
+                                let thirdH = cropSize.height / 3
+                                path.move(to: CGPoint(x: thirdW, y: 0))
+                                path.addLine(to: CGPoint(x: thirdW, y: cropSize.height))
+                                path.move(to: CGPoint(x: thirdW * 2, y: 0))
+                                path.addLine(to: CGPoint(x: thirdW * 2, y: cropSize.height))
+                                path.move(to: CGPoint(x: 0, y: thirdH))
+                                path.addLine(to: CGPoint(x: cropSize.width, y: thirdH))
+                                path.move(to: CGPoint(x: 0, y: thirdH * 2))
+                                path.addLine(to: CGPoint(x: cropSize.width, y: thirdH * 2))
+                            }
+                            .stroke(Color.white.opacity(0.4), lineWidth: 0.75)
+                        )
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             Button(AccountPublishRemainingCopy.cropReset, action: onReset)
                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
