@@ -26,3 +26,10 @@
 # - join requests loadFailure: title 入会申请加载失败 (service) or 网络连接失败 (transport)
 # - customer detail tag/remark save failure: 标签与备注没保存成功 + 重试保存
 --uitesting-club-management-fixture loadFailure
+# Round 3 checks (no MP deep-link fixture exists; reach these from the governance root or a reviewed MP link):
+# - 管理 → 场次 → 出示团码: the code card names the session 「活动名 · 开始时间」 under the code
+# - MP link pages/club/join-requests/index?clubId=: bar title 入会申请, requests only (no 成员 section)
+# - MP link pages/club/notify/index?clubId=[&activityId=]: opens the composer directly (audience list with counts,
+#   标题 / 内容, 预览受众 → 发送给 N 人); no separate counts page
+# - check-in detail without a topic cover: an empty 59×40 block keeps the order card aligned
+--uitesting-club-governance

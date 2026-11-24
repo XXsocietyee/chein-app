@@ -138,6 +138,12 @@ struct ClubCheckinDetailRows: View {
                         .frame(width: 59, height: 40)
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityHidden(true)
+                } else {
+                    // MP wxml:45 `ckd-cover--empty`: the same footprint on bg-elevated, so the text column never jumps.
+                    RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                        .fill(CYColor.bgElevated)
+                        .frame(width: 59, height: 40)
+                        .accessibilityHidden(true)
                 }
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let session = text("sessionTimeText") {
