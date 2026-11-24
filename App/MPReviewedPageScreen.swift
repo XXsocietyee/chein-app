@@ -317,7 +317,49 @@ import SwiftUI
             MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .verificationRecords)
                 .cyPushedChrome(domain: .merchant)
         case "pages/merchant/team/index":
-            MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .operators)
+            // MC7-29-12: `?invite=` opens the operator invitation landing (same token rule as MerchantOperatorAcceptance).
+            if let token = query["invite"], let invitation = try? MerchantOperatorAcceptance(token: token) {
+                MerchantOperatorInvitationLandingView(invitation: invitation, reader: session.merchantEngagementReader,
+                                                      journal: session.merchantBusinessJournal, exportRecovery: session.merchantExportRecovery,
+                                                      requestSignIn: { openSignIn?() })
+                    .id(session.sessionRevision)
+            } else {
+                MerchantBusinessPage(reader: session.merchantBusinessReader, journal: session.merchantBusinessJournal, query: .operators)
+                    .cyPushedChrome(domain: .merchant)
+            }
+        // MC7-34-3: the MP's only entry to 分润明细 is this deep link.
+        case "pages/coop/finance/index":
+            CoopFinanceProfitView(reader: session.cooperationFlowReader)
+                .environment(\.coopWalletReader, session.walletCommerceReader)
+                .cyPushedChrome(domain: .merchant)
+        // MC7-35-1 / MC7-35-2: settlement-detail `source` finance | ledger | club (MerchantSettlementDetailLink).
+        case "pages/coop/settlement-detail/index":
+            if let link = MerchantSettlementDetailLink.resolve(query) {
+                if link.source == .club {
+                    CoopClubSettlementDetailView(reader: session.cooperationFlowReader, link: link)
+                } else if let id = Int(link.recordID), id > 0 {
+                    CoopSettlementDetailView(reader: session.cooperationFlowReader, source: link.source == .finance ? .finance : .mybiz, id: id)
+                        .cyPushedChrome(domain: .merchant)
+                } else { settlementMissing }
+            } else { settlementMissing }
+        // MC7-30-2: coop list opens on the linked tab. The topic-only scope (CooperationInboxTopicFilter) is not seeded yet.
+        case "pages/coop/list/index":
+            CooperationBrowserView(reader: session.cooperationReader, onClose: { session.dismissNativeEntry() },
+                                   peerReader: session.cooperationFlowReader,
+                                   initialDirection: CoopListLink(query).tab == "sent" ? .sent : .received,
+                                   topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) })
+                .id(session.cooperationReader.scope)
+        // MC7-32-7: invite-detail `inviteId` + `box`.
+        case "pages/coop/invite-detail/index":
+            let link = CoopInviteDetailLink(query)
+            if let inviteID = link.inviteID {
+                CooperationInviteDetailView(key: CooperationInviteKey(id: inviteID, direction: link.box == "sent" ? .sent : .received),
+                                            reader: session.cooperationReader, peerReader: session.cooperationFlowReader)
+                    .cyPushedChrome(domain: .merchant)
+            } else { unavailable }
+        // MC7-31-10: the new-invitation page. The `type` / `toId` / `topicId` presets are not applied yet.
+        case "pages/coop/invite/index":
+            CoopFlowNewInvitationView(reader: session.cooperationFlowReader, operationScope: nil)
                 .cyPushedChrome(domain: .merchant)
         case "pages/merchant/coop-center/index":
             session.merchantCoopCenterDestination()
@@ -604,6 +646,12 @@ import SwiftUI
         }
     }
 
+    /// MP settlement-detail `missing-param`: 缺少结算记录信息 + 返回.
+    private var settlementMissing: some View {
+        MerchantCoopActionState(systemImage: "doc.text.magnifyingglass", title: "merchantCoop.settlement.missingParam",
+                                actionTitle: "merchantCoop.settlement.back", action: { session.dismissNativeEntry() },
+                                identifier: "coop.settlement.missingParam")
+    }
     private var unavailable: some View {
         CYEmptyState(systemImage: "tray", "mp.route.unavailable", messageIdentifier: "mp.route.unavailable")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
