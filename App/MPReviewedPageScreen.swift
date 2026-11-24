@@ -190,8 +190,15 @@ import SwiftUI
                     .cyPushedChrome()
             } else { unavailable }
         case "pages/topic/merchantapply/index":
-            // The application form lives on the topic's chapters screen (MerchantContentEditor is presented from there).
-            if let topicID = reviewedID(query, key: "topicId") {
+            // R7-PC-B3-5: MP merchantapply with a registration `id` edits it; with `topicId` + `nodeId` it is the 承接 form
+            // for that node. A bare `topicId` keeps the chapters screen the form is opened from.
+            if let registrationID = reviewedID(query) {
+                MerchantContentEditView(service: session.merchantContentService, query: .registration(id: registrationID), kind: .registrationEdit(registrationID))
+                    .cyPushedChrome()
+            } else if let topicID = reviewedID(query, key: "topicId"), let nodeID = reviewedID(query, key: "nodeId") {
+                MerchantContentEditView(service: session.merchantContentService, query: .chapters(topicID: topicID), kind: .registrationCreate(topicID: topicID, nodeID: nodeID))
+                    .cyPushedChrome()
+            } else if let topicID = reviewedID(query, key: "topicId") {
                 MerchantContentDocumentView(service: session.merchantContentService, query: .chapters(topicID: topicID))
                     .cyPushedChrome()
             } else { unavailable }
