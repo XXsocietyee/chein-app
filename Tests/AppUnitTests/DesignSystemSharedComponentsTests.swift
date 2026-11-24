@@ -242,10 +242,10 @@ final class DesignSystemSharedComponentsTests: XCTestCase {
         XCTAssertEqual(roamIcon.idle, "map")
         XCTAssertEqual(roamIcon.selected, "map.fill")
 
-        // CYSheetDetent fractions match DESIGN.md Part 4
+        // Native iOS restyle r1: half / full are the system detents; peek stays 30%.
         XCTAssertEqual(CYSheetDetent.peek.presentationDetent, .fraction(0.30))
-        XCTAssertEqual(CYSheetDetent.half.presentationDetent, .fraction(0.60))
-        XCTAssertEqual(CYSheetDetent.full.presentationDetent, .fraction(0.80))
+        XCTAssertEqual(CYSheetDetent.half.presentationDetent, .medium)
+        XCTAssertEqual(CYSheetDetent.full.presentationDetent, .large)
 
         // CYRouteArrivalRequirement labels
         XCTAssertEqual(CYRouteArrivalRequirement.gps.label, "GPS 到达")

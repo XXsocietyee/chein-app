@@ -184,7 +184,7 @@ enum WalletPayoutCapability {
                 await loadFunds()
                 await loadMonth()
             }
-            .sheet(isPresented: $showsMore) { moreSheet }
+            .sheet(isPresented: $showsMore) { moreSheet.cySheet() }
             .onDisappear { isVisible = false; earnings.clear(); funds.clear(); monthModel.cancel() }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { earnings.clear(); funds.clear() }
@@ -283,7 +283,7 @@ enum WalletPayoutCapability {
                 NavigationLink { incomeDestination } label: {
                     HStack(spacing: CYSpacing.xxs) {
                         Text(verbatim: monthTitle + " " + t("全部", "All"))
-                        Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).accessibilityHidden(true)
                     }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
             }.textCase(nil)
@@ -350,7 +350,7 @@ enum WalletPayoutCapability {
                     walletRow("wallet.assets", icon: "wallet.pass", id: "wallet.assets.more") { WalletAssetsView(reader: reader) }
                 }
             }.listStyle(.plain).scrollContentBackground(.hidden).listRowBackground(Color.clear)
-                .appNavigationTitle(key: "wallet.title")
+                .appNavigationTitle(key: "wallet.title").navigationBarTitleDisplayMode(.inline)
                 .cyDomainPageBackground()
         }
         .cyDomainSheet(detents: [.half, .full])
@@ -394,7 +394,7 @@ enum WalletPayoutCapability {
                                 .cyText(.caption, weight: .semibold)
                                 .foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
-                                .font(CYTypography.data2XL)
+                                .cyText(.data2XL, monospacedDigit: true)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .privacySensitive()
                         }
@@ -420,7 +420,7 @@ enum WalletPayoutCapability {
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
                     .accessibilityIdentifier("wallet.assets.pointsLedger")
             }
-        }.appNavigationTitle("wallet.assets").cyHideTabBar().task(id: reader.scope) { funds.clear(); await load() }
+        }.appNavigationTitle("wallet.assets").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { funds.clear(); await load() }
             .onChange(of: funds.loading) { _, isLoading in
                 if WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: isLoading, hasValue: funds.value != nil) {
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
@@ -547,7 +547,7 @@ extension EnvironmentValues {
                 guard historyWaitsForZoom, !historyArrived else { return }
                 withAnimation(.easeOut(duration: CYMotion.Duration.quick).delay(0.25)) { historyArrived = true }
             }
-            .appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger")
+            .appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger").navigationBarTitleDisplayMode(.inline)
             .cyHideTabBar()
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
             .onDisappear { if incomeDetail == nil { model.cancel() } }
@@ -581,7 +581,7 @@ extension EnvironmentValues {
                         }
                     }
                     .privacySensitive()
-                    .appNavigationTitle("wallet.income")
+                    .appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .confirmationAction) {
                         Button("action.close") { incomeDetail = nil }
                             .accessibilityIdentifier("wallet.income.detail.close")
@@ -602,7 +602,7 @@ extension EnvironmentValues {
                     .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
-                        .font(CYTypography.data2XL).monospacedDigit()
+                        .cyText(.data2XL, monospacedDigit: true)
                         .cyWrapText()
                         .foregroundStyle(CYColor.textPrimary)
                     if value != nil { Text(verbatim: unit).cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
@@ -612,7 +612,7 @@ extension EnvironmentValues {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(CYSpacing.xl)
             .background(LinearGradient(colors: [CYColor.bgElevated, CYColor.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowBackground(Color.clear)
             .accessibilityIdentifier("wallet.ledger.hero")
@@ -644,7 +644,7 @@ extension EnvironmentValues {
         return layout {
             if !stacked {
                 Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
-                    .font(CYTypography.bodyCompact.weight(.semibold))
+                    .cyText(.bodyCompact, weight: .semibold)
                     .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                     .frame(width: 36, height: 36)
                     .background(CYColor.bgRaised, in: Circle())
@@ -811,7 +811,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 // An interrupted read is retryable, not a reported business failure.
                 Button("wallet.retry") { scheduleLoad() }.frame(minHeight: 44)
             }
-        }.appNavigationTitle("wallet.mall").cyHideTabBar().searchable(text: $keyword)
+        }.appNavigationTitle("wallet.mall").navigationBarTitleDisplayMode(.inline).cyHideTabBar().searchable(text: $keyword)
             .onSubmit(of: .search) { submitSearch() }
             .onChange(of: keyword) { _, value in
                 // Clearing or cancelling search must restore the unfiltered catalogue.
@@ -885,7 +885,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 }
                 Text("wallet.dormant").accessibilityIdentifier("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.product").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.product").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
         .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.product(id: productID, token: $1) } }
@@ -919,7 +919,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
                 Text("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.cart").cyHideTabBar().task(id: reader.scope) { selected = []; model.clear(); await load() }
+        }.appNavigationTitle("wallet.cart").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { selected = []; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { selected = []; await load() }
         .cyDomainScreen(.player)
     }
@@ -950,7 +950,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 Text("wallet.previewOnly").accessibilityIdentifier("wallet.previewOnly")
                 Text("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.preview").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.preview").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
         .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.checkout(cartIDs: cartIDs, token: $1) } }
@@ -990,11 +990,11 @@ private struct WalletIncomeListCard: ViewModifier {
                         .accessibilityIdentifier("wallet.withdrawals.support")
                 }
             }
-        }.appNavigationTitle("wallet.withdrawals").cyHideTabBar().task(id: reader.scope) { showContact = false; model.clear(); await load() }
+        }.appNavigationTitle("wallet.withdrawals").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { showContact = false; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { await load() }
             // Uses the inherited, independently reviewed support reader. History access
             // does not supply a contact or authorize support configuration/copying.
-            .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
+            .sheet(isPresented: $showContact) { WithdrawalSupportContactView().cySheet() }
             .appSwitcherPrivacyShield()
             .cyDomainScreen(.player)
     }
@@ -1037,7 +1037,7 @@ private struct WalletIncomeListCard: ViewModifier {
                     }
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
-        }.appNavigationTitle("wallet.tasks").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.tasks").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
         .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }
@@ -1136,7 +1136,7 @@ private struct WalletEarningsHero: View {
                     Text("—").cyText(.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
                         .accessibilityLabel(Text(verbatim: ""))
                 }
-                Text(number).font(CYTypography.data2XL).monospacedDigit()
+                Text(number).cyText(.data2XL, monospacedDigit: true)
             }
             .foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
         }

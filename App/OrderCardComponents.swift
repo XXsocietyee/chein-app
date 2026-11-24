@@ -9,7 +9,7 @@ struct OrderCardSurface: ViewModifier {
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.lg, padding: padding)
+            .cyDomainCard(radius: CYRadius.card, padding: padding)
     }
 }
 
@@ -25,7 +25,7 @@ struct OrderStatusChip: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Label { Text(title).cyWrapText() } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
-            .font(CYTypography.caption.weight(.semibold))
+            .cyText(.caption, weight: .semibold)
             .foregroundStyle(emphasized ? CYColor.textPrimary : CYColor.textSecondary)
             .padding(.horizontal, CYSpacing.md)
             .padding(.vertical, CYSpacing.xs + 2)
@@ -51,7 +51,7 @@ struct OrderCoverTile: View {
             } else { placeholder }
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
     private var placeholder: some View {
@@ -116,7 +116,7 @@ struct OrderAmountHero: View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Text(verbatim: figure)
-                .font(CYTypography.data2XL)
+                .cyText(.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
                 .cyWrapText()
                 .privacySensitive()

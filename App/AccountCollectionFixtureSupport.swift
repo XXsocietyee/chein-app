@@ -122,7 +122,7 @@ import SwiftUI
                         NavigationLink { AccountCollectionCouponsView(reader: reader) } label: {
                             Label("accountCollection.coupons.title", systemImage: "ticket")
                         }.accessibilityIdentifier("accountCollection.openCoupons")
-                    }.appNavigationTitle("accountCollection.title")
+                    }.appNavigationTitle("accountCollection.title").navigationBarTitleDisplayMode(.inline)
                 }
             }.id(revision)
                 .environment(\.couponCodeFactory, codeFactory)
@@ -132,12 +132,14 @@ import SwiftUI
                 TopicDetailView(id: route.id, reader: TopicFixtureReader())
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { topicRoute = nil } } }
             }
+            .cySheet(detents: [.large])
         }
         .sheet(item: $postRoute) { saved in
             NavigationStack {
                 SquareDetailView(id: saved.route.id, contentGeneration: saved.route.generation, reader: SquareFixtureReader())
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { postRoute = nil } } }
             }
+            .cySheet(detents: [.large])
         }
     }
 }

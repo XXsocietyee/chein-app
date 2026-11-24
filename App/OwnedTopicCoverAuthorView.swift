@@ -101,7 +101,6 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
         let flow = original.flow, local = flow.localReview, selection = flow.selectionReview, saved = flow.snapshot
         NavigationStack {
             Form {
-                Section { CYHeroHeader(verbatim: text("ownedCover.title","Author cover")) }.e1HeroRow()
                 Section {
                     Text(text("ownedCover.scope","Choose a cover for a future reviewed release. Picking a photo stays local. Uploading and selecting are separate explicit actions; existing releases keep their original image."))
                         .accessibilityIdentifier("ownedCover.scope")
@@ -190,14 +189,14 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
                 if case .failed = flow.state { Text(text("ownedCover.failed","The action could not be verified. Existing cover and submission records are retained.")) }
                 if flow.state == .unauthorized { Text(text("ownedCover.unauthorized","Sign in again before reading or changing the cover.")) }
             }
-            .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+            .formStyle(.grouped).cyGroupedSurface().navigationTitle(Text(verbatim: text("ownedCover.title","Author cover"))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement:.cancellationAction) {
                 Button(text("ownedCover.close","Close")) { model.close();close() }.accessibilityIdentifier("ownedCover.close")
             } }
         }
         .background(RetainedImagePresenterHost(host:model.pickerHost).frame(width:0,height:0))
         .task(id:original.id) { await model.load() }
-        .sheet(item:model.binding(selection)) { captured in selectionConfirmation(captured) }
+        .sheet(item:model.binding(selection)) { captured in Group { selectionConfirmation(captured) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
         .onDisappear { model.close();close() }
         .cyDomainScreen(.topicEditor)
     }
@@ -209,7 +208,6 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
     private func selectionConfirmation(_ captured:OwnedTopicCoverAuthorFlow.SelectionReview) -> some View {
         NavigationStack {
             Form {
-                Section { CYHeroHeader(verbatim: text("ownedCover.confirmTitle","Confirm cover selection")) }.e1HeroRow()
                 Text(text("ownedCover.confirmScope","Apply exactly this asset to the captured topic, content revision and CONTENT ownership record. This changes the next review input, not existing releases."))
                 assetFields(captured.command.asset,prefix:"ownedCover.confirm")
                 LabeledContent(text("ownedCover.topic","Saved topic"),value:String(captured.command.topicID))
@@ -219,7 +217,7 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
                 CYPillButton(verbatim: text("ownedCover.confirm","Apply this exact cover selection")) { model.confirm(captured) }
                     .accessibilityIdentifier("ownedCover.confirm").e1ActionRow()
             }
-            .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
+            .formStyle(.grouped).cyGroupedSurface().navigationTitle(Text(verbatim: text("ownedCover.confirmTitle","Confirm cover selection"))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement:.cancellationAction) {
                 Button(text("ownedCover.cancel","Cancel")) { model.cancel(captured) }.accessibilityIdentifier("ownedCover.cancel")
             } }

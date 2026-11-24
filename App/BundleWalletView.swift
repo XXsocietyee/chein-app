@@ -5,44 +5,33 @@ import SwiftUI
 /// Counts, validity window and the expired flag are rendered exactly as the server sent them.
 @MainActor struct BundleWalletView: View {
     let order: BundleOrderReadModel
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     private let table = BundleOrderStatusPresentation.table
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader(verbatim: screenTitle)
-                balances
-                if !order.units.isEmpty {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        text("wallet.entries")
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(palette.textPrimary)
-                            .accessibilityAddTraits(.isHeader)
-                            .fixedSize(horizontal: false, vertical: true)
-                        ForEach(order.units, id: \.id) { unit in
-                            CYListRow(
-                                verbatim: WalletCopy.server(unit.unitCode ?? unit.id.text),
-                                trailing: .value(unitStatus(unit)),
-                                card: true
-                            ) {
-                                CYRowIcon(systemImage: "ticket")
-                            }
-                            .accessibilityElement(children: .combine)
+        // Native restyle r1 (spec §3.2): an inset-grouped list with a system inline title; facts are LabeledContent.
+        List {
+            balances
+            if !order.units.isEmpty {
+                Section {
+                    ForEach(order.units, id: \.id) { unit in
+                        LabeledContent {
+                            Text(verbatim: unitStatus(unit))
+                        } label: {
+                            Label { Text(verbatim: WalletCopy.server(unit.unitCode ?? unit.id.text)) } icon: { Image(systemName: "ticket") }
                         }
+                        .accessibilityElement(children: .combine)
                     }
+                } header: {
+                    text("wallet.entries")
                 }
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.top, CYSpacing.lg)
-            .padding(.bottom, CYSpacing.xxl)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .cyDomainPageBackground()
+        .listStyle(.insetGrouped)
+        .navigationTitle(Text(verbatim: screenTitle))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
-        .cyHeroScreen()
         .appSwitcherPrivacyShield()
     }
 
@@ -53,45 +42,47 @@ import SwiftUI
 
     @ViewBuilder private var balances: some View {
         if order.isLegacy {
-            CYEmptyState(systemImage: "tray", "order.legacy", tableName: table)
+            Section { CYEmptyState(systemImage: "tray", "order.legacy", tableName: table) }
+                .cyCardRow()
         } else if !order.hasBalanceDetail || order.balances.isEmpty {
-            CYEmptyState(systemImage: "tray", "wallet.noDetail", tableName: table, messageIdentifier: "bundle.wallet.noDetail")
+            Section { CYEmptyState(systemImage: "tray", "wallet.noDetail", tableName: table, messageIdentifier: "bundle.wallet.noDetail") }
+                .cyCardRow()
         } else {
             ForEach(order.balances, id: \.grantId) { balance in
-                balanceCard(balance)
+                Section { balanceRows(balance) }
             }
         }
     }
 
-    private func balanceCard(_ balance: BundleBalanceRow) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+    @ViewBuilder private func balanceRows(_ balance: BundleBalanceRow) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             text("wallet.unitsTotal")
                 .cyText(.meta)
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityHidden(true)
             Text(verbatim: String(balance.unitsTotal))
                 .cyText(.data2XL)
-                .foregroundStyle(palette.textPrimary)
                 .monospacedDigit()
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityLabel(text("wallet.unitsTotal"))
                 .accessibilityValue(Text(verbatim: String(balance.unitsTotal)))
-            ForEach(balance.orderedCountKeys, id: \.self) { key in
-                CYListRow(verbatim: countLabel(key), trailing: .value(countText(balance.counts[key]))) {
-                    CYRowIcon(systemImage: "circle.grid.2x2")
-                }
-            }
-            CYFactRow(label: text("wallet.validFrom"), value: WalletCopy.server(balance.validFrom.raw))
-            CYFactRow(label: text("wallet.validTo"), value: WalletCopy.server(balance.validTo.raw))
-            if balance.expired {
-                CYStatusChip(verbatim: WalletCopy.bundle("wallet.expired"), tone: .warning, systemImage: "clock.badge.exclamationmark")
-                    .accessibilityIdentifier("bundle.wallet.expired")
-                    .accessibilityLabel(text("wallet.expired"))
+        }
+        .padding(.vertical, CYSpacing.xs)
+        ForEach(balance.orderedCountKeys, id: \.self) { key in
+            LabeledContent {
+                Text(verbatim: countText(balance.counts[key])).monospacedDigit()
+            } label: {
+                Label { Text(verbatim: countLabel(key)) } icon: { Image(systemName: "circle.grid.2x2") }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard()
+        LabeledContent { Text(verbatim: WalletCopy.server(balance.validFrom.raw)) } label: { text("wallet.validFrom") }
+        LabeledContent { Text(verbatim: WalletCopy.server(balance.validTo.raw)) } label: { text("wallet.validTo") }
+        if balance.expired {
+            CYStatusChip(verbatim: WalletCopy.bundle("wallet.expired"), tone: .warning, systemImage: "clock.badge.exclamationmark")
+                .accessibilityIdentifier("bundle.wallet.expired")
+                .accessibilityLabel(text("wallet.expired"))
+        }
     }
 
     /// A missing count is an em dash. A real 0 stays 0.
