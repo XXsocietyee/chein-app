@@ -75,7 +75,7 @@ extension EnvironmentValues {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
-    @ScaledMetric(relativeTo: .headline) private var coverSide: CGFloat = 56
+    @ScaledMetric(relativeTo: .headline) private var coverSide: CGFloat = 72  // CLB-enroll-06: MP cover 144 rpx
     @StateObject private var navigation = ClubEnrollmentNavigation()
     private var liveHost: ClubEnrollmentHostContext {
         .init(clubID: clubID, focusTopicID: focusTopicID, identity: identity, access: access, profile: profile)
@@ -255,7 +255,7 @@ extension EnvironmentValues {
                     cover(team)
                     text
                     Image(systemName: expanded ? "chevron.down" : "chevron.right")
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.label)  // CLB-enroll-06
                         .foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                 }
@@ -265,7 +265,7 @@ extension EnvironmentValues {
                     text
                     Spacer(minLength: CYSpacing.sm)
                     Image(systemName: expanded ? "chevron.down" : "chevron.right")
-                        .font(.footnote.weight(.semibold))
+                        .cyText(.label)  // CLB-enroll-06
                         .foregroundStyle(palette.textTertiary)
                         .accessibilityHidden(true)
                 }
@@ -328,9 +328,7 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("club.enroll.paidRefundSummary.\(team.id)")
                 fact("club.enroll.refundable", value: number(roster.refundableCount))
                 if let deadline = roster.deadline { fact("club.enroll.deadline", value: Text(verbatim: deadline)) }
-                if let status = roster.teamStatus {
-                    fact("club.enroll.teamStatus", value: teamStatusText(status))
-                }
+                // CLB-enroll-05: the MP removed the 团状态 row (enroll/index.js teamStatusText is gone).
             }
             .cyText(.bodyCompact)
             .accessibilityIdentifier("club.enroll.summary.\(team.id)")
