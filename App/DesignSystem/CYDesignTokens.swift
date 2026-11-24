@@ -544,6 +544,25 @@ public enum CYRadius {
 
 // MARK: - DesignSystem Typealiases
 
+/// Author cast swatch. Core accepts only the six palette hex strings; the fallback is the system gray.
+public enum CYCastSwatch {
+    public static func color(hex: String) -> Color {
+        let value = UInt32(hex.dropFirst(), radix: 16) ?? 0x8E8E93
+        return Color(red: Double((value >> 16) & 0xFF) / 255,
+                     green: Double((value >> 8) & 0xFF) / 255,
+                     blue: Double(value & 0xFF) / 255)
+    }
+}
+
+/// Packed `0xRRGGBB` chapter fill. Lives with the token sources so views do not call `Color(red:)`.
+public enum CYPackedRGB {
+    public static func color(_ rgb: UInt32) -> Color {
+        Color(red: Double((rgb >> 16) & 0xFF) / 255,
+              green: Double((rgb >> 8) & 0xFF) / 255,
+              blue: Double(rgb & 0xFF) / 255)
+    }
+}
+
 public extension DesignSystem {
     typealias Colors = CYColor
     typealias Typography = CYTypography
