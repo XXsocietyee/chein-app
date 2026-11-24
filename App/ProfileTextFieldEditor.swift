@@ -93,7 +93,7 @@ struct ProfileTextFieldEditor: View {
                 }
             }
         }
-        .appNavigationTitle(key: edit.field.titleKey)
+        .appNavigationTitle(key: edit.field.titleKey).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("action.cancel", role: .cancel) { focused = false; cancel() }

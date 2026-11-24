@@ -143,20 +143,14 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         .cyGroupedSurface()
         .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
-        // mylike.js onPullDownRefresh parity: same guarded refresh as the toolbar button.
+        // mylike.js onPullDownRefresh parity. Native restyle r1 (spec §3.1): pull to refresh is the one refresh.
         .refreshable { await refresh() }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button { Task { await refresh() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
-                    .disabled(model.state.isLoading || !reader.isAuthenticated || !reader.isConfigured)
-                    .accessibilityIdentifier("accountCollection.favorites.refresh")
-            }
-        }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
         .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
         .sheet(isPresented: $showRecommendNote) {
             MemberFavoritesRecommendNoteSheet { showRecommendNote = false }
                 .themeDomain(.player)
+                .cySheet()
         }
     }
     private func refresh() async {
@@ -284,8 +278,8 @@ private struct AccountCollectionFavoriteCard: View {
                         SquarePostContent(post: post, compact: true, showImages: false)
                             .padding(CYSpacing.lg)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(CYColor.borderSubtle))
+                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle))
                     }
                     .buttonStyle(QuestifyCardButtonStyle())
                     .disabled(onOpenPost == nil)
@@ -316,13 +310,6 @@ private struct AccountCollectionFavoriteCard: View {
         .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
         .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         .refreshable { await refresh() }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button { Task { await refresh() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
-                    .disabled(model.state.isLoading || !reader.isAuthenticated || !reader.isConfigured)
-                    .accessibilityIdentifier("accountCollection.posts.refresh")
-            }
-        }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
     }
     private func refresh() async {

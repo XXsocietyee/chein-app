@@ -119,7 +119,7 @@ func playerFactOrDash(_ raw: String?) -> String {
         .cyPushedChrome(domain: .player)
         .navigationTitle(memberScoreText("score.mine.title")).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
-        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { LoginView(intent: .player).environmentObject(session) }
+        .sheet(isPresented: $showsSignIn, onDismiss: { retire(); start() }) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .sheet(isPresented: $showsReputation) { MemberScoreReputationSheet(current: flow?.reputation) }
         .accessibilityIdentifier("score.mine.list")
         .navigationDestination(item: $selection) { MemberScoreAppealDetailView(selection: $0, session: session) }
@@ -269,7 +269,7 @@ struct MemberScoreChipChrome<Label: View>: View {
 
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
-            Image(systemName: symbol).font(.caption2.weight(.bold)).accessibilityHidden(true)
+            Image(systemName: symbol).font(.caption.weight(.bold)).accessibilityHidden(true)
             label().cyText(.caption)
         }
         .foregroundStyle(foreground)

@@ -878,7 +878,6 @@ enum BundleCommerceFailure {
                     }
                 }
                 .listStyle(.insetGrouped)
-                .scrollContentBackground(.hidden)
                 .background(CYNight.ink0.ignoresSafeArea())
                 .themeDomain(.player)
                 .cyPageTitle(verbatim: BundleCommerceEntry.review.title(locale))

@@ -74,10 +74,13 @@ import UIKit
         .background {
             if let presented = selection {
                 Color.clear.frame(width: 0, height: 0)
-                    .sheet(item: presentation(presented), onDismiss: { close(presented, restoreFocus: true) }) { value in
+                    .sheet(item: presentation(presented), onDismiss: { close(presented, restoreFocus: true) }) { value in Group {
                         ProfileCurrentMediaGallerySheet(model: model, edit: edit, kind: kind,
                             reader: reader, index: value.index, selectedKeys: value.keys, titleKey: titleKey,
                             close: { close(value, restoreFocus: true) })
+                    }
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
                     }.id(presented.id)
             }
         }

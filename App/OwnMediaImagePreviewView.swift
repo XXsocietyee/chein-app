@@ -147,8 +147,11 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
     }
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: binding, onDismiss: { model.close(offered) }) { item in
+            .sheet(item: binding, onDismiss: { model.close(offered) }) { item in Group {
                 OwnMediaImagePreviewSheet(model: model, offered: item.id)
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
     }
 }
@@ -160,7 +163,6 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    CYHeroHeader("title", tableName: "OwnMediaImagePreview")
                     Text("privateOnly", tableName: "OwnMediaImagePreview").cyText(.bodyCompact).foregroundStyle(.secondary)
                     if model.available, model.presentation == offered {
                         if let image = model.image {
@@ -180,7 +182,7 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
                     Text("limitations", tableName: "OwnMediaImagePreview").cyText(.bodyCompact).foregroundStyle(.secondary)
                 }.padding().frame(maxWidth: .infinity, alignment: .leading)
             }
-            .cyHeroScreen()
+            .navigationTitle(Text("title", tableName: "OwnMediaImagePreview")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { model.close(offered) } label: { Text("close", tableName: "OwnMediaImagePreview") }
                     .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("member.media.imagePreview.close")

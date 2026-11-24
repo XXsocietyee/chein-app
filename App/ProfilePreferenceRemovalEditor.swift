@@ -15,7 +15,13 @@ import SwiftUI
         Form {
             if let original {
                 if original.isEmpty {
-                    Text("profile.preferenceRemoval.empty").accessibilityIdentifier("profile.preferenceRemoval.empty")
+                    // Native restyle r1 (spec §3.5): nothing to remove is a ContentUnavailableView.
+                    ContentUnavailableView {
+                        Label { Text("profile.preferenceRemoval.empty").accessibilityIdentifier("profile.preferenceRemoval.empty") } icon: {
+                            Image(systemName: "tag.slash")
+                        }
+                    }
+                    .cyCardRow()
                 } else {
                     Section {
                         ForEach(original, id: \.self) { id in
@@ -51,7 +57,7 @@ import SwiftUI
                 Text("profile.preferenceRemoval.unavailable").accessibilityIdentifier("profile.preferenceRemoval.unavailable")
             }
         }
-        .appNavigationTitle("profile.preferenceRemoval.title")
+        .appNavigationTitle("profile.preferenceRemoval.title").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.preferenceRemoval.cancel")

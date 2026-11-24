@@ -25,8 +25,6 @@ import SwiftUI
     var body: some View {
         ScrollViewReader { proxy in
             List {
-                CYHeroHeader("followList.title", tableName: "ProfileFollowList")
-                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 if !flow.isConfigured {
                     CYEmptyState(systemImage: "person.2", "followList.unavailable", tableName: "ProfileFollowList",
                                  messageIdentifier: "profile.followList.unavailable")
@@ -78,7 +76,7 @@ import SwiftUI
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
-            .cyHeroScreen()
+            .navigationTitle(Text("followList.title", tableName: "ProfileFollowList")).navigationBarTitleDisplayMode(.inline)
             .privacySensitive().accessibilityIdentifier("profile.followList")
             .refreshable { await flow.refresh() }
             .onAppear { flow.appear(foreground: scenePhase == .active) }
