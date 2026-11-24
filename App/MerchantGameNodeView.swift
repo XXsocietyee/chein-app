@@ -24,6 +24,8 @@ enum MerchantGameNodeCopy {
 @MainActor struct MerchantGameNodeView: View {
     @StateObject private var model: MerchantGameNodeViewModel
     @Environment(\.scenePhase) private var scenePhase
+    /// MC7-26-4: MP `readyErrors` appear after 确认准备完成 is tapped and clear as each field is fixed.
+    @State private var readyAttempted = false
     @State private var showsServiceTime = false
     @StateObject private var submissionImport = MerchantGameNodeImportController()
     init(service: any MerchantGameNodeServing, activityID: Int?, nodeID: Int? = nil, focusPause: Bool = false) {
@@ -331,16 +333,19 @@ enum MerchantGameNodeCopy {
                 }.buttonStyle(.plain).disabled(c.writeState != .idle)
                     .accessibilityAddTraits(item.checked ? .isSelected : []).accessibilityIdentifier("gameNode.check." + item.code)
             }
+            readyIssue(.checklist)
             labeled("merchantGameNode.ready.capacity", required: true) {
                 TextField(MerchantGameNodeCopy.string("merchantGameNode.ready.capacityPlaceholder"), text: Binding(
                     get: { c.readyDraft.capacity },
                     set: { c.readyDraft.capacity = String($0.filter(\.isASCII).filter(\.isNumber).prefix(4)) }))
                     .keyboardType(.numberPad).textFieldStyle(.roundedBorder).accessibilityIdentifier("gameNode.ready.capacity")
+                readyIssue(.capacity)
             }
             labeled("merchantGameNode.ready.date", required: true) {
                 MerchantGameNodeCivilDateField(value: Binding(get: { c.readyDraft.serviceDate }, set: { c.readyDraft.serviceDate = $0 }),
                                                placeholder: "merchantGameNode.ready.datePlaceholder", mode: .date)
                     .accessibilityIdentifier("gameNode.ready.date")
+                readyIssue(.date)
             }
             labeled("merchantGameNode.ready.window", required: true) {
                 Button { showsServiceTime = true } label: {
@@ -348,15 +353,24 @@ enum MerchantGameNodeCopy {
                         Text(verbatim: MerchantGameNodeCopy.format("merchantGameNode.ready.windowValue", c.readyDraft.serviceStartTime, c.readyDraft.serviceEndTime))
                     } else { MerchantGameNodeCopy.text("merchantGameNode.ready.windowPlaceholder") }
                 }.disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.ready.window")
+                readyIssue(.timeWindow)
             }
             labeled("merchantGameNode.ready.note", required: false) {
                 TextField(MerchantGameNodeCopy.string("merchantGameNode.ready.notePlaceholder"), text: Binding(
                     get: { c.readyDraft.note }, set: { c.readyDraft.note = String($0.prefix(200)) }))
                     .textFieldStyle(.roundedBorder).accessibilityIdentifier("gameNode.ready.note")
             }
-            Button { Task { await c.submitReady() } } label: {
+            Button { readyAttempted = true; Task { await c.submitReady() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.ready.submit") }.frame(maxWidth: .infinity)
             }.buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
+        }
+    }
+    /// One inline field error under its field (MP `cy-inline-error kind="field"`), from `readyFieldIssues`.
+    @ViewBuilder private func readyIssue(_ kind: MerchantGameNodeReadyField.Kind) -> some View {
+        if readyAttempted, c.readyFieldIssues.contains(where: { $0.kind == kind }) {
+            Label { Text(LocalizedStringKey("merchantCoop.gameNode.readyIssue." + kind.rawValue)) } icon: { Image(systemName: "exclamationmark.circle") }
+                .cyText(.meta).foregroundStyle(CYColor.dangerText)
+                .accessibilityIdentifier("gameNode.ready.issue." + kind.rawValue)
         }
     }
     private func labeled<Content: View>(_ key: String, required: Bool, @ViewBuilder content: () -> Content) -> some View {

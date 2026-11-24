@@ -339,6 +339,74 @@
       }
     }
   },
+  "merchantCoop.gameNode.readyIssue.capacity": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enter the capacity"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请填写接待容量"
+        }
+      }
+    }
+  },
+  "merchantCoop.gameNode.readyIssue.checklist": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tick every item on the checklist first"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请先勾完准备清单"
+        }
+      }
+    }
+  },
+  "merchantCoop.gameNode.readyIssue.date": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose the service date and time slot"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请选择服务日期和服务时段"
+        }
+      }
+    }
+  },
+  "merchantCoop.gameNode.readyIssue.timeWindow": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The end time must be after the start time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "结束时间需晚于开始时间"
+        }
+      }
+    }
+  },
   "merchantCoop.invite.refreshTargets": {
     "extractionState": "manual",
     "localizations": {
