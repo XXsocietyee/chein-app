@@ -2,7 +2,7 @@ import Foundation
 import CoreFoundation
 
 /// Source: retained client lib/data/models/im.dart. Unknown kinds stay unknown.
-public enum MessagingConversationKind: Equatable {
+public enum MessagingConversationKind: Equatable, Sendable {
     case direct, system, merchant, group, unknown
     public init(rawValue: Int?) {
         switch rawValue {
