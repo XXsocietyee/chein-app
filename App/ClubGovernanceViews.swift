@@ -694,6 +694,9 @@ struct ClubGovernanceReadView: View {
         .cyGroupedSurface()
         .cyPageTitle(String.LocalizationValue(stringLiteral: "club.gov." + operation.rawValue))
         .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
+        // CLB-r7-D-02 (fix-r3-club-b): MP customers onShow re-reads the list, so a tag/remark saved on the
+        // customer page shows when the owner comes back.
+        .onAppear { rereadCustomersOnReturn() }
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in
             NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) }
                 .cyDomainSheet(detents: [.full])
@@ -1154,6 +1157,11 @@ struct ClubGovernanceReadView: View {
         leaderboardMember = nil
     }
     /// Customer detail re-reads its server tags/remark when the reviewed editor closes; the read keeps every existing fence.
+    @MainActor private func rereadCustomersOnReturn() {
+        guard operation == .customers, scenePhase == .active, snapshot != nil, snapshotContext == readContext,
+              identity == access.identity, !loading else { return }
+        Task { await load() }
+    }
     @MainActor private func rereadCustomerAfterEditor() {
         guard operation == .customer, scenePhase == .active, snapshot != nil, snapshotContext == readContext,
               identity == access.identity, !loading else { return }
@@ -1593,7 +1601,9 @@ struct ClubGovernanceReadView: View {
             let delivery = ClubNotifyDeliveryPage.project(value: value, capability: .init(permissions: snapshot.permissions, scope: scope))
             Section { ClubOpsNotifyCampaignRows(campaign: campaign, delivery: delivery.hidden ? nil : delivery) } header: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.title") }
             if campaign.canRetryFailed {
-                Text("club.gov.deliveryPending"); ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.retryOnlyFailed").font(.footnote).foregroundStyle(.secondary)
+                // CLB-notify-09/-10 (fix-r3-club-b): the retry button itself reads 只重试失败项 (fragment value of
+                // club.gov.action.retryNotification), so the separate footnote is gone.
+                Text("club.gov.deliveryPending").cyText(.meta).foregroundStyle(.secondary)
                 if delivery.retryOffered { edit(.retryNotification) }
             }
         } else {
@@ -1611,7 +1621,9 @@ struct ClubGovernanceReadView: View {
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
             } else if operation == .checkin {
                 let page = ClubCheckinDetailPage.bind(clientCapabilityPresent: access.isConfigured, loading: loading, failure: failure, value: value)
-                if page.showsContent { ClubCheckinDetailRows(value: checkinRowsValue(value, page)) }
+                // CLB-checkin-detail-03 (fix-r3-club-b): an error phase is one full-page state (drawn by the rail view), no rows.
+                let isErrorPhase: Bool = { if case .error(_)? = page.phase { return true }; return false }()
+                if page.showsContent, !isErrorPhase { ClubCheckinDetailRows(value: checkinRowsValue(value, page)) }
             } else {
                 ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
                 if operation == .series {
@@ -1658,7 +1670,8 @@ struct ClubGovernanceReadView: View {
                     return nil
                 }()
                 if checkinPage.showsContent {
-                    ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind)
+                    ClubCheckinRailView(rail: .init(railStep: value["railStep"], statusCode: value["statusCode"]), stateKind: checkinKind,
+                                        onReload: { Task { await load() } })
                 }
                 // CLB-checkin-detail-01: the entry follows server canRefund; dispatch stays behind the coordinator's TEST-only gate.
                 Section {

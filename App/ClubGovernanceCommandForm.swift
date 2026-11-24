@@ -270,8 +270,18 @@ import SwiftUI
                     }
                     if route.operation == .sendNotification { ClubGovernanceFactRows(value: review.snapshot.value, fields: ["inApp", "wechatSubscription"], localizesEnums: true) }
                     if route.operation == .sendNotification { ClubOpsNotifyPreviewSummary(value: review.snapshot.value) }
-                    Button(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction") {
+                    // CLB-notify-01 (fix-r3-club-b), MC-26: the send primary names the action and the head count.
+                    Button {
                         if route.operation == .cancelOccurrence { cancelConfirmReview = review } else { Task { await confirm(review) } }
+                    } label: {
+                        if route.operation == .sendNotification, !access.allowsOfflineWrites,
+                           let count = ClubNotifyPage.previewRecipient(review.snapshot.value).literal {
+                            Text("clubR3b.notify.sendTo \(count)")
+                        } else if route.operation == .sendNotification, !access.allowsOfflineWrites {
+                            Text("clubR3b.notify.send")
+                        } else {
+                            Text(LocalizedStringKey(access.allowsOfflineWrites ? "club.gov.confirmOffline" : "club.gov.confirmProduction"))
+                        }
                     }
                         .buttonStyle(.questifyPrimary)
                         .frame(maxWidth: .infinity)
@@ -311,8 +321,20 @@ import SwiftUI
                     .disabled(busy || locked || identity == nil || !hostMaterialsReady || !ClubHostApplyPort.canReview(text: draft.text))
                     .accessibilityIdentifier("club.gov.prepare")
                 }
-                if route.operation != .hostApply {
-                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
+                if route.operation == .saveCustomer || route.operation == .issueGroupCode {
+                    // CLB-customer-detail-04 / CLB-group-code-02 (fix-r3-club-b): MP 保存 and 出示团码 act on one tap;
+                    // the reviewed command still runs (prepare, then confirm), with no separate 下一步 → 确认 step.
+                    Button(LocalizedStringKey(route.operation == .saveCustomer ? "clubR3b.customer.save" : "clubR3b.groupCode.issue")) {
+                        Task { await submitDirectly() }
+                    }
+                    .buttonStyle(.questifyPrimary)
+                    .frame(maxWidth: .infinity)
+                    .listRowBackground(Color.clear)
+                    .disabled(busy || locked || identity == nil)
+                    .accessibilityIdentifier("club.gov.prepare")
+                } else if route.operation != .hostApply {
+                // CLB-notify-01 (fix-r3-club-b): MP 预览受众 before the send, not a generic 下一步.
+                Button(LocalizedStringKey(route.operation == .sendNotification ? "clubR3b.notify.preview" : "club.gov.review")) { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
                 }
             }
             if route.operation == .createSeries {
@@ -322,7 +344,8 @@ import SwiftUI
             if let groupCode {
                 Section {
                     ClubGroupCodePresentation(value: groupCode,
-                        current: identity == access.identity && scenePhase == .active)
+                        current: identity == access.identity && scenePhase == .active,
+                        onReissue: busy || locked ? nil : { Task { await reissueGroupCode() } })
                 }
             }
             if let receipt {
@@ -459,6 +482,11 @@ import SwiftUI
                 if route.operation == .issueGroupCode { receipt = nil }
             }
         }
+        // CLB-group-code-02 (fix-r3-club-b): MP issues the code as the page opens (index.js:93-135).
+        .task {
+            guard route.operation == .issueGroupCode, review == nil, receipt == nil, groupCode == nil, failure == nil else { return }
+            await submitDirectly()
+        }
         .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; retirePresentation(); coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
     }
     private var hostMaterialsContext: ClubHostApplicationMaterials.Context {
@@ -589,6 +617,20 @@ import SwiftUI
     }
     private func textBinding(_ key: String) -> Binding<String> { Binding(get: { draft.text[key] ?? "" }, set: { draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func flagBinding(_ key: String) -> Binding<Bool> { Binding(get: { draft.flags[key] ?? false }, set: { draft.flags[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
+    /// One-tap submit for commands whose MP page has no review step (customer 保存, group code 出示).
+    private func submitDirectly() async {
+        await prepare()
+        if let pending = review { await confirm(pending) }
+    }
+    /// CLB-group-code-03 (fix-r3-club-b): an expired code is re-issued in place with a fresh request id,
+    /// so the original (expired) receipt is never replayed.
+    private func reissueGroupCode() async {
+        guard route.operation == .issueGroupCode, !busy, !locked else { return }
+        groupCode = nil; receipt = nil; failure = nil; review = nil
+        coordinator.cancelReview()
+        draft = .init(operation: route.operation, scope: route.scope)
+        await submitDirectly()
+    }
     private func prepare() async {
         guard !Task.isCancelled, draft.operation == route.operation, draft.scope == route.scope,
               roleAssignmentReady && seriesScheduleReady && seriesLeadReady && hostMaterialsReady && notificationAudienceReady,
