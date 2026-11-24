@@ -291,6 +291,9 @@ struct DiscoveryTopicTemplatePreview: View {
     @State private var detail: PublicTopicTemplateCoordinator
     @State private var tab: TemplateDetailTab = .details
     @State private var openingExpanded = false
+    /// R7-PC-A8-2 (MP topic-detail js:281 `previewNode`): a node image opens the full-screen gallery over all node images.
+    @State private var nodeGallery: NodeGallerySelection?
+    private struct NodeGallerySelection: Identifiable { let id = UUID(); let snapshot: MediaGallerySnapshot }
     /// Caller override. Nil asks the existing parsers; an unparsed topic path copies its mini-program path and has no public URL.
     var shareURL: URL? = nil
     var scope: String? = nil
@@ -392,6 +395,9 @@ struct DiscoveryTopicTemplatePreview: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .fullScreenCover(item: $nodeGallery) { selected in
+            NativeMediaGallery(snapshot: selected.snapshot, titleKey: "u10.template.nodes", reader: RetainedPublicImageReader())
+        }
         .task { await detail.load() }
         .onDisappear { detail.clear() }
     }
@@ -467,12 +473,20 @@ struct DiscoveryTopicTemplatePreview: View {
             Section {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(alignment: .top, spacing: CYSpacing.md) {
+                        let gallery = nodes.compactMap { nonempty($0.imgUrl) }.filter { QuestifyCardArtwork.safeURL($0) != nil }
                         ForEach(Array(nodes.enumerated()), id: \.offset) { index, node in
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                E1CoverArt(seed: (node.name ?? "") + String(index), symbol: "mappin.and.ellipse", imageURL: node.imgUrl, debugLabel: false)
+                                let cover = E1CoverArt(seed: (node.name ?? "") + String(index), symbol: "mappin.and.ellipse", imageURL: node.imgUrl, debugLabel: false)
                                     .frame(width: 150, height: 150)
                                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                    .accessibilityHidden(true)
+                                if let raw = nonempty(node.imgUrl), let galleryIndex = gallery.firstIndex(of: raw) {
+                                    Button { nodeGallery = NodeGallerySelection(snapshot: .init(sources: gallery, selectedIndex: galleryIndex)) } label: { cover }
+                                        .buttonStyle(.plain)
+                                        .accessibilityLabel(Text("media.destination.openImage"))
+                                        .accessibilityIdentifier("discovery.topicDetail.nodeImage.\(index)")
+                                } else {
+                                    cover.accessibilityHidden(true)
+                                }
                                 (nonempty(node.name).map { Text(verbatim: $0) } ?? Text("u10.template.nodeNo \(index + 1)"))
                                     .cyText(.label).foregroundStyle(palette.textPrimary).cyWrapText()
                                 if let teaser = nonempty(node.hookTeaser) {
@@ -484,7 +498,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                 }
                             }
                             .frame(width: 150, alignment: .leading)
-                            .accessibilityElement(children: .combine)
+                            .accessibilityElement(children: .contain)
                         }
                     }
                 }

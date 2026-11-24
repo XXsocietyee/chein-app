@@ -36,10 +36,20 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
     var topicReaderOverride: (any TopicReading)? = nil
     /// R7-PC-B1-15: `pages/topic/index/index?via=session`.
     var prefersSessionPicker: Bool = false
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         Group {
             if session.account == nil {
-                TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
+                // Missing state (not signed in): the message plus a way forward, like the activity detail.
+                VStack(spacing: CYSpacing.md) {
+                    TopicIssueView(issue: .unauthorized).accessibilityIdentifier("topic.detail.signIn")
+                    if rootTabSwitch.isAvailable {
+                        CYPillButton("auth.signIn", style: .secondary, fullWidth: false) { rootTabSwitch(.mine) }
+                            .accessibilityIdentifier("topic.detail.signInAction")
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
             } else if let message = session.contentDetailReadAvailability.messageKey {
                 ContentUnavailableView("topic.detail", systemImage: "network.slash", description: Text(LocalizedStringKey(message)))
                     .accessibilityIdentifier("topic.detail.configurationUnavailable")
