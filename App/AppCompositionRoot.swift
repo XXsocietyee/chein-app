@@ -4043,9 +4043,6 @@ enum ReviewedOrientOfficialRoute {
         return false
     }
 
-    private static func sameOrigin(_ url: URL, _ baseURL: URL) -> Bool {
-        url.scheme == baseURL.scheme && url.host == baseURL.host && url.port == baseURL.port
-    }
 
     private static func acceptsWrite(url: URL, object: [String: Any], baseURL: URL) -> Bool {
         guard sameOrigin(url, baseURL) else { return false }
