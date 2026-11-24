@@ -100,7 +100,8 @@ final class MerchantServiceTests: XCTestCase {
         do { _ = try await s.dashboard(access: finance, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
         do { _ = try await s.dashboard(access: noFinance, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
         do { _ = try await s.todo(access: finance, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
-        do { _ = try await s.events(access: finance, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
+        let noEvents = try access(role: "MERCHANT_FINANCE", permissions: ["merchant:order:read"])
+        do { _ = try await s.events(access: noEvents, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
         do { _ = try await s.orders(access: noFinance, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
         do { _ = try await s.projects(access: noFinance, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }
         do { _ = try await s.todo(access: inactive, token: "fixture-token"); XCTFail() } catch { XCTAssertEqual(error as? MerchantReadError, .accessDenied) }

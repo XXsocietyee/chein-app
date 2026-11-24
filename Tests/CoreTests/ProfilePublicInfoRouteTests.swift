@@ -58,9 +58,9 @@ import FoundationNetworking
         }
     }
     func testOptionalUnknownAndPrivateExtraFieldsAreNotPublicProjection() throws {
-        let minimal=try JSONDecoder().decode(SocialPublicProfile.self,from:Data(#"{"id":82}"#.utf8))
+        let minimal=try JSONDecoder().decode(SocialPublicProfile.self,from:Data(#"{"id":82,"createTime":"2020-01-01"}"#.utf8))
         let extra=try JSONDecoder().decode(SocialPublicProfile.self,from:Data(#"{"id":82,"phone":"synthetic-private","token":"synthetic-private","balance":9999,"createTime":"2020-01-01"}"#.utf8))
-        XCTAssertEqual(minimal,extra);XCTAssertNil(extra.nickname);XCTAssertNil(extra.level);XCTAssertNil(extra.following);XCTAssertNil(extra.isFollowed)
+        XCTAssertEqual(minimal,extra);XCTAssertEqual(extra.joinDate,"2020.01.01");XCTAssertNil(extra.nickname);XCTAssertNil(extra.level);XCTAssertNil(extra.following);XCTAssertNil(extra.isFollowed)
         XCTAssertTrue(extra.workImages.isEmpty);XCTAssertTrue(extra.interests.isEmpty)
     }
     func testDenialRemainsServiceErrorNotEmptySuccess() throws {
