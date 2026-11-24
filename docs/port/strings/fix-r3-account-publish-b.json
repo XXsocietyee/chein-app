@@ -1,4 +1,21 @@
 {
+  "fixr3.activity.templateMinutes %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld min"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld分钟"
+        }
+      }
+    }
+  },
   "fixr3.common.retry": {
     "extractionState": "manual",
     "localizations": {
@@ -237,6 +254,40 @@
       }
     }
   },
+  "fixr3.square.follow": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Follow"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "关注"
+        }
+      }
+    }
+  },
+  "fixr3.team.buyTicket": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Buy a ticket for this event"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去买这一场的票"
+        }
+      }
+    }
+  },
   "fixr3.team.joining": {
     "extractionState": "manual",
     "localizations": {
@@ -250,6 +301,74 @@
         "stringUnit": {
           "state": "translated",
           "value": "加入中…"
+        }
+      }
+    }
+  },
+  "fixr3.team.qr": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "QR code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "二维码"
+        }
+      }
+    }
+  },
+  "fixr3.team.qr.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team QR code and join code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍二维码与加入码"
+        }
+      }
+    }
+  },
+  "fixr3.team.qr.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team QR code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍二维码"
+        }
+      }
+    }
+  },
+  "fixr3.team.seats.a11y %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld joined, %lld seats open"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已入队 %lld 人，空位 %lld 个"
         }
       }
     }

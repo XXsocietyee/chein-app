@@ -3,23 +3,29 @@
 cur6-privacy-location
 # 13 agreement (B-AG-01 one footer, B-AG-03 heading)
 cur6-agreement
-# 14 deregister (B-DR-02 blocked card, B-DR-05 type, B-DR-08 step colours, B-DR-09 copy) and Settings search (B-DR-07)
+# 14 deregister (B-DR-02 blocked card, B-DR-05 type, B-DR-08 step colours, B-DR-09 copy; round 2: B-DR-03 no phone field) and Settings search (B-DR-07)
 e4-deregister
 e4-deregister-blocked
 cur6-deregister-pending
 e4-settings-search
+# 15 pass reveal (round 2: MP key frame sheets, intro 18 fps once then idle 12 fps loop; B-PR-02/04/05/06)
+fr3-pass-reveal-paid
+fr3-pass-reveal-first
 # 16 fabu (C-F15 not-loaded state, C-F18 footer pill, C-F12 tokens)
 t11-fabu
 t11-fabu-blocked
-# 17 temp (C-T5 保存草稿 in the bar, C-T8 categories, C-T11)
+# 17 temp (C-T5 保存草稿 in the bar, C-T8 categories, C-T11; round 2: icon_tag_check on added tools)
 t11-template-author
 t11-template-author-locked
-# 18 activity (C-A7 domain)
+# 18 activity (C-A7 domain; round 2: template rows show 人数 d_mbico1 / 分钟 d_mbico2)
 publish-activity
+publish-template-select
 # 19 template-intro (C-I5 spacing)
 t11-template-intro
 t11-template-intro-empty
-# 20 square detail (C-S9 reach-bottom paging)
+# 20 square detail (C-S9 reach-bottom paging; round 2: d_profile avatar default, comment 加号 icon_jia, inline 关注 C-S8)
 d2-square
-# 21/22 team detail and join (C-D9, C-J3)
+# 21/22 team detail and join (C-D9, C-J3; round 2: d_profile member avatar, C-D10 二维码 sheet, C-J5 bottom bar, C-J6 seat row)
 cur8-team
+g-team-qr
+g-team-qr-refused

@@ -142,7 +142,9 @@ struct TeamMemberRow: View {
     var body: some View {
         // Mini `.team-member`: 32pt avatar, name (600) over role caption, trailing 移出 in danger text.
         HStack(alignment: .center, spacing: CYSpacing.sm) {
-            Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            // MP team/detail wxml:102: `memberAvatar || /images/d_profile.png`. Core decodes no avatar yet, so the MP default shows.
+            MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
+                .frame(width: 32, height: 32).clipShape(Circle()).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Group {
                     if member.name.isEmpty { Text("team.member.unnamed") } else { Text(verbatim: member.name).fixedSize(horizontal: false, vertical: true) }
