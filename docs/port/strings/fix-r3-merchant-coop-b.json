@@ -424,6 +424,40 @@
       }
     }
   },
+  "merchantCoop.invite.backToList": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Back to invitations"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "回协作邀请"
+        }
+      }
+    }
+  },
+  "merchantCoop.invite.missing": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This invitation is no longer in your list"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这条邀约不在当前列表里了"
+        }
+      }
+    }
+  },
   "merchantCoop.invite.refreshTargets": {
     "extractionState": "manual",
     "localizations": {

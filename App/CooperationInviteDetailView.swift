@@ -9,6 +9,7 @@ import UIKit
     var body: some View {
         CooperationInviteDetailContent(key: key, reader: reader, peerReader: peerReader)
             .id(CopyHost(reader: ObjectIdentifier(reader), key: key))
+            .environment(\.cooperationMissingInvite, true)
     }
 }
 

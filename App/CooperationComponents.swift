@@ -117,6 +117,8 @@ struct CooperationIssueView: View {
     /// MC7-30-1 / MC7-31-1: the signed-out issue offers 去登录 (injected hook, else the 我的 tab).
     @Environment(\.merchantOpenSignIn) private var openSignIn
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.cooperationMissingInvite) private var missingInvite
+    @Environment(\.dismiss) private var dismiss
     private var signIn: (() -> Void)? {
         guard issue == .login else { return nil }
         if let openSignIn { return openSignIn }
@@ -125,6 +127,16 @@ struct CooperationIssueView: View {
         return { tabSwitch(.mine) }
     }
     var body: some View {
+        if missingInvite, issue == .unavailable {
+            // MC7-32-1: MP invite-detail index.wxml:29-31 这条邀约不在当前列表里了 + 回协作邀请.
+            MerchantCoopActionState(systemImage: "tray", title: "merchantCoop.invite.missing",
+                                    actionTitle: "merchantCoop.invite.backToList", action: { dismiss() },
+                                    identifier: "cooperation.invite.missing")
+        } else {
+            standard
+        }
+    }
+    private var standard: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(LocalizedStringKey(issue.key), systemImage: issue == .login ? "lock" : symbol)
                 .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("cooperation.issue")
@@ -219,5 +231,14 @@ struct CooperationCandidateLink: View {
             } label: { Label("cooperation.candidates.title", systemImage: "person.2") }
                 .accessibilityIdentifier("cooperation.candidates.\(topicID)")
         }
+    }
+}
+
+/// MC7-32-1: set on invite-detail so a missing invite reads 这条邀约不在当前列表里了 instead of the generic issue.
+private struct CooperationMissingInviteKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues {
+    var cooperationMissingInvite: Bool {
+        get { self[CooperationMissingInviteKey.self] }
+        set { self[CooperationMissingInviteKey.self] = newValue }
     }
 }
