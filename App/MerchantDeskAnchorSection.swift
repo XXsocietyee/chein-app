@@ -157,7 +157,7 @@ extension EnvironmentValues {
             if let flow { MerchantDeskAnchorSection(flow: flow) }
             else { MerchantAnchorReadRecoveryPresentation(state: "notConfigured", busy: false) }
         }
-        .navigationTitle(Text("merchant.desk.anchor.title", tableName: "MerchantDeskSkuSupply"))
+        .navigationTitle(Text("merchant.desk.anchor.title", tableName: "MerchantDeskSkuSupply")).navigationBarTitleDisplayMode(.inline)
         .task(id: session.currentRuntimeDependencyContext) {
             flow?.suspend()
             flow = session.makeMerchantDeskAnchorFlow(access: access)

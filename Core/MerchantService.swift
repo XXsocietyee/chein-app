@@ -68,7 +68,7 @@ public struct MerchantService {
         return try await post("api/merchant/todo-summary", token: token)
     }
     public func events(access: MerchantAccess, token: String) async throws -> [MerchantEvent] {
-        guard access.isOwner else { throw MerchantReadError.accessDenied }
+        guard access.canReadEvents else { throw MerchantReadError.accessDenied }
         // Unlike dashboard/todo, Flutter _rows sends a JSON object here.
         return try await post("api/merchant/events", body: .json([:]), token: token)
     }

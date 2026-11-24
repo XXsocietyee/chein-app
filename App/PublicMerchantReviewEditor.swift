@@ -105,7 +105,7 @@ import SwiftUI
                 LabeledContent("merchant.publicHome.reviewID", value: String(receipt.reviewId))
             }
         }
-        .navigationTitle(reportItem == nil ? "merchant.publicHome.createReview" : "merchant.publicHome.report")
+        .navigationTitle(reportItem == nil ? "merchant.publicHome.createReview" : "merchant.publicHome.report").navigationBarTitleDisplayMode(.inline)
         .onChange(of: state.writer.session) { _, _ in clearImageState() }
         .onDisappear { clearImageState() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { clearImageState() } }

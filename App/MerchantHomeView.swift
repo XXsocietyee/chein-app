@@ -8,6 +8,8 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     var marketingModel: MerchantMarketingCoordinator? = nil
     var marketingDestination: ((MerchantInsightDestination) -> AnyView)? = nil
     var openApplication: (() -> Void)? = nil
+    /// Parity merchant/index P1: the signed-out gate's 登录 (source `index.wxml:12-14`). Nil hides the button.
+    var openSignIn: (() -> Void)? = nil
     var operationsReader: (any MerchantOperationsReading)? = nil
     var operationsDestinationFactory: ((MerchantOperationsDestination, MerchantOperationsAccess) -> AnyView)? = nil
     var businessReader: (any MerchantBusinessReading)? = nil
@@ -36,7 +38,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             if !reader.isConfigured {
                 merchantGate(systemImage: "network.slash", message: "auth.notConfigured")
             } else if !reader.isSignedIn {
-                merchantGate(systemImage: "person.crop.circle.badge.exclamationmark", message: "merchant.signIn")
+                merchantGate(systemImage: "person.crop.circle.badge.exclamationmark", message: "merchant.signIn", signIn: openSignIn)
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
                     MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, childReturnRevision: childReturnRevision, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturned() })
@@ -91,6 +93,13 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                         if error != "merchant.access.denied" && error != "auth.expired" {
                             CYPillButton("action.retry") { Task { await reload() } }
                                 .accessibilityIdentifier("merchant.access.retry")
+                        } else if error == "merchant.access.denied", let openApplication {
+                            // Parity merchant/index P1: no merchant identity → 申请入驻 in place (source index.wxml:16-18).
+                            CYPillButton("merchant.gate.apply", action: openApplication)
+                                .accessibilityIdentifier("merchant.access.apply")
+                        } else if error == "auth.expired", let openSignIn {
+                            CYPillButton("merchant.gate.signIn", action: openSignIn)
+                                .accessibilityIdentifier("merchant.access.signIn")
                         }
                     }
                     .cyDomainCard()
@@ -179,16 +188,20 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             await MerchantWorkbenchTodoLoader.load(into: todo, reader: reader, access: identity, businessReader: businessReader)
             guard current() else { return .cancelled }
         }
-        if identity.isOwner {
+        if identity.canReadEvents {
             await events.load(reader: reader) { try await reader.merchantEvents(access: identity) }
         }
         return current() ? disposition : .cancelled
     }
 
-    private func merchantGate(systemImage: String, message: LocalizedStringKey) -> some View {
+    private func merchantGate(systemImage: String, message: LocalizedStringKey, signIn: (() -> Void)? = nil) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             CYHeroHeader("merchant.title")
             CYEmptyState(systemImage: systemImage, message)
+            if let signIn {
+                CYPillButton("merchant.gate.signIn", action: signIn)
+                    .accessibilityIdentifier("merchant.gate.signIn")
+            }
         }
         .padding(CYSpacing.pageHorizontal)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -222,6 +235,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.merchantAuthoringDestination) private var merchantAuthoringDestination
     @Environment(\.coopFlowPreviewWrite) private var coopFlowWrite
     @Environment(\.merchantCoopInboxDestination) private var coopInboxDestination
+    @Environment(\.merchantInboxSources) private var inboxSources
     @State private var operationsAccess: MerchantOperationsAccess?
     @State private var businessStatus: MerchantBusinessStatus?
 
@@ -255,9 +269,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     @State private var quickRoute: MerchantWorkbenchBusinessRoute?
     @State private var showsScan = false
-    @State private var loginRequiredModal = false
-    @State private var verifyResultSheetTitle: String?
     @State private var toastMessage: String?
+    @State private var confirmsPause = false
+    @State private var statusBusy = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var quickShortcuts: [MerchantWorkbenchBusinessShortcut] {
@@ -286,7 +300,19 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                 .accessibilityLabel(Text(LocalizedStringKey(businessStatus.titleKey)))
                                 .accessibilityValue(Text(LocalizedStringKey(businessStatus.titleKey)))
                                 .accessibilityHint(Text(verbatim: displayName))
-                            if let operationsAccess, operationsAccess.allows(.businessStatus), let factory = operationsDestinationFactory {
+                            if canToggleStatusInPlace {
+                                // Parity merchant/index P1: 营业中/已打烊 toggles in place (source index.js:168-236):
+                                // closing asks once (暂停营业？), opening goes straight through; the value is read back.
+                                Button {
+                                    if businessStatus == .open { confirmsPause = true } else { Task { await setBusinessStatus(.open) } }
+                                } label: {
+                                    chip.opacity(statusBusy ? 0.5 : 1)
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(statusBusy)
+                                .accessibilityHint(Text(businessStatus == .open ? "merchant.status.pauseHint" : "merchant.status.openHint"))
+                                .accessibilityIdentifier("merchant.store.businessStatus")
+                            } else if let operationsAccess, operationsAccess.allows(.businessStatus), let factory = operationsDestinationFactory {
                                 NavigationLink {
                                     factory(.businessStatus, operationsAccess)
                                         .onDisappear(perform: onChildReturn)
@@ -351,16 +377,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         if access.isOwner, value.pendingVerify > 0 { MerchantCountRow("merchant.todo.verify", value: value.pendingVerify) }
                         if access.isOwner, value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
                         if access.isOwner, value.pendingOrders > 0 { MerchantCountRow("merchant.todo.orders", value: value.pendingOrders) }
-                        if access.canReadAftercare, value.refundCount > 0 {
-                            if let aftercareRoute {
-                                NavigationLink(value: aftercareRoute) {
-                                    MerchantCountRow("merchant.todo.refunds", value: value.refundCount)
-                                }.accessibilityIdentifier("merchant.todo.aftercareEntry")
-                            } else {
-                                MerchantCountRow("merchant.todo.refunds", value: value.refundCount)
-                            }
-                        }
-                        if access.isOwner, access.allows(.projects), value.pendingPredict > 0 { MerchantPredictionWorkbenchAlert(pending: value.pendingPredict) }
+                        // Parity merchant/index P1: refunds and predictions are said once, by MerchantWorkbenchReminders above.
                         if access.isOwner, value.verifiedCount > 0 { MerchantCountRow("merchant.todo.verified", value: value.verifiedCount) }
                     }
                 }
@@ -395,7 +412,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                             .cyPushedChrome(domain: .merchant)
                     } label: {
                         Label {
-                            Text(verbatim: ChannelCopy.text("收款账户", "Payout account", locale: Locale.current))
+                            Text("payoutAccount.title", tableName: "PayoutReceiver")
                         } icon: { Image(systemName: "building.columns") }
                     }.accessibilityIdentifier("merchant.payoutAccount.open")
                 }
@@ -530,30 +547,16 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     }
                 }
             }
-            if access.isOwner {
-                Section("merchant.events") {
-                    MerchantSectionState(model: events, retry: { Task { await loadEvents() } }) { values in
-                        if values.isEmpty { CYEmptyState(systemImage: "calendar", "merchant.events.empty") }
-                        ForEach(Array(values.enumerated()), id: \.offset) { _, event in
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(event.content)
-                                    .cyText(.body)
-                                    .foregroundStyle(CYColor.textPrimary)
-                                Text(event.time)
-                                    .cyText(.caption)
-                                    .monospacedDigit()
-                                    .foregroundStyle(CYColor.textSecondary)
-                            }
-                            .padding(.vertical, CYSpacing.xs)
-                        }
-                    }
-                }
-            }
-            Section {
-                CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await refreshAccess() } }
-            }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+            // Parity merchant/index P1 (我的消息): conversations + received coop invites + business events, newest three.
+            // Replaces the owner-only 实时动态 list; the bottom 重新检查经营身份 button is gone (pull to refresh reloads).
+            MerchantInboxPreviewSection(
+                sources: inboxSources,
+                events: access.canReadEvents ? events.value : nil,
+                eventsSettled: !access.canReadEvents || events.errorKey != nil,
+                eventsFailed: access.canReadEvents && events.errorKey != nil,
+                canManageCoop: access.allows(.coopManage),
+                reloadToken: childReturnRevision,
+                eventDestination: inboxEventDestination)
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
@@ -588,26 +591,11 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                     .cyPushedChrome(domain: .merchant)
             }
         }
-        .cyModalOverlay(isPresented: loginRequiredModal) {
-            CYModal(
-                title: MerchantCloseCopy.text("请先登录", "Sign In Required", locale),
-                message: MerchantCloseCopy.text("请先登录商家账号后再查看门店数据或发起核销。", "Sign in with a merchant account before viewing store metrics or verifying codes.", locale),
-                cancelTitle: MerchantCloseCopy.text("取消", "Cancel", locale),
-                confirmTitle: MerchantCloseCopy.text("知道了", "OK", locale),
-                onCancel: { loginRequiredModal = false },
-                onConfirm: { loginRequiredModal = false }
-            )
-        }
-        .sheet(isPresented: Binding(get: { verifyResultSheetTitle != nil }, set: { if !$0 { verifyResultSheetTitle = nil } })) {
-            if let verifyResultSheetTitle {
-                PlayCloseResultSheet(
-                    title: verifyResultSheetTitle,
-                    message: MerchantCloseCopy.text("已核验商家券码状态。", "Merchant coupon verification processed.", locale),
-                    detail: nil,
-                    closeIdentifier: cyAccessibilityID(id: "merchant.home.verifyResult.close"),
-                    onClose: { self.verifyResultSheetTitle = nil }
-                )
-            }
+        .confirmationDialog(Text("merchant.status.pauseTitle"), isPresented: $confirmsPause, titleVisibility: .visible) {
+            Button("merchant.status.pauseConfirm", role: .destructive) { Task { await setBusinessStatus(.closed) } }
+            Button("merchant.status.keepOpen", role: .cancel) {}
+        } message: {
+            Text("merchant.status.pauseMessage")
         }
         .cyToast(verbatimMessage: $toastMessage)
         .navigationDestination(for: MerchantWorkbenchBusinessRoute.self) { route in
@@ -634,6 +622,28 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         }
         }
     }
+    private var canToggleStatusInPlace: Bool {
+        guard let operationsReader, operationsReader.canSave, !operationsReader.isOfflineExample,
+              let operationsAccess, operationsAccess.allows(.businessStatus),
+              let merchantID = access.merchantID, merchantID > 0 else { return false }
+        return true
+    }
+    private func setBusinessStatus(_ next: MerchantBusinessStatus) async {
+        guard let operationsReader, let current = businessStatus, let merchantID = access.merchantID,
+              let draft = try? MerchantStoreBusinessStatus(merchantID: merchantID, status: next),
+              let baseline = try? MerchantStoreBusinessStatus(merchantID: merchantID, status: current) else { return }
+        statusBusy = true
+        defer { statusBusy = false }
+        do {
+            try await operationsReader.saveReviewed(.businessStatus(draft), baseline: .businessStatus(baseline))
+        } catch is CancellationError {
+            return
+        } catch {
+            toastMessage = appLocalized("merchant.status.updateFailed", locale: locale)
+        }
+        // Read back whatever the server now holds, success or not.
+        await loadBusinessStatus()
+    }
     private func loadBusinessStatus() async {
         guard let operationsReader, operationsReader.isConfigured, operationsReader.isAuthenticated else {
             operationsAccess = nil
@@ -658,6 +668,15 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             // Non-fatal on hero header; operations tools remain available below.
         }
     }
+    /// Source `goEvent`: an income event opens 账本 › 结算, a verify event 账本 › 核销. Other events have no page.
+    private func inboxEventDestination(_ item: MerchantInboxItem) -> AnyView? {
+        guard case .event(let type, _) = item.kind, type == "income" || type == "verify",
+              access.allows(.finance) || access.allows(.verifyRecordRead), let businessReader else { return nil }
+        return AnyView(MerchantLedgerSettlementOverview(reader: businessReader, initialView: type == "income" ? .settlements : .redemptions)
+            .environment(\.merchantR1CumulativeRevenue, dashboard.value.map { $0.revenue })
+            .onDisappear(perform: onChildReturn)
+            .cyPushedChrome(domain: .merchant))
+    }
     private func aftercareEvidenceDependencies(journal: any MerchantBusinessIntentStore) -> MerchantAftercareEvidenceDependencies? {
         guard let engagementReader, let exportRecovery else { return nil }
         return .init(reader: engagementReader, journal: journal, recovery: exportRecovery)
@@ -670,7 +689,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         await MerchantWorkbenchTodoLoader.load(into: todo, reader: reader, access: access, businessReader: businessReader)
     }
     private func loadEvents() async {
-        guard access.isOwner else { return }
+        guard access.canReadEvents else { return }
         await events.load(reader: reader) { try await reader.merchantEvents(access: access) }
     }
 }
@@ -764,7 +783,7 @@ private struct MerchantQuickCircleAction: View {
     var primary = false
     let action: () -> Void
     @Environment(\.cyPalette) private var palette
-    @ScaledMetric(relativeTo: .title3) private var diameter: CGFloat = 56
+    @ScaledMetric(relativeTo: .title3) private var diameter: CGFloat = 60 // MP 120rpx
 
     var body: some View {
         Button(action: action) {

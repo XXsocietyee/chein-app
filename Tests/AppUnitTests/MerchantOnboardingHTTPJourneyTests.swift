@@ -55,7 +55,7 @@ import FoundationNetworking
             model.reset(); await model.load(); await model.checkIdentity()
             var draft = MerchantOnboardingDraft()
             draft.name = " Exact synthetic store "
-            draft.phone = "2025550100"; draft.address = "Synthetic address"
+            draft.phone = "13800000000"; draft.address = "Synthetic address"
             draft.businessTime = "Stored hours"; draft.categoryIDs = [11]
             draft.license = try .init(serverURL: "https://fixtures.example/license.jpg")
             // Identity step (owner 2026-11-16): the GB 11643 worked example, a valid synthetic number.

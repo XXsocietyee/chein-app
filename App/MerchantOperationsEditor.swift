@@ -108,7 +108,10 @@ struct MerchantOperationsEditor: View {
                 decorField("merchant.operations.slogan", \.slogan, "slogan")
                 decorField("merchant.operations.cityRole", \.cityRole, "cityRole")
                 MerchantStoreIndustryPicker(document: model)
-                if let type = value.featuredType, let id = value.featuredID { LabeledContent("merchant.operations.featured", value: "\(type) / \(id)") }
+                // Parity decor P1: never show the raw `type / id`; source falls back to 已选择主推 without a name.
+                if (value.featuredType ?? 0) > 0, (value.featuredID ?? 0) > 0 {
+                    LabeledContent("merchant.operations.featured") { Text("merchant.operations.featured.set") }
+                }
                 MerchantFeaturedClearControl(model: model, source: value)
                 MerchantFeaturedActivityPicker(document: model)
             }

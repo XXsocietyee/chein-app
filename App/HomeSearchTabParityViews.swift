@@ -1264,6 +1264,7 @@ struct SessionMerchantRootContainerView: View {
                     marketingModel: session.merchantMarketingCoordinator,
                     marketingDestination: { AnyView(SessionMerchantMarketingDestination(session: session, destination: $0)) },
                     openApplication: { onReturnToConsumer(.mine) },
+                    openSignIn: { onReturnToConsumer(.mine) },
                     operationsReader: session.merchantOperationsReader,
                     operationsDestinationFactory: { session.merchantOperationsDestination($0, access: $1) },
                     businessReader: session.merchantBusinessReader,
@@ -1314,6 +1315,15 @@ struct SessionMerchantRootContainerView: View {
                             recommendationOrigin: recommendationOrigin,
                             onSuggestion: { route in selectedMarketingSuggestion = route }
                         )
+                        // Parity marketing P1: 发活动, 我的内容 / 管理, the coupon deck and 合作机会 open their MP destinations.
+                        .environment(\.merchantMarketingLinks, MerchantMarketingLinks(
+                            activityPublisher: { AnyView(SessionActivityPublishingDestination().environmentObject(session)) },
+                            projects: {
+                                AnyView(MerchantProjectsView(reader: session, contentService: session.merchantContentService,
+                                                             workspaceReadFactory: session.merchantProjectWorkspaceReadFactory))
+                            },
+                            coupons: { AnyView(SessionCouponManagementView()) },
+                            coopCenter: { session.merchantCoopCenterDestination(initialTab: .plaza) }))
                         .navigationDestination(item: $selectedMarketingSuggestion) { route in
                             Group {
                                 if case .recommendation(let target) = route, target.origin != recommendationOrigin {

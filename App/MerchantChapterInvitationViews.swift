@@ -55,7 +55,7 @@ import SwiftUI
                 if !c.busy { Button("action.retry") { Task { await model.load() } }.accessibilityIdentifier("merchantChapterInvitation.reload") }
             }.padding()
         }
-        .appNavigationTitle("merchantChapterInvitation.title")
+        .cyPageTitle("merchantChapterInvitation.title")
         .task(id: service.scope) { await model.load() }
         .onDisappear { model.suspend(); onReturn?() }
         .sheet(item: Binding(get: { c.isCurrent ? c.review : nil }, set: { if $0 == nil { model.cancel() } })) { MerchantContentReviewView(model: model, review: $0) }

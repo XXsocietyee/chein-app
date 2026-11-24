@@ -139,7 +139,7 @@ struct MerchantRegistrationAvailabilityReview: View {
                 if stale { Text("merchant.registrationAvailability.stale").foregroundStyle(.secondary) }
             }
             .modifier(MerchantJourneyFormAppearance())
-            .appNavigationTitle("merchant.registrationAvailability.choose")
+            .cyPageTitle("merchant.registrationAvailability.choose")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel", action: cancel).accessibilityIdentifier("merchant.registrationAvailability.cancel")

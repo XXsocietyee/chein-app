@@ -84,7 +84,7 @@ struct MerchantTemplateAssistPresentation: Identifiable {
                     }
                 }
             }
-            .appNavigationTitle("merchant.assist.title")
+            .cyPageTitle("merchant.assist.title")
             .accessibilityIdentifier("merchant.assist.sheet")
             .scrollDismissesKeyboard(.interactively)
             .toolbar {

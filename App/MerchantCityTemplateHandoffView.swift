@@ -106,7 +106,7 @@ extension EnvironmentValues {
                             .accessibilityIdentifier("merchant.cityTemplate.retryRead")
                     }
                 }
-                .appNavigationTitle("merchant.cityTemplate.returnTitle")
+                .cyPageTitle("merchant.cityTemplate.returnTitle")
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.close(id: original.id) }.accessibilityIdentifier("merchant.cityTemplate.cancelReturn") } }
             } else {
                 MerchantOperationsDocumentView(reader: original.launch.reader, destination: .template(nil),

@@ -109,7 +109,8 @@ extension EnvironmentValues {
             CoopRelationContextLabel(context: displayContext)
             Section { sectionPicker.padding(.vertical, CYSpacing.xs) }
             if reader.session == nil {
-                Text("cooperation.login")
+                // Parity relation P1: MP copy 登录后查看发现 (not 协作邀请).
+                Text("cooprelation.login")
                     .font(CYTypography.body)
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -125,6 +126,10 @@ extension EnvironmentValues {
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooprelation.failed")
+                    // Parity relation P1: the error offers its own way back (source index.wxml:61-68 重新加载).
+                    CYPillButton("cooprelation.reload", style: .secondary, fullWidth: false) { Task { await reload() } }
+                        .disabled(model.isLoading)
+                        .accessibilityIdentifier("cooprelation.reload")
                 }
                 .padding(.vertical, CYSpacing.sm)
             }

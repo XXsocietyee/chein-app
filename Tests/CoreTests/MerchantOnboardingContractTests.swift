@@ -44,7 +44,10 @@ final class MerchantOnboardingContractTests: XCTestCase {
         draft.categoryIDs = [11, 61]
         XCTAssertEqual(draft.blocker(step: 1), "merchant.onboarding.required.phone")
         draft.phone = "+44 example"
-        XCTAssertNil(draft.blocker(step: 1)) // Source checks nonblank, not a country-specific phone regex.
+        // Parity apply P1: the mini-program (form-state isValidMobile) requires an 11-digit mainland mobile number.
+        XCTAssertEqual(draft.blocker(step: 1), "merchant.onboarding.invalid.phone")
+        draft.phone = "13800000000"
+        XCTAssertNil(draft.blocker(step: 1))
         XCTAssertEqual(draft.blocker(step: 2), "merchant.onboarding.required.address")
         draft.address = "Example street"
         XCTAssertEqual(draft.blocker(step: 2), "merchant.onboarding.required.hours")
@@ -146,7 +149,7 @@ final class MerchantOnboardingContractTests: XCTestCase {
 func makeMerchantOnboardingApplication(status: Int = 0, accountStatus: Int = 0,
                                        extras: [String: Any] = [:]) throws -> MerchantOnboardingApplication {
     var fields: [String: Any] = [
-        "id": 17, "status": status, "accountStatus": accountStatus, "name": "Example Store", "phone": "2025550100",
+        "id": 17, "status": status, "accountStatus": accountStatus, "name": "Example Store", "phone": "13800000000",
         "address": "Example address", "businessTime": "Stored hours", "businessLicense": "https://fixtures.example/license.jpg",
         "reson": "License unreadable", "disableReason": "Platform pause", "derivatives": "not a form field",
         // apply-P0b (parity r1): a stored application carries its 行业类型 ids, which a re-application keeps.
@@ -157,7 +160,7 @@ func makeMerchantOnboardingApplication(status: Int = 0, accountStatus: Int = 0,
 }
 func makeMerchantOnboardingDraft() throws -> MerchantOnboardingDraft {
     var draft = MerchantOnboardingDraft()
-    draft.name = " Example Store "; draft.phone = "2025550100"; draft.address = "Example address"; draft.businessTime = "Stored hours"
+    draft.name = " Example Store "; draft.phone = "13800000000"; draft.address = "Example address"; draft.businessTime = "Stored hours"
     draft.categoryIDs = [11]
     draft.license = try .init(serverURL: "https://fixtures.example/license.jpg")
     return draft

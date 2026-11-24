@@ -593,6 +593,15 @@ struct SessionRootView: View {
             AnyView(CooperationBrowserView(reader: session.cooperationReader, peerReader: session.cooperationFlowReader,
                                            operationScope: "MERCHANT", embedsNavigationStack: false))
         })
+        .environment(\.merchantInboxSources, MerchantInboxSources(
+            accountKey: session.account.map { String($0.id) } ?? "",
+            conversations: { try await session.messagingReader.messagingConversations() },
+            receivedInvites: { try await session.cooperationReader.inviteList().received },
+            inboxDestination: { AnyView(SessionMessagingHome(session: session)) },
+            inviteDestination: { id in
+                AnyView(CooperationInviteDetailView(key: CooperationInviteKey(id: id, direction: .received),
+                                                    reader: session.cooperationReader, peerReader: session.cooperationFlowReader))
+            }))
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
         .environment(\.merchantOpsWp03Bridge, MerchantOpsWp03Bridge(

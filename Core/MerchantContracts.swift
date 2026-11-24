@@ -90,11 +90,18 @@ public struct MerchantEvent: Decodable, Equatable {
     /// Preserve source strings: "01" is not the canonical owner ID "1".
     public let projectOwnerType: String?
     public let projectOwnerID: String?
-    public init(content: String, time: String, projectOwnerType: String? = nil, projectOwnerID: String? = nil) {
+    /// Source 我的消息 fields: `label` (收入到账 / 核销 / …), `type` (income / verify / stationInvite) and, for a
+    /// pending station invite, `gameActivityId`. Absent stays nil; never invented.
+    public let label: String?
+    public let type: String?
+    public let gameActivityID: Int?
+    public init(content: String, time: String, projectOwnerType: String? = nil, projectOwnerID: String? = nil,
+                label: String? = nil, type: String? = nil, gameActivityID: Int? = nil) {
         self.content = content; self.time = time
         self.projectOwnerType = projectOwnerType; self.projectOwnerID = projectOwnerID
+        self.label = label; self.type = type; self.gameActivityID = gameActivityID
     }
-    private enum CodingKeys: String, CodingKey { case content, time, ownerType, ownerId }
+    private enum CodingKeys: String, CodingKey { case content, time, ownerType, ownerId, label, type, gameActivityId }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         content = try c.decode(String.self, forKey: .content)
@@ -105,6 +112,9 @@ public struct MerchantEvent: Decodable, Equatable {
             return nil
         }
         projectOwnerType = scalar(.ownerType); projectOwnerID = scalar(.ownerId)
+        label = try? c.decodeIfPresent(String.self, forKey: .label)
+        type = try? c.decodeIfPresent(String.self, forKey: .type)
+        gameActivityID = scalar(.gameActivityId).flatMap { Int($0) }
     }
 }
 

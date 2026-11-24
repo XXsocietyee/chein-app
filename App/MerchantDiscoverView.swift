@@ -58,7 +58,7 @@ import SwiftUI
                 }
             }
         }
-        .appNavigationTitle("merchant.discover.title")
+        .cyPageTitle("merchant.discover.title")
         .task(id: key) { await load() }
         .refreshable { await load() }
         .onAppear { isVisible = true }

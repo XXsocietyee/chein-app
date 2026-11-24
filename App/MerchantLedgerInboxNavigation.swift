@@ -117,7 +117,7 @@ extension EnvironmentValues {
                 }
             }
         }
-        .appNavigationTitle("messaging.title")
+        .cyPageTitle("messaging.title")
         .onAppear { isVisible = true; scheduleOpen() }
         .onDisappear { isVisible = false; gate.deactivate() }
         .onChange(of: session.messagingViewIdentity) { _, _ in scheduleOpen() }

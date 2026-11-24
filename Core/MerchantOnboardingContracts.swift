@@ -166,6 +166,10 @@ public struct MerchantOnboardingDraft: Equatable {
             if name.merchantOnboardingTrimmed.isEmpty { return "merchant.onboarding.required.name" }
             if categoryIDs.isEmpty || categoryIDs.count > Self.categoryLimit { return "merchant.onboarding.required.category" }
             if phone.merchantOnboardingTrimmed.isEmpty { return "merchant.onboarding.required.phone" }
+            // Parity apply P1: source index.js:373-374 accepts an 11-digit mainland mobile number only.
+            if phone.merchantOnboardingTrimmed.range(of: #"^1[3-9]\d{9}$"#, options: .regularExpression) == nil {
+                return "merchant.onboarding.invalid.phone"
+            }
         }
         if step == nil || step == 2 {
             if address.merchantOnboardingTrimmed.isEmpty { return "merchant.onboarding.required.address" }

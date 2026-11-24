@@ -2319,13 +2319,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your role does not have marketing data access yet"
+            "value": "Your role cannot view marketing data yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的岗位还没有营销数据权限"
+            "value": "你的岗位还不能查看营销数据"
           }
         }
       }
@@ -2370,13 +2370,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No marketing data yet"
+            "value": "No topics or activities yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有营销数据"
+            "value": "还没有主题和活动"
           }
         }
       }
@@ -2404,13 +2404,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No sign-ups yet · publish content to start"
+            "value": "No sign-ups yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有人报名 · 发布内容后开始积累"
+            "value": "暂无报名"
           }
         }
       }
@@ -2472,13 +2472,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Take on activities"
+            "value": "Publish an activity"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "接活动"
+            "value": "发活动"
           }
         }
       }

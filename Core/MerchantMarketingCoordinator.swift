@@ -44,8 +44,13 @@ import Observation
         guard !Task.isCancelled else { return }
         if observedScope != service.scope { sessionChanged() }
         generation = UUID(); let ticket = generation, scope = service.scope
+        // Parity marketing P1 (source index.wxml:25-29): refreshing the same surface keeps the last good dashboard /
+        // insight on screen with a status line; switching surfaces still starts clean.
+        let keepsDashboard = surface == next && next == .dashboard, keepsInsight = surface == next && next == .insight
         surface = next; busy = true; failure = nil; commerceFailure = nil; acknowledgement = nil; review = nil
-        home = nil; homeAccess = nil; insight = nil; subscriptions = nil; commerce = nil; rounds = nil; service.discardReview()
+        if !keepsDashboard { home = nil; homeAccess = nil }
+        if !keepsInsight { insight = nil }
+        subscriptions = nil; commerce = nil; rounds = nil; service.discardReview()
         do {
             switch next {
             case .dashboard:
@@ -59,9 +64,15 @@ import Observation
             case .predictions:
                 let value = try await service.inbox(); guard valid(ticket, scope) else { return }; rounds = value
             }
-        } catch { guard valid(ticket, scope) else { return }; failure = normalize(error) }
+        } catch {
+            guard valid(ticket, scope) else { return }; failure = normalize(error)
+            // Lost access or session: the kept values are no longer the viewer's to see.
+            if [.denied, .signIn, .unavailable, .stale].contains(failure) { home = nil; homeAccess = nil; insight = nil }
+        }
         guard valid(ticket, scope) else { return }; busy = false
     }
+    /// True while a refresh runs over values already on screen (the view shows 正在更新… instead of a skeleton).
+    public var isRefreshingKeptValues: Bool { busy && (home != nil || insight != nil) }
     public func prepare(_ round: MerchantPredictionRound, option: String) async {
         guard !busy, rounds?.contains(round) == true else { return }
         let ticket = generation, scope = service.scope; busy = true; failure = nil; acknowledgement = nil

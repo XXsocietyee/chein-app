@@ -192,7 +192,7 @@ struct MerchantStationSubmissionContext: Equatable {
                 }
                 if let issue = session.issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
             }
-            .navigationTitle("merchant.submissionImport.title")
+            .navigationTitle("merchant.submissionImport.title").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel", action: cancel).accessibilityIdentifier("merchant.submissionImport.cancel") } }
         }
     }

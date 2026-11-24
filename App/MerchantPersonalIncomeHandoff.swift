@@ -146,7 +146,7 @@ import SwiftUI
                 }
             }
         }
-        .appNavigationTitle("merchant.personalIncome.title")
+        .cyPageTitle("merchant.personalIncome.title")
         .task(id: session.walletHistoryViewIdentity) { await open() }
         .onChange(of: source.active) { _, active in if !active { owner.retire() } }
         .onChange(of: sourceBelongsToSession) { _, current in if !current { source.retire(); owner.retire() } }
@@ -299,7 +299,7 @@ extension EnvironmentValues {
                 }
             }
         }
-        .appNavigationTitle("merchant.personalIncome.title")
+        .cyPageTitle("merchant.personalIncome.title")
         .task(id: session.walletHistoryViewIdentity) { await open() }
         .onChange(of: source.active) { _, active in if !active { owner.retire() } }
         // Do not retire on a child push: the enclosing sheet owns final dismissal.

@@ -96,7 +96,7 @@ import SwiftUI
                     .accessibilityIdentifier("merchant.settlementOverview.refresh")
             }
         }
-        .navigationTitle(Text("merchant.settlementOverview.title", tableName: "MerchantSettlementOverview"))
+        .navigationTitle(Text("merchant.settlementOverview.title", tableName: "MerchantSettlementOverview")).navigationBarTitleDisplayMode(.inline)
         .task { model.appear(active: scenePhase == .active); await model.loadAll() }
         .refreshable { await model.loadAll() }
         .onAppear { model.appear(active: scenePhase == .active) }

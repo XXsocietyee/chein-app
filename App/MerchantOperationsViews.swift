@@ -240,6 +240,14 @@ struct MerchantOperationsDocumentView: View {
             MerchantTemplateBrowserView(reader: reader, imageHost: imageHost, templateAssistFactory: templateAssistFactory)
         } else { documentBody }
     }
+    static func failureTitle(_ destination: MerchantOperationsDestination) -> LocalizedStringKey {
+        switch destination {
+        case .gallery: return "merchant.operations.failed.gallery"
+        case .cooperation: return "merchant.operations.failed.cooperation"
+        case .profile, .decor, .story, .businessStatus, .character, .npcMapPoint: return "merchant.operations.failed.brand"
+        default: return "merchant.operations.failed.generic"
+        }
+    }
     private var documentBody: some View {
         Group {
             if coordinator.isCurrent, let document = coordinator.document {
@@ -254,6 +262,12 @@ struct MerchantOperationsDocumentView: View {
                 }
             } else if let issue = coordinator.issue, coordinator.loadedScope == reader.scope {
                 VStack(spacing: CYSpacing.md) {
+                    // Parity decor P1: say which page failed, as the source does (品牌中心 / 相册 / 承接设置加载失败).
+                    Text(Self.failureTitle(destination))
+                        .cyText(.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("merchant.operations.failureTitle")
                     MerchantOperationsIssueView(issue: issue)
                     CYPillButton("action.retry", style: .primary) { Task { await model.load() } }
                         .accessibilityIdentifier("merchant.operations.retry")
