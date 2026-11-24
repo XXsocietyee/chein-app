@@ -74,3 +74,13 @@ DONE-ROUND-2
 - `swiftc -parse` passed on all 19 Swift files after final edits.
 
 DONE-ROUND-3
+
+## 7. Compile-Fix Pass (`docs/mp-gap/compile-errors-r7.md`)
+- Merged `origin/ui/combined-r7` (`7fdfad1f1`) cleanly into `gap/g2-ops`.
+- Fixed all remaining G2 `App/MPGap` compiler errors:
+  - `App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift:159-164` & `App/MPGap/Club/ClubGapRemainingViews.swift:190-195`: replaced `CYEmptyState(..., verbatimTitle:, actionTitle:)` with `CYEmptyState(..., LocalizedStringKey(...), actionTitle: LocalizedStringKey(...), action:)`.
+  - `App/MPGap/Club/ClubGapRemainingViews.swift:51-92`: extracted `pickerContent` `@ViewBuilder` to resolve SwiftUI type-checker timeout/failure in `ClubGapPlayRecordPickerRow`.
+  - `App/MPGap/AccountPublish/AccountPublishGapViews.swift:19,261`, `App/MPGap/Club/ClubGapManageExtensions.swift:172,181`, `App/MPGap/Club/ClubGapRemainingViews.swift:43,181`, `App/MPGap/MerchantCoop/MerchantGapOperationsViews.swift:172`, `App/MPGap/MerchantCoop/MerchantGapRemainingViews.swift:31,103`: already aligned with `CYColor.brand`/`warningText`/`dangerText`/`bgSurfaceSubtle` and `CYAvatarView(url:name:size: .sm)` in commit `38ee5b52f`.
+- `swiftc -parse` passed on all G2 `Core/MPGap`, `App/MPGap`, and `Tests/CoreTests/MPGap` Swift files.
+
+DONE-COMPILE-FIX

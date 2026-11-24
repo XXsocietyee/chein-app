@@ -158,7 +158,7 @@ public struct ActivityPublishGapOrganizerAndPOISection: View {
                 if organizerLoadFailed {
                     CYEmptyState(
                         systemImage: "exclamationmark.triangle",
-                        verbatimTitle: AccountPublishRemainingCopy.organizerLoadFailed,
+                        LocalizedStringKey(AccountPublishRemainingCopy.organizerLoadFailed),
                         actionTitle: LocalizedStringKey(AccountPublishRemainingCopy.retryLoad),
                         action: onRetryOrganizer
                     )
