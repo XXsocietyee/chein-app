@@ -233,6 +233,7 @@ extension MerchantPredictionReading {
                     Image(systemName: "exclamationmark.triangle")
                         .cyText(.display)
                         .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityHidden(true)
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.error"))
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)

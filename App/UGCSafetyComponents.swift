@@ -309,6 +309,7 @@ struct UGCReportSheet: View {
                         Image(systemName: "shield.lefthalf.filled")
                             .cyText(.pageTitle)
                             .foregroundStyle(CYColor.brand)
+                            .accessibilityHidden(true)
                     }
 
                     if let subject = presentation.subjectTitle, !subject.isEmpty {

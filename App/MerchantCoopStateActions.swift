@@ -103,22 +103,21 @@ struct MerchantCoopMPThumb: View {
               let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
         return url
     }
-    private var placeholder: Image {
-        switch fallback {
-        case .avatar: return MPAsset.AvatarDefault.dProfile
-        case .logo: return MPAsset.BrandLogo.dLogo
-        }
+    /// The MP default (`d_profile` / `d_logo`), decorative: the row's name carries the meaning.
+    private func placeholder() -> some View {
+        (fallback == .avatar ? MPAsset.AvatarDefault.dProfile : MPAsset.BrandLogo.dLogo)
+            .resizable().scaledToFill().accessibilityHidden(true)
     }
 
     var body: some View {
         Group {
             if let url {
                 AsyncImage(url: url) { phase in
-                    if case .success(let image) = phase { image.resizable().scaledToFill() }
-                    else { placeholder.resizable().scaledToFill() }
+                    if case .success(let image) = phase { image.resizable().scaledToFill().accessibilityHidden(true) }
+                    else { placeholder() }
                 }
             } else {
-                placeholder.resizable().scaledToFill()
+                placeholder()
             }
         }
         .frame(width: side, height: side)
