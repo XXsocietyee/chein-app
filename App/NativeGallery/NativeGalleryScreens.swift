@@ -632,7 +632,7 @@ struct NativeGalleryLobby: View {
                         .monospacedDigit()
                     Text("邀请")
                         .font(.body)
-                        .foregroundStyle(NativeGalleryPaint.accent)
+                        .foregroundStyle(CYColor.brand)
                 }
                 LabeledContent("第1席") {
                     Text("房主").font(.body)

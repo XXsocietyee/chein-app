@@ -16,7 +16,7 @@ public struct AccountGapOwnProfileComposerRow: View {
             Button(action: onTapCompose) {
                 HStack {
                     Image(systemName: "square.and.pencil")
-                        .foregroundStyle(CYColor.accent)
+                        .foregroundStyle(CYColor.brand)
                     Text(verbatim: AccountPublishGapCopy.ownComposerPlaceholder)
                         .cyText(.body)
                         .foregroundStyle(CYColor.textSecondary)

@@ -40,7 +40,7 @@ public struct ClubGapPlayRecordPickerRow: View {
                 if let selected {
                     Text(verbatim: selected.title)
                         .cyText(.meta)
-                        .foregroundStyle(CYColor.accent)
+                        .foregroundStyle(CYColor.brand)
                         .lineLimit(1)
                 }
                 Image(systemName: "chevron.right")
