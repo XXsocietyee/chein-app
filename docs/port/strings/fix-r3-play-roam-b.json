@@ -66,5 +66,22 @@
         }
       }
     }
+  },
+  "stampAlbum.openStamp %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Open stamp %lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "放大第 %lld 枚邮票"
+        }
+      }
+    }
   }
 }

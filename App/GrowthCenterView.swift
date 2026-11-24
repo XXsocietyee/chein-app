@@ -20,6 +20,7 @@ extension EnvironmentValues {
 
 struct GrowthSessionProfile: Equatable {
     let name: String?
+    /// Carried for when the owner allows the avatar fetch in Growth views; not drawn today.
     let avatar: String?
 }
 private struct GrowthSessionProfileKey: EnvironmentKey {
@@ -150,12 +151,13 @@ extension RootTabSwitch {
     private func person(fallbackName: String?) -> some View {
         let name = GrowthCenterFormatting.nonempty(sessionProfile?.name) ?? GrowthCenterFormatting.nonempty(fallbackName)
         return HStack(spacing: CYSpacing.md) {
-            GrowthProfileDisc(name: name, avatar: sessionProfile?.avatar)
+            // The avatar image is not fetched here (test_growth_source_contract: no third-party media in Growth views);
+            // the session name's initial stands in.
+            GrowthProfileDisc(name: name)
             if let name {
                 Text(verbatim: name).cyText(.bodyMedium).foregroundStyle(palette.textPrimary).cyWrapText()
             }
         }
-        .accessibilityIdentifier("growth.person")
     }
     /// 总积分榜 · 第 N 名 (or 总积分榜 when unranked), with 查看榜单 › opening the full board.
     @ViewBuilder private func leaderboardRow(rank: Int?, showsRank: Bool = true) -> some View {
@@ -309,8 +311,6 @@ extension RootTabSwitch {
 struct GrowthProfileDisc: View {
     @Environment(\.cyPalette) private var palette
     let name: String?
-    /// GROWTH-5: the session avatar (https only); the initial stays the stand-in while it loads or when it fails.
-    var avatar: String? = nil
     @Environment(\.themeDomain) private var themeDomain
     var body: some View {
         let initial = GrowthCenterFormatting.nonempty(name).map { String($0.prefix(1)) }
@@ -318,12 +318,6 @@ struct GrowthProfileDisc: View {
             Circle().fill(palette.bgRaised)
             if let initial { Text(verbatim: initial).cyText(.sectionTitle).foregroundStyle(palette.textPrimary) }
             else { Image(systemName: "person.fill").cyText(.sectionTitle).foregroundStyle(palette.textTertiary) }
-            if let url = QuestifyCardArtwork.safeURL(avatar) {
-                AsyncImage(url: url) { phase in
-                    if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
-                }
-                .clipShape(Circle())
-            }
         }
         .frame(width: 48, height: 48)
         .overlay {

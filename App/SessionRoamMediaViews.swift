@@ -2,21 +2,24 @@ import SwiftUI
 
 @MainActor struct SessionRoamStampCameraView: View {
     @EnvironmentObject private var session: AppSession
+    /// SCAM-2: true only from the citystamp route.
+    var showsCaption = false
     var body: some View {
         // Caption text is local even when no capture coordinator can be made. Recreate
         // that state on owner/realm/epoch changes, including nil-to-nil capability states.
-        ScopedSessionRoamStampCameraView()
+        ScopedSessionRoamStampCameraView(showsCaption: showsCaption)
             .id(session.walletCommerceScope)
             .id(session.sessionRevision)
     }
 }
 @MainActor private struct ScopedSessionRoamStampCameraView: View {
     @EnvironmentObject private var session: AppSession
+    let showsCaption: Bool
     @State private var coordinator: RoamStampCaptureCoordinator?
     var body: some View {
         RoamStampCameraView(coordinator: coordinator, cameraEnabled: session.stampCameraEnabled,
             album: RoamStampAlbumContinuation(reader: session.roamExperienceReader, camera: { AnyView(SessionRoamStampCameraView()) }),
-            exchange: { try await session.exchangeStamp(givenStampID: $0) })
+            exchange: { try await session.exchangeStamp(givenStampID: $0) }, showsCaption: showsCaption)
             .id(coordinator.map { ObjectIdentifier($0) })
             .task(id: session.walletCommerceScope) { coordinator?.cancel(); coordinator = session.makeRoamStampCaptureCoordinator() }
             .onChange(of: session.walletCommerceScope) { _, _ in coordinator?.cancel(); coordinator = nil }
@@ -45,7 +48,7 @@ import SwiftUI
     let kind: String?
     let place: String?
     var body: some View {
-        RoamCityStampFlowView(kind: kind, place: place, cameraDestination: { AnyView(SessionRoamStampCameraView()) })
+        RoamCityStampFlowView(kind: kind, place: place, cameraDestination: { AnyView(SessionRoamStampCameraView(showsCaption: true)) })
     }
 }
 
