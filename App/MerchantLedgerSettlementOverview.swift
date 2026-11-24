@@ -95,6 +95,7 @@ import UIKit
     let journal: (any MerchantBusinessIntentStore)?
     @State private var ledgerView: MerchantR1LedgerView = .redemptions
     @Environment(\.merchantR1CumulativeRevenue) private var cumulativeRevenue
+    @Environment(\.merchantCoopSettlementDetailDestination) private var coopSettlementDetail
     @Environment(\.locale) private var locale
     init(reader: any MerchantBusinessReading, journal: (any MerchantBusinessIntentStore)? = nil, topicID: Int? = nil, initialView: MerchantR1LedgerView = .redemptions) {
         self.reader = reader
@@ -223,7 +224,15 @@ import UIKit
                     CYEmptyState(systemImage: "list.bullet.rectangle", LocalizedStringKey("merchant.ledgerSettlement.emptyEntries"), tableName: "MerchantLedgerSettlement")
                 }
                 ForEach(snapshot.document.rows) { row in
-                    MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchant.ledgerSettlement.entry." + row.id)
+                    // MC7-06-9: coop-share rows open their settlement detail (source=ledger).
+                    if let settlementID = MerchantLedgerCoopDetail.settlementID(row.fields), let coopSettlementDetail {
+                        NavigationLink { coopSettlementDetail(settlementID) } label: {
+                            MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchant.ledgerSettlement.entry." + row.id)
+                        }
+                        .accessibilityIdentifier("merchant.ledgerSettlement.entry.coopDetail." + row.id)
+                    } else {
+                        MerchantLedgerRowLabel(line: MerchantLedgerParity.entry(row.fields), identifier: "merchant.ledgerSettlement.entry." + row.id)
+                    }
                 }
                 pages(id, slot)
             case .batches:

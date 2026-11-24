@@ -566,6 +566,11 @@ struct SessionRootView: View {
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
         // fix/r3-merchant-coop-a: MerchantDeniedState offers 申请入驻 only when access/me has no active merchant.
         .environment(\.merchantCoopProfitDestination, { AnyView(CoopFinanceProfitView(reader: session.cooperationFlowReader).cyPushedChrome(domain: .merchant)) })
+        // MC7-06-9: 收入明细 coop-share rows → pages/coop/settlement-detail/index?source=ledger&id= (Cursor's route).
+        .environment(\.merchantCoopSettlementDetailDestination, { id in
+            AnyView(CoopSettlementDetailRoute(reader: session.cooperationFlowReader, query: ["source": "ledger", "id": String(id)])
+                .cyPushedChrome(domain: .merchant))
+        })
         .environment(\.merchantGateActions, MerchantGateActions(
             hasMerchantIdentity: { (try? await session.merchantAccess())?.active == true },
             applicationDestination: { AnyView(MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)) }))
