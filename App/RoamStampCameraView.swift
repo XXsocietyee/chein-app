@@ -148,13 +148,13 @@ import UIKit
             }
             .sheet(isPresented: $showingPriming, onDismiss: {
                 if primingAllowed { primingAllowed = false; requestCamera(primed: true) }
-            }) {
+            }) { Group {
                 CYPermissionPrimerScreen(kind: .camera, onPrimary: {
                     CYPermissionSystemPrompt.notePrimed(.camera)
                     primingAllowed = true
                     showingPriming = false
                 }, onSecondary: { showingPriming = false })
-            }
+            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .fullScreenCover(isPresented: $showingCamera, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
                 focusedControl = coordinator?.selection == nil ? .capture : .status

@@ -703,9 +703,9 @@ struct RoamAnniversaryReadIntent {
         .disabled(!lifetime.canPresent(reader))
         .privacySensitive()
         .background(LifetimeAttachment(lifetime: lifetime).frame(width: 0, height: 0))
-        .sheet(item: detailBinding(model.presentation)) { presentation in
+        .sheet(item: detailBinding(model.presentation)) { presentation in Group {
             RoamMonthlyRecapDetailView(model: model, presentation: presentation, routeDestination: routeDestination)
-        }
+        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onAppear { lifetime.appear(reader, foreground: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { lifetime.resume(reader, foreground: true) }
@@ -783,7 +783,7 @@ private struct RoamRecapWeekChart: View {
                         RoundedRectangle(cornerRadius: 4)
                             .fill(week.isMax ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary.opacity(0.4)))
                             .frame(width: 14, height: max(4, CGFloat(week.count) / CGFloat(top) * 110))
-                        Text("roam.tools.recap.week \(week.index)").cyText(.caption).foregroundStyle(.secondary)
+                        Text("roam.tools.recap.week \(week.index)").cyText(.meta).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity)
                 }.buttonStyle(.plain)
                     .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
@@ -808,7 +808,7 @@ struct RoamRecapShareCard: View {
             card
             ShareLink(item: renderedImage(), preview: SharePreview(Text("roam.tools.recap"), image: renderedImage())) {
                 Label { Text(verbatim: ChannelCopy.text("分享这张卡片", "Share this card", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
-                    .font(CYTypography.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 48)
+                    .cyText(.body, weight: .semibold).frame(maxWidth: .infinity, minHeight: 48)
             }
             .buttonStyle(.cySecondary)
             .accessibilityIdentifier("roam.tools.recap.share")
@@ -858,7 +858,7 @@ struct RoamRecapShareFace: View {
             Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(.white).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 0) {
                 Text(n, format: .number).cyText(.dataXL).monospacedDigit().foregroundStyle(.white)
-                Text(LocalizedStringKey(key)).cyText(.caption).foregroundStyle(.white.opacity(0.85))
+                Text(LocalizedStringKey(key)).cyText(.meta).foregroundStyle(.white.opacity(0.85))
             }
             Spacer(minLength: 0)
         }

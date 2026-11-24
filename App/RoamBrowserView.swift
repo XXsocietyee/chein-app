@@ -189,11 +189,11 @@ struct RoamBrowserView: View {
                     }
                 }
             }
-            .sheet(item: $entryCard) { selection in
+            .sheet(item: $entryCard) { selection in Group {
                 RoamEntryActivitySheet(card: selection.card, eventDestination: nearbyEventDestination ?? eventDestination,
                     teamDestination: nearbyTeamDestination, readOnly: nearbyEventDestination != nil,
                     isCurrent: { selection.mayRemainOpen(in: entryScope) })
-            }
+            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .onChange(of: entryScope) { _, _ in entryCard = nil }
             .onChange(of: recoveryReadOwner) { _, _ in
                 recoveryEntry.reload(reader: experienceReader, hasDestination: liveDestination != nil)
@@ -423,7 +423,7 @@ struct RoamBrowserView: View {
         let reader = effectiveReader
         if reader.isOfflineExample {
             Label("roam.offlineExample", systemImage: "testtube.2")
-                .cyText(.caption).foregroundStyle(CYColor.warningText).accessibilityIdentifier("roam.fixture.notice")
+                .cyText(.meta).foregroundStyle(CYColor.warningText).accessibilityIdentifier("roam.fixture.notice")
         }
         if let area = reader.searchArea {
             Label {
@@ -647,7 +647,7 @@ struct RoamItemRow: View {
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             VStack(alignment: .leading, spacing: 6) {
                 RoamTitle(item.title).cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                Text(item.kindLabel).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                Text(item.kindLabel).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 if showsCurrentReadStatus, case .place(let place) = item {
                     RoamPlaceReadStatusLabel(status: place.readStatus).font(.caption)
                 }

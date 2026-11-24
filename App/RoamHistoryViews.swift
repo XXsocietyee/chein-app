@@ -309,7 +309,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                                 Spacer(minLength: 8)
                                 if let date = record.recordedAt {
                                     Text(date, format: .dateTime.year().month().day().weekday(.abbreviated))
-                                        .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                             }
                             RoamSavedRouteReplayView(reader: reader, record: record)
@@ -330,7 +330,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                                     .accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(verbatim: medal.card.name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                    Text("roamSub.w208.session.medalCategory").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                                    Text("roamSub.w208.session.medalCategory").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                                 Spacer(minLength: 0)
                                 Image(systemName: "square.and.arrow.up").foregroundStyle(CYColor.textTertiary)

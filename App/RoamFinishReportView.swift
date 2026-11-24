@@ -58,7 +58,7 @@ struct RoamFinishReport: Equatable {
                 grid.padding(.top, CYSpacing.xl)
                 if let story = report.story {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        Text("u10.roamFinish.story").cyText(.caption).foregroundStyle(CYColor.textTertiary)
+                        Text("u10.roamFinish.story").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         Text(verbatim: story).cyText(.body).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                     }

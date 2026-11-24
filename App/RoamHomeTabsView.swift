@@ -54,7 +54,7 @@ struct RoamHomeTabPicker: View {
                 VStack(alignment: .leading) {
                     Image(systemName: spec.symbol).font(.title3.weight(.semibold)).accessibilityHidden(true)
                     Spacer(minLength: 8)
-                    Text(verbatim: "NO.0\(number)").font(.system(.caption2, design: .monospaced).weight(.semibold))
+                    Text(verbatim: "NO.0\(number)").font(.system(.caption, design: .monospaced).weight(.semibold))
                 }
                 .foregroundStyle(.black.opacity(0.78))
                 .padding(12).frame(width: 84, alignment: .leading)
@@ -69,7 +69,7 @@ struct RoamHomeTabPicker: View {
             .frame(minWidth: 260, minHeight: 92)
             .background(.white)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .shadow(color: .black.opacity(0.25), radius: 10, y: 4)
+            .shadow(color: .black.opacity(0.12), radius: 4, y: 2)
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
@@ -533,7 +533,7 @@ struct RoamToolUnavailableView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(LocalizedStringKey(tile.titleKey)).cyText(.cardTitle)
-                        if tile.isNew { Text("roam.private.new").cyText(.caption, weight: .bold).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
+                        if tile.isNew { Text("roam.private.new").cyText(.meta, weight: .bold).padding(.horizontal, 6).background(.tint.opacity(0.2), in: Capsule()) }
                     }
                     caption(tile).cyText(.meta).foregroundStyle(.secondary)
                 }

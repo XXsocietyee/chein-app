@@ -333,7 +333,7 @@ private struct RoamExportFileSaveLink: View {
         if let file = model.fileForDelivery(foreground: scenePhase == .active) {
             Section {
                 LabeledContent { Text("roam.export.rows \(file.rows)") } label: {
-                    Label { Text(verbatim: file.fileName) } icon: { Text(verbatim: "JSONL").cyText(.caption, weight: .bold) }
+                    Label { Text(verbatim: file.fileName) } icon: { Text(verbatim: "JSONL").cyText(.meta, weight: .bold) }
                 }.accessibilityIdentifier("roam.export.file")
                 CYPillButton("roam.export.share") {
                     if owner.active, let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {

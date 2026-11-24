@@ -385,13 +385,13 @@ import QuestifyCore
                     await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted)
                 }
             }
-        }) {
+        }) { Group {
             CYPermissionPrimerScreen(kind: .location, onPrimary: {
                 CYPermissionSystemPrompt.notePrimed(.location)
                 locationPrimingAllowed = true
                 showingLocationPriming = false
             }, onSecondary: { showingLocationPriming = false })
-        }
+        }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .overlay {
             if confirmFinish {
                 PlayAreaRoamFinishModal(onConfirm: {
@@ -403,7 +403,7 @@ import QuestifyCore
         .sheet(isPresented: $showRules) {
             NavigationStack { RoamLiveRulesView() }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $checkin) { target in RoamCheckinSheet(target: target) }
+        .sheet(item: $checkin) { target in Group { RoamCheckinSheet(target: target) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .background {
             RoamPausedBrowseLifetimeAnchor(presentation: browse).frame(width: 0, height: 0)
         }
@@ -1178,7 +1178,7 @@ struct RoamPausedBrowseCopy {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: presentation.binding(for: target, owner: owner, reader: reader),
-                   onDismiss: { presentation.close(id: target.id) }) { offered in
+                   onDismiss: { presentation.close(id: target.id) }) { offered in Group {
                 NavigationStack {
                     if presentation.matches(offered, owner: owner, reader: reader) {
                         Group {
@@ -1197,7 +1197,7 @@ struct RoamPausedBrowseCopy {
                         } }
                     }
                 }
-            }
+            }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 /// Native attachment distinguishes a covering sheet from the source leaving its hierarchy.

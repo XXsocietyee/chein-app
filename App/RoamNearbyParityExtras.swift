@@ -161,7 +161,7 @@ struct RoamPlaceExtrasSection: View {
     private func gameCard(_ game: RoamPlaceGame) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack {
-                Text(verbatim: c.t("地点玩法", "Place play")).cyText(.caption).tracking(0.6).foregroundStyle(CYNight.lantern)
+                Text(verbatim: c.t("地点玩法", "Place play")).cyText(.meta).tracking(0.6).foregroundStyle(CYNight.lantern)
                 Spacer()
                 if game.completed { CYStatusChip(verbatim: c.t("已完成", "Completed"), tone: .success, systemImage: "checkmark") }
             }
@@ -204,7 +204,7 @@ struct RoamPlaceExtrasSection: View {
                         } label: {
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text(verbatim: "「\(quote.text)」").cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary).lineLimit(4)
-                                Text(verbatim: "\(quote.sourceLabel) · " + c.t("复制原文链接", "Copy source link")).cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                                Text(verbatim: "\(quote.sourceLabel) · " + c.t("复制原文链接", "Copy source link")).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                             .frame(width: 240, alignment: .leading)
                             .padding(CYSpacing.md)
@@ -240,11 +240,11 @@ struct RoamPlaceExtrasSection: View {
                                 HStack {
                                     Text(verbatim: review.name ?? c.t("玩家", "Player")).cyText(.label)
                                     Spacer()
-                                    if let time = review.timeText { Text(verbatim: time).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
+                                    if let time = review.timeText { Text(verbatim: time).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                                 }
                                 if let stars = review.stars {
                                     Label { Text(verbatim: String(stars)) } icon: { Image(systemName: "star.fill") }
-                                        .font(CYTypography.caption).foregroundStyle(CYNight.lantern)
+                                        .cyText(.meta).foregroundStyle(CYNight.lantern)
                                         .accessibilityLabel(Text(verbatim: c.t("\(stars) 星", "\(stars) stars")))
                                 }
                                 Text(verbatim: review.text).cyText(.bodyCompact).lineLimit(4)
@@ -267,7 +267,7 @@ struct RoamPlaceExtrasSection: View {
                 ForEach(1...5, id: \.self) { value in
                     Button { myStars = value } label: {
                         Image(systemName: value <= myStars ? "star.fill" : "star")
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(value <= myStars ? CYNight.lantern : CYColor.textTertiary)
                             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     }
