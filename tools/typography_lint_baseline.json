@@ -1,85 +1,294 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 105,
+  "raw text style": 1143,
   "Theme.Font": 63,
-  "raw size": 66,
+  "raw size": 67,
   "back chevron": 10,
   "hidden back": 3,
-  "large title": 0
+  "large title": 7
  },
  "files": {
-  "App/AccountDeregistrationImpactSection.swift": {
-   "Theme.Font": 2
-  },
-  "App/AppStoreConnectMetadataAndScreenshotSectionView.swift": {
+  "App/AccessibilityReadinessSectionView.swift": {
    "raw text style": 1
   },
+  "App/AccountCollectionComponents.swift": {
+   "raw text style": 1
+  },
+  "App/AccountComplianceViews.swift": {
+   "raw text style": 8
+  },
+  "App/AccountDeletionAndGDPRPIPLSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/AccountDeregistrationImpactSection.swift": {
+   "raw text style": 3,
+   "Theme.Font": 2
+  },
+  "App/ActiveDestinationSummary.swift": {
+   "raw text style": 1
+  },
+  "App/ActivityAssociatedPlaysSection.swift": {
+   "raw text style": 2
+  },
+  "App/ActivityDetailView.swift": {
+   "raw text style": 2
+  },
+  "App/ActivityHostCancelView.swift": {
+   "raw text style": 1
+  },
+  "App/ActivityPeopleSection.swift": {
+   "raw text style": 2
+  },
+  "App/ActivityPresentationComponents.swift": {
+   "raw text style": 2
+  },
+  "App/ActivityReviewsSection.swift": {
+   "raw text style": 1
+  },
+  "App/AppStoreConnectMetadataAndScreenshotSectionView.swift": {
+   "raw text style": 2
+  },
   "App/AppStorePrivacyManifestSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/AppStoreReviewDemoAccountAndFixtureSectionView.swift": {
    "raw text style": 2
   },
   "App/AppStoreSubmissionFinalPreflightGateView.swift": {
-   "raw text style": 1
+   "raw text style": 2
   },
   "App/AppStoreSubmissionReadinessSectionView.swift": {
-   "raw text style": 2
+   "raw text style": 3
+  },
+  "App/AssetPointsAndOrderCancellationSectionView.swift": {
+   "raw text style": 1
   },
   "App/AudioAndMediaPipelineSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 4
+  },
+  "App/AuthAndSessionAdmissionSectionView.swift": {
+   "raw text style": 4
+  },
+  "App/AuthChannelView.swift": {
+   "raw text style": 2
   },
   "App/BackendRolloutAllowlistSwitchboardSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 2
   },
   "App/BackendSyncAndContractGateSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/BundleAppealView.swift": {
+   "raw text style": 1
+  },
+  "App/BundleShelfView.swift": {
+   "raw text style": 1
+  },
+  "App/BundleVoucherView.swift": {
+   "raw text style": 1
+  },
+  "App/ChannelAdmissionGovernanceView.swift": {
+   "raw text style": 1
+  },
+  "App/ChapterReplacementInvitationView.swift": {
    "raw text style": 2
+  },
+  "App/ChapterStoryView.swift": {
+   "raw text style": 1
   },
   "App/CityAcquisitionPresentationStyle.swift": {
    "Theme.Font": 2
   },
+  "App/CityGamePanel.swift": {
+   "raw text style": 1
+  },
+  "App/CityKit/CityBoardScreens.swift": {
+   "raw text style": 2,
+   "large title": 2
+  },
+  "App/CityKit/CityDeedCard.swift": {
+   "raw text style": 4
+  },
   "App/CityKit/CityMapLayer.swift": {
-   "raw text style": 2
+   "raw text style": 5
+  },
+  "App/CityKit/CityPropertySheet.swift": {
+   "raw text style": 3
   },
   "App/CityKit/CityRoamRootView.swift": {
    "raw text style": 1
   },
   "App/CityKit/CityTokens.swift": {
+   "raw text style": 2
+  },
+  "App/CityMerchantOperationsView.swift": {
+   "raw text style": 6
+  },
+  "App/CityMerchantValueView.swift": {
+   "raw text style": 2
+  },
+  "App/CityMonopolyTerritorySection.swift": {
+   "raw text style": 1
+  },
+  "App/CityOrderedMapView.swift": {
+   "raw text style": 1
+  },
+  "App/CityParticipationRuntimeHostView.swift": {
+   "raw text style": 1
+  },
+  "App/CityPlayerValueNodeView.swift": {
+   "raw text style": 1
+  },
+  "App/CityPlayerView.swift": {
+   "raw text style": 1
+  },
+  "App/CitySwitchAndCrossCityRoamingSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/CityTaskHistoryRuntimeHostView.swift": {
    "raw text style": 1
   },
   "App/CloudCIShardStatusSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 2
+  },
+  "App/ClubAIDesignView.swift": {
+   "raw text style": 2
   },
   "App/ClubAccessAndSettlementSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/ClubActivityListContent.swift": {
+   "raw text style": 3
+  },
+  "App/ClubActivityReportView.swift": {
    "raw text style": 1
   },
   "App/ClubAndTeamCoopGovernanceSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 2
   },
   "App/ClubChannelMessagingView.swift": {
-   "raw text style": 2,
+   "raw text style": 5,
    "back chevron": 1
+  },
+  "App/ClubCheckinRailView.swift": {
+   "raw text style": 1
+  },
+  "App/ClubComponents.swift": {
+   "raw text style": 10
+  },
+  "App/ClubDetailView.swift": {
+   "raw text style": 1
+  },
+  "App/ClubEnrollmentView.swift": {
+   "raw text style": 2
+  },
+  "App/ClubEventCalendarView.swift": {
+   "raw text style": 1
   },
   "App/ClubGovernanceCommandForm.swift": {
    "back chevron": 1
+  },
+  "App/ClubGovernanceFeedPostView.swift": {
+   "raw text style": 1
+  },
+  "App/ClubGovernanceViews.swift": {
+   "raw text style": 3
+  },
+  "App/ClubManagementView.swift": {
+   "raw text style": 2
+  },
+  "App/ClubMembersView.swift": {
+   "raw text style": 1
+  },
+  "App/ClubMerchantDiscoveryView.swift": {
+   "raw text style": 2
+  },
+  "App/ClubNodeAnswerContent.swift": {
+   "raw text style": 1
+  },
+  "App/ClubOperationsViews.swift": {
+   "raw text style": 5
+  },
+  "App/ClubOpsCustomerViews.swift": {
+   "raw text style": 1
+  },
+  "App/ClubParticipationTrendSection.swift": {
+   "raw text style": 1
+  },
+  "App/ClubPostDiscussion.swift": {
+   "raw text style": 1
+  },
+  "App/ClubProfileChoiceEditor.swift": {
+   "raw text style": 2
+  },
+  "App/ClubSettlementDetail.swift": {
+   "raw text style": 2
+  },
+  "App/ClubTopicMerchantContent.swift": {
+   "raw text style": 3
   },
   "App/ClubWelcomeNoteEditor.swift": {
    "Theme.Font": 4
   },
   "App/CommerceAndWalletSafetySectionView.swift": {
+   "raw text style": 3
+  },
+  "App/CoopFinanceSummarySection.swift": {
+   "raw text style": 1
+  },
+  "App/CoopListParitySections.swift": {
    "raw text style": 2
   },
-  "App/CrashResilienceAndMetricKitDiagnosticsSectionView.swift": {
+  "App/CoopPoolApplicationEditor.swift": {
+   "raw text style": 4
+  },
+  "App/CoopRelationCardDetails+Port.swift": {
    "raw text style": 2
+  },
+  "App/CooperationFlowEditors.swift": {
+   "raw text style": 5
+  },
+  "App/CooperationFlowWorkbench.swift": {
+   "raw text style": 3
+  },
+  "App/CouponAndSponsoredRewardSafetySectionView.swift": {
+   "raw text style": 1
+  },
+  "App/CouponCodeView.swift": {
+   "raw text style": 1
+  },
+  "App/CrashResilienceAndMetricKitDiagnosticsSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/CreatorContentViews.swift": {
+   "raw text style": 1
+  },
+  "App/DeepLinkSafetyDiagnosticsSectionView.swift": {
+   "raw text style": 4
   },
   "App/DesignFixtures/D6Fixtures.swift": {
    "back chevron": 2
   },
+  "App/DesignFixtures/E3Fixtures.swift": {
+   "raw text style": 4,
+   "large title": 1
+  },
+  "App/DesignFixtures/IAFixtures.swift": {
+   "raw text style": 1
+  },
+  "App/DesignFixtures/R3InPlaceKitFixtures.swift": {
+   "raw text style": 1
+  },
   "App/DesignSystem/CYAlbum.swift": {
+   "raw text style": 1,
    "raw size": 3
   },
   "App/DesignSystem/CYBadgeCraft.swift": {
    "raw size": 1
   },
   "App/DesignSystem/CYBusinessComponents.swift": {
+   "raw text style": 1,
    "raw size": 6
   },
   "App/DesignSystem/CYCelebrationViews.swift": {
@@ -95,22 +304,32 @@
   "App/DesignSystem/CYCityBoard.swift": {
    "raw size": 1
   },
+  "App/DesignSystem/CYCityKit.swift": {
+   "raw text style": 6
+  },
   "App/DesignSystem/CYCollectible.swift": {
    "raw size": 5
+  },
+  "App/DesignSystem/CYConfirmSheet.swift": {
+   "raw text style": 1
   },
   "App/DesignSystem/CYCoverArt.swift": {
    "raw size": 1
   },
   "App/DesignSystem/CYDesignComponents.swift": {
+   "raw text style": 1,
    "raw size": 1
   },
   "App/DesignSystem/CYDesignedCover.swift": {
+   "raw text style": 1,
    "raw size": 1
   },
   "App/DesignSystem/CYDomainTabBar.swift": {
+   "raw text style": 1,
    "raw size": 3
   },
   "App/DesignSystem/CYExploreKit.swift": {
+   "raw text style": 1,
    "raw size": 1
   },
   "App/DesignSystem/CYField.swift": {
@@ -120,53 +339,85 @@
    "raw size": 1
   },
   "App/DesignSystem/CYInPlaceResult.swift": {
+   "raw text style": 2,
    "raw size": 1
   },
+  "App/DesignSystem/CYJoinReward.swift": {
+   "raw text style": 1
+  },
+  "App/DesignSystem/CYListRow.swift": {
+   "raw text style": 2
+  },
   "App/DesignSystem/CYMapChrome.swift": {
+   "raw text style": 3,
    "raw size": 1
   },
   "App/DesignSystem/CYMedalStack.swift": {
+   "raw text style": 2,
    "raw size": 1,
    "back chevron": 1
   },
+  "App/DesignSystem/CYMorphButton.swift": {
+   "raw text style": 1
+  },
   "App/DesignSystem/CYOnboarding.swift": {
-   "raw text style": 1,
+   "raw text style": 6,
    "raw size": 1
   },
   "App/DesignSystem/CYOnboardingLight.swift": {
+   "raw text style": 1,
    "raw size": 2
   },
   "App/DesignSystem/CYPassVerified.swift": {
+   "raw text style": 1,
    "raw size": 1
   },
   "App/DesignSystem/CYPermissionPrimer.swift": {
    "raw size": 1
   },
+  "App/DesignSystem/CYPillButton.swift": {
+   "raw text style": 2
+  },
   "App/DesignSystem/CYPlayVerdict.swift": {
    "raw size": 3
   },
   "App/DesignSystem/CYPlayerKit.swift": {
+   "raw text style": 4,
    "back chevron": 1
   },
+  "App/DesignSystem/CYPurchaseMotion.swift": {
+   "raw text style": 2
+  },
+  "App/DesignSystem/CYRoamKit.swift": {
+   "raw text style": 2
+  },
   "App/DesignSystem/CYScreenStyle.swift": {
+   "raw text style": 3,
    "raw size": 1
   },
   "App/DesignSystem/CYShareCard.swift": {
    "raw size": 6
   },
+  "App/DesignSystem/CYShareComposer.swift": {
+   "raw text style": 2
+  },
   "App/DesignSystem/CYSharedStates.swift": {
    "raw size": 1
   },
   "App/DesignSystem/CYSheetModal.swift": {
-   "raw size": 3
+   "raw size": 4
   },
   "App/DesignSystem/CYSignature.swift": {
    "raw size": 2
+  },
+  "App/DesignSystem/CYStampContinuity.swift": {
+   "raw text style": 2
   },
   "App/DesignSystem/CYStarBloom.swift": {
    "raw size": 1
   },
   "App/DesignSystem/CYStateKit.swift": {
+   "raw text style": 1,
    "raw size": 4
   },
   "App/DesignSystem/CYStateView.swift": {
@@ -175,205 +426,978 @@
   "App/DeviceOrientationAndSplitViewAdaptationSectionView.swift": {
    "raw text style": 1
   },
-  "App/EditorKitCards.swift": {
+  "App/DiscoveryComponents.swift": {
+   "raw text style": 1
+  },
+  "App/E1ActivityDetailParts.swift": {
+   "raw text style": 1
+  },
+  "App/E1CommerceComponents.swift": {
    "raw text style": 2
   },
+  "App/E1OfficialRouteParts.swift": {
+   "raw text style": 2
+  },
+  "App/EditorKitCards.swift": {
+   "raw text style": 7
+  },
+  "App/EditorKitFeedback.swift": {
+   "raw text style": 2
+  },
+  "App/EditorKitFields.swift": {
+   "raw text style": 11
+  },
+  "App/EditorKitLists.swift": {
+   "raw text style": 4
+  },
+  "App/EditorKitResults.swift": {
+   "raw text style": 8
+  },
   "App/EditorKitSheet.swift": {
+   "raw text style": 2,
    "back chevron": 1,
    "hidden back": 1
   },
   "App/EndToEndReleaseCandidateGateSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 2
+  },
+  "App/EnvironmentBranchAndRewardLedgerSectionView.swift": {
+   "raw text style": 9
+  },
+  "App/ExplorationPrivateToolsAndCapsuleSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/ExploreCompletionView.swift": {
+   "raw text style": 7
   },
   "App/FinalReleaseSignoffAndZeroGapCertificateView.swift": {
-   "raw text style": 3
+   "raw text style": 4
   },
   "App/FinalThreeDocumentAndSevenDayGoalCompletionView.swift": {
    "raw text style": 2
   },
-  "App/GlobalSearchView.swift": {
+  "App/FinalTwentyBatchMasterCompletionView.swift": {
+   "raw text style": 2
+  },
+  "App/FreeExplorationViews.swift": {
+   "raw text style": 12
+  },
+  "App/GameJournalCompositionAndPlaySummarySectionView.swift": {
    "raw text style": 1
   },
+  "App/GlobalSearchView.swift": {
+   "raw text style": 2
+  },
   "App/GrowthAndLeaderboardParitySectionView.swift": {
-   "raw text style": 4
+   "raw text style": 7
+  },
+  "App/GrowthCenterView.swift": {
+   "raw text style": 5
+  },
+  "App/GrowthLeaderboardView.swift": {
+   "raw text style": 5
+  },
+  "App/HomeFeedView.swift": {
+   "large title": 1
   },
   "App/HomeSearchTabParityViews.swift": {
+   "raw text style": 9
+  },
+  "App/IMAndSocialSafetyParitySectionView.swift": {
+   "raw text style": 1
+  },
+  "App/IMExpandedViews.swift": {
    "raw text style": 2
   },
   "App/IMFlowPresentation.swift": {
    "Theme.Font": 1
   },
+  "App/IMInboxViews.swift": {
+   "raw text style": 2
+  },
   "App/ImageAndVideoDiskCacheBudgetSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 3
+  },
+  "App/JourneyLandingViews.swift": {
+   "raw text style": 2
   },
   "App/KeychainAndBiometricSessionSecuritySectionView.swift": {
-   "raw text style": 1
+   "raw text style": 3
+  },
+  "App/LBSGeofenceAndBatteryThermalSectionView.swift": {
+   "raw text style": 3
   },
   "App/LocalizationCompletenessSectionView.swift": {
+   "raw text style": 4
+  },
+  "App/LocalizationPluralAndFormatterConsistencySectionView.swift": {
+   "raw text style": 3
+  },
+  "App/LocationShareAndSideQuestSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/LoginView.swift": {
+   "raw text style": 3
+  },
+  "App/MapCoreEntryHubView.swift": {
+   "raw text style": 3
+  },
+  "App/MapPublicLayerSectionView.swift": {
    "raw text style": 2
   },
   "App/MapVisualLayerControlSectionView.swift": {
+   "raw text style": 4
+  },
+  "App/MapVisualMV01ToMV41ComplianceSectionView.swift": {
+   "raw text style": 2
+  },
+  "App/MemberIdentityAvatarView.swift": {
    "raw text style": 1
   },
   "App/MemberScoreAppealListView.swift": {
-   "raw text style": 1
+   "raw text style": 2
   },
   "App/MemberSubscriptionAndOrderInvoiceSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 2
+  },
+  "App/MerchantAcceptedProjectView.swift": {
+   "raw text style": 2
+  },
+  "App/MerchantAftercareEvidenceFlow.swift": {
+   "raw text style": 4
   },
   "App/MerchantAndPublishAuthoringSectionView.swift": {
-   "raw text style": 2
+   "raw text style": 3
   },
   "App/MerchantAuthoringLocalization.swift": {
    "Theme.Font": 2
   },
-  "App/MerchantDecorAndShopApplyWizardSectionView.swift": {
+  "App/MerchantBusinessEditor.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantBusinessRecordViews.swift": {
    "raw text style": 9
+  },
+  "App/MerchantBusinessViews.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantCRMDateRangePicker.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantCityNodeCreateView.swift": {
+   "raw text style": 4
+  },
+  "App/MerchantCityNodeHubView.swift": {
+   "raw text style": 8
+  },
+  "App/MerchantCityQuotaSummary.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantContentEditor.swift": {
+   "raw text style": 12
+  },
+  "App/MerchantContentViews.swift": {
+   "raw text style": 17
+  },
+  "App/MerchantCoopCenterView.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantCustomerContactSummary.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantCustomerEmptyRecoverySection.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantDecorAndShopApplyWizardSectionView.swift": {
+   "raw text style": 11
+  },
+  "App/MerchantDecorTagEditor.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantDeskSkuPage.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantDiscoverView.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantEngagementViews.swift": {
+   "raw text style": 8
+  },
+  "App/MerchantFeaturedActivityPicker.swift": {
+   "raw text style": 2
+  },
+  "App/MerchantFeaturedClearControl.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantGameNodeEntryView.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantGameNodeView.swift": {
+   "raw text style": 12
+  },
+  "App/MerchantHomeView.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantInsightRecentVisitorsSection.swift": {
+   "raw text style": 2
+  },
+  "App/MerchantInsightRecommendationRows.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantLedgerNetSummary.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantMarketingView.swift": {
+   "raw text style": 10
+  },
+  "App/MerchantNPCConversationHistoryView.swift": {
+   "raw text style": 4
+  },
+  "App/MerchantNPCGreetingPreview.swift": {
+   "raw text style": 5
+  },
+  "App/MerchantNPCKnowledgeDraftView.swift": {
+   "raw text style": 9
+  },
+  "App/MerchantNPCMapPointView.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantNPCRecoveryPresentation.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantNPCViews.swift": {
+   "raw text style": 8
   },
   "App/MerchantOfferWithdrawalOriginalView.swift": {
    "Theme.Font": 1
   },
+  "App/MerchantOnboardingHoursEditor.swift": {
+   "raw text style": 2
+  },
+  "App/MerchantOnboardingView.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantOperationsEditor.swift": {
+   "raw text style": 37
+  },
+  "App/MerchantOperationsViews.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantOperatorInvitationReceiptView.swift": {
+   "raw text style": 7
+  },
+  "App/MerchantOperatorRolePermissionSection.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantPerkValidityCalendar.swift": {
+   "raw text style": 4
+  },
+  "App/MerchantProjectBrowserControls.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantReviewPhotoGallery.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantStationLiveCodeView.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantStationServiceTimeFields.swift": {
+   "raw text style": 3
+  },
+  "App/MerchantStationSubmissionImportView.swift": {
+   "raw text style": 4
+  },
+  "App/MerchantStoreCharacterView.swift": {
+   "raw text style": 5
+  },
+  "App/MerchantTemplateAssistSheet.swift": {
+   "raw text style": 5
+  },
   "App/MerchantTemplateBrowserView.swift": {
    "Theme.Font": 1
+  },
+  "App/MerchantTemplateSuggestionEditSheet.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantTemplateSuggestionReviewPanel.swift": {
+   "raw text style": 6
+  },
+  "App/MerchantTopicDetailSection+Wire2.swift": {
+   "raw text style": 1
+  },
+  "App/MerchantTopicIntroSection+Port.swift": {
+   "raw text style": 2
+  },
+  "App/MessagingHistoryView.swift": {
+   "raw text style": 1
   },
   "App/MiniProgram99PageParitySectionView.swift": {
    "raw text style": 5
   },
+  "App/ModCreatorIncomeViews.swift": {
+   "raw text style": 1
+  },
+  "App/ModInstallationNativeActionReceiptView.swift": {
+   "raw text style": 1
+  },
+  "App/ModInstallationTemplateEditorView.swift": {
+   "raw text style": 1
+  },
+  "App/ModInstallationTopicEditor.swift": {
+   "raw text style": 3
+  },
+  "App/NPCAISceneGuardSectionView.swift": {
+   "raw text style": 1
+  },
   "App/NativeAttributeAuthorViews.swift": {
    "hidden back": 1
+  },
+  "App/NativeAuthorPresentation.swift": {
+   "raw text style": 3
+  },
+  "App/NativeBlacklistView.swift": {
+   "raw text style": 3
+  },
+  "App/NativeChannelAppealEntry.swift": {
+   "raw text style": 2
   },
   "App/NativeChannelAttachmentPreviewEntry.swift": {
    "Theme.Font": 1
   },
+  "App/NativeChannelAuditEntry.swift": {
+   "raw text style": 2
+  },
   "App/NativeChannelFlowPresentation.swift": {
+   "raw text style": 1,
    "Theme.Font": 1
   },
   "App/NativeChannelForegroundUnreadEntry.swift": {
    "Theme.Font": 2
   },
   "App/NativeChannelManagementPresentation.swift": {
+   "raw text style": 1,
    "Theme.Font": 1
   },
   "App/NativeChannelMessageActionSheet.swift": {
+   "raw text style": 1,
    "Theme.Font": 1
   },
   "App/NativeChannelMessageConversationHost.swift": {
    "Theme.Font": 1
   },
+  "App/NativeChannelModerationEntry.swift": {
+   "raw text style": 2
+  },
   "App/NativeChannelReportRecoveryEntry.swift": {
    "Theme.Font": 2
   },
+  "App/NativeChannelRoleEntry.swift": {
+   "raw text style": 3
+  },
   "App/NativeChannelTextComposer.swift": {
+   "raw text style": 2,
    "Theme.Font": 2
+  },
+  "App/NativeConditionAuthorView.swift": {
+   "raw text style": 2
+  },
+  "App/NativeEntryLandingView.swift": {
+   "raw text style": 1
   },
   "App/NativeFriendChannelInviteEntry.swift": {
    "Theme.Font": 3
   },
   "App/NativeFriendChannelSourceEntry.swift": {
+   "raw text style": 1,
    "Theme.Font": 3
+  },
+  "App/NativeFriendMetadataView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeFriendPickerView.swift": {
+   "raw text style": 1
   },
   "App/NativeFriendTeamInviteEntry.swift": {
    "Theme.Font": 1
+  },
+  "App/NativeQRScanner.swift": {
+   "raw text style": 1
+  },
+  "App/NativeRpgConditionAuthorView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeRpgEnvironmentAuthorView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeRpgGrowthAuthorView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeRpgPassiveRulesAuthorView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeRpgResourceAuthorView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeSharedRecoveryAuthorView.swift": {
+   "raw text style": 1
   },
   "App/NativeStoryWalkingAuthorView.swift": {
    "back chevron": 1,
    "hidden back": 1
   },
+  "App/NativeSupersetOverMiniProgramSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeVerificationView.swift": {
+   "raw text style": 8
+  },
+  "App/NativeWebhookDeliveryLogView.swift": {
+   "raw text style": 3
+  },
+  "App/NativeWebhookEndpointEditor.swift": {
+   "raw text style": 1
+  },
+  "App/NativeWebhookInboundLogView.swift": {
+   "raw text style": 1
+  },
+  "App/NativeWebhookOneTimeCredentialView.swift": {
+   "raw text style": 2
+  },
   "App/NearbyTeamMapViews.swift": {
+   "raw text style": 2
+  },
+  "App/NearbyTeamViews.swift": {
+   "raw text style": 1
+  },
+  "App/NetworkReachabilityAndRetryBackoffSectionView.swift": {
    "raw text style": 1
   },
   "App/NonCashRewardDetailReadSupport.swift": {
    "Theme.Font": 1
   },
+  "App/ObjectBadgeViews.swift": {
+   "raw text style": 1
+  },
   "App/ObjectBadgeWallParityViews.swift": {
    "Theme.Font": 2
   },
-  "App/OfflineDurableRecoverySectionView.swift": {
+  "App/ObjectCardViews.swift": {
+   "raw text style": 1
+  },
+  "App/OfficialActionViews.swift": {
    "raw text style": 2
+  },
+  "App/OfficialEventComponents.swift": {
+   "raw text style": 3
+  },
+  "App/OfficialEventDetailView.swift": {
+   "raw text style": 2
+  },
+  "App/OfficialOrganizerConsoleView.swift": {
+   "raw text style": 1
+  },
+  "App/OfflineDurableRecoverySectionView.swift": {
+   "raw text style": 3
+  },
+  "App/OpsSafetyViews.swift": {
+   "raw text style": 1
+  },
+  "App/OrderLifecycleView.swift": {
+   "raw text style": 1
+  },
+  "App/OwnedTemplateSensorConfigurationView.swift": {
+   "raw text style": 1
+  },
+  "App/OwnerDraftBrowserView.swift": {
+   "raw text style": 2
+  },
+  "App/PassportView.swift": {
+   "raw text style": 2
+  },
+  "App/PaymentProviderReturnSheet.swift": {
+   "raw text style": 2
+  },
+  "App/PersonalLocationShareView.swift": {
+   "raw text style": 2
+  },
+  "App/PlayAdvancedView.swift": {
+   "raw text style": 2
+  },
+  "App/PlayBranchHistoryView.swift": {
+   "raw text style": 3
   },
   "App/PlayComponents.swift": {
    "Theme.Font": 1
   },
+  "App/PlayExperienceView.swift": {
+   "raw text style": 3
+  },
+  "App/PlayFinishRouteCardView.swift": {
+   "raw text style": 1
+  },
+  "App/PlayJourneyContentViews.swift": {
+   "raw text style": 1
+  },
+  "App/PlayKitAlbumView.swift": {
+   "raw text style": 1
+  },
   "App/PlayKitLegacyViews.swift": {
    "raw text style": 1
   },
+  "App/PlayKitQuestoViews.swift": {
+   "raw text style": 2
+  },
+  "App/PlayKitScreen.swift": {
+   "raw text style": 1
+  },
+  "App/PlayKitTimedChallengeView.swift": {
+   "raw text style": 1
+  },
+  "App/PlayPrefabRuntimeView.swift": {
+   "raw text style": 1
+  },
+  "App/PlayRouteMapCameraControls.swift": {
+   "raw text style": 1
+  },
+  "App/PlayRouteMapView.swift": {
+   "raw text style": 3
+  },
+  "App/PlayRuntimeAndAuxiliaryBindingSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/PlayRuntimeGapViews.swift": {
+   "raw text style": 1
+  },
+  "App/PlaySessionView.swift": {
+   "raw text style": 2
+  },
   "App/PlaySharedPlanLifecycleView.swift": {
+   "raw text style": 4,
    "Theme.Font": 1
+  },
+  "App/PlayStoreDayMerchantView.swift": {
+   "raw text style": 2
   },
   "App/PlayTaskOutcomeSection.swift": {
    "Theme.Font": 1
   },
+  "App/PlayTeamBackpackView.swift": {
+   "raw text style": 1
+  },
+  "App/PlayThemeRecordsView.swift": {
+   "raw text style": 1
+  },
+  "App/PrivacyAndSecurityRedactionSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/ProductionSigningAndLocalXcconfigSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/ProductionTelemetryAndPrivacyRedactionSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/ProfileComplaintPreparationView.swift": {
+   "raw text style": 2
+  },
+  "App/ProfileCurrentAvatarView.swift": {
+   "raw text style": 2
+  },
+  "App/ProfileDraftReviewSection.swift": {
+   "raw text style": 2
+  },
+  "App/ProfileEditView.swift": {
+   "raw text style": 1
+  },
+  "App/ProfileOrdersView.swift": {
+   "raw text style": 2
+  },
+  "App/ProjectAlbumImageAuthorField.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectAlbumPhotoRemovalButton.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectChapterAudioField.swift": {
+   "raw text style": 2
+  },
+  "App/ProjectDraftNodeOverview.swift": {
+   "raw text style": 5
+  },
+  "App/ProjectDraftStoryPreviewView.swift": {
+   "raw text style": 14
+  },
+  "App/ProjectEditDatePicker.swift": {
+   "raw text style": 5
+  },
+  "App/ProjectEditDetailForms.swift": {
+   "raw text style": 14
+  },
+  "App/ProjectEditFixtureSupport.swift": {
+   "raw text style": 5
+  },
+  "App/ProjectEditFlowParity.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectEditOverviewKit.swift": {
+   "raw text style": 2
+  },
+  "App/ProjectEditPendingPresentation.swift": {
+   "raw text style": 3
+  },
+  "App/ProjectEditRichStoryForms.swift": {
+   "raw text style": 7
+  },
+  "App/ProjectEditorAudioPreview.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectEndingConditionPicker.swift": {
+   "raw text style": 2
+  },
+  "App/ProjectInitialAttributesEditor.swift": {
+   "raw text style": 5
+  },
+  "App/ProjectInitialStateEditor.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectNodeBusinessHoursField.swift": {
+   "raw text style": 3
+  },
+  "App/ProjectNodeDurationField.swift": {
+   "raw text style": 2
+  },
+  "App/ProjectNodeGameplayRemovalField.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectNodeImageCrop.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectNodePhotoRemovalField.swift": {
+   "raw text style": 3
+  },
+  "App/ProjectNodePlacePicker.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectNodeRouteMappingEditor.swift": {
+   "raw text style": 2
+  },
+  "App/ProjectNodeTemplateCreationField.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectNodeTemplateSelectionField.swift": {
+   "raw text style": 1
+  },
+  "App/ProjectStoryVariablePicker.swift": {
+   "raw text style": 3
+  },
+  "App/ProjectSubmissionEvidenceViews.swift": {
+   "raw text style": 4
+  },
+  "App/ProjectTeamConfigurationEditor.swift": {
+   "raw text style": 4
+  },
+  "App/ProjectThoughtDefinitionsEditor.swift": {
+   "raw text style": 4
+  },
+  "App/ProjectTicketMeetingPointFields.swift": {
+   "raw text style": 1
+  },
+  "App/PublicPlayTemplateFixtureHost.swift": {
+   "raw text style": 1
+  },
+  "App/PublishMediaEditorSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/PublishRootContent.swift": {
+   "raw text style": 3
+  },
   "App/PublishTopicAndCommentModerationSectionView.swift": {
-   "raw text style": 6
+   "raw text style": 7
   },
   "App/PublisherLifecycleHostHooks.swift": {
    "Theme.Font": 1
   },
   "App/PublishingContextHandoffViews.swift": {
+   "raw text style": 1,
    "Theme.Font": 5
   },
+  "App/PublishingManagementViews.swift": {
+   "raw text style": 2,
+   "large title": 1
+  },
+  "App/PublishingModesViews.swift": {
+   "raw text style": 2
+  },
+  "App/PushNotificationAndLiveActivitySectionView.swift": {
+   "raw text style": 1
+  },
+  "App/QmodAuthorImportView.swift": {
+   "raw text style": 2
+  },
+  "App/QuestifyDensityMap.swift": {
+   "raw text style": 4
+  },
+  "App/QuestifyImageEntityCard.swift": {
+   "raw text style": 5
+  },
   "App/QuestifyMotionComponents.swift": {
+   "raw text style": 4,
    "Theme.Font": 1
   },
+  "App/ReceivedStampsAndPassportToolsSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/ReformWorkPackagesW02ToW20SectionView.swift": {
+   "raw text style": 1
+  },
   "App/ReformWorldHostWorkbenchView.swift": {
+   "raw text style": 3
+  },
+  "App/RegionalEndpointAllowlistSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/ReleaseArchiveChecklistSectionView.swift": {
    "raw text style": 2
   },
   "App/ReleasePreflightDiagnosticsView.swift": {
-   "raw text style": 1
+   "raw text style": 9
+  },
+  "App/RoamBrowserView.swift": {
+   "raw text style": 6
+  },
+  "App/RoamExperienceComponents.swift": {
+   "raw text style": 2
+  },
+  "App/RoamExperienceHubView.swift": {
+   "raw text style": 4
+  },
+  "App/RoamFinishReportView.swift": {
+   "raw text style": 2
+  },
+  "App/RoamHistoryViews.swift": {
+   "raw text style": 4
   },
   "App/RoamHomeTabsView.swift": {
+   "raw text style": 3
+  },
+  "App/RoamItemDetailView.swift": {
+   "raw text style": 3
+  },
+  "App/RoamLiveSessionView.swift": {
+   "raw text style": 1
+  },
+  "App/RoamLocationSettingsDestination.swift": {
    "raw text style": 1
   },
   "App/RoamMonthlyRecapDetailView.swift": {
    "Theme.Font": 1
   },
+  "App/RoamPOIActions.swift": {
+   "raw text style": 1
+  },
   "App/RoamPassportToolsViews.swift": {
+   "raw text style": 1,
    "Theme.Font": 1
   },
-  "App/RunAuthorityHostSectionView.swift": {
+  "App/RoamRecoveryView.swift": {
    "raw text style": 1
   },
-  "App/SQLiteAndJSONJournalCorruptionRecoverySectionView.swift": {
+  "App/RoamStampCameraView.swift": {
    "raw text style": 1
   },
-  "App/ScheduleAndLeadProgressPollingSectionView.swift": {
-   "raw text style": 2
-  },
-  "App/SevenDayLaunchCriticalPathSectionView.swift": {
+  "App/RoamStampViews.swift": {
    "raw text style": 4
   },
-  "App/SocialGraphAndProfilePrivacySectionView.swift": {
+  "App/RoamSubpageParityViews.swift": {
+   "raw text style": 6
+  },
+  "App/RunAuthorityHostSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/SQLiteAndJSONJournalCorruptionRecoverySectionView.swift": {
    "raw text style": 2
   },
-  "App/StoryRuleEditorView.swift": {
+  "App/ScheduleAndLeadProgressPollingSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/SearchMapCanvas.swift": {
    "raw text style": 2
   },
-  "App/TeamMeetingHandshakeSectionView.swift": {
-   "raw text style": 2
-  },
-  "App/TestFlightInternalAndExternalSmokeSectionView.swift": {
+  "App/SearchMapComponents.swift": {
    "raw text style": 1
   },
+  "App/SearchMapExplorerView.swift": {
+   "raw text style": 19
+  },
+  "App/SearchMapFilterSheet.swift": {
+   "raw text style": 6
+  },
+  "App/SessionLocationHoldsSection.swift": {
+   "raw text style": 1
+  },
+  "App/SettingsAboutView.swift": {
+   "raw text style": 1
+  },
+  "App/SettingsSupportSections.swift": {
+   "raw text style": 1
+  },
+  "App/SettingsView.swift": {
+   "large title": 1
+  },
+  "App/SevenDayLaunchCriticalPathSectionView.swift": {
+   "raw text style": 6
+  },
+  "App/ShopNPCScriptedGuideView.swift": {
+   "raw text style": 4
+  },
+  "App/ShopNPCView.swift": {
+   "raw text style": 7
+  },
+  "App/SideQuestAndPersonalFogAuditSectionView.swift": {
+   "raw text style": 2
+  },
+  "App/SocialGraphAndProfilePrivacySectionView.swift": {
+   "raw text style": 3
+  },
+  "App/SocialGuideTemplateSection.swift": {
+   "raw text style": 3
+  },
+  "App/SocialGuideXcxParity.swift": {
+   "raw text style": 1
+  },
+  "App/SocialPublicProfileView.swift": {
+   "raw text style": 1
+  },
+  "App/SquareBrowserView.swift": {
+   "large title": 1
+  },
+  "App/SquareCloudComposerView.swift": {
+   "raw text style": 7
+  },
+  "App/SquareCloudFeedViews.swift": {
+   "raw text style": 6
+  },
+  "App/SquareComponents.swift": {
+   "raw text style": 2
+  },
+  "App/SquarePostVideoViews.swift": {
+   "raw text style": 1
+  },
+  "App/SquareWorkspaceView.swift": {
+   "raw text style": 7
+  },
+  "App/SquareXcxPostCard.swift": {
+   "raw text style": 1
+  },
+  "App/StoreKit2SubscriptionAndRefundSectionView.swift": {
+   "raw text style": 3
+  },
+  "App/StoryRuleEditorView.swift": {
+   "raw text style": 6
+  },
+  "App/TeamComponents.swift": {
+   "raw text style": 1
+  },
+  "App/TeamMeetingHandshakeSectionView.swift": {
+   "raw text style": 4
+  },
+  "App/TeamReportReasonSheet.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateAuthoringCoverHeader.swift": {
+   "raw text style": 2
+  },
+  "App/TemplateAuthoringDetailForms.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateAuthoringPublishResultPresentation.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateAuthoringSavedResultPresentation.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateAuthoringView.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateBlindOptionEditor.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateChoiceMemoryFields.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateChoiceOptionRowsEditor.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateD6RehearsalView.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateDetailXbChrome.swift": {
+   "raw text style": 2
+  },
+  "App/TemplateHintLadderFields.swift": {
+   "raw text style": 1
+  },
+  "App/TemplateMiniGameConfigurationView.swift": {
+   "raw text style": 1
+  },
+  "App/TemplatePreferenceDraftEditor.swift": {
+   "raw text style": 1
+  },
+  "App/TestFlightInternalAndExternalSmokeSectionView.swift": {
+   "raw text style": 2
+  },
   "App/ThreeDocumentMasterCrosswalkSectionView.swift": {
+   "raw text style": 2
+  },
+  "App/TicketWalletDetailView.swift": {
+   "raw text style": 3
+  },
+  "App/TicketWalletTeamView.swift": {
+   "raw text style": 1
+  },
+  "App/TicketWalletView.swift": {
+   "raw text style": 2
+  },
+  "App/TopicComponents.swift": {
+   "raw text style": 1
+  },
+  "App/TopicDetailView.swift": {
+   "raw text style": 1
+  },
+  "App/TopicReviewsContent.swift": {
+   "raw text style": 1
+  },
+  "App/TopicSelfPlaySheet.swift": {
+   "raw text style": 1
+  },
+  "App/TopicThemeRecordsView.swift": {
+   "raw text style": 1
+  },
+  "App/TopicUnlikeControls.swift": {
    "raw text style": 1
   },
   "App/TopicXcxSections.swift": {
-   "raw text style": 1
+   "raw text style": 3
   },
   "App/UITestFlowReadinessAnchorSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 2
   },
   "App/UltimateReleaseReadinessExecutiveSummaryView.swift": {
    "raw text style": 1
   },
   "App/UnifiedDecisionsU01ToU08SectionView.swift": {
-   "raw text style": 2
+   "raw text style": 3
   },
   "App/UnifiedReleaseAuditHubView.swift": {
+   "raw text style": 2
+  },
+  "App/UnifiedTicketExecutionMatrixSectionView.swift": {
+   "raw text style": 8
+  },
+  "App/UsageConsentGateView.swift": {
    "raw text style": 1
   },
   "App/WalletCommerceViews.swift": {
-   "raw text style": 1
+   "raw text style": 3
   },
   "App/WalletEarningsOverview.swift": {
    "Theme.Font": 1
@@ -382,10 +1406,16 @@
    "Theme.Font": 1
   },
   "App/Wave3HandoffStatusSectionView.swift": {
-   "raw text style": 1
+   "raw text style": 4
   },
   "App/WeChatAndAppleSignInNonceStateSectionView.swift": {
    "raw text style": 2
+  },
+  "App/WeChatShareCardAndPosterExportSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/WebViewAndExternalSafariSandboxSectionView.swift": {
+   "raw text style": 1
   },
   "App/WorkshopCommerceView.swift": {
    "Theme.Font": 12
@@ -393,8 +1423,20 @@
   "App/WorkshopLicenseLibraryView.swift": {
    "Theme.Font": 3
   },
-  "App/ZeroRegressionLegacyServerIsolationSectionView.swift": {
+  "App/WorkshopModUpgradeSheetView.swift": {
+   "raw text style": 3
+  },
+  "App/WorkshopPaidInstalledTextView.swift": {
+   "raw text style": 1
+  },
+  "App/WorldAndCityLifecycleSectionView.swift": {
    "raw text style": 2
+  },
+  "App/XcodeGenAndScaffoldDiagnosticsSectionView.swift": {
+   "raw text style": 1
+  },
+  "App/ZeroRegressionLegacyServerIsolationSectionView.swift": {
+   "raw text style": 3
   }
  }
 }
