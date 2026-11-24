@@ -25,7 +25,7 @@ struct OrderStatusChip: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Label { Text(title).cyWrapText() } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
-            .font(CYTypography.caption.weight(.semibold))
+            .cyText(.caption, weight: .semibold)
             .foregroundStyle(emphasized ? CYColor.textPrimary : CYColor.textSecondary)
             .padding(.horizontal, CYSpacing.md)
             .padding(.vertical, CYSpacing.xs + 2)
@@ -116,7 +116,7 @@ struct OrderAmountHero: View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             Text(verbatim: figure)
-                .font(CYTypography.data2XL)
+                .cyText(.data2XL)
                 .foregroundStyle(CYColor.textPrimary)
                 .cyWrapText()
                 .privacySensitive()

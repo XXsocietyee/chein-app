@@ -337,7 +337,7 @@ enum CYPassCardPick {
         let side = Self.qrSide
         return VStack(spacing: CYSpacing.sm) {
             if ticket.status == .ready, let n = ticket.registrationNumber, !n.isEmpty {
-                Text(verbatim: n).font(CYTypography.sectionTitle.monospaced()).foregroundStyle(.black)
+                Text(verbatim: n).cyText(.sectionTitle).monospaced().foregroundStyle(.black)
                     .minimumScaleFactor(0.5).lineLimit(2).multilineTextAlignment(.center).textSelection(.enabled)
                     .accessibilityLabel(Text(verbatim: c.t("票号", "Ticket number"))).accessibilityValue(Text(verbatim: n))
                     .accessibilityIdentifier("ticketPass.number")

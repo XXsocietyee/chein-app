@@ -37,7 +37,7 @@ import SwiftUI
             else if model.unavailable { text("unavailable") }
             else if model.failed {
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
-                    .font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
                     .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
             } else if let slice = model.displayedResult(for: reader) {
@@ -198,7 +198,7 @@ import SwiftUI
 private struct WalletIncomeAnalysisDetailStyle: LabeledContentStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            configuration.label.font(Theme.Font.body).foregroundStyle(.secondary)
+            configuration.label.cyText(.body).foregroundStyle(.secondary)
             configuration.content.fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

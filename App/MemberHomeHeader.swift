@@ -55,7 +55,7 @@ import SwiftUI
                     .accessibilityIdentifier("member.card.level")
                     Label { city } icon: { Image(systemName: "location").accessibilityHidden(true) }
                         .accessibilityIdentifier("member.card.city")
-                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .cyText(.meta).foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)

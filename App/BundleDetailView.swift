@@ -79,7 +79,7 @@ import SwiftUI
                 }
                 if let days = content.extras?.validityDays {
                     Label { Text(verbatim: copy.t("购买后 \(days) 天内有效", "Valid for \(days) days after purchase")) } icon: { Image(systemName: "calendar.badge.clock") }
-                        .font(CYTypography.caption).foregroundStyle(palette.info)
+                        .cyText(.caption).foregroundStyle(palette.info)
                         .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
                         .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.infoSoft))
                 }

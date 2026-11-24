@@ -394,7 +394,7 @@ enum WalletPayoutCapability {
                                 .cyText(.caption, weight: .semibold)
                                 .foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
-                                .font(CYTypography.data2XL)
+                                .cyText(.data2XL, monospacedDigit: true)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .privacySensitive()
                         }
@@ -602,7 +602,7 @@ extension EnvironmentValues {
                     .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
-                        .font(CYTypography.data2XL).monospacedDigit()
+                        .cyText(.data2XL, monospacedDigit: true)
                         .cyWrapText()
                         .foregroundStyle(CYColor.textPrimary)
                     if value != nil { Text(verbatim: unit).cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
@@ -644,7 +644,7 @@ extension EnvironmentValues {
         return layout {
             if !stacked {
                 Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
-                    .font(CYTypography.bodyCompact.weight(.semibold))
+                    .cyText(.bodyCompact, weight: .semibold)
                     .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                     .frame(width: 36, height: 36)
                     .background(CYColor.bgRaised, in: Circle())
@@ -1136,7 +1136,7 @@ private struct WalletEarningsHero: View {
                     Text("—").cyText(.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
                         .accessibilityLabel(Text(verbatim: ""))
                 }
-                Text(number).font(CYTypography.data2XL).monospacedDigit()
+                Text(number).cyText(.data2XL, monospacedDigit: true)
             }
             .foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
         }

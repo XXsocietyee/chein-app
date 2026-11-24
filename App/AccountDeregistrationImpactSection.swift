@@ -59,7 +59,7 @@ struct AccountDeregistrationImpactSection: View {
             }
             (Text("c08.display.34", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.revision)).cyText(.caption).textSelection(.enabled)
         } header: { Text("c08.display.28", tableName: "AccountDeregistrationPresentation") }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
@@ -95,7 +95,7 @@ struct AccountDeregistrationImpactConfirmation: View {
             .disabled(!matches).accessibilityIdentifier("compliance.submit")
             .sensoryFeedback(.warning, trigger: confirming) { _, new in new }
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .onDisappear { confirmation = "" }
         .sheet(isPresented: $confirming) {

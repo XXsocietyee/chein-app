@@ -48,7 +48,7 @@ import UIKit
                 Label {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("settingsNative.about.title")
-                        Text("settingsNative.about.entryHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("settingsNative.about.entryHint").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 } icon: { Image(systemName: "info.circle.fill") }
             }

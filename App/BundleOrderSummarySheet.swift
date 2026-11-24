@@ -95,7 +95,7 @@ import SwiftUI
         let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.md))
         return layout {
             Text(verbatim: title)
-                .font(emphasized ? CYTypography.bodyMedium : CYTypography.body)
+                .cyText(emphasized ? .bodyMedium : .body)
                 .foregroundStyle(emphasized ? palette.textPrimary : palette.textSecondary)
             if !stacked { Spacer(minLength: CYSpacing.sm) }
             value()

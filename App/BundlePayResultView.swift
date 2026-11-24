@@ -151,7 +151,7 @@ enum BundlePayResultPresentation: Equatable {
             Text(verbatim: title).cyText(.body).foregroundStyle(palette.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: value)
-                .font(numeric ? CYTypography.numericBody : CYTypography.bodyMedium)
+                .cyText(numeric ? .numericBody : .bodyMedium)
                 .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)

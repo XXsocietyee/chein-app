@@ -177,7 +177,7 @@ struct WalletStatusMessage: View {
     var body: some View {
         Label { Text(message).fixedSize(horizontal: false, vertical: true) }
             icon: { Image(systemName: systemImage).accessibilityHidden(true) }
-            .font(Theme.Font.body)
+            .cyText(.body)
             .padding(.vertical, Theme.Space.s3)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)

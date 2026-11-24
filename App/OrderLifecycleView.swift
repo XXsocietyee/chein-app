@@ -315,7 +315,7 @@ struct OrderLifecycleField: View {
                 Section {
                     VStack(spacing: CYSpacing.md) {
                         Image(systemName: review.action == .payment ? "creditcard" : review.action == .refund ? "arrow.uturn.backward.circle" : "xmark.circle")
-                            .font(CYTypography.display.weight(.regular)).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.display, weight: .regular).foregroundStyle(CYColor.textPrimary)
                             .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
                         Text(LocalizedStringKey("orderLifecycle.question." + review.action.rawValue))
                             .cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)

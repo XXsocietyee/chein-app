@@ -65,7 +65,7 @@ import SwiftUI
     @ViewBuilder private func readyBody(_ document: SettingsLegalDocument, page: SettingsLegalAgreementPage.Facts) -> some View {
         // The mini-program page opens straight on the title; the Chinese-only note is for other UI languages.
         if locale.language.languageCode != .chinese {
-            Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text("settingsNative.legal.sourceNotice").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("settingsNative.legal.sourceNotice")
         }
         // B-AG-01: the inline bar carries the document title; no second page-type title in the content (MP DS §3.1).
@@ -73,7 +73,7 @@ import SwiftUI
             Text("settingsNative.legal.version")
             Text(verbatim: page.versionText).accessibilityIdentifier(SettingsLegalAgreementPage.versionAccessibilityIdentifier)
                 .fixedSize(horizontal: false, vertical: true)
-        }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+        }.cyText(.meta).foregroundStyle(CYColor.textTertiary)
         if !document.intro.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             Text(verbatim: document.intro).cyText(.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
         }
@@ -96,10 +96,10 @@ import SwiftUI
         HStack {
             Text("settingsNative.legal.effectiveDate")
             Text(verbatim: page.effectiveDateText)
-        }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
+        }.cyText(.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("settingsNative.legal.effectiveDate")
-        Text("settingsNative.legal.noAcceptance").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        Text("settingsNative.legal.noAcceptance").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             .accessibilityIdentifier("settingsNative.legal.noAcceptance")
     }
 }

@@ -200,7 +200,7 @@ private struct ProfileOrderRow: View {
     }
     private func meta(_ text: Text, _ symbol: String) -> some View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).frame(width: 16).accessibilityHidden(true) }
-            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
     }
     private var footer: some View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
