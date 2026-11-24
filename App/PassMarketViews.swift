@@ -247,7 +247,7 @@ struct PassMarketView: View {
             Spacer()
             if pointsDestination != nil {
                 HStack(spacing: CYSpacing.xs) { Text("mp.pass.pointsHistory"); Image(systemName: "chevron.right") }
-                    .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.label).foregroundStyle(CYColor.textSecondary)
             }
         }
         .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
@@ -300,7 +300,7 @@ struct PassMarketView: View {
 
     private func memberCard(_ side: PassMemberEntrySide) -> some View {
         HStack(spacing: CYSpacing.md) {
-            Image(systemName: "key.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lanternHot)
+            Image(systemName: "key.fill").cyText(.cardTitle).foregroundStyle(CYNight.lanternHot)
                 .frame(width: 44, height: 44)
                 .background { Circle().fill(CYNight.glow(radius: 22)) }
                 .accessibilityHidden(true)
@@ -767,7 +767,7 @@ struct PassGiftReadySheet: View {
 
     var body: some View {
         VStack(spacing: CYSpacing.lg) {
-            Image(systemName: "gift.fill").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
+            Image(systemName: "gift.fill").cyText(.display).foregroundStyle(CYNight.lanternHot)
                 .padding(CYSpacing.lg).background { Circle().fill(CYNight.glow(radius: 40)) }
                 .accessibilityHidden(true)
             Text("mp.pass.giftReady.title").cyText(.sheetTitle).foregroundStyle(CYColor.textPrimary)
@@ -814,7 +814,7 @@ struct PassTicketHero: View {
                         .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.55, dampingFraction: 0.72).delay(Double(index) * 0.04), value: assembled)
                 }
                 VStack(spacing: CYSpacing.xs) {
-                    Image(systemName: "key.fill").font(CYTypography.sectionTitle)
+                    Image(systemName: "key.fill").cyText(.sectionTitle)
                     Text(verbatim: face).cyText(.cardTitle).lineLimit(2).multilineTextAlignment(.center)
                 }
                 .foregroundStyle(CYNight.ink0)
@@ -894,7 +894,7 @@ struct PassGiftClaimView: View {
                 Circle().fill(failedReason == nil ? CYNight.glow(radius: 60) : RadialGradient(colors: [CYColor.bgElevated], center: .center, startRadius: 0, endRadius: 1))
                     .frame(width: 120, height: 120)
                 Image(systemName: claimed ? "checkmark" : "gift.fill")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(failedReason == nil ? (claimed ? CYNight.verify : CYNight.lanternHot) : CYColor.textTertiary)
                     .contentTransition(.symbolEffect(.replace))
             }

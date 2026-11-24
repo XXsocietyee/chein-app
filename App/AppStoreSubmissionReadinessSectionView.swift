@@ -228,7 +228,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).title")
                 Spacer()
                 Text(verbatim: item.referenceCode)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).ref")
                 Text(verbatim: item.statusBadgeText)
@@ -244,7 +244,7 @@ public struct AppStoreSubmissionReadinessSectionView: View {
 
             if !item.requiredKeys.isEmpty {
                 Text(verbatim: item.requiredKeys.joined(separator: " · "))
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("appStoreReadiness.item.\(item.id).keys")
             }

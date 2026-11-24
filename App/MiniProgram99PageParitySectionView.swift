@@ -208,10 +208,10 @@ public struct MiniProgram99PageParitySectionView: View {
                             .foregroundStyle(row.isFullyAligned ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.coverageSummaryText)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: row.failClosedGateBadgeText)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("miniProgramParity.domainGates.\(row.id)")
                 }
@@ -235,17 +235,17 @@ public struct MiniProgram99PageParitySectionView: View {
                 .cyText(.bodyMedium)
 
             Text(verbatim: wave2ScopeIDsSummaryText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("miniProgramParity.wave2ScopeIDs")
 
             ForEach(wave2Badges) { badge in
                 HStack {
                     Text(verbatim: "\(badge.id) · \(badge.summary)")
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                     Spacer()
                     Text(verbatim: badge.isIntegrated ? "INTEGRATED [FAIL-CLOSED]" : "PENDING")
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(badge.isIntegrated ? CYColor.textSecondary : CYColor.warningText)
                 }
                 .accessibilityElement(children: .combine)
