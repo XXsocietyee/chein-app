@@ -391,7 +391,6 @@ struct TopicDetailView: View {
                     .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityHint(Text("topic.source.sessionRow.hint"))
                     .accessibilityIdentifier("topic.session.row")
                 }
                 if !value.tickets.isEmpty { Text("topic.source.sessionNote.mp").cyText(.meta).foregroundStyle(CYColor.textTertiary) }

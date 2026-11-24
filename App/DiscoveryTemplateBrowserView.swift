@@ -280,6 +280,16 @@ struct DiscoveryTemplateBrowserView: View {
                         .accessibilityIdentifier("discovery.topicNameSearch.noResults")
                 } else if let selection = tags.selection, let tag = tags.row.first(where: { $0.key == selection }) ?? tags.groups.flatMap(\.tags).first(where: { $0.key == selection }) {
                     topicSection("discovery.topics", rows: shown, hero: true, verbatimTitle: locale.pick(tag.zh, tag.en))
+                } else if named.count == catalog.count {
+                    // R7-PC-A2-3 topic half (MP shelf/index.js:309 `buildTopics`): 精选 rail in FEATURED_TOPICS order,
+                    // then 全部主题, then the TOPIC_SHELVES rows that have content.
+                    let featured = TemplateShelfArt.featuredTopics(shown)
+                    if !featured.isEmpty { featuredTopicRail(featured) }
+                    topicSection("discovery.shelf.allTopics", rows: shown)
+                    topicSection("discovery.shelf.withinTwoHours", rows: shown.filter { ($0.totalTime ?? 0) > 0 && ($0.totalTime ?? 0) <= 7200 }, shelfKey: "shelf2h")
+                    topicSection("discovery.shelf.scifi", rows: SearchDiscoveryFilterParity.topics(shown, matching: "scifi"), shelfKey: "shelfScifi")
+                    topicSection("discovery.shelf.cityMemory", rows: SearchDiscoveryFilterParity.topics(shown, matching: "nostalgia"), shelfKey: "shelfMemory")
+                    topicSection("discovery.shelf.solo", rows: SearchDiscoveryFilterParity.topics(shown, matching: "solo"), shelfKey: "shelfSolo")
                 } else {
                     topicSection("discovery.topics", rows: shown, hero: true)
                 }
@@ -359,7 +369,46 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
-    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false, verbatimTitle: String? = nil) -> some View {
+    /// R7-PC-A2-4: MP `openTopic` — a preview-only row says 暂未开放 instead of opening.
+    private func openTopic(_ item: DiscoveryTopicTemplate) {
+        if item.previewOnly {
+            toastMessage = appLocalized("searchMap.template.previewOnly", locale: locale)
+            return
+        }
+        guard topicSelection == nil, topics.canOpen(reader: reader),
+              topics.value?.contains(where: { $0.id == item.id }) == true else { return }
+        topicSelection = .init(identity: reader.discoveryPresentationIdentity,
+            coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
+        topics.cover()
+    }
+    /// MP `featTopics` swiper (shelf/index.wxml:21-36): bundled-cover cards with page dots.
+    @ViewBuilder private func featuredTopicRail(_ rows: [DiscoveryTopicTemplate]) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSectionHeader("discovery.featured")
+            TabView {
+                ForEach(rows, id: \.id) { item in
+                    Button { openTopic(item) } label: {
+                        if let art = TemplateShelfArt.topicCover(item.name) {
+                            TemplateShelfArtHeroCard(art: art, title: item.name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name), meta: item.subtitle)
+                        } else {
+                            CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .allowsHitTesting(topics.canOpen(reader: reader))
+                    .padding(.bottom, CYSpacing.xl)
+                    .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
+                    .accessibilityIdentifier("discovery.topic.featured.\(item.id)")
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .always))
+            .indexViewStyle(.page(backgroundDisplayMode: .interactive))
+            .aspectRatio(16.0 / 11.5, contentMode: .fit)
+            .accessibilityIdentifier("discovery.featuredTopics")
+        }
+    }
+    /// `shelfKey` names a secondary shelf: its cards get `discovery.topic.<shelfKey>.<id>` so the main card id stays unique.
+    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil, hero: Bool = false, verbatimTitle: String? = nil, shelfKey: String? = nil) -> some View {
         if !rows.isEmpty {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if let shownTitle = verbatimTitle {
@@ -369,16 +418,7 @@ struct DiscoveryTemplateBrowserView: View {
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { index, item in
                     Button {
-                        // R7-PC-A2-4: MP `openTopic` — a preview-only row says 暂未开放 instead of opening.
-                        if item.previewOnly {
-                            toastMessage = appLocalized("searchMap.template.previewOnly", locale: locale)
-                            return
-                        }
-                        guard topicSelection == nil, topics.canOpen(reader: reader),
-                              topics.value?.contains(where: { $0.id == item.id }) == true else { return }
-                        topicSelection = .init(identity: reader.discoveryPresentationIdentity,
-                            coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
-                        topics.cover()
+                        openTopic(item)
                     } label: {
                         // MP asset (shelf/art.js THEMES): a known topic name always shows its bundled cover.
                         if hero && index == 0, let art = TemplateShelfArt.topicCover(item.name) {
@@ -403,7 +443,7 @@ struct DiscoveryTemplateBrowserView: View {
                         }
                     }.buttonStyle(.plain).allowsHitTesting(topics.canOpen(reader: reader))
                         .pageTemplateGroupedCard(label: topicCardLabel(item), traits: .isButton)
-                        .accessibilityIdentifier("discovery.topic.\(item.id)")
+                        .accessibilityIdentifier(shelfKey.map { "discovery.topic.\($0).\(item.id)" } ?? "discovery.topic.\(item.id)")
                 }
             }
         }

@@ -409,23 +409,6 @@
         }
       }
     },
-    "topic.source.sessionRow.hint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opens the session picker"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "打开场次选择"
-          }
-        }
-      }
-    },
     "discovery.shelf.group.shop": {
       "extractionState": "manual",
       "localizations": {
@@ -473,6 +456,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "城市探索"
+          }
+        }
+      }
+    },
+    "discovery.shelf.allTopics": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全部主题"
+          }
+        }
+      }
+    },
+    "discovery.shelf.withinTwoHours": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done within two hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两小时内玩完"
+          }
+        }
+      }
+    },
+    "discovery.shelf.scifi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sci-fi anomalies"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "科幻异常"
+          }
+        }
+      }
+    },
+    "discovery.shelf.cityMemory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City memories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市记忆"
+          }
+        }
+      }
+    },
+    "discovery.shelf.solo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fun on your own"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一个人也能玩"
           }
         }
       }

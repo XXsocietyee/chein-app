@@ -40,6 +40,15 @@ enum TemplateShelfArt {
         }
     }
 
+    /// `art.js` FEATURED_TOPICS order.
+    static let featuredTopicNames = ["异常事务局：不存在的坐标", "风味巡游", "末日广播：最后一座中继站", "上海像一部旧电影",
+                                     "时间污染：被删除的今天", "城市藏宝猎人", "高温末日逃生"]
+    /// MP `buildTopics`: the named featured topics first, then the rest in list order, capped at the featured count.
+    static func featuredTopics(_ rows: [DiscoveryTopicTemplate]) -> [DiscoveryTopicTemplate] {
+        var picked = featuredTopicNames.compactMap { name in rows.first { topicKey($0.name) == name } }
+        for row in rows where !picked.contains(where: { $0.id == row.id }) { picked.append(row) }
+        return Array(picked.prefix(featuredTopicNames.count))
+    }
     /// `art.js` FEATURED_GAMES order: the 玩法 tab's top paging rail.
     static let featuredGameTitles = ["一桌任务宾果", "分支故事接力", "招牌菜限时盲猜", "闭眼味觉师", "城市取景任务", "小队竞速点亮",
                                      "拍下这一刻", "咖啡风味人格"]
