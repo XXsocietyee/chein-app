@@ -58,3 +58,47 @@ All new UI views live in `App/MPGap/<Area>/*.swift` with zero edits to existing 
 6. **`TeamJoinGapManualCodeSection`** (`App/MPGap/AccountPublish/AccountPublishGapViews.swift`)
    - **Target:** `App/TeamPageParityViews.swift`
    - **Code:** `TeamJoinGapManualCodeSection(code: $joinCode, errorText: joinError, showsBuyTicketCTA: ticketRequired, onSubmitCode: { ... }, onBuyTicket: { ... })`
+
+## Round 2 Additions
+
+### Club
+6. **`ClubGapPlayRecordPickerRow`** (`App/MPGap/Club/ClubGapRemainingViews.swift`)
+   - **Target:** `App/ClubCommunityViews.swift` (post composer)
+   - **Code:** `ClubGapPlayRecordPickerRow(selected: selectedRef, options: refOptions, isLoading: isLoadingRefs, errorText: refError, onSelect: { ... }, onRetryLoad: { ... })`
+7. **`ClubGapActivityAndScanActions`** (`App/MPGap/Club/ClubGapRemainingViews.swift`)
+   - **Target:** `App/ClubDetailView.swift` (活动 card & 管理 tab)
+   - **Code:** `ClubGapActivityAndScanActions(showsUndertake: isMerchantViewer, showsScanVerify: canScan, onTapUndertake: { ... }, onTapScanVerify: { ... })`
+8. **`ClubGapFollowAuthorButton`** (`App/MPGap/Club/ClubGapRemainingViews.swift`)
+   - **Target:** `App/ClubCommunityViews.swift` (post header)
+   - **Code:** `ClubGapFollowAuthorButton(isFollowing: isFollowingAuthor, isBusy: isFollowBusy, onToggle: { ... })`
+9. **`ClubGapEventOpsExtrasSection`** (`App/MPGap/Club/ClubGapRemainingViews.swift`)
+   - **Target:** `App/ClubOpsEventView.swift`
+   - **Code:** `ClubGapEventOpsExtrasSection(paymentNotice: paymentNotice, windowWarning: windowWarning, showsEmptyPublishCTA: topics.isEmpty, onTapPublishTopic: { ... })`
+
+### Merchant-Coop
+7. **`MerchantGapWorkbenchProjectCardsSection`** (`App/MPGap/MerchantCoop/MerchantGapRemainingViews.swift`)
+   - **Target:** `App/MerchantHomeView.swift`
+   - **Code:** `MerchantGapWorkbenchProjectCardsSection(cards: projectCards, onSelectProject: { ... })`
+8. **`MerchantGapOnboardingIntroView`** (`App/MPGap/MerchantCoop/MerchantGapRemainingViews.swift`)
+   - **Target:** `App/MerchantOnboardingView.swift`
+   - **Code:** `MerchantGapOnboardingIntroView(ownedClubs: ownedClubs, onStartForm: { ... }, onSubmitClaim: { ... }, onTransferClub: { ... })`
+9. **`MerchantGapDecorContactSection`** (`App/MPGap/MerchantCoop/MerchantGapRemainingViews.swift`)
+   - **Target:** `App/MerchantOperationsEditor.swift`
+   - **Code:** `MerchantGapDecorContactSection(draft: $contactDraft, onPickQR: { ... }, onPickAddress: { ... }, onPreviewPublicHome: { ... }, onContactOps: { ... })`
+10. **`CoopGapRelationFeedAndTeamInviteSection`** (`App/MPGap/MerchantCoop/MerchantGapRemainingViews.swift`)
+    - **Target:** `App/CoopRelationDiscoveryView.swift` & `App/MerchantOperatorRosterSections.swift`
+    - **Code:** `CoopGapRelationFeedAndTeamInviteSection(posts: posts, isRefreshing: isRefreshing, pendingInvite: pendingInvite, onComposePost: { ... }, onAcceptInvite: { ... })`
+
+### Account-Publish
+7. **`ProfileEditGapPhoneBindRow`** (`App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift`)
+   - **Target:** `App/ProfileEditView.swift`
+   - **Code:** `ProfileEditGapPhoneBindRow(maskedPhone: profile.phone, onTapBindOrRebind: { ... })`
+8. **`MiniCropGapOverlay`** (`App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift`)
+   - **Target:** `App/MiniCropView.swift`
+   - **Code:** `MiniCropGapOverlay(shape: cropShape, onReset: { ... })`
+9. **`SettingsGapComplaintRow`** (`App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift`)
+   - **Target:** `App/SettingsView.swift`
+   - **Code:** `SettingsGapComplaintRow(onOpenComplaint: { ... })`
+10. **`ActivityPublishGapOrganizerAndPOISection`** (`App/MPGap/AccountPublish/AccountPublishGapRemainingViews.swift`)
+    - **Target:** `App/PublishingModesViews.swift`
+    - **Code:** `ActivityPublishGapOrganizerAndPOISection(pickedPlaceName: placeName, isSoldLocked: isSoldLocked, organizerName: organizerName, organizerLoadFailed: organizerLoadFailed, onPickLocation: { ... }, onRetryOrganizer: { ... })`
