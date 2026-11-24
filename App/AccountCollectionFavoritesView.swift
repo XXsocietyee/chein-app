@@ -157,6 +157,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         .sheet(isPresented: $showRecommendNote) {
             MemberFavoritesRecommendNoteSheet { showRecommendNote = false }
                 .themeDomain(.player)
+                .cySheet()
         }
     }
     private func refresh() async {

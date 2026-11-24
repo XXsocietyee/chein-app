@@ -780,7 +780,7 @@ struct ProfileEditView: View {
                     }
                 }.appNavigationTitle("profile.edit.reviewTitle").navigationBarTitleDisplayMode(.inline)
             }.interactiveDismissDisabled(model.busy)
-            .cyPlayerSheetGlass()
+            .themeDomain(.player)
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)

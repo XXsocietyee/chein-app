@@ -54,7 +54,7 @@ enum CYPassCardPick {
         }
         .task(id: TaskKey(scope: reader.scope, token: loadToken, active: scenePhase == .active)) { await load() }
         .cyEdgeGlow(trigger: glowTick)
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .accessibilityIdentifier("ticketPass.sheet")
     }
     private struct TaskKey: Equatable { let scope: UUID; let token: Int; let active: Bool }

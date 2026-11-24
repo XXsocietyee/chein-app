@@ -98,11 +98,12 @@ import SwiftUI
         .sheet(item: Binding(get: { coordinator.review }, set: { if $0 == nil { model.dismiss() } })) { review in
             OrderLifecycleReviewView(review: review, canSimulate: coordinator.canSimulate, canDispatch: coordinator.canDispatch,
                 confirm: { Task { await model.confirm(review.id) } }, close: model.dismiss)
-                .cyPlayerSheetGlass()
+                .themeDomain(.player)
+                .cySheet(detents: [.large])
         }
         .sheet(item: Binding(get: { coordinator.paymentReturn }, set: { if $0 == nil { model.closePayment() } })) { flow in Group {
             PaymentProviderReturnSheet(flow: flow) { _ in model.closePayment() }
-                .cyPlayerSheetGlass()
+                .themeDomain(.player)
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.visible)

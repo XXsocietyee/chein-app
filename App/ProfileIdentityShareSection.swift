@@ -261,6 +261,7 @@ struct ProfileIdentityShareSourceTicket: Equatable {
                     ProfileIdentitySystemShare(text: offered.text,
                         isCurrent: { model.handoffIsCurrent(offered, previewID: previewID) },
                         completion: { model.finishHandoff(offered) })
+                    .cySheet()
                 }
             }
     }

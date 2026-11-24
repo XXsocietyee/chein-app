@@ -192,7 +192,7 @@ import SwiftUI
         .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [compactDetent, .large], selection: $summaryDetent)
         .presentationDragIndicator(.visible)
         .cyHaptic(.impactLight, trigger: summaryDetent)
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
     }
 }
 

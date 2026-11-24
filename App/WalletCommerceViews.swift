@@ -184,7 +184,7 @@ enum WalletPayoutCapability {
                 await loadFunds()
                 await loadMonth()
             }
-            .sheet(isPresented: $showsMore) { moreSheet }
+            .sheet(isPresented: $showsMore) { moreSheet.cySheet() }
             .onDisappear { isVisible = false; earnings.clear(); funds.clear(); monthModel.cancel() }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { earnings.clear(); funds.clear() }
@@ -994,7 +994,7 @@ private struct WalletIncomeListCard: ViewModifier {
             .onDisappear { model.cancel() }.refreshable { await load() }
             // Uses the inherited, independently reviewed support reader. History access
             // does not supply a contact or authorize support configuration/copying.
-            .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
+            .sheet(isPresented: $showContact) { WithdrawalSupportContactView().cySheet() }
             .appSwitcherPrivacyShield()
             .cyDomainScreen(.player)
     }

@@ -227,7 +227,7 @@ import SwiftUI
                           }) else { return }
                     showsSettings = false
                 } })
-                .cyPlayerSheetGlass()
+                .themeDomain(.player)
             }
             .presentationDetents([.large])
             .presentationDragIndicator(.visible)
@@ -244,9 +244,10 @@ import SwiftUI
                                 lifecycleCoordinator: session.orderLifecycleCoordinator, makeTeamCoordinator: { session.makeTeamCoordinator() })
                     .environment(\.ticketWalletPlayProvider, ticketPlayProvider)
                     .id(session.ticketWalletReader.scope)
-                    .cyPlayerSheetGlass()
+                    .themeDomain(.player)
+                    .cySheet(detents: [.large])
             }
-            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).cyPlayerSheetGlass() }
+            .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope).themeDomain(.player).cySheet(detents: [.large]) }
             .sheet(isPresented: $confirmsLogout) {
                 if let expected = logoutConfirmation {
                     MemberSignOutConfirmSheet(confirmIdentifier: "auth.signOut.confirm") {

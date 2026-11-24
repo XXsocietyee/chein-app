@@ -167,7 +167,7 @@ struct SettingsView: View {
 #endif
         }
         .onDisappear { profileOwner.retire() }
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))
         // Explicitly update sheets as well as the app root when preference changes.
         .modifier(AppLanguageEnvironment(stored: storedLanguage))

@@ -142,7 +142,7 @@ import UIKit
         }
         .onChange(of: model.avatarLifetimeID) { _, _ in discardID = nil; presentation.retire() }
         .sheet(isPresented: isPresented) {
-            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow) }
+            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow).cySheet(detents: [.large]) }
         }
     }
 }
@@ -271,7 +271,7 @@ import UIKit
         }
         .onChange(of: model.avatarLifetimeID) { _, _ in presentation.retire() }
         .sheet(isPresented: isPresented) {
-            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow) }
+            if let flow = presentation.flow { ProfileMediaFlowSheet(presentation: presentation, flow: flow).cySheet(detents: [.large]) }
         }
     }
 }
