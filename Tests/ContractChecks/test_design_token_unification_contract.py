@@ -93,8 +93,8 @@ class TestDesignTokenUnificationContract(unittest.TestCase):
         self.assertIn('case .body: return CYTypeSpec(.body, .regular', code)
         self.assertIn('case .micro: return CYTypeSpec(.caption,', code)
         self.assertIn('case .dataXL: return CYTypeSpec(.largeTitle, .bold', code)
-        self.assertIn('case .button: return CYTypeSpec(.headline, .semibold, lineHeight: 1.3)', code)
-        self.assertIn('Font.system(spec.textStyle, design: spec.design', code)
+        self.assertIn('case .button: return CYTypeSpec(.headline, .semibold)', code)
+        self.assertIn('.system(spec.textStyle, design: spec.design', code)
         self.assertNotIn('CYTypeSpec(.caption2', code)
 
         # Ensure every required Theme.length/color/duration key actually exists in Theme+Generated.swift

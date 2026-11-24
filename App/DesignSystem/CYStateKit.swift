@@ -204,6 +204,68 @@ struct CYStateLayout: View {
     }
 }
 
+/// The one state vocabulary (native restyle r1, spec §3.5) on the system `ContentUnavailableView`: empty, failed,
+/// signed out, gated and offline. Use it for new code and in the R1-R5 sweeps; `CYEmptyState`, `CYErrorState`,
+/// `CYStateLayout` and `CYStateView` already render through `ContentUnavailableView` too.
+/// One action at most: `.borderedProminent` when it is the screen's next step, `.bordered` for 重试.
+struct CYContentState: View {
+    enum Kind: Equatable {
+        case empty(String)
+        case failed
+        case signedOut
+        case gated
+        case offline
+
+        var symbol: String {
+            switch self {
+            case .empty(let symbol): symbol
+            case .failed: "exclamationmark.triangle"
+            case .signedOut: "person.crop.circle.badge.questionmark"
+            case .gated: "lock"
+            case .offline: "wifi.slash"
+            }
+        }
+
+        /// Retry is secondary; sign-in and a gate's next step are the screen's one primary.
+        var actionStyle: CYPillStyle {
+            switch self {
+            case .failed, .offline: .secondary
+            case .empty, .signedOut, .gated: .primary
+            }
+        }
+    }
+
+    let kind: Kind
+    let title: LocalizedStringKey
+    var description: LocalizedStringKey? = nil
+    var descriptionVerbatim: String? = nil
+    var action: (label: LocalizedStringKey, run: () -> Void)? = nil
+    var actionIdentifier: String? = nil
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        ContentUnavailableView {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: kind.symbol)
+                    .foregroundStyle(palette.textTertiary)
+            }
+        } description: {
+            if let descriptionVerbatim {
+                Text(verbatim: descriptionVerbatim)
+            } else if let description {
+                Text(description)
+            }
+        } actions: {
+            if let action {
+                CYStateActionButton(style: kind.actionStyle, action: action.run) { Text(action.label) }
+                    .ifLet(actionIdentifier) { $0.accessibilityIdentifier($1) }
+            }
+        }
+    }
+}
+
 /// System button for state actions: `.borderedProminent` for the screen's one primary, `.bordered` for a retry or
 /// secondary, borderless for a quiet link. 44 pt minimum target.
 struct CYStateActionButton<ButtonLabel: View>: View {

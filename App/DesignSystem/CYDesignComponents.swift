@@ -45,7 +45,8 @@ public struct CYCardSurfaceModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let showLightShadow = variant == .elevated && colorScheme == .light
+        // Native restyle r1 (spec §3.3): no shadow; elevation comes from the surface colour.
+        let showLightShadow = false
         content
             .padding(padding)
             .background(shape.fill(backgroundColor))
@@ -79,6 +80,20 @@ public extension View {
         padding: CGFloat = CYSpacing.lg
     ) -> some View {
         modifier(CYCardSurfaceModifier(variant: variant, radius: radius, padding: padding))
+    }
+}
+
+public extension View {
+    /// The one content-card surface (native restyle r1, spec §3.3): `bgSurface`, radius 12, 16 padding, no shadow.
+    func cyCard(padding: CGFloat = CYSpacing.lg) -> some View {
+        cyCardSurface(variant: .surface, radius: CYRadius.card, padding: padding)
+    }
+
+    /// A card placed as a `List` row (spec §3.3): no row background or separator, 6 pt vertical row insets.
+    func cyCardRow() -> some View {
+        listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
     }
 }
 

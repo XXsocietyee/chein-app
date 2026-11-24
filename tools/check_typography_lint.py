@@ -3,6 +3,7 @@
 
 Counts, per App/*.swift file (not App/Theme/ or CYDesignTokens.swift, which define the scale):
   raw text style   a style below `.caption` (`.font(.caption2)`); semantic styles are the native rule (restyle r1)
+  large title      `navigationBarTitleDisplayMode(.large)` (tab roots use `cyRootHeader`)
   Theme.Font       `Theme.Font.body` (use `CYTypography` / `.cyText(_:)`)
   raw size         `.system(size: 14)`, `UIFont.systemFont(ofSize:)`
   back chevron     `"chevron.left"` / `"chevron.backward"` used as a back control (pagers are not counted)
@@ -36,8 +37,8 @@ HIDDEN_BACK = 'hidden back'
 LARGE_TITLE = 'large title'
 KINDS = (RAW_STYLE, THEME_FONT, RAW_SIZE, BACK_CHEVRON, HIDDEN_BACK, LARGE_TITLE)
 
-# Native iOS restyle r1 (owner, 11-24): semantic Dynamic Type styles (`.font(.headline)`) are the rule now, so only
-# styles below `.caption` count. `.navigationBarTitleDisplayMode(.large)` on tab roots is the rule too (not counted).
+# Native iOS restyle r1 (owner, 11-24; docs/design/native-ios-r1.md §5.3): semantic Dynamic Type styles
+# (`.font(.headline)`) are legal again, so this kind now counts only styles below the `.caption` floor.
 S = 'caption2'
 RAW_STYLE_PATTERNS = (
     re.compile(rf'(?<![\w.])Font\.(?:{S})\b'),
@@ -75,6 +76,8 @@ def counts_in(rel, text):
                 add(BACK_CHEVRON)
             if rc.HIDDEN_BACK.search(line):
                 add(HIDDEN_BACK)
+    if rel != ROOT_HEADER_FILE:
+        add(LARGE_TITLE, len(rc.LARGE_TITLE.findall(clean)))
     return counts
 
 
@@ -127,7 +130,7 @@ HINT = {
     RAW_SIZE: 'use a scale token; decorative glyph sizes belong in App/DesignSystem components',
     BACK_CHEVRON: 'use the system back button (exit guard: `cyGuardedBack`; hero: `CYHeroBackButton` in `cyHeroChrome`)',
     HIDDEN_BACK: 'keep the system back; exit guards use `cyGuardedBack(when:onBack:)`',
-    LARGE_TITLE: 'not counted since native iOS restyle r1 (large on tab roots, inline on details)',
+    LARGE_TITLE: 'tab roots get the large title from `cyRootHeader`; pushed pages use `cyPageTitle(_:)` (inline)',
 }
 
 
@@ -146,7 +149,7 @@ def self_test():
         'Text("d").cyText(.meta)',
     ])
     got = counts_in('App/Sample.swift', sample)
-    want = {THEME_FONT: 1, RAW_SIZE: 1, BACK_CHEVRON: 1, HIDDEN_BACK: 1}
+    want = {THEME_FONT: 1, RAW_SIZE: 1, BACK_CHEVRON: 1, HIDDEN_BACK: 1, LARGE_TITLE: 1}
     assert counts_in('App/Sample.swift', 'Text("e").font(.caption2)\n') == {RAW_STYLE: 1}, 'missed a below-caption style'
     assert got == want, got
     inc, dec = compare({'App/A.swift': {RAW_STYLE: 2}}, {'App/A.swift': {RAW_STYLE: 1}})

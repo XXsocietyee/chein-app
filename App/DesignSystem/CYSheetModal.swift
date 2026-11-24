@@ -101,6 +101,20 @@ public extension View {
     }
 }
 
+public extension View {
+    /// The one sheet chrome (native restyle r1, spec §3.4). Apply to the sheet's root (usually a `NavigationStack`
+    /// with an inline title and 取消 / 完成 toolbar items): system detents, visible drag indicator, system corners and
+    /// background in the role's appearance.
+    func cySheet(
+        detents: Set<PresentationDetent> = [.medium, .large],
+        selection: Binding<PresentationDetent>? = nil
+    ) -> some View {
+        modifier(CYDomainSheetDetentsModifier(detents: detents, selection: selection))
+            .presentationDragIndicator(.visible)
+            .roleThemedPresentation()
+    }
+}
+
 private struct CYDomainSheetDetentsModifier: ViewModifier {
     let detents: Set<PresentationDetent>
     let selection: Binding<PresentationDetent>?

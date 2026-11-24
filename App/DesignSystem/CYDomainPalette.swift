@@ -304,8 +304,8 @@ struct CYDomainCardModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let shadowRadius: CGFloat = colorScheme == .light ? 3 : 0
-        let shadowY: CGFloat = colorScheme == .light ? 1 : 0
+        let shadowRadius: CGFloat = 0   // native restyle r1 (spec §3.3): cards carry no shadow
+        let shadowY: CGFloat = 0
         content
             .padding(padding)
             .background(
