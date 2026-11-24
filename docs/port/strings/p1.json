@@ -1,0 +1,209 @@
+{
+  "sourceLanguage": "zh-Hans",
+  "version": "1.0",
+  "strings": {
+    "cast.trust.accessibility %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Trust %lld of %lld" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "信任 %lld / %lld" } }
+      }
+    },
+    "cast.card.open %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Open %@'s card" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "查看%@的人物卡" } }
+      }
+    },
+    "cast.voice.play": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Play voice" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "播放语音" } }
+      }
+    },
+    "cast.voice.pause": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Pause voice" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂停语音" } }
+      }
+    },
+    "cast.card.trust": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "How they see you" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "TA 对你" } }
+      }
+    },
+    "cast.card.clues": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "What you know" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "你知道的" } }
+      }
+    },
+    "cast.card.locked %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "%lld more. Find them at the next stop." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "还有 %lld 条，走到下一站再看" } }
+      }
+    },
+    "cast.card.noClues": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Nothing yet" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "暂时还没有" } }
+      }
+    },
+    "cast.start.nameQuestion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "What's your name?" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "你叫什么？" } }
+      }
+    },
+    "cast.start.namePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your name" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "你的名字" } }
+      }
+    },
+    "cast.start.go": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Set off" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "出发" } }
+      }
+    },
+    "cast.start.identityQuestion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Who are you tonight?" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "今晚你以什么身份到场" } }
+      }
+    },
+    "cast.playbill.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cast" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "登场人物" } }
+      }
+    },
+    "cast.playbill.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Begin" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "开场" } }
+      }
+    },
+    "cast.playbill.menu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Cast list" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "人物表" } }
+      }
+    },
+    "cast.menu.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "More" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "更多" } }
+      }
+    },
+    "cast.player.you": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "你" } }
+      }
+    },
+    "cast.branch.remembers %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "%@ will remember this." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "%@会记住这件事" } }
+      }
+    },
+    "cast.ending.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "How they see you" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "他们怎么看你" } }
+      }
+    },
+    "cast.ending.footer %lld %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This route has %lld endings. This time, it was %@'s ending." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "这条线有 %lld 种结局。这一次，是%@的结局。" } }
+      }
+    },
+    "cast.ending.owner %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This time, it was %@'s ending." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "这一次，是%@的结局。" } }
+      }
+    },
+    "chapterStory.footer.station %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Stop %1$lld of %2$lld" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "第%1$lld站 / 共%2$lld站" } }
+      }
+    },
+    "platform.audio.autoplay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Play narration on arrival" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "到站自动播放" } }
+      }
+    },
+    "chapterStory.optionalReading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Further reading" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "延伸阅读" } }
+      }
+    },
+    "topic.cast": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Characters" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "人物" } }
+      }
+    },
+    "roleView.assignment.C": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Role C" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "角色 C" } }
+      }
+    },
+    "roleView.assignment.D": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Role D" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "角色 D" } }
+      }
+    },
+    "roleView.yourRole %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your role: %@" } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "你的角色：%@" } }
+      }
+    },
+    "roleView.teammatesOther": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your teammates are reading the other parts." } },
+        "zh-Hans": { "stringUnit": { "state": "translated", "value": "队友在看另一份。" } }
+      }
+    }
+  }
+}
