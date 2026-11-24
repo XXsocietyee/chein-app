@@ -80,3 +80,58 @@
 ## Acceptance
 - Fixture routes: `docs/port/accept/f-player-content-b.txt`.
 - Acceptance run: not started from this session (no `gh` workflow access here); the coordinator compiles and returns exact errors.
+
+## Round 2 (2026-11-24, brief `design/handoff-r2:docs/briefs/fix-r3-round2.md`)
+
+- **Sync:** merged `origin/ui/combined-r7` (Core K1–K10, W1 wiring, C7 MP assets). One conflict, `tools/check_typography_lint.py`, resolved to the r7 side (newer). Merged again before the final push.
+- **Cursor call sites:** there is no `cursor/wire-player-content` branch. `cursor-r7-wiring.md` lists only play-runtime mounts (cast, P4 stage, arrival, visit config), none on C2–D9 pages, so nothing here touches them. The App callers that `cursor-core-player-content.md` hands to the F-agent were done or are listed below.
+
+### Fixed in round 2
+
+| id | page | what changed | files |
+|---|---|---|---|
+| Owner decision 9 (two-decimal money) | D4, D5, D6 | Wallet money pads to `MoneyDisplay.minimumFractionDigits()` (¥12.50) through one shared `WalletNumberLocalization.money`. It never rounds, keeps the exact-decimal roundtrip guard and leaves points unpadded. It covers the balance hero, the asset rows, ledger balance and signed rows, and the analysis totals. The registration sheet already used `RegistrationUIMoney` (two places). | `App/WalletNumberLocalization.swift`, `App/WalletCommerceViews.swift` |
+| R7-PC-D4-1 (P1) | D4 | With no coop-finance read grant (`allowsRead() == false`), the 主办分润 tab bar is gone, so there is no tab that can only show "—". | `App/WalletCommerceViews.swift` |
+| R7-PC-D6-1 | D6 | The analysis reads `api/user/balance/list` in 200-row pages (`WalletAnalysisPagingPolicy.mpPageSize`). It stops when the oldest row on a full page falls before the six-month window (Beijing month start minus 5), and the 10-page budget stays as a fence. The budget copy now says the latest 2,000 records. | `App/WalletIncomeAnalysisReader.swift`, `Resources/WalletIncomeAnalysisRead.xcstrings`, `docs/release/ui-strings-subpackageA-pages-assetcenter-analysis-index.json` |
+| R7-PC-D1-2 | D1 | The row menu 取消 on an activity calls `MyProjectMutationModel.beginActivityCancel(id:title:)`, which reads `cancel_preview` first. The confirm sheet shows `confirmationText` (「将给 N 位已付款玩家全额退款」), and a missing count shows the model's failure without opening the confirm. The write stays behind its existing grant. | `App/MyProjectTabViews.swift`, `App/MyProjectMutationViews.swift` |
+| review B-23 | D9 | `im.reply.systemNotice` in the reply-policy fragment = 城瘾小助手不接收回复 / "Chengyin Assistant does not accept replies" (matches `p5.json`). `messaging.system` en = "Chengyin Assistant" (fragment). | `Resources/IMConversationReplyPolicyLocalizations.fragment.json`, strings fragment |
+| B-14 (asset part) | D8, D9 | A person with no avatar shows the MP `/images/d_profile.png`. The system row keeps its glyph: the MP `cy-icon bell/connect` is an icon font, not a shipped image. | see MP assets |
+
+### MP assets applied (`docs/mp-assets/mapping.md`)
+
+| asset | MP source | app place |
+|---|---|---|
+| [x] `MPAsset.BannerCover.coverRoute` | `pages/activity/baoming/baoming.wxml:85` | registration ticket card cover fallback (`App/RegistrationSheetView.swift`, aspect-fit on the neutral tile like `cy-cover-fb`) |
+| [x] `MPAsset.BannerCover.coverRoute` | `pages/activity/list/index.wxml:51` | official event card with no cover (`App/OfficialEventComponents.swift`) |
+| [x] `MPAsset.BannerCover.coverRoute` | `subpackageB/pages/im/chat/index.wxml:92` | IM route/signup card with no cover (`App/IMCardPreviewViews.swift`) |
+| [x] `MPAsset.BrandLogo.cyLogoMark` | `pages/activity/official-detail/index.wxml:31` | 城瘾官方 organizer row on official detail (`App/OfficialEventDetailView.swift`) |
+| [x] `MPAsset.BannerCover.subpackageAImagesRouteFreeCover` | `subpackageA/pages/myproject/index.wxml:38` | 我的项目 card cover fallback (`App/CreatorContentViews.swift`) |
+| [x] `MPAsset.AvatarDefault.dProfile` | `subpackageB/pages/im/list/index.wxml:141`, `im/chat/index.wxml:68,160` | inbox row, chat bar and bubble avatar fallback; the bubble also falls back to the counterparty avatar first, as the MP does (`App/IMInboxViews.swift`, `App/MessagingHistoryView.swift`) |
+| [ ] `MPAsset.EmptyState.noData` | `pages/activity/list/index.js:45` | Not applied: that line is a comment in the MP saying this page must **not** use `no_data.svg`; the page uses `cy-empty` glyphs. |
+| [ ] `MPAsset.BannerCover.routeCityCover` | `subpackageA/pages/myproject/index.wxml:72,83` | Template shelf rows are not inline on the app (R7-PC-D1-4 left), so there is no row to put it on. |
+| [ ] `MPAsset.BannerCover.subpackageBImagesRouteFreeCover` | `subpackageB/pages/im/chat/index.wxml:237` | That is the composer `+` route picker, which is Gemini's parked `IMComposerPlusMenuButton` (R7-PC-D9-3). |
+
+- Every other glyph on these pages is a `cy-icon` font glyph (arrow-right, pin, flag, gift, bell, connect, check, warning, plus) or a system control, so they stay SF Symbols.
+- **Shared components:** `E1CoverArt` (`fallbackImage`, `fallbackFills`), `QuestifyImageEntityCard.fallbackArtwork(_:)` and `CYImageCard.fallbackArtwork(_:)` gained optional, additive fallbacks. Every other caller is unchanged.
+
+### Left, with reasons (round 2)
+
+| id | reason / request |
+|---|---|
+| R7-PC-D9-2 (App row) | **Composition request (Cursor W1):** no `CommunityMemberReportClient` exists on `AppSession`, and its `writesEnabled` defaults to false with no grant. A 举报对方 row would open a sheet whose submit always throws `notConfigured`, which is a dead end. Once the session owns a client and a grant exists, add a `peerReport` choice to `MessagingSafetyMenuButton`'s option list from `IMSafetyMenu.offersPeerReport` and `im.chat.more.reportPeer` (keep `IMSafetyMenu.Item` unchanged, as the K receipt asks). |
+| R7-PC-D9-1 | **Core request (Cursor):** the ordinary read is only reachable through `reviewOrdinaryRead()` followed by an explicit confirm. `dispatchOrdinaryRead` is private, and `IMReadReceiptTriggerPolicy` defaults to `.explicitUserActionOnly`. A silent post after the first page needs a public `autoMarkReadAfterFirstPage()` on the coordinator, gated by that policy, which stays off by default. |
+| R7-PC-C2-2, R7-PC-D1-6 (coordinates), R7-PC-D3-3 | The round-1 Core requests are still open on r7: `RegistrationWaitlistStatus` has no `reservationState`, `CreatorContentProject` has no `latitude`/`longitude`, and `PublicContentShareLink.information(id:)` does not exist. |
+| R7-PC-D1-1 (pushed menu), R7-PC-D1-4, R7-PC-D2-1 (detail push), R7-PC-C4-3 (price row) | Unchanged from round 1. The pins still exist (`test_activity_publishing_wizard`, `test_social_guide_templates` sheet structure, `OfficialEventFlowTests`). |
+| review B-02…B-09, B-15, B-16, B-21, B-22, B-24, B-25 | These are topic, ticket-wallet, settle, club or Core rows (P3/P5), not on pages C2–D9. They are left for their owners. |
+| review rev-a, rev-c | rev-a covers play runtime only (Cursor). rev-c's Claude rows are integrator and mount rows (F-C02 MPGap glob, F-C21 club money gate), not this half. |
+| Owner decisions 8, 10, 7 | The arrival lock, the game-kit pilot gate and cast fixtures concern play pages; none is on C2–D9. Decisions 3, 6, 12: no money write was added or enabled here. Registration pay and withdrawal stay on their existing TEST-only gates. |
+
+### Tests and pins touched in round 2 (each tied to a change above)
+- `Tests/AppUnitTests/WalletNumberLocalizationTests.swift`: three signed-money expectations go from `1,234.5` to `1,234.50` (owner decision 9). Exact four-place values (`1,234.5678`) and points are unchanged.
+- `Tests/AppUnitTests/WalletIncomeAnalysisClosureTests.swift`: the harness and counts scale with `WalletIncomeAnalysisAccumulator.pageSize` (now 200). Row ids start at 100 000 so twelve pages stay positive, and `createTime` is "now" in Beijing time so the six-month cutoff never ends a read early. Each test asserts the same stop reasons as before.
+- `Tests/ContractChecks/test_wallet_income_analysis_closure.py`: the `pageSize = 20` pin is now `pageSize = WalletAnalysisPagingPolicy.mpPageSize`.
+
+### Local verification (round 2)
+- Contract checks: branch vs `origin/ui/combined-r7`, 200 → 202 FAIL/ERROR. Both new failures are the expected strings-fragment ones: `test_official_event_contracts…two_languages` and `test_localization_key_catalog_contract…missing_from_every_catalog`. The 8 keys it lists are all in `docs/port/strings/fix-r3-player-content-b.json`.
+- `tools/check_typography_lint.py`: PASS. No new Swift files or folders.
+- APIs grepped on r7 before use: `MPAsset.BannerCover.coverRoute`, `.subpackageAImagesRouteFreeCover`, `MPAsset.BrandLogo.cyLogoMark`, `MPAsset.AvatarDefault.dProfile`, `MoneyDisplay.minimumFractionDigits()`, `WalletAnalysisPagingPolicy.shouldContinue`, `BeijingServerTime`, `MyProjectMutationModel.beginActivityCancel(id:title:)` / `confirmationText`, `WalletOrganizerFinanceAccess.allowsRead`, `palette.bgStrong/bgRaised`.
