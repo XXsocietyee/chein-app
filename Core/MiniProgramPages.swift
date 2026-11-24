@@ -176,6 +176,7 @@ public enum MiniProgramPage: String, CaseIterable, Hashable, Sendable {
     case templatedetailTopicDetailIndex = "pages/templatedetail/topic-detail/index"
     case templatedetailTopicPreviewIndex = "pages/templatedetail/topic-preview/index"
     case templatedetail2Templatedetail2 = "pages/templatedetail2/templatedetail2"
+    case topicCatalogIndex = "pages/topic/catalog/index"
     case topicDetail = "pages/topic/detail"
     case topicIndex = "pages/topic/index"
     case topicIndexIndex = "pages/topic/index/index"

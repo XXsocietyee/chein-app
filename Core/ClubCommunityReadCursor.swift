@@ -10,8 +10,10 @@ public struct ClubCommunityFeedItem: Equatable, Identifiable {
     public let reposterName: String
     public let repostTime: String
     public var isRepost: Bool { repostID != nil }
+    /// Id sent as the next discover-feed `beforeId`. A repost uses the row id when the server sent one.
+    public let pagingID: Int
     public static func original(_ post: ClubCommunityPost) -> Self {
-        .init(id: "p\(post.id)", post: post, repostID: nil, reposterMemberID: nil, reposterName: "", repostTime: "")
+        .init(id: "p\(post.id)", post: post, repostID: nil, reposterMemberID: nil, reposterName: "", repostTime: "", pagingID: post.id)
     }
     init(row: [String: Any], clubID: Int?) throws {
         if let kind = row["itemType"], !(kind is NSNull) {
@@ -22,6 +24,7 @@ public struct ClubCommunityFeedItem: Equatable, Identifiable {
             id = "r\(repostID)"; self.repostID = repostID; reposterMemberID = memberID
             post = try ClubCommunityPost(json: nested)
             reposterName = CCWire.text(row["reposterNick"]); repostTime = CCWire.text(row["repostTime"])
+            pagingID = Self.positiveID(row["id"]) ?? repostID
         } else {
             guard Self.positiveID(row["id"]) != nil, let actualClub = Self.positiveID(row["clubId"]) else { throw ClubCommunityFailure.invalid }
             guard clubID == nil || actualClub == clubID else { throw ClubCommunityFailure.stale }
@@ -30,9 +33,9 @@ public struct ClubCommunityFeedItem: Equatable, Identifiable {
             self = .original(try ClubCommunityPost(json: row))
         }
     }
-    private init(id: String, post: ClubCommunityPost, repostID: Int?, reposterMemberID: Int?, reposterName: String, repostTime: String) {
+    private init(id: String, post: ClubCommunityPost, repostID: Int?, reposterMemberID: Int?, reposterName: String, repostTime: String, pagingID: Int) {
         self.id = id; self.post = post; self.repostID = repostID; self.reposterMemberID = reposterMemberID
-        self.reposterName = reposterName; self.repostTime = repostTime
+        self.reposterName = reposterName; self.repostTime = repostTime; self.pagingID = pagingID
     }
     private static func positiveID(_ raw: Any?) -> Int? {
         guard let number = raw as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
@@ -60,7 +63,7 @@ public struct ClubCommunityPostPage: Equatable {
         self.clubID = clubID; self.beforeID = beforeID; self.limit = limit; self.items = items; unpinnedIDs = ids
     }
     public func snapshot() throws -> ClubCommunitySnapshot { try Self.snapshot(items: items, page: self) }
-    static func snapshot(items: [ClubCommunityFeedItem], page: Self?, clubCount: Int? = nil) throws -> ClubCommunitySnapshot {
+    static func snapshot(items: [ClubCommunityFeedItem], page: Self?, clubCount: Int? = nil, feedHasMore: Bool = false, feedRequestedBeforeID: Int? = nil, feedNextBeforeID: Int? = nil) throws -> ClubCommunitySnapshot {
         var originals: [Int: ClubCommunityPost] = [:], ordered: [ClubCommunityPost] = []
         for item in items {
             if let existing = originals[item.post.id] {
@@ -73,7 +76,33 @@ public struct ClubCommunityPostPage: Equatable {
         }
         let visible = items.filter { $0.isRepost || $0.post.hasContent }
         let visibleIDs = Set(visible.map { $0.post.id })
-        return .init(posts: ordered.filter { visibleIDs.contains($0.id) }, comments: [], history: [], clubCount: clubCount, postPage: page, feedItems: visible)
+        return .init(posts: ordered.filter { visibleIDs.contains($0.id) }, comments: [], history: [], clubCount: clubCount, postPage: page, feedItems: visible, feedHasMore: feedHasMore, feedRequestedBeforeID: feedRequestedBeforeID, feedNextBeforeID: feedNextBeforeID)
+    }
+}
+
+/// Cross-club `scope:"all"` feed. The next page sends the last row's paging id as `beforeId`.
+public struct ClubCommunityFeedCursor {
+    public private(set) var identity: ClubReadIdentity?
+    public private(set) var beforeID: Int?
+    public private(set) var hasMore = false
+    private var items: [ClubCommunityFeedItem] = []
+    public init() {}
+    public mutating func reset() { self = .init() }
+    public mutating func accept(_ snapshot: ClubCommunitySnapshot, identity: ClubReadIdentity) throws -> ClubCommunitySnapshot {
+        guard snapshot.postPage == nil else { throw ClubCommunityFailure.invalid }
+        var next = self
+        if let cursor = snapshot.feedRequestedBeforeID {
+            guard next.identity == identity, next.hasMore, next.beforeID == cursor else { throw ClubCommunityFailure.stale }
+        } else {
+            next.reset(); next.identity = identity
+        }
+        var seen = Set(next.items.map(\.id))
+        for item in snapshot.feedItems where seen.insert(item.id).inserted { next.items.append(item) }
+        next.beforeID = snapshot.feedItems.last?.pagingID
+        next.hasMore = snapshot.feedHasMore && next.beforeID != nil
+        let merged = try ClubCommunityPostPage.snapshot(items: next.items, page: nil, clubCount: snapshot.clubCount, feedHasMore: next.hasMore, feedRequestedBeforeID: snapshot.feedRequestedBeforeID, feedNextBeforeID: next.beforeID)
+        self = next
+        return merged
     }
 }
 

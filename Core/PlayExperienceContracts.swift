@@ -2,7 +2,7 @@ import Foundation
 
 /// JSON scalar fidelity for source-backed payloads. Never log these values: answers and
 /// evidence can be private. Numeric strings are tolerated only by explicit accessors.
-public indirect enum PlayWireValue: Codable, Equatable {
+public indirect enum PlayWireValue: Codable, Equatable, Sendable {
     case object([String: PlayWireValue]), array([PlayWireValue]), string(String), integer(Int64), number(Double), bool(Bool), null
     public init(from decoder: Decoder) throws {
         let c = try decoder.singleValueContainer()
@@ -105,6 +105,8 @@ public struct PlayExperienceDocument: Decodable, Equatable {
     public let compatibility: PlayContentCompatibility?
     /// Content identity (frozen run snapshot version, else published config version). Nil is unknown, never 0.
     public let contentVersion: String?
+    /// Cast fields from this nodes read. `.null` when the route has no cast.
+    public let castPayload: PlayWireValue
     public init(from decoder: Decoder) throws {
         base = try PlayNodesResult(from: decoder)
         let raw = try PlayWireValue(from: decoder)
@@ -128,6 +130,7 @@ public struct PlayExperienceDocument: Decodable, Equatable {
         if let frozen = raw["contentSnapshotVersion"].tolerantInteger, frozen > 0 { contentVersion = "s\(frozen)" }
         else if let published = raw["publishedConfigVersion"].tolerantInteger, published > 0 { contentVersion = "p\(published)" }
         else { contentVersion = nil }
+        castPayload = CastRuntimeFacts.payload(from: raw)
     }
 }
 public struct PlayNodeExtras: Equatable {

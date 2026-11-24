@@ -1,4 +1,7 @@
 import XCTest
+#if canImport(FoundationNetworking)
+import FoundationNetworking
+#endif
 @testable import QuestifyCore
 
 final class SettingsIdentityApplicationsTests: XCTestCase {
@@ -96,5 +99,60 @@ final class SettingsIdentityApplicationsTests: XCTestCase {
         XCTAssertTrue(facts.showsSignOut)
         XCTAssertEqual(SettingsHomePage.marketText(nil), dash)
         XCTAssertEqual(SettingsHomePage.marketText(.china), "CN")
+    }
+
+    func testClubLeaderIsNotOfferedIdentityApplications() {
+        XCTAssertFalse(SettingsIdentityApplications.isOffered(toRole: "player", isClubLeader: true))
+        XCTAssertTrue(SettingsIdentityApplications.isOffered(toRole: "player", isClubLeader: false))
+    }
+
+    func testDeniedAccountProfileStaysAnErrorTheUserCanRetry() {
+        let fact = SettingsHomePage.sessionFact(loading: false, failed: true, role: "player", accessDenied: true)
+        XCTAssertEqual(fact, .denied)
+        let facts = SettingsHomePage.facts(session: fact, market: .china)
+        XCTAssertEqual(facts.phase, .error)
+        XCTAssertEqual(facts.copyKey, SettingsHomePage.Copy.denied)
+        XCTAssertTrue(facts.retriesProfileOnTap)
+        XCTAssertEqual(SettingsAccountProfileClient.deniedCopy, "当前身份不能查看账号信息")
+        XCTAssertEqual(SettingsAccountProfileClient.deniedRetry, "点击刷新并确认当前账号权限")
+    }
+
+    func testSettingsProfileReadPostsMemberIDAndDecodesRole() async throws {
+        final class Transport: HTTPTransport {
+            var requests: [URLRequest] = []
+            var status = 200
+            var body = Data(#"{"code":200,"data":{"role":"player","isClubLeader":true}}"#.utf8)
+            func send(_ request: URLRequest) async throws -> (Data, Int) {
+                requests.append(request)
+                return (body, status)
+            }
+        }
+        let transport = Transport()
+        let client = SettingsAccountProfileClient(configuration: try APIConfiguration(baseURL: URL(string: "https://fixture.example")!), transport: transport)
+        let ready = await client.refresh(memberID: 7, token: "synthetic-token")
+        guard case .ready(let profile) = ready else { return XCTFail("expected a profile") }
+        XCTAssertEqual(profile.role, "player")
+        XCTAssertTrue(profile.isClubLeader)
+        XCTAssertEqual(profile.theme, "player")
+        let request = try XCTUnwrap(transport.requests.first)
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertTrue(request.url?.path.hasSuffix("api/user/info") == true)
+        let form = String(data: try XCTUnwrap(request.httpBody), encoding: .utf8)
+        XCTAssertTrue(form?.contains("name=\"member_id\"\r\n\r\n7") == true)
+        transport.status = 403
+        transport.body = Data(#"{"code":403,"msg":"denied"}"#.utf8)
+        let denied = await client.refresh(memberID: 7, token: "synthetic-token")
+        XCTAssertEqual(denied, .denied)
+        transport.status = 200
+        transport.body = Data(#"{"code":"403","msg":"denied"}"#.utf8)
+        XCTAssertEqual(await client.refresh(memberID: 7, token: "synthetic-token"), .denied)
+        transport.body = Data(#"{"code":200,"data":{"role":"club"}}"#.utf8)
+        guard case .ready(let club) = await client.refresh(memberID: 7, token: "synthetic-token") else { return XCTFail("expected club") }
+        XCTAssertTrue(club.isClubLeader)
+        XCTAssertEqual(club.theme, "player")
+        transport.body = Data(#"{"code":200,"data":{"role":"merchant","isClubLeader":false}}"#.utf8)
+        guard case .ready(let merchant) = await client.refresh(memberID: 7, token: "synthetic-token") else { return XCTFail("expected merchant") }
+        XCTAssertEqual(merchant.theme, "merchant")
+        XCTAssertFalse(merchant.isClubLeader)
     }
 }

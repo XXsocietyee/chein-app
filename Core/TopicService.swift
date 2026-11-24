@@ -31,6 +31,7 @@ public enum TopicReadFailure: Error, Equatable { case unavailable }
 public struct TopicService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -87,10 +88,15 @@ public struct TopicService {
         guard AuthRequestBuilder.isValidToken(token), var parts = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidRequest }
         parts.queryItems = query
         guard let url = parts.url else { throw APIError.invalidRequest }
-        var request = URLRequest(url: url); request.httpMethod = "GET"; request.httpShouldHandleCookies = false
-        request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
-        request.setValue("application/json", forHTTPHeaderField: "Accept"); request.setValue(token, forHTTPHeaderField: "Authorization")
-        return try check(await transport.send(request))
+        let key = InFlightReadKey.query(path: path, items: query, token: token)
+        let response = try await reads.join(key) {
+            var request = URLRequest(url: url); request.httpMethod = "GET"; request.httpShouldHandleCookies = false
+            request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
+            request.setValue("application/json", forHTTPHeaderField: "Accept"); request.setValue(token, forHTTPHeaderField: "Authorization")
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        return try check((response.data, response.status))
     }
     private func check(_ response: (Data, Int)) throws -> Data {
         let (data, status) = response
@@ -102,8 +108,13 @@ public struct TopicService {
         return data
     }
     private func post(_ path: String, fields: [String: String], token: String?) async throws -> Data {
-        let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
-        let (data, status) = try await transport.send(request)
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
+        let response = try await reads.join(key) {
+            let request = try AuthRequestBuilder.makeFormRequest(url: self.configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         let envelope = try decode(TopicStatusEnvelope.self, data)

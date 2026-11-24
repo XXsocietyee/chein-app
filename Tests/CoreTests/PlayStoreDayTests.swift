@@ -31,6 +31,8 @@ private let listRow = #"{"nodeId":701,"merchantId":81,"name":"Synthetic store","
 final class PlayStoreDayPresentationTests: XCTestCase {
     func testRowDecodesSourceFieldsAndReceiptNamesWin() throws {
         let node = try XCTUnwrap(PlayStoreDayNode(row: wire(listRow)))
+        XCTAssertNil(node.perk)
+        XCTAssertNil(node.redeemBlockedNotice)
         XCTAssertEqual(node.heroImage, "https://fixture.example/a.jpg")
         XCTAssertEqual(node.merchantID, 81); XCTAssertEqual(node.servicePerHour, 12); XCTAssertEqual(node.expectedWaitMinutes, 15)
         XCTAssertEqual(node.rule, "List rule"); XCTAssertEqual(node.photoDescription, "List photo")
@@ -198,5 +200,16 @@ final class PlayStoreDayPresentationTests: XCTestCase {
         XCTAssertTrue(model.consentPromptVisible)
         await model.agreeConsent()
         XCTAssertFalse(presented); XCTAssertEqual(model.consent, .unavailable); XCTAssertEqual(model.notice, .consentUnconfirmed)
+    }
+    func testPerkDecodesNameRuleAndBlockedText() throws {
+        let row = #"{"nodeId":701,"perk":{"name":"到店礼","redeemRule":"出示核销码","redeemBlockedText":"今日已领完"}}"#
+        let node = try XCTUnwrap(PlayStoreDayNode(row: wire(row)))
+        XCTAssertEqual(node.perk?.name, "到店礼")
+        XCTAssertEqual(node.perk?.redeemRule, "出示核销码")
+        XCTAssertEqual(node.redeemBlockedNotice, "今日已领完")
+        let done = node.merging(wire(#"{"done":true}"#))
+        XCTAssertEqual(done.perk?.name, "到店礼")
+        XCTAssertNil(done.redeemBlockedNotice)
+        XCTAssertNil(PlayStoreDayNode(row: wire(#"{"nodeId":701,"perk":{"name":"  "}}"#))?.perk)
     }
 }

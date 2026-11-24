@@ -92,4 +92,26 @@ final class TopicXcxFactsTests: XCTestCase {
         XCTAssertEqual(lineup.first, .init(kind: .club, targetID: 4, name: "Synthetic club"))
         XCTAssertLessThanOrEqual(lineup.filter { $0.kind == .merchant }.count, 1)
     }
+
+    func testOwnerReviewChipAndPublisherMatchTheTopicPage() throws {
+        XCTAssertEqual(try topic(["isOwner": 1, "userStatus": 0, "status": 0]).ownerReviewLabel, "审核中")
+        XCTAssertEqual(try topic(["isOwner": 1, "userStatus": 0, "status": 2]).ownerReviewLabel, "未通过")
+        XCTAssertEqual(try topic(["isOwner": 1, "userStatus": 0, "status": 3, "rejectReason": "内容安全复核"]).ownerReviewLabel, "审核中")
+        XCTAssertEqual(try topic(["isOwner": 1, "userStatus": 0, "status": 3]).ownerReviewLabel, "已下架")
+        XCTAssertNil(try topic(["isOwner": 1, "userStatus": 1, "status": 2]).ownerReviewLabel)
+        XCTAssertNil(try topic(["userStatus": 0, "status": 2]).ownerReviewLabel)
+        let member = try topic(["contentPublisherName": "Ada", "contentPublisherType": "MEMBER", "umsMember": ["avatar": " https://example.invalid/a.png "]])
+        XCTAssertEqual(member.publisher, TopicPublisher(name: "Ada", avatar: "https://example.invalid/a.png"))
+        XCTAssertNil(try topic(["clubName": "Club", "contentPublisherType": "CLUB", "umsMember": ["avatar": "x"]]).publisher?.avatar)
+    }
+
+    func testFreeExploreOwnerOpensTheEditorAndSessionEntryPrefersSignup() throws {
+        let editor = try topic(["isOwner": 1, "lifecycle": 2, "productType": 2, "contentPublisherType": "merchant"])
+        XCTAssertEqual(TopicXcxFacts.ownerSaleRoute(editor), .some(.editor(scope: "MERCHANT")))
+        XCTAssertFalse(TopicXcxFacts.opensPricing(editor))
+        XCTAssertEqual(TopicXcxFacts.ownerSaleRoute(try topic(["isOwner": 1, "lifecycle": 2])), .some(.pricing(scope: nil)))
+        let session = try topic(["selfPlay": 1, "activityList": [["id": 1, "name": "Night"]]])
+        XCTAssertEqual(TopicXcxFacts.action(session, preferSession: true), .signUp)
+        XCTAssertEqual(TopicXcxFacts.action(try topic(["selfPlay": 1]), preferSession: true), .selfPlay(price: nil))
+    }
 }

@@ -77,12 +77,24 @@ public struct ClubGovernancePermissions: Equatable {
         canManageRoles = value["canManageRoles"].bool == true
         eventAccesses = (value["eventAccesses"].array ?? []).filter { ($0["activityId"].int ?? 0) > 0 && ($0["topicId"].int ?? 0) > 0 && $0["roleCodes"].array != nil }
     }
+    /// Member governance (临时封禁) is owner or co-owner only, even when `club:member:manage` is present.
+    public var canGovernMembers: Bool {
+        permissions.contains("club:member:manage") && (roleCodes.contains("CLUB_OWNER") || roleCodes.contains("CLUB_CO_OWNER"))
+    }
+    public static let memberGovernanceDenial = "仅主理人与联合主理人可进行成员治理"
     public func allows(_ permission: String?, scope: ClubGovernanceScope) -> Bool {
         guard active, clubID == scope.clubID else { return false }
         guard let permission else { return true }
         if permission == "OWNER" { return roleCodes.contains("CLUB_OWNER") }
         if permission == "ROLES" { return canManageRoles }
         if permission == "CUSTOMER_DIRECTORY" { return allowsCustomerDirectory(scope: scope) }
+        if permission == "club:member:manage" {
+            let eventGrant = scope.activityID.map { activityID in
+                eventAccesses.contains { $0["activityId"].int == activityID && ($0["permissions"].array ?? []).contains(.string(permission)) }
+            } ?? false
+            let granted = permissions.contains(permission) || eventGrant
+            return granted && (roleCodes.contains("CLUB_OWNER") || roleCodes.contains("CLUB_CO_OWNER"))
+        }
         if permissions.contains(permission) { return true }
         guard let activityID = scope.activityID else { return false }
         return eventAccesses.contains { $0["activityId"].int == activityID && ($0["permissions"].array ?? []).contains(.string(permission)) }

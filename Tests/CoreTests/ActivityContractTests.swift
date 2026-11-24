@@ -62,8 +62,9 @@ final class ActivityContractTests: XCTestCase {
             try JSONDecoder().decode(ActivityDetail.self, from: Data((#"{"id":1,"name":"A""# + fields + "}").utf8))
         }
         let now = try XCTUnwrap(ActivityPrimaryAction.chinaDate("2026-10-19 12:00:00"))
-        XCTAssertEqual(try detail("").primaryAction(now: now), .signUp)
+        XCTAssertEqual(try detail("").primaryAction(now: now), .unavailable)
         XCTAssertEqual(try detail(#","isSignUp":0"#).primaryAction(now: now), .signUp)
+        XCTAssertEqual(try detail(#","isSignUp":2"#).primaryAction(now: now), .unavailable)
         XCTAssertNil(try detail(#","isSignUp":2"#).signUpFlag)
         XCTAssertNil(try detail(#","isSignUp":"1""#).signUpFlag)
         XCTAssertEqual(try detail(#","isSignUp":1,"startDate":"2026-10-20 09:00:00","endDate":"2026-10-21""#).primaryAction(now: now), .viewRegistration)
@@ -76,6 +77,8 @@ final class ActivityContractTests: XCTestCase {
         XCTAssertFalse(try detail(#","cancelTime":"  ","cancelReason":"x""#).isCancelled)
         XCTAssertEqual(ActivityPrimaryAction.signUp.titleKey, "activity.cta.signUp")
         XCTAssertEqual(ActivityPrimaryAction.cancelled.titleKey, "activity.cta.cancelled")
+        XCTAssertEqual(ActivityPrimaryAction.unavailable.titleKey, "activity.cta.unavailable")
+        XCTAssertTrue(ActivityPrimaryAction.unavailable.isPlaceholder)
     }
     /// PC-C-1-3: MP selectableTickets — confirmed sold-out or past-window tickets do not count; null stock does.
     func testSignUpBlockFollowsSelectableTickets() throws {

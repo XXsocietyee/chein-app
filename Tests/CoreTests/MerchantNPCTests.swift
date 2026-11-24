@@ -59,9 +59,9 @@ import XCTest
         let b = try body(h); XCTAssertEqual(Set(b.keys), ["requestId", "bizId", "message"]); XCTAssertEqual(b["bizId"] as? Int, 31); XCTAssertEqual(b["requestId"] as? String, id.uuidString)
     }
     func testBusinessErrorPreservesMessage() async {
-        let h = HTTP(); h.json = #"{"code":403,"msg":"Server disabled","data":"not an object"}"#
+        let h = HTTP(); h.json = #"{"code":409,"msg":"Server disabled","data":"not an object"}"#
         do { _ = try await MerchantNPCHTTPClient(transport: h).chat(message: "Hi", requestID: UUID(), scope: scope); XCTFail() }
-        catch { XCTAssertEqual(error as? MerchantNPCFailure, .rejected(code: 403, message: "Server disabled")) }
+        catch { XCTAssertEqual(error as? MerchantNPCFailure, .rejected(code: 409, message: "Server disabled")) }
     }
     func testDefaultTransportCannotSend() async {
         do { _ = try await MerchantNPCHTTPClient().chat(message: "Hi", requestID: UUID(), scope: scope); XCTFail() }

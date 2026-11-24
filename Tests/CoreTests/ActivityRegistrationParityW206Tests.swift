@@ -149,6 +149,7 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
 
     func testConfirmAndReadBackCreatesOnceAndReadsReturnedIDOnce() async throws {
         let service = ParitySliceService()
+        service.quoteJSON = #"{"payAmount":0,"pointsUsable":true,"quoteSign":"parity-fixture-sign"}"#
         var snapshots: [RegistrationStatusSnapshot] = []
         let flow = try makeFlow(service, onReadback: { snapshots.append($0) })
         await ready(flow)
@@ -194,6 +195,7 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
 
     func testUnknownOutcomeStaysLockedAndOnlyReadsOwnedOrders() async throws {
         let service = ParitySliceService(); service.createError = URLError(.timedOut)
+        service.quoteJSON = #"{"payAmount":0,"pointsUsable":true,"quoteSign":"parity-fixture-sign"}"#
         let reader = ParityOrderReader()
         let flow = try makeFlow(service, identity: { reader.identity })
         let before = try await flow.uncertainOutcomeEvidence(orders: reader)

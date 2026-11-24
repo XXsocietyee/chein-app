@@ -332,9 +332,9 @@ struct TopicDetailView: View {
                 }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
-            // P3 mount point for P1's `TopicCastRow` (人物 row, port plan r1 C8). P1 owns the view; P3's final wiring
-            // commit replaces this comment once P1 has merged, e.g.:
-            //   if let cast = value.castConfig, !cast.cast.isEmpty { Section("topic.cast") { TopicCastRow(config: cast) } }
+            if let cast = value.castConfig, !cast.cast.isEmpty {
+                Section("topic.cast") { TopicCastRow(config: cast) }
+            }
             // 节点介绍 (MP `det4`, owner 2026-11-19): one card per chapter, endings excluded (port plan r1 C9).
             TopicChapterCardsSection(cards: TopicChapterCards.cards(chapters: value.chapters, routeCover: value.imageURL))
             // 活动内容 (MP `det3`, 2026-11-21): the story only. Practical lines from the same text, prices, what is

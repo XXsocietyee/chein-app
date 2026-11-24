@@ -74,14 +74,14 @@ struct IMConversationReadAllButtonToken: Equatable {
         let appearance = model.appearance
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     CYHeroHeader("im.readAll.title")
                     if model.batch.isCurrent {
                         CYListRow("d7.readAll.count", trailing: .value(String(model.items.count)), card: true) {
                             CYRowIcon(systemImage: "bubble.left.and.bubble.right")
                         }
                         phaseContent(appearance)
-                        VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        LazyVStack(alignment: .leading, spacing: CYSpacing.md) {
                             CYSectionHeader("d7.readAll.conversations")
                             ForEach(model.items) { item in conversationRow(item) }
                         }

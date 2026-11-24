@@ -68,5 +68,8 @@ import XCTest
         XCTAssertEqual(TeamSeatPresentation.rejectionKey("INVITE_EXPIRED"), "team.reject.INVITE_EXPIRED")
         XCTAssertEqual(TeamSeatPresentation.rejectionKey("SOMETHING_NEW"), "team.rejected")
         XCTAssertEqual(TeamSeatPresentation.rejectionKey(nil), "team.rejected")
+        XCTAssertTrue(TeamSeatPresentation.showsBuyTicket(errorCode: "TICKET_REQUIRED"))
+        XCTAssertFalse(TeamSeatPresentation.showsBuyTicket(errorCode: "TEAM_FULL"))
+        XCTAssertEqual(TeamSeatPresentation.buyTicketTitle, "去买这一场的票")
     }
 }

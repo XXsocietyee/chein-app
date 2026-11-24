@@ -81,12 +81,14 @@ public enum TemplateShelfReadRoute: Equatable {
         }
         let canonical: URLRequest
         if url.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent("api/template/my-list").absoluteString.utf8) {
-            guard Set(fields.keys) == ["is_quote", "keyword", "category_id", "pageNum", "pageSize"],
+            let baseKeys: Set<String> = ["is_quote", "keyword", "category_id", "pageNum", "pageSize"]
+            let scope = fields["scope"]
+            guard Set(fields.keys) == baseKeys || (Set(fields.keys) == baseKeys.union(["scope"]) && scope == "MERCHANT"),
                   fields["is_quote"] == "", fields["category_id"] == "", fields["pageSize"] == "10",
                   let raw = fields["pageNum"], let page = Int(raw), raw == String(page),
                   (1...TemplateOwnShelfPage.maximumPages).contains(page), let keyword = fields["keyword"],
                   keyword.utf8.count <= 512, Self.allowsKeywordScalars(keyword),
-                  let descriptor = try? TemplateOwnShelfPage.request(page: page, keyword: keyword),
+                  let descriptor = try? TemplateOwnShelfPage.request(page: page, keyword: keyword, scope: scope),
                   let config = try? APIConfiguration(baseURL: baseURL),
                   let rebuilt = try? TemplateAuthoringWireRequestBuilder.make(descriptor, configuration: config,
                     token: "canonical-read", boundary: boundary) else { return nil }

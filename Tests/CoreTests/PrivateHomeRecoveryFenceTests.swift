@@ -134,6 +134,7 @@ import XCTest
         await model.load()
         XCTAssertEqual(model.phase, .unknown); XCTAssertFalse(model.canEdit)
         XCTAssertEqual(service.mutations, [original]); XCTAssertEqual(journal.saves, 1)
+        service.home = try snapshot(4)
         await model.retryExact()
         XCTAssertEqual(service.mutations, [original, original]); XCTAssertNil(journal.value)
         XCTAssertEqual(journal.clears, 1); XCTAssertEqual(model.decision, .saved); XCTAssertTrue(model.canEdit)
@@ -200,6 +201,13 @@ import XCTest
             journal.value = original; service.outcome = decision
             let model = model(service, journal, owner)
             await model.load(); XCTAssertEqual(model.phase, .unknown)
+            let floor: Int64
+            switch decision {
+            case .saved, .deleted: floor = 4
+            case .conflict: floor = 5
+            case .cooldown, .forbidden: floor = 3
+            }
+            service.home = try snapshot(floor, active: decision != .deleted)
             await model.retryExact()
             XCTAssertEqual(model.decision, decision); XCTAssertEqual(model.phase, .ready)
             XCTAssertTrue(model.canEdit); XCTAssertNil(journal.value); XCTAssertEqual(journal.clears, 1)

@@ -152,6 +152,8 @@ public struct PlayCompletionReview: Equatable {
     public var arrivalReading: PlayArrivalReading? { reward.flatMap(PlayArrivalReading.init(receipt:)) }
     /// U05-02: route-level notice (configuration withdrawn, ended, switched to the fallback route).
     public var routeNotice: PlayRouteNotice? { PlayRouteNotice(route: snapshot?.route) }
+    /// Cast fields from the latest accepted nodes read. Cleared with the snapshot.
+    public private(set) var castPayload: PlayWireValue = .null
     public private(set) var leaderOutcomeUnknown = false
     /// The latest applied team-progress read failed; the last applied lead stays as read.
     public private(set) var leadReadFailed = false
@@ -250,7 +252,7 @@ public struct PlayCompletionReview: Equatable {
     }
     private func retireChildRead(generation request: UInt64) {
         guard generation == request else { return }
-        generation &+= 1; loadedSession = nil; snapshot = nil; extras = [:]
+        generation &+= 1; loadedSession = nil; snapshot = nil; castPayload = .null; extras = [:]
         reward = nil; hint = nil; ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []
         // Keep durable completion/pause records and pending thought keys intact.
         // Nothing about a changed mode proves an earlier mutation's outcome.
@@ -284,7 +286,7 @@ public struct PlayCompletionReview: Equatable {
     public func load() async {
         guard phase != .submitting else { return }
         generation &+= 1; let request = generation
-        phase = .loading; issue = nil; snapshot = nil; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
+        phase = .loading; issue = nil; snapshot = nil; castPayload = .null; extras = [:]; cachedCompletion = nil; retryReadbackVerified = false
         storyArchive = nil; storyArchiveSource = nil
         guard let session = currentSession(), scope.isValid else { phase = .failed; issue = .staleSession; return }
         if authorityOwner != session {
@@ -358,7 +360,7 @@ public struct PlayCompletionReview: Equatable {
                 advancedReadyNodeIDs = []
             }
             authorityMode = mode
-            self.snapshot = snapshot; extras = document.extras; loadedSession = session
+            self.snapshot = snapshot; extras = document.extras; castPayload = document.castPayload; loadedSession = session
             if mode != .cityOrientation {
                 // Discard only in-memory orientation state. Free exploration does
                 // not read, clear or rewrite its durable pause records.
@@ -701,6 +703,10 @@ public struct PlayCompletionReview: Equatable {
             fail(error, session: session, generation: request)
         }
     }
+    /// Cast reads for this play session. Capabilities stay empty, so profile, voice and branch writes do not send.
+    public func makeCastCoordinator() -> CastCoordinator {
+        CastCoordinator(service: CastService(configuration: service.configuration, transport: service.transport, enabled: []), currentSession: currentSession)
+    }
     /// UG-05…UG-09: the hint ladder client for one node of the current route run. Nil without a route
     /// session, a current read, or both the read and hint grants. Replies for another session are dropped.
     public func helpClient(nodeID: Int) -> PlayHelpClient? {
@@ -1015,7 +1021,7 @@ public struct PlayCompletionReview: Equatable {
         thoughtSyncNonce = UUID(); thoughtSyncInFlight = false; pendingThoughtKeys = []; thoughtClaimSessionID = nil; thoughtSyncPhase = .idle
         chapterStories = [:]; storyVariables = [:]; storyVoices = [:]; storyThoughts = []
         compatibility = nil; contentVersion = nil
-        generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
+        generation &+= 1; loadedSession = nil; authorityMode = nil; snapshot = nil; castPayload = .null; extras = [:]; reward = nil; hint = nil; cachedCompletion = nil
         ending = nil; leaderboard = nil; lead = nil; leadReadFailed = false; advancedReadyNodeIDs = []; clock.restore(nil); phase = .idle
         submitRecovery = nil; arrivalFailure = nil
     }

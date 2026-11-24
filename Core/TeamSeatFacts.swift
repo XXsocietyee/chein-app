@@ -132,6 +132,9 @@ public enum TeamSeatPresentation {
     public static let knownRejections: Set<String> = Set(knownBlockers).union([
         "INVITE_REVOKED", "INVITE_EXPIRED", "TEAM_STATE_CHANGED", "LEADER_HANDOVER_FAILED", "APPLY_STATE_CHANGED", "APPLY_NOT_PENDING"
     ])
+    /// pages/team/join sets `ticketRequired` when `errorCode === TICKET_REQUIRED` and shows this CTA.
+    public static let buyTicketTitle = "去买这一场的票"
+    public static func showsBuyTicket(errorCode: String?) -> Bool { errorCode == "TICKET_REQUIRED" }
 
     static func isMachineCode(_ code: String) -> Bool {
         !code.isEmpty && code.utf8.count <= 64 && code.unicodeScalars.allSatisfy { ("A"..."Z").contains($0) || ("0"..."9").contains($0) || $0 == "_" }

@@ -47,10 +47,11 @@ extension PlayKitScreen {
         attempts
     }
     @ViewBuilder var branchForm: some View {
+        if let echo = CastBranchEcho(branch: raw) {
+            CastBranchEchoLabel(echo: echo, config: castContext?.config)
+        }
         if let title = raw["currentStep"]["title"].text { Text(verbatim: title).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader) }
         if let body = raw["currentStep"]["body"].text { Text(verbatim: body).cyText(.body).foregroundStyle(CYColor.textSecondary) }
-        // Mount point: when CastBranchEcho exists, show it here, above the branch options.
-        // That type is not on this base (it belongs to P1), so this form does not reference it.
         if projection.options.isEmpty, !projection.complete {
             ContentUnavailableView("playkit.branch.waiting", systemImage: "arrow.triangle.branch")
                 .accessibilityIdentifier("playkit.branch.waiting")
