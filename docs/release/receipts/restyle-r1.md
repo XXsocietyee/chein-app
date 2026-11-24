@@ -93,10 +93,107 @@ The helper `cyR1Sheet` lives in `App/DiscoveryPresentationScope.swift` (an R1 fi
 5. **Colours:** system grouped-background tokens. The raw-colour ratchet forbids `Color(uiColor:)` outside DesignSystem, so R1 used `CYColor.bgPage / bgSurface / bgSurfaceSubtle` and relies on spec §2.2 re-pointing them.
 6. **Sheets:** `cyPlayerSheetGlass()` still wraps the Square sheet in `SessionHomeFeedView` (not R1). R1 sheets use the local `cyR1Sheet` helper. Once the R0 `cySheet` lands, `cyR1Sheet` can become a call to it, or be deleted.
 
+## Round 2 (2026-11-24)
+
+- **Merged** `origin/restyle/r6-system-rest` (aa235bbab) first, so R1 now builds on the shared `cySheet`, `cyCard`, `CYContentState` and the re-pointed text styles and radii.
+- **`origin/ci/acceptance` not merged:** it has no green run. All three of its runs (45382432691, 45382725772, 45382894882) failed on its own branch: `debug-build` failed, so no AppUnit shard ran, and the `gates` job hit the known ratchet 185 against a baseline of 184. Per coordinator decision (3), nothing was merged and no acceptance run happened on this branch.
+- **Ownership audit:** 140 owned `App/` files (12 prefixes, minus the 4 P3 files). Every one was scanned for the brief/spec rules: static fonts, `.system(size:)`, text below `.caption`, off-set literal radii, forced dark, custom back chevrons or hidden bars, title mode unset, sheets without detents, player glass sheets, glass on content, `lineLimit(1)` titles, tertiary small text, unlabelled icon buttons, and destructive actions without confirmation.
+  - Across both rounds, R1 has now changed **70** files.
+  - The other 70 had no finding after R6's shared components landed. Their states, cards and type come from the re-pointed components.
+
+### Files changed in round 2 (55, in 3 commits ≤ 40 App files each)
+- `App/ActivityBrowserView.swift`
+- `App/ActivityCoverAuthoringView.swift`
+- `App/ActivityDetailView.swift`
+- `App/ActivityEditingView.swift`
+- `App/ActivityHostCancelView.swift`
+- `App/ActivityPresentationComponents.swift`
+- `App/ActivityTemplateSelectionView.swift`
+- `App/DiscoveryComponents.swift`
+- `App/DiscoveryHomeView.swift`
+- `App/DiscoveryPlayTemplatePresentationView.swift`
+- `App/DiscoveryPresentationScope.swift`
+- `App/DiscoveryTemplateBrowserView+Port.swift`
+- `App/DiscoveryTemplateBrowserView.swift`
+- `App/DiscoveryTemplateDetailParitySections.swift`
+- `App/DiscoveryTemplateDetailView.swift`
+- `App/HomeFeedView.swift`
+- `App/HomeSearchTabParityViews.swift`
+- `App/MapCoreEntryHubView.swift`
+- `App/MapPublicStoryNodeDetailView.swift`
+- `App/OfficialActionViews.swift`
+- `App/OfficialEventDetailView.swift`
+- `App/OfficialPrivateViews.swift`
+- `App/OfficialRouteViews.swift`
+- `App/PlayerGapViews.swift`
+- `App/PlayerJourneyReadBindings.swift`
+- `App/PlayerJourneyViews.swift`
+- `App/PlayerParityBViews.swift`
+- `App/PublicCatalogViews.swift`
+- `App/RegistrationFixtureSupport.swift`
+- `App/RegistrationSheetView.swift`
+- `App/SearchMapComponents.swift`
+- `App/SearchMapExplorerView.swift`
+- `App/SearchMapFilterSheet.swift`
+- `App/SearchRoutePreviewView.swift`
+- `App/SquareBrowserView.swift`
+- `App/SquareDetailView.swift`
+- `App/SquareFixtureSupport.swift`
+- `App/SquareGovernanceViews.swift`
+- `App/SquarePostLocalMediaPresentation.swift`
+- `App/SquarePostVideoViews.swift`
+- `App/SquareReportProgressView.swift`
+- `App/SquareReportView.swift`
+- `App/SquareWorkspaceView.swift`
+- `App/TeamCreateView.swift`
+- `App/TeamHomeView.swift`
+- `App/TeamOrientBoardView.swift`
+- `App/TeamPoolHintSection.swift`
+- `App/TeamReformFlowViews.swift`
+- `App/TeamReportReasonSheet.swift`
+- `App/TeamSeatFactsViews.swift`
+- `App/TopicBrowserView.swift`
+- `App/TopicLocationTodosSection.swift`
+- `App/TopicSelfPlaySheet.swift`
+- `App/TopicTemplateUseSection.swift`
+- `App/TopicThemeRecordsView.swift`
+
+(First touched in round 2: 16 files. `App/DiscoveryPresentationScope.swift` went back to its base bytes when the local helper was removed.)
+
+### Round 2 before → after
+| Before | After | Count |
+|---|---|---|
+| local `.cyR1Sheet([.large])` / `.cyR1Sheet([.medium, .large])` | shared `.cySheet(detents: [.large])` / `.cySheet()` (R6); helper deleted | 46 sheets |
+| `.cyPlayerSheetGlass()` (+ `.cyDomainSheet` / raw detents) on R1 sheets | `.themeDomain(.player)` + `.cySheet(…)`: system sheet background and corners, player tokens kept | 11 |
+| report sheet with `.presentationDetents([.large])` only | `.cySheet(detents: [.large])` (drag indicator) | 1 |
+| pushed/sheet title with no display mode | `.navigationBarTitleDisplayMode(.inline)` / `cyPageTitle` | 10 |
+| `CYHeroHeader("key")` row + `.cyHeroScreen()` (empty bar title) on Form/List pages | the system inline title `cyPageTitle("key")` (or `.navigationTitle(Text(key, tableName:))`); a hero subtitle stays as secondary text | 15 pages in 10 files |
+| Square governance in-list 刷新 pill | `.refreshable` with the same `reload()` | 1 |
+| sticky CTA on `.ultraThinMaterial` | `.bar` | 1 |
+| `.caption2` (tab labels, chevron glyph) | `.caption` | 2 |
+| small text (meta/caption/micro/label/bodyCompact) in `textTertiary` | `textSecondary` (spec §2.2, 4.5:1) | 64 |
+
+Kept on purpose: object-name heroes over artwork (official event, public merchant, map nodes, story node with cover, route preview, search map detail); map-floating glass controls and the heart over a card image; white text on hero scrims; `team.refresh` buttons (UI-test anchors, and `.refreshable` already exists); `square.video.remove`, which removes an un-uploaded local attachment, so a confirm is not needed and the UI test taps it directly.
+
+### Contract pins updated (presentation only; coordinator decision 1)
+- `test_global_search_category_recovery.py`, `test_reviewed_helper_sheet_services_and_remote_explorer_are_pinned`: SHA-256 re-pinned for `App/SearchMapFilterSheet.swift` and `App/SearchMapExplorerView.swift`. This was also a new failure left by round 1. The historical floors and inverses are untouched.
+- `test_global_chrome_domain_contract.py`: `ActivityDetailView` and `RegistrationSheetView` moved out of the "must use `cyPlayerSheetGlass`" list. A new assertion requires them to use `.themeDomain(.player)` and `.cySheet(`, and to have no player glass.
+- `test_square_busy_scroll.py`: the expected text now has `.cyPageTitle("squareWorkspace.title")` instead of the hero row and `.cyHeroScreen()`. The busy rule is unchanged: the disabled group is inside the Form, never on the scroll container.
+- `test_accessibility_hardening_wave.py` FPA4: ActivityDetail sheets may get detents and the indicator via `cySheet`. The test also asserts that `cySheet` itself applies `.presentationDragIndicator(.visible)`.
+
+### Round 2 verification (no Swift compiler here)
+- `tools/contract_ratchet.py --check` on b2f5502ca: **185 failing, baseline 184, new 1, fixed 0**. The one new failure is the known pre-existing `test_workshop_paid_professional…bounded_paging`, the same as `ui/combined-r6` and R6.
+- `check_typography_lint.py` PASS (raw text style 33, Theme.Font 40, raw size 53, back chevron 10, hidden back 3, large title 7). `check_design_lint.py` PASS. `check_scaffold.py` PASS.
+- Swift tests that read the changed sources as text (`OfficialActionPresentationModelTests`, `OfficialSourceInvalidationViewTests`, `OPTTriageClosureTests`, `OwnerDecisionGuardTests`, `ConditionPackageClosureTests`, `FreeExploreBundlePageReadyTests`, `MiniProgram99PageParityRegistryTests`): their asserted strings were checked by hand and are still present.
+- UI tests were checked for the removed hero title texts. Only "Review" matches, and that is an unrelated social sheet nav bar.
+- The acceptance routes in `docs/port/accept/r1.txt` are unchanged (20).
+
 ## Left
-- Button styles (request 1) and the in-content `CYHeroHeader`s (request 3).
-- Structural List/Form conversions of custom-stack pages, `.refreshable` instead of 刷新 buttons, and toolbar `Menu` merges (spec §3.1–3.2). These go to a follow-up R1 batch once R0 lands, so they build on the new `cyCard`, `CYContentState` and `cySheet`.
-- `HomeSearchTabParityViews`' custom role tab bar keeps its `.caption2` tab labels. They match the system tab bar's label size.
-- Text shadows over hero artwork in `HomeSearchTabParityViews` (legibility on images) and the floating publish button's shadow are kept.
-- The Square cloud route map keeps its indigo/ember art, because it is visual content.
-- Compile check and acceptance screenshots: waiting for `acceptance.yml`.
+- **Compile and screenshots:** nothing has been compiled. `acceptance.yml` exists only on `ci/acceptance` and is not green there yet. Merge it once it is green, then iterate on this branch.
+- **Component gates (R6 / owner):**
+  - the `CYPillButton` / named button styles re-point to the system styles (request 1);
+  - the colour re-point (request 5);
+  - the system tab bar (`HomeSearchTabParityViews`' custom role tab bar is R1 chrome, but it waits on the spec §3.8 / owner Q4).
+- **Search empties:** they keep their MP copy and identifiers through `CYEmptyState` (now `ContentUnavailableView`) rather than `ContentUnavailableView.search`.
+
+DONE-ROUND-2
