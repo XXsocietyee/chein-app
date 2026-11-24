@@ -308,6 +308,7 @@ struct OfficialParticipationPresentation {
     }
     var body: some View {
         let presentationID = presentation.entry?.id
+        Group { if command != nil || needsSafetyConsent {
         Section("officialAction.participation") {
             if needsSafetyConsent, let title = event.safetyNoticeTitle {
                 // MP cy-consent-check: a checkbox, never pre-checked.
@@ -338,8 +339,10 @@ struct OfficialParticipationPresentation {
                 }
                     .disabled(presentation.entry != nil || (needsSafetyConsent && !safetyConsented))
                     .accessibilityIdentifier("officialAction.participationReview").e1ActionRow()
-            } else { Text("officialAction.noAction").foregroundStyle(.secondary) }
-        }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
+            }
+            // R7-PC-C4-2: no 暂时没有需要你操作的事项 row; the page's CTA bar already states the event's state.
+        }
+        } }.sheet(isPresented: Binding(get: { presentation.isPresented }, set: { if !$0, let presentationID { presentation.beginDismiss(id: presentationID) } }), onDismiss: {
             guard let presentationID else { return }
             let callback = presentation.finishDismiss(id: presentationID)
             callback?()

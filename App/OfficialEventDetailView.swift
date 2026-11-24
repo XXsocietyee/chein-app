@@ -24,6 +24,7 @@ enum OfficialDetailID {
 }
 
 @MainActor struct OfficialEventDetailView: View {
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     let id: Int
     let reader: any OfficialEventReading
     var actions: OfficialActionCoordinator? = nil
@@ -173,8 +174,9 @@ enum OfficialDetailID {
                         }.accessibilityIdentifier(OfficialDetailID.tasks)
                     }
                 }
+                // R7-PC-C4-3 (MP official-detail/index.wxml:155-156): no configured reward, no section.
+                if !event.rewards.isEmpty {
                 Section("official.detailParity.rewards.heading") {
-                    if event.rewards.isEmpty { CYEmptyState(systemImage: "gift", "official.detailParity.rewards.empty") }
                     ForEach(Array(event.rewards.enumerated()), id: \.offset) { _, reward in
                         switch reward {
                         case .badge: Label("official.reward.badge", systemImage: "seal")
@@ -184,6 +186,7 @@ enum OfficialDetailID {
                         }
                     }
                 }.accessibilityIdentifier(OfficialDetailID.rewards)
+                }
                 if let collective = event.collective, collective.enabled {
                     Section("official.collective") {
                         VStack(alignment: .leading, spacing: 8) {
@@ -241,30 +244,19 @@ enum OfficialDetailID {
                         organizer: false
                     )
                 }
-                // Source CTA wording. Only the theme CTA navigates (to its bound topic); signup stays with
-                // OfficialParticipationActions. An action label that cannot act here is not drawn as a button:
-                // only the waiting / ended states remain, as plain status text.
-                if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
-                    Section {
-                        NavigationLink { topicLinks.destination(topic) } label: {
-                            Text(LocalizedStringKey(presentation.cta.key)).frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(CYPillButtonStyle())
-                        .accessibilityIdentifier(OfficialDetailID.ctaTopic)
-                    }
-                } else if !presentation.cta.isSourceAction {
-                    Section {
-                        Text(LocalizedStringKey(presentation.cta.key))
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .accessibilityIdentifier(OfficialDetailID.cta)
-                    }
-                } else {
-                    OfficialDetailRoamJumpSection(event: event, cta: presentation.cta, onOpenRoam: onOpenRoam)
-                }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
             }.listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground().themeDomain(.player).tint(CYDomainPalette(.player).brand)
             .accessibilityIdentifier("official.detail.content")
+            // R7-PC-C4-2 (MP official-detail/index.wxml:199-207 `od-cta-bar`): the source CTA is pinned to the bottom.
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if hasCTABar(event: event, presentation: presentation) {
+                    ctaBar(event: event, presentation: presentation)
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .padding(.vertical, CYSpacing.sm)
+                        .frame(maxWidth: .infinity)
+                        .background(.bar)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { shareEvent = event } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
@@ -392,6 +384,34 @@ struct OfficialDetailMissionRow: View {
         case .verify: return "location"
         case .automatic: return "arrow.triangle.2.circlepath"
         case .unsupported: return "nosign"
+        }
+    }
+}
+
+/// R7-PC-C4-2: the pinned source CTA bar (MP `od-cta-bar`).
+extension OfficialEventDetailView {
+    private func hasCTABar(event: OfficialEvent, presentation: OfficialEventDetailPresentation) -> Bool {
+        if topicLinks != nil, OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) != nil { return true }
+        if !presentation.cta.isSourceAction { return true }
+        return (presentation.cta == .roamArrival || presentation.cta == .roamLight) && (onOpenRoam != nil || rootTabSwitch.isAvailable)
+    }
+    /// Source CTA wording. Only the theme CTA navigates (to its bound topic); signup stays with
+    /// OfficialParticipationActions. An action label that cannot act here is not drawn as a button:
+    /// only the waiting / ended states remain, as plain status text.
+    @ViewBuilder private func ctaBar(event: OfficialEvent, presentation: OfficialEventDetailPresentation) -> some View {
+        if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
+            NavigationLink { topicLinks.destination(topic) } label: {
+                Text(LocalizedStringKey(presentation.cta.key)).frame(maxWidth: .infinity)
+            }
+            .buttonStyle(CYPillButtonStyle())
+            .accessibilityIdentifier(OfficialDetailID.ctaTopic)
+        } else if !presentation.cta.isSourceAction {
+            Text(LocalizedStringKey(presentation.cta.key))
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .accessibilityIdentifier(OfficialDetailID.cta)
+        } else {
+            OfficialDetailRoamJumpSection(event: event, cta: presentation.cta, onOpenRoam: onOpenRoam)
         }
     }
 }
