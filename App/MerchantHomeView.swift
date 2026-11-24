@@ -472,7 +472,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         MerchantBusinessPage(reader: businessReader, journal: businessJournal, query: .verificationRecords)
                             .onDisappear(perform: onChildReturn)
                             .cyPushedChrome(domain: .merchant)
-                    } label: { Label("merchant.business.verifications", systemImage: "checkmark.seal") }
+                    } label: { Label { Text("merchant.business.verifications") } icon: { MerchantMPIcon(image: MPAsset.FeatureIcon.iconCalendar) } }
                         .accessibilityIdentifier("merchant.workbench.verifyRecords")
                     if access.allows(.verify) {
                         NavigationLink {
@@ -520,7 +520,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 if let operationsReader {
                     NavigationLink {
                         operationsHome(operationsReader)
-                    } label: { Label("merchant.operations.title", systemImage: "slider.horizontal.3") }
+                    } label: { Label { Text("merchant.operations.title") } icon: { MerchantMPIcon(image: MPAsset.FeatureIcon.iconShop) } }
                     .accessibilityIdentifier("merchant.operations.open")
                 }
                 if let engagementReader, let businessJournal, let exportRecovery {
@@ -573,7 +573,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                         coopInboxDestination()
                             .onDisappear(perform: onChildReturn)
                             .cyPushedChrome(domain: .merchant)
-                    } label: { Label("merchant.workbench.coopInvites", systemImage: "envelope.badge.person.crop") }
+                    } label: { Label { Text("merchant.workbench.coopInvites") } icon: { MerchantMPIcon(image: MPAsset.Other.navMsg) } }
                         .accessibilityIdentifier("merchant.coopInbox.open")
                 }
                 if let cooperationFlowReader {

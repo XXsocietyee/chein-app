@@ -211,9 +211,17 @@
     "en": "Back",
     "zh-Hans": "返回上一页"
   },
+  "merchant.gate.batch.backToList": {
+    "en": "Back to settlements",
+    "zh-Hans": "返回结算列表"
+  },
   "merchant.gate.batch.missingParam": {
     "en": "Settlement batch info is missing",
     "zh-Hans": "缺少结算批次信息"
+  },
+  "merchant.gate.batch.missingRecord": {
+    "en": "This settlement batch doesn't exist or is no longer visible",
+    "zh-Hans": "这条结算批次不存在或已不可见"
   },
   "merchant.gate.customer.backToList": {
     "en": "Back to Customers",
@@ -275,6 +283,10 @@
     "en": "This redemption record isn't visible",
     "zh-Hans": "核销记录不可见"
   },
+  "merchant.gate.redemption.missingParam": {
+    "en": "Redemption record info is missing",
+    "zh-Hans": "缺少核销记录信息"
+  },
   "merchant.gate.reload": {
     "en": "Reload",
     "zh-Hans": "重新加载"
@@ -302,6 +314,22 @@
   "merchant.insight.factsIncomplete": {
     "en": "Store data didn't fully load",
     "zh-Hans": "店铺数据没加载完整"
+  },
+  "merchant.insight.slots.rowA11y %@ %lld %@": {
+    "en": "%1$@: %2$lld check-ins, %3$@",
+    "zh-Hans": "%1$@：%2$lld 次打卡，%3$@"
+  },
+  "merchant.insight.slots.title": {
+    "en": "Visit times",
+    "zh-Hans": "到店时段"
+  },
+  "merchant.insight.slots.total %lld": {
+    "en": "%lld check-ins in total",
+    "zh-Hans": "共 %lld 次打卡"
+  },
+  "merchant.insight.slots.totalPeak %lld %@": {
+    "en": "%1$lld check-ins in total · %2$@",
+    "zh-Hans": "共 %1$lld 次打卡 · %2$@"
   },
   "merchant.insightTopicSheet.apply": {
     "en": "Apply to Host",

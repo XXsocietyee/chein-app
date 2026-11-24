@@ -258,6 +258,8 @@ import UIKit
     private let onReturn: () -> Void
     private let onDenied: () -> Void
     @Published private(set) var state: MerchantLedgerBatchDetailRead
+    /// MC7-08-4: the last accepted failure was a missing or no-longer-visible batch.
+    @Published private(set) var missingRecord = false
     private var task: Task<Void, Never>?
     private var returned = false
     init(reader: any MerchantBusinessReading, batchID: Int, owner: MerchantLedgerSettlementOwner, onDenied: @escaping () -> Void = {}, onReturn: @escaping () -> Void) {
@@ -307,6 +309,13 @@ import UIKit
             guard !Task.isCancelled else { mutate { $0.cancel(generation: ticket) }; return }
             let key = MerchantLedgerSettlementFailure.key(error)
             let accepted = mutate { $0.fail(generation: ticket, owner: owner, key: key) }
+            // MC7-08-4 (batch-detail/index.wxml:52): a 404 or 记录不存在/不可见 reply is the missing-batch state,
+            // not the generic retry error (Core MerchantFinanceDetailLoad).
+            if accepted, case .rejected(let code, let message)? = error as? MerchantBusinessFailure {
+                missingRecord = MerchantFinanceDetailLoad.isMissingRecord(code: String(code), statusCode: nil, message: message)
+            } else if accepted {
+                missingRecord = false
+            }
             if accepted && key == "merchant.business.denied" { onDenied() }
         }
     }
@@ -316,6 +325,7 @@ import UIKit
     let reader: any MerchantBusinessReading
     let batchID: Int
     @StateObject private var model: MerchantLedgerBatchDetailModel
+    @Environment(\.dismiss) private var dismiss
     init(reader: any MerchantBusinessReading, batchID: Int, owner: MerchantLedgerSettlementOwner, onDenied: @escaping () -> Void = {}, onReturn: @escaping () -> Void) {
         self.reader = reader
         self.batchID = batchID
@@ -327,7 +337,21 @@ import UIKit
             if slot.isLoading {
                 Section { CYSkeleton(variant: .detail) }.listRowBackground(Color.clear)
             }
-            if let key = slot.failureKey {
+            if slot.failureKey != nil, model.missingRecord {
+                Section {
+                    ContentUnavailableView {
+                        Label("merchant.gate.batch.missingRecord", systemImage: "doc.questionmark")
+                    } actions: {
+                        Button { dismiss() } label: {
+                            Text("merchant.gate.batch.backToList").frame(minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .buttonStyle(.bordered)
+                        .accessibilityIdentifier("merchant.ledgerSettlement.batch.missing.back")
+                    }
+                    .accessibilityIdentifier("merchant.ledgerSettlement.batch.missing")
+                }
+                .listRowBackground(Color.clear)
+            } else if let key = slot.failureKey {
                 Section {
                     CYErrorState(LocalizedStringKey(key)) { model.appear() }
                         .disabled(slot.isLoading)

@@ -34,7 +34,12 @@ struct MerchantBusinessPageGate: Equatable {
                 if notFound { return .init(kind: .notFound(backKey: "merchant.gate.customer.backToList"), titleKey: "merchant.gate.customer.notFound") }
                 return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.customer.loadFailed")
             case .redemption:
-                if notFound { return redemptionMissing }
+                // MC7-07-1 / finance-detail-load.js: 404, or a message saying 记录不存在 / 记录不可见, is the missing record.
+                let missing: Bool = {
+                    guard case .rejected(let code, let text) = failure else { return false }
+                    return MerchantFinanceDetailLoad.isMissingRecord(code: String(code), statusCode: nil, message: text)
+                }()
+                if notFound || missing { return redemptionMissing }
                 return .init(kind: .loadFailed(message: message), titleKey: "merchant.gate.redemption.loadFailed")
             default:
                 return nil

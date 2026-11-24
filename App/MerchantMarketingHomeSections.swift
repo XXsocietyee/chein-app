@@ -130,6 +130,14 @@ extension EnvironmentValues {
         Section(MerchantOpsCopy.text("merchantOps.marketing.coop.title")) {
             // Parity marketing P1: the row's open-opportunity count comes from the coop center, so it opens there.
             Button { if links?.coopCenter != nil { onPush(.coopCenter) } else { onRoute(.topicCooperation) } } label: {
+              VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                // Round 2 MP asset (marketing/index.wxml:135): the coop entry leads with merchant_coop_banner.jpg.
+                Color.clear
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 96)
+                    .overlay { MPAsset.BannerCover.merchantCoopBanner.resizable().scaledToFill() }
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .accessibilityHidden(true)
                 LabeledContent {
                     if home.recruiting.count > 0 {
                         Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count))
@@ -140,6 +148,7 @@ extension EnvironmentValues {
                 } label: {
                     Text("merchant.marketing.enterCoop").cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 }
+              }
             }.accessibilityIdentifier("merchantOps.marketing.coop")
         }
     }

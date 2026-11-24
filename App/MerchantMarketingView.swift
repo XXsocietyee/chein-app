@@ -223,15 +223,16 @@ import SwiftUI
             CYListRow("merchantMarketing.members", trailing: .value(value(insight.facts["crowd"]["members"].integer)))
             CYListRow("merchantMarketing.offers", trailing: .value(value(insight.facts["supply"]["activeOffers"].integer)))
             CYListRow("merchantMarketing.quotaRate", trailing: .value(percent(insight.facts["supply"]["quotaUsedRate"].decimal)))
-            ForEach(Array((insight.facts["checkin"]["hourBuckets"].array ?? []).enumerated()), id: \.offset) { _, bucket in
-                // Source 到店时段: one row per hour slot with its check-in count.
-                CYListRow(verbatim: bucket["hour"].integer.map { String(format: "%02d:00", $0) } ?? "—", trailing: .value(value(bucket["count"].integer)))
-            }
             CYListRow("merchantMarketing.maleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["male"].decimal)))
             CYListRow("merchantMarketing.femaleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["female"].decimal)))
             ForEach(Array((insight.facts["crowd"]["interestTop"].array ?? []).enumerated()), id: \.offset) { _, interest in
                 if let text = interest.text { CYListRow("merchantMarketing.interest", trailing: .value(text)) }
             }
+        }
+        // MC7-11-3 (ai-insight/index.js:611 `_buildSlots`): 到店时段 reads facts.checkin.slotBuckets (早/午/晚/夜) via Core
+        // MerchantInsightSlots — four bars, 共 N 次打卡 and the peak line. No buckets or a zero total hides the section.
+        if let slots = MerchantInsightSlots.build(insight.facts) {
+            MerchantInsightSlotsSection(slots: slots)
         }
         MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
             isCurrent: !model.busy && model.service.scope != nil && loadedRecommendationOrigin != nil

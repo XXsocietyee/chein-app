@@ -53,11 +53,16 @@ private struct MerchantOnboardingCategorySheet: View {
                         let index = selection.firstIndex(of: row.id)
                         Button { toggle(row.id) } label: {
                             HStack {
+                                // Round 2 MP asset (apply/index.wxml:308 cy-tag-sheet): the tag-library icon when the
+                                // label maps to one; unmapped labels stay text only, as in the MP.
+                                if let icon = MerchantTagIcons.image(for: row.name) {
+                                    MerchantMPIcon(image: icon, size: 20).opacity(index == nil ? 0.58 : 1)
+                                }
                                 Text(verbatim: row.name).cyText(.body).foregroundStyle(CYColor.textPrimary)
                                 Spacer()
                                 if let index {
                                     Text(verbatim: "\(index + 1)").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.textPrimary)
+                                    MerchantMPIcon(image: MPAsset.FeatureIcon.check, size: 20)
                                 } else {
                                     Image(systemName: "circle").foregroundStyle(CYColor.textTertiary)
                                 }

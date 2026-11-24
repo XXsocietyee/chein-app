@@ -5,13 +5,12 @@ import SwiftUI
 struct MerchantCustomerRowLabel: View {
     let row: MerchantCustomerListParity.Row
     let identifier: String
-    /// MC7-14-11 (customer/index.wxml:71): 44 pt avatar, name-initial fallback.
+    /// MC7-14-11 (customer/index.wxml:71): 44 pt avatar, MP default-avatar fallback.
     var avatarURL: URL? = nil
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
-        CYAvatarView(url: avatarURL, name: row.name ?? MerchantOpsCopy.text("merchantOps.customer.unnamed"), size: .md)
-            .frame(width: 44, height: 44)
-            .accessibilityHidden(true)
+        // Round 2 MP asset: no avatar → /images/d_profile.png (customer/index.wxml:71).
+        MerchantMPAvatar(url: avatarURL, size: 44)
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(spacing: CYSpacing.s1_5) {
                 Text(verbatim: row.name ?? MerchantOpsCopy.text("merchantOps.customer.unnamed"))
