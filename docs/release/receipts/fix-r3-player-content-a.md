@@ -109,6 +109,8 @@ The contract ratchet showed these as NEW failures, so the code was taken back ou
 - `tools/check_typography_lint.py`: PASS.
 - `tools/check_scaffold.py`: fails the source-list assertion, **same failure on the base** (`ui/combined-r7`, parked MPGap).
 - `tools/check_search_map.py`: PASS.
+- `tools/contract_ratchet.py --check`: 195 failing vs baseline 184 → 11 new, **all 11 already present at the restyle-merge commit
+  a7a54e3bf** (restyle r1/r2/r3/r5); 0 come from this branch's fixes.
 
 ## Acceptance
 Not run from the cloud (no compiler). Coordinator: please compile and send exact errors. Routes are in
