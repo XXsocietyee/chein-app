@@ -574,7 +574,9 @@ struct ClubCommunityPostTile: View {
                 ClubPostReferenceView(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
                 ClubPostPlayPreview(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
             }
-            if post.likeCount > 0 || post.commentCount > 0 {
+            // CLB-detail-43 (MP cy-post-card): inside a club the counts ride on 赞 / 评论 in the one action bar; the
+            // cross-club feed has no action bar, so it keeps the count row.
+            if clubID == nil, post.likeCount > 0 || post.commentCount > 0 {
                 tileActions {
                     countLabel(post.likeCount, symbol: "heart")
                     countLabel(post.commentCount, symbol: "bubble")
@@ -583,9 +585,18 @@ struct ClubCommunityPostTile: View {
             }
             if let clubID {
                 tileActions {
-                    Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: { Label("club.community.like", systemImage: post.liked ? "heart.fill" : "heart") }
+                    Button { Task { await model.prepare(.toggleLike, clubID: clubID, post: post) } } label: {
+                        Label { countedTitle("club.community.like", count: post.likeCount) } icon: { Image(systemName: post.liked ? "heart.fill" : "heart") }
+                    }
+                        .accessibilityLabel(Text("club.community.like"))
+                        .accessibilityValue(post.likeCount > 0 ? Text(verbatim: String(post.likeCount)) : Text(verbatim: ""))
                         .disabled(!identity.isSignedIn || model.busy || model.context.coordinator?.permitsInjectedWrites != true)
-                    Button(action: openComments) { Label(commentsExpanded ? "club.discussion.collapse" : "club.community.comments", systemImage: "bubble") }
+                    Button(action: openComments) {
+                        if commentsExpanded { Label("club.discussion.collapse", systemImage: "bubble") }
+                        else { Label { countedTitle("club.community.comments", count: post.commentCount) } icon: { Image(systemName: "bubble") } }
+                    }
+                        .accessibilityLabel(Text(LocalizedStringKey(commentsExpanded ? "club.discussion.collapse" : "club.community.comments")))
+                        .accessibilityValue(!commentsExpanded && post.commentCount > 0 ? Text(verbatim: String(post.commentCount)) : Text(verbatim: ""))
                         .disabled(!canOpenComments)
                         .accessibilityIdentifier("club.community.comments.\(post.id)")
                     // CLB-detail-03: MP show-repost / show-share on club posts (repost through the reviewed write path).
@@ -665,6 +676,10 @@ struct ClubCommunityPostTile: View {
         } else {
             HStack(spacing: CYSpacing.md, content: content)
         }
+    }
+    /// The action's count when there is one (MP shows the number beside the icon), else its name.
+    private func countedTitle(_ key: LocalizedStringKey, count: Int) -> Text {
+        count > 0 ? Text(verbatim: String(count)).monospacedDigit() : Text(key)
     }
     private func countLabel(_ count: Int, symbol: String) -> some View {
         Label { Text(verbatim: String(count)).monospacedDigit() } icon: { Image(systemName: symbol).accessibilityHidden(true) }
