@@ -66,6 +66,8 @@ struct SquarePostContent: View {
     /// Mini `ph-avatar` T5 capsule (follow / visit profile). Empty keeps the avatar a plain image.
     var avatarMenuItems: [CYAnchoredMenuItem] = []
     var onAvatarPick: ((String) -> Void)? = nil
+    /// MP square/detail `.gz` 关注 at the end of the post head (C-S8). Nil hides it; only the detail page passes it.
+    var onFollow: (() -> Void)? = nil
     @State private var avatarMenuShown = false
     private static let disclosures: Set<String> = ["SPONSORED", "GIFTED", "MERCHANT_OWNER", "MERCHANT_EMPLOYEE"]
     /// Mini-program `post-head`: avatar, name, time; then the text, media and the post's own facts.
@@ -93,6 +95,12 @@ struct SquarePostContent: View {
                     if !post.createTime.isEmpty { SquareXcxRelativeTime(createTime: post.createTime, now: Date()).cyText(.meta).foregroundStyle(.secondary) }
                 }
                 Spacer(minLength: 0)
+                if let onFollow {
+                    Button("fixr3.square.follow", action: onFollow)
+                        .buttonStyle(.bordered).buttonBorderShape(.capsule).controlSize(.small)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("square.detail.follow")
+                }
             }
             if post.memberLevel > 0 || post.authorBadge != nil || post.noticeBadge != nil {
                 HStack(spacing: 8) {

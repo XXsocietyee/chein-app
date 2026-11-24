@@ -254,6 +254,23 @@
       }
     }
   },
+  "fixr3.square.follow": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Follow"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "关注"
+        }
+      }
+    }
+  },
   "fixr3.team.buyTicket": {
     "extractionState": "manual",
     "localizations": {

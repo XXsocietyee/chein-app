@@ -60,7 +60,8 @@ import SwiftUI
                     UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
                         Section {
                             SquarePostContent(post: post, mediaScope: reader.scope, showsCounts: actions?.identity.accountID == nil,
-                                              avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) }).accessibilityIdentifier("square.detailPost")
+                                              avatarMenuItems: avatarMenuItems(post), onAvatarPick: { pickAvatarItem($0, post: post) },
+                                              onFollow: inlineFollow(post)).accessibilityIdentifier("square.detailPost")
                             if !post.videos.isEmpty { SquarePostVideoList(videos: post.videos) }
                             if post.isTopicTemplate || post.referenceTitle != nil {
                                 // C-S1: MP feed-play-card on the detail page (看看模板 / 试玩).
@@ -299,6 +300,14 @@ import SwiftUI
         }
         if accountReader != nil { items.append(.init(id: "profile", title: "avatarMenu.profile", tableName: "SocialParity")) }
         return items
+    }
+    /// C-S8 (MP square/detail wxml:44): inline 关注 when the viewer is known not to follow the author, the author is
+    /// not the viewer, and the post has no play cover (the MP hides it then).
+    private func inlineFollow(_ post: SquarePost) -> (() -> Void)? {
+        guard let actions, let viewer = actions.identity.accountID, post.memberID > 0, post.memberID != viewer,
+              !SquarePostCardFacts(post).hasPlayCover,
+              followState?.isFollowing(memberID: post.memberID) == false else { return nil }
+        return { openReviewed(.init(purpose: .toggleFollow, target: .member(post.memberID), text: "")) }
     }
     private func applyFollowReceipt() {
         guard let memberID = followWriteMember else { return }
