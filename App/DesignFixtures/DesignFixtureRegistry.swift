@@ -8,6 +8,8 @@ import AuthenticationServices
 enum DesignFixtureRegistry {
     @MainActor static func make(_ name: String) -> AnyView {
         switch name {
+        case let name where name == "native-gallery" || name.hasPrefix("native-gallery-"):
+            return AnyView(NativeGalleryFixture(route: name))
         case "design-kit": return AnyView(DesignKitFixture())
         // ui/h-code-r3-player: the shared in-place result kit (App/DesignFixtures/R3InPlaceKitFixtures.swift).
         case "r3-inplace": return AnyView(R3InPlaceKitFixture())
