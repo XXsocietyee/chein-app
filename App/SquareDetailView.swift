@@ -246,7 +246,14 @@ import SwiftUI
     private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         HStack(spacing: 28) {
             Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
-                Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)).contentTransition(reduceMotion ? .opacity : .numericText()) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart").symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isLiked == 1) }
+                Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)).contentTransition(reduceMotion ? .opacity : .numericText()) } icon: {
+                    let heart = Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart")
+                    if #available(iOS 18.0, *) {
+                        heart.symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isLiked == 1)
+                    } else {
+                        heart
+                    }
+                }
             }
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.7), value: post.isLiked)
             .tint(post.isLiked == 1 ? .red : .primary)
@@ -263,7 +270,14 @@ import SwiftUI
                     .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             }
             if post.generation == .communityV1 {
-                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: ""); editor?.enabled = post.isBookmarked != 1 } label: { Image(systemName: post.isBookmarked == 1 ? "star.fill" : "star").symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isBookmarked == 1) }
+                Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: ""); editor?.enabled = post.isBookmarked != 1 } label: {
+                    let star = Image(systemName: post.isBookmarked == 1 ? "star.fill" : "star")
+                    if #available(iOS 18.0, *) {
+                        star.symbolEffect(.bounce, options: .nonRepeating, isActive: !reduceMotion && post.isBookmarked == 1)
+                    } else {
+                        star
+                    }
+                }
                     .tint(post.isBookmarked == 1 ? CYColor.warningText : .primary).accessibilityAddTraits(post.isBookmarked == 1 ? .isSelected : []) // C-S2: saved state shows
                     .accessibilityLabel(Text(LocalizedStringKey(post.isBookmarked == 1 ? "square.bookmark.remove" : "square.bookmark.add"))).accessibilityHint(Text("social.editor.bookmark")).accessibilityIdentifier("square.detail.bookmark")
             }

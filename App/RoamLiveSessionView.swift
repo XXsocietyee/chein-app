@@ -1047,7 +1047,7 @@ struct RoamPausedBrowseContext: Equatable {
     let historyReader: RoamPausedLocalHistoryReader?
     let albumScope: RoamStampAlbumReadOnlyScope?
 }
-@MainActor final class RoamPausedBrowsePresentation: ObservableObject {
+@MainActor final class RoamPausedBrowsePresentation: @preconcurrency ObservableObject {
     let objectWillChange = ObservableObjectPublisher()
     private(set) var target: RoamPausedBrowseTarget?
     private(set) var entryID = UUID()

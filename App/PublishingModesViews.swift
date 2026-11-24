@@ -874,7 +874,7 @@ struct ActivityPublishingTimeRangeDraft {
 }
 
 
-@MainActor final class ActivityPublishingTimeRangeOwner: ObservableObject {
+@MainActor final class ActivityPublishingTimeRangeOwner: @preconcurrency ObservableObject {
     struct Presentation: Identifiable {
         let id = UUID()
         let generation: UUID

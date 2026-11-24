@@ -75,7 +75,7 @@ public struct ProjectStoryUploadedImage: Equatable, Sendable {
 /// Matches Mini app.chooseImage → upload-client exactly: file plus bizType=image_free.
 /// Its default response transport and independent deployment/account approval are both off.
 @MainActor public final class ProjectStoryImageUploadClient: ProjectStoryImageUploading {
-    public static let path = "api/common/uploadOSS"
+    nonisolated public static let path = "api/common/uploadOSS"
     private let configuration: APIConfiguration
     private let approval: ProjectStoryImageUploadApproval?
     private let transport: any HTTPTransport

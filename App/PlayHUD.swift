@@ -68,7 +68,7 @@ enum PlayHUDGeometry {
 /// The phone's compass heading while the HUD is on screen. Only starts when location is already authorized for
 /// When In Use (the HUD never asks; the arrival action's primer owns the first prompt). nil: no compass (simulator,
 /// no permission), and the arrow is not drawn.
-@MainActor @Observable final class PlayHUDHeadingSource: NSObject, CLLocationManagerDelegate {
+@MainActor @Observable final class PlayHUDHeadingSource: NSObject, @preconcurrency CLLocationManagerDelegate {
     private(set) var heading: Double?
     @ObservationIgnored private var manager: CLLocationManager?
 

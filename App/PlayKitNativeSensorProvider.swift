@@ -6,7 +6,7 @@ import AVFoundation
 
 /// Dormant until an explicit user gesture, accepted grant, purpose key and OS
 /// authorization all agree. This adapter never stores or uploads microphone data.
-@MainActor final class PlayKitNativeSensorProvider: NSObject, PlayKitSensorProviding, PlayKitSensorAuthorizing, CLLocationManagerDelegate {
+@MainActor final class PlayKitNativeSensorProvider: NSObject, PlayKitSensorProviding, PlayKitSensorAuthorizing, @preconcurrency CLLocationManagerDelegate {
     let supported: Set<PlayKitSensorKind>
     private let purposeDescriptions: [String: String]
     private var motion: CMMotionManager?

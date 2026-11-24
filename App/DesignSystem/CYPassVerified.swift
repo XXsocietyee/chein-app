@@ -83,7 +83,11 @@ struct CYPassVerifiedFace: View {
                         .font(.system(.title, weight: .semibold))
                         .foregroundStyle(CYNight.ink0)
                         .offset(x: 30, y: 28)
-                        .symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
+                    if #available(iOS 18.0, *) {
+                        mark.symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)
+                    } else {
+                        mark
+                    }
                 }
                 .accessibilityHidden(true)
                 Text(verbatim: c.t("已入场", "You're in"))
