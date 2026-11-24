@@ -322,14 +322,9 @@ struct CYRoamPin: View {
     var selected = false
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
-        Image(systemName: symbol)
-            .font(.footnote.weight(.bold))
-            .foregroundStyle(selected ? Color.black : CYColor.actionPrimaryFg)
-            .frame(width: 32, height: 32)
-            .background(selected ? Color.white : CYColor.actionPrimaryBg, in: Circle())
-            .overlay(Circle().strokeBorder(selected ? CYColor.brand : Color.white.opacity(0.85), lineWidth: selected ? 3 : 2))
+        CYMapMarker(symbol: symbol, selected: selected)
             .background { CYRingPulse(trigger: selected ? 1 : 0, idle: false).opacity(selected ? 1 : 0) }
-            .scaleEffect(selected && !reduceMotion ? 1.28 : 1)
+            .scaleEffect(selected && !reduceMotion ? 1.12 : 1)
             .shadow(color: .black.opacity(0.4), radius: selected ? 8 : 3, y: 2)
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.6), value: selected)
             .accessibilityHidden(true)

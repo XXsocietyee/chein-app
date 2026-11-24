@@ -110,6 +110,15 @@ struct CYStateArt: View {
     @State private var floating = false
 
     var body: some View {
+        if let illustration = CYEmptyIllustration.kind(matching: kind == .orders ? "ticket" : kind.symbol) {
+            CYEmptyIllustration(kind: illustration, size: size)
+        } else {
+            illustrated
+        }
+    }
+
+    @ViewBuilder
+    private var illustrated: some View {
         let hue = kind.hue
         let sat = kind.muted ? 0.12 : 0.62
         let top = Color(hue: hue, saturation: sat, brightness: kind.muted ? 0.62 : 0.86)
@@ -171,6 +180,8 @@ struct CYStateLayout: View {
     var secondaryVerbatim: (title: String, action: () -> Void)? = nil
     var primaryIdentifier: String? = nil
     var artSize: CGFloat = 132
+    /// Set by `CYEmptyState` when the caller's symbol has a mini-program illustration (`sparkles` → no data).
+    var emptyIllustration: CYEmptyIllustration.Kind? = nil
     @Environment(\.cyPalette) private var palette
 
     var body: some View {
@@ -179,8 +190,13 @@ struct CYStateLayout: View {
             Label {
                 title
             } icon: {
-                Image(systemName: kind.symbol)
-                    .foregroundStyle(palette.textTertiary)
+                if let emptyIllustration {
+                    // MP empty-state figure (C7/Q4): the exact mini-program illustration.
+                    CYEmptyIllustration(kind: emptyIllustration, size: artSize)
+                } else {
+                    Image(systemName: kind.symbol)
+                        .foregroundStyle(palette.textTertiary)
+                }
             }
         } description: {
             if let detail { detail }

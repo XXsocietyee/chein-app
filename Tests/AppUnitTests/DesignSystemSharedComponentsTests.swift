@@ -239,8 +239,8 @@ final class DesignSystemSharedComponentsTests: XCTestCase {
 
         // Player idle vs selected glyph pairs
         let roamIcon = CYDomainTabIcons.icon(for: .roam, domain: .player)
-        XCTAssertEqual(roamIcon.idle, "map")
-        XCTAssertEqual(roamIcon.selected, "map.fill")
+        XCTAssertEqual(roamIcon.idle, "images_icon_roam")
+        XCTAssertEqual(roamIcon.selected, "images_icon_roam_d")
 
         // Native iOS restyle r1: half / full are the system detents; peek stays 30%.
         XCTAssertEqual(CYSheetDetent.peek.presentationDetent, .fraction(0.30))

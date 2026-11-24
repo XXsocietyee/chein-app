@@ -142,11 +142,17 @@ struct CYCraftedMedal: View {
     }
 
     private var glyphMark: some View {
-        Image(systemName: glyph)
-            .font(.system(size: size * (kind == .medal ? 0.36 : 0.30), weight: .semibold))
-            .foregroundStyle(LinearGradient(colors: [.white, CYNight.lanternHot], startPoint: .top, endPoint: .bottom))
-            .shadow(color: .black.opacity(0.45), radius: 2, y: 2)
-            .offset(y: kind == .star ? size * 0.03 : (kind == .shield ? -size * 0.02 : 0))
+        Group {
+            if let art = CYMedalGlyph.image(for: glyph) {
+                art.resizable().scaledToFit().frame(width: size * 0.42, height: size * 0.42)
+            } else {
+                Image(systemName: glyph)
+                    .font(.system(size: size * (kind == .medal ? 0.36 : 0.30), weight: .semibold))
+                    .foregroundStyle(LinearGradient(colors: [.white, CYNight.lanternHot], startPoint: .top, endPoint: .bottom))
+            }
+        }
+        .shadow(color: .black.opacity(0.45), radius: 2, y: 2)
+        .offset(y: kind == .star ? size * 0.03 : (kind == .shield ? -size * 0.02 : 0))
     }
 
     private var grain: some View {
@@ -188,14 +194,12 @@ struct CYCraftedMedal: View {
     }
 
     private var laurel: some View {
-        HStack(spacing: size * 0.70) {
-            Image(systemName: "laurel.leading").resizable().scaledToFit()
-            Image(systemName: "laurel.trailing").resizable().scaledToFit()
-        }
-        .foregroundStyle(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom))
-        .frame(width: size * 1.45, height: size * 0.74)
-        .offset(y: size * 0.04)
-        .opacity(0.9)
+        MPAsset.BadgeMedal.laurel
+            .resizable()
+            .scaledToFit()
+            .frame(width: size * 1.15, height: size * 0.74)
+            .offset(y: size * 0.04)
+            .opacity(0.9)
     }
 }
 

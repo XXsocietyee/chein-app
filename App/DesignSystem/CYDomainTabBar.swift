@@ -14,38 +14,71 @@ import UIKit
 //   *styling*: selected = violet `#7A5CFF`, unselected = 45% opacity of the label colour, glass bar with a
 //   hairline top border on player, transparent-to-white gradient with no border on merchant.
 //
-// This file adds the styling as opt-in modifiers; wiring them onto the two TabViews is a one-line change
-// at each root (`.cyDomainTabBar(.player)` / `.cyDomainTabBar(.merchant)`), which is outside this agent's
-// scope (QuestifyApp.swift / HomeSearchTabParityViews.swift are on the never-edit list).
+// This file adds the styling as opt-in modifiers. The two roots call `CYDomainTabLabel` so the bar
+// draws these catalog glyphs (QuestifyApp root tabs, SessionMerchantRootContainerView merchant tabs).
 
-/// Icon intent for one mini-program tab, expressed as SF Symbols (outline when idle, fill when selected).
+/// One mini-program tab icon pair. `idle` / `selected` are asset-catalog names
+/// (`MPAsset.TabIcon`). Player selected PNGs keep their original violet; every other glyph is a template.
 struct CYDomainTabIcon: Equatable {
     let idle: String
     let selected: String
+    var selectedIsOriginal: Bool = false
+
+    func image(selected isSelected: Bool) -> Image {
+        let art = artwork(selected: isSelected)
+        if isSelected && selectedIsOriginal { return art.renderingMode(.original) }
+        return art.renderingMode(.template)
+    }
+
+    /// The same catalog image `Image(_:)` would load. Referenced through `MPAsset` so the slot stays tied to the mapping.
+    private func artwork(selected isSelected: Bool) -> Image {
+        let name = isSelected ? selected : idle
+        switch name {
+        case "images_icon_f1": return MPAsset.TabIcon.iconF1
+        case "images_icon_f01d": return MPAsset.TabIcon.iconF01d
+        case "images_icon_roam": return MPAsset.TabIcon.iconRoam
+        case "images_icon_roam_d": return MPAsset.TabIcon.iconRoamD
+        case "images_icon_f3": return MPAsset.TabIcon.iconF3
+        case "images_icon_f03d": return MPAsset.TabIcon.iconF03d
+        case "images_icon_f4": return MPAsset.TabIcon.iconF4
+        case "images_icon_f04d": return MPAsset.TabIcon.iconF04d
+        case "images_icon_f5": return MPAsset.TabIcon.iconF5
+        case "images_icon_f05d": return MPAsset.TabIcon.iconF05d
+        case "images_icon_tab_workbench": return MPAsset.TabIcon.iconTabWorkbench
+        case "images_icon_tab_workbench_on": return MPAsset.TabIcon.iconTabWorkbenchOn
+        case "images_icon_tab_marketing": return MPAsset.TabIcon.iconTabMarketing
+        case "images_icon_tab_marketing_on": return MPAsset.TabIcon.iconTabMarketingOn
+        case "images_icon_tab_template": return MPAsset.TabIcon.iconTabTemplate
+        case "images_icon_tab_template_on": return MPAsset.TabIcon.iconTabTemplateOn
+        case "images_icon_tab_relation": return MPAsset.TabIcon.iconTabRelation
+        case "images_icon_tab_relation_on": return MPAsset.TabIcon.iconTabRelationOn
+        case "images_icon_tab_mine": return MPAsset.TabIcon.iconTabMine
+        case "images_icon_tab_mine_on": return MPAsset.TabIcon.iconTabMineOn
+        default: return Image(name)
+        }
+    }
 }
 
 enum CYDomainTabIcons {
-    /// Player bar. Mini-program icons: icon_f1 (home), icon_roam (map pin), icon_f3 (publish / plus tile),
-    /// icon_f4 (club / group), icon_f5 (me). Matches `RootTab.systemImage` for the idle glyph.
+    /// Player bar (`app.json` / CONSUMER_LIST): icon_f1, icon_roam, icon_f3, icon_f4, icon_f5.
     static func player(_ tab: RootTab) -> CYDomainTabIcon {
         switch tab {
-        case .home: return CYDomainTabIcon(idle: "house", selected: "house.fill")
-        case .roam: return CYDomainTabIcon(idle: "map", selected: "map.fill")
-        case .publish: return CYDomainTabIcon(idle: "plus.square", selected: "plus.square.fill")
-        case .club: return CYDomainTabIcon(idle: "person.3", selected: "person.3.fill")
-        case .mine: return CYDomainTabIcon(idle: "person.crop.circle", selected: "person.crop.circle.fill")
+        case .home: return CYDomainTabIcon(idle: "images_icon_f1", selected: "images_icon_f01d", selectedIsOriginal: true)
+        case .roam: return CYDomainTabIcon(idle: "images_icon_roam", selected: "images_icon_roam_d", selectedIsOriginal: true)
+        case .publish: return CYDomainTabIcon(idle: "images_icon_f3", selected: "images_icon_f03d", selectedIsOriginal: true)
+        case .club: return CYDomainTabIcon(idle: "images_icon_f4", selected: "images_icon_f04d", selectedIsOriginal: true)
+        case .mine: return CYDomainTabIcon(idle: "images_icon_f5", selected: "images_icon_f05d", selectedIsOriginal: true)
         }
     }
 
-    /// Merchant bar. Mini-program icons: icon_tab_workbench / marketing / template / relation / mine (24 grid, 1.8 stroke).
-    /// Index order is the merchant order; the `RootTab` slot mirrors `RootTabBarParity.merchantTabs`.
+    /// Merchant bar (`components/tabBar` MERCHANT_LIST): workbench / marketing / template / relation / mine.
     static func merchant(_ tab: RootTab) -> CYDomainTabIcon {
         switch tab {
-        case .home: return CYDomainTabIcon(idle: "square.grid.2x2", selected: "square.grid.2x2.fill")
-        case .roam: return CYDomainTabIcon(idle: "megaphone", selected: "megaphone.fill")
-        case .publish: return CYDomainTabIcon(idle: "plus.square", selected: "plus.square.fill")
-        case .club: return CYDomainTabIcon(idle: "person.2", selected: "person.2.fill")
-        case .mine: return CYDomainTabIcon(idle: "person.crop.circle", selected: "person.crop.circle.fill")
+        case .home: return CYDomainTabIcon(idle: "images_icon_tab_workbench", selected: "images_icon_tab_workbench_on")
+        case .roam: return CYDomainTabIcon(idle: "images_icon_tab_marketing", selected: "images_icon_tab_marketing_on")
+        case .publish: return CYDomainTabIcon(idle: "images_icon_tab_template", selected: "images_icon_tab_template_on")
+        case .club: return CYDomainTabIcon(idle: "images_icon_tab_relation", selected: "images_icon_tab_relation_on")
+        case .mine: return CYDomainTabIcon(idle: "images_icon_tab_mine", selected: "images_icon_tab_mine_on")
         }
     }
 
@@ -66,7 +99,42 @@ enum CYDomainTabIcons {
     }
 }
 
-/// A tab label that picks the idle / filled glyph from selection, as the mini-program swaps
+/// 25pt tab glyph. Template icons take the bar tint; the player selected PNGs stay their original violet.
+struct CYTabBarIcon: View {
+    let name: String
+    var template: Bool
+
+    var body: some View {
+        #if canImport(UIKit)
+        Image(uiImage: CYTabIconRaster.image(named: name, template: template))
+        #else
+        Image(name).renderingMode(template ? .template : .original)
+        #endif
+    }
+}
+
+#if canImport(UIKit)
+enum CYTabIconRaster {
+    static func image(named name: String, template: Bool) -> UIImage {
+        let point: CGFloat = 25
+        let source = UIImage(named: name) ?? UIImage()
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = UITraitCollection.current.displayScale
+        format.opaque = false
+        let rendered = UIGraphicsImageRenderer(size: CGSize(width: point, height: point), format: format).image { _ in
+            let aspect = source.size.width > 0 && source.size.height > 0 ? source.size.width / source.size.height : 1
+            let draw = aspect >= 1
+                ? CGSize(width: point, height: point / aspect)
+                : CGSize(width: point * aspect, height: point)
+            let origin = CGPoint(x: (point - draw.width) / 2, y: (point - draw.height) / 2)
+            source.draw(in: CGRect(origin: origin, size: draw))
+        }
+        return rendered.withRenderingMode(template ? .alwaysTemplate : .alwaysOriginal)
+    }
+}
+#endif
+
+/// A tab label that picks the idle / selected mini-program glyph, as the mini-program swaps
 /// `iconPath` / `selectedIconPath`. Use inside `.tabItem { CYDomainTabLabel(tab:selected:domain:) }`.
 struct CYDomainTabLabel: View {
     let tab: RootTab
@@ -75,10 +143,12 @@ struct CYDomainTabLabel: View {
 
     var body: some View {
         let icon = CYDomainTabIcons.icon(for: tab, domain: domain)
-        Label(
-            LocalizedStringKey(CYDomainTabIcons.titleKey(for: tab, domain: domain)),
-            systemImage: tab == selected ? icon.selected : icon.idle
-        )
+        let isSelected = tab == selected
+        Label {
+            Text(LocalizedStringKey(CYDomainTabIcons.titleKey(for: tab, domain: domain)))
+        } icon: {
+            CYTabBarIcon(name: isSelected ? icon.selected : icon.idle, template: !(isSelected && icon.selectedIsOriginal))
+        }
     }
 }
 
@@ -218,8 +288,10 @@ struct CYRootTabBarStrip: View {
                     selection = tab
                 } label: {
                     VStack(spacing: CYSpacing.xs) {
-                        Image(systemName: isSelected ? icon.selected : icon.idle)
-                            .font(.system(.title3, weight: isSelected ? .semibold : .regular))
+                        icon.image(selected: isSelected)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 22, height: 22)
                             .foregroundStyle(fg)
                         Text(LocalizedStringKey(CYDomainTabIcons.titleKey(for: tab, domain: domain)))
                             .font(CYTypography.micro.weight(isSelected ? .semibold : .medium))
