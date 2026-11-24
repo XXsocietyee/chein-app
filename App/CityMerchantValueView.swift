@@ -87,9 +87,9 @@ import SwiftUI
             }
         }.cyGroupedSurface().accessibilityIdentifier("cityValue.merchant")
             .task { guard !loadedInitially else { return }; loadedInitially = true; if let window { await model.load(window: window) } }
-            .sheet(item: $selectedBenefit, onDismiss: { model.closeBenefit() }) { fact in
+            .sheet(item: $selectedBenefit, onDismiss: { model.closeBenefit() }) { fact in Group {
                 CityMerchantValueBenefitView(model: model, fact: fact)
-            }
+            }.cySheet(detents: [.large]) }
             .onDisappear { stop() }.onChange(of: phase) { _, value in if value != .active { stop() } }
         .cyDomainScreen(.merchant)
     }
@@ -139,7 +139,7 @@ import SwiftUI
                     guard phase == .active else { return }; retry?.cancel(); retry = Task { await model.readBenefit(fact) }
                 } label: { CityMerchantValueCopy.text("benefit.retry") }
                     .disabled(model.benefitBusy || !model.canReadBenefit(fact))
-            }.cyGroupedSurface().navigationTitle(CityMerchantValueCopy.string("benefit.title"))
+            }.cyGroupedSurface().navigationTitle(CityMerchantValueCopy.string("benefit.title")).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { CityMerchantValueCopy.text("benefit.close") }.accessibilityIdentifier("cityValue.benefit.close")
                 } }

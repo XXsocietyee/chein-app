@@ -51,7 +51,7 @@ import SwiftUI
                         // 「过线了 / 没过线」 comes from the receipt; the client never judges.
                         Label { Text(verbatim: success ? c("Over the line", "过线了") : c("Short of the line", "没过线")) }
                             icon: { Image(systemName: success ? "checkmark.seal.fill" : "xmark.seal") }
-                            .font(CYTypography.sectionTitle)
+                            .cyText(.sectionTitle)
                             .foregroundStyle(success ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("play.check.verdict")
                     }

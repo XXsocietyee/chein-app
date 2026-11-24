@@ -76,14 +76,14 @@ import SwiftUI
             .sheet(item: $sourceSelection, onDismiss: {
                 guard let visitID = sourceReturnVisitID else { return }; sourceReturnVisitID = nil
                 run { await model.sourceClosed(visitID: visitID) }
-            }) { selected in
+            }) { selected in Group {
                 NavigationStack {
                     CityPlayerValueNodeHost(visit: selected.visit, factory: source)
                         .toolbar { ToolbarItem(placement: .cancellationAction) {
                             Button(CityPlayerValueCopy.string("close")) { sourceSelection = nil }
                         } }
                 }
-            }
+            }.cySheet(detents: [.large]) }
             .task { await model.load() }
             .onChange(of: phase) { _, value in if value != .active { stop() } }
             .onDisappear { stop() }

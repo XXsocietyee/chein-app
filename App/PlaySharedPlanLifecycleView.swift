@@ -125,7 +125,7 @@ import SwiftUI
                         ForEach(p.rows.filter { $0.proposalKey != nil }) { row in
                             Toggle(row.title, isOn: Binding(get: { acceptance.contains(row.proposalKey!) }, set: { value in
                                 if value { acceptance.insert(row.proposalKey!) } else { acceptance.remove(row.proposalKey!) }; acceptanceDirty = true; model.invalidateReview()
-                            })).disabled(!enabled(.accept, p, row))
+                            })).tint(.green).disabled(!enabled(.accept, p, row))
                         }
                         Button("核对并签署接受清单") { prepare(.accept) }.disabled(!enabled(.accept, p))
                     }

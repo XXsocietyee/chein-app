@@ -285,7 +285,7 @@ import UIKit
                         ForEach(Array(plans.enumerated()), id: \.offset) { _, plan in if let code = plan["planCode"].text { Text(verbatim: code).tag(code) } }
                     }
                 }
-                if action == .visibility { Toggle("playx.director.showLeaderboard", isOn: $visible) }
+                if action == .visibility { Toggle("playx.director.showLeaderboard", isOn: $visible).tint(.green) }
             }
             Section {
                 if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
