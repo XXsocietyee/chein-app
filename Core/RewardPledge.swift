@@ -959,82 +959,82 @@ public struct RewardPledgeClient {
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
-    public func awards(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> [RewardPledgeAwardRow] {
+    public func awards(token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> [RewardPledgeAwardRow] {
         try RewardPledgeAwardRow.decodeList(try await fetch(try RewardPledgeRequests.list(baseURL: configuration.baseURL, token: token), open: open, still: still))
     }
-    public func storeAwards(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> [RewardPledgeAwardRow] {
+    public func storeAwards(token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> [RewardPledgeAwardRow] {
         try RewardPledgeAwardRow.decodeList(try await fetch(try RewardPledgeRequests.storeAwards(baseURL: configuration.baseURL, token: token), open: open, still: still))
     }
-    public func resolve(code: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func resolve(code: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.resolve(code: code, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func catalog(subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func catalog(subjectID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.catalog(subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func ownedPledges(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func ownedPledges(token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.ownedPledges(baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func reviewQueue(token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func reviewQueue(token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.reviewQueue(baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func reviewVersion(versionID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func reviewVersion(versionID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.reviewVersion(versionID: versionID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func offer(versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func offer(versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.offer(versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func claim(requestID: String, versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func claim(requestID: String, versionID: String, subjectID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.claim(requestID: requestID, versionID: versionID, subjectID: subjectID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func recover(requestID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func recover(requestID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.jsonRecover(requestID: requestID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func detail(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func detail(awardID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.detail(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func preview(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func preview(awardID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.preview(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func redeem(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func redeem(awardID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.redeem(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func draft(_ supply: RewardPledgeRequests.Supply, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func draft(_ supply: RewardPledgeRequests.Supply, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.draft(supply, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func submit(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func submit(pledgeID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.submit(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func confirm(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func confirm(pledgeID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.confirm(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func readPledge(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func readPledge(pledgeID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.readPledge(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func readOp(op: String, key: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func readOp(op: String, key: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.readOp(op: op, key: key, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func freeze(pledgeID: String, ruleVersion: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func freeze(pledgeID: String, ruleVersion: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.freeze(pledgeID: pledgeID, ruleVersion: ruleVersion, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func hold(versionID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func hold(versionID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.hold(versionID: versionID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func withdraw(versionID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func withdraw(versionID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.withdraw(versionID: versionID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func expire(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func expire(awardID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.expire(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func returnToPool(awardID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func returnToPool(awardID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.returnToPool(awardID: awardID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func openCase(awardID: String, versionID: String, reason: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func openCase(awardID: String, versionID: String, reason: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.openCase(awardID: awardID, versionID: versionID, reason: reason, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func readCase(caseID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func readCase(caseID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.readCase(caseID: caseID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
-    public func stats(pledgeID: String, token: String, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    public func stats(pledgeID: String, token: String, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         try await send(try RewardPledgeRequests.stats(pledgeID: pledgeID, baseURL: configuration.baseURL, token: token), open: open, still: still)
     }
     /// Preview must name the same request id and a coupon history before redeem is sent.
@@ -1052,7 +1052,7 @@ public struct RewardPledgeClient {
         }
         return .success(award)
     }
-    private func fetch(_ request: URLRequest, open: Bool, still: @MainActor () -> Bool) async throws -> Data {
+    private func fetch(_ request: URLRequest, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> Data {
         guard open else { throw RewardPledgeFailure.closed("not open") }
         let data: Data, status: Int
         do { (data, status) = try await transport.send(request) }
@@ -1061,7 +1061,7 @@ public struct RewardPledgeClient {
         if status == 401 { throw APIError.unauthorized }
         return data
     }
-    private func send(_ request: URLRequest, open: Bool, still: @MainActor () -> Bool) async throws -> RewardPledgeServerBody {
+    private func send(_ request: URLRequest, open: Bool, still: @MainActor @Sendable () -> Bool) async throws -> RewardPledgeServerBody {
         let data = try await fetch(request, open: open, still: still)
         guard data.count <= 1_048_576, let body = RewardPledgeServerBody.decode(data) else { throw APIError.malformedResponse }
         if body.code == 401 { throw APIError.unauthorized }

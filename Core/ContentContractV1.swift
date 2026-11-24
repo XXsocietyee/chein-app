@@ -145,7 +145,7 @@ public enum ContentContractV1 {
                 }
             }
         }
-        guard let input = text(payload["input"] ?? .null) else { try reject("提交不合法") }
+        guard let input = text(payload["input"]) else { try reject("提交不合法") }
         func same(_ left: String, _ right: String) -> Bool {
             caseSensitive ? left == right : canon(left) == canon(right)
         }
@@ -182,7 +182,7 @@ public enum ContentContractV1 {
     }
 
     public static func accusationOutcome(_ document: PlayWireValue, submission: PlayWireValue) -> AccusationOutcome {
-        let submitted = text(submission["submitted"] ?? .null) ?? ""
+        let submitted = text(submission["submitted"]) ?? ""
         let gate = submission["clueGateSatisfied"].bool
         let early = submission["early"].object ?? [:]
         let remain = submission["remainingChances"].integer

@@ -417,7 +417,7 @@ public struct ChannelAttachmentProjection: Equatable, Sendable {
 }
 
 /// Wire-compatible helper to construct `MessagingMessage` instances and carry optimistic client metadata.
-public struct ChannelTranscriptMessage: Equatable, Identifiable {
+public struct ChannelTranscriptMessage: Equatable, Identifiable, Sendable {
     public var id: String {
         if let clientMessageID, !clientMessageID.isEmpty, wireMessage.id <= 0 {
             return "client-\(clientMessageID)"

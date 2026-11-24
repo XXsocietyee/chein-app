@@ -3,7 +3,7 @@ import CryptoKit
 
 /// Local selection constraints only. None of these types grants an upload, ownership,
 /// moderation, topic-edit, or publication capability.
-public enum ProjectTopicMediaKind: String, Codable, Equatable, Hashable { case image, video }
+public enum ProjectTopicMediaKind: String, Codable, Equatable, Hashable, Sendable { case image, video }
 public enum ProjectTopicMediaFailure: Error, Equatable {
     case policyUnavailable, invalidPolicy, contextUnavailable, changedContext, changedPolicy
     case invalidReference, noSelection, tooManyItems, mixedKinds, unsupportedType

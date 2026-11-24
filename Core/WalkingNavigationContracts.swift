@@ -13,8 +13,8 @@ public struct WalkingCoordinate: Hashable {
 }
 
 /// Identity only. A reference is not proof of access and contains no future-node geometry.
-public struct WalkingTargetReference: Codable, Hashable {
-    public enum Kind: String, Codable { case cityNode, nearbyNode, merchant, storyNode }
+public struct WalkingTargetReference: Codable, Hashable, Sendable {
+    public enum Kind: String, Codable, Sendable { case cityNode, nearbyNode, merchant, storyNode }
     public let kind: Kind
     public let id: Int
     public let missionID: Int?

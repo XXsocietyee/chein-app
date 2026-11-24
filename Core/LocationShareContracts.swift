@@ -122,7 +122,7 @@ public struct LocationShareOwnerState: Equatable {
 
 /// W13.7: distance-only output uses coarse bands, never a precise meter count.
 /// Band edges are client display candidates pending review, not an approved privacy policy.
-public enum MapDistanceBand: String, CaseIterable {
+public enum MapDistanceBand: String, CaseIterable, Sendable {
     case under500m, under1km, under3km, beyond3km
     public static func band(meters: Double) -> MapDistanceBand? {
         guard meters.isFinite, meters >= 0 else { return nil }
