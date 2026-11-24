@@ -51,7 +51,7 @@ import SwiftUI
                 Text("profile.preferenceRemoval.unavailable").accessibilityIdentifier("profile.preferenceRemoval.unavailable")
             }
         }
-        .appNavigationTitle("profile.preferenceRemoval.title")
+        .appNavigationTitle("profile.preferenceRemoval.title").navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.preferenceRemoval.cancel")

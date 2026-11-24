@@ -86,7 +86,7 @@ import SwiftUI
                     Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") }
                 }
                 if let place = ticket.addressName, !place.isEmpty {
-                    Label { Text(verbatim: place).lineLimit(1) } icon: { Image(systemName: "mappin.and.ellipse") }
+                    Label { Text(verbatim: place).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
             }
             .cyText(.meta).foregroundStyle(CYColor.textSecondary)
@@ -115,7 +115,7 @@ import SwiftUI
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.xxl)
                     .frame(maxWidth: .infinity)
-                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .textSelection(.enabled)
                     .accessibilityLabel(Text(verbatim: c.t("票号", "Ticket number")))
                     .accessibilityValue(Text(verbatim: number))
@@ -125,7 +125,7 @@ import SwiftUI
                     .font(CYTypography.display)
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xxl)
-                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .accessibilityHidden(true)
             }
             Text(verbatim: c.t("到场出示", "Show at the venue")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)

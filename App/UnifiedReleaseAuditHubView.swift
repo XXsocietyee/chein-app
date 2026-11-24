@@ -206,7 +206,7 @@ public struct UnifiedReleaseAuditHubView: View {
                 .accessibilityIdentifier("unifiedReleaseAuditHub.overallSummary")
 
             Text(verbatim: masterDocumentsSummaryText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("unifiedReleaseAuditHub.masterDocsSummary")
         }

@@ -144,7 +144,7 @@ struct SettingsView: View {
             .labelStyle(SettingsTileLabelStyle())
             }
             }
-            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
+            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("settings.search.prompt"))
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
@@ -152,7 +152,7 @@ struct SettingsView: View {
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .cyHideTabBar()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -246,7 +246,7 @@ struct SettingsAccountCard: View {
             if tappable { Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }
         }
         .padding(CYSpacing.lg)
-        .background(palette.cardFill, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
+        .background(palette.cardFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .cyPressTracking()
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(tappable ? .isButton : .isStaticText)

@@ -231,7 +231,7 @@ enum CYPassCardPick {
         .cyFoilSheen(trigger: sheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
         .cyPassFoilEdge(shape, active: ticket.status == .ready)
-        .shadow(color: .black.opacity(0.40), radius: 16, y: 9)
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
         .opacity(state.isRetired ? 0.74 : 1)
         .cyBrightnessBoost(ticket.status == .ready)
         .background(GeometryReader { g in Color.clear.onAppear { cardSize = g.size }.onChange(of: g.size) { _, new in cardSize = new } })
@@ -349,7 +349,7 @@ enum CYPassCardPick {
         .padding(CYSpacing.md)
         .frame(width: side, height: side)
         .padding(CYSpacing.lg)
-        .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .background(.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityIdentifier("ticketPass.whiteTile")
     }
 

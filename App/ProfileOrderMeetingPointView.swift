@@ -82,7 +82,7 @@ import SwiftUI
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: model.presentation(for: review, current: current),
-                   onDismiss: { model.cancel(id: review.id) }) { offered in
+                   onDismiss: { model.cancel(id: review.id) }) { offered in Group {
                 NavigationStack {
                     Form {
                         Section { CYHeroHeader("profile.orderMap.review") }.e1HeroRow()
@@ -106,6 +106,9 @@ import SwiftUI
                             .accessibilityIdentifier("profile.orderMap.cancel")
                     } }
                 }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
     }
 }

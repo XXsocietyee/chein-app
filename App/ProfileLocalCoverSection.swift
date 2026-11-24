@@ -141,8 +141,11 @@ extension ProfileLocalCoverOwner {
                 model.diagnosticEvent?("sheet.binding.false")
 #endif
                 model.close()
-            } })) {
+            } })) { Group {
                 editor
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
             .onChange(of: scenePhase) { _, value in
 #if DEBUG
@@ -199,7 +202,7 @@ extension ProfileLocalCoverOwner {
                 }
             }
             .background(RetainedImagePresenterHost(host: model.pickerHost).frame(width: 0, height: 0))
-            .appNavigationTitle("profile.localCover.title")
+            .appNavigationTitle("profile.localCover.title").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("action.close") {
 #if DEBUG

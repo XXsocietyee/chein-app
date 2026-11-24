@@ -72,7 +72,7 @@ struct ProfileOrdersView: View {
                 }
             }
         }
-        .appNavigationTitle("profile.orders.title")
+        .appNavigationTitle("profile.orders.title").navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
         .onAppear { appearOrderSupport() }
         .onChange(of: filterOwner) { _, _ in

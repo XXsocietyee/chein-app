@@ -89,9 +89,12 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
                     .modifier(ProfileFavoriteRemovalLifecycleEvidence(diagnostics: lifecycle))
             }
         }
-        .sheet(item: $presentation) { value in
+        .sheet(item: $presentation) { value in Group {
             ProfileFavoriteRemovalSheet(presentation: value, contents: post.contents, controller: controller,
                 isCurrent: isCurrent, onRemoved: onRemoved, diagnostics: lifecycle)
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         }
         .onAppear { lifecycle.record("entryHost.appeared", scene: scenePhase, presentation: presentation, controller: controller) }
         .onChange(of: scope) { _, _ in
@@ -161,9 +164,12 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
                 }
             }
         }
-        .sheet(item: $presentation) { value in
+        .sheet(item: $presentation) { value in Group {
             ProfileFavoriteRemovalSheet(presentation: value, controller: controller,
                 isCurrent: isCurrent, onRemoved: onRemoved, diagnostics: lifecycle)
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         }
         .onAppear { lifecycle.record("recoveryHost.appeared", scene: scenePhase, presentation: presentation, controller: controller) }
         .onChange(of: scope) { _, _ in

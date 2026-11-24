@@ -197,7 +197,7 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
         }
         .background(RetainedImagePresenterHost(host:model.pickerHost).frame(width:0,height:0))
         .task(id:original.id) { await model.load() }
-        .sheet(item:model.binding(selection)) { captured in selectionConfirmation(captured) }
+        .sheet(item:model.binding(selection)) { captured in Group { selectionConfirmation(captured) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
         .onDisappear { model.close();close() }
         .cyDomainScreen(.topicEditor)
     }

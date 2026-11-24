@@ -189,7 +189,7 @@ import UIKit
                     }
                 }
             }
-            .appNavigationTitle(key: kind == .avatar ? "profile.avatar.title" : (kind == .casePicture ? "profile.case.add" : "profile.contactQR.title"))
+            .appNavigationTitle(key: kind == .avatar ? "profile.avatar.title" : (kind == .casePicture ? "profile.case.add" : "profile.contactQR.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { presentation.close(flow) } } }
         }
     }

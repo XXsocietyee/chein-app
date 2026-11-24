@@ -423,7 +423,7 @@ private struct TicketWalletRow: View {
         .onPreferenceChange(TicketTopHeightKey.self) { topHeight = $0 }
         .clipShape(TicketStubShape(notchY: hasStub ? topHeight : -1), style: FillStyle(eoFill: true))
         .opacity(dimmed ? 0.62 : 1)
-        .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
         .padding(.horizontal, CYSpacing.pageHorizontal)
     }
     /// Completed shows 已通关. Absent hides that line. A non-boolean shows an em dash.

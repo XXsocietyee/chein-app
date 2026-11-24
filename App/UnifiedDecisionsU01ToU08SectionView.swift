@@ -199,7 +199,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: decision.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(decision.isVerified ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("unifiedDecisionsAudit.decisionStatus.\(decision.id)")
                     }
@@ -209,7 +209,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: decision.failClosedGateSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("unifiedDecisionsAudit.decisionGate.\(decision.id)")
                 }
