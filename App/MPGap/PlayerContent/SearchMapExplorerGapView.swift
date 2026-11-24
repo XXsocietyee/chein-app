@@ -54,10 +54,13 @@ public struct SearchMapExplorerGapView: View {
                     Button {
                         selectedPlace = place
                     } label: {
-                        // TODO: MPAsset.MapMarker.dSmapicon (images/d_smapicon.png)
-                        Image(systemName: "mappin.circle.fill")
-                            .cyText(.sectionTitle)
-                            .foregroundStyle(selectedPlace?.id == place.id ? CYColor.brand : CYColor.textPrimary)
+                        MPAsset.MapMarker.dSmapicon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(
+                                width: selectedPlace?.id == place.id ? 34 : 28,
+                                height: selectedPlace?.id == place.id ? 34 : 28
+                            )
                     }
                     .buttonStyle(.plain)
                 }

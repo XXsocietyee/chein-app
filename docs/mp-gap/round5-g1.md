@@ -19,7 +19,7 @@ Source reviews & briefs:
 | F-C12 | P2 | Member | Added `.confirmationDialog` before destructive `onSync` and `onSettle` actions in `App/MPGap/Member/OrientScoreGapViews.swift`. |
 | F-C13 | P2 | All G1 | Replaced all `.cyText(.micro)` and `.cyText(.caption)` usages with `.cyText(.meta)` across 9 `App/MPGap` files. |
 | F-C14 | P2 | PlayRoam | Replaced 1-letter monogram in `App/MPGap/PlayRoam/NearbyAndHistoryGapViews.swift` with `CYAvatarView(url:name:size:.sm)` + `// TODO: MPAsset.AvatarDefault.dProfile` fallback note. |
-| F-C15 | P2 | All G1 | Annotated all non-system-control SF Symbols and placeholder images in `App/MPGap/{PlayRoam,PlayerContent}/` with exact `// TODO: MPAsset.<Group>.<name>` references from `origin/cursor/mp-assets:App/MPAssets/MPAsset.swift` (pending `cursor/mp-assets` merge into `ui/combined-r7`). |
+| F-C15 | P2 | All G1 | Replaced placeholder SF Symbols in `TopicTemplateDeckPreviewView`, `PlayRoamRound2Views`, `SearchMapExplorerGapView`, and `PlayerContentRound4Views` with exact `MPAsset` accessors from `App/MPAssets/MPAsset.swift` (`MPAsset.BannerCover.homeRouteCityPlaceholder`, `MPAsset.BadgeMedal.medalGold`, `MPAsset.MapMarker.dSmapicon`, `MPAsset.BrandLogo.cyLogoMark`). |
 | F-C25 | P2 | PlayRoam | Restored team leader avatar rendering via `CYAvatarView` in `NearbyAndHistoryGapViews.swift`. |
 
 ## 2. Owner Decisions Applied (`owner-decisions-1124.md`)
@@ -27,10 +27,10 @@ Source reviews & briefs:
 - **#9 Two-decimal money:** Updated `JourneyFinishOfferResolver` in `Core/MPGap/PlayRoam/PlayRoamRound4Models.swift` so fen-to-yuan formatting always renders two decimal places (`¥39.00`, `¥68.00`).
 - **#8 GPS arrival lock & #3/#6/#12 TEST-only money:** Preserved in G1 views/services; no Release money mutations or manual arrival bypasses added.
 
-## 3. MP Assets (`cursor/mp-assets`)
+## 3. MP Assets (`App/MPAssets/MPAsset.swift`)
 
-- `origin/cursor/mp-assets` (`App/MPAssets/MPAsset.swift`) is not yet merged into `origin/ui/combined-r7`, so direct `MPAsset.*` symbol calls would fail compilation on `ui/combined-r7`.
-- All non-system-control SF Symbols in `App/MPGap/{PlayRoam,PlayerContent}/` (`TopicTemplateDeckPreviewView.swift`, `PlayRoamRound2Views.swift`, `SearchMapExplorerGapView.swift`, `ObjectCardCategoryAndRenameSheets.swift`, `PlayerContentRound4Views.swift`, `PlayRoamRound4Views.swift`) are annotated with exact `// TODO: MPAsset.<Group>.<name>` comments for one-line swap once `cursor/mp-assets` merges.
+- Merged `origin/ui/combined-r7` (`82388e4a5`), bringing in `App/MPAssets/MPAsset.swift` and `JourneyRankBoardContract`.
+- Wired `MPAsset.BannerCover.homeRouteCityPlaceholder` (`TopicTemplateDeckPreviewView.swift`), `MPAsset.BadgeMedal.medalGold` (`PlayRoamRound2Views.swift`), `MPAsset.MapMarker.dSmapicon` (`SearchMapExplorerGapView.swift`), and `MPAsset.BrandLogo.cyLogoMark` (`PlayerContentRound4Views.swift`).
 
 ## 4. Localization & Tests
 

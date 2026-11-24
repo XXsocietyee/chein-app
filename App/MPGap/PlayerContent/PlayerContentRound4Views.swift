@@ -287,10 +287,10 @@ public struct TopicSharePosterCardView: View {
                     }
                 }
                 Spacer()
-                // TODO: MPAsset.BrandLogo.cyLogoMark (images/cy_logo_mark.png)
-                Image(systemName: "qrcode")
-                    .cyText(.display)
-                    .foregroundStyle(CYColor.textPrimary)
+                MPAsset.BrandLogo.cyLogoMark
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 44, height: 44)
                     .accessibilityLabel(Text("topicShare.qrCode"))
             }
         }
