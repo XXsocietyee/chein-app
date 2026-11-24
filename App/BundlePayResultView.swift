@@ -141,7 +141,7 @@ enum BundlePayResultPresentation: Equatable {
                     detailRow(copy.t("订单号", "Order number"), value: orderNumber, icon: "number", numeric: true)
                 }
             }
-            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+            .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
         }
     }
 
@@ -151,7 +151,7 @@ enum BundlePayResultPresentation: Equatable {
             Text(verbatim: title).cyText(.body).foregroundStyle(palette.textSecondary)
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: value)
-                .font(numeric ? CYTypography.numericBody : CYTypography.bodyMedium)
+                .cyText(numeric ? .numericBody : .bodyMedium)
                 .foregroundStyle(palette.textPrimary)
                 .multilineTextAlignment(.trailing)
                 .textSelection(.enabled)

@@ -9,27 +9,20 @@ import SwiftUI
     @State private var phone = ""
     @State private var channel: BundleTransferChannel = .inApp
     @State private var confirming = false
-    @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
     private let table = "BundleCommerce"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader(verbatim: screenTitle)
-                phaseBody
-            }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.top, CYSpacing.lg)
-            .padding(.bottom, CYSpacing.xxl)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        // Native restyle r1 (spec §3.2): an inset-grouped Form with a system inline title; the CTA stays sticky.
+        Form {
+            phaseBody
         }
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomAction }
-        .cyDomainPageBackground()
+        .navigationTitle(Text(verbatim: screenTitle))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
-        .cyHeroScreen()
         .cyAnimation(value: model.phase)
         .cyHaptic(.success, trigger: model.phase) { _, new in
             if case .shown = new { return true }
@@ -55,112 +48,97 @@ import SwiftUI
     @ViewBuilder private var phaseBody: some View {
         switch model.phase {
         case .idle, .loadingPreview:
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYSkeleton()
-                text("transfer.loading")
-                    .cyText(.body)
-                    .foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(text("transfer.loading"))
+            Section { progressRow("transfer.loading") }
         case .unavailable:
-            CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "transfer.unavailable", tableName: table, messageIdentifier: "bundleTransfer.unavailable")
+            Section { CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "transfer.unavailable", tableName: table, messageIdentifier: "bundleTransfer.unavailable") }
+                .cyCardRow()
         case .ineligible:
-            CYEmptyState(systemImage: "exclamationmark.triangle", "transfer.ineligible", tableName: table, messageIdentifier: "bundleTransfer.ineligible", kind: .failure)
+            Section { CYEmptyState(systemImage: "exclamationmark.triangle", "transfer.ineligible", tableName: table, messageIdentifier: "bundleTransfer.ineligible", kind: .failure) }
+                .cyCardRow()
         case .ready(let preview):
             readyBody(preview)
         case .sending:
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYSkeleton()
-                text("transfer.sending")
-                    .cyText(.body)
-                    .foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel(text("transfer.sending"))
+            Section { progressRow("transfer.sending") }
         case .shown:
             codeBody
         case .recovered:
             recoveredBody
         case .revoked:
-            if let state = model.display { stateChip(state) }
+            if let state = model.display { Section { stateChip(state) } }
         case .outcomeUnknown:
-            text("transfer.unknown")
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
-        case .failed(let code):
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "transfer.error", tableName: table, messageIdentifier: "bundleTransfer.error", kind: .failure)
-                if let code {
-                    Text(verbatim: Cloud05Copy.server(code))
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textTertiary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            Section {
+                text("transfer.unknown")
+                    .cyText(.body)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+        case .failed(let code):
+            Section {
+                CYEmptyState(systemImage: "exclamationmark.triangle", "transfer.error", tableName: table, messageIdentifier: "bundleTransfer.error", kind: .failure)
+            } footer: {
+                if let code { Text(verbatim: Cloud05Copy.server(code)) }
+            }
+            .cyCardRow()
         }
     }
 
-    private func readyBody(_ preview: BundleTransferPreview) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xl) {
-            VStack(alignment: .leading, spacing: CYSpacing.md) {
-                text("transfer.impact")
-                    .cyText(.sectionTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .accessibilityAddTraits(.isHeader)
-                    .fixedSize(horizontal: false, vertical: true)
-                if preview.impactLines.isEmpty {
-                    Text(verbatim: "—")
-                        .cyText(.body)
-                        .foregroundStyle(palette.textSecondary)
-                } else {
-                    ForEach(Array(preview.impactLines.enumerated()), id: \.offset) { _, line in
-                        Text(verbatim: Cloud05Copy.server(line))
-                            .cyText(.body)
-                            .foregroundStyle(palette.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-            }
-            .cyDomainCard()
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                text("transfer.phone")
-                    .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
-                    .accessibilityHidden(true)
-                TextField(text: $phone) { text("transfer.phone") }
-                    .keyboardType(.phonePad)
-                    .textContentType(.telephoneNumber)
+    private func progressRow(_ key: String) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSkeleton()
+            text(key)
+                .cyText(.body)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(text(key))
+    }
+
+    @ViewBuilder private func readyBody(_ preview: BundleTransferPreview) -> some View {
+        Section {
+            if preview.impactLines.isEmpty {
+                Text(verbatim: "—")
                     .cyText(.body)
-                    .cyField()
-                    .privacySensitive()
-            }
-            if preview.offersSMS {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    text("transfer.channel")
-                        .cyText(.meta)
-                        .foregroundStyle(palette.textSecondary)
-                    Picker(selection: $channel) {
-                        text("transfer.channel.inApp").tag(BundleTransferChannel.inApp)
-                        text("transfer.channel.sms").tag(BundleTransferChannel.sms)
-                    } label: { text("transfer.channel") }
-                    .pickerStyle(.segmented)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .accessibilityLabel(text("transfer.channel"))
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(preview.impactLines.enumerated()), id: \.offset) { _, line in
+                    Text(verbatim: Cloud05Copy.server(line))
+                        .cyText(.body)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
+            }
+        } header: {
+            text("transfer.impact")
+        }
+        Section {
+            TextField(text: $phone) { text("transfer.phone") }
+                .keyboardType(.phonePad)
+                .textContentType(.telephoneNumber)
+                .cyText(.body)
+                .privacySensitive()
+        } header: {
+            text("transfer.phone")
+        }
+        if preview.offersSMS {
+            Section {
+                Picker(selection: $channel) {
+                    text("transfer.channel.inApp").tag(BundleTransferChannel.inApp)
+                    text("transfer.channel.sms").tag(BundleTransferChannel.sms)
+                } label: { text("transfer.channel") }
+                .pickerStyle(.segmented)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .accessibilityLabel(text("transfer.channel"))
+            } header: {
+                text("transfer.channel")
             }
         }
     }
 
     private var codeBody: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+        Section {
             if let code = model.oneTimeCode {
                 Text(verbatim: code.reveal())
                     .cyText(.dataXL)
-                    .foregroundStyle(palette.textPrimary)
                     .monospacedDigit()
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
@@ -171,24 +149,20 @@ import SwiftUI
             } else {
                 Text(verbatim: "—")
                     .cyText(.dataXL)
-                    .foregroundStyle(palette.textSecondary)
+                    .foregroundStyle(.secondary)
                     .accessibilityIdentifier("bundleTransfer.code")
             }
-            text("transfer.code.once")
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
             if let state = model.display { stateChip(state) }
+        } footer: {
+            text("transfer.code.once")
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard()
     }
 
     private var recoveredBody: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+        Section {
             text("transfer.code.unavailable")
                 .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             if let state = model.display { stateChip(state) }
         }
@@ -202,20 +176,20 @@ import SwiftUI
                 .accessibilityLabel(text("transfer.confirm"))
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.md)
-                .background(palette.bgPage)
+                .background(.bar)
         case .shown, .recovered:
             Button { Task { await model.revoke() } } label: { text("transfer.revoke") }
                 .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
                 .accessibilityLabel(text("transfer.revoke"))
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.md)
-                .background(palette.bgPage)
+                .background(.bar)
         case .outcomeUnknown:
             CYPillButton("transfer.recover", systemImage: "arrow.clockwise", tableName: table) { Task { await model.recover() } }
                 .accessibilityLabel(text("transfer.recover"))
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.md)
-                .background(palette.bgPage)
+                .background(.bar)
         default:
             EmptyView()
         }

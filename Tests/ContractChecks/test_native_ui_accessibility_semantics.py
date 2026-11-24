@@ -66,8 +66,8 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
     def test_essential_legal_source_notice_uses_adaptive_primary_contrast(self):
         view = source('App/SettingsLegalDocumentView.swift')
         # Restyle: design-system tokens (secondary 10.3:1, tertiary 7.4:1 light) replace the system semantic styles.
-        self.assertIn('Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)', view)
-        self.assertIn('}.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)', view)
+        self.assertIn('Text("settingsNative.legal.sourceNotice").cyText(.meta).foregroundStyle(CYColor.textSecondary)', view)
+        self.assertIn('}.cyText(.meta).foregroundStyle(CYColor.textTertiary)', view)
         self.assertNotIn('.foregroundStyle(.tertiary)', view)
         self.assertNotIn('.opacity(', view)
 

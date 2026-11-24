@@ -34,7 +34,7 @@ extension EnvironmentValues {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .fixedSize(horizontal: false, vertical: true)
-                        .cyDomainCard(radius: Theme.Radius.lg, padding: CYSpacing.lg)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                         .accessibilityElement(children: .combine)
                     }
                     // Source parity: validity is shown on the expired result only.
@@ -94,7 +94,7 @@ extension EnvironmentValues {
             Button("couponCode.show") {
                 guard !appearance.isClosed, let presentation, model.presentation === presentation else { return }
                 review = true
-            }.buttonStyle(.questifyPrimary).accessibilityIdentifier("couponCode.review")
+            }.buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).accessibilityIdentifier("couponCode.review")
         case .ready:
             if model.canDisplay {
                 if let token = model.displayToken { CouponLocalQRImage(token: token) }

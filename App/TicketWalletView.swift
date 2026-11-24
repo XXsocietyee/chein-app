@@ -63,7 +63,7 @@ import SwiftUI
                                     .accessibilityIdentifier("ticketWallet.empty")
                             } icon: { Image(systemName: "ticket") }
                         }
-                        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
                         .listRowBackground(Color.clear)
                     }
                     let shown = filtered(snapshot.tickets)
@@ -129,7 +129,6 @@ import SwiftUI
                 }
             }
             .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
             .cyDomainScreen(.player)
             .listSectionSpacing(20)
             .cyPageTitle("ticketWallet.title")
@@ -412,7 +411,7 @@ private struct TicketWalletRow: View {
                 Spacer(minLength: 0)
                 if !typeSize.isAccessibilitySize, ticket.action == .detail, !ticket.isWalletLocked {
                     Image(systemName: "qrcode").resizable().scaledToFit().frame(width: 34, height: 34).foregroundStyle(CYColor.textPrimary.opacity(0.85))
-                        .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityHidden(true)
                 }
             }
@@ -423,7 +422,7 @@ private struct TicketWalletRow: View {
         .onPreferenceChange(TicketTopHeightKey.self) { topHeight = $0 }
         .clipShape(TicketStubShape(notchY: hasStub ? topHeight : -1), style: FillStyle(eoFill: true))
         .opacity(dimmed ? 0.62 : 1)
-        .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
         .padding(.horizontal, CYSpacing.pageHorizontal)
     }
     /// Completed shows 已通关. Absent hides that line. A non-boolean shows an em dash.

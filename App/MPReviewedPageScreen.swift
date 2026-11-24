@@ -102,15 +102,17 @@ import SwiftUI
         case "pages/activity/baoming/baoming":
             // PC-C-2 routing: MP baoming is the registration step of one activity; land on its detail with the sheet open.
             if let id = reviewedID(query, key: "activityId") {
-                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true)
+                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true,
+                                   registrationTicketID: positiveID(query["ticketId"]))
             } else { unavailable }
         case "pages/activity/official-organizer/index":
             if let id = reviewedID(query), let access = session.officialActionCoordinator?.organizer {
                 OfficialOrganizerConsoleView(eventID: id, access: access)
             } else { unavailable }
         case "pages/activity/list/index":
+            // R7-PC-C3-1: pushed into the caller's stack; system back, no extra 关闭.
             OfficialEventsBrowserView(reader: session.officialEventReader, actions: session.officialActionCoordinator,
-                                      onClose: { session.dismissNativeEntry() }, onLogin: signIn)
+                                      onClose: nil, onLogin: signIn)
         case "pages/activity/official-detail/index":
             if let id = reviewedID(query) {
                 // PC-C-4-5: guests get a working 登录; THEME missions open their topic (same wiring as 首页).
@@ -118,9 +120,10 @@ import SwiftUI
                                         topicLinks: OfficialTopicLinks(reader: session.topicReader, destination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }))
             } else { unavailable }
         case "pages/activity/official-inbox/index":
-            OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
+            // R7-PC-C5-1: guests get a 登录 button, as on the MP.
+            OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
         case "pages/activity/official-mine/index":
-            OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
+            OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
         case "subpackageA/pages/infomation/infomation":
             // PC-D-2-1: the mode cards keep their 去看看 (MP switchTab to 首页 / 漫游).
             SocialPlayGuideView(reader: session.socialAccountReader,
@@ -129,13 +132,19 @@ import SwiftUI
                                     rootTabSwitch(destination == .roam ? .roam : .home)
                                 } : nil,
                                 templateReader: session)
+            // R7-PC-D2-1: 去发布广场 / 更多玩法 leave this entry for the 发布 tab, like the mode cards.
+            .environment(\.rootTabSwitch, rootTabSwitch.isAvailable ? RootTabSwitch { tab in
+                session.dismissNativeEntry()
+                rootTabSwitch(tab)
+            } : .unavailable)
         case "subpackageA/pages/infomationdetail/infomationdetail":
             if let id = reviewedID(query) {
                 SocialInformationView(id: id, reader: session.socialAccountReader)
             } else { unavailable }
         case "subpackageA/pages/assetcenter/income-detail/income-detail":
             // PC-D-4-1: no coop-finance grant on this host, so no 主办分润 button (same as SessionWalletCommerceView).
-            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false)
+            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false,
+                             merchantView: query["theme"] == "merchant")
         case "subpackageA/pages/assetcenter/earnings/index":
             SessionWalletCommerceView().environmentObject(session)
         case "subpackageA/pages/assetcenter/analysis/index":

@@ -30,6 +30,9 @@ struct CreatorContentLoadKey: Hashable {
 }
 private struct CreatorContentIssueView: View {
     let issue: CreatorContentIssue
+    /// R7-PC-D1-7: page copy for the signed-out state (MP myproject `登录后查看我的项目`), plus its 登录 action.
+    var loginTitleKey: String? = nil
+    var onLogin: (() -> Void)? = nil
     let retry: () -> Void
     var body: some View {
         VStack(spacing: CYSpacing.md) {
@@ -37,9 +40,14 @@ private struct CreatorContentIssueView: View {
                 .font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             Group {
                 if case .server(let text) = issue { Text(verbatim: text) }
+                else if issue == .login, let loginTitleKey { Text(LocalizedStringKey(loginTitleKey)) }
                 else { Text(LocalizedStringKey(issue.localizationKey)) }
             }.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 .accessibilityIdentifier("creatorContent.issue")
+            if issue == .login, let onLogin {
+                CYPillButton("auth.signIn", style: .primary, fullWidth: false, action: onLogin)
+                    .accessibilityIdentifier("projects.signInAction")
+            }
             if issue != .login && issue != .notConfigured {
                 CYPillButton("creatorContent.retry", style: .secondary, fullWidth: false, action: retry)
                     .accessibilityIdentifier("creatorContent.retry")
@@ -67,6 +75,7 @@ private struct CreatorContentIssueView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
     @Environment(\.myProjectTemplateShelf) private var templateShelf
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     private var key: CreatorContentLoadKey { .init(reader, query: query, entryScope: entryScope) }
     private var loadedAccess: MyProjectMerchantScopeAccess {
         MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects)
@@ -161,7 +170,8 @@ private struct CreatorContentIssueView: View {
         .accessibilityLabel(Text("creatorContent.type"))
     }
     private func issue(_ value: CreatorContentIssue) -> some View {
-        CreatorContentIssueView(issue: value) { Task { await refresh() } }
+        CreatorContentIssueView(issue: value, loginTitleKey: "myProject.signInRequired",
+                                onLogin: rootTabSwitch.isAvailable ? { rootTabSwitch(.mine) } : nil) { Task { await refresh() } }
     }
     /// Mini-program myproject row: cover tile, title (state top-right), hairline, then the stats footer.
     private func card(_ project: CreatorContentProject) -> some View {

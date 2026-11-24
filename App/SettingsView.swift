@@ -115,7 +115,7 @@ struct SettingsView: View {
                         Text(verbatim: "English").tag(AppLanguage.english)
                         Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
                     }
-                    .pickerStyle(.menu)
+                    .pickerStyle(.navigationLink)
                 } footer: {
                     Text("settings.languageNotice")
                 }
@@ -144,15 +144,14 @@ struct SettingsView: View {
             .labelStyle(SettingsTileLabelStyle())
             }
             }
-            .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
+            .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("settings.search.prompt"))
-            .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .listSectionSpacing(.custom(20))
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .cyHideTabBar()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -167,7 +166,7 @@ struct SettingsView: View {
 #endif
         }
         .onDisappear { profileOwner.retire() }
-        .cyPlayerSheetGlass()
+        .themeDomain(.player)
         .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))
         // Explicitly update sheets as well as the app root when preference changes.
         .modifier(AppLanguageEnvironment(stored: storedLanguage))
@@ -246,7 +245,7 @@ struct SettingsAccountCard: View {
             if tappable { Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }
         }
         .padding(CYSpacing.lg)
-        .background(palette.cardFill, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
+        .background(palette.cardFill, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .cyPressTracking()
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(tappable ? .isButton : .isStaticText)
@@ -288,7 +287,6 @@ private struct SettingsSearchResults: View {
                 } header: { Text("settings.search.results") }
             }
         }
-        .scrollContentBackground(.hidden)
         .labelStyle(SettingsTileLabelStyle())
     }
     @ViewBuilder private func row(_ e: Entry) -> some View {

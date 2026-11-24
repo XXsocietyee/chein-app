@@ -107,8 +107,8 @@ import SwiftUI
         .sheet(isPresented: $creating) {
             NavigationStack { CouponManagementEditor(model: model) }
                 .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
         }
         .onChange(of: sessionKey) { _, _ in creating = false; model.synchronize() }
         .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }
@@ -220,7 +220,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
     var body: some View {
         let page = self.page
         Form {
-            Section { CYHeroHeader("couponManagement.create") }.e1HeroRow()
             CouponManagementNotice(model: model, surface: .editor)
             switch page.phase {
             case .ready:
@@ -258,7 +257,6 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
         .environment(\.calendar, CouponValidityTime.calendar)
         .formStyle(.grouped)
         .cyGroupedSurface()
-        .cyHeroScreen()
         .cyDomainScreen(.topicEditor)
         .scrollDismissesKeyboard(.interactively)
         .cyPageTitle("couponManagement.create")

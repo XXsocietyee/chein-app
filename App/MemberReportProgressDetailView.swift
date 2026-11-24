@@ -232,7 +232,7 @@ import SwiftUI
             }
         }
         .task(id: session.memberReportProgressIdentity) { await resolve() }
-        .sheet(isPresented: $showsSignIn, onDismiss: { Task { await resolve() } }) { LoginView(intent: .player).environmentObject(session) }
+        .sheet(isPresented: $showsSignIn, onDismiss: { Task { await resolve() } }) { Group { LoginView(intent: .player).environmentObject(session) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 
     @ViewBuilder private var state: some View {

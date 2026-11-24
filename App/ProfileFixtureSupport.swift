@@ -62,6 +62,7 @@ struct ProfileFixtureHostView: View {
         NavigationStack {
             Form { ProfileAccountLinks(reader: reader) }
                 .navigationTitle("account.title")
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

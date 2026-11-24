@@ -56,10 +56,12 @@ import SwiftUI
         }.cySheet(detents: [.large])
         }
         .sheet(isPresented:$showsOfficialEvents) {
+            NavigationStack {
             OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onClose:{ showsOfficialEvents=false },onLogin:{
                 showsOfficialEvents=false
                 onSignIn?()
-            },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) })).id(session.officialEventReader.scope)
+            },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }))
+            }.id(session.officialEventReader.scope)
             .cyPlayerSheetGlass()
         }
         .sheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope).cyPlayerSheetGlass() }

@@ -10,9 +10,6 @@ import SwiftUI
     var body: some View {
         let rendered = readIntent()
         List {
-            Section {
-                CYHeroHeader("score.detail.title", tableName: "MemberScoreAppealList")
-            }.e1HeroRow()
             if let flow, let row = flow.detailRow {
                 CYListRow(verbatim: playerFactOrDash(row.title), trailing: .none) {
                     CYRowIcon(systemImage: row.kind == .appeal ? "text.bubble" : "flag")
@@ -87,7 +84,7 @@ import SwiftUI
                 .e1ActionRow()
         }
         .listStyle(.insetGrouped)
-        .cyGroupedSurface().cyHeroScreen().privacySensitive()
+        .cyGroupedSurface().navigationTitle(Text("score.detail.title", tableName: "MemberScoreAppealList")).navigationBarTitleDisplayMode(.inline).privacySensitive()
         .accessibilityIdentifier("score.mine.detail")
         .onAppear { visible = true; start() }
         .onDisappear { visible = false; retire() }

@@ -64,7 +64,7 @@ import SwiftUI
                     .cyText(.body)
                     .foregroundStyle(CYColor.textPrimary)
                     .padding(CYSpacing.md)
-                    .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityLabel(Text(verbatim: phrase("补充说明（最多500字）", "Note (up to 500 characters)")))
                     .onChange(of: note) { _, value in

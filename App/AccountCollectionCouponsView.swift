@@ -89,7 +89,6 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
         .cyPageTitle("accountCollection.coupons.title")
         .cyHideTabBar()
@@ -180,7 +179,7 @@ struct AccountCollectionCouponRow: View {
             // Room for the 导航 capsule the list overlays on the card (MKT-8-4).
             if coupon.hasShopNavigation { Color.clear.frame(height: 44).accessibilityHidden(true) }
         }
-        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
     }
 }
 

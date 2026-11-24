@@ -740,7 +740,7 @@ struct ProfileEditView: View {
         .onChange(of: categoryReader?.discoveryPresentationIdentity) { _, _ in model.retirePreferencePicker() }
         .onChange(of: categoryReader?.isConfigured) { _, _ in model.retirePreferencePicker() }
         .onDisappear(perform: handleEditorDisappear)
-        .sheet(item: $model.confirmation) { value in
+        .sheet(item: $model.confirmation) { value in Group {
             NavigationStack {
                 Form {
                     ProfileDraftReviewSection(summary: value.reviewSummary,
@@ -778,9 +778,12 @@ struct ProfileEditView: View {
                     CYPillButton("profile.edit.cancel", style: .tertiary) {
                         model.coordinator.cancel(value); model.confirmation = nil
                     }
-                }.appNavigationTitle("profile.edit.reviewTitle")
+                }.appNavigationTitle("profile.edit.reviewTitle").navigationBarTitleDisplayMode(.inline)
             }.interactiveDismissDisabled(model.busy)
-            .cyPlayerSheetGlass()
+            .themeDomain(.player)
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
         }
     }
     private func textFieldRow(_ field: ProfileTextField, value: String) -> some View {
@@ -828,7 +831,7 @@ struct ProfileEditView: View {
     let savedMedia: ProfileSavedMediaReaders?
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in
+            .sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) }) { value in Group {
             NavigationStack {
                 if value.field == .contactQR {
                     ProfileContactQREditor(edit: value, reader: caseImageReader,
@@ -856,6 +859,9 @@ struct ProfileEditView: View {
                 }
             }.interactiveDismissDisabled(false)
         }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
     }
 }
 
@@ -868,13 +874,16 @@ struct ProfileEditView: View {
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: model.preferencePickerPresentation(for: edit),
-                   onDismiss: { model.cancelPreferencePicker(edit) }) { offered in
+                   onDismiss: { model.cancelPreferencePicker(edit) }) { offered in Group {
                 NavigationStack {
                     ProfileRoutePreferencePicker(reader: categoryReader, selected: selectedPreferences,
                         currentIdentity: { model.preferencePickerIdentity(offered) }) {
                             _ = model.confirmPreferencePicker(offered, selectedIDs: $0)
                         }
                 }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
             }
     }
 }

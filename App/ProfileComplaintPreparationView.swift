@@ -118,10 +118,17 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 if let topics = model.topics {
                     if topics.isEmpty && model.issue == nil && !model.isLoading {
                         Section {
-                            Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty")
-                            Text("profile.complaint.sourceEmptyHint").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                                .accessibilityIdentifier("profile.complaint.emptyHint")
+                            // Native restyle r1 (spec §3.5): empty source list as a ContentUnavailableView.
+                            ContentUnavailableView {
+                                Label { Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty") } icon: {
+                                    Image(systemName: "tray")
+                                }
+                            } description: {
+                                Text("profile.complaint.sourceEmptyHint")
+                                    .accessibilityIdentifier("profile.complaint.emptyHint")
+                            }
                         }
+                        .cyCardRow()
                     } else if !topics.isEmpty {
                         editor(topics).disabled(!model.canEdit)
                     }

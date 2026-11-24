@@ -64,7 +64,6 @@ import UIKit
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    CYHeroHeader(verbatim: String(localized: LocalizedStringResource("ownedCover.imageTitle", defaultValue: "Selected cover image", locale: locale)))
                     Text(String(localized: LocalizedStringResource("ownedCover.authorImageScope", defaultValue: "Only this account can read this selected asset. This image is not a player grant or a publication receipt.", locale: locale)))
                         .cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("ownedCover.image.scope")
@@ -88,7 +87,7 @@ import UIKit
                 }.padding(CYSpacing.pageHorizontal)
             }
             .background(CYColor.bgPage.ignoresSafeArea())
-            .cyHeroScreen()
+            .navigationTitle(Text(verbatim: String(localized: LocalizedStringResource("ownedCover.imageTitle", defaultValue: "Selected cover image", locale: locale)))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(String(localized: LocalizedStringResource("ownedCover.close", defaultValue: "Close", locale: locale))) { model.close(); close() }
                     .accessibilityIdentifier("ownedCover.image.close")

@@ -89,12 +89,15 @@ import SwiftUI
             }
             .accessibilityIdentifier("compliance.open.\(ComplianceDestination.cancellation.rawValue)")
         } footer: { Text("settings.danger.footer") }
-        .sheet(item: $selected) { destination in
+        .sheet(item: $selected) { destination in Group {
             NavigationStack {
                 AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination, market: market, legalReader: legalReader)
             }
         }
-        .sheet(item: $npcChatData) { presentation in NPCChatDataView(coordinator: presentation.coordinator) }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $npcChatData) { presentation in Group { NPCChatDataView(coordinator: presentation.coordinator) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
 enum ComplianceDestination: String, CaseIterable, Identifiable {
@@ -293,7 +296,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     Task { await model.coordinator.precheckAndAgree(documentRead: documentWasRead,
                         explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, intent: intent) }
                 }
-                    .buttonStyle(CYPillButtonStyle())
+                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                     .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
                         || !agreement || !model.state.localCancellationConsent.allowsNewConsent)
                     .accessibilityIdentifier("compliance.precheck")
@@ -305,7 +308,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard let intent = model.cancellationIntent() else { return }; let number = phone
                     Task { await model.coordinator.sendSMS(phone: number, explicitlyRequested: true, intent: intent) }
                 }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary))
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
                     .disabled(!model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.smsSent { Text("compliance.smsSent") }
                 TextField("compliance.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
@@ -313,7 +316,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard model.cancellationIntent() != nil else { return }
                     model.coordinator.prepareReview(code: code); code = ""
                 }
-                .buttonStyle(CYPillButtonStyle())
+                .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule)
                 .disabled(!model.state.smsSent || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.review")
             }
         case .verificationUnavailable:
@@ -323,7 +326,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
                     .font(.subheadline.weight(.semibold)).accessibilityIdentifier("compliance.reviewWarning")
                     .padding(CYSpacing.md)
-                    .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     .listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
                 Text("c08.display.42", tableName: "AccountDeregistrationPresentation").font(.footnote).foregroundStyle(CYColor.textSecondary)
                 if let impact = model.state.status?.impact, impact.confirmable {
@@ -343,7 +346,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard model.cancellationIntent() != nil else { return }
                     model.coordinator.backToVerification()
                 }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                .buttonStyle(.borderless)
             }
         case .pending:
             Text("compliance.pending.submitted").cyText(.cardTitle).accessibilityIdentifier("compliance.pending.submitted")
@@ -362,7 +365,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             .accessibilityHint(Text("compliance.unknown"))
         }
         Button("compliance.refresh") { requestCancellationRead() }
-            .buttonStyle(CYPillButtonStyle(style: .tertiary))
+            .buttonStyle(.borderless)
         // B-DR-01: the on-device consent record is support detail, folded under 详情 instead of a permanent section.
         Section {
             DisclosureGroup {
@@ -496,7 +499,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                         Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
                             .font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(.white)
                             .frame(width: 36, height: 36)
-                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                             .accessibilityHidden(true)
                         Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
                             .font(.headline).accessibilityAddTraits(.isHeader)

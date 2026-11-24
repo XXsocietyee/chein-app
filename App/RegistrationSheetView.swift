@@ -38,6 +38,8 @@ struct RegistrationSheetView: View {
     @State private var recoveredOrderDestination: RegistrationRecoveredOrderPresentation?
     private let participantReader: (any ProfileReading)?
     private let orderReader: (any ProfileReading)?
+    /// MP `baoming?ticketId=` (R7-PC-C2-3): the ticket the link names is selected when the sheet opens.
+    private var preselectedTicketID: Int? = nil
     private let participantCoordinator: ParticipantMutationCoordinator?
     private enum Field { case name, phone }
 
@@ -50,8 +52,10 @@ struct RegistrationSheetView: View {
          waitlistService: (any RegistrationWaitlistServing)? = nil,
          couponUsability: (() async throws -> [CouponUsabilityRow])? = nil,
          availablePoints: (() -> Int?)? = nil,
+         preselectedTicketID: Int? = nil,
          onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
         self.orderReader = orderReader
+        self.preselectedTicketID = preselectedTicketID
         self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
         self.couponUsability = couponUsability
         _model = StateObject(wrappedValue: RegistrationSheetModel(flow: {
@@ -129,6 +133,9 @@ struct RegistrationSheetView: View {
                     } else {
                         // Source order (RegistrationCheckoutSection): 参与人信息 → 活动信息 →
                         // 费用明细 (票种 → 订单金额 → 权益 → 积分 → 总计) → 候补 → 提交.
+                        if flow.activity.tickets.isEmpty {
+                            noTicketsBlock
+                        } else {
                         participantSection
                         activitySection
                         ticketSection
@@ -139,6 +146,7 @@ struct RegistrationSheetView: View {
                         refundTiersSection
                         waitlistSection
                         confirmationSection
+                        }
                     }
                 }
             }
@@ -161,6 +169,7 @@ struct RegistrationSheetView: View {
             .sheet(isPresented: $showingParticipantSheet) { Group { participantSheetContent }.cySheet() }
             .modifier(RegistrationOrderAndLifecycleModifier(
                 flow: flow,
+                preselectedTicketID: preselectedTicketID,
                 orderReader: orderReader,
                 participantReader: participantReader,
                 participantCoordinator: participantCoordinator,
@@ -417,10 +426,18 @@ struct RegistrationSheetView: View {
             )
         }
     }
+    /// R7-PC-C2-4 (MP baoming.wxml:106-107 `暂无可用票`): no ticket means nothing to quote or submit.
+    @ViewBuilder private var noTicketsBlock: some View {
+        activitySection
+        Section {
+            ContentUnavailableView("registration.form.noTicketsAvailable", systemImage: "ticket")
+                .accessibilityIdentifier("registration.form.noTicketsAvailable")
+        }
+    }
     private var showsCheckoutBar: Bool {
         if !flow.hasCurrentSession || flow.hasRetainedIntent { return false }
         if case .pending = flow.durableCreation { return false }
-        return true
+        return !flow.activity.tickets.isEmpty
     }
     /// One-line, human reason why the primary button cannot proceed yet (nil when it can).
     private func blockReason(_ copy: CoreLoopCopy) -> String? {
@@ -1022,6 +1039,7 @@ private struct RegistrationUncertainOrdersCheck: View {
 @MainActor
 private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
     let flow: RegistrationUIFlow
+    let preselectedTicketID: Int?
     let orderReader: (any ProfileReading)?
     let participantReader: (any ProfileReading)?
     let participantCoordinator: ParticipantMutationCoordinator?
@@ -1042,6 +1060,11 @@ private struct RegistrationOrderAndLifecycleModifier: ViewModifier {
             }
             .task(id: flow.identity) {
                 flow.open()
+                if let preselectedTicketID, flow.activity.tickets.contains(where: { $0.id == preselectedTicketID }) {
+                    flow.selectTicket(id: preselectedTicketID)
+                }
+                // R7-PC-C2-4: an activity with no ticket is blocked (暂无可用票); never quote the bare activity.
+                guard !flow.activity.tickets.isEmpty else { return }
                 // Independent reads: a slow participant list must not hide the quote form.
                 async let participants: Void = flow.loadParticipants()
                 async let quote: Void = flow.requestQuote()

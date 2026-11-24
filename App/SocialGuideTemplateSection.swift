@@ -101,6 +101,7 @@ enum SocialGuideTemplateRows {
 @MainActor private struct SocialGuideTemplateContent: View {
     let reader: any DiscoveryReading
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     @StateObject private var model = SocialGuideTemplateModel()
     @State private var readerRevision: UInt64 = 0
     private struct LoadKey: Equatable {
@@ -110,6 +111,12 @@ enum SocialGuideTemplateRows {
     private var loadKey: LoadKey {
         _ = readerRevision
         return .init(reader: .init(reader), active: scenePhase == .active)
+    }
+    /// R7-PC-D2-1 (MP infomation.js `goTemplateSquare` → `wx.switchTab('/pages/template/index')`): the 发布 tab
+    /// root is the template square. A host without tabs keeps the catalog sheet.
+    private func openSquare(_ catalogPermit: SocialGuideTemplateModel.CatalogPermit) {
+        if rootTabSwitch.isAvailable { rootTabSwitch(.publish) }
+        else { model.openCatalog(reader: reader, permit: catalogPermit) }
     }
     var body: some View {
         let presented = scenePhase == .active ? model.destination(reader: reader) : nil
@@ -124,7 +131,7 @@ enum SocialGuideTemplateRows {
                                  messageIdentifier: "social.guideTemplates.empty",
                                  actionTitle: "social.guideTemplates.toSquare", action: {
                                      guard scenePhase == .active else { return }
-                                     model.openCatalog(reader: reader, permit: catalogPermit)
+                                     openSquare(catalogPermit)
                                  })
                         .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                 }
@@ -141,13 +148,13 @@ enum SocialGuideTemplateRows {
                                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: title).font(.headline).lineLimit(2)
+                                Text(verbatim: title).cyText(.bodyMedium).lineLimit(2)
                                 let description = SocialGuideTemplateRows.text(item.description)
-                                if !description.isEmpty { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary).lineLimit(2) }
+                                if !description.isEmpty { Text(verbatim: description).cyText(.label).foregroundStyle(.secondary).lineLimit(2) }
                                 HStack {
                                     // Mini-program `_usedText`: 已玩 N 次, only when it has been played.
                                     if let count = SocialGuideTemplateRows.useCount(item), count > 0 {
-                                        Text("social.guideTemplates.playedTimes \(count)").font(.caption).foregroundStyle(.secondary)
+                                        Text("social.guideTemplates.playedTimes \(count)").cyText(.caption).foregroundStyle(.secondary)
                                     }
                                     Spacer(minLength: 0)
                                     Text("social.guideTemplates.start").cyText(.label, weight: .semibold)
@@ -159,18 +166,26 @@ enum SocialGuideTemplateRows {
                     }.buttonStyle(.plain).accessibilityIdentifier("social.guideTemplates.detail.\(item.id)")
                 }
             } else if model.phase == .failed {
-                Text("social.guideTemplates.failed").accessibilityIdentifier("social.guideTemplates.failed")
-                Button("action.retry") {
-                    guard scenePhase == .active else { return }
-                    Task { await model.reload(reader: reader, permit: retryPermit) }
-                }
+                // R7-PC-D2-3 (MP infomation.wxml:33-34): the failure is a state with its 重新加载 action.
+                VStack(spacing: CYSpacing.sm) {
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "social.guideTemplates.failed",
+                                 messageIdentifier: "social.guideTemplates.failed")
+                    Button("action.retry") {
+                        guard scenePhase == .active else { return }
+                        Task { await model.reload(reader: reader, permit: retryPermit) }
+                    }
+                    .buttonStyle(.cyPrimary(fullWidth: false))
                     .accessibilityIdentifier("social.guideTemplates.retry")
-            } else { ProgressView("discovery.loading") }
+                }
+                .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+            } else {
+                CYLoadingStateView(rows: 3).accessibilityLabel(Text("discovery.loading"))
+            }
             // 更多玩法 follows the rows only; the empty state carries its own 去发布广场.
             if model.visibleSnapshot(reader: reader)?.rows.isEmpty != true {
                 Button("social.guideTemplates.browse") {
                     guard scenePhase == .active else { return }
-                    model.openCatalog(reader: reader, permit: catalogPermit)
+                    openSquare(catalogPermit)
                 }
                     .disabled(!reader.isConfigured || scenePhase != .active)
                     .accessibilityIdentifier("social.guideTemplates.browse")
