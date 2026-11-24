@@ -38,7 +38,8 @@ class AssetCenterAnalysisPageReadyTests(unittest.TestCase):
         home = read("App/WalletCommerceViews.swift")
         for identifier in ids[:3]:
             self.assertIn('.accessibilityIdentifier("%s")' % identifier, view)
-        self.assertIn('id: "wallet.analysis.open"', home)
+        # R7-PC-D5-2: the earnings home opens analysis from its quick action only.
+        self.assertIn('id: "wallet.analysis.quick"', home)
         self.assertIn(".accessibilityIdentifier(id)", home)
 
     def test_model_states_use_em_dash_and_the_existing_income_route(self):

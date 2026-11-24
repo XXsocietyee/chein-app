@@ -236,5 +236,56 @@
         }
       }
     }
+  },
+  "wallet.monthIncome.empty": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No income this month"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这个月还没有收入"
+        }
+      }
+    }
+  },
+  "wallet.more.clubSettlement": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "My club settlements"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "本人俱乐部结算"
+        }
+      }
+    }
+  },
+  "wallet.more.personalPayout": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Personal payout account"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "个人收款"
+        }
+      }
+    }
   }
 }

@@ -147,6 +147,17 @@ enum WalletPayoutCapability {
     var showsWithdrawalSupport = true
     var showsCooperationFinance = true
     var organizerFinance: WalletOrganizerFinanceAccess? = nil
+    /// R7-PC-D5-2 (MP scene-asset-earnings 更多): 本人俱乐部结算 / 个人收款, supplied by a session host.
+    var clubSettlement: (() -> AnyView)? = nil
+    var personalPayout: (() -> AnyView)? = nil
+    /// MP `theme === 'merchant'`: the zero-balance empty state is not shown on the merchant entry.
+    var merchantView = false
+    /// R7-PC-D5-3 (MP scene-asset-earnings/index.wxml:22): a loaded zero balance shows only 还没有收益 + 去发布路线.
+    private var showsZeroBalanceOnly: Bool {
+        guard !merchantView, visibility.income, let value = earnings.value, earnings.loadedScope == reader.scope,
+              reader.scope != nil else { return false }
+        return value.balance.value == 0
+    }
     var body: some View {
         List {
             if visibility.income {
@@ -170,8 +181,10 @@ enum WalletPayoutCapability {
                     .listRowBackground(Color.clear).listRowSeparator(.hidden)
             }
             quickActions
-            if visibility.income { monthIncomeSection }
-            if visibility.assets { assetsSection }
+            if !showsZeroBalanceOnly {
+                if visibility.income { monthIncomeSection }
+                if visibility.assets { assetsSection }
+            }
         }.listStyle(.plain).scrollContentBackground(.hidden)
             .cyPageTitle("wallet.title") // PC-D-5-5
             .cyHideTabBar()
@@ -207,7 +220,7 @@ enum WalletPayoutCapability {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         item.primary(index == 0)
                     }
-                    WalletQuickAction(title: t("更多", "More"), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
+                    WalletQuickAction(title: appLocalized("wallet.more", locale: locale), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
                 }.frame(maxWidth: .infinity)
             }.listRowBackground(Color.clear).listRowSeparator(.hidden)
         }
@@ -246,7 +259,7 @@ enum WalletPayoutCapability {
         Section {
             if monthModel.pager.hasLoadedPage, monthModel.pager.loadedScope == reader.scope {
                 if monthRows.isEmpty {
-                    Text(verbatim: t("这个月还没有收入", "No income this month"))
+                    Text("wallet.monthIncome.empty")
                         .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 96)
                         .orderCardSurface()
@@ -277,12 +290,12 @@ enum WalletPayoutCapability {
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: t("本月收入明细", "Income this month")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text("wallet.monthIncome.title").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 NavigationLink { incomeDestination } label: {
                     HStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: monthTitle + " " + t("全部", "All"))
+                        Text(verbatim: monthTitle + " ") + Text("wallet.all")
                         Image(systemName: "chevron.right").font(.caption.weight(.semibold)).accessibilityHidden(true)
                     }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
@@ -297,18 +310,18 @@ enum WalletPayoutCapability {
             if WalletFundsStageClassifier.showsAmounts(phase) {
             NavigationLink { WalletAssetsView(reader: reader) } label: {
                 VStack(spacing: 0) {
-                    assetRow("creditcard", t("可提现", "Withdrawable"), stages.map { assetAmount($0.withdrawable, $0.currency) })
+                    assetRow("creditcard", "wallet.assets.withdrawableLabel", stages.map { assetAmount($0.withdrawable, $0.currency) })
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("clock.arrow.circlepath", t("待结算", "Pending settlement"), stages.map { assetAmount($0.pendingSettlement, $0.currency) })
+                    assetRow("clock.arrow.circlepath", "wallet.pendingSettlement", stages.map { assetAmount($0.pendingSettlement, $0.currency) })
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("exclamationmark.bubble", t("争议中", "Disputed"), stages.map { assetAmount($0.disputed, $0.currency) })
+                    assetRow("exclamationmark.bubble", "wallet.assets.disputedLabel", stages.map { assetAmount($0.disputed, $0.currency) })
                 }.orderCardSurface(padding: CYSpacing.md)
             }.buttonStyle(.plain).questifyHidesLinkIndicator().accessibilityIdentifier("wallet.assets.open")
             } else {
                 WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
             }
         } header: {
-            Text(verbatim: t("我的资产", "My assets")).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text("wallet.assets").cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader).textCase(nil)
         }.accessibilityIdentifier("wallet.earnings.stages.home")
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -317,10 +330,10 @@ enum WalletPayoutCapability {
         guard let symbol = WalletCurrencySymbol.symbol(currency) else { return format.amount(amount, currency: currency) }
         return symbol + WalletNumberLocalization.text(amount.text, locale: locale)
     }
-    private func assetRow(_ icon: String, _ title: String, _ value: String?) -> some View {
+    private func assetRow(_ icon: String, _ title: LocalizedStringKey, _ value: String?) -> some View {
         HStack(spacing: CYSpacing.md) {
             CYRowIcon(systemImage: icon)
-            Text(verbatim: title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: CYSpacing.sm)
             Text(verbatim: value ?? WalletIncomeDetailPageModel.unknownMoney).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
                 .cyWrapText().privacySensitive()
@@ -330,8 +343,16 @@ enum WalletPayoutCapability {
     private var moreSheet: some View {
         NavigationStack {
             List {
-                if visibility.income {
-                    walletRow("wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }
+                // R7-PC-D5-2: MP order 本人俱乐部结算 · 个人收款 · 提现记录 · 邀请记录. 分析 is a quick action and 我的资产 is
+                // on the page, so neither repeats here.
+                if let clubSettlement {
+                    walletRow("wallet.more.clubSettlement", icon: "list.bullet", id: "wallet.clubSettlement.open") { clubSettlement() }
+                }
+                if let personalPayout {
+                    walletRow("wallet.more.personalPayout", icon: "creditcard", id: "wallet.personalPayout.open") { personalPayout() }
+                }
+                if visibility.withdrawalRecords {
+                    walletRow("wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { WithdrawalHistoryView(reader: reader) }
                 }
                 if visibility.income, let invitationHistory {
                     walletRow("social.invites.title", icon: "person.2.badge.plus", id: "wallet.inviteHistory") {
@@ -343,12 +364,6 @@ enum WalletPayoutCapability {
                 // FIN-18-1: one 积分明细 contract on every entry, the MP points-history read (`api/points/list`).
                 if visibility.points { walletRow("wallet.points", icon: "star.circle", id: "wallet.points.open") { WalletLedgerView(reader: reader, kind: .assetPoints) } }
                 if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
-                if visibility.withdrawalRecords {
-                    walletRow("wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { WithdrawalHistoryView(reader: reader) }
-                }
-                if visibility.assets {
-                    walletRow("wallet.assets", icon: "wallet.pass", id: "wallet.assets.more") { WalletAssetsView(reader: reader) }
-                }
             }.listStyle(.plain).scrollContentBackground(.hidden).listRowBackground(Color.clear)
                 .appNavigationTitle(key: "wallet.title").navigationBarTitleDisplayMode(.inline)
                 .cyDomainPageBackground()

@@ -290,7 +290,7 @@ extension EnvironmentValues {
             if !current { Text("merchant.personalIncome.changed") }
             else if let wallet = owner.wallet, wallet.scope != nil {
                 WalletCommerceHomeView(reader: wallet, visibility: visibility, onCooperationFinance: {},
-                    showsWithdrawalSupport: false, showsCooperationFinance: false)
+                    showsWithdrawalSupport: false, showsCooperationFinance: false, merchantView: true)
                     .id(ObjectIdentifier(wallet))
                     .environment(\.bankWithdrawalDestination, nil)
                     .environment(\.withdrawalSupportReader, nil)
