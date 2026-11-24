@@ -153,7 +153,8 @@ struct SquareAuthorAvatar: View {
         .accessibilityHidden(true)
     }
     private var fallback: some View {
-        Image(systemName: "person.crop.circle.fill").resizable().scaledToFit().foregroundStyle(.secondary)
+        // MP `/images/d_profile.png` is the avatar default on square posts and comments.
+        MPAsset.AvatarDefault.dProfile.resizable().scaledToFill()
     }
 }
 

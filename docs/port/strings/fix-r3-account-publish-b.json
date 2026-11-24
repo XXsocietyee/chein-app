@@ -1,4 +1,21 @@
 {
+  "fixr3.activity.templateMinutes %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld min"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "%lld分钟"
+        }
+      }
+    }
+  },
   "fixr3.common.retry": {
     "extractionState": "manual",
     "localizations": {

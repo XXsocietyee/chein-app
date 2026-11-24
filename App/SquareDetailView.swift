@@ -353,10 +353,26 @@ import SwiftUI
                 .padding(.leading, comment.parentID == nil ? 0 : 12)
         } else { liveCommentRow(comment) }
     }
+    /// MP square/detail wxml:133-135: the 加号 `icon_jia` on a commenter's avatar follows them. Shown only when the
+    /// follow state is known to be "not following" and the commenter is not the viewer (same rule as the post avatar menu).
+    @ViewBuilder private func commentFollowBadge(_ comment: SquareComment) -> some View {
+        if let actions, let viewer = actions.identity.accountID, comment.memberID > 0, comment.memberID != viewer,
+           followState?.isFollowing(memberID: comment.memberID) == false {
+            Button { openReviewed(.init(purpose: .toggleFollow, target: .member(comment.memberID), text: "")) } label: {
+                MPAsset.FeatureIcon.iconJia.resizable().scaledToFit().frame(width: 14, height: 14)
+            }
+            .buttonStyle(.plain)
+            .frame(width: CYSpacing.minTouchTarget, height: CYSpacing.minTouchTarget).contentShape(Rectangle())
+            .offset(x: 16, y: 16)
+            .accessibilityLabel(Text("avatarMenu.follow", tableName: "SocialParity"))
+            .accessibilityIdentifier("square.comment.follow.\(comment.id)")
+        }
+    }
     /// Mini-program comment row: avatar, name and time; the text; then like count, reply and the overflow actions.
     private func liveCommentRow(_ comment: SquareComment) -> some View {
         HStack(alignment: .top, spacing: 10) {
             SquareAuthorAvatar(source: comment.avatar, size: 32)
+                .overlay(alignment: .bottomTrailing) { commentFollowBadge(comment) }
             VStack(alignment: .leading, spacing: 6) {
                 HStack(alignment: .firstTextBaseline) {
                     if let accountReader, comment.memberID > 0 {
