@@ -176,6 +176,86 @@ public struct PlatformPass: @unchecked Sendable {
         throw PlatformPassWriteRefusal.unreachable
     }
 
+    /// `POST api/platform-pass/orders/{orderNo}/cancel` (`market/pass-order` `onCancelOrder`).
+    /// The page sends no `data` key. Its `request()` sets `content-type: application/json`, and the
+    /// request client substitutes `{}`. Compiled, never sends. `moneyEnabled` stays false.
+    public static func passOrderCancelPath(orderNo: String) -> String {
+        "api/platform-pass/orders/\(orderNo)/cancel"
+    }
+
+    /// `POST api/platform-pass/orders/{orderNo}/confirm` (`platform-pass-pay.js` `proceed`).
+    /// No `data` key, same JSON `{}` body. Compiled, never sends.
+    public static func passOrderConfirmPath(orderNo: String) -> String {
+        "api/platform-pass/orders/\(orderNo)/confirm"
+    }
+
+    /// `POST api/platform-pass/orders/{orderNo}/refund-apply` with `{reason}` (`onRefundSubmit`).
+    /// Compiled, never sends.
+    public static func passOrderRefundApplyPath(orderNo: String) -> String {
+        "api/platform-pass/orders/\(orderNo)/refund-apply"
+    }
+
+    public static func passOrderCancelRequest(baseURL: URL, orderNo: String, token: String) throws -> URLRequest {
+        try passOrderJSON(baseURL: baseURL, path: passOrderCancelPath(orderNo: orderNo), orderNo: orderNo, token: token, body: [:])
+    }
+
+    public static func passOrderConfirmRequest(baseURL: URL, orderNo: String, token: String) throws -> URLRequest {
+        try passOrderJSON(baseURL: baseURL, path: passOrderConfirmPath(orderNo: orderNo), orderNo: orderNo, token: token, body: [:])
+    }
+
+    public static func passOrderRefundApplyRequest(baseURL: URL, orderNo: String, reason: String, token: String) throws -> URLRequest {
+        let trimmed = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw APIError.invalidRequest }
+        return try passOrderJSON(baseURL: baseURL, path: passOrderRefundApplyPath(orderNo: orderNo), orderNo: orderNo, token: token, body: ["reason": trimmed])
+    }
+
+    /// Cancel, confirm, and refund-apply success body: `code` 200 or `"200"`, then one order.
+    /// The page reads `data.status` and `data.refund.reviewStatus`.
+    public static func decodeOrderEnvelope(_ data: Data) throws -> PlatformPassSubscriptionOrder {
+        let object = try PlatformPassJSON.object(data)
+        guard PlatformPassJSON.isBizOK(object),
+              let row = PlatformPassJSON.dictionary(PlatformPassJSON.dataValue(object)),
+              let order = PlatformPassSubscriptionOrder.decode(row) else { throw APIError.malformedResponse }
+        return order
+    }
+
+    /// Cancel. Compiled, never sends.
+    public func cancelPassOrder(orderNo: String, token: String) throws -> Never {
+        _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderCancelPath(orderNo: orderNo))
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Confirm. Compiled, never sends.
+    public func confirmPassOrder(orderNo: String, token: String) throws -> Never {
+        _ = (orderNo, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderConfirmPath(orderNo: orderNo))
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    /// Refund apply. Compiled, never sends.
+    public func refundApplyPassOrder(orderNo: String, reason: String, token: String) throws -> Never {
+        _ = (orderNo, reason, token, Self.moneyEnabled, Self.writesReachable, Self.passOrderRefundApplyPath(orderNo: orderNo))
+        throw PlatformPassWriteRefusal.unreachable
+    }
+
+    private static func passOrderJSON(baseURL: URL, path: String, orderNo: String, token: String, body: [String: String]) throws -> URLRequest {
+        guard PlatformPassSubscriptionOrder.orderNoAllowed(orderNo), AuthRequestBuilder.isValidToken(token) else {
+            throw APIError.invalidRequest
+        }
+        let built = path.split(separator: "/").reduce(baseURL) { partial, part in
+            partial.appendingPathComponent(String(part))
+        }
+        var request = URLRequest(url: built)
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 20
+        request.httpShouldHandleCookies = false
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [.sortedKeys])
+        return request
+    }
+
     private static func libraryQuery(_ kind: String) throws -> [URLQueryItem] {
         var query = [URLQueryItem(name: "limit", value: "100")]
         switch kind {
