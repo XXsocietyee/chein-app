@@ -234,7 +234,7 @@ enum PlayArrivalProjection {
         case .accuracyLow: reason = .accuracyLow
         case .locationMissing, .accuracyMissing, .locationInvalid, .accuracyInvalid: reason = .locationMissing
         case .methodUnavailable: reason = .scanRequired
-        default: reason = .server(failure.reason.rawValue)
+        default: reason = .server(failure.reason?.rawValue ?? "UNKNOWN")
         }
         return PlayArrivalRejection(server: reason, message: failure.message, distanceMeters: nil)
     }

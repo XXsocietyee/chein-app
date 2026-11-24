@@ -91,10 +91,10 @@ public enum MPGapHTTP {
         let envelope = try? JSONDecoder().decode(StatusEnvelope.self, from: data)
         if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else {
-            throw APIError.serverMessage(envelope?.msg ?? "HTTP \(status)")
+            throw APIError.httpStatus(status)
         }
         if let code = envelope?.code, code != 200 {
-            throw APIError.serverMessage(envelope?.msg ?? "请求失败 (\(code))")
+            throw APIError.businessCode(code)
         }
     }
 
@@ -102,10 +102,10 @@ public enum MPGapHTTP {
         let envelope = try? JSONDecoder().decode(StatusEnvelope.self, from: data)
         if status == 401 || envelope?.code == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else {
-            throw APIError.serverMessage(envelope?.msg ?? "HTTP \(status)")
+            throw APIError.httpStatus(status)
         }
         if let code = envelope?.code, code != 200 {
-            throw APIError.serverMessage(envelope?.msg ?? "请求失败 (\(code))")
+            throw APIError.businessCode(code)
         }
         do {
             let decoded = try JSONDecoder().decode(DataEnvelope<T>.self, from: data)
