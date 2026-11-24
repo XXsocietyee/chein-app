@@ -38,4 +38,13 @@ Walked all 30 `player-content` pages, 30 `play-roam` pages, and 29 `member` page
 - `MPGapG1Tests.swift`: `TopicTemplatePreviewData`, `ObjectCardRenameValidator`, `OrientAppealValidator`, `ReportAppealValidator`, `MerchantCouponSummary`, `PlayerContentGapService`, `PlayRoamGapService`, `MemberGapService`.
 - `MPGapG1Round2Tests.swift`: tests for all round-1 and round-2 `Core/MPGap` models, validators, helpers, and `PlayerContentRound2Service`, `PlayRoamRound2Service`, `MemberRound2Service` endpoint paths.
 
-DONE-ROUND-2
+## Round 3: Copy & Contract Alignment vs `origin/ui/combined-r7`
+- **Copy alignment:** [`docs/mp-gap/copy-g1-player.md`](file:///Users/fanning/orca/workspaces/native-ios/DES-ag3/docs/mp-gap/copy-g1-player.md) (89 MP pages vs `Resources/Localizable.xcstrings` on `origin/ui/combined-r7` + `docs/port/strings/gap-g1-player.json`).
+  - Fixed in `gap-g1-player.json`: `objects.category` (`"分类"`), `roamTools.clearCache.confirmTitle` (`"确认清空本机缓存"`).
+  - Remaining shared/app-level copy items listed in `copy-g1-player.md` for the coordinator.
+- **Contract alignment:** [`docs/mp-gap/contracts-g1-player.md`](file:///Users/fanning/orca/workspaces/native-ios/DES-ag3/docs/mp-gap/contracts-g1-player.md) (476 unique MP endpoint references across `player-content` 174, `play-roam` 167, `member` 135 vs `Core/` on `origin/ui/combined-r7` + `Core/MPGap/`).
+  - Fixed in `Core/MPGap/PlayerContent/PlayerContentGapService.swift`: aligned `fetchTopicNearbyTeams` (`GET /api/team/nearby?lat=&lng=&radius=`) and `fetchFreeExploreCatalog` (`GET /api/free-explore/bundle/catalog?topicId=`) to MP GET contracts.
+  - Fixed in `Core/MPGap/Member/MemberRound2Service.swift`: added `fetchOrientScoring(sessionID:)` (`GET /api/orient/scoring?sessionId=`).
+  - Remaining shared/app-level contract items (`Core/NearbyTeamService.swift`, `Core/PlayerJourneyService.swift`, and un-wired endpoints) listed in `contracts-g1-player.md` for the coordinator.
+
+DONE-ROUND-3
