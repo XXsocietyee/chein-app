@@ -1,4 +1,55 @@
 {
+  "merchantCoop.cityNode.poster.hint": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save it and post it in store. It stays valid."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存后张贴，长期有效"
+        }
+      }
+    }
+  },
+  "merchantCoop.cityNode.poster.save": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Save check-in code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "保存打卡码"
+        }
+      }
+    }
+  },
+  "merchantCoop.coopSetting.saved": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Hosting settings saved"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "承接设置已保存"
+        }
+      }
+    }
+  },
   "merchantCoop.decor.denied.title": {
     "extractionState": "manual",
     "localizations": {
@@ -63,6 +114,91 @@
         "stringUnit": {
           "state": "translated",
           "value": "删除第%lld张图片"
+        }
+      }
+    }
+  },
+  "merchantCoop.npc.persona.cute": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cute"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可爱"
+        }
+      }
+    }
+  },
+  "merchantCoop.npc.persona.gentle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Gentle"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "温柔"
+        }
+      }
+    }
+  },
+  "merchantCoop.npc.persona.savage": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sassy"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "毒舌"
+        }
+      }
+    }
+  },
+  "merchantCoop.npc.voice.pauseSample": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Pause preview"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "暂停试听"
+        }
+      }
+    }
+  },
+  "merchantCoop.npc.voice.playSample": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Play original recording"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "试听原录音"
         }
       }
     }

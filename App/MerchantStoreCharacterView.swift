@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 @MainActor final class StoreCharacterModel: ObservableObject {
@@ -356,21 +357,31 @@ struct StoreCharacterPreview: View {
     var body: some View {
         Group {
             if let preset = avatar.preset { MerchantNPCPresetArtwork(avatar: preset) }
-            else {
-                // The saved photo avatar is a remote image; this build shows a neutral placeholder.
-                ZStack {
-                    Color.secondary.opacity(0.15)
-                    VStack(spacing: 6) {
-                        Image(systemName: "person.crop.square").font(.largeTitle).accessibilityHidden(true)
-                        t("storeCharacter.hero.photoSaved").cyText(.meta)
-                    }.foregroundStyle(.secondary)
+            else if let url = photoURL {
+                // MC7-23-3: render the saved photo avatar (MP ai-npc/index.wxml:26) instead of a grey placeholder.
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { photoPlaceholder }
                 }
-            }
+            } else { photoPlaceholder }
         }
         .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: side * 0.16))
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("aiNPC.preview")
+    }
+    /// Absolute https photo references only; a site-relative path keeps the placeholder (no base URL here).
+    private var photoURL: URL? {
+        guard case .photo(let source) = avatar, source.hasPrefix("https://"), let url = URL(string: source) else { return nil }
+        return url
+    }
+    private var photoPlaceholder: some View {
+        ZStack {
+            Color.secondary.opacity(0.15)
+            VStack(spacing: 6) {
+                Image(systemName: "person.crop.square").font(.largeTitle).accessibilityHidden(true)
+                t("storeCharacter.hero.photoSaved").cyText(.meta)
+            }.foregroundStyle(.secondary)
+        }
     }
 }
 
@@ -461,7 +472,37 @@ private struct StoreCharacterFieldSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                if let edit = c.field {
+                if let edit = c.field, edit.field == .persona {
+                    // MC7-23-4: MP M-28 性格三选一 (温柔 / 可爱 / 毒舌), no free text. The Chinese label is the saved
+                    // value (MP writes the label into `persona`; the `personality` enum is a Core follow-up).
+                    Section {
+                        ForEach(Self.personas.indices, id: \.self) { index in
+                            let option = Self.personas[index]
+                            Button {
+                                c.updateField(option.value)
+                                c.saveField()
+                            } label: {
+                                HStack {
+                                    Text(option.title).foregroundStyle(CYColor.textPrimary)
+                                    Spacer()
+                                    if edit.value == option.value {
+                                        Image(systemName: c.saving ? "clock" : "checkmark").foregroundStyle(CYColor.brand).accessibilityHidden(true)
+                                    }
+                                }
+                                .frame(minHeight: CYSpacing.minTouchTarget)
+                                .contentShape(Rectangle())
+                            }
+                            .disabled(c.saving || c.saveLocked)
+                            .accessibilityAddTraits(edit.value == option.value ? [.isSelected] : [])
+                            .accessibilityIdentifier("aiNPC.persona." + option.id)
+                        }
+                    }
+                    if let notice = c.notice { Section { StoreCharacterNoticeText(notice: notice) } }
+                    if let issue = c.saveIssue { Section { StoreCharacterSaveIssueView(model: model, issue: issue) } }
+                    if let confirmation = c.saveConfirmation, case .field = confirmation.origin {
+                        StoreCharacterSaveConfirmationSection(model: model, confirmation: confirmation)
+                    }
+                } else if let edit = c.field {
                     Section {
                         TextField(text: Binding(get: { c.field?.value ?? "" }, set: { c.updateField($0) }),
                                   axis: edit.field.multiline ? .vertical : .horizontal) { label(edit.field) }
@@ -492,8 +533,14 @@ private struct StoreCharacterFieldSheet: View {
             }
         }
         .interactiveDismissDisabled(c.saving || c.field.map { $0.value != $0.initial } == true)
-        .cyDomainSheet(detents: c.field?.field.multiline == true ? [.full] : [.half])
+        .cyDomainSheet(detents: c.field?.field.multiline == true && c.field?.field != .persona ? [.full] : [.half])
         .themeDomain(.merchant)
+    }
+    /// MP `PERSONALITIES` (ai-npc/index.js:30): key, saved Chinese label, display title.
+    static var personas: [(id: String, value: String, title: LocalizedStringKey)] {
+        [("gentle", "温柔", "merchantCoop.npc.persona.gentle"),
+         ("cute", "可爱", "merchantCoop.npc.persona.cute"),
+         ("savage", "毒舌", "merchantCoop.npc.persona.savage")]
     }
     private func label(_ field: StoreCharacterField) -> Text {
         switch field {
@@ -542,6 +589,22 @@ private struct StoreCharacterVoiceSheet: View {
     @ObservedObject var model: StoreCharacterModel
     private var c: StoreCharacterCoordinator { model.coordinator }
     private var status: StoreCharacterVoiceState.Status { c.voice?.status ?? .none }
+    /// MC7-23-5: 试听原录音 / 暂停试听 of the enrolled sample (MP `playVoice`).
+    @State private var samplePlayer: AVPlayer?
+    @State private var samplePlaying = false
+    private var sampleURL: URL? {
+        guard let sample = c.voice?.sample, sample.hasPrefix("https://") else { return nil }
+        return URL(string: sample)
+    }
+    private func toggleSample() {
+        if samplePlaying { samplePlayer?.pause(); samplePlaying = false; return }
+        guard let url = sampleURL else { return }
+        let player = samplePlayer ?? AVPlayer(url: url)
+        samplePlayer = player
+        player.seek(to: .zero)
+        player.play()
+        samplePlaying = true
+    }
     var body: some View {
         NavigationStack {
             List {
@@ -562,7 +625,15 @@ private struct StoreCharacterVoiceSheet: View {
                 case .ready:
                     Section {
                         t("storeCharacter.voice.readyBody").accessibilityIdentifier("aiNPC.voice.ready")
-                        Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
+                        if sampleURL != nil {
+                            Button { toggleSample() } label: {
+                                Label(samplePlaying ? "merchantCoop.npc.voice.pauseSample" : "merchantCoop.npc.voice.playSample",
+                                      systemImage: samplePlaying ? "pause.circle" : "play.circle")
+                            }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityIdentifier("aiNPC.voice.playSample")
+                        }
+                        Button { samplePlayer?.pause(); samplePlaying = false; c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
                     }
                 case .none, .failed:
                     if status == .failed { Section { t("storeCharacter.voice.failedBody").foregroundStyle(CYColor.dangerText) } }
@@ -589,6 +660,10 @@ private struct StoreCharacterVoiceSheet: View {
             }
         }
         .interactiveDismissDisabled(c.voiceBusy)
+        .onDisappear { samplePlayer?.pause(); samplePlaying = false }
+        .onReceive(NotificationCenter.default.publisher(for: AVPlayerItem.didPlayToEndTimeNotification)) { note in
+            if let item = note.object as? AVPlayerItem, item === samplePlayer?.currentItem { samplePlaying = false }
+        }
     }
     private var title: Text {
         if c.recording != nil { return t("storeCharacter.voice.titleConfirm") }
