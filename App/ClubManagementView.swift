@@ -429,7 +429,7 @@ struct ClubManagementView: View {
     private func statusLine(_ key: LocalizedStringKey, symbol: String, identifier: String? = nil) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
             Image(systemName: symbol)
-                .font(CYTypography.body.weight(.semibold))
+                .cyText(.body, weight: .semibold)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
             Text(key)

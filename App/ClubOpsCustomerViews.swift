@@ -373,7 +373,7 @@ struct ClubOpsCustomerMetricTile: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
 }

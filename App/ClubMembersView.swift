@@ -108,12 +108,13 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             .cyDomainPageBackground()
         }
         .cyHeroScreen()
-        .sheet(item: $memberReport) { target in
+        .sheet(item: $memberReport) { target in Group {
             if let governance, currentReport(target) {
                 NavigationStack { ClubMemberReportView(target: target, identity: reader.clubIdentity, governance: governance) }
             } else {
                 Color.clear.onAppear { if memberReport?.id == target.id { memberReport = nil } }
             }
+        }.cySheet(detents: [.large])
         }
         .onChange(of: reportContext) { _, _ in
             reportReadGeneration &+= 1; reportDirectory = nil; memberReport = nil; reportRefreshRevision &+= 1

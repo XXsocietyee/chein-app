@@ -151,7 +151,7 @@ import SwiftUI
                             else { CYCoverArt(seed: badge.badgeCode, showsDebugLabel: false) }
                         }
                         .frame(width: 64, height: 64)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         .accessibilityHidden(true)
                     } else {
                         // HANDOFF-R1 MC-30: a club badge without uploaded art gets the club crest family art.
@@ -223,7 +223,7 @@ import SwiftUI
                             Spacer(minLength: CYSpacing.sm)
                         }
                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                     }
                     .buttonStyle(.cyPressable)
                 }
@@ -341,7 +341,7 @@ import SwiftUI
             TextField("", text: text, axis: axis)
                 .cyText(.body)
                 .padding(CYSpacing.md)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                 .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "ClubBadge"))
         }
     }

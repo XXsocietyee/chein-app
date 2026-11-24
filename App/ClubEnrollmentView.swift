@@ -109,7 +109,7 @@ extension EnvironmentValues {
                     // Core's denied title is a Chinese literal; show the localized equivalent.
                     if ClubEnrollmentReader.failureTitle(for: issue) != nil {
                         Text("club.enroll.denied")
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.enroll.deniedTitle")
@@ -241,7 +241,7 @@ extension EnvironmentValues {
         let expanded = reader.expanded.contains(team.id)
         let text = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             title(team.name, fallback: "club.enroll.unnamedTeam")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             ViewThatFits(in: .horizontal) {
@@ -281,7 +281,7 @@ extension EnvironmentValues {
             else { CYCoverArt(seed: "\(clubID)-\(team.id)", symbol: "flag.fill", showsDebugLabel: false, showsGlyph: true) }
         }
         .frame(width: coverSide, height: coverSide)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         .accessibilityHidden(true)
     }
     private func signupLine(_ team: ClubEnrollmentTeam) -> some View {
@@ -384,7 +384,7 @@ extension EnvironmentValues {
     }
     private func ticketTitle(_ ticket: ClubEnrollmentTicket) -> some View {
         title(ticket.name, fallback: "club.enroll.unnamedTicket")
-            .font(CYTypography.cardTitle)
+            .cyText(.cardTitle)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("club.enroll.ticket.\(ticket.id)")

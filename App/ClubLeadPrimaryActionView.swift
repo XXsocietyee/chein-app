@@ -94,7 +94,7 @@ import SwiftUI
         .sheet(item: Binding(get: { controller.route }, set: { if $0 == nil { controller.dismiss() } }), onDismiss: {
             controller.dismiss()
             if current { onReturn() }
-        }) { route in
+        }) { route in Group {
             NavigationStack {
                 Group {
                     if current, controller.accepts(route), let destination = destinations.destination?(route.action, route.context) {
@@ -104,6 +104,7 @@ import SwiftUI
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { controller.dismiss() } } }
                 .onChange(of: current, initial: true) { _, valid in if !valid { controller.invalidate() } }
             }
+        }.cySheet(detents: [.large])
         }
     }
 }

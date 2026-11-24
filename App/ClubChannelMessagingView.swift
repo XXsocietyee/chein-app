@@ -362,7 +362,7 @@ public struct ClubChannelMessagingView: View {
                     showChannelList = true
                 } label: {
                     Image(systemName: "list.bullet")
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         .contentShape(Rectangle())
@@ -376,7 +376,7 @@ public struct ClubChannelMessagingView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Image(systemName: channel.symbolName)
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .foregroundStyle(palette.textSecondary)
                         Text(channel.name)
                             .cyText(.cardTitle)
@@ -434,7 +434,7 @@ public struct ClubChannelMessagingView: View {
                 .accessibilityIdentifier("club.channel.reportChannelButton")
             } label: {
                 Image(systemName: "ellipsis.circle")
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                     .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
@@ -488,7 +488,7 @@ public struct ClubChannelMessagingView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: channel.symbolName)
-                    .font(CYTypography.caption)
+                    .cyText(.caption)
                     .foregroundStyle(isSelected ? palette.textPrimary : palette.textSecondary)
                 Text(channel.name)
                     .font((channel.unreadCount ?? 0) > 0 && !channel.isMuted ? CYTypography.label : CYTypography.bodyCompact)
@@ -511,14 +511,14 @@ public struct ClubChannelMessagingView: View {
                         .foregroundStyle(palette.info)
                 } else if channel.isMuted {
                     Image(systemName: "bell.slash")
-                        .font(CYTypography.micro)
+                        .cyText(.micro)
                         .foregroundStyle(palette.textTertiary)
                 }
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .frame(minHeight: CYSpacing.minTouchTarget)
-            .background(isSelected ? palette.infoSoft : Color.clear, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .background(isSelected ? palette.infoSoft : Color.clear, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 6)
@@ -930,7 +930,7 @@ private struct ChannelBurstGroupCard: View {
                             if let reply = item.replyReference {
                                 HStack(spacing: 4) {
                                     Image(systemName: "arrowshape.turn.up.left")
-                                        .font(.caption2)
+                                        .font(.caption)
                                         .foregroundStyle(palette.textSecondary)
                                     Text("\(reply.replyAuthorName): \(reply.replyPreviewText)")
                                         .cyText(.meta)
@@ -945,7 +945,7 @@ private struct ChannelBurstGroupCard: View {
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
-                                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: 6))
+                                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner))
                             }
 
                             Text(item.displayBody)
@@ -971,7 +971,7 @@ private struct ChannelBurstGroupCard: View {
                                     }
                                 }
                                 .padding(6)
-                                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: 8))
+                                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner))
                             }
 
                             if let sendState = item.transcriptMessage.sendState {
@@ -988,7 +988,7 @@ private struct ChannelBurstGroupCard: View {
                                     case ChannelOutboundSendPhase.failed.rawValue:
                                         Image(systemName: "exclamationmark.circle.fill")
                                             .foregroundStyle(palette.danger)
-                                            .font(.caption2)
+                                            .font(.caption)
                                         Text(copy("发送失败", "Failed to send"))
                                             .cyText(.caption)
                                             .foregroundStyle(palette.danger)

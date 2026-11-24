@@ -412,7 +412,7 @@ private struct ClubNightGlass: ViewModifier {
         content
             .padding(CYSpacing.sm)
             .background {
-                RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                     .fill(CYColor.bgElevated)
             }
     }

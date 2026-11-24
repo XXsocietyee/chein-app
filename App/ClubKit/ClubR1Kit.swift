@@ -76,7 +76,7 @@ struct ClubR1Row<Trailing: View>: View {
                     .accessibilityHidden(true)
             } else if let systemImage {
                 Image(systemName: systemImage)
-                    .font(CYTypography.cardTitle)
+                    .cyText(.cardTitle)
                     .foregroundStyle(palette.textSecondary)
                     .frame(width: 24, height: 24)
                     .accessibilityHidden(true)
@@ -109,16 +109,16 @@ struct ClubR1AccessoryView: View {
         switch accessory {
         case .chevron:
             Image(systemName: "chevron.right")
-                .font(CYTypography.label.weight(.semibold))
+                .cyText(.label, weight: .semibold)
                 .foregroundStyle(palette.textTertiary)
                 .accessibilityHidden(true)
         case .check:
             Image(systemName: "checkmark.circle.fill")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
         case .unchecked:
             Image(systemName: "circle")
-                .font(CYTypography.cardTitle)
+                .cyText(.cardTitle)
                 .foregroundStyle(palette.textTertiary)
         case .tag(let text):
             CYStatusChip(verbatim: text)
@@ -169,8 +169,8 @@ struct ClubR1Group<Content: View>: View {
                     .accessibilityAddTraits(.isHeader)
             }
             VStack(spacing: 0) { content() }
-                .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         }
     }
 }

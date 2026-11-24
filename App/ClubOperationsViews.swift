@@ -39,7 +39,7 @@ struct ClubOperationsEntryButton: View {
                 if let result = pendingWelcomeReturn, result.matches(target: target, identity: identity, access: access) {
                     onWelcomeConfirmedReturn?(result)
                 }
-            }) { opened in
+            }) { opened in Group {
                 NavigationStack {
                     ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator,
                         hostApplication: hostApplication, onConfirmedChange: { result in
@@ -53,6 +53,7 @@ struct ClubOperationsEntryButton: View {
                             pendingWelcomeReturn = result
                         })
                 }.id(opened.id)
+            }.cySheet(detents: [.large])
             }
             .onChange(of: identity) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
             .onChange(of: ObjectIdentifier(access)) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
@@ -218,13 +219,14 @@ struct ClubOperationsWorkspaceView: View {
             if !profileDraftEnabled { Text("club.ops.discardMessage") }
             else { Text("localDraft.closeMessage", tableName: "ClubProfileLocalDraft") }
         }
-        .sheet(item: $review, onDismiss: cancelReview) { pending in
+        .sheet(item: $review, onDismiss: cancelReview) { pending in Group {
             NavigationStack {
                 ClubOperationsReviewView(review: pending, canSubmit: coordinator.writeAvailability != .unverified, isExample: coordinator.writeAvailability == .syntheticOnly, onCancel: cancelReview) {
                     review = nil; state = .preflighting
                     Task { await confirm(pending) }
                 }
             }.interactiveDismissDisabled(state == .preflighting || state == .submitting)
+        }.cySheet(detents: [.large])
         }
         .background {
             if let session = profileChoice.session {
@@ -282,7 +284,7 @@ struct ClubOperationsWorkspaceView: View {
             Image(systemName: "person.3.fill")
                 .font(.title2).foregroundStyle(CYColor.textSecondary)
                 .frame(width: 56, height: 56)
-                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: club.name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
@@ -295,8 +297,8 @@ struct ClubOperationsWorkspaceView: View {
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
+        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYColor.borderSubtle))
         .accessibilityElement(children: .combine)
         .questifyCardListRow()
     }
