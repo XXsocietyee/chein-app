@@ -137,8 +137,19 @@ import SwiftUI
                             if TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) {
                                 TeamJoinRetryNotice(reasonKey: model.coordinator.rejectionCode.map { TeamSeatPresentation.rejectionKey($0) })
                             }
-                            actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
-                                         labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)
+                            // C-J2 (MP team/join wxml:55, js goBuyTicket): after a TICKET_REQUIRED rejection on an activity
+                            // team (ownerType 2), the primary becomes 去买这一场的票 → that activity's registration page.
+                            if TeamSeatPresentation.showsBuyTicket(errorCode: model.coordinator.rejectionCode),
+                               let owner = detail.team.ownerKey, owner.type == 2 {
+                                NavigationLink {
+                                    MPReviewedPageScreen(page: "pages/activity/baoming/baoming", query: ["activityId": String(owner.id)])
+                                } label: { Text("fixr3.team.buyTicket").frame(maxWidth: .infinity) }
+                                    .buttonStyle(.cyPrimary).disabled(model.actionLocked)
+                                    .accessibilityIdentifier("teamPage.buyTicket")
+                            } else {
+                                actionButton(.join(teamID: detail.team.id, inviteCode: invitationCode), detail: detail,
+                                             labelKey: TeamPagePresentation.showsJoinRetry(model.coordinator.writeState, page: pageKind) ? "team.page.retryJoin" : nil)
+                            }
                         }
                         else { TeamClosedInvitationButton(cta: TeamPagePresentation.invitationCTA(detail)) }
                     }
