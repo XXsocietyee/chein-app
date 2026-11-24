@@ -27,11 +27,12 @@ import UIKit
             }
             if service == nil { Text(String(localized: LocalizedStringResource("media.disabled", table: "ClubProfileMedia", locale: locale))).cyText(.bodyCompact) }
         }
-        .sheet(isPresented: $showing, onDismiss: { flow.closeSelection() }) {
+        .sheet(isPresented: $showing, onDismiss: { flow.closeSelection() }) { Group {
             NavigationStack { ClubProfileMediaEditor(flow: flow, apply: { receipt in
                 guard enabled, identity == receipt.scope.identity else { return }
                 try? draft.stageMedia(receipt)
             }) }
+        }.cySheet(detents: [.large])
         }
     }
 }

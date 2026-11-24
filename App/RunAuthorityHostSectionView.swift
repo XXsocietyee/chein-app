@@ -103,7 +103,7 @@ public struct RunAuthorityHostSectionView: View {
                 .accessibilityIdentifier("runAuthorityHost.pendingIdempotency")
 
             Text(verbatim: nodeSummaryText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("runAuthorityHost.nodeSummary")
         }

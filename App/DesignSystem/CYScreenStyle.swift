@@ -18,11 +18,12 @@ struct CYScreenStyle: ViewModifier {
             .preferredColorScheme(domain.colorScheme)
             // Unstyled system buttons inherit this. Primary / secondary / tertiary actions stay `CYPillButton`.
             .tint(palette.brand)
-            .buttonBorderShape(.roundedRectangle(radius: Theme.Radius.md))
+            // Native restyle r1 (spec §3.2, §3.6): system bordered buttons are capsules; lists and forms show the
+            // system grouped background (no `.scrollContentBackground(.hidden)`), 24 pt between sections.
+            .buttonBorderShape(.capsule)
             .listStyle(.insetGrouped)
             .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            .listSectionSpacing(CYSpacing.md)
+            .listSectionSpacing(CYSpacing.xxl)
             .listRowSeparatorTint(palette.borderSubtle)
             .headerProminence(.increased)
             .background(palette.bgPage.ignoresSafeArea())

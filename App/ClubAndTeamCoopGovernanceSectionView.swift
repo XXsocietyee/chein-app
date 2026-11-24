@@ -176,7 +176,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                         .cyText(.cardTitle)
                         .accessibilityIdentifier("clubTeamGovernance.header.title")
                     Text(verbatim: snapshot.headlineSummaryText)
-                        .font(.subheadline)
+                        .cyText(.body)
                         .foregroundStyle(snapshot.allPillarsHealthy ? .green : .orange)
                         .accessibilityIdentifier("clubTeamGovernance.header.summary")
                 }
@@ -200,7 +200,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card).fill(Color.secondary.opacity(0.08)))
         .accessibilityIdentifier("clubTeamGovernance.section")
     }
 
@@ -213,7 +213,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.referenceBadge)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("clubTeamGovernance.row.\(row.id).ref")
                 Text(verbatim: row.statusBadgeText)
@@ -245,7 +245,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: CYRadius.inner).fill(Color.secondary.opacity(0.06)))
         .accessibilityIdentifier("clubTeamGovernance.row.\(row.id)")
     }
 }

@@ -321,7 +321,7 @@ enum NativeWebhookSheet: String, Identifiable {
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle((model.coordinator?.confirmation).map { nativeWebhookConfirmationCopy($0).title } ?? nativeWebhookLocalized("d7.webhook.confirm.title"))
+        .navigationTitle((model.coordinator?.confirmation).map { nativeWebhookConfirmationCopy($0).title } ?? nativeWebhookLocalized("d7.webhook.confirm.title")).navigationBarTitleDisplayMode(.inline)
         .interactiveDismissDisabled(model.coordinator?.busy == true)
         .accessibilityIdentifier("webhook.confirmation")
     }
@@ -366,7 +366,7 @@ enum NativeWebhookSheet: String, Identifiable {
             } else { ContentUnavailableView(nativeWebhookLocalized("d7.webhook.resume.none"), systemImage: "tray") }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("d7.webhook.resume.title"))
+        .navigationTitle(nativeWebhookLocalized("d7.webhook.resume.title")).navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(nativeWebhookLocalized("d7.webhook.cancel")) { model.dismissSheet() } } }
         .onDisappear { originalURL = ""; originalAvatarURL = "" }
         .accessibilityIdentifier("webhook.recovery")

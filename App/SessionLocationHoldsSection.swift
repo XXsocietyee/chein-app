@@ -18,7 +18,7 @@ import SwiftUI
                 HStack(alignment: .center, spacing: CYSpacing.sm) {
                     VStack(alignment: .leading, spacing: 2) {
                         Label(LocalizedStringKey("privacy.location.holds." + purpose.rawValue), systemImage: "location.fill")
-                            .font(.subheadline).foregroundStyle(CYColor.textPrimary)
+                            .cyText(.body).foregroundStyle(CYColor.textPrimary)
                         if purpose == .roam, ledger.isBackground {
                             Text("privacy.location.holds.background").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         }

@@ -324,7 +324,7 @@ extension EnvironmentValues {
                 Text("personalLocationShare.unavailable.description", tableName: "PersonalLocationShare")
             }
         }
-        .navigationTitle(Text("personalLocationShare.title.management", tableName: "PersonalLocationShare"))
+        .navigationTitle(Text("personalLocationShare.title.management", tableName: "PersonalLocationShare")).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("personalLocationShare.unavailable")
     }
 }

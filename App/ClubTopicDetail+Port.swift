@@ -17,7 +17,7 @@ import SwiftUI
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(CYSpacing.md)
-                    .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised))
+                    .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(CYColor.bgRaised))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.topic.verify." + metric.key)
                 }

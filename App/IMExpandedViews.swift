@@ -986,7 +986,7 @@ struct IMVideoCardLabel: View {
                         .background(palette.overlay, in: Circle())
                         .accessibilityHidden(true)
                 }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             Text(verbatim: reference.durationMS.map(imClock) ?? "")
                 .cyText(.meta)
                 .monospacedDigit()
