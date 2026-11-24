@@ -26,7 +26,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
             ForEach(presentation.gameChecklist) { item in
                 HStack {
                     Image(systemName: item.isSatisfied ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(item.isSatisfied ? .green : .orange)
+                        .accessibilityHidden(true).foregroundStyle(item.isSatisfied ? .green : .orange)
                     Text(verbatim: item.title)
                     Spacer()
                     Text(verbatim: item.isSatisfied ? "已完备" : "待补充")
@@ -39,7 +39,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
             ForEach(presentation.productIssues) { issue in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "xmark.octagon.fill")
-                        .foregroundStyle(CYColor.dangerText)
+                        .accessibilityHidden(true).foregroundStyle(CYColor.dangerText)
                     Text(verbatim: issue.message)
                         .cyText(.bodyCompact)
                 }
@@ -49,7 +49,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
             ForEach(presentation.approvalBlockers) { blocker in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "lock.shield.fill")
-                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true).foregroundStyle(.secondary)
                     Text(verbatim: blocker.message)
                         .cyText(.bodyCompact)
                 }

@@ -365,7 +365,7 @@ struct E3VideoCard: View {
         ZStack {
             CYIMCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
             LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
-            Image(systemName: "play.fill").font(.title3).foregroundStyle(.white)
+            Image(systemName: "play.fill").accessibilityLabel(Text(verbatim: "Play")).font(.title3).foregroundStyle(.white)
                 .frame(width: 52, height: 52).background(.black.opacity(0.45), in: Circle())
                 .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1))
         }

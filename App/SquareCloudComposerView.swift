@@ -141,7 +141,7 @@ import SwiftUI
 
     private func chip(_ title: String, _ symbol: String, clear: @escaping () -> Void) -> some View {
         HStack(spacing: CYSpacing.sm) {
-            Image(systemName: symbol).foregroundStyle(.primary)
+            Image(systemName: symbol).accessibilityHidden(true).foregroundStyle(.primary)
             Text(verbatim: title).cyWrapText().foregroundStyle(.primary)
             Spacer(minLength: CYSpacing.sm)
             Button(action: clear) { Image(systemName: "xmark") }

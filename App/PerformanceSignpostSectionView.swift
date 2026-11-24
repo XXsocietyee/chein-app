@@ -153,7 +153,7 @@ public struct PerformanceSignpostSnapshot: Equatable, Sendable {
             ForEach(snapshot.metrics) { metric in
                 HStack {
                     Image(systemName: metric.withinBudget ? "gauge.with.dots.needle.33percent" : "exclamationmark.octagon.fill")
-                        .foregroundStyle(metric.withinBudget ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(metric.withinBudget ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(metric.pointName) [\(metric.areaName)]")
                             .cyText(.bodyMedium)

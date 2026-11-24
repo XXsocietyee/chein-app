@@ -178,7 +178,7 @@ public struct MiniProgramVsNativeSupersetClassifierSectionView: View {
     private var headerRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "square.stack.3d.up.badge.a.fill")
-                .foregroundStyle(.teal)
+                .accessibilityHidden(true).foregroundStyle(.teal)
             Text(verbatim: "Mini-Program vs Native Superset Classifier")
                 .cyText(.cardTitle)
                 .accessibilityIdentifier("mpVsNativeClassifier.header")

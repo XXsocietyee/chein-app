@@ -382,11 +382,11 @@ public struct CYRouteNodeRow: View {
                 switch completion {
                 case .completed:
                     Image(systemName: "checkmark")
-                        .font(.system(size: 12, weight: .bold))
+                        .accessibilityHidden(true).font(.system(size: 12, weight: .bold))
                         .foregroundStyle(tokens.nodeGlyphColor)
                 case .locked:
                     Image(systemName: "lock.fill")
-                        .font(.system(size: 11, weight: .semibold))
+                        .accessibilityHidden(true).font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(tokens.nodeGlyphColor)
                 case .current, .upcoming:
                     Text(verbatim: "\(index)")
@@ -1019,6 +1019,7 @@ public struct CYRegistrationSummaryCard: View {
         }
         .buttonStyle(.plain)
         .disabled(disabled)
+        .accessibilityLabel(Text(verbatim: symbol == "plus" ? "增加人数" : "减少人数"))
     }
 }
 

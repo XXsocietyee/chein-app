@@ -277,7 +277,7 @@ public struct CYTabs<ID: Hashable>: View {
                     }
                     .frame(maxWidth: .infinity, minHeight: 36)
                     .background(indicatorFrameReporter(index))
-                    .frame(minHeight: CYSpacing.minTouchTarget - 6)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)

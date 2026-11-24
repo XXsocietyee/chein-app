@@ -246,7 +246,7 @@ private struct MerchantTemplateBrowserCard: View {
         Group {
             if let initial = row.title.trimmingCharacters(in: .whitespacesAndNewlines).first {
                 Text(verbatim: String(initial)).cyText(.pageTitle)
-            } else { Image(systemName: "photo").cyText(.pageTitle) }
+            } else { Image(systemName: "photo").accessibilityHidden(true).cyText(.pageTitle) }
         }.foregroundStyle(Theme.Color.textSecondary(in: .merchant))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Theme.Color.bgRaised(in: .merchant))

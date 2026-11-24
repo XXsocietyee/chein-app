@@ -140,7 +140,7 @@ public struct ScenePhaseLifecycleSnapshot: Sendable, Equatable {
             ForEach(snapshot.rows) { row in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: row.isCompliant ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(row.isCompliant ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(row.isCompliant ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: row.title)
                             .cyText(.bodyMedium)

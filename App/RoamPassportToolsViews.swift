@@ -842,10 +842,10 @@ struct RoamRecapShareCard: View {
             .accessibilityIdentifier("roam.tools.recap.share")
         }
     }
-    @MainActor private func renderedImage() -> Image {
+    @MainActor private func renderedImage() -> (Image) {
         let renderer = ImageRenderer(content: card.frame(width: 340).environment(\.locale, locale).environment(\.colorScheme, .dark))
         renderer.scale = 3
-        return renderer.uiImage.map(Image.init(uiImage:)) ?? Image(systemName: "photo")
+        return renderer.uiImage.map(Image.init(uiImage:)) ?? roamRecapPhotoFallback()
     }
 }
 
@@ -893,4 +893,9 @@ struct RoamRecapShareFace: View {
         .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
         .background(.black.opacity(0.28), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
+}
+
+/// ShareLink item fallback. Kept outside a `View` so the symbol is a value, not a focusable element.
+private func roamRecapPhotoFallback() -> Image {
+    Image(systemName: "photo")
 }

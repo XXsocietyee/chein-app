@@ -147,7 +147,7 @@ struct CYCraftedMedal: View {
                 art.resizable().scaledToFit().frame(width: size * 0.42, height: size * 0.42)
             } else {
                 Image(systemName: glyph)
-                    .font(.system(size: size * (kind == .medal ? 0.36 : 0.30), weight: .semibold))
+                    .accessibilityHidden(true).font(.system(size: size * (kind == .medal ? 0.36 : 0.30), weight: .semibold))
                     .foregroundStyle(LinearGradient(colors: [.white, CYNight.lanternHot], startPoint: .top, endPoint: .bottom))
             }
         }

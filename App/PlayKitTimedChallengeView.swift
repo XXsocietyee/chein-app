@@ -202,7 +202,7 @@ import SwiftUI
         if let goal = segment["goalMs"].integer, goal > 0 { LabeledContent("playkit.reaction.goal") { Text(verbatim: PlayTimedDisplayLocalization.milliseconds(goal, locale: locale)) } }
         if reaction.phase == .idle || reaction.phase == .interrupted {
             VStack(spacing: CYSpacing.lg) {
-                Image(systemName: "hand.tap.fill").font(CYTypography.data2XL).foregroundStyle(CYColor.textSecondary)
+                Image(systemName: "hand.tap.fill").accessibilityHidden(true).font(CYTypography.data2XL).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: ChannelCopy.text("圆圈变绿时立刻点按，别抢跑。", "Tap the circle the moment it turns green. Don't jump the gun.", locale: locale))
                     .cyText(.body).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)

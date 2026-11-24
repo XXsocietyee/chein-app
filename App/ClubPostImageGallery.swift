@@ -58,7 +58,7 @@ import UIKit
                         case .empty:
                             if parsed == nil { Label("media.destination.failed", systemImage: "photo.badge.exclamationmark") }
                             else { ProgressView("square.imageLoading") }
-                        @unknown default: Image(systemName: "photo")
+                        @unknown default: Image(systemName: "photo").accessibilityHidden(true)
                         }
                     }.id("\(renderedReadScope)|\(index)|\(retries[index, default: 0])")
                     }
@@ -101,12 +101,13 @@ import UIKit
     var body: some View {
         Group {
             if let image {
-                let picture = Image(uiImage: image)
-                Button { open(picture) } label: { picture.resizable().scaledToFit() }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(Text("club.postImages.open \(index + 1) \(count)"))
-                    .accessibilityIdentifier("club.postImages.open.\(postID).\(index)")
-                    .accessibilityFocused(focused, equals: index)
+                Button { open(Image(uiImage: image)) } label: {
+                    Image(uiImage: image).resizable().scaledToFit()
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(Text("club.postImages.open \(index + 1) \(count)"))
+                .accessibilityIdentifier("club.postImages.open.\(postID).\(index)")
+                .accessibilityFocused(focused, equals: index)
             } else if failed {
                 VStack {
                     Label("media.destination.failed", systemImage: "photo.badge.exclamationmark")
@@ -170,7 +171,7 @@ import UIKit
                                             case .empty:
                                                 if URL(string: raw) == nil { Label("media.destination.failed", systemImage: "photo.badge.exclamationmark") }
                                                 else { ProgressView("square.imageLoading") }
-                                            @unknown default: Image(systemName: "photo")
+                                            @unknown default: Image(systemName: "photo").accessibilityHidden(true)
                                             }
                                         }.id("\(selection.id)|\(position)|\(retries[position, default: 0])")
                                     }

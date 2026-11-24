@@ -182,7 +182,7 @@ struct CYHeaderCircleLabel: View {
 
     var body: some View {
         Image(systemName: systemImage)
-            .font(.body.weight(.semibold))
+            .accessibilityHidden(true).font(.body.weight(.semibold))
             .foregroundStyle(palette.textPrimary)
             .frame(width: 36, height: 36)
             .background(reduceTransparency ? AnyShapeStyle(palette.bgElevated) : AnyShapeStyle(.ultraThinMaterial), in: Circle())

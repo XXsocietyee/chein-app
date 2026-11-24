@@ -38,7 +38,7 @@ import UIKit
     @State private var failed = false
     var body: some View {
         Group {
-            if let image { Image(uiImage: image).resizable().scaledToFit() }
+            if let image { Image(uiImage: image).resizable().scaledToFit().accessibilityLabel(Text("image.retained.preview")) }
             else { Label(failed ? "image.retained.failed" : "image.retained.photos", systemImage: "photo") }
         }.frame(minWidth: 44, minHeight: 88)
         .task(id: raw) {

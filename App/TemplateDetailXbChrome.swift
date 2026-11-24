@@ -73,7 +73,7 @@ struct TemplateXbShareButton: View {
         }
     }
     private var mark: some View {
-        Image(systemName: "square.and.arrow.up").font(.title3).foregroundStyle(CYColor.textPrimary)
+        Image(systemName: "square.and.arrow.up").accessibilityHidden(true).font(.title3).foregroundStyle(CYColor.textPrimary)
             .frame(width: 52, height: 52)
             .background(CYNight.ink2, in: Circle())
     }

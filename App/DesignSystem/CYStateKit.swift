@@ -359,7 +359,7 @@ struct CYOfflineStrip: View {
 
     private func stripLabel(_ t: CYKitCopy) -> some View {
         HStack(alignment: .top, spacing: CYSpacing.sm) {
-            Image(systemName: "wifi.slash").font(.footnote.weight(.semibold))
+            Image(systemName: "wifi.slash").accessibilityHidden(true).font(.footnote.weight(.semibold))
             Text(verbatim: appLocalized("cy.kit.offline.saved", locale: t.resourceLocale))
                 .cyText(.meta)
                 .fixedSize(horizontal: false, vertical: true)

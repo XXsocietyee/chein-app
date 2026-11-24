@@ -59,6 +59,8 @@ public struct NearbyTeamsMapSheetView: View {
                     Button("nearby.myTeams", action: onOpenMyTeams)
                 } label: {
                     Image(systemName: "slider.horizontal.3")
+                        .accessibilityLabel(Text("nearby.radius"))
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                 }
             }
         }

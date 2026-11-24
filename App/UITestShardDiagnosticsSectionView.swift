@@ -158,7 +158,7 @@ public struct UITestFixtureShortCircuitRow: Identifiable, Equatable, Sendable {
             ForEach(shards) { shard in
                 HStack {
                     Image(systemName: shard.isHealthy ? "checkmark.seal.fill" : "xmark.octagon.fill")
-                        .foregroundStyle(shard.isHealthy ? .green : .red)
+                        .accessibilityHidden(true).foregroundStyle(shard.isHealthy ? .green : .red)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "分片 \(shard.shardID) · 通过 \(shard.passedCount)/\(shard.methodCount)")
                             .cyText(.bodyMedium)
@@ -179,7 +179,7 @@ public struct UITestFixtureShortCircuitRow: Identifiable, Equatable, Sendable {
             ForEach(fixtures) { fixture in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: fixture.isIsolated ? "lock.shield.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(fixture.isIsolated ? .blue : .orange)
+                        .accessibilityHidden(true).foregroundStyle(fixture.isIsolated ? .blue : .orange)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(verbatim: "\(fixture.surfaceTitle) (\(fixture.launchFlag))")
                             .cyText(.bodyMedium)

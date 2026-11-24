@@ -176,7 +176,7 @@ import SwiftUI
         .accessibilityHidden(true)
     }
     private var heroPlaceholder: some View {
-        Image(systemName: "mappin.circle").font(.largeTitle).foregroundStyle(CYColor.textPlaceholder)
+        Image(systemName: "mappin.circle").accessibilityHidden(true).font(.largeTitle).foregroundStyle(CYColor.textPlaceholder)
     }
     private func header(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {

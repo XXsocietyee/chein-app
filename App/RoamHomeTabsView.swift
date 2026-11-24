@@ -553,7 +553,7 @@ struct RoamToolUnavailableView: View {
         case .history: MPAsset.FeatureIcon.history.resizable().scaledToFit().frame(width: 36, height: 36)
         case .stamp: MPAsset.FeatureIcon.stamp.resizable().scaledToFit().frame(width: 36, height: 36)
         case .goals: MPAsset.FeatureIcon.goals.resizable().scaledToFit().frame(width: 36, height: 36)
-        default: Image(systemName: tile.symbol).foregroundStyle(.tint).frame(width: 36)
+        default: Image(systemName: tile.symbol).accessibilityHidden(true).foregroundStyle(.tint).frame(width: 36)
         }
     }
     /// A tile is listed only when it opens something; goals and capsule need the owner-only tools reader

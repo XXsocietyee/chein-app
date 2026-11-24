@@ -131,7 +131,7 @@ public struct NPCAISceneGuardSectionView: View {
     private var headerRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "shield.lefthalf.filled.badge.checkmark")
-                .foregroundStyle(.teal)
+                .accessibilityHidden(true).foregroundStyle(.teal)
             Text(verbatim: "NPC AI Scene Guard & Memory Privacy")
                 .cyText(.cardTitle)
             Spacer()

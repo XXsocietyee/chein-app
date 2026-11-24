@@ -126,7 +126,7 @@ struct MerchantInboxPreviewSection: View {
         let label: LocalizedStringKey = allRead ? "merchant.inbox.allRead" : (allFailed ? "merchant.inbox.failed" : "merchant.inbox.empty")
         let content = HStack(spacing: CYSpacing.md) {
             Image(systemName: allRead ? "checkmark" : "bell")
-                .foregroundStyle(CYColor.textSecondary)
+                .accessibilityHidden(true).foregroundStyle(CYColor.textSecondary)
                 .frame(width: 28)
             Text(label).cyText(.body).foregroundStyle(CYColor.textSecondary)
             Spacer(minLength: 0)

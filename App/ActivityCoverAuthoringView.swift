@@ -223,6 +223,7 @@ import UIKit
                 }
                 if let image = owner.preview, owner.current {
                     Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
+                        .accessibilityLabel(Text("media.destination.image"))
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityIdentifier("activityCover.localPreview")
                 }

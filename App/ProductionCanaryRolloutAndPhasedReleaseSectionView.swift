@@ -151,7 +151,7 @@ public struct ProductionCanaryRolloutAndPhasedReleaseSectionView: View {
     private var headerRow: some View {
         HStack(spacing: 8) {
             Image(systemName: "chart.line.uptrend.xyaxis")
-                .foregroundStyle(.teal)
+                .accessibilityHidden(true).foregroundStyle(.teal)
             Text(verbatim: "Production Canary & 7-Day Phased Release")
                 .cyText(.cardTitle)
                 .accessibilityIdentifier("canaryPhasedRelease.header")
