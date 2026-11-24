@@ -169,7 +169,7 @@ private indirect enum PlayStoredWire: Codable {
     }
 }
 private enum PlayStoredEvidence: Codable {
-    case answer(String), scan(String), location(longitude: Double, latitude: Double, coordinateSystem: String, accuracyMeters: Double?, measuredAt: Date?), photo(uploadedURL: String), sensor(type: String, payload: [String: PlayStoredWire])
+    case answer(String), scan(String), location(longitude: Double, latitude: Double, coordinateSystem: String, accuracyMeters: Double?, measuredAt: Date?), photo(uploadedURL: String), sensor(type: String, payload: [String: PlayStoredWire]), stationArrival
 }
 extension PlayCompletionEvidence {
     public init(from decoder: Decoder) throws {
@@ -179,6 +179,7 @@ extension PlayCompletionEvidence {
         case .location(let x, let y, let system, let accuracy, let time): self = .location(longitude: x, latitude: y, coordinateSystem: system, accuracyMeters: accuracy, measuredAt: time)
         case .photo(let v): self = .photo(uploadedURL: v)
         case .sensor(let type, let payload): self = .sensor(type: type, payload: payload.mapValues { $0.value })
+        case .stationArrival: self = .stationArrival
         }
     }
     public func encode(to encoder: Encoder) throws {
@@ -189,6 +190,7 @@ extension PlayCompletionEvidence {
         case .location(let x, let y, let system, let accuracy, let time): stored = .location(longitude: x, latitude: y, coordinateSystem: system, accuracyMeters: accuracy, measuredAt: time)
         case .photo(let v): stored = .photo(uploadedURL: v)
         case .sensor(let type, let payload): stored = .sensor(type: type, payload: payload.mapValues(PlayStoredWire.init))
+        case .stationArrival: stored = .stationArrival
         }
         try stored.encode(to: encoder)
     }
