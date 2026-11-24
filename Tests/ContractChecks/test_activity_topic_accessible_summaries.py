@@ -10,7 +10,9 @@ class ActivityTopicAccessibleSummaries(unittest.TestCase):
             self.assertIn('label, "'+label+'"',topic)
         self.assertIn('label, "Total reviews, 0"',activity)
         self.assertIn('label, "Total reviews, 3"',topic)
-        self.assertIn('label, "评价总数、0"',topic)
+        # Port P3 / C13: a known-empty topic says it once; the 「评价总数 0」 row is gone.
+        self.assertIn('label, "这条路线还没有评价。"',topic)
+        self.assertIn('XCTAssertFalse(app.staticTexts["topic.reviews.count"].exists)',topic)
     def test_people_total_uses_unique_full_row_and_preserves_owner_change_checks(self):
         source=(ROOT/'App/ActivityPeopleSection.swift').read_text()
         self.assertIn('.accessibilityIdentifier("activity.people.total")',source)

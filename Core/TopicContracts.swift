@@ -155,7 +155,15 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
     public let id: Int
     public let title: String
     public let description: String?
-    public let totalTimeMinutes: Int?
+    /// Source `total_time` as sent: **seconds** (cms_topic_chapter; MP `pages/topic/utils/chapter-cards.js`).
+    /// It was read as minutes before port P3 (C9), which showed chapter durations 60× too large.
+    /// Display goes through `TopicChapterCards.minutes(_:)`, which rounds to minutes.
+    public let totalTimeSeconds: Int?
+    /// Raw `img_arr`: comma-separated, a JSON array string, or an array. Cards use the first entry.
+    public let imageSources: [String]
+    /// Server-counted games in this chapter; nil when omitted.
+    public let templateCount: Int?
+    public let sortID: Int?
     public let nodes: [TopicNode]
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -163,7 +171,14 @@ public struct TopicChapter: Decodable, Equatable, Identifiable {
         guard id > 0 else { throw APIError.malformedResponse }
         title = c.text("title") ?? c.text("name") ?? ""
         description = c.text("description")
-        totalTimeMinutes = c.int("totalTime")
+        totalTimeSeconds = c.int("totalTime")
+        if let list = try? c.decode([String].self, forKey: TopicKey("imgArr")) {
+            imageSources = list.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        } else {
+            imageSources = TopicChapterCards.imageList(c.text("imgArr"))
+        }
+        templateCount = c.int("templateCount")
+        sortID = c.int("sortId")
         nodes = try c.list("nodes")
     }
 }
@@ -190,6 +205,8 @@ public struct TopicTicket: Decodable, Equatable, Identifiable {
     public let price: Decimal?
     public let remaining: Int?
     public let totalInventory: Int
+    /// People who share one ticket (`teamSize`, else `maxPeople`; MP `topic-motion.js buyOptions`). Nil when omitted.
+    public let teamSize: Int?
     public let registrants: [TopicRegistrant]
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -203,6 +220,7 @@ public struct TopicTicket: Decodable, Equatable, Identifiable {
         price = c.money("price")
         remaining = c.int("remainingInventory").map { min(2147483647, max(0, $0)) }
         totalInventory = c.int("totalInventory") ?? 0
+        teamSize = (c.int("teamSize").flatMap { $0 > 0 ? $0 : nil }) ?? (c.int("maxPeople").flatMap { $0 > 0 ? $0 : nil })
         registrants = try c.list("cmsRegistrationList")
     }
     /// Null remaining inventory is unknown, not sold out. A literal zero is sold out.
