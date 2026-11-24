@@ -109,13 +109,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Based on the latest 200 records"
+            "value": "Based on the latest 2,000 records"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "按最近 200 条记录统计"
+            "value": "按最近 2000 条记录统计"
           }
         }
       }
