@@ -76,7 +76,7 @@ import SwiftUI
         }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .navigationTitle(Text("d7.channelPersonal.title"))
+        .navigationTitle(Text("d7.channelPersonal.title")).navigationBarTitleDisplayMode(.inline)
         .task { await open() }
         .task { while !Task.isCancelled { if let flow,!flow.isCurrent { close() };do { try await Task.sleep(nanoseconds:500_000_000) } catch { return } } }
         .onChange(of:scenePhase) { _,phase in if phase == .active { Task { await open() } } else { close() } }

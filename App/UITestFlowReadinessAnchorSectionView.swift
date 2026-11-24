@@ -179,7 +179,7 @@ public struct UITestFlowReadinessAnchorSectionView: View {
                     Text(verbatim: "启动参数：\(row.launchArgument)")
                         .font(.caption.monospaced())
                     Text(verbatim: "根锚点 ID：\(row.rootAccessibilityID) · 用例套件：\(row.testSuiteName)")
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                 }
                 .accessibilityElement(children: .combine)

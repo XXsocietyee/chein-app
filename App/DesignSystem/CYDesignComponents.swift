@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - 1. Card Surface & Container (CYCard)
 
 public enum CYCardVariant: Sendable {
-    /// Standard card surface (`CYColor.bgSurface`, subtle border).
+    /// Standard card surface (`CYColor.bgSurface`, radius 12, no border, no shadow).
     case surface
     /// Elevated card surface (`CYColor.bgElevated`, soft drop shadow in light mode, hairline border in dark mode).
     case elevated
@@ -22,7 +22,7 @@ public struct CYCardSurfaceModifier: ViewModifier {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.lg,
+        radius: CGFloat = CYRadius.card,
         padding: CGFloat = CYSpacing.lg
     ) {
         self.variant = variant
@@ -45,7 +45,8 @@ public struct CYCardSurfaceModifier: ViewModifier {
 
     public func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
-        let showLightShadow = variant == .elevated && colorScheme == .light
+        // Native restyle r1 (spec §3.3): no shadow; elevation comes from the surface colour.
+        let showLightShadow = false
         content
             .padding(padding)
             .background(shape.fill(backgroundColor))
@@ -63,10 +64,10 @@ public struct CYCardSurfaceModifier: ViewModifier {
             }
             .shadow(
                 color: showLightShadow ? CYColor.cardShadowColor : Color.clear,
-                // A clear shadow still costs an offscreen blur pass; zero it unless it is drawn.
-                radius: showLightShadow ? 8 : 0,
+                // Native restyle: light shadow only (no heavy shadows). A clear shadow still costs a blur pass.
+                radius: showLightShadow ? 3 : 0,
                 x: 0,
-                y: showLightShadow ? 2 : 0
+                y: showLightShadow ? 1 : 0
             )
     }
 }
@@ -75,10 +76,24 @@ public extension View {
     /// Applies the standard Chengyin card surface and continuous squircle radius (no outer stroke border).
     func cyCardSurface(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.lg,
+        radius: CGFloat = CYRadius.card,
         padding: CGFloat = CYSpacing.lg
     ) -> some View {
         modifier(CYCardSurfaceModifier(variant: variant, radius: radius, padding: padding))
+    }
+}
+
+public extension View {
+    /// The one content-card surface (native restyle r1, spec §3.3): `bgSurface`, radius 12, 16 padding, no shadow.
+    func cyCard(padding: CGFloat = CYSpacing.lg) -> some View {
+        cyCardSurface(variant: .surface, radius: CYRadius.card, padding: padding)
+    }
+
+    /// A card placed as a `List` row (spec §3.3): no row background or separator, 6 pt vertical row insets.
+    func cyCardRow() -> some View {
+        listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
     }
 }
 
@@ -91,7 +106,7 @@ public struct CYCard<Content: View>: View {
 
     public init(
         variant: CYCardVariant = .surface,
-        radius: CGFloat = CYRadius.lg,
+        radius: CGFloat = CYRadius.card,
         padding: CGFloat = CYSpacing.lg,
         @ViewBuilder content: () -> Content
     ) {
@@ -268,7 +283,7 @@ public struct CYButtonSpinner: View {
     public var body: some View {
         if reduceMotion {
             Image(systemName: "ellipsis")
-                .font(.system(size: 14, weight: .bold))
+                .font(.system(.subheadline, weight: .bold))
                 .foregroundStyle(tint)
                 .frame(width: 16, height: 16)
         } else {

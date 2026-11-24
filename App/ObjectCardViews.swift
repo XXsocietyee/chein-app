@@ -179,7 +179,7 @@ extension EnvironmentValues {
     private var facts: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
                 Image(systemName: isFoil ? "sparkles" : "rectangle.portrait").foregroundStyle(isFoil ? CYAlbumMotion.gold : CYColor.textTertiary).accessibilityHidden(true)
             }
@@ -229,7 +229,7 @@ extension EnvironmentValues {
             else if isFoil { CYStatusChip("objects.foil", tone: .info, systemImage: "sparkles") }
             else { CYStatusChip("objects.plain") }
             if !card.place.isEmpty {
-                Text(verbatim: card.place).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+                Text(verbatim: card.place).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

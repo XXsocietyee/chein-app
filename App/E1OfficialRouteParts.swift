@@ -23,7 +23,7 @@ struct OfficialRouteCard: View {
                 HStack(spacing: CYSpacing.sm) {
                     if !route.city.isEmpty {
                         Label { Text(verbatim: route.city) } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                            .cyText(.meta).foregroundStyle(palette.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(verbatim: "—").cyText(.meta).foregroundStyle(palette.textTertiary)
@@ -97,7 +97,7 @@ struct OfficialRouteDetailContent: View {
                         .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2).accessibilityAddTraits(.isHeader)
                     if !route.city.isEmpty {
                         Label { Text(verbatim: route.city) } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .font(CYTypography.meta).foregroundStyle(.white.opacity(0.85))
+                            .cyText(.meta).foregroundStyle(.white.opacity(0.85))
                     }
                 }
                 .padding(CYSpacing.lg).padding(.top, 72).frame(maxWidth: .infinity, alignment: .leading)
