@@ -10,6 +10,10 @@ import UIKit
     var onReissue: (() -> Void)? = nil
     @Environment(\.scenePhase) private var scenePhase
     @State private var savedBrightness: CGFloat?
+    @State private var autoReissuedFor: Date?
+    private var autoReissueKey: String {
+        "\(value.expiresAt.timeIntervalSince1970)|\(current)|\(scenePhase == .active)|\(onReissue != nil)"
+    }
     var body: some View {
         TimelineView(.periodic(from: value.receivedAt, by: 1)) { timeline in
             if current, scenePhase == .active, value.isActive(at: timeline.date) {
@@ -47,6 +51,19 @@ import UIKit
                     }
                 }
             }
+        }
+        // CLB-group-code-03 (fix-r3-club-b round 2), MP L08-070/071: one timer re-issues the code 30 s before it
+        // expires; coming back to the foreground with 30 s or less left re-issues at once. The task restarts on
+        // every new code and every scene change, and never runs in the background (MP onHide clears the timer).
+        // A re-issue does not void the old code (L08-071); the button above stays as the manual path.
+        .task(id: autoReissueKey) {
+            // One automatic re-issue per code: a failed issue leaves the manual 重新出码 button, never a retry loop.
+            guard current, scenePhase == .active, onReissue != nil, autoReissuedFor != value.expiresAt else { return }
+            let lead = value.expiresAt.timeIntervalSinceNow - 30
+            try? await Task.sleep(nanoseconds: UInt64(max(1, lead) * 1_000_000_000))
+            guard !Task.isCancelled, current, scenePhase == .active, let onReissue else { return }
+            autoReissuedFor = value.expiresAt
+            onReissue()
         }
         // CLB-group-code-08 (fix-r3-club-b): full brightness while staff scan the code; restored on leave.
         .onAppear {
