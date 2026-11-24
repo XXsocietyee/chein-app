@@ -1,12 +1,12 @@
 {
  "_doc": "consist-1 ratchet for tools/check_typography_lint.py. Per-file counts may only go down. Rules: docs/design/type-and-chrome.md. Lower with --update after a sweep.",
  "totals": {
-  "raw text style": 1154,
+  "raw text style": 1143,
   "Theme.Font": 63,
   "raw size": 67,
-  "back chevron": 12,
-  "hidden back": 7,
-  "large title": 10
+  "back chevron": 10,
+  "hidden back": 3,
+  "large title": 7
  },
  "files": {
   "App/AccessibilityReadinessSectionView.swift": {
@@ -15,11 +15,8 @@
   "App/AccountCollectionComponents.swift": {
    "raw text style": 1
   },
-  "App/AccountCollectionCouponDetailView.swift": {
-   "raw text style": 1
-  },
   "App/AccountComplianceViews.swift": {
-   "raw text style": 11
+   "raw text style": 8
   },
   "App/AccountDeletionAndGDPRPIPLSectionView.swift": {
    "raw text style": 1
@@ -261,9 +258,6 @@
   "App/CouponCodeView.swift": {
    "raw text style": 1
   },
-  "App/CouponManagementView.swift": {
-   "raw text style": 1
-  },
   "App/CrashResilienceAndMetricKitDiagnosticsSectionView.swift": {
    "raw text style": 3
   },
@@ -434,9 +428,6 @@
   },
   "App/DiscoveryComponents.swift": {
    "raw text style": 1
-  },
-  "App/DiscoveryTemplateBrowserView.swift": {
-   "large title": 1
   },
   "App/E1ActivityDetailParts.swift": {
    "raw text style": 1
@@ -920,9 +911,6 @@
   "App/OwnerDraftBrowserView.swift": {
    "raw text style": 2
   },
-  "App/ParticipantManagementDetailView.swift": {
-   "hidden back": 1
-  },
   "App/PassportView.swift": {
    "raw text style": 2
   },
@@ -999,9 +987,6 @@
   "App/PlayThemeRecordsView.swift": {
    "raw text style": 1
   },
-  "App/PlayerJourneyViews.swift": {
-   "raw text style": 1
-  },
   "App/PrivacyAndSecurityRedactionSectionView.swift": {
    "raw text style": 1
   },
@@ -1011,14 +996,8 @@
   "App/ProductionTelemetryAndPrivacyRedactionSectionView.swift": {
    "raw text style": 1
   },
-  "App/ProfileAvatarDraftSection.swift": {
-   "raw text style": 3
-  },
   "App/ProfileComplaintPreparationView.swift": {
    "raw text style": 2
-  },
-  "App/ProfileContactQREditor.swift": {
-   "raw text style": 1
   },
   "App/ProfileCurrentAvatarView.swift": {
    "raw text style": 2
@@ -1053,16 +1032,11 @@
   "App/ProjectEditDetailForms.swift": {
    "raw text style": 14
   },
-  "App/ProjectEditExitGuard.swift": {
-   "back chevron": 1,
-   "hidden back": 1
-  },
   "App/ProjectEditFixtureSupport.swift": {
    "raw text style": 5
   },
   "App/ProjectEditFlowParity.swift": {
-   "raw text style": 1,
-   "hidden back": 1
+   "raw text style": 1
   },
   "App/ProjectEditOverviewKit.swift": {
    "raw text style": 2
@@ -1267,7 +1241,6 @@
    "raw text style": 1
   },
   "App/SettingsView.swift": {
-   "raw text style": 1,
    "large title": 1
   },
   "App/SevenDayLaunchCriticalPathSectionView.swift": {
@@ -1287,9 +1260,6 @@
   },
   "App/SocialGuideTemplateSection.swift": {
    "raw text style": 3
-  },
-  "App/SocialGuideViews.swift": {
-   "large title": 1
   },
   "App/SocialGuideXcxParity.swift": {
    "raw text style": 1
@@ -1338,10 +1308,6 @@
   },
   "App/TemplateAuthoringDetailForms.swift": {
    "raw text style": 1
-  },
-  "App/TemplateAuthoringExitGuard.swift": {
-   "back chevron": 1,
-   "hidden back": 1
   },
   "App/TemplateAuthoringPublishResultPresentation.swift": {
    "raw text style": 1
@@ -1429,9 +1395,6 @@
   },
   "App/UsageConsentGateView.swift": {
    "raw text style": 1
-  },
-  "App/VideoBountyView.swift": {
-   "large title": 1
   },
   "App/WalletCommerceViews.swift": {
    "raw text style": 3
