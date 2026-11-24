@@ -3,6 +3,18 @@ import Foundation
 import FoundationNetworking
 #endif
 
+/// Error carrying the server's `msg` string when a non-200 business code is returned (`F-C23`).
+public enum MPGapHTTPError: Error, LocalizedError, Equatable {
+    case serverMessage(code: Int, message: String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .serverMessage(_, let message):
+            return message
+        }
+    }
+}
+
 /// Shared JSON envelope decoder and request builder for `Core/MPGap/*` clients.
 public enum MPGapHTTP {
     private struct StatusEnvelope: Decodable {
@@ -94,6 +106,9 @@ public enum MPGapHTTP {
             throw APIError.httpStatus(status)
         }
         if let code = envelope?.code, code != 200 {
+            if let message = envelope?.msg?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
+                throw MPGapHTTPError.serverMessage(code: code, message: message)
+            }
             throw APIError.businessCode(code)
         }
     }
@@ -105,6 +120,9 @@ public enum MPGapHTTP {
             throw APIError.httpStatus(status)
         }
         if let code = envelope?.code, code != 200 {
+            if let message = envelope?.msg?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
+                throw MPGapHTTPError.serverMessage(code: code, message: message)
+            }
             throw APIError.businessCode(code)
         }
         do {
