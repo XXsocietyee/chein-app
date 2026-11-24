@@ -116,7 +116,9 @@ public enum PlayClientCapabilities {
     public static func declaration(_ keys: [String]) -> String {
         keys.sorted().map { "\($0)@\(version)" }.joined(separator: ",")
     }
-    /// Fields merged into `api/play/advanced/start`. Same list as `nodesQuery`.
+    /// Fields merged into `api/play/advanced/start`. The mini-program `declaration()` sends
+    /// `supportedCapabilities` as one comma-joined `key@version` string (`declaration(_:)`).
+    /// This build sends the same field name as an array and `clientPlatform` `ios-native`.
     public static func startFields(clientVersion: String? = bundleVersion) -> [String: PlayWireValue] {
         var fields: [String: PlayWireValue] = [
             "clientPlatform": .string(platform),

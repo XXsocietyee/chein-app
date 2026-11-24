@@ -8,7 +8,7 @@ import FoundationNetworking
 /// Source: hengyin `chengyinhub-xcx` `1c80c5aea8f721ca8575e6108048495b100f5576`
 /// (`subpackageMember/utils/platform-pass.js`, `pass-library.js`, `market-view.js`,
 /// `market/membership`, `market/library`, `market/passes`).
-/// Purchase, quote, and gift claim are compiled on this type and always refuse.
+/// Purchase, quote, gift claim, cancel, confirm, and refund-apply are compiled on this type and always refuse.
 /// Money stays off: this type does not build a payment body or call a pay route.
 public struct PlatformPass: @unchecked Sendable {
     public static let miniProgramCommit = "1c80c5aea8f721ca8575e6108048495b100f5576"
@@ -27,6 +27,13 @@ public struct PlatformPass: @unchecked Sendable {
     public static let purchasePath = "api/platform-pass/orders"
     /// GET on the purchase URL lists the viewer's own pass orders (`market/passes` 我的订单). POST stays refused.
     public static let passOrdersPath = "api/platform-pass/orders"
+    /// POST `api/platform-pass/orders/{orderNo}/cancel` with no body. Compiled, never sent.
+    public static let cancelOrderPath = "api/platform-pass/orders/{}/cancel"
+    /// POST `api/platform-pass/orders/{orderNo}/confirm` with no body. Compiled, never sent.
+    public static let confirmOrderPath = "api/platform-pass/orders/{}/confirm"
+    /// POST `api/platform-pass/orders/{orderNo}/refund-apply` JSON `{reason}`. Compiled, never sent.
+    public static let refundApplyPath = "api/platform-pass/orders/{}/refund-apply"
+    public static let refundApplyField = "reason"
     /// GET `api/marketing/product/{id}` (`market/pass` detail).
     public static let productDetailPrefix = "api/marketing/product/"
     /// POST `api/public-catalog/list`: the theme library (`market/library`) reads the public catalog, not the pass
