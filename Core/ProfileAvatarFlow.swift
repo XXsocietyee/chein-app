@@ -6,6 +6,8 @@ import Foundation
     public enum State: Equatable { case ready, uploading, uploaded, staged, unknown, failed, closed }
     public let id = UUID()
     public let target: ProfileAvatarTarget
+    /// A3-01: the avatar, a 探索作品 picture or the 联系二维码. Same journal, fences and steps for each.
+    public let kind: ProfileMediaKind
     public private(set) var state: State = .ready
     public private(set) var review: Review?
     public private(set) var receipt: ProfileAvatarUploadReceipt?
@@ -23,8 +25,8 @@ import Foundation
     public init(target: ProfileAvatarTarget, source: ProfileAvatarUploadClient, journal: (any ProfileAvatarJournaling)? = nil,
                 currentSnapshot: @escaping () -> ProfileEditSnapshot?, currentDraft: @escaping () -> ProfileEditDraft?,
                 currentRevision: @escaping () -> UInt64, ownerCurrent: @escaping () -> Bool,
-                apply: @escaping (ProfileAvatarReplacement) -> Void) {
-        self.target = target; self.source = source; self.journal = journal
+                kind: ProfileMediaKind = .avatar, apply: @escaping (ProfileAvatarReplacement) -> Void) {
+        self.target = target; self.kind = kind; self.source = source; self.journal = journal
         self.currentSnapshot = currentSnapshot; self.currentDraft = currentDraft; self.currentRevision = currentRevision
         self.ownerCurrent = ownerCurrent; self.apply = apply
         do {
@@ -45,7 +47,7 @@ import Foundation
     public func beginPicking() -> UUID? { guard canSelect else { return nil }; let id = UUID(); pickerID = id; return id }
     public func endPicking(_ id: UUID) { if pickerID == id { pickerID = nil } }
     public func prepare(_ image: RetainedSelectedImage) {
-        guard canSelect, image.width == image.height else { return }
+        guard canSelect, kind.accepts(image) else { return }
         review = .init(image: image); state = .ready
     }
     public func cancelReview(_ value: Review) { if review?.id == value.id, task == nil { review = nil } }
@@ -56,8 +58,8 @@ import Foundation
         catch { state = .unknown; return }
         guard ownsTarget, review?.id == value.id else { state = .unknown; return }
         attemptID = attempt; review = nil; state = .uploading
-        let pending = Task { [source, target, weak self] in
-            try await source.upload(value.image, target: target, attemptID: attempt) { self?.ownsTarget == true }
+        let pending = Task { [source, target, kind, weak self] in
+            try await source.upload(value.image, kind: kind, target: target, attemptID: attempt) { self?.ownsTarget == true }
         }
         task = pending
         do {
@@ -96,7 +98,9 @@ import Foundation
                     entry.selectedDigest == receipt.selectedDigest && entry.phase == .locallyStaged
             }
             apply(replacement) // Synchronous, nonfallible, after all owner/draft checks.
-            guard currentDraft()?.avatarReplacement == replacement else { state = .unknown; return }
+            let attached = kind == .avatar ? currentDraft()?.avatarReplacement == replacement
+                : currentDraft().map { kind.isStaged(replacement, in: $0) } == true
+            guard attached else { state = .unknown; return }
             try journal.record(key: key, attemptID: receipt.id, phase: .locallyStaged)
             state = .staged
         } catch { state = .unknown }

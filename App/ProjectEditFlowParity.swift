@@ -182,11 +182,9 @@ extension EnvironmentValues {
         .disabled(!editable || phase == .saving)
         .appNavigationTitle("projectNodeNPC.title")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(dirty)
+        // T&C §3: system back while clean; the guarded back asks before dropping typed NPC changes.
+        .cyGuardedBack(when: dirty) { confirmLeave = true }
         .toolbar {
-            if dirty {
-                ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { confirmLeave = true } }
-            }
             ToolbarItem(placement: .confirmationAction) {
                 if phase == .saving { ProgressView() }
                 else { Button("projectNodeNPC.save") { Task { await save() } }.disabled(!canSave).accessibilityIdentifier("projectNodeNPC.save") }

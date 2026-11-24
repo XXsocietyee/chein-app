@@ -65,7 +65,7 @@ import SwiftUI
                 } else {
                     Button { selected = destination } label: {
                         HStack { Label(LocalizedStringKey(destination.title), systemImage: "location.fill").environment(\.settingsTileTint, SettingsTint.green)
-                            Spacer(minLength: 0); Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary) }
+                            Spacer(minLength: 0); Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary) }
                     }
                     .foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
@@ -158,6 +158,9 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             }
         }
         .themeDomain(.player)
+        // B-MK-03 / B-DR-05 (T&C §2): one inline system title, pushed or in its sheet's navigation stack;
+        // the in-content 34 pt title is gone.
+        .cyPageTitle(String.LocalizationValue(destination.title))
         .toolbar {
             if showsCloseButton {
                 ToolbarItem(placement: .cancellationAction) {
@@ -645,13 +648,10 @@ struct ComplianceHeader: View {
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            Image(systemName: symbol).font(.title2.weight(.semibold)).foregroundStyle(tint)
+            Image(systemName: symbol).cyText(.sectionTitle, weight: .semibold).foregroundStyle(tint)
                 .frame(width: 52, height: 52)
                 .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.md, style: .continuous))
                 .accessibilityHidden(true)
-            Text(LocalizedStringKey(destination.title))
-                .cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
             Text(intro).cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             if destination == .cancellation, ![.completed, .pending, .freshLogin, .unknown].contains(step) {
                 let names = ["compliance.step.1", "compliance.step.2", "compliance.step.3"]
@@ -661,7 +661,7 @@ struct ComplianceHeader: View {
                             if i > 0 { Capsule().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.16)).frame(height: 3) }
                             ZStack {
                                 Circle().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.12))
-                                if i < stage { Image(systemName: "checkmark").font(.caption2.weight(.heavy)).foregroundStyle(.white) }
+                                if i < stage { Image(systemName: "checkmark").cyText(.micro, weight: .heavy).foregroundStyle(.white) }
                                 else { Text(verbatim: String(i + 1)).cyText(.meta, weight: .bold, monospacedDigit: true).foregroundStyle(i == stage ? Color.white : CYColor.textSecondary) }
                             }
                             .frame(width: 26, height: 26)

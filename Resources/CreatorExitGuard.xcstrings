@@ -2,22 +2,6 @@
   "sourceLanguage": "zh-Hans",
   "version": "1.0",
   "strings": {
-    "templateAuthorExit.back": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "返回"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Back"
-          }
-        }
-      }
-    },
     "templateAuthorExit.title": {
       "localizations": {
         "zh-Hans": {

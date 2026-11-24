@@ -84,7 +84,10 @@ class AvatarContracts(unittest.TestCase):
         self.assertEqual(self.coordinator[self.coordinator.index('    private func reconcile('):],OLD_RECONCILE)
     def test_ordinary_service_save_is_unchanged_behind_image_rejection(self):
         method=self.service[self.service.index('    public func save('):self.service.index('    @MainActor public func saveAvatar(')]
-        method=method.replace('        guard payload.avatarReplacement == nil else { throw ProfileEditWriteError.notSent }\n','').rstrip()
+        # A3-01: any staged upload (avatar, work picture, contact QR) keeps the ordinary save away.
+        method=method.replace('        guard !payload.carriesUpload else { throw ProfileEditWriteError.notSent }\n','').rstrip()
+        # A3-07: the rejection also carries the server errorCode (NICKNAME_TAKEN / NICKNAME_INVALID).
+        method=method.replace(', errorCode: envelope.errorCode', '')
         self.assertEqual(method,OLD_ORDINARY_SAVE.rstrip())
     def test_upload_and_image_save_never_fall_back_to_generic_http(self):
         self.assertIn('transport: (any ProfileAvatarDispatching)? = nil',self.upload)
@@ -152,13 +155,14 @@ class AvatarContracts(unittest.TestCase):
         self.assertIn('replacement.receipt.target.snapshotHash == ProfileAvatarExact.snapshot(snapshot)',source)
     def test_optional_image_prepare_validation_runs_after_fresh_read(self):
         self.assertEqual(self.coordinator.count('avatarValidity?.isCurrent == true'),3)
-        self.assertIn('avatar.permits(session: expected, snapshot: latest)',self.coordinator)
+        # A3-01: every staged upload, not only the avatar, is checked against the fresh read.
+        self.assertIn('uploads.allSatisfy({ $0.permits(session: expected, snapshot: latest) })',self.coordinator)
         self.assertIn('return self.active(expected, request) && value.avatarValidity?.isCurrent == true',self.coordinator)
         self.assertIn('try await service.save(value.payload, token: expected.token)',self.coordinator)
     def test_image_save_checks_exact_fresh_snapshot_before_pending_reservation(self):
         save=self.coordinator[self.coordinator.index('public func save(_ value: ProfileEditConfirmation)'):]
         guard='guard ProfileAvatarExact.snapshot(latest) == ProfileAvatarExact.snapshot(value.snapshot) else'
-        self.assertIn('if value.payload.avatarReplacement != nil {', save)
+        self.assertIn('if value.payload.carriesUpload {', save)  # A3-01: any staged upload
         self.assertLess(save.index(guard),save.index('pending[expected.identity.accountID] = PendingWrite'))
         self.assertIn('guard latest == value.snapshot,',save)
         tests=(ROOT/'Tests/CoreTests/ProfileAvatarTests.swift').read_text()

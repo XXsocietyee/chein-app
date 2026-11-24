@@ -92,7 +92,7 @@ class AccountCollectionStructureTests(unittest.TestCase):
         view = self.text('App/AccountCollectionFavoritesView.swift')
         self.assertIn('@State private var selectedTab: Tab = .posts', view)
         for key in ['social.posts', 'searchMap.kind.topic']:
-            self.assertIn('Text("' + key + '")', view)
+            self.assertIn('appLocalized("' + key + '", locale: locale)', view)  # X5: CYTabs titles
             entry = json.loads(self.text('Resources/Localizable.xcstrings'))['strings'][key]
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'})
         self.assertIn('AccountCollectionFavoritePostsView(reader: reader', view)

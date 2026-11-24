@@ -22,7 +22,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         return try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: [:], token: token, includesBody: false)
     }
-    private struct Response: Decodable { let code: Int; let msg: String? }
+    private struct Response: Decodable { let code: Int; let msg: String?; let errorCode: String? }
     public func read(token: String) async throws -> ProfileEditSnapshot {
         var request = try request("api/user/info", token: token)
         let boundary = "ProfileRead-" + UUID().uuidString
@@ -40,7 +40,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
         catch { throw APIError.malformedResponse }
     }
     public func save(_ payload: ProfileEditPayload, token: String) async throws {
-        guard payload.avatarReplacement == nil else { throw ProfileEditWriteError.notSent }
+        guard !payload.carriesUpload else { throw ProfileEditWriteError.notSent }
         var prepared: URLRequest
         do {
             prepared = try request("api/user/update", token: token)
@@ -58,12 +58,12 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
         }
         guard (200..<300).contains(status), let envelope else { throw ProfileEditWriteError.outcomeUnknown }
         guard envelope.code == 200 else {
-            throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg))
+            throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg, errorCode: envelope.errorCode))
         }
     }
     @MainActor public func saveAvatar(_ payload: ProfileEditPayload, token: String,
                                      isCurrent: @escaping @MainActor () -> Bool) async throws {
-        guard payload.avatarReplacement != nil, let avatarTransport, avatarSavingAvailable, isCurrent() else { throw ProfileEditWriteError.notSent }
+        guard payload.carriesUpload, let avatarTransport, avatarSavingAvailable, isCurrent() else { throw ProfileEditWriteError.notSent }
         let prepared: URLRequest
         do {
             var request = try request("api/user/update", token: token)
@@ -84,7 +84,7 @@ public struct ProfileEditService: ProfileEditServing, ProfileAvatarEditServing {
             throw ProfileEditWriteError.rejected(.init(httpStatus: status, code: envelope?.code, message: envelope?.msg))
         }
         guard (200..<300).contains(status), let envelope else { throw ProfileEditWriteError.outcomeUnknown }
-        guard envelope.code == 200 else { throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg)) }
+        guard envelope.code == 200 else { throw ProfileEditWriteError.rejected(.init(code: envelope.code, message: envelope.msg, errorCode: envelope.errorCode)) }
     }
 
 }

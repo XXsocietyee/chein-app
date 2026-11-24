@@ -12,10 +12,8 @@ DECODER = ROOT / "Core/SquareContracts.swift"
 VIEW = ROOT / "App/SquareDetailView.swift"
 LEDGER = ROOT / "Core/MiniProgramPageByPage99DecisionLedgerContract.swift"
 
+# C-S3 (fix-parity2): 动态加载失败 / 这条帖文暂不可用 / 没有找到这条帖文 are now in the catalog (SquareDetailIssueView).
 MISSING_COPY = [
-    "动态加载失败",
-    "这条帖文暂不可用",
-    "没有找到这条帖文",
     "评论加载失败",
     "更多评论加载失败",
     "服务暂时无法提供这条动态",

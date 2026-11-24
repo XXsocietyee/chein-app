@@ -138,7 +138,7 @@ struct ProfileParticipantsView: View {
         }
         }
         }
-        .appNavigationTitle("profile.participants.title")
+        .cyPageTitle("profile.participants.title") // A5-03: pushed page → inline
         // Mini-program pages/address pins 新增参与人信息 as the page's primary action.
         .questifyBottomAction {
             if let coordinator, coordinator.canPrepare, reader.identity != nil {

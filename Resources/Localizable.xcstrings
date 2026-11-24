@@ -190900,6 +190900,23 @@
         }
       }
     },
+    "profile.about.joinDate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Joined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入时间"
+          }
+        }
+      }
+    },
     "profile.avatar.changed": {
       "extractionState": "manual",
       "localizations": {
@@ -191529,6 +191546,23 @@
         }
       }
     },
+    "profile.case.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add work photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加作品图片"
+          }
+        }
+      }
+    },
     "profile.case.description": {
       "extractionState": "manual",
       "localizations": {
@@ -191631,6 +191665,108 @@
         }
       }
     },
+    "profile.case.limit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can upload up to 9 photos."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多只能上传9张图片"
+          }
+        }
+      }
+    },
+    "profile.case.newPreview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New work photo preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新作品图片预览"
+          }
+        }
+      }
+    },
+    "profile.case.newStaged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New photo, saved with your profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新图片，保存资料后生效"
+          }
+        }
+      }
+    },
+    "profile.case.removeNew": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "移除"
+          }
+        }
+      }
+    },
+    "profile.case.reviewAdded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New work photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增作品图片"
+          }
+        }
+      }
+    },
+    "profile.case.stage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to my work"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入作品"
+          }
+        }
+      }
+    },
     "profile.case.title": {
       "extractionState": "manual",
       "localizations": {
@@ -191644,6 +191780,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "探索作品"
+          }
+        }
+      }
+    },
+    "profile.case.uploaded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaded. Tap Add to my work to include it in your changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已上传。点“加入作品”加入本次修改。"
           }
         }
       }
@@ -192968,6 +193121,23 @@
         }
       }
     },
+    "profile.contactQR.discardNew": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃"
+          }
+        }
+      }
+    },
     "profile.contactQR.empty": {
       "extractionState": "manual",
       "localizations": {
@@ -192998,6 +193168,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "点完成后，回到资料页点保存即可生效。"
+          }
+        }
+      }
+    },
+    "profile.contactQR.newPreview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New QR code preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新二维码预览"
+          }
+        }
+      }
+    },
+    "profile.contactQR.newStaged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New QR code ready. Save your profile to apply it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新二维码已就绪，保存资料后生效。"
           }
         }
       }
@@ -193053,6 +193257,40 @@
         }
       }
     },
+    "profile.contactQR.replace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Change QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更换二维码"
+          }
+        }
+      }
+    },
+    "profile.contactQR.replaced": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Will be changed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将更换"
+          }
+        }
+      }
+    },
     "profile.contactQR.restore": {
       "extractionState": "manual",
       "localizations": {
@@ -193087,6 +193325,40 @@
         }
       }
     },
+    "profile.contactQR.reviewReplace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your contact QR code will be changed to the new one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "联系二维码将更换为新上传的图片。"
+          }
+        }
+      }
+    },
+    "profile.contactQR.stage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use this QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用这张二维码"
+          }
+        }
+      }
+    },
     "profile.contactQR.staged": {
       "extractionState": "manual",
       "localizations": {
@@ -193117,6 +193389,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "联系二维码"
+          }
+        }
+      }
+    },
+    "profile.contactQR.upload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload QR code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传二维码"
+          }
+        }
+      }
+    },
+    "profile.contactQR.uploaded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploaded. Tap Use this QR code to include it in your changes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已上传。点“使用这张二维码”加入本次修改。"
           }
         }
       }
@@ -193396,6 +193702,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "请输入昵称。"
+          }
+        }
+      }
+    },
+    "profile.edit.nicknameInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This nickname does not meet the rules."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昵称不符合规则"
+          }
+        }
+      }
+    },
+    "profile.edit.nicknameTaken": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This nickname is taken. Try another one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个昵称已被占用，换一个试试"
           }
         }
       }
@@ -194840,6 +195180,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "主页背景图"
+          }
+        }
+      }
+    },
+    "profile.media.changed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something changed. Remove the new images and upload them again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "情况有变化，请移除新加的图片后重新上传。"
+          }
+        }
+      }
+    },
+    "profile.media.notAvailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image upload isn't open yet. Your saved images stay as they are."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片上传暂未开放，已保存的图片保持不变。"
+          }
+        }
+      }
+    },
+    "profile.media.select": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择图片"
           }
         }
       }
@@ -198277,6 +198668,23 @@
         }
       }
     },
+    "profile.reviewRestore.newImage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newly uploaded image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新上传的图片"
+          }
+        }
+      }
+    },
     "profile.reviewRestore.noChanges": {
       "localizations": {
         "en": {
@@ -199977,6 +200385,74 @@
         }
       }
     },
+    "projectEdit.chip.gameplay %lld %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gameplay %1$lld/%2$lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩法 %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "projectEdit.chip.placesMissing %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld places to pick"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个待选地点"
+          }
+        }
+      }
+    },
+    "projectEdit.chip.storyDone": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story written"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剧情已写"
+          }
+        }
+      }
+    },
+    "projectEdit.chip.storyMissing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story missing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺剧情"
+          }
+        }
+      }
+    },
     "projectEdit.city": {
       "localizations": {
         "en": {
@@ -201574,6 +202050,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "同步到创意广场"
+          }
+        }
+      }
+    },
+    "projectEdit.quotaFull": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your shelf is full. Save a draft for now, or take an older project down."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在架已满，可先存草稿或下架旧项目"
           }
         }
       }
@@ -240081,6 +240574,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "动态"
+          }
+        }
+      }
+    },
+    "square.detail.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回上一页"
+          }
+        }
+      }
+    },
+    "square.detail.closed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The community isn't open yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "社区暂未开放"
+          }
+        }
+      }
+    },
+    "square.detail.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The post didn't load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "动态加载失败"
+          }
+        }
+      }
+    },
+    "square.detail.notFound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't find this post"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有找到这条帖文"
+          }
+        }
+      }
+    },
+    "square.detail.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This post isn't available right now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条帖文暂不可用"
           }
         }
       }

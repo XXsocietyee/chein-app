@@ -50,6 +50,8 @@ import SwiftUI
     private var autosave: Task<Void, Never>?
     private var confirmedLocalExit: (incarnation: UUID, revision: Int, session: ProjectEditSession?)?
     private var observedDraftRevision = -1
+    /// C-F3: exact bytes of the last successful on-device save of this editor's draft.
+    private(set) var locallySavedBytes: Data?
     private var observedDraftBytes: Data?
     @Published private(set) var incomingSeed: ProjectEditDraft?
     private let seedSession: ProjectEditSession?
@@ -185,7 +187,7 @@ import SwiftUI
               value.baseRevision.utf8.elementsEqual(draft.baseRevision.utf8) else { return false }
         autosave?.cancel(); cancelReview()
         guard coordinator.saveLocal(value) else { revision += 1; return false }
-        draft = value; acknowledgeDraftObservation(); revision += 1; return true
+        draft = value; acknowledgeDraftObservation(); noteLocalSave(); revision += 1; return true
     }
     func canReplaceExistingStoryDraft() -> Bool { fullEdit && coordinator.canReplaceExistingStoryDraft(draft) }
     func persistExistingStoryChange(_ value: ProjectEditDraft, lease: ProjectEditStarterController.Lease) -> Bool {
@@ -193,22 +195,34 @@ import SwiftUI
               value.baseRevision.utf8.elementsEqual(draft.baseRevision.utf8) else { return false }
         autosave?.cancel(); cancelReview()
         guard coordinator.replaceExistingStoryDraft(value, replacing: draft) else { revision += 1; return false }
-        draft = value; acknowledgeDraftObservation(); revision += 1; return true
+        draft = value; acknowledgeDraftObservation(); noteLocalSave(); revision += 1; return true
     }
-    func saveLocal() { guard canSaveLocal else { return }; if coordinator.saveLocal(draft) { acknowledgeDraftObservation() }; revision += 1 }
+    func saveLocal() { guard canSaveLocal else { return }; if coordinator.saveLocal(draft) { acknowledgeDraftObservation(); noteLocalSave() }; revision += 1 }
+    private func noteLocalSave() { locallySavedBytes = ProjectEditPendingMaterials.exactData(draft) }
+    /// C-F3 (T&C §3): Back needs the exit guard only while this editor holds bytes that are neither the loaded
+    /// baseline nor already saved on the device; otherwise the system back and its edge swipe stay (leave()
+    /// still saves locally on the way out).
+    var exitNeedsGuard: Bool {
+        guard canEdit else { return false }
+        guard let bytes = ProjectEditPendingMaterials.exactData(draft) else { return true }
+        if let saved = locallySavedBytes, saved == bytes { return false }
+        if let baseline = coordinator.snapshot.flatMap({ ProjectEditPendingMaterials.exactData($0.draft) }), baseline == bytes { return false }
+        return true
+    }
     /// The normal Back decision needs the actual existing local-save result.
     func saveLocalForExit() -> Bool {
         autosave?.cancel()
         guard canSaveLocal else { return false }
         let saved = coordinator.saveLocal(draft)
-        if saved { acknowledgeDraftObservation() }; revision += 1; return saved
+        if saved { acknowledgeDraftObservation(); noteLocalSave() }; revision += 1; return saved
     }
     func confirmLocalExit() { autosave?.cancel(); confirmedLocalExit = (editorIncarnation, draftMutationRevision, coordinator.session) }
-    func restore() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); if let value = coordinator.restoredDraft() { draft = value }; acknowledgeDraftObservation(); revision += 1 }
-    func discard() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); coordinator.discardLocalDraft(); acknowledgeDraftObservation(); revision += 1 }
+    func restore() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); if let value = coordinator.restoredDraft() { draft = value; noteLocalSave() }; acknowledgeDraftObservation(); revision += 1 }
+    func discard() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID(); autosave?.cancel(); coordinator.discardLocalDraft(); locallySavedBytes = nil; acknowledgeDraftObservation(); revision += 1 }
     func review(intent: ProjectEditSubmissionIntent = .ordinary) {
         guard let lease = currentReviewLease() else { return }
         autosave?.cancel(); let saved = coordinator.saveLocal(draft); coordinator.prepare(draft, intent: intent)
+        if saved { noteLocalSave() }
         guard currentReviewLease() == lease else { cancelReview(); return }
         acknowledgeDraftObservation(); reviewLease = lease; reviewLocalSaveConfirmed = saved; confirmation = coordinator.confirmation; revision += 1
     }
@@ -954,6 +968,21 @@ import SwiftUI
             }
             .cyText(.meta)
             .foregroundStyle(nodeCount == 0 && (chapter.blocks ?? []).isEmpty ? palette.textTertiary : palette.textSecondary)
+            // C-F13 (MP fabu index.wxml:272-322): status in words, not only a red dot.
+            let hasStory = chapter.hasRealStory || !(chapter.blocks ?? []).isEmpty
+            let missingPlaces = chapter.nodes.filter { $0.longitude.isEmpty || $0.latitude.isEmpty }.count
+            let gameplayCount = chapter.nodes.filter { ($0.templateID ?? 0) > 0 }.count
+            HStack(spacing: CYSpacing.xs) {
+                CYStatusChip(hasStory ? "projectEdit.chip.storyDone" : "projectEdit.chip.storyMissing",
+                             tone: hasStory ? .success : .warning, systemImage: hasStory ? "checkmark" : "text.badge.plus")
+                if missingPlaces > 0 {
+                    CYStatusChip("projectEdit.chip.placesMissing \(missingPlaces)", tone: .danger, systemImage: "mappin.slash")
+                }
+                if nodeCount > 0 {
+                    CYStatusChip("projectEdit.chip.gameplay \(gameplayCount) \(nodeCount)", tone: .neutral, systemImage: "gamecontroller")
+                }
+            }
+            .accessibilityElement(children: .combine)
         }
         .padding(.vertical, CYSpacing.xs)
     }

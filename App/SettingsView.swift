@@ -243,7 +243,7 @@ struct SettingsAccountCard: View {
                     .cyWrapText()
             }
             Spacer(minLength: 0)
-            if tappable { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }
+            if tappable { Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(palette.textTertiary).accessibilityHidden(true) }
         }
         .padding(CYSpacing.lg)
         .background(palette.cardFill, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))

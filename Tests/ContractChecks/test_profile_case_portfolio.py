@@ -28,7 +28,7 @@ class ProfileCasePortfolioContracts(unittest.TestCase):
     def test_exact_readback_checks_explicit_case_before_other_fields(self):
         s = section('Core/ProfileEditContracts.swift', 'public func matches', 'public struct ProfileEditSession')
         exact = 'if let caseIntroduction, !ProfileCasePortfolio.sameText(caseIntroduction, snapshot.caseIntroduction) { return false }'
-        self.assertIn(exact, s); self.assertLess(s.index(exact), s.index('if avatarReplacement != nil'))
+        self.assertIn(exact, s); self.assertLess(s.index(exact), s.index('if carriesUpload'))  # A3-01: image-bearing = any staged upload
 
     def test_optional_comparison_distinguishes_nil_and_unicode_bytes(self):
         s = read('Core/ProfileCasePortfolio.swift')

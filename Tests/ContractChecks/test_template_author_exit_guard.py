@@ -43,13 +43,14 @@ class ExitGuardSourceContracts(unittest.TestCase):
         for token in ['.onDisappear { controller.retire() }','phase == .active { controller.activate() } else { controller.retire() }','let original = review','self.cancelAction(original)()']:
             self.assertIn(token,APP)
     def test_real_normal_navigation_and_confirmation_are_present(self):
-        for token in ['.navigationBarBackButtonHidden(true)','.interactiveDismissDisabled(true)','.topBarLeading','.cyModalConfirm','controller.backAction','controller.leaveAction','controller.cancelAction','controller.retryAction']:
+        # C-T4: the guarded back only while the draft is not clean (T&C §3 cyGuardedBack).
+        for token in ['.cyGuardedBack(when: controller.guardsExit, onBack: controller.backAction { dismiss() })','.interactiveDismissDisabled(controller.guardsExit)','.cyModalConfirm','controller.backAction','controller.leaveAction','controller.cancelAction','controller.retryAction']:
             self.assertIn(token,APP)
     def test_compiled_catalog_has_exact_bilingual_keys(self):
-        keys=set(re.findall(r'"(templateAuthorExit\.[A-Za-z]+)"',APP));self.assertEqual(keys,set(LOC));self.assertEqual(len(LOC),7)
+        keys=set(re.findall(r'"(templateAuthorExit\.[A-Za-z]+)"',APP));self.assertEqual(keys,set(LOC));self.assertEqual(len(LOC),6)
         self.assertTrue(all(set(x['localizations'])=={'en','zh-Hans'} for x in LOC.values()))
         self.assertTrue(all(v['stringUnit']['value'] for x in LOC.values() for v in x['localizations'].values()))
-        self.assertEqual(APP.count('"CreatorExitGuard"'),7)
+        self.assertEqual(APP.count('"CreatorExitGuard"'),6)
         self.assertEqual(REG['localization_table'],'CreatorExitGuard')
     def test_native_tests_and_actual_registration_declared(self):
         self.assertEqual(len(re.findall(r'func test\w+\(',CT)),12);self.assertEqual(len(re.findall(r'func test\w+\(',AT)),18)

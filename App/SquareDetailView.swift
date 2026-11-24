@@ -9,6 +9,7 @@ import SwiftUI
     var governanceContext: SquareGovernanceContext? = nil
     var workspace: SquareWorkspaceCoordinator? = nil
     @Environment(\.squareReportContext) private var reportContext
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.squareRelatedTopic) private var relatedTopicContext
     @Environment(\.squareDeletion) private var deletion
     @Environment(\.squareShareLink) private var shareLink
@@ -49,7 +50,12 @@ import SwiftUI
             else if loadedKey != key { CYSkeleton() }
             else {
                 if detailLoading { CYSkeleton() }
-                if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
+                if let detailIssue {
+                    // C-S3 (MP square/detail index.wxml:12-27): the cause decides the title; a way back is always there.
+                    if post == nil {
+                        SquareDetailIssueView(error: detailIssue, retry: { Task { await reload() } }, back: { dismiss() })
+                    } else { SquareIssueView(error: detailIssue) { Task { await reload() } } }
+                }
                 if let post {
                     UGCBlockedFilterContainer(memberID: post.memberID, authorName: post.nickname) {
                         Section {
@@ -366,24 +372,42 @@ import SwiftUI
                 if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 HStack(spacing: 20) {
-                    Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
-                        .cyText(.meta).foregroundStyle(.secondary)
-                        .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                    let likeLabel = Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
+                        .cyText(.meta).foregroundStyle(comment.isLiked == 0 ? AnyShapeStyle(.secondary) : AnyShapeStyle(CYColor.dangerText))
+                    if let actions, actions.identity.accountID != nil {
+                        // C-S4 (MP comment row): like and 回复 act inline; the ⋯ menu keeps block / delete.
+                        Button { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) } label: { likeLabel }
+                            .buttonStyle(.borderless)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
+                            .accessibilityLabel(Text(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike")))
+                            .accessibilityValue(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                            .accessibilityIdentifier("square.comment.like.\(comment.id)")
+                        if post?.viewerCanComment == true {
+                            Button { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") } label: {
+                                Text("social.reply").cyText(.meta).foregroundStyle(.secondary)
+                            }
+                            .buttonStyle(.borderless)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
+                            .accessibilityIdentifier("square.comment.reply.\(comment.id)")
+                        }
+                    } else {
+                        likeLabel
+                            .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                    }
                     // Mini-program comment row keeps 举报 visible beside the like count, not inside the overflow.
                     if let actions, actions.identity.accountID != nil, comment.generation != .unknown {
                         Button { reportComment(comment) } label: { Text("square.report").cyText(.meta).foregroundStyle(.secondary) }
                             .buttonStyle(.borderless)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle()) // C-S5
                             .accessibilityLabel(Text("square.report"))
                             .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
                     }
                     Spacer(minLength: 0)
-                    if let actions, actions.identity.accountID != nil {
+                    if let actions, actions.identity.accountID != nil,
+                       SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID)
+                        || (comment.memberID == actions.identity.accountID && post.flatMap { SquareDeletionTarget(post: $0, comment: comment) }.map { deletion?.isAllowed($0) == true } == true) {
+                        // ⋯ only when it holds something (block / delete); like and 回复 are inline (C-S4).
                         Menu {
-                            if post?.viewerCanComment == true {
-                                Button("social.reply", systemImage: "arrowshape.turn.up.left") { editor = .init(purpose: .comment, target: .comment(postID: id, commentID: comment.id), text: "") }
-                            }
-                            Button(comment.isLiked == 0 ? LocalizedStringKey("square.like") : LocalizedStringKey("square.unlike"), systemImage: comment.isLiked == 0 ? "heart" : "heart.slash") { editor = .init(purpose: .commentLike, target: .comment(postID: id, commentID: comment.id), text: "", enabled: comment.isLiked == 0) }
                             if SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
                                 Button("square.block", systemImage: "hand.raised") {
                                     blockTarget = .init(memberID: comment.memberID, authorName: comment.nickname)
@@ -584,5 +608,48 @@ private struct SquareDetailProfileRoute: Identifiable, Hashable {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("square.detail.playCard")
+    }
+}
+
+/// C-S3: MP square/detail error shells — 社区暂未开放 / 没有找到这条帖文 / 这条帖文暂不可用 / 动态加载失败 (+ 重试),
+/// each with 返回上一页.
+struct SquareDetailIssueView: View {
+    let error: Error
+    let retry: () -> Void
+    let back: () -> Void
+    private enum Kind { case closed, notFound, unavailable, failed }
+    private var kind: Kind {
+        switch error as? SquareReadFailure {
+        case .communityRequired: return .closed
+        case .unavailable: return .unavailable
+        case .server(let code, _) where code == 404: return .notFound
+        default: return .failed
+        }
+    }
+    private var titleKey: LocalizedStringKey {
+        switch kind {
+        case .closed: return "square.detail.closed"
+        case .notFound: return "square.detail.notFound"
+        case .unavailable: return "square.detail.unavailable"
+        case .failed: return "square.detail.failed"
+        }
+    }
+    var body: some View {
+        Section {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Label(titleKey, systemImage: kind == .failed ? "exclamationmark.circle" : "doc.text.magnifyingglass")
+                    .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityIdentifier("square.error")
+                if kind == .failed, let failure = error as? SquareReadFailure, case let .server(_, message) = failure, let message, !message.isEmpty {
+                    Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                }
+                if kind == .failed {
+                    Button("square.retry", action: retry).buttonStyle(.cySecondary(fullWidth: true)).accessibilityIdentifier("square.retry")
+                }
+                Button("square.detail.back", action: back).buttonStyle(.cySecondary(fullWidth: true))
+                    .accessibilityIdentifier("square.detail.back")
+            }
+            .padding(.vertical, CYSpacing.sm)
+        }
     }
 }
