@@ -482,7 +482,8 @@ extension EnvironmentValues {
             balanceHero
             // Everything below the balance header exists only at the end of the zoom: it fades in from about 50% of it.
             Group {
-            if !(points && model.pager.hasLoadedPage && model.pager.rows.isEmpty) {
+            // R7-PC-D4-3: 收益明细 has one filter row (全部 / 创作 / 品牌); no second 收入 / 支出 picker.
+            if !income && !(points && model.pager.hasLoadedPage && model.pager.rows.isEmpty) {
             Picker("wallet.direction", selection: $direction) {
                 // Source points-history chips read 全部 / 获得 / 使用; money ledgers keep 收入 / 支出.
                 Text("wallet.all").tag("all")
@@ -539,6 +540,9 @@ extension EnvironmentValues {
             else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
                     .accessibilityIdentifier("wallet.ledger.loadMore")
+                    // R7-PC-D4-4 (MP income-detail.js:39-42 onReachBottom): the next page loads when the end scrolls in;
+                    // the button stays as the fallback.
+                    .onAppear { if income, !model.pager.isLoading { Task { await model.load(reader, kind: kind) } } }
             }
             }
             .opacity(historyArrived || !historyWaitsForZoom ? 1 : 0)
@@ -702,8 +706,14 @@ private struct WalletIncomeListCard: ViewModifier {
     let onCooperationFinance: () -> Void
     var showsCooperationFinance = true
     var organizerFinance: WalletOrganizerFinanceAccess? = nil
+    /// R7-PC-D4-5 (MP income-detail.js:15-18 `theme=merchant`): merchant chrome, and no 分佣 tabs.
+    var merchantView = false
     @State private var filter = WalletIncomeFilter.all
     @State private var hold = WalletEarningsTabHold()
+    /// R7-PC-D4-2 (MP income-detail.wxml:14-18): 收益 / 分佣 tabs while the server has an own allocation projection.
+    @Environment(\.g6Capabilities) private var g6
+    @State private var revenue = G6RevenueAllocationsModel()
+    @State private var showsAllocations = false
     #if DEBUG
     @StateObject private var debugFinance = WalletEarningsDebugFinance()
     @StateObject private var debugStages = WalletScreen<WalletFundsStages>()
@@ -742,7 +752,7 @@ private struct WalletIncomeListCard: ViewModifier {
                         .zIndex(hold.tab == .organizer ? 1 : 0)
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        }.appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline).themeDomain(.player).cyHideTabBar()
+        }.appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline).themeDomain(merchantView ? .merchant : .player).cyHideTabBar()
             .onChange(of: scenePhase) { _, phase in
                 guard financeAccess != nil else { return }
                 if phase != .active { hold.background() } else { hold.foreground() }
@@ -755,7 +765,45 @@ private struct WalletIncomeListCard: ViewModifier {
             #endif
             .appSwitcherPrivacyShield()
     }
+    private var showsRevenueTabs: Bool {
+        if merchantView { return false }
+        if case .hidden = revenue.state { return false }
+        return true
+    }
     private var incomeBody: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if showsRevenueTabs {
+                Picker("wallet.income", selection: $showsAllocations) {
+                    Text("wallet.income.tab.income").tag(false)
+                    Text("g6.revenue.tab").tag(true)
+                }
+                .pickerStyle(.segmented).padding(.horizontal).padding(.top)
+                .accessibilityIdentifier("wallet.income.revenueTabs")
+            }
+            ZStack(alignment: .top) {
+                // MP L09-121: the income list stays mounted while 分佣 is shown, so switching back keeps its pages.
+                incomeLedger
+                    .opacity(showsAllocations && showsRevenueTabs ? 0 : 1)
+                    .allowsHitTesting(!(showsAllocations && showsRevenueTabs))
+                    .accessibilityHidden(showsAllocations && showsRevenueTabs)
+                if showsAllocations && showsRevenueTabs { allocationsPane }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .task(id: merchantView) { if !merchantView { await revenue.load(g6) } }
+    }
+    @ViewBuilder private var allocationsPane: some View {
+        switch revenue.state {
+        case .ready(let rows): G6RevenueAllocationsView(rows: rows)
+        case .error:
+            CYEmptyState(systemImage: "exclamationmark.circle", "g6.revenue.unavailable",
+                         actionTitle: "action.retry", actionIdentifier: "g6.revenue.retry",
+                         action: { Task { await revenue.load(g6) } })
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        default: EmptyView()
+        }
+    }
+    private var incomeLedger: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             // PC-D-4-3 (MC-41): 收益明细 is drawn once, by the bar; no second in-content title.
             Picker("wallet.income", selection: $filter) {
@@ -766,7 +814,6 @@ private struct WalletIncomeListCard: ViewModifier {
             if financeAccess == nil, showsCooperationFinance {
                 CYPillButton("wallet.clubFinance", style: .secondary, action: onCooperationFinance).frame(minHeight: 44).padding(.horizontal)
             }
-            G6RevenueAllocationsEntry()
             WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
         }
     }

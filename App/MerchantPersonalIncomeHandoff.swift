@@ -135,7 +135,7 @@ import SwiftUI
             else if let restricted = owner.wallet, restricted.scope != nil {
                 VStack(spacing: 8) {
                     Text("merchant.personalIncome.boundary").cyText(.bodyCompact).foregroundStyle(.secondary).padding(.horizontal)
-                    WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true })
+                    WalletIncomeView(reader: restricted, onCooperationFinance: { showsFinance = true }, merchantView: true)
                         .id(ObjectIdentifier(restricted))
                 }
             } else if owner.busy { ProgressView("merchant.loading") }

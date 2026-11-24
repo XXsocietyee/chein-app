@@ -142,7 +142,8 @@ import SwiftUI
             } else { unavailable }
         case "subpackageA/pages/assetcenter/income-detail/income-detail":
             // PC-D-4-1: no coop-finance grant on this host, so no 主办分润 button (same as SessionWalletCommerceView).
-            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false)
+            WalletIncomeView(reader: session.walletHistoryReader, onCooperationFinance: {}, showsCooperationFinance: false,
+                             merchantView: query["theme"] == "merchant")
         case "subpackageA/pages/assetcenter/earnings/index":
             SessionWalletCommerceView().environmentObject(session)
         case "subpackageA/pages/assetcenter/analysis/index":
