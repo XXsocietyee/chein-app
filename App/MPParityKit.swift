@@ -127,6 +127,9 @@ enum MPParityRoute: Hashable, Identifiable {
     case coopList(CooperationDirection)
     /// `subpackageA/pages/myproject/index`.
     case myProjects
+    /// `subpackageA/pages/myproject/index?scope=MERCHANT` and/or `type=`: MP onLoad (index.js:132, 152-155) opens the
+    /// merchant entry and starts on that type tab (`club_activity` → 活动, `template` → 模板, other old types → 主题).
+    case myProjectsEntry(merchant: Bool, initialType: String)
     /// `pages/merchant/ledger/index`. Read-only settlement overview. Payout stays off.
     case merchantLedger
     /// MC7-06-1 (merchant-finance.js normalizeMerchantFinanceRoute): `view=settlement` / `tab=2|3` opens the 结算 segment.
@@ -232,7 +235,9 @@ enum MPParityRoute: Hashable, Identifiable {
         case "pages/coop/list/index":
             self = .coopList(query["tab"] == "sent" ? .sent : .received)
         case "subpackageA/pages/myproject/index":
-            self = .myProjects
+            let merchant = query["scope"] == "MERCHANT"
+            let type = nonEmpty("type").map { $0 == "club_activity" ? "activity" : ($0 == "template" ? "template" : "topic") }
+            self = merchant || type != nil ? .myProjectsEntry(merchant: merchant, initialType: type ?? "topic") : .myProjects
         case "pages/merchant/ledger/index":
             if let finance = MerchantFinanceRoute.normalize(query), finance.topicID != nil {
                 self = .screen(page: page, query: query)
@@ -299,7 +304,7 @@ enum MPParityRoute: Hashable, Identifiable {
             MerchantPayoutAccountView()
         case .clubSettlement(let clubID, let mine, let personal):
             if let clubID { ClubPersonalSettlementView(clubID: clubID, personal: personal) } else if mine { ClubSettlementMineView() } else { unavailable }
-        case .playerOrderList, .coopList, .myProjects, .merchantLedger, .merchantLedgerSettlement:
+        case .playerOrderList, .coopList, .myProjects, .myProjectsEntry, .merchantLedger, .merchantLedgerSettlement:
             SubscribeMessageTapEntry(route: route)
         case .screen(let page, let query):
             MPReviewedPageScreen(page: page, query: query)

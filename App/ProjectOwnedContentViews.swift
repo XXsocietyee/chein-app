@@ -50,6 +50,7 @@ import SwiftUI
     var entryScope: String? = nil
     /// From access/me `merchant:project:manage`. False keeps the merchant entry browse-only.
     var canManageProjects: Bool = false
+    var initialType: String = "topic"
     @StateObject private var navigation = ProjectOwnedContentNavigation()
     @Environment(\.myProjectMerchantScopeAccess) private var merchantScopeAccess
     @State private var listRefreshGeneration: UInt64 = 0
@@ -57,7 +58,7 @@ import SwiftUI
     @State private var cancellingTopic: PublishedResource?
     var body: some View {
         let presented = navigation.selection
-        CreatorContentProjectsView(reader: reader, entryScope: entryScope, canManageProjects: canManageProjects, onOpenProject: { project, scope, _ in
+        CreatorContentProjectsView(reader: reader, entryScope: entryScope, canManageProjects: canManageProjects, initialType: initialType, onOpenProject: { project, scope, _ in
             navigation.open(project, scope: scope, reader: reader,
                 merchantScopeAccess: MyProjectMerchantScopeExclusiveAdapter.access(entryScope: entryScope, canManageProjects: canManageProjects))
         }, onOpen: { _ in }, listRefresh: listRefresh)
@@ -139,6 +140,8 @@ import SwiftUI
     @ObservedObject var session: AppSession
     /// Personal account entry leaves this nil. The merchant entry passes `MERCHANT`.
     var entryScope: String? = nil
+    /// MP myproject `type=` link: the tab the page starts on (`topic`, `activity` or `template`).
+    var initialType: String = "topic"
     @State private var canManageProjects = false
     @State private var showsReceivedApplies = false
     var body: some View {
@@ -158,7 +161,7 @@ import SwiftUI
             makeActivityCover: { session.makeActivityCoverService() },
             publishingEpoch: session.publishingSession?.epoch,
             activityGrants: session.activityEditingGrants(),
-            entryScope: entryScope, canManageProjects: canManageProjects)
+            entryScope: entryScope, canManageProjects: canManageProjects, initialType: initialType)
             .environment(\.myProjectTemplateShelf, MyProjectTemplateShelfHost { session.myProjectTemplateShelf() })
             .environment(\.myProjectPublishEntry, session.myProjectPublishEntry())
             .environment(\.myProjectReceivedApplies, { showsReceivedApplies = true })
