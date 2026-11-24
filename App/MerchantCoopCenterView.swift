@@ -232,38 +232,47 @@ func mcc(_ key: String, _ locale: Locale) -> String {
     }
 
     private func emptyView(_ title: String, id: String) -> some View {
-        VStack(spacing: CYSpacing.md) {
-            Image(systemName: "tray").cyText(.display).foregroundStyle(CYColor.textSecondary)
-            Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-            CYPillButton(verbatim: mcc("merchantCoopCenter.refresh", locale), style: .primary) { model.loadAll() }
+        ContentUnavailableView {
+            Label { Text(title) } icon: { Image(systemName: "tray") }
+        } actions: {
+            Button { model.loadAll() } label: { Text(verbatim: mcc("merchantCoopCenter.refresh", locale)) }
+                .buttonStyle(.borderedProminent).frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("merchantCoopCenter.refresh")
         }
-        .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.jumbo)
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
 
     /// The source veils load failures; native keeps a visible reason and an explicit retry.
     @ViewBuilder private func issueView(_ issue: MerchantCoopCenterModel.Issue, title: String, fallback: String, id: String,
                                         retry: @escaping () -> Void) -> some View {
-        VStack(spacing: CYSpacing.s2_5) {
+        Group {
             switch issue {
             case .signIn:
-                Image(systemName: "person.crop.circle.badge.exclamationmark").cyText(.display).foregroundStyle(CYColor.textSecondary)
-                Text(mcc("merchantCoopCenter.signIn.title", locale)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(mcc("merchantCoopCenter.signIn.reason", locale)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                ContentUnavailableView {
+                    Label { Text(mcc("merchantCoopCenter.signIn.title", locale)) } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
+                } description: {
+                    Text(mcc("merchantCoopCenter.signIn.reason", locale))
+                }
             case .denied:
-                Image(systemName: "lock").cyText(.display).foregroundStyle(CYColor.textSecondary)
-                Text(mcc("merchantCoopCenter.denied.title", locale)).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(mcc("merchantCoopCenter.denied.reason", locale)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                ContentUnavailableView {
+                    Label { Text(mcc("merchantCoopCenter.denied.title", locale)) } icon: { Image(systemName: "lock") }
+                } description: {
+                    Text(mcc("merchantCoopCenter.denied.reason", locale))
+                }
             case .failed(let message):
-                Image(systemName: "exclamationmark.triangle").cyText(.display).foregroundStyle(CYColor.textSecondary)
-                Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(message ?? fallback).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                CYPillButton(verbatim: mcc("merchantCoopCenter.retry", locale), style: .secondary, action: retry)
-                    .accessibilityIdentifier("merchantCoopCenter.retry")
+                ContentUnavailableView {
+                    Label { Text(title) } icon: { Image(systemName: "exclamationmark.triangle") }
+                } description: {
+                    Text(message ?? fallback)
+                } actions: {
+                    Button(action: retry) { Text(verbatim: mcc("merchantCoopCenter.retry", locale)) }
+                        .buttonStyle(.bordered).frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("merchantCoopCenter.retry")
+                }
             }
         }
-        .multilineTextAlignment(.center).frame(maxWidth: .infinity).padding(.vertical, CYSpacing.jumbo)
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
 }
@@ -273,7 +282,7 @@ private struct MerchantCoopCenterSkeleton: View {
     var body: some View {
         VStack(spacing: 12) {
             ForEach(0..<2, id: \.self) { _ in
-                RoundedRectangle(cornerRadius: 16).fill(.quaternary).frame(height: 148)
+                RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(.quaternary).frame(height: 148)
             }
         }
         .accessibilityElement(children: .ignore)
@@ -322,7 +331,7 @@ struct MerchantCoopCenterRouteCard: View {
                     NavigationLink {
                         MerchantContentDocumentView(service: content, query: .chapters(topicID: topicID))
                     } label: { Text(mcc("merchantCoopCenter.detail", locale)) }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.borderedProminent)
                     .accessibilityLabel(String(format: mcc("merchantCoopCenter.detail.label", locale), route.title))
                     .accessibilityIdentifier("merchantCoopCenter.route.detail." + route.id)
                 }
@@ -330,13 +339,13 @@ struct MerchantCoopCenterRouteCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .overlay { if focused { RoundedRectangle(cornerRadius: 16).stroke(Color.accentColor, lineWidth: 2) } }
+        .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay { if focused { RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(Color.accentColor, lineWidth: 2) } }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("merchantCoopCenter.route." + route.id + (focused ? ".focused" : ""))
     }
     @ViewBuilder private var cover: some View {
-        let shape = RoundedRectangle(cornerRadius: 10)
+        let shape = RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
         if let url = QuestifyCardArtwork.safeURL(route.cover) {
             AsyncImage(url: url) { phase in
                 if let image = phase.image { image.resizable().scaledToFill() } else { shape.fill(.quaternary) }

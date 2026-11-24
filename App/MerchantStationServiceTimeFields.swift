@@ -32,12 +32,15 @@ import SwiftUI
         .disabled(!canEdit)
         .accessibilityIdentifier("merchant.stationTime.open")
         .sheet(item: $editor) { captured in
-            MerchantStationServiceTimeSheet(initial: captured.initial,
-                replacesUnrecognizedValue: captured.replacesUnrecognizedValue, cancel: { editor = nil }) { value in
-                guard canEdit, context == captured.context, start == captured.start, end == captured.end,
-                      apply(value, captured.start, captured.end) else { return false }
-                editor = nil; return true
+            Group {
+                MerchantStationServiceTimeSheet(initial: captured.initial,
+                    replacesUnrecognizedValue: captured.replacesUnrecognizedValue, cancel: { editor = nil }) { value in
+                    guard canEdit, context == captured.context, start == captured.start, end == captured.end,
+                          apply(value, captured.start, captured.end) else { return false }
+                    editor = nil; return true
+                }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: context) { _, _ in editor = nil }
         .onChange(of: canEdit) { _, current in if !current { editor = nil } }
@@ -78,7 +81,7 @@ import SwiftUI
                 if stale { Text("merchant.stationTime.changed").foregroundStyle(.secondary) }
                 Text("merchant.content.civilTime").font(.footnote).foregroundStyle(.secondary)
             }
-            .navigationTitle("merchant.stationTime.title")
+            .navigationTitle("merchant.stationTime.title").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel", action: cancel).accessibilityIdentifier("merchant.stationTime.cancel")

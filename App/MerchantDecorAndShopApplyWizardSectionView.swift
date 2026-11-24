@@ -186,7 +186,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(Color.secondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -242,7 +242,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityElement(children: .contain)
@@ -335,7 +335,7 @@ public struct MerchantDecorAndShopApplyWizardSectionView: View {
         }
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                 .fill(Color.primary.opacity(0.04))
         )
         .accessibilityElement(children: .contain)

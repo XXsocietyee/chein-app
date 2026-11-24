@@ -1081,7 +1081,7 @@ import SwiftUI
         }
         if case .customer(let customer) = query, access.allows("merchant:crm:segment") {
             if row.kind == .tag, let id = Int(row.id) {
-                Button("merchant.business.removeTag") { model.prepare(.removeTag(customer: customer, tagID: id)) }
+                Button("merchant.business.removeTag", role: .destructive) { model.prepare(.removeTag(customer: customer, tagID: id)) }
             }
             if row.kind == .timeline, ["NOTE", "NOTE_CORRECTION"].contains(row.fields.mbText("type") ?? ""),
                let note = row.fields["noteId"]?.integer, let version = row.fields["noteVersion"]?.integer {
@@ -1092,10 +1092,10 @@ import SwiftUI
         if access.canManageOperators {
             if row.kind == .operatorMember, row.fields.mbText("status") == "ACTIVE" {
                 Button("merchant.business.changeRole") { editor = .init(kind: .role(row)) }
-                Button("merchant.business.removeOperator") { editor = .init(kind: .removeOperator(row)) }
+                Button("merchant.business.removeOperator", role: .destructive) { editor = .init(kind: .removeOperator(row)) }
             }
             if row.kind == .invite, row.fields.mbText("status") == "PENDING" {
-                Button("merchant.business.revokeInvite") { editor = .init(kind: .revokeInvite(row)) }
+                Button("merchant.business.revokeInvite", role: .destructive) { editor = .init(kind: .revokeInvite(row)) }
             }
         }
     }
