@@ -176,7 +176,7 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                         .cyText(.cardTitle)
                         .accessibilityIdentifier("clubTeamGovernance.header.title")
                     Text(verbatim: snapshot.headlineSummaryText)
-                        .font(.subheadline)
+                        .cyText(.body)
                         .foregroundStyle(snapshot.allPillarsHealthy ? .green : .orange)
                         .accessibilityIdentifier("clubTeamGovernance.header.summary")
                 }

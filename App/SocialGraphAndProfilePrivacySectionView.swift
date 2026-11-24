@@ -172,7 +172,7 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                         .cyText(.cardTitle)
                         .accessibilityIdentifier("socialProfileParity.header.title")
                     Text(verbatim: snapshot.summaryHeadlineText)
-                        .font(.subheadline)
+                        .cyText(.body)
                         .foregroundStyle(snapshot.isAllReady ? .green : .orange)
                         .accessibilityIdentifier("socialProfileParity.header.summary")
                 }

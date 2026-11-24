@@ -361,14 +361,14 @@ public struct ClubChannelMessagingView: View {
                 Button {
                     showChannelList = true
                 } label: {
-                    Image(systemName: "chevron.backward")
+                    Image(systemName: "list.bullet")
                         .font(CYTypography.cardTitle)
                         .foregroundStyle(palette.textPrimary)
                         .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel(copy("返回频道列表", "Back to channel list"))
+                .accessibilityLabel(copy("频道列表", "Channel list"))
                 .accessibilityIdentifier("club.channel.backToList")
             }
 
@@ -1246,6 +1246,7 @@ public struct ClubChannelMemberRosterSheet: View {
             }
             .cyGroupedSurface()
             .navigationTitle(copy("\(clubName) · 成员与身份组", "\(clubName) · Members & Roles"))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(copy("完成", "Done")) { dismiss() }
@@ -1352,6 +1353,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
             }
         }
         .navigationTitle(copy("\(club.name) · 频道", "\(club.name) · Channels"))
+        .navigationBarTitleDisplayMode(.inline)
         .cyHideTabBar()
         .task(id: reloadRevision) {
             await loadChannelContext()

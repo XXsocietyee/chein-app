@@ -287,7 +287,7 @@ import UIKit
             if sourceIsCurrent(), let row = model.accepted(expected, access: access) {
                 Section {
                     Text(verbatim: row.name).cyText(.sheetTitle)
-                    Text("club.settlementDetail.perspective").font(.subheadline)
+                    Text("club.settlementDetail.perspective").cyText(.body)
                     Text(LocalizedStringKey(row.status.localizationKey))
                     LabeledContent(LocalizedStringKey(row.amountLabelKey)) {
                         if let amount = row.amountText { Text(verbatim: amount) }

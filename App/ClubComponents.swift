@@ -77,9 +77,8 @@ struct ClubRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(palette.cardFill)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 0.5))
-        .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 0.5))
         .accessibilityElement(children: .combine)
     }
     private var glyph: some View {
@@ -457,8 +456,8 @@ struct E3PostCard: View {
             }
             .cyText(.meta).padding(CYSpacing.md).frame(minHeight: 44)
         }
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
     /// Unknown counts show an em dash, never 0.
     private func count(_ v: Int?) -> String { v.map(String.init) ?? "—" }
@@ -477,10 +476,10 @@ struct E3SectionTitle: View {
     }
 }
 
-/// Elevated card surface (`CYColor.bgElevated` on `CYColor.bgPage`), continuous `CYRadius.xxl`.
+/// Elevated card surface (`CYColor.bgElevated` on `CYColor.bgPage`), continuous radius 12 (native card style).
 extension View {
     func e3Card(padding: CGFloat = CYSpacing.lg) -> some View {
         self.padding(padding).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }

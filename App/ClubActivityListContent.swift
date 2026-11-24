@@ -53,8 +53,8 @@ private struct ClubActivityCard: View {
                     .foregroundStyle(row.status == .live ? CYColor.successText : row.status == .ended ? Color.secondary : Color.primary)
                     .accessibilityIdentifier("club.activityList.status.\(row.id)")
             }
-            if let value = timeText { Text(verbatim: value).font(.subheadline) }
-            else { Text("club.calendar.dateUnknown").font(.subheadline) }
+            if let value = timeText { Text(verbatim: value).cyText(.body) }
+            else { Text("club.calendar.dateUnknown").cyText(.body) }
             if let address = row.address { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin") }.font(.caption) }
             Text(LocalizedStringKey("club.activityList.category." + row.category.rawValue)).cyText(.meta).foregroundStyle(.secondary)
             if row.signups != nil || row.stations != nil || row.mileageKM != nil {

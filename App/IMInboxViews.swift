@@ -130,7 +130,7 @@ struct IMInboxRow: View {
                 }
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     MessagingPreview(conversation: conversation)
-                        .font(.subheadline)
+                        .cyText(.body)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true, unknownAsDash: true)
