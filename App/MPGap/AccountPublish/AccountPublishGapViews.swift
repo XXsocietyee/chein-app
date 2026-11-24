@@ -258,7 +258,7 @@ public struct TeamJoinGapManualCodeSection: View {
             if let errorText, !errorText.isEmpty {
                 Text(verbatim: errorText)
                     .cyText(.meta)
-                    .foregroundStyle(CYColor.danger)
+                    .foregroundStyle(CYColor.dangerText)
             }
             Button(TeamGapCopy.nextStep, action: onSubmitCode)
                 .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))

@@ -51,39 +51,44 @@ public struct ClubGapPlayRecordPickerRow: View {
         .sheet(isPresented: $showPicker) {
             NavigationStack {
                 List {
-                    if selected != nil {
-                        Button(ClubPostRefCopy.clearSelection) {
-                            onSelect(nil)
-                            showPicker = false
-                        }
-                        .cyText(.body)
-                    }
-                    if isLoading {
-                        HStack { Spacer(); ProgressView(); Spacer() }
-                    } else if let errorText, !errorText.isEmpty {
-                        CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: ClubPostRefCopy.loadFailed, verbatimSubtitle: errorText, action: onRetryLoad)
-                    } else if options.isEmpty {
-                        CYEmptyState(systemImage: "tray", verbatimTitle: ClubPostRefCopy.emptyTitle)
-                    } else {
-                        ForEach(options) { option in
-                            Button {
-                                onSelect(option)
-                                showPicker = false
-                            } label: {
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    Text(verbatim: option.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                                    if let sub = option.subtitle, !sub.isEmpty {
-                                        Text(verbatim: sub).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    pickerContent
                 }
                 .cyPageTitle(verbatim: ClubPostRefCopy.pickerTitle)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("关闭") { showPicker = false }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var pickerContent: some View {
+        if selected != nil {
+            Button(ClubPostRefCopy.clearSelection) {
+                onSelect(nil)
+                showPicker = false
+            }
+            .cyText(.body)
+        }
+        if isLoading {
+            HStack { Spacer(); ProgressView(); Spacer() }
+        } else if let errorText, !errorText.isEmpty {
+            CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: ClubPostRefCopy.loadFailed, verbatimSubtitle: errorText, action: onRetryLoad)
+        } else if options.isEmpty {
+            CYEmptyState(systemImage: "tray", verbatimTitle: ClubPostRefCopy.emptyTitle)
+        } else {
+            ForEach(options) { option in
+                Button {
+                    onSelect(option)
+                    showPicker = false
+                } label: {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: option.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        if let sub = option.subtitle, !sub.isEmpty {
+                            Text(verbatim: sub).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        }
                     }
                 }
             }
@@ -178,7 +183,7 @@ public struct ClubGapEventOpsExtrasSection: View {
                 Section {
                     Label(windowWarning, systemImage: "exclamationmark.triangle")
                         .cyText(.meta)
-                        .foregroundStyle(CYColor.warning)
+                        .foregroundStyle(CYColor.warningText)
                 }
             }
             Section {
@@ -189,7 +194,7 @@ public struct ClubGapEventOpsExtrasSection: View {
                 Section {
                     CYEmptyState(
                         systemImage: "sparkles",
-                        verbatimTitle: ClubEventOpsGapCopy.emptyTopicsTitle,
+                        LocalizedStringKey(ClubEventOpsGapCopy.emptyTopicsTitle),
                         actionTitle: LocalizedStringKey(ClubEventOpsGapCopy.publishTopicCTA),
                         action: onTapPublishTopic
                     )
