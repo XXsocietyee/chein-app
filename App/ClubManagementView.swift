@@ -9,6 +9,10 @@ struct ClubManagementView: View {
     let coordinator: ClubManagementCoordinator
     var viewerRevision: UInt64 = 0
     var onMembershipChanged: (() -> Void)? = nil
+    /// CLB-join-requests-01 (fix-r3-club-b round 3): the MP `pages/club/join-requests` page is titled 入会申请 and
+    /// lists only the pending requests; the owner's member list lives on 成员 / 管理. The club 管理 tab and the
+    /// r1 fixture keep the combined page (members + requests), so their UI tests are unchanged.
+    var joinRequestsOnly = false
     @State private var selection: DetailSelection?
     private enum DetailSelection: Hashable, Identifiable {
         case request(Int), member(Int)
@@ -124,10 +128,13 @@ struct ClubManagementView: View {
                         }
                     } header: {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text("club.management.requests")
-                                .cyText(.sectionTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .accessibilityAddTraits(.isHeader)
+                            // The requests-only page already carries 入会申请 as its bar title.
+                            if !joinRequestsOnly {
+                                Text("club.management.requests")
+                                    .cyText(.sectionTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                    .accessibilityAddTraits(.isHeader)
+                            }
                             if !snapshot.requests.isEmpty,
                                let pendingText = ClubJoinRequestsPageReady.pendingCountText(
                                 visibility: .init(reviewCapabilityPresent: contextMatches, canGovern: snapshot.club.isOwner || snapshot.club.viewerIsAdmin, playerFirstEntry: false),
@@ -138,7 +145,7 @@ struct ClubManagementView: View {
                         }
                         .textCase(nil)
                     }
-                    if snapshot.club.isOwner {
+                    if snapshot.club.isOwner, !joinRequestsOnly {
                         Section {
                             if snapshot.members.isEmpty {
                                 CYEmptyState(
@@ -181,7 +188,7 @@ struct ClubManagementView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
-        .cyPageTitle("club.management.title")
+        .cyPageTitle(joinRequestsOnly ? "club.management.requests" : "club.management.title")
         .refreshable { await refresh() }
         // CLB-join-requests-05 (fix-r3-club-b), MC-21: a handled card slides out when the readback replaces the list.
         .animation(.easeOut(duration: 0.16), value: snapshot?.requests.map(\.id))

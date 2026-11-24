@@ -301,7 +301,8 @@ import SwiftUI
         case "pages/club/join-requests/index":
             if let id = clubQueryID(query) {
                 let management = session.clubManagementContext
-                ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision)
+                ClubManagementView(clubID: id, identity: session.clubIdentity, access: management.access, coordinator: management.coordinator, viewerRevision: management.viewerRevision,
+                                   joinRequestsOnly: true)
             } else { unavailable }
         case "pages/club/notify/index":
             clubRead(.audienceCounts, .init(clubID: clubQueryID(query), activityID: queryID(query, "activityId")), needsClub: true)
