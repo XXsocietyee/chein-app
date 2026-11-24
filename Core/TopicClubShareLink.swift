@@ -3,17 +3,17 @@ import Foundation
 /// CLB-detail-11. Parses a topic share card that carries club attribution.
 ///
 /// Accepts `pages/topic/index/index?id=&sourceClubId=&clubCode=` (optional leading slash,
-/// `https` URL, or `chein://mp/…`). `sourceClubId` and `clubCode` are data a later
-/// registration may place in `sourceChannelCode`. This parser does not choose that
-/// value, open a route, or write a registration.
+/// `https` URL, or `chein://mp/…`). `id` and `topicId` are aliases. `clubCode` may be absent.
+/// Extra query keys are ignored. `clubCode` is carried as data; a later registration places it
+/// in `sourceChannelCode`. `sourceClubId` stays `sourceClubId`. This parser does not write a registration.
 public struct TopicClubShareLink: Equatable, Sendable {
     public static let page = "pages/topic/index/index"
-    /// Later registration field name. The value is not decided here.
+    /// Later registration field for `clubCode`. `sourceClubId` keeps its own name.
     public static let laterRegistrationField = "sourceChannelCode"
     public let topicID: Int
     public let sourceClubId: Int
-    public let clubCode: String
-    public init(topicID: Int, sourceClubId: Int, clubCode: String) {
+    public let clubCode: String?
+    public init(topicID: Int, sourceClubId: Int, clubCode: String?) {
         self.topicID = topicID
         self.sourceClubId = sourceClubId
         self.clubCode = clubCode
@@ -45,14 +45,16 @@ public enum TopicClubShareLinkParser {
         var path = components.percentEncodedPath
         if path.hasPrefix("/") { path.removeFirst() }
         guard path == TopicClubShareLink.page, let items = components.queryItems,
-              !items.isEmpty, Set(items.map(\.name)).count == items.count,
-              items.allSatisfy({ $0.value != nil }) else { return nil }
-        let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value!) })
-        guard Set(query.keys) == ["id", "sourceClubId", "clubCode"],
-              let topicID = canonicalID(query["id"] ?? ""),
-              let sourceClubId = canonicalID(query["sourceClubId"] ?? ""),
-              let clubCode = clubCode(query["clubCode"] ?? "") else { return nil }
-        return TopicClubShareLink(topicID: topicID, sourceClubId: sourceClubId, clubCode: clubCode)
+              !items.isEmpty, Set(items.map(\.name)).count == items.count else { return nil }
+        let query = Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") })
+        let topicText = query["topicId"].flatMap { $0.isEmpty ? nil : $0 } ?? query["id"] ?? ""
+        guard let topicID = canonicalID(topicText),
+              let sourceClubId = canonicalID(query["sourceClubId"] ?? "") else { return nil }
+        let code = clubCode(query["clubCode"])
+        if query.keys.contains("clubCode"), code == nil, !(query["clubCode"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return nil
+        }
+        return TopicClubShareLink(topicID: topicID, sourceClubId: sourceClubId, clubCode: code)
     }
 
     private static func canonicalID(_ text: String) -> Int? {
@@ -61,10 +63,12 @@ public enum TopicClubShareLinkParser {
         return value
     }
 
-    private static func clubCode(_ text: String) -> String? {
-        let blocked = Set("&=?/".unicodeScalars)
-        guard (1...64).contains(text.unicodeScalars.count),
-              text.unicodeScalars.allSatisfy({ $0.value >= 33 && $0.value != 127 && !blocked.contains($0) }) else { return nil }
-        return text
+    /// MP `normalizeCode`: trim, empty is absent, longer than 64 rejects the link.
+    private static func clubCode(_ text: String?) -> String? {
+        guard let text else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        guard trimmed.utf16.count <= 64 else { return nil }
+        return trimmed
     }
 }

@@ -251,14 +251,19 @@ final class WiringR6TopicClubShareLinkTests: XCTestCase {
         XCTAssertEqual(chein, link)
     }
 
+    func testParserKeepsClubFactsWhenTheCodeIsAbsent() {
+        let bare = TopicClubShareLink(topicID: 8, sourceClubId: 42, clubCode: nil)
+        XCTAssertEqual(TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42"), bare)
+        XCTAssertEqual(TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42&clubCode="), bare)
+        let extra = TopicClubShareLinkParser.parse("pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST&extra=1")
+        XCTAssertEqual(extra, TopicClubShareLink(topicID: 8, sourceClubId: 42, clubCode: "EAST"))
+    }
+
     func testParserRejectsIncompleteOrNonCanonicalLinks() {
         for raw in [
             "pages/topic/index/index?id=8",
-            "pages/topic/index/index?id=8&sourceClubId=42",
             "pages/topic/index/index?id=08&sourceClubId=42&clubCode=EAST",
             "pages/topic/index/index?id=8&sourceClubId=0&clubCode=EAST",
-            "pages/topic/index/index?id=8&sourceClubId=42&clubCode=",
-            "pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST&extra=1",
             "pages/topic/detail/index?id=8&sourceClubId=42&clubCode=EAST",
             "http://www.chengyinhub.com/pages/topic/index/index?id=8&sourceClubId=42&clubCode=EAST"
         ] {

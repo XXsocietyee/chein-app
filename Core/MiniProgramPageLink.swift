@@ -66,7 +66,7 @@ public struct MiniProgramPageLink: Equatable, Sendable {
         pages["pages/club/checkin-detail/index"] = Rule(allowed: ["clubId", "registrationId"], required: ["clubId", "registrationId"], ids: ["clubId", "registrationId"])
         pages["pages/club/enroll/index"] = Rule(allowed: ["clubId", "clubName", "topicId"], required: ["clubId"], ids: ["clubId", "topicId"])
         pages["pages/club/event-ops/index"] = Rule(allowed: ["clubId", "id", "activityId", "topicId", "recurrence"], required: [], ids: ["clubId", "id", "activityId", "topicId"])
-        pages["pages/club/group-code/index"] = Rule(allowed: ["activityId", "activityName", "topicId", "topicName"], required: ["activityId"], ids: ["activityId", "topicId"])
+        pages["pages/club/group-code/index"] = Rule(allowed: ["activityId", "activityName", "topicId", "topicName"], required: [], ids: ["activityId", "topicId"])
         pages["pages/club/join-requests/index"] = Rule(allowed: ["clubId"], required: ["clubId"], ids: ["clubId"])
         pages["pages/club/notify/index"] = Rule(allowed: ["clubId", "id", "activityId", "silent"], required: [], ids: ["clubId", "id", "activityId"])
         pages["pages/club/topic-detail/index"] = Rule(allowed: ["topicId", "clubId", "activityId", "id"], required: [], ids: ["topicId", "clubId", "activityId", "id"])
@@ -284,6 +284,8 @@ public struct MiniProgramPageLink: Equatable, Sendable {
             if rule.ids.contains(key), Self.positiveID(value) == nil { return nil }
         }
         if page == "subpackageJourney/pages/landing/index", !["r", "g", "s"].contains(present["k"] ?? "") { return nil }
+        // MP group-code accepts activityId or topicId. A name alone is not enough.
+        if page == "pages/club/group-code/index", present["activityId"] == nil, present["topicId"] == nil { return nil }
         if page == "pages/coop/list/index", let tab = present["tab"], tab != "sent", tab != "received" { return nil }
         if page == "pages/merchant/ledger/index", MerchantFinanceRoute.normalize(present) == nil { return nil }
         if page == "pages/merchant/profile/index", MerchantPublicHomeLink.target(present) == nil { return nil }

@@ -207,21 +207,45 @@ public struct ClubOpsFailureCopy: Equatable {
     public let titleKey: String
     public let detailKey: String?
     public let retryKey: String?
+    /// Server sentence for a specific customer-detail refusal, or the settlement split title.
+    public let literalTitle: String?
+    /// 「返回」 when the refusal is terminal. Nil keeps the existing retry.
+    public let backTitle: String?
     public init?(operation: ClubGovernanceRead, failure: ClubGovernanceFailure) {
         let forbidden = failure == .forbidden
         switch operation {
         case .customers, .customer:
-            if forbidden { titleKey = "clubOps.customers.forbidden"; detailKey = "clubOps.customers.forbiddenDetail"; retryKey = nil }
-            else if failure == .signedOut { return nil }
-            else {
+            if forbidden {
+                titleKey = "clubOps.customers.forbidden"; detailKey = "clubOps.customers.forbiddenDetail"; retryKey = nil
+                literalTitle = nil; backTitle = nil
+            } else if failure == .signedOut { return nil }
+            else if operation == .customer, case .rejected(let code, let message) = failure,
+                    let sentence = ClubCustomerDetailRefusal.sentence(code: code, message: message) {
+                titleKey = "clubOps.customer.failed"; detailKey = nil; retryKey = "clubOps.customers.retry"
+                literalTitle = sentence; backTitle = "返回"
+            } else {
                 titleKey = operation == .customers ? "clubOps.customers.failed" : "clubOps.customer.failed"
                 detailKey = nil; retryKey = "clubOps.customers.retry"
+                literalTitle = nil; backTitle = nil
             }
         case .settlement:
             guard !forbidden, failure != .signedOut else { return nil }
             titleKey = "clubOps.settlement.failed"; detailKey = nil; retryKey = "clubOps.settlement.retry"
+            literalTitle = ClubOpsNetworkFailureClassifier.settlementTitle(failure)
+            backTitle = nil
         default: return nil
         }
+    }
+}
+
+/// MP `refusalOf`: a non-generic business refusal becomes the not-found sentence. 401/403 and the busy line do not.
+public enum ClubCustomerDetailRefusal {
+    public static let generic = "系统繁忙，请稍后重试"
+    public static func sentence(code: Int?, message: String?) -> String? {
+        guard let code, code != 200, code != 401, code != 2, code != 403,
+              let message = message?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !message.isEmpty, message != generic else { return nil }
+        return message
     }
 }
 
