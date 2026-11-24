@@ -40,7 +40,7 @@ struct CoopFlowRequestPreview: View {
                 } else {
                     // Gated, not removed: production keeps merchant writes closed (ReviewedAreaSwitch).
                     Button("coopflow.submit") {}.disabled(true).accessibilityIdentifier("coopflow.submit.disabled")
-                    Text("coopflow.submit.gated").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    Text("coopflow.submit.gated").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         }

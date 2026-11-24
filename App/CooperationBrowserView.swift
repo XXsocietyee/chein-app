@@ -62,7 +62,7 @@ import SwiftUI
                 if let peerReader { CoopChapterApplicationSection(reader: peerReader, direction: direction, operationScope: operationScope) }
                 if snapshot.isPartial {
                     Label("cooperation.partial", systemImage: "exclamationmark.triangle")
-                        .font(CYTypography.meta)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.warningText)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooperation.partial")
@@ -181,7 +181,7 @@ import SwiftUI
                             let meta = [row.topicId.map { "#\($0)" }, created].compactMap { $0 }.joined(separator: " · ")
                             if !meta.isEmpty {
                                 Text(verbatim: meta)
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.textTertiary)
                                     .monospacedDigit()
                                     .fixedSize(horizontal: false, vertical: true)
@@ -226,7 +226,7 @@ import SwiftUI
                         CooperationTimeField(key: "cooperation.start", value: row.startDate)
                         if let message = row.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             CooperationField(key: "cooperation.message", value: message)
-                        } else { Text("cooperation.application.intent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        } else { Text("cooperation.application.intent").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                         if direction == .received { CooperationCandidateLink(topicID: row.topicId, reader: reader) }
                         // MP inv-acts: received + pending → 拒绝 (pool/decline); sent + pending → 撤回申请 (pool/withdraw).
                         if peerReader != nil, row.status == 0 {
@@ -290,7 +290,7 @@ import SwiftUI
                     }.padding(.vertical, CYSpacing.xs)
                 }
                 if page.hasMore == true {
-                    Text("cooperation.registrations.more").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("cooperation.registrations.more").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("cooperation.registrations.more")
                 }
             }

@@ -124,7 +124,7 @@ struct PublishingField<Content: View>: View {
                 }
             }.accessibilityElement(children: .ignore)
                 .accessibilityLabel(title + Text(verbatim: required ? (locale.language.languageCode?.identifier == "zh" ? "，必填" : ", required") : ""))
-            content.font(Theme.Font.body)
+            content.cyText(.body)
         }.frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, Theme.Space.s1)
     }
@@ -181,7 +181,7 @@ struct PublishingFormSurface: ViewModifier {
                 Text("contextPublish.mode.exploreDetail")
                     .cyText(.bodyCompact).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
-            }.modifier(PublishingFormSurface()).font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
+            }.modifier(PublishingFormSurface()).cyText(.body).tint(Theme.Color.accent(in: domain))
                 .cyHeroScreen()
                 .cyDomainScreen(.topicEditor)
             .toolbar {
@@ -230,7 +230,7 @@ struct PublishingFormSurface: ViewModifier {
                         .disabled(capture == nil)
                         .accessibilityIdentifier("projectSubmission.done")
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)
-                    .font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
+                    .cyText(.body).tint(Theme.Color.accent(in: domain))
             }
             .cyDomainScreen(.topicEditor)
             .accessibilityIdentifier("projectSubmission.receipt")
@@ -249,14 +249,14 @@ struct PublishingFormSurface: ViewModifier {
                 Text(verbatim: String(receipt.chapterCount)).cyText(.bodyCompact, monospacedDigit: true)
             }
             .cyDomainCard()
-            Text("contextPublish.result.readStatus").font(Theme.Font.body)
+            Text("contextPublish.result.readStatus").cyText(.body)
                 .foregroundStyle(Theme.Color.textSecondary(in: domain)).fixedSize(horizontal: false, vertical: true)
             if !canNavigate {
                 CYPillButton("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
                     .disabled(capture == nil)
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)
-            .font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
+            .cyText(.body).tint(Theme.Color.accent(in: domain))
         }
         .cyDomainScreen(.topicEditor)
         .interactiveDismissDisabled()

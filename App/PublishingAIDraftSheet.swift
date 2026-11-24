@@ -139,7 +139,7 @@ import SwiftUI
                         ForEach(Array(result.draft.nodes.enumerated()), id: \.element.id) { index, node in
                             HStack(alignment: .top, spacing: CYSpacing.sm) {
                                 Text(verbatim: "\(index + 1)")
-                                    .cyText(.micro, monospacedDigit: true)
+                                    .cyText(.meta, monospacedDigit: true)
                                     .foregroundStyle(palette.actionPrimaryFg)
                                     .frame(width: 22, height: 22)
                                     .background(Circle().fill(palette.actionPrimaryBg))

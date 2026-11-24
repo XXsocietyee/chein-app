@@ -42,7 +42,7 @@ import CoreImage.CIFilterBuiltins
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: cyShownValue(model.installation.requestId))
-                    .font(CYTypography.meta.monospaced())
+                    .cyText(.meta).monospaced()
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
@@ -75,7 +75,7 @@ import CoreImage.CIFilterBuiltins
             if let p = model.pending {
                 Section {
                     Text(verbatim: cyShownValue(p.command.requestId))
-                        .font(CYTypography.meta.monospaced())
+                        .cyText(.meta).monospaced()
                         .foregroundStyle(CYColor.textSecondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -93,7 +93,7 @@ import CoreImage.CIFilterBuiltins
                         statusLabel(r.status)
                         if let id = r.consentId, let version = r.version {
                             Text(verbatim: "\(id) · \(cyShownValue(version))")
-                                .font(CYTypography.meta.monospaced())
+                                .cyText(.meta).monospaced()
                                 .foregroundStyle(CYColor.textSecondary)
                                 .textSelection(.enabled)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -144,13 +144,13 @@ import CoreImage.CIFilterBuiltins
                     }
                     if let version = w.version {
                         Text(verbatim: cyShownValue(version))
-                            .font(CYTypography.meta.monospaced())
+                            .cyText(.meta).monospaced()
                             .foregroundStyle(CYColor.textSecondary)
                             .textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Text(verbatim: cyShownValue(w.ruleVersion))
-                        .font(CYTypography.meta.monospaced())
+                        .cyText(.meta).monospaced()
                         .foregroundStyle(CYColor.textSecondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -169,7 +169,7 @@ import CoreImage.CIFilterBuiltins
                             .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                         Text(verbatim: cyShownValue(place.binding.fingerprint))
-                            .font(CYTypography.meta.monospaced())
+                            .cyText(.meta).monospaced()
                             .foregroundStyle(CYColor.textSecondary)
                             .textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
@@ -293,8 +293,8 @@ import CoreImage.CIFilterBuiltins
                         }
                     }.e1HeroRow()
                     if let d = prepared {
-                        Text(verbatim: cyShownValue(d.installationRequestId)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: cyShownValue(d.bindingHash)).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: cyShownValue(d.installationRequestId)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: cyShownValue(d.bindingHash)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: "\(d.proofValidityMillis) ms · \(cyShownValue(d.purpose))")
                             .cyText(.numericBody)
                             .foregroundStyle(CYColor.textPrimary)

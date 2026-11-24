@@ -92,7 +92,61 @@ Not every one of these hashes is enforced by a currently-passing test. **Coordin
 
 `MerchantCustomerDetailSections.swift:43` keeps `.font(CYTypography.dataXL)` because `test_pkg12_merchant_customer_paid_card` asserts that literal line.
 
-## Verification (no Swift compiler in the cloud; `acceptance.yml` does not exist yet)
+## Batch 2 (34 files): type pass on Coop/Cooperation, Mod, Workshop, Creator, Template, Project, Editor
+### Patterns
+- These are the same type rewrites as batch 1.
+- Added in this batch:
+  - `.font(CYTypography.x.monospaced())` → `.cyText(.x).monospaced()`;
+  - `.font(c ? CYTypography.a : CYTypography.b)` → `.cyText(c ? .a : .b)`;
+  - `CooperationContextualViews.valueLine(font: Font)` → `valueLine(style: CYTextStyle)`.
+### Files changed
+- `App/CoopSettlementDetailView.swift`
+- `App/CooperationBrowserView.swift`
+- `App/CooperationContextualViews.swift`
+- `App/CooperationFlowEditors.swift`
+- `App/CooperationInviteActionSections.swift`
+- `App/CooperationInviteDetailView.swift`
+- `App/CreatorApplicationView.swift`
+- `App/CreatorContentViews.swift`
+- `App/CreatorMaintenanceViews.swift`
+- `App/EditorKitCards.swift`
+- `App/MerchantInStoreGameDraftSectionView.swift`
+- `App/MerchantOfferWithdrawalOriginalView.swift`
+- `App/MerchantReviewSummaryHeader.swift`
+- `App/MerchantTemplateBrowserView.swift`
+- `App/ModInstallationQaEditorView.swift`
+- `App/ModInstallationSavedRehearsalView.swift`
+- `App/ModInstallationTemplateEditorView.swift`
+- `App/ModInstallationView.swift`
+- `App/ModInstalledTextReadView.swift`
+- `App/ModOwnedContentReportView.swift`
+- `App/ModUpgradeView.swift`
+- `App/ModVenueOperationsView.swift`
+- `App/ProjectEditFlowParity.swift`
+- `App/ProjectEditOverviewKit.swift`
+- `App/ProjectEditView.swift`
+- `App/PublishingAIDraftSheet.swift`
+- `App/PublishingAIPromptControls.swift`
+- `App/PublishingContextHandoffViews.swift`
+- `App/TemplateAuthoringRuleFields.swift`
+- `App/TemplateDetailXbChrome.swift`
+- `App/TemplatePlayerPreviewPager.swift`
+- `App/TemplateQuestionMediaPickers.swift`
+- `App/WorkshopCommerceView.swift`
+- `App/WorkshopLicenseLibraryView.swift`
+
+### Held back: frozen by contract checks
+- `PublishingModesViews.swift`: section hashes in `test_activity_publishing_wizard`.
+- `CoopRelationDiscoveryView.swift`: normalized hash in `test_coop_fixture_lifecycle_diagnostic`.
+- Literal line asserts are kept as `.font(CYTypography.x)`:
+  - `CooperationBrowserView.swift:122` (`test_x01_existing_entry_ui_closeout`);
+  - `CreatorContentViews.swift:41` (`test_creator_content_contracts`).
+### Verification
+- Contract checks: 0 new failures against r6.
+- Typography lint: PASS (Theme.Font 61 → 39).
+- Scaffold: PASS.
+
+## Verification, batch 1 (no Swift compiler in the cloud; `acceptance.yml` does not exist yet)
 - Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`): 85 failures, 100 errors. That is identical to the base (diffed by test id), so there are 0 new failures.
 - `tools/check_typography_lint.py`: PASS (one count below the baseline).
 - `tools/check_scaffold.py`: PASS.
@@ -106,8 +160,10 @@ Not every one of these hashes is enforced by a currently-passing test. **Coordin
 - `CYTextStyle.caption` / `.micro` sit below `.caption`. Please raise them to `.caption`, or deprecate them.
 
 ## Left (next batches, ≤ 40 files each)
-- Batch 2: the rest of `Merchant*`, then `MerchantKit/`.
-- Batch 3: `Coop*`, `Cooperation*`.
-- Batch 4–5: `Workshop*`, `Mod*`, `Creator*`, `Publishing*`, `Editor*`.
-- Batch 6–8: `Project*`, `Template*`.
-- Structural `List`/`Form` conversions where a page is still a custom ScrollView stack.
+- **Type pass:** 8 more `Project*`/`Template*`/`Editor*` files still have `CYTypography`/`caption`/`micro` hits (`cand3` rows 30+), plus the hash-frozen files above, which wait on the coordinator.
+- **Structural pass, file by file:**
+  - Replace custom ScrollView/VStack stacks on settings, detail and info pages with `List`/`Form` `.insetGrouped`.
+  - Replace the remaining `CYPillButton`s with system button styles, unless R6 maps the component.
+  - Add `presentationDetents` to sheets, use `role: .destructive` with a confirmationDialog, and remove the remaining `lineLimit(1)` on titles.
+- **Order:** the rest of `Merchant*`, then `Coop*`/`Cooperation*`, then `Workshop*`/`Mod*`/`Creator*`/`Publishing*`/`Editor*`, then `Project*`/`Template*`.
+- **Acceptance run:** waits on `.github/workflows/acceptance.yml`.

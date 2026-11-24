@@ -243,7 +243,7 @@ import SwiftUI
             } label: {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                     installationText("kind." + requirement.kind.rawValue)
-                    Text(verbatim: requirement.key).font(CYTypography.meta.monospaced()).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: requirement.key).cyText(.meta).monospaced().foregroundStyle(CYColor.textTertiary)
                 }
             }
             .disabled(!controller.canSelect || controller.selectedAnchorPoiId == nil)
@@ -529,7 +529,7 @@ import SwiftUI
                             InstallationNativeGraphContent(graph: graph)
                         } else {
                             installationText("graph.currentConfiguration").cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                            Text(verbatim: json).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: json).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
@@ -540,7 +540,7 @@ import SwiftUI
                             installationText("kind." + binding.kind.rawValue).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                             Text(verbatim: binding.key + ": " + binding.label).cyText(.body).fixedSize(horizontal: false, vertical: true)
                             Text(verbatim: String(binding.resourceId)).cyText(.numericBody)
-                            Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: binding.fingerprint).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
@@ -577,7 +577,7 @@ private struct InstallationReceiptFacts: View {
                 installationText("kind." + binding.kind.rawValue).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: binding.key + ": " + binding.label).cyText(.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: String(binding.resourceId)).cyText(.numericBody).foregroundStyle(CYColor.textPrimary)
-                Text(verbatim: binding.fingerprint).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: binding.fingerprint).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
             }
         }
         ForEach(receipt.requiredGates, id: \.self) { gate in
@@ -714,7 +714,7 @@ private func receiptSymbol(_ state: ModInstallationReceipt.State) -> String {
             CYInfoCard {
                 Cloud25Header(title: installationString("originalRecovery.localSection", locale: locale))
                 if let request = controller.originalRecoveryRequestID {
-                    Text(verbatim: request).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: request).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                     if let saved = controller.originalRecoverySavedReceipt {
                         CYStatusChip(verbatim: installationString("originalRecovery.savedReceipt", locale: locale), tone: .info, systemImage: "doc.text")
                             .accessibilityLabel(installationText("originalRecovery.savedReceipt"))

@@ -223,7 +223,7 @@ struct CreatorFeedbackRow: View {
                     if let ticket = item.ticketId { Text("creatorStudio.feedback.inTicket \(ticket)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                 }
                 if let content = item.content { Text(verbatim: content).cyText(.body).foregroundStyle(CYColor.textPrimary) }
-                if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let node = item.nodeName { Label { Text(verbatim: node) } icon: { Image(systemName: "mappin") }.cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 if let date = item.createdAt { Text(verbatim: String(date.prefix(16)).replacingOccurrences(of: "T", with: " ")).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }
         }.padding(.vertical, CYSpacing.xs).contentShape(Rectangle())

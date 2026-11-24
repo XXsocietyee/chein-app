@@ -223,7 +223,7 @@ private struct MerchantTemplateBrowserCard: View {
                     Image(systemName: "chevron.forward").cyText(.label).foregroundStyle(.secondary).accessibilityHidden(true)
                 }
                 if let description = row.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(verbatim: description).font(Theme.Font.body).foregroundStyle(.secondary)
+                    Text(verbatim: description).cyText(.body).foregroundStyle(.secondary)
                 }
                 Divider()
                 Text(LocalizedStringKey(statusKey)).cyText(.label).fontWeight(.semibold)

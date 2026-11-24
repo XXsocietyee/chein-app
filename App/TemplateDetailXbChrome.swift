@@ -37,7 +37,7 @@ struct TemplateXbHead<Cover: View>: View {
                         .accessibilityIdentifier("template.xb.publisher")
                 }
                 if official {
-                    Text("discovery.templateDetail.publisher.official").cyText(.micro)
+                    Text("discovery.templateDetail.publisher.official").cyText(.meta)
                         .foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .background(CYNight.glassFill, in: Capsule())

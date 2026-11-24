@@ -111,7 +111,7 @@ import SwiftUI
         Section {
             if let pending = editor.pending {
                 Text(verbatim: pending.command.editRequestId.isEmpty ? "—" : pending.command.editRequestId)
-                    .font(CYTypography.caption.monospaced())
+                    .cyText(.meta).monospaced()
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if let receipt = pending.receipt {
@@ -119,7 +119,7 @@ import SwiftUI
                         .cyText(.body)
                         .foregroundStyle(CYColor.textPrimary)
                     Text(verbatim: receipt.resultDraftHash.isEmpty ? "—" : receipt.resultDraftHash)
-                        .font(CYTypography.caption.monospaced())
+                        .cyText(.meta).monospaced()
                         .foregroundStyle(CYColor.textSecondary)
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
@@ -160,12 +160,12 @@ import SwiftUI
                     .foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: original.command.expectedDraftHash.isEmpty ? "—" : original.command.expectedDraftHash)
-                    .font(CYTypography.caption.monospaced())
+                    .cyText(.meta).monospaced()
                     .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
                 // The complete reviewed request is plain owner-only text, including every answer and optional setting.
                 Text(verbatim: original.command.configJSON.isEmpty ? "—" : original.command.configJSON)
-                    .font(CYTypography.caption.monospaced())
+                    .cyText(.meta).monospaced()
                     .foregroundStyle(CYColor.textPrimary)
                     .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
