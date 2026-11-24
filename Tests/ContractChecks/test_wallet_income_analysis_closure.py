@@ -17,7 +17,7 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
   self.assertIn('try await reader.read {',s);self.assertIn('$0.ledger(.income(.all), page: pageNumber',s)
  def testBudgetExactPagingValidationAndUnknownTotalFailClosed(self):
   s=self.src('App/WalletIncomeAnalysisReader.swift')
-  for text in ['static let pageSize = 20','static let pageBudget = 10','requestedPage == pagesRead + 1','page.page == requestedPage','page.pageSize == Self.pageSize','Set(page.rows.map(\\.id)).count == page.rows.count','observedTotal.map({ $0 == total }) ?? true','page.rows.count == min(Self.pageSize, total - offset)','return .unverified']:
+  for text in ['static let pageSize = WalletAnalysisPagingPolicy.mpPageSize','static let pageBudget = 10','requestedPage == pagesRead + 1','page.page == requestedPage','page.pageSize == Self.pageSize','Set(page.rows.map(\\.id)).count == page.rows.count','observedTotal.map({ $0 == total }) ?? true','page.rows.count == min(Self.pageSize, total - offset)','return .unverified']:
    self.assertIn(text,s)
  def testPermissionDenialCannotRetainPartialMoney(self):
   s=self.src('App/WalletIncomeAnalysisReader.swift')

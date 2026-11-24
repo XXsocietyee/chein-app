@@ -737,6 +737,8 @@ private struct WalletIncomeListCard: ViewModifier {
         #if DEBUG
         if WalletEarningsDebugFinance.enabled { return debugFinance.access }
         #endif
+        // R7-PC-D4-1 (P1): no coop-finance read grant means no 主办分润 tab at all, never a tab that can only show "—".
+        guard let organizerFinance, organizerFinance.allowsRead() else { return nil }
         return organizerFinance
     }
     private var showIncome: Bool { financeAccess == nil || hold.tab == .income }
