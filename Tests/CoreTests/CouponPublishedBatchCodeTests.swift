@@ -39,7 +39,8 @@ import XCTest
         let published = CouponManagementContract.published()
         XCTAssertFalse(published.mutates)
         XCTAssertEqual(published.path, "/api/coupon/mypublishlist")
-        XCTAssertEqual(published.body, .multipart(["scope": "MERCHANT"]))
+        XCTAssertEqual(published.body, .multipart(["is_select": "0", "scope": "MERCHANT"]))
+        XCTAssertEqual(CouponManagementContract.published(scope: .player).body, .multipart(["is_select": "0"]))
         _ = try rows(#""code":"BATCH-710""#)
         let publish = try CouponManagementContract.publish(CouponManagementSyntheticFixtures.draft())
         guard case .json(let data) = publish.body else { return XCTFail("Expected existing JSON body") }

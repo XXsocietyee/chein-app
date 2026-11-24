@@ -381,6 +381,15 @@ import FoundationNetworking
         }
         return result
     }
+    /// Deregister SMS reads the signed-in member's phone. Empty `phone` is unbound and returns nil.
+    public func boundPhone(session: ComplianceSession) async throws -> DeregistrationBoundPhone? {
+        guard readsEnabled else { throw ComplianceFailure.unavailable }
+        let data = try await send(request("/api/user/info", form: ["member_id": String(session.accountID)], session: session), session: session)
+        guard let object = data as? [String: Any] else { throw ComplianceFailure.malformed }
+        let phone = (object["phone"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !phone.isEmpty else { return nil }
+        return DeregistrationBoundPhone(phone: phone)
+    }
     public func precheck(session: ComplianceSession) async throws -> ComplianceDeregistration {
         if let client = deregistrationOriginal() { return try await client.precheck(session: session) }
         return try decode(await read("/api/user/deregister/precheck", session: session), as: ComplianceDeregistration.self)

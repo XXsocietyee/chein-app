@@ -218,4 +218,9 @@ final class SquareTests: XCTestCase {
         }
         XCTAssertFalse(reader.isConfigured)
     }
+    func testBookmarkControlIsOnlyTheCommunityGeneration() {
+        XCTAssertTrue(SquareContentGeneration.communityV1.showsBookmark)
+        XCTAssertFalse(SquareContentGeneration.legacySquare.showsBookmark)
+        XCTAssertFalse(SquareContentGeneration.unknown.showsBookmark)
+    }
 }

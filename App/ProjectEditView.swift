@@ -1016,6 +1016,10 @@ import SwiftUI
                 ProjectEditScheduleSpan(start: model.draft.startDate, end: model.draft.endDate)
                 if model.draft.product == .freeExplore {
                     ProjectEditDateField(title: "projectEdit.deadline", value: $model.draft.recruitDeadline, identifier: "projectEdit.deadline").dateEditing(.init(model: model, field: .deadline)).id("project-issue-anchor-deadline")
+                    if let topicID = model.coordinator.publicationTopicID, let visit = model.coordinator.visitConfigModel(topicID: topicID) {
+                        NavigationLink { FreeExplorationVisitConfigView(model: visit) } label: { Text("feVisitConfig.title") }
+                            .accessibilityIdentifier("feVisitConfig.open")
+                    }
                 }
             }.disabled(!model.fullEdit)
         }

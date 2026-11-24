@@ -673,7 +673,8 @@ final class UGGameplayTests: XCTestCase {
         let launch = try String(contentsOf: root.appendingPathComponent("App/RegionalLaunchConfiguration.swift"), encoding: .utf8)
         XCTAssertTrue(launch.contains("makeComposition(reviewed: nil, build: .current)"))
         let purchased = try String(contentsOf: root.appendingPathComponent("Core/WorkshopPurchasedContracts.swift"), encoding: .utf8)
-        XCTAssertTrue(purchased.contains("PAID_INSTALL_AUTHORITY_UNAVAILABLE"))
+        XCTAssertTrue(purchased.contains("permitsPurchase: Bool { false }"))
+        XCTAssertTrue(purchased.contains("permitsContentUse: Bool { false }"))
     }
 
     private func readyHangman(_ decode: (Data, Int) -> UGServerFact<UGHangmanProjection>, _ json: String) throws -> UGHangmanProjection {
