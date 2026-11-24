@@ -56,8 +56,15 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                     })
                     .id(session.contentDetailRevision)
                     .modifier(TopicFavoriteInjection(session: session))
+                    .environment(\.pricingChapterProjectDestination, { topicID in
+                        AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
+                    })
                     .environment(\.topicLineupClubDestination, { clubID in
                         AnyView(MPReviewedPageScreen(page: "pages/club/detail/index", query: ["id": String(clubID)]).environmentObject(session))
+                    })
+                    .environment(\.topicLineupMerchantDestination, { memberID in
+                        guard let owner = PublicMerchantOwnerID(memberID) else { return AnyView(EmptyView()) }
+                        return AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
                     })
                     // PC-B-4-3 / PC-B-1-3 (X1): every entry gets the owner pricing page and the play runtime client,
                     // not only the topic browser sheet (SessionTopicBrowserView).

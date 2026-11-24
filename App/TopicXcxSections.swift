@@ -613,3 +613,12 @@ enum TopicStopMapsLink {
         return HomeFeedMapsLink.url(for: node.address)
     }
 }
+
+private struct TopicLineupMerchantDestinationKey: EnvironmentKey { static let defaultValue: ((Int) -> AnyView)? = nil }
+extension EnvironmentValues {
+    /// Public merchant home for a partner owner member id. Nil hides 查看 on merchant partner pages.
+    var topicLineupMerchantDestination: ((Int) -> AnyView)? {
+        get { self[TopicLineupMerchantDestinationKey.self] }
+        set { self[TopicLineupMerchantDestinationKey.self] = newValue }
+    }
+}

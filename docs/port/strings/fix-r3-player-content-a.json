@@ -171,6 +171,40 @@
         }
       }
     },
+    "publisherPricing.confirmNotOpen": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirming the final price isn't available in the app yet. You can still check the floor and reference price here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认终价暂未在 App 开放，你可以先在这里查看成本底价和参考价。"
+          }
+        }
+      }
+    },
+    "publisherPricing.viewPartner": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看"
+          }
+        }
+      }
+    },
     "searchMap.categoryFailed.mp": {
       "extractionState": "manual",
       "localizations": {

@@ -200,11 +200,21 @@ import SwiftUI
             if let topicID = reviewedID(query, key: "topicId"), let context = session.publisherLifecycleContext,
                let row = PublisherPartnerLink.lineup(type: query["toType"], id: reviewedID(query, key: "toId")) {
                 PublisherPartnerView(topicID: topicID, row: row, client: context.client)
+                    .environment(\.topicLineupClubDestination, { clubID in
+                    AnyView(MPReviewedPageScreen(page: "pages/club/detail/index", query: ["id": String(clubID)]).environmentObject(session))
+                })
+                .environment(\.topicLineupMerchantDestination, { memberID in
+                    guard let owner = PublicMerchantOwnerID(memberID) else { return AnyView(EmptyView()) }
+                    return AnyView(PublicMerchantHomeView(target: .ownerMemberID(owner), context: session.publicMerchantHomeContext))
+                })
             } else { unavailable }
         case "pages/topic/pricing/index":
             // PC-B-4-3: MP pricing reads `topicId || id`; the partner page is reached from the pricing lineup.
             if let topicID = reviewedID(query, key: "topicId") ?? reviewedID(query), let context = session.publisherLifecycleContext {
                 PublisherPricingView(topicID: topicID, client: context.client, coordinator: context.coordinator)
+                    .environment(\.pricingChapterProjectDestination, { topicID in
+                    AnyView(MerchantContentDocumentView(service: session.merchantContentService, query: .project(topicID: topicID), focusedTopicID: topicID))
+                })
             } else { unavailable }
         case "pages/publish/fabu/index", "pages/publish/topicadd/topicadd":
             topicEditor
