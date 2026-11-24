@@ -100,5 +100,22 @@
         }
       }
     }
+  },
+  "ticketPass.pager.position %lld %lld": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Swipe to switch · %1$lld/%2$lld"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "左右滑动切换票券 · %1$lld/%2$lld"
+        }
+      }
+    }
   }
 }
