@@ -295,6 +295,13 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let platformPassCovered: Bool
     public let merchantCount: Int?
     public let isOwner: Bool
+    /// `contentPublisherName`, else `clubName`. Avatar only for a MEMBER publisher (`umsMember.avatar`).
+    public let publisher: TopicPublisher?
+    public let contentPublisherType: String?
+    /// Source `userStatus` / `status` / `rejectReason` for the owner review chip. Nil stays unknown.
+    public let userStatus: Int?
+    public let status: Int?
+    public let rejectReason: String?
     public let betaFlag: Int
     /// Source `publishMode` (`ai_simple` marks generated content for the AIGC label). Absent stays nil.
     public let publishMode: String?
@@ -317,6 +324,8 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
     public let reviews: TopicReviews
     /// Nil means omitted/unknown; an empty array means the server returned no sessions.
     public let activities: [TopicActivitySummary]?
+    /// Route 「人物」 column. Nil when the topic has no cast.
+    public let castConfig: CastConfig?
     public init(from decoder: Decoder) throws {
         publisherAuthoritySource = try? PublisherTopicAuthoritySource(from: decoder)
         let c = try decoder.container(keyedBy: TopicKey.self)
@@ -351,6 +360,16 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         platformPassCovered = c.flag("platformPassCovered")
         merchantCount = c.int("registrationMerchantCount")
         isOwner = c.flag("isOwner")
+        contentPublisherType = c.text("contentPublisherType")
+        let publisherName = (c.text("contentPublisherName") ?? c.text("clubName"))?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let publisherName, !publisherName.isEmpty {
+            let member = (try? c.decodeIfPresent(TopicPublisherMember.self, forKey: TopicKey("umsMember"))) ?? nil
+            let avatar = contentPublisherType == "MEMBER" ? member?.avatar?.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+            publisher = TopicPublisher(name: publisherName, avatar: (avatar?.isEmpty == false) ? avatar : nil)
+        } else { publisher = nil }
+        userStatus = c.int("userStatus")
+        status = c.int("status")
+        rejectReason = c.text("rejectReason")
         betaFlag = c.int("betaFlag") ?? 0
         merchantClosed = (try? c.decode(Bool.self, forKey: TopicKey("merchantClosed"))) == true
         addressName = c.text("addressName")
@@ -368,6 +387,26 @@ public struct TopicDetail: Decodable, Equatable, Identifiable {
         reviews = try TopicReviews(from: decoder)
         activities = try c.decodeIfPresent([TopicActivitySummary].self, forKey: TopicKey("activityList"))
         if let activities, Set(activities.map(\.id)).count != activities.count { throw APIError.malformedResponse }
+        if let raw = try c.decodeIfPresent(PlayWireValue.self, forKey: TopicKey("castConfig")) {
+            castConfig = CastConfig(raw: raw)
+        } else { castConfig = nil }
+    }
+}
+
+public struct TopicPublisher: Equatable, Sendable {
+    public let name: String
+    public let avatar: String?
+    public init(name: String, avatar: String?) { self.name = name; self.avatar = avatar }
+}
+private struct TopicPublisherMember: Decodable { let avatar: String? }
+
+public extension TopicDetail {
+    /// pages/topic/index/index.js `ownerStateText`. Empty when the viewer is not the owner or the topic is public (`userStatus == 1`).
+    var ownerReviewLabel: String? {
+        guard isOwner, userStatus != 1 else { return nil }
+        if status == 2 { return "未通过" }
+        if status == 0 || rejectReason?.contains("内容安全") == true { return "审核中" }
+        return "已下架"
     }
 }
 

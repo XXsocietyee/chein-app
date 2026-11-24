@@ -64,7 +64,15 @@ public struct NativeEntryLinkPolicy {
             return .publicMerchant(.legacyMerchantRowID(row))
         }
         if let catalog = PublicCatalogLink.parse(path: c.percentEncodedPath, items: c.queryItems ?? []) {
-            return .publicCatalog(catalog)
+            // F14c: `/catalog?id=` is the topic. Every other catalog link opens home.
+            if catalog.screen == .list, let raw = catalog.fields["id"],
+               let id = Int(raw), id > 0, String(id) == raw,
+               let topic = NativeContentTarget(kind: .topic, id: id) {
+                return .content(topic)
+            }
+            if let home = MiniProgramPageLink(path: "pages/index/index", query: [:]) {
+                return .miniProgramPage(home)
+            }
         }
         guard c.percentEncodedPath == "/merchant/team", let items = c.queryItems,
               items.count == 1, items[0].name == "invite",

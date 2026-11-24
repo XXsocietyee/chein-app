@@ -107,7 +107,7 @@ public struct ClubRemainingGapClient {
             configuration: configuration,
             transport: transport,
             path: "api/user/follow/action",
-            body: ["targetUserId": targetUserID, "action": follow ? "follow" : "unfollow"],
+            body: ["follow_member_id": targetUserID, "follow": follow ? 1 : 0],
             token: token
         )
     }

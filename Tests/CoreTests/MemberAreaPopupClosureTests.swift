@@ -100,6 +100,80 @@ final class MemberAreaPopupClosureTests: XCTestCase {
         XCTAssertEqual(errOutcome, .failed(message: SettingsClubPickerService.loadFailureMessage))
     }
 
+    func testSettingsClubHostRouteMatchesPickClub() async {
+        let empty = StubHTTPTransport { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/api/club/my")
+            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(request.httpBody)) as? [String: Any])
+            XCTAssertTrue(body.isEmpty)
+            return (Data(#"{"code":200,"data":{"owned":[]}}"#.utf8), 200)
+        }
+        let service = SettingsClubPickerService(configuration: baseConfig, transport: empty)
+        let leader = await service.resolveHostRoute(token: "token-abc", isClubLeader: true)
+        XCTAssertEqual(leader, .createClub)
+        let player = await service.resolveHostRoute(token: "token-abc", isClubLeader: false)
+        XCTAssertEqual(player, .applyForHost)
+
+        let many = StubHTTPTransport { _ in
+            (Data(#"{"code":200,"data":{"owned":[{"id":1,"name":"Alpha"},{"id":2,"name":"Beta"}]}}"#.utf8), 200)
+        }
+        let owned = await SettingsClubPickerService(configuration: baseConfig, transport: many)
+            .resolveHostRoute(token: "token-abc", isClubLeader: false)
+        if case .openManage(let club) = owned {
+            XCTAssertEqual(club.id, 1)
+            XCTAssertEqual(SettingsClubHostRoute.manageTab, "manage")
+        } else {
+            XCTFail("Expected manage tab for any owned club, got \(owned)")
+        }
+    }
+
+    func testHostRouterDropsASecondTapWhileClubMyIsInFlight() async {
+        actor Gate {
+            private var enteredWaiters: [CheckedContinuation<Void, Never>] = []
+            private var releaseWaiters: [CheckedContinuation<Void, Never>] = []
+            private var entered = false
+            private var released = false
+            private(set) var hits = 0
+            func enteredOnce() async {
+                hits += 1
+                entered = true
+                enteredWaiters.forEach { $0.resume() }
+                enteredWaiters.removeAll()
+                if released { return }
+                await withCheckedContinuation { releaseWaiters.append($0) }
+            }
+            func waitUntilEntered() async {
+                if entered { return }
+                await withCheckedContinuation { enteredWaiters.append($0) }
+            }
+            func release() {
+                released = true
+                releaseWaiters.forEach { $0.resume() }
+                releaseWaiters.removeAll()
+            }
+        }
+        final class Transport: HTTPTransport {
+            let gate: Gate
+            init(_ gate: Gate) { self.gate = gate }
+            func send(_ request: URLRequest) async throws -> (Data, Int) {
+                await gate.enteredOnce()
+                return (Data(#"{"code":200,"data":{"owned":[]}}"#.utf8), 200)
+            }
+        }
+        let gate = Gate()
+        let router = await MainActor.run {
+            SettingsClubHostRouter(configuration: baseConfig, transport: Transport(gate))
+        }
+        let first = Task { await router.resolve(token: "token-abc", isClubLeader: true) }
+        await gate.waitUntilEntered()
+        let dropped = await router.resolve(token: "token-abc", isClubLeader: true)
+        XCTAssertNil(dropped)
+        await gate.release()
+        let route = await first.value
+        XCTAssertEqual(route, .createClub)
+        XCTAssertEqual(await gate.hits, 1)
+    }
+
     func testNPCChatExportFormatterAndDeepLinkExitPolicy() throws {
         let json = #"{"code":200,"data":{"retentionDays":30,"records":[{"id":9,"userId":5,"userMsg":"Hi","npcReply":"Hello","createTime":"2026-11-14"}]}}"#
         let data = try NPCChatData.decode(Data(json.utf8), expectedAccountID: 5)

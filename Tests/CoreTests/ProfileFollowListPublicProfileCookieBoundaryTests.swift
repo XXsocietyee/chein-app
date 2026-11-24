@@ -111,7 +111,9 @@ import FoundationNetworking
         _ = try await service.rewards(token: value.session.token)
         XCTAssertEqual(wire.requests.count, 4)
         XCTAssertTrue(wire.requests.allSatisfy(\.httpShouldHandleCookies))
-        XCTAssertNil(wire.requests[0].httpBody)
+        let listBody = String(data: wire.requests[0].httpBody ?? Data(), encoding: .utf8) ?? ""
+        XCTAssertTrue(listBody.contains("name=\"pageNum\"\r\n\r\n1\r\n"))
+        XCTAssertTrue(listBody.contains("name=\"pageSize\"\r\n\r\n10\r\n"))
         XCTAssertNil(wire.requests[0].value(forHTTPHeaderField: "Authorization"))
         XCTAssertTrue(wire.requests.dropFirst().allSatisfy { $0.httpBody != nil })
         XCTAssertTrue(wire.requests.suffix(2).allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == value.session.token })

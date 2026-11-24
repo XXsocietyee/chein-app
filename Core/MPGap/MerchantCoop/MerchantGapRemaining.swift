@@ -161,7 +161,7 @@ public struct MerchantRemainingGapClient {
         try await MPGapHTTP.postAction(
             configuration: configuration,
             transport: transport,
-            path: "api/merchant/claim",
+            path: "api/merchant/claims/submit",
             body: [
                 "storeName": claim.storeName,
                 "contactPhone": claim.contactPhone,
@@ -171,12 +171,21 @@ public struct MerchantRemainingGapClient {
         )
     }
 
-    public func saveDecorContact(_ draft: MerchantDecorContactDraft, token: String) async throws {
-        var body: [String: Any] = [
-            "phone": draft.contactPhone,
-            "wechat": draft.wechatID,
-            "address": draft.address
-        ]
+    public func saveBrandContact(_ draft: MerchantDecorContactDraft, token: String) async throws {
+        try await MPGapHTTP.postAction(
+            configuration: configuration,
+            transport: transport,
+            path: "api/merchant/update",
+            body: [
+                "phone": draft.contactPhone,
+                "wechat": draft.wechatID
+            ],
+            token: token
+        )
+    }
+
+    public func saveDecorDisplay(_ draft: MerchantDecorContactDraft, token: String) async throws {
+        var body: [String: Any] = ["address": draft.address]
         if let qr = draft.qrImageURL { body["qrUrl"] = qr }
         if let lat = draft.latitude, let lng = draft.longitude {
             body["lat"] = lat

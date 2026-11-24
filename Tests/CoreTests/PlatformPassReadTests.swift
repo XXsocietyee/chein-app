@@ -125,6 +125,30 @@ final class PlatformPassReadTests: XCTestCase {
         XCTAssertTrue(wire.requests.isEmpty)
     }
 
+    func testOverviewTermsFollowTheMiniProgramPassTermsParser() async throws {
+        let wire = Wire()
+        wire.bodies["/api/platform-pass"] = envelope(#"""
+        {"enabled":true,"plans":[],"terms":["有效期：至 2027-12-31","到期自动续费，可随时关闭","不支持退款","限本人及同行使用","覆盖已开通城市"]}
+        """#)
+        let reader = try make(wire)
+        let overview = try await reader.overview(token: "session-token", viewerIsMerchant: false)
+        XCTAssertEqual(wire.requests[0].httpMethod, "GET" as String?)
+        XCTAssertEqual(wire.requests[0].url?.path, "/api/platform-pass")
+        XCTAssertEqual(overview.terms.period, "至 2027-12-31")
+        XCTAssertEqual(overview.terms.renewal, "到期自动续费，可随时关闭")
+        XCTAssertEqual(overview.terms.refund, "不支持退款")
+        XCTAssertEqual(overview.terms.seat, "限本人及同行使用")
+        XCTAssertEqual(overview.terms.coverage, "覆盖已开通城市")
+        let olderObject: [String: Any] = [
+            "period": "一年", "renewal": "按月", "refund": "不可退", "seat": "双人", "coverage": "城内"
+        ]
+        let older = PlatformPassTermFacts.parse(olderObject)
+        XCTAssertEqual(older, PlatformPassTermFacts(period: "一年", renewal: "按月", refund: "不可退", seat: "双人", coverage: "城内"))
+        let firstWins = PlatformPassTermFacts.parse(["续费一次", "再次续费"])
+        XCTAssertEqual(firstWins.renewal, "续费一次")
+        XCTAssertNil(firstWins.coverage)
+    }
+
     func testChinaClockPassUntilRollsMidnightBackOneMillisecond() {
         XCTAssertEqual(MPParityChinaClock.passUntil("2027-12-11 00:00:00"), "可玩至 12 月 10 日")
         XCTAssertEqual(MPParityChinaClock.shownMonthDay("2027-12-11 00:00:00")?.month, 12)
