@@ -293691,6 +293691,23 @@
         }
       }
     },
+    "mp.report.photos.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checkpoint photos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打卡照片"
+          }
+        }
+      }
+    },
     "reviewComposer.title": {
       "extractionState": "manual",
       "localizations": {
