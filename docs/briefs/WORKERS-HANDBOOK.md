@@ -67,7 +67,7 @@ You don't need anyone's Mac. Every push to `port/**` runs the **Acceptance** wor
 A package is DONE only when its acceptance run is green and the receipt is complete.
 
 ## 4b. Workload priority (owner, 2026-11-24): Claude → Cursor → Gemini
-- **Share of work:** Claude carries the most (P3, P6a, P6b, restyle R1–R6, integration, final acceptance), Cursor the next most (A0, P1, P2, P4), Gemini paused (owner, 11-24); P5 moved to Claude.
+- **Share of work:** Claude carries the most (P3, P6a, P6b, restyle R1–R6, integration, final acceptance), Cursor the next most (A0, P1, P2, P4), Gemini owns MINI-PROGRAM ALIGNMENT (gap inventory + translating MP code; brief mp-gap-translate-r1.md; branches gap/g1-player, gap/g2-ops); P5 moved to Claude.
 - **Conflicts:** file ownership is disjoint, so there should be none. If one happens anyway, the coordinator decides.
 - The coordinator (Claude) owns integration (`ui/combined-r7`, rolling: each branch is merged as soon as its acceptance run is green) and the FINAL acceptance.
 
