@@ -27,7 +27,7 @@ struct ClubDetailTabBar: View {
                     Button { select(tab) } label: {
                         VStack(spacing: 6) {
                             Text(tab.titleKey)
-                                .font(selection == tab ? CYTypography.bodyMedium.weight(.semibold) : CYTypography.bodyMedium)
+                                .cyText(.bodyMedium, weight: selection == tab ? .semibold : nil)
                                 .foregroundStyle(selection == tab ? CYColor.textPrimary : CYColor.textSecondary)
                                 .lineLimit(1).minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.8)
                             ZStack {
