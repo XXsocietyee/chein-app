@@ -41,7 +41,11 @@ import SwiftUI
                 Button("couponManagement.fixtureSignOut") { context.signOut() }.accessibilityIdentifier("couponManagement.fixture.signOut")
             }.buttonStyle(.bordered) }
             NavigationStack {
-                CouponManagementView(coordinator: context.coordinator, sessionKey: context.session, isSourceVisible: true)
+                CouponManagementView(coordinator: context.coordinator, sessionKey: context.session, isSourceVisible: true,
+                                     loadSummary: {
+                    // MKT-10-1: synthetic BL-77 reply, shaped by the same rule as the live read.
+                    CouponPageSummary.shape(.object(["couponTotal": .integer(3), "received": .integer(128), "verified": .integer(46)]))
+                })
             }.id(context.mount)
         }
         // The launch argument has no "merchant" in it, so the root fixture switch would pick the dark player domain.

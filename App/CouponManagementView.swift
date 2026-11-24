@@ -23,22 +23,33 @@ import SwiftUI
     let isSourceVisible: Bool
     /// R7-MEM-10-1: `coupon/coupon?scope=MERCHANT` (merchant marketing) lists the shop's coupons; the bare page is the player's own list.
     let scope: CouponPublishListScope
+    /// MKT-10-5 (MP `merchant-no-permission.js`): a merchant member gets 返回 on the refused state; anyone else gets 申请入驻.
+    let isMerchantMember: Bool
+    /// MKT-10-1: the merchant-scope 累计领取 / 累计核销 read. Nil (fixtures, player scope) shows no tiles.
+    let loadSummary: (@MainActor () async -> MerchantCouponSummary?)?
     @State private var creating = false
+    @State private var summary: MerchantCouponSummary?
+    @State private var applyingMerchant = false
     @Environment(\.dismiss) private var dismiss
     init(coordinator: CouponManagementCoordinator, sessionKey: CouponManagementSession?, isSourceVisible: Bool = false,
-         scope: CouponPublishListScope = .merchant) {
+         scope: CouponPublishListScope = .merchant, isMerchantMember: Bool? = nil,
+         loadSummary: (@MainActor () async -> MerchantCouponSummary?)? = nil) {
         _model = StateObject(wrappedValue: CouponManagementScreenModel(coordinator)); self.sessionKey = sessionKey; self.isSourceVisible = isSourceVisible
         self.scope = scope
+        // MP `coupon.js:117`: the merchant scope counts as a merchant view.
+        self.isMerchantMember = scope == .merchant || (isMerchantMember ?? false)
+        self.loadSummary = scope == .merchant ? loadSummary : nil
     }
     var body: some View {
         Group {
             if !isSourceVisible { CYEmptyState(systemImage: "ticket", "couponManagement.unavailable") }
             else if sessionKey == nil { CYEmptyState(systemImage: "person.crop.circle", "couponManagement.signIn") }
-            // MKT-10-5: a refused read is the MP no-permission state with a way out (coupon.wxml:10).
+            // MKT-10-5: a refused read is the MP no-permission state with one way out (coupon.wxml:10): 返回 for a
+            // merchant member, 申请入驻 (`/pages/merchant/apply/index`) for anyone else.
             else if model.core.issue == .forbidden, model.core.rows.isEmpty, !model.core.loading, !model.working {
                 CYStateLayout(kind: .failure, title: Text("couponManagement.denied"),
-                              primary: (title: "couponManagement.back", action: { dismiss() }),
-                              primaryIdentifier: "couponManagement.denied.back")
+                              primary: denyAction,
+                              primaryIdentifier: isMerchantMember ? "couponManagement.denied.back" : "couponManagement.denied.apply")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .accessibilityIdentifier("couponManagement.denied")
             }
@@ -50,6 +61,14 @@ import SwiftUI
                             .disabled(model.working).accessibilityIdentifier("couponManagement.recover")
                     }
                     Text("couponManagement.chinaTime").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                    // MKT-10-1 (BL-77): 累计领取 / 累计核销, merchant scope only; hidden with no coupons or a failed read.
+                    if let summary {
+                        MerchantCouponSummaryTilesView(summary: summary)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("couponManagement.summary")
+                    }
                     if model.working || model.core.loading { CYSkeleton(variant: .row) }
                     // A failed read is an error notice above, not an empty list.
                     else if model.core.rows.isEmpty, model.core.issue == nil {
@@ -88,7 +107,10 @@ import SwiftUI
                         }.accessibilityIdentifier("couponManagement.definition.\(row.id.value)")
                     }
                 }
-                .refreshable { model.core.publishListScope = scope; await model.core.load(); model.revision += 1 }
+                .refreshable {
+                    model.core.publishListScope = scope; await model.core.load(); model.revision += 1
+                    await refreshSummary()
+                }
                 .toolbar {
                     // Hidden, not disabled, when publishing is not available for this account.
                     if model.core.canReviewPublish {
@@ -107,7 +129,14 @@ import SwiftUI
         .task(id: sessionKey) {
             model.synchronize(); creating = false
             model.core.publishListScope = scope
-            if isSourceVisible, sessionKey != nil { await model.core.load(); model.revision += 1 }
+            summary = nil
+            if isSourceVisible, sessionKey != nil {
+                await model.core.load(); model.revision += 1
+                await refreshSummary()
+            }
+        }
+        .navigationDestination(isPresented: $applyingMerchant) {
+            MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:])
         }
         .sheet(isPresented: $creating) {
             NavigationStack { CouponManagementEditor(model: model) }
@@ -117,6 +146,20 @@ import SwiftUI
         }
         .onChange(of: sessionKey) { _, _ in creating = false; model.synchronize() }
         .onChange(of: isSourceVisible) { _, visible in if !visible { creating = false; model.core.leave(); model.revision += 1 } }
+    }
+}
+extension CouponManagementView {
+    fileprivate var denyAction: (title: LocalizedStringKey, action: () -> Void) {
+        if isMerchantMember { return (title: LocalizedStringKey("couponManagement.back"), action: { dismiss() }) }
+        return (title: LocalizedStringKey("couponManagement.forbidden.applyMerchant"), action: { applyingMerchant = true })
+    }
+    /// MP `loadSummary`: silent, merchant scope only, never blocks the list. A stale reply is dropped.
+    fileprivate func refreshSummary() async {
+        guard let loadSummary else { summary = nil; return }
+        let key = sessionKey
+        let value = await loadSummary()
+        guard key == sessionKey, !Task.isCancelled else { return }
+        summary = value
     }
 }
 private enum CouponManagementNoticeSurface: String { case list, detail, editor }

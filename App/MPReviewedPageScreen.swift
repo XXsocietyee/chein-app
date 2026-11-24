@@ -793,17 +793,18 @@ import SwiftUI
     }
 
     /// `free-explore?registrationId=` opens that order (its 自由探索权益 entry hosts the bundle read);
-    /// `?topicId=` opens the topic (the catalog entry before purchase); `?requestId=` (purchase receipt) opens 我的订单.
+    /// `?topicId=` shows the bundle catalog (MKT-7-1, MP `loadEntry` catalog read) with a way to the topic;
+    /// `?requestId=` (purchase receipt) resolves to that order. No valid id is the MP missing-param state with 返回.
     @ViewBuilder private var freeExplore: some View {
         if let id = reviewedID(query, key: "registrationId") {
             ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
         } else if let id = reviewedID(query, key: "topicId") {
-            SessionTopicDetailView(id: id, session: session)
-        } else if query["requestId"] != nil {
-            SessionOwnedOrdersView(session: session)
+            FreeExploreTopicCatalogScreen(topicID: id, session: session, onSignIn: signIn)
+        } else if let request = query["requestId"], FreeExploreReceiptResolveScreen.isValid(request) {
+            // MKT-7-1: the purchase receipt resolves to that order's bundle detail (MP `loadEntry` receipt read).
+            FreeExploreReceiptResolveScreen(requestID: request, session: session, onSignIn: signIn)
         } else {
-            CYStateLayout(kind: .generic, title: Text("mp.route.missingParam"))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            MemberMissingLinkState(identifier: "freeExplore.missing")
         }
     }
 
