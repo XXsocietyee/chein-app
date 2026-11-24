@@ -1,4 +1,12 @@
 {
+  "merchant.aftercare.notFound": {
+    "en": "No results",
+    "zh-Hans": "没有找到"
+  },
+  "merchant.aftercare.searchLoaded %lld": {
+    "en": "Searching only the %lld loaded cases",
+    "zh-Hans": "只在已加载的 %lld 笔中搜索"
+  },
   "merchant.apply.address.openMapsHint": {
     "en": "Opens in Maps",
     "zh-Hans": "在地图中打开"
@@ -186,6 +194,10 @@
   "merchant.campaigns.untitled": {
     "en": "Untitled outreach",
     "zh-Hans": "未命名触达"
+  },
+  "merchant.customers.updating": {
+    "en": "Updating customer list…",
+    "zh-Hans": "正在更新客户名单…"
   },
   "merchant.gate.aftercare.denied": {
     "en": "Your role can't view refunds and after-sales",

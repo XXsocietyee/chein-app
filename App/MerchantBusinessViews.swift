@@ -471,7 +471,16 @@ import SwiftUI
         List {
             if reader.isOfflineExample { Text("merchant.business.synthetic").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             filters
-            if state.isBusy { CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading") }
+            if state.isBusy {
+                if case .customers = query, state.snapshot != nil {
+                    // MC7-14-10 (customer/index.wxml:65): rows stay; one inline 正在更新客户名单… line.
+                    Label { Text("merchant.customers.updating").cyText(.meta) } icon: { ProgressView().controlSize(.mini) }
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("merchant.business.customers.updating")
+                } else {
+                    CYSkeleton(variant: .card).accessibilityIdentifier("merchant.business.loading")
+                }
+            }
             if let key = model.aftercareLoadFailureKey ?? state.failureKey {
                 Section {
                     Text(LocalizedStringKey(key)).cyText(.body).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("merchant.business.error")
@@ -546,10 +555,21 @@ import SwiftUI
                             .listRowBackground(Color.clear)
                     }
                 } else if model.listFilters.isActive(for: snapshot.document.query), snapshot.document.sections.allSatisfy({ visibleRows($0, in: snapshot.document).isEmpty }) {
-                    Text(LocalizedStringKey(isAftercare ? "merchant.business.aftercare.noMatches" : "merchant.business.list.noMatches"))
+                    if isAftercare {
+                        // MC7-16-2 (aftercare/index.wxml:70-71): 没有找到 + 清除搜索.
+                        ContentUnavailableView {
+                            Label("merchant.aftercare.notFound", systemImage: "magnifyingglass")
+                        } actions: {
+                            Button("merchant.business.aftercare.clearSearch") { model.listFilters.aftercareKeyword = "" }
+                        }
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("merchant.business.list.noMatches")
+                    } else {
+                    Text(LocalizedStringKey("merchant.business.list.noMatches"))
                         .cyText(.meta)
                         .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("merchant.business.list.noMatches")
+                    }
                 }
                 if query == .operators {
                     if let roster = try? MerchantOperatorRoster(document: snapshot.document) {
@@ -609,9 +629,21 @@ import SwiftUI
                         .frame(maxWidth: .infinity).accessibilityIdentifier("merchant.business.reviews.listEnd")
                 }
                 if isAftercare {
+                    // MC7-16-3 / MC7-16-4 (aftercare/index.wxml:72-73): reaching the end loads the next page with a
+                    // 正在加载更多… row; with no more pages the list ends on 已经到底了.
                     if snapshot.document.hasMore {
-                        Button("merchant.business.aftercare.loadMore") { Task { await model.loadMoreAftercare() } }
-                            .disabled(state.isBusy).accessibilityIdentifier("merchant.business.aftercare.loadMore")
+                        HStack(spacing: CYSpacing.sm) {
+                            ProgressView()
+                            Text("merchant.list.loadingMore").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityElement(children: .combine)
+                        .onAppear { if !state.isBusy { Task { await model.loadMoreAftercare() } } }
+                        .accessibilityIdentifier("merchant.business.aftercare.loadMore")
+                    } else if !snapshot.document.rows.isEmpty {
+                        Text("merchant.list.end").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                            .frame(maxWidth: .infinity)
+                            .accessibilityIdentifier("merchant.business.aftercare.listEnd")
                     }
                 } else if reviewSource == nil, (model.reviewLoadedPages?.page ?? 1) == 1, snapshot.document.hasMore || query.page > 1 {
                     Section {
@@ -862,8 +894,7 @@ import SwiftUI
                         Text("merchant.business.segment.all").tag(0)
                         ForEach(availableTags, id: \.self) { id in Text(tagName(id)).tag(id) }
                     }
-                    TextField("merchant.business.sourceStart", text: $sourceStart).textInputAutocapitalization(.never)
-                    TextField("merchant.business.sourceEnd", text: $sourceEnd).textInputAutocapitalization(.never)
+                    // MC7-14-9: the date range is picked only (no free-text 开始/结束 fields).
                     MerchantCRMDateRangePicker(context: state.isCurrent && !state.isBusy
                         ? .init(scope: reader.scope, authorization: reader.authorizationGeneration, merchantID: state.snapshot?.access.merchantID) : nil,
                         start: sourceStart, end: sourceEnd) { value in
@@ -907,6 +938,14 @@ import SwiftUI
                     .accessibilityHint(Text("merchant.business.aftercare.searchScope"))
                     .accessibilityIdentifier("merchant.business.aftercare.keyword")
                 if !model.listFilters.aftercareKeyword.isEmpty {
+                    // MC7-16-2: while more pages exist, say the search covers only the loaded cases, with 加载更多.
+                    if let loaded = state.snapshot, loaded.document.hasMore {
+                        Text("merchant.aftercare.searchLoaded \(loaded.document.rows.count)")
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("merchant.business.aftercare.searchLoaded")
+                        Button("merchant.business.aftercare.loadMore") { Task { await model.loadMoreAftercare() } }
+                            .disabled(state.isBusy)
+                    }
                     Button("merchant.business.aftercare.clearSearch") { model.listFilters.aftercareKeyword = "" }
                         .accessibilityIdentifier("merchant.business.aftercare.clearSearch")
                 }
@@ -1016,7 +1055,8 @@ import SwiftUI
                             MerchantAftercareRowLabel(row: line)
                         }
                     } else if row.kind == .customer, case .customers = query {
-                        MerchantCustomerRowLabel(row: MerchantCustomerListParity.row(row.fields, now: Date()), identifier: "merchantOps.customer.row.\(row.id)")
+                        MerchantCustomerRowLabel(row: MerchantCustomerListParity.row(row.fields, now: Date()), identifier: "merchantOps.customer.row.\(row.id)",
+                                                 avatarURL: row.fields.mbText("avatar").flatMap(URL.init(string:)))
                     } else if row.kind == .redemption || row.kind == .batch {
                         MerchantLedgerRowLabel(line: row.kind == .batch ? MerchantLedgerParity.batch(row.fields)
                                                    : MerchantLedgerParity.redemption(row.fields, canReadFinance: access.allows("merchant:finance:read")),
