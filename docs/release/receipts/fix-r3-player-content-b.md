@@ -135,3 +135,46 @@
 - Contract checks: branch vs `origin/ui/combined-r7`, 200 → 202 FAIL/ERROR. Both new failures are the expected strings-fragment ones: `test_official_event_contracts…two_languages` and `test_localization_key_catalog_contract…missing_from_every_catalog`. The 8 keys it lists are all in `docs/port/strings/fix-r3-player-content-b.json`.
 - `tools/check_typography_lint.py`: PASS. No new Swift files or folders.
 - APIs grepped on r7 before use: `MPAsset.BannerCover.coverRoute`, `.subpackageAImagesRouteFreeCover`, `MPAsset.BrandLogo.cyLogoMark`, `MPAsset.AvatarDefault.dProfile`, `MoneyDisplay.minimumFractionDigits()`, `WalletAnalysisPagingPolicy.shouldContinue`, `BeijingServerTime`, `MyProjectMutationModel.beginActivityCancel(id:title:)` / `confirmationText`, `WalletOrganizerFinanceAccess.allowsRead`, `palette.bgStrong/bgRaised`.
+
+## Round 3 (2026-11-24 evening, brief `design/handoff-r2:docs/briefs/fix-r3-round3.md`)
+
+- **Sync:** `git merge origin/ui/combined-r7` (`b0ac0108d`) fast-forwarded (my round 2 was already in it). Merged again before the final push.
+- **Checked:** for each round-1 and round-2 commit of this branch, `git diff <c>^ <c> -- <file> | git apply -R --check` on the new base, and a read of `git diff 3a4c99e03 HEAD` for every Swift file this branch touched. None of the files restored to Cursor's side (`SettingsView`, `MerchantVerifyRecordsSections`, `PlatformConsumerSessionOwner`, `RoamPOIActions`, `JourneyReportViews`, `TeamHomeView`, `TicketWalletView`, `TopicXcxSections`, `ClubDetailView`, `ClubKit/ClubWorkbenchKit`) was touched by this branch. `WalletIncomeAnalysisReader` (kept on my side) is intact.
+
+### Round 3 · re-applied
+
+| hunk | what was lost | how it is back | files |
+|---|---|---|---|
+| r2 `b5ead1e46` (MP assets, B-14 asset part) | The integrator's `IMRemoteAvatar<EmptyView>.url` compile fix also dropped the MP `/images/d_profile.png` fallback: inbox rows, the chat bar and bubbles showed generated art again, and bubbles lost the counterparty-avatar step. | Re-applied on top of the compile fix (keeps `IMRemoteAvatar<EmptyView>.url`): a person falls back to `MPAsset.AvatarDefault.dProfile`; system and group rows keep the glyph art; bubbles use `senderAvatar ?? counterparty avatar (1:1 only) ?? d_profile` (MP `im/chat/index.wxml:160`). | `App/IMInboxViews.swift`, `App/MessagingHistoryView.swift` |
+| r2 `353aa4753` (D1-2) | Not lost: the merge rewrote `confirmationText` as `model.confirmationText` first, `confirmationMessage` second (the same effect). | Kept as merged. | — |
+| r2 `b5ead1e46` (`QuestifyImageEntityCard`) | Not lost: only the corner radius became `CYRadius.hero`. The `fallbackArtwork` hook is intact. | Kept as merged. | — |
+
+Every other round-1/round-2 hunk is present on the new base. The ones `git apply -R --check` flagged were later edits by this branch or by others to the same lines (for example the C2 ticket preselect now flows through Cursor's `registrationPreselectedTicketID` environment value, and the peer-report row came from `cursor/wire-player-content`).
+
+### Fixed in round 3
+
+| id | page | what changed | files |
+|---|---|---|---|
+| R7-PC-D9-1 | D9 | After the first page loads, the chat marks the conversation read (MP `api/im/read`) through the coordinator's own `reviewOrdinaryRead()` → `confirm(stillAuthorized:)`, so the frozen cursor, journal and recovery are the same as the explicit path. It runs only when `IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted(imReadGranted: owner.canReviewOrdinaryRead)` says so, which needs the `.imRead` runtime grant (default off) and an unread count above zero. No grant was turned on. | `App/MessagingHistoryView.swift` |
+| flows-g2 (myproject, for Claude) | D1 | `subpackageA/pages/myproject/index` with `scope=MERCHANT` opens the merchant entry (`entryScope: "MERCHANT"`, browse-only until access/me grants `merchant:project:manage`). With `type=` it starts on the MP tab (`club_activity` → 活动, `template` → 模板, other old types → 主题; MP `index.js:132, 150-155`). A bare link is still `.myProjects`. New route case `MPParityRoute.myProjectsEntry(merchant:initialType:)`; `CreatorContentProjectsView.initialType` is applied once on appear. | `App/MPParityKit.swift`, `App/SubscribeMessageTapScreens.swift`, `App/ProjectOwnedContentViews.swift`, `App/CreatorContentViews.swift` |
+
+### MP assets (round 3)
+- The new mapping rows (template-detail shelf covers and props, growth-center leaderboard memojis, journey rank-board laurel) are on `DiscoveryTemplateDetailView` (half a), `GrowthLeaderboardView` (member) and `PlayExperienceView` (play-roam). None of them is on pages C2–D9.
+- The round-2 rows still apply. The three unticked rows (`EmptyState.noData` on the activity list, `routeCityCover` on template shelf rows, `subpackageBImagesRouteFreeCover` in the composer route picker) keep their reasons.
+
+### Left, with reasons (round 3)
+
+| id | reason / request |
+|---|---|
+| flows-g1 `official-detail` → `OfficialEventLeaderboardSection` | **Core request (Cursor):** there is no official-event leaderboard read on r7 (no producer of `OfficialEventLeaderboardRow`). The section can only render empty. The section also has a raw 「暂列第 N 名」 string, which Gemini needs to make a catalog key. |
+| flows-g1 `infomationdetail` → `SocialArticleRichBlocksView` | **Core request (Cursor/Gemini):** nothing decodes `SocialArticleRichBlock` from `api/information/info`. Mount it once `SocialInformation` exposes blocks. |
+| flows-g1 `im/chat` → `IMComposerPlusMenuButton` | The image, location and route rows need the composer's send paths (`canSendOrdinaryImage`, `canSendStaticLocation`, `canSendRoute`, all default off), and `IMComposerPlusItem.title` is a raw Chinese string, not a key. Poll is already the composer's leading `+`. Peer report is in the ⋯ menu (Cursor wiring). |
+| flows-g2 `merchant/index.js:1650`, `publish/temp/index.js:3520` (myproject links) | The App route now honours `scope` and `type`. **Core request (Cursor):** `MiniProgramPageLink.reviewedPages["subpackageA/pages/myproject/index"]` is the `open` rule (`allowed: []`), so a universal or `chein://` link carrying `scope`/`type` is rejected before it reaches the App route. Allow `scope` ∈ {`MERCHANT`} and `type` ∈ {`club_activity`, `template`, `simple_topic`, `pro_topic`, `self_play`}. The merchant-home and publish callers belong to merchant-coop and account-publish. |
+| R7-PC-D2-1 (detail push) | Still a sheet: `test_social_guide_templates.test_details_and_full_catalog_use_read_only_existing_destinations` asserts there is no `NavigationLink` in `SocialGuideTemplateSection.swift`. |
+| R7-PC-C2-2, R7-PC-D1-6 (coordinates), R7-PC-D3-3 | The Core requests are still open on `b0ac0108d`: no `reservationState`, no `CreatorContentProject` coordinates, no `PublicContentShareLink.information(id:)`. |
+| R7-PC-D1-1 (pushed menu), R7-PC-D1-4, R7-PC-C4-3 (price row) | Unchanged; the same pins are still there. |
+| review rev-a/b/c | No new Claude rows for C2–D9 since round 2 (rev-b B-14 and B-23 are done; the rest belong to other areas). |
+| audit `parity-r7-player-content` P1 | Both P1 rows in this half are done (D1-1 tab root in round 1, D4-1 in round 2). |
+
+### Tests and pins touched in round 3
+- None. `Tests/AppUnitTests/MPParityDeepLinkRouteTests.swift` still expects `.myProjects` for a bare myproject link, which is unchanged.
