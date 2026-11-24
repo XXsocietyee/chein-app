@@ -331,9 +331,24 @@ import SwiftUI
         case "pages/square/list/index":
             SessionSquareBrowserView(session: session, onClose: { session.dismissNativeEntry() }, onSignIn: {})
         case "pages/shezhi/shezhi":
-            // B-SZ-12: `?scene=settings-deregister` opens 账号注销; the other scenes open Settings itself.
+            // B-SZ-12: `?scene=` lands on the Settings row it names (MP shezhi.js:50, 231-244); unknown or
+            // unavailable scenes (and settings-identity-picker, whose entries live on Settings) open Settings itself.
             if query["scene"] == "settings-deregister", let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .cancellation, market: session.operationalMarket, legalReader: session.legalReader)
+            } else if query["scene"] == "settings-profile", session.account != nil {
+                ProfileEditView(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,
+                                currentReviewReader: session.profileCurrentReviewReader, nicknameReader: session.profileNicknameReader,
+                                savedMedia: session.profileSavedMediaReaders)
+            } else if query["scene"] == "settings-feedback" {
+                ProfileComplaintDeepLinkScreen(session: session)
+            } else if query["scene"] == "settings-likes" {
+                MPFavoritesLinkHost(session: session)
+                    .id(session.profileFavoritesReader.scope)
+            } else if query["scene"] == "settings-how-to-play" {
+                ProfileGuideHost(reader: session.makeProfileGuideReader(),
+                                 makeArticleReader: { session.makeProfileGuideArticleReader($0) },
+                                 onOpenDestination: nil, templateReader: session)
+                    .id(session.socialAccountReader.identity)
             } else {
                 // Settings reads the unread badge owner (NativeChannelNotificationSettingsEntry); the link sheet sits
                 // outside the root's badge lifecycle, so it carries its own (no push binding, reads only).
@@ -345,6 +360,14 @@ import SwiftUI
             if let coordinator = session.accountComplianceCoordinator {
                 AccountComplianceSheet(coordinator: coordinator, destination: .marketing, market: session.operationalMarket,
                                        legalReader: session.legalReader, showsCloseButton: false)
+            } else if session.account == nil {
+                // B-MK-07-r7: MP marketing/index.wxml:3 login gate — a signed-out link says so and offers 登录.
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "compliance.marketing.signedOut",
+                             messageIdentifier: "compliance.marketing.signedOut",
+                             actionTitle: openSignIn == nil ? nil : "compliance.marketing.signIn",
+                             actionIdentifier: "compliance.marketing.signIn", actionStyle: .primary, action: openSignIn)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .cyPageTitle("compliance.marketing")
             } else { unavailable }
         case "pages/gerenziliao/gerenziliao":
             // JSEAT-3: the lobby's 编辑 opens the same own-profile editor as 我的 → 编辑资料.
@@ -356,10 +379,8 @@ import SwiftUI
             } else { unavailable }
         case "pages/mylike/mylike":
             // A6 / X1: 我的收藏 from a link, with the same readers the 我的 page passes.
-            AccountCollectionFavoritesView(reader: session.profileFavoritesReader, onOpenTopic: { _ in },
-                                           favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope),
-                                           communityGate: session.squareReader)
-                .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+            // A4-09-r7: topic and post taps use the same favourite navigation owners as 我的 (AccountView).
+            MPFavoritesLinkHost(session: session)
                 .id(session.profileFavoritesReader.scope)
         case "pages/addressinfo/addressinfo":
             // X1: the participant form; `?id=` edits that participant.
@@ -662,5 +683,42 @@ private struct MPTabHandoff: View {
         Color.clear
             .accessibilityHidden(true)
             .onAppear { guard !done else { return }; done = true; perform() }
+    }
+}
+
+
+/// A4-09-r7: `pages/mylike/mylike` from a link. Same readers, selection guards and destinations as
+/// 我的 › 我的收藏 (AccountView), so 主题 and 帖文 taps open their detail instead of doing nothing.
+@MainActor private struct MPFavoritesLinkHost: View {
+    @ObservedObject var session: AppSession
+    @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
+    @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
+    var body: some View {
+        let reader = session.profileFavoritesReader
+        AccountCollectionFavoritesView(reader: reader, onOpenTopic: { id in
+            guard let selected = reader.selectTopic(id, renderedScope: reader.scope) else { return }
+            _ = savedTopicOwner.open(selected, scope: reader.scope)
+        }, onOpenPost: { route in
+            guard let selected = reader.selectPost(route, renderedScope: reader.scope) else { return }
+            _ = savedPostOwner.open(selected, scope: reader.scope)
+        }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: reader.scope),
+           communityGate: session.squareReader)
+            .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+            .background {
+                ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
+                    ProfileFavoriteTopicDestination(selection: selected, session: session,
+                        makeReader: { session.makeProfileFavoriteTopicReader(selected) }).id(selected.id).cyPushedChrome()
+                }
+                ProfileFavoriteNavigationLayer(owner: savedPostOwner) { selected in
+                    ProfileFavoriteDetailDestination(selection: selected,
+                        makeReader: { session.makeProfileFavoriteDetailReader(selected) },
+                        accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
+                        .id(selected.id)
+                        .cyPushedChrome()
+                }
+            }
+            .onChange(of: session.profileFavoritesReader.scope) { _, scope in
+                savedPostOwner.updateScope(scope); savedTopicOwner.updateScope(scope)
+            }
     }
 }

@@ -18,11 +18,11 @@ struct MerchantRedemptionProgressView: View {
                             .cyText(.body)
                             .foregroundStyle(CYColor.textPrimary)
                         Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue))
-                            .cyText(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                         if let raw = step.timestamp {
                             MerchantSettlementTimestampText(raw: raw)
-                                .cyText(.caption)
+                                .cyText(.meta)
                                 .monospacedDigit()
                                 .foregroundStyle(CYColor.textSecondary)
                         }

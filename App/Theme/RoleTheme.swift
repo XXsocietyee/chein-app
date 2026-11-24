@@ -41,19 +41,18 @@ extension View {
     }
 
     /// Apply to the content of a `.sheet`, `.fullScreenCover` or popover presented from a role root.
-    /// Re-asserts the forced colour scheme, rounded sheet radius, and sheet glass background so the
-    /// sheet never follows the device appearance.
+    /// Re-asserts the role's colour scheme so the sheet never follows the device appearance. Corners and
+    /// background are the system sheet's (native-ios-r1 §3.4).
     func roleThemedPresentation() -> some View {
         modifier(RoleThemedPresentationModifier())
     }
 
     /// Apply player sheet glass (`rgba(44,44,46,.98)` + 24pt top corner radius) and dark player tokens
     /// directly onto a presented sheet hierarchy.
+    /// Native restyle (native-ios-r1 §3.4): the system sheet in the player appearance. No custom corner radius
+    /// or glass background; the name stays so call sites keep reading as "player sheet".
     func cyPlayerSheetGlass() -> some View {
-        self
-            .themeDomain(.player)
-            .presentationCornerRadius(CYRadius.sheet)
-            .presentationBackground(CYDomainPalette(.player).sheetGlass)
+        self.themeDomain(.player)
     }
 }
 
@@ -85,8 +84,7 @@ private struct RoleThemedPresentationModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .themeDomain(role.domain)
-            .presentationCornerRadius(CYRadius.sheet)
-            .presentationBackground(CYDomainPalette(role.domain).sheetGlass)
+            // Native restyle (native-ios-r1 §3.4): system sheet corners and background in the role appearance.
     }
 }
 

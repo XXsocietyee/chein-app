@@ -191,7 +191,7 @@ struct MessageComposerSubmission: Equatable {
                     .accessibilityIdentifier("message.send.button")
                 }
                 .frame(minHeight:44)
-                .background(Theme.Color.bgRaised(in:domain),in:RoundedRectangle(cornerRadius:22,style:.continuous))
+                .background(Theme.Color.bgRaised(in:domain),in:RoundedRectangle(cornerRadius: CYRadius.card, style:.continuous))
             }
             if !conversationReady { Text("message.send.historyRequired").cyText(.meta).foregroundStyle(.secondary) }
         }

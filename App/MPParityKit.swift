@@ -352,7 +352,8 @@ struct MPRow: View {
             if let leading { leading }
             layout {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    title.cyText(.bodyMedium)
+                    // Native row (native-ios-r1 §3.2): regular .body title, .footnote sub, value in secondary label.
+                    title.cyText(.body)
                         .foregroundStyle(muted ? CYColor.textTertiary : CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let sub {
@@ -363,7 +364,7 @@ struct MPRow: View {
                 }
                 if !stack { Spacer(minLength: CYSpacing.sm) }
                 if let value {
-                    value.font(strong ? CYTypography.cardTitle : CYTypography.bodyCompact)
+                    value.cyText(strong ? .cardTitle : .body)
                         .monospacedDigit()
                         .foregroundStyle(muted ? CYColor.textTertiary : (strong ? CYColor.textPrimary : CYColor.textSecondary))
                         .multilineTextAlignment(stack ? .leading : .trailing)
@@ -372,7 +373,7 @@ struct MPRow: View {
             }
             if stack { Spacer(minLength: 0) }
             if chevron {
-                Image(systemName: "chevron.right").cyText(.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }
         }
         .padding(.horizontal, CYSpacing.lg)
@@ -405,9 +406,10 @@ struct MPRows<Item: Identifiable, Row: View>: View {
 struct MPSectionHeader: View {
     let title: LocalizedStringKey
     var body: some View {
-        Text(title).cyText(.label).foregroundStyle(CYColor.textSecondary)
+        // Native inset-grouped section header (native-ios-r1 §3.2): .footnote secondary, sentence case, row inset.
+        Text(title).cyText(.meta).foregroundStyle(CYColor.textSecondary)
             .textCase(nil)
-            .padding(.horizontal, CYSpacing.xs)
+            .padding(.horizontal, CYSpacing.lg)
             .accessibilityAddTraits(.isHeader)
     }
 }

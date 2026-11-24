@@ -23,7 +23,7 @@ import SwiftUI
                 List {
                     Text(creatorString("workshopCreator.unavailable"))
                     Text(creatorString("workshopCreator.boundary")).foregroundStyle(.secondary)
-                }.navigationTitle(creatorString("workshopCreator.title")).accessibilityIdentifier("workshopCreator.unavailable")
+                }.navigationTitle(creatorString("workshopCreator.title")).navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("workshopCreator.unavailable")
             }
         }.privacySensitive()
     }

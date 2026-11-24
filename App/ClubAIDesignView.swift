@@ -36,7 +36,7 @@ import SwiftUI
             }.disabled(generating)
             if !model.flow.isConfigured {
                 Label { Text("context.ai.disabled") } icon: { Image(systemName: "sparkles") }
-                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    .cyText(.body).foregroundStyle(CYColor.textSecondary)
             }
             if generating {
                 ProgressView("context.ai.generating")
@@ -56,7 +56,7 @@ import SwiftUI
             }
             if let failure = model.flow.failure {
                 Label { Text(LocalizedStringKey("context.ai.error." + String(describing: failure))) } icon: { Image(systemName: "exclamationmark.triangle") }
-                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    .cyText(.body).foregroundStyle(CYColor.textPrimary)
             }
             if let result = model.flow.result, let resultGeneration = model.flow.resultGeneration, let source = model.flow.resultInput {
                 Section(showsPreviousResult ? LocalizedStringKey("clubAICandidate.previous") : LocalizedStringKey("context.ai.plan")) {
@@ -85,7 +85,7 @@ import SwiftUI
                         }
                     }
                     ForEach(Array(result.risks.enumerated()), id: \.offset) { _, risk in
-                        Label { Text(verbatim: risk) } icon: { Image(systemName: "exclamationmark.triangle") }.font(CYTypography.meta)
+                        Label { Text(verbatim: risk) } icon: { Image(systemName: "exclamationmark.triangle") }.cyText(.meta)
                     }
                 }
                 Section("context.ai.suggestions") { ForEach(Array(result.merchantSuggestions.enumerated()), id: \.offset) { _, value in Text(verbatim: value) } }

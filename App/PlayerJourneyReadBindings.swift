@@ -57,9 +57,9 @@ struct PlayerJourneySignInSheet: ViewModifier {
     let session: AppSession
 
     func body(content: Content) -> some View {
-        content.sheet(isPresented: $bridge.presented) {
+        content.sheet(isPresented: $bridge.presented) { Group {
             LoginView(intent: .player).environmentObject(session)
-        }
+        }.cySheet(detents: [.large]) }
     }
 }
 

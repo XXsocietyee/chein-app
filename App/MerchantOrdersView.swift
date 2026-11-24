@@ -40,7 +40,7 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                         if filter.status != nil || filter.aftersaleStatus != nil { filterSummary }
                         if model.isLoading { ProgressView("merchant.refreshing").cyText(.meta) }
                         if let error = model.errorKey {
-                            Text("merchant.stale").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                            Text("merchant.stale").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             MerchantInlineFailure(errorKey: error, retry: { scheduleReload() })
                         }
                     }
@@ -183,7 +183,7 @@ private struct MerchantOrderRow: View {
     @ViewBuilder private var orderTime: some View {
         if let time = order.createTime, !time.isEmpty {
             Text(time)
-                .cyText(.caption)
+                .cyText(.meta)
                 .monospacedDigit()
                 .foregroundStyle(CYColor.textSecondary)
         }

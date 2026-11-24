@@ -34,7 +34,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
 
     var body: some View {
         content
-            .navigationTitle(c.screen == .home ? t("storeCharacter.title.home") : t("storeCharacter.title.avatar"))
+            .navigationTitle(c.screen == .home ? t("storeCharacter.title.home") : t("storeCharacter.title.avatar")).navigationBarTitleDisplayMode(.inline)
             // type-and-chrome §3: the coordinator decides (avatar sub-screen, unsaved text, saving); the system back
             // and swipe return as soon as nothing needs guarding.
             .cyGuardedBack(when: c.screen != .home || c.saving || !c.home.sameText(c.saved)) {
@@ -144,7 +144,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .denied(let reason):
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
@@ -161,7 +161,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
             // A current read refusal is not a network failure or a new initial-admission exit.
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "lock")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.gate.deniedTitle")
                     .cyText(.cardTitle)
@@ -181,7 +181,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
         case .failed(let message):
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "exclamationmark.triangle")
-                    .font(CYTypography.display)
+                    .cyText(.display)
                     .foregroundStyle(CYColor.textSecondary)
                 t("storeCharacter.load.failedTitle")
                     .cyText(.cardTitle)
@@ -240,14 +240,14 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                         .accessibilityIdentifier("aiNPC.hero.badge")
                     if let reason = c.saved.rejectionReason {
                         (t("storeCharacter.hero.rejectReason") + Text(verbatim: reason))
-                            .cyText(.caption)
+                            .cyText(.meta)
                             .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("aiNPC.hero.rejectReason")
                     }
                 }
             } else {
                 t("storeCharacter.avatar.previewCaption")
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }
@@ -323,7 +323,7 @@ private func t(_ key: LocalizedStringKey) -> Text { Text(key, tableName: "StoreC
                         Spacer()
                     }
                 }
-                .buttonStyle(.questifyPrimary).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
+                .buttonStyle(.borderedProminent).disabled(c.saving || c.saveLocked).accessibilityIdentifier("aiNPC.avatar.save")
             }
         }
     }
@@ -516,8 +516,8 @@ private struct StoreCharacterPresetSheet: View {
                         Button { c.pickPreset(preset.id) } label: {
                             VStack(spacing: 6) {
                                 MerchantNPCPresetArtwork(avatar: preset).frame(width: 88, height: 88)
-                                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(c.presetPick == preset.id ? Color.accentColor : .clear, lineWidth: 3))
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                                    .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(c.presetPick == preset.id ? Color.accentColor : .clear, lineWidth: 3))
                                 Text(LocalizedStringKey(preset.titleKey)).cyText(.meta)
                             }
                         }
@@ -528,7 +528,7 @@ private struct StoreCharacterPresetSheet: View {
                 }
                 .padding()
                 Button { c.confirmPreset() } label: { t("storeCharacter.preset.use").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
+                    .buttonStyle(.borderedProminent).padding(.horizontal).accessibilityIdentifier("aiNPC.preset.use")
             }
             .navigationTitle(t("storeCharacter.preset.title")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -609,7 +609,7 @@ private struct StoreCharacterVoiceSheet: View {
             .accessibilityElement().accessibilityLabel(t("storeCharacter.voice.progress"))
             t("storeCharacter.voice.sentence1")
             Button {} label: { t("storeCharacter.voice.hold").frame(maxWidth: .infinity) }
-                .buttonStyle(.questifyPrimary).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
+                .buttonStyle(.borderedProminent).disabled(true).accessibilityIdentifier("aiNPC.voice.hold")
             t("storeCharacter.voice.recordingUnavailable").cyText(.bodyCompact).foregroundStyle(.secondary)
             if c.canRecord {
                 Button { c.useSyntheticRecording() } label: { t("storeCharacter.voice.useSample") }

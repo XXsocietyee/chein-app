@@ -1,5 +1,13 @@
 import SwiftUI
 
+private struct TeamCommandWriterKey: EnvironmentKey { static let defaultValue: TeamCommandWriter? = nil }
+extension EnvironmentValues {
+    var teamCommandWriter: TeamCommandWriter? {
+        get { self[TeamCommandWriterKey.self] }
+        set { self[TeamCommandWriterKey.self] = newValue }
+    }
+}
+
 /// Embed in an existing NavigationStack. A session-owned factory creates isolated route models.
 @MainActor struct TeamHomeView: View {
     @StateObject private var model: TeamScreenModel
@@ -64,6 +72,7 @@ import SwiftUI
     var legacyTeamID = false
     @Environment(\.teamReformHooks) private var reformHooks
     @Environment(\.teamChannelManagementHooks) private var channelManagementHooks
+    @Environment(\.teamCommandWriter) private var commandWriter
     @State private var reformSheet: TeamReformSheet?
     init(lookup: TeamLookup, coordinator: TeamCoordinator, makeCoordinator: @escaping () -> TeamCoordinator, requiresMembership: Bool = false, readOnly: Bool = false, onLogin: (() -> Void)? = nil, legacyTeamID: Bool = false) {
         self.lookup = lookup; self.makeCoordinator = makeCoordinator; self.requiresMembership = requiresMembership; self.readOnly = readOnly
@@ -187,7 +196,7 @@ import SwiftUI
                     CYCard(padding: CYSpacing.md) {
                         VStack(spacing: 0) {
                             if detail.members.isEmpty {
-                                Text("team.page.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                                Text("team.page.membersEmpty").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
                             ForEach(Array(detail.members.enumerated()), id: \.element.id) { index, member in
                                 let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
@@ -203,21 +212,24 @@ import SwiftUI
                     actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
                     actionButton(.disband(teamID: detail.team.id), detail: detail)
                     if TeamPagePresentation.showsRefundNote(detail) {
-                        Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        Text("team.page.refundNote").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     // C-D3: 举报队伍 for members who are not the leader (the entry hides itself until its access is enabled).
                     if invitationCode == nil, detail.leader != true {
                         TeamReportEntryButton(teamID: detail.team.id)
                     }
                 }
-                if !readOnly, model.coordinator.pending != nil {
+                if !readOnly, let pending = model.coordinator.pending {
                     Button("team.checkOutcome") {
                         let permit = model.captureRun()
                         Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
                     }
                         .buttonStyle(.cySecondary).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
+                    teamRecoveryButtons(pending: pending)
                 }
-                if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
+                // C-D9: 重新加载 only when the read failed; a loaded detail refreshes by pull-to-refresh.
+                if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil,
+                   model.coordinator.readFailure != nil || model.coordinator.detail == nil {
                     Button("team.refresh") {
                         let permit = model.captureRun()
                         readOwner.start { await reload(permit: permit) }
@@ -232,16 +244,50 @@ import SwiftUI
                 await readOwner.run { await reload() }
             }.refreshable { await readOwner.run { await reload() } }
             .onDisappear { readOwner.deactivate(); model.leave() }
-            .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
-            .sheet(isPresented: $invitationPreview) { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }
-            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }
+            .sheet(item: nonJoinReviewBinding) { TeamReviewSheet(model: model, review: $0).cySheet() }
+            .sheet(isPresented: $invitationPreview) { Group { if let team = model.coordinator.detail?.team { TeamInvitePreview(team: team, model: model) } }.cySheet() }
+            .sheet(item: $reformSheet, onDismiss: { let permit = model.captureRun(); readOwner.start { await reload(permit: permit) } }) { sheet in Group { if let reformHooks { TeamReformSheetHost(sheet: sheet, hooks: reformHooks) } }.cySheet(detents: [.large]) }
         .cyDomainScreen(.player)
+    }
+    /// C-D12 recovery card. `checkOutcome()` stays synthetic. Query, retry, and cancel share one key and the original fields.
+    @ViewBuilder private func teamRecoveryButtons(pending: TeamPendingRecord) -> some View {
+        let command = model.recoveryCommand?.targetKey == pending.targetKey ? model.recoveryCommand : nil
+        let key = command?.key ?? pending.targetKey
+        let fields = command?.fields ?? [:]
+        Button {
+            let permit = model.captureRun()
+            Task { await model.run(permit: permit) { _ = await commandWriter?.query(key: key) } }
+        } label: { Text(verbatim: TeamCommandRecoveryCopy.query) }
+            .buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.recovery.query")
+        Button {
+            guard fields["action"] != nil else { return }
+            let permit = model.captureRun()
+            Task { await model.run(permit: permit) { _ = await commandWriter?.submit(key: key, path: "api/team/command", fields: fields) } }
+        } label: { Text(verbatim: TeamCommandRecoveryCopy.retry) }
+            .buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.recovery.retry")
+        Button {
+            guard fields["action"] != nil else { return }
+            let permit = model.captureRun()
+            Task { await model.run(permit: permit) { _ = await commandWriter?.cancel(key: key, fields: fields) } }
+        } label: { Text(verbatim: TeamCommandRecoveryCopy.abort) }
+            .buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.recovery.abort")
+        Text(verbatim: TeamCommandRecoveryCopy.abortNote)
+            .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("team.recovery.abortNote")
     }
     @ViewBuilder private func actionButton(_ action: TeamAction, detail: TeamDetail, labelKey: String? = nil) -> some View {
         if !readOnly, action.isAllowed(detail: detail) {
             if case .join = action {
-                // Mini-program 加入队伍 is the page's one primary action.
-                Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }
+                // Mini-program 加入队伍 is the page's one primary action. C-J3 (MP join wxml:57-60): it joins
+                // directly and reads 加入中… while the request runs; no review sheet in between.
+                Button { joinDirectly(action) } label: {
+                    if model.running, case .join? = model.coordinator.review?.action {
+                        Text("fixr3.team.joining")
+                    } else {
+                        Text(LocalizedStringKey(labelKey ?? action.key))
+                    }
+                }
                     .buttonStyle(.cyPrimary).disabled(model.actionLocked)
                     .accessibilityIdentifier(action.key)
             } else {
@@ -257,6 +303,25 @@ import SwiftUI
                 }
             }
         }
+    }
+    /// C-J3: prepare and confirm in one tap. Without a submit authority the review stays and its sheet explains why.
+    private func joinDirectly(_ action: TeamAction) {
+        model.prepare(action)
+        model.rememberRecovery(action)
+        guard model.coordinator.canSubmit, let review = model.coordinator.review else { return }
+        let permit = model.captureRun()
+        Task {
+            guard model.coordinator.review == review else { return }
+            _ = await model.run(permit: permit) { await model.coordinator.confirm(review) }
+        }
+    }
+    /// The join review is confirmed in place (C-J3); every other review keeps its sheet.
+    private var nonJoinReviewBinding: Binding<TeamReview?> {
+        Binding(get: {
+            guard let review = model.coordinator.review else { return nil }
+            if case .join = review.action, model.coordinator.canSubmit { return nil }
+            return review
+        }, set: { model.reviewBinding.wrappedValue = $0 })
     }
     private func destructiveRole(_ action: TeamAction) -> ButtonRole? {
         if case .disband = action { return .destructive }

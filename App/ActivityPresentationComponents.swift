@@ -39,7 +39,7 @@ struct ActivityListCard: View {
                 HStack(alignment: .center, spacing: CYSpacing.md) {
                     cover.frame(width: 96, height: 96).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                     text
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textSecondary).accessibilityHidden(true)
                 }
             }
         }
@@ -57,7 +57,7 @@ struct ActivityListCard: View {
             title.cyText(.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
             if let metaLine {
                 Label { Text(verbatim: metaLine).lineLimit(2) } icon: { Image(systemName: "calendar") }
-                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .cyText(.meta).foregroundStyle(palette.textSecondary)
             }
             HStack(spacing: CYSpacing.xs) {
                 if let state = E1ActivityState.of(start: item.startDate, end: item.endDate) { state.chip(copy) }
@@ -86,7 +86,7 @@ struct ActivityDetailHeader: View {
                 QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 180 : 240)
             } else {
                 // No cover: a clean surface with no text.
-                RoundedRectangle(cornerRadius:14,style:.continuous)
+                RoundedRectangle(cornerRadius: 12,style:.continuous)
                     .fill(Color(uiColor:.tertiarySystemFill))
                     .frame(height:160)
                     .accessibilityHidden(true)

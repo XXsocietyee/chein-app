@@ -182,7 +182,7 @@ struct ProjectEditNodeMap<Destination: View>: View {
                     // The preview's one action: the whole map opens the full-bleed page (the label names it).
                     NavigationLink { ProjectEditNodeMapPage(chapters: chapters, destination: destination) } label: {
                         Label { OpsR3Text.text("editor.map.open") } icon: { Image(systemName: "arrow.up.left.and.arrow.down.right") }
-                            .font(CYTypography.label)
+                            .cyText(.label)
                             .foregroundStyle(palette.textPrimary)
                             .padding(.horizontal, CYSpacing.md)
                             .frame(minHeight: CYSpacing.minTouchTarget)

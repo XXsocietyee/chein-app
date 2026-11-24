@@ -34,7 +34,7 @@ struct QuestifyCardButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(minHeight: 44)
-            .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .environment(\.cyPressHandled, true)
             .cyPressEffect(configuration.isPressed && isEnabled, reduceMotion: reduceMotion)
     }

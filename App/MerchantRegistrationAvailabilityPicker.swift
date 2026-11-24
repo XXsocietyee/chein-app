@@ -54,16 +54,19 @@ import SwiftUI
     func body(content: Content) -> some View {
         content
         .sheet(item: $editor) { captured in
-            MerchantRegistrationAvailabilitySheet(initial: captured.initial,
-                unrecognized: MerchantRegistrationAvailability(source: captured.source) == nil,
-                cancel: { editor = nil }) { value in
-                guard let source, canEdit, scenePhase == .active, context == captured.context,
-                      source == captured.source, replacement == captured.replacement, value.isValid else { return false }
-                // An unchanged representable source is an omission, not normalization.
-                let next = value == MerchantRegistrationAvailability(source: source) ? nil : value
-                guard next == replacement || apply(next) else { return false }
-                editor = nil; return true
+            Group {
+                MerchantRegistrationAvailabilitySheet(initial: captured.initial,
+                    unrecognized: MerchantRegistrationAvailability(source: captured.source) == nil,
+                    cancel: { editor = nil }) { value in
+                    guard let source, canEdit, scenePhase == .active, context == captured.context,
+                          source == captured.source, replacement == captured.replacement, value.isValid else { return false }
+                    // An unchanged representable source is an omission, not normalization.
+                    let next = value == MerchantRegistrationAvailability(source: source) ? nil : value
+                    guard next == replacement || apply(next) else { return false }
+                    editor = nil; return true
+                }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: context) { _, _ in editor = nil }
         .onChange(of: source) { _, _ in editor = nil }

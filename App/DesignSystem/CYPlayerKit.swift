@@ -259,8 +259,7 @@ private struct CYFitSheetDetentModifier: ViewModifier {
             )
             .frame(maxHeight: .infinity, alignment: .top)
             .presentationDetents([.height(min(height, CYSheetMetrics.fitCap))])
-            .presentationDragIndicator(.hidden)
-            .presentationCornerRadius(CYRadius.sheet)
+            .presentationDragIndicator(.visible)
             .animation(CYMotion.resolve(CYMotion.sheetDetent, reduceMotion: reduceMotion), value: height)
     }
 }
@@ -631,9 +630,7 @@ struct CYResizableSheet<Content: View>: View {
         .environment(\.cyPillOnSheet, true)
         .presentationDetents(Set(detents), selection: $selection)
         .presentationContentInteraction(.resizes)
-        .presentationDragIndicator(isResizable ? .visible : .hidden)
-        .presentationCornerRadius(CYRadius.sheet)
-        .presentationBackground(palette.sheetGlass)
+        .presentationDragIndicator(.visible)
         .modifier(CYSheetBackgroundInteraction(mapInteractive: kind.mapInteractive))
         .interactiveDismissDisabled(isDirty)
         .animation(CYMotion.resolve(CYMotion.sheetDetent, reduceMotion: reduceMotion), value: fitHeight)

@@ -115,7 +115,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .cyText(.body)
-        .appNavigationTitle("d7.channelMembers.title").privacySensitive()
+        .appNavigationTitle("d7.channelMembers.title").navigationBarTitleDisplayMode(.inline).privacySensitive()
         .refreshable {
             guard !source.busy, source.isCurrent else { return }
             selected = nil; message = ""; friend.cancelReview(); await source.refresh()

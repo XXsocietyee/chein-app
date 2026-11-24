@@ -3,11 +3,15 @@ import SwiftUI
 @MainActor struct SessionTeamHomeView: View {
     @EnvironmentObject private var session: AppSession
     @State private var login = false
+    @State private var recoveryWriter: TeamCommandWriter?
     var body: some View {
         TeamHomeView(coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }, onLogin: { login = true }, nearbyDestination: { teams in AnyView(SessionNearbyTeamsView(context: session.nearbyTeamQueryContext, joinedTeams: teams)) }, onOpenInvitation: { session.receiveNativeIntent(.teamInvitation($0)) })
             .environment(\.teamChannelManagementHooks, session.normalTeamChannelManagementHooks)
             .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
+            .environment(\.teamCommandWriter, recoveryWriter)
             .id(session.teamViewIdentity)
+            .onAppear { if recoveryWriter == nil { recoveryWriter = session.teamRecoveryWriter() } }
+            .onChange(of: session.teamViewIdentity) { _, _ in recoveryWriter = session.teamRecoveryWriter() }
             .sheet(isPresented: $login) { LoginView(intent: .player) }
     }
 }
@@ -17,10 +21,14 @@ import SwiftUI
     let lookup: TeamLookup
     @EnvironmentObject private var session: AppSession
     @State private var login = false
+    @State private var recoveryWriter: TeamCommandWriter?
     var body: some View {
         TeamDetailView(lookup: lookup, coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }, onLogin: { login = true }).id(session.teamViewIdentity)
             .environment(\.teamChannelManagementHooks, session.normalTeamChannelManagementHooks)
             .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
+            .environment(\.teamCommandWriter, recoveryWriter)
+            .onAppear { if recoveryWriter == nil { recoveryWriter = session.teamRecoveryWriter() } }
+            .onChange(of: session.teamViewIdentity) { _, _ in recoveryWriter = session.teamRecoveryWriter() }
             .sheet(isPresented: $login) { LoginView(intent: .player) }
     }
 }
@@ -39,6 +47,11 @@ import SwiftUI
 /// Normal-root TEAM adapters restored from the retained source. CLUB-only destinations
 /// (Webhook, audit, moderation and member-friend requests) are deliberately not injected.
 @MainActor fileprivate extension AppSession {
+    /// Nil while the player write grant is off. The recovery buttons stay on screen and do not send.
+    func teamRecoveryWriter() -> TeamCommandWriter? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        return composition.teamCommandWriter(context: context, transport: runtimeHTTPTransport)
+    }
     var normalTeamChannelManagementHooks: NativeTeamChannelManagementHooks {
         let capturedIdentity = teamViewIdentity
         let capturedContext = currentRuntimeDependencyContext

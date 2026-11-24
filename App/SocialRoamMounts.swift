@@ -334,7 +334,7 @@ struct MapPlaceSuggestions: ViewModifier {
             if capabilities != nil {
                 ForEach(model.places) { place in
                     Button { open(place) } label: {
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text(verbatim: place.name).cyText(.bodyCompact).foregroundStyle(CYColor.textPrimary)
                             if !place.address.isEmpty {
                                 Text(verbatim: place.address).cyText(.meta).foregroundStyle(CYColor.textSecondary)

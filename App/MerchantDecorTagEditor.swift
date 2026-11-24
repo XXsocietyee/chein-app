@@ -45,7 +45,10 @@ import SwiftUI
         Button("merchant.decorTags.choose") { picker = .init(document: model) }
             .disabled(!editable).accessibilityIdentifier("merchant.decorTags.open")
             .sheet(item: $picker, onDismiss: { picker?.cancel(); picker = nil }) { value in
-                MerchantDecorTagSheet(picker: value) { value.cancel(); picker = nil }
+                Group {
+                    MerchantDecorTagSheet(picker: value) { value.cancel(); picker = nil }
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .onChange(of: model.coordinator.draftIdentity) { _, _ in close() }
             .onChange(of: model.coordinator.reader.scope) { _, _ in close() }

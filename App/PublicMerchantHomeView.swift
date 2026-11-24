@@ -304,7 +304,7 @@ import SwiftUI
     @ViewBuilder private func media(_ value: String?, label: LocalizedStringKey) -> some View {
         if let value, !value.isEmpty {
             if let image = context.image { image(value).accessibilityLabel(Text(label)) }
-            else { Label(label, systemImage: "photo").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            else { Label(label, systemImage: "photo").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
         }
     }
     private func load() async {

@@ -283,7 +283,7 @@ struct EditorAnswerOptionRow<Expanded: View>: View {
                 if let thumbnail {
                     thumbnail.resizable().scaledToFill()
                         .frame(width: EditorKitMetric.optionThumb, height: EditorKitMetric.optionThumb)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         .accessibilityHidden(true)
                 }
                 EditorRowActionsMenu(index: index, count: count, onAction: onAction)

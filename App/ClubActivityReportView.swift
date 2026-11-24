@@ -148,7 +148,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                 .accessibilityElement(children: .combine)
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -204,7 +204,7 @@ import SwiftUI
     private func choiceRow(_ choice: ClubActivityReportChoice) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             CYRowIcon(systemImage: "flag")
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 choiceTitle(choice.name)
                     .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)
@@ -229,7 +229,7 @@ import SwiftUI
                 .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
     @ViewBuilder private func choiceTitle(_ name: String?) -> some View {
@@ -347,8 +347,9 @@ import SwiftUI
         })
     }
     var body: some View {
-        Color.clear.sheet(isPresented: presentationBinding, onDismiss: { dismissed(item.id) }) {
+        Color.clear.sheet(isPresented: presentationBinding, onDismiss: { dismissed(item.id) }) { Group {
             NavigationStack { ClubActivityReportView(flow: item.flow, coordinator: coordinator) }
+        }.cySheet(detents: [.large])
         }
     }
 }

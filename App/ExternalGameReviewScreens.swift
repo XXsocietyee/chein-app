@@ -12,8 +12,11 @@ import QuestifyCore
 
     var body: some View {
         catalogBody
-            .sheet(isPresented: $showCreatorMonetization) {
+            .sheet(isPresented: $showCreatorMonetization) { Group {
                 ExternalGameCreatorMonetizationSheet(model: model, session: session)
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
     }
 

@@ -504,22 +504,24 @@ extension View {
 
 // MARK: - 4pt Grid Spacing Scale (CYSpacing -> Theme.Space)
 
-/// Spatial grid delegating to `Theme.Space` (generated from `tokens.wxss`), including 6/10/14pt half-steps.
+/// Spatial grid delegating to `Theme.Space` (generated from `tokens.wxss`).
+/// Native restyle (native-ios-r1 §2.4): one 4/8 grid. The retired half-steps keep their names for call sites but
+/// snap to the grid (2 → 4, 6 → 8, 10 → 12, 14 → 16).
 public enum CYSpacing {
-    /// `2pt` optical hairline offset.
-    public static let xxs: CGFloat = 2
+    /// Retired `2pt` hairline step; snaps to `xs` (4pt).
+    public static let xxs: CGFloat = Theme.Space.s1
     /// `4pt` minimum grid unit (`Theme.Space.s1`, `--cy-space-1`).
     public static let xs: CGFloat = Theme.Space.s1
-    /// `6pt` compact half-step (`Theme.Space.s1_5`, `--cy-space-1-5`).
-    public static let s1_5: CGFloat = Theme.Space.s1_5
+    /// Retired `6pt` half-step; snaps to `sm` (8pt).
+    public static let s1_5: CGFloat = Theme.Space.s2
     /// `8pt` compact chip/tag gap (`Theme.Space.s2`, `--cy-space-2`).
     public static let sm: CGFloat = Theme.Space.s2
-    /// `10pt` dense half-step (`Theme.Space.s2_5`, `--cy-space-2-5`).
-    public static let s2_5: CGFloat = Theme.Space.s2_5
+    /// Retired `10pt` half-step; snaps to `md` (12pt).
+    public static let s2_5: CGFloat = Theme.Space.s3
     /// `12pt` list row / inner card stack spacing (`Theme.Space.s3`, `--cy-space-3`).
     public static let md: CGFloat = Theme.Space.s3
-    /// `14pt` half-step (`Theme.Space.s3_5`, `--cy-space-3-5`).
-    public static let s3_5: CGFloat = Theme.Space.s3_5
+    /// Retired `14pt` half-step; snaps to `lg` (16pt).
+    public static let s3_5: CGFloat = Theme.Space.s4
     /// `16pt` standard page horizontal margin & card padding (`Theme.Space.s4`, `--cy-space-4`).
     public static let lg: CGFloat = Theme.Space.s4
     /// `20pt` spacious card padding.

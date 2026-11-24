@@ -106,7 +106,7 @@ struct UsageConsentGateView: View {
             .navigationTitle(Text("authEntry.gate.title", tableName: "AuthEntry"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
-            .sheet(item: $document) { sheet in
+            .sheet(item: $document) { sheet in Group {
                 NavigationStack {
                     SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
                         .toolbar {
@@ -119,6 +119,9 @@ struct UsageConsentGateView: View {
                             }
                         }
                 }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
         }
         .interactiveDismissDisabled()
@@ -164,12 +167,15 @@ private struct UsageConsentLaunchGate: ViewModifier {
         content
             .onAppear { presented = UsageConsentGateDecision.showAtLaunch(granted: policy.granted, signedIn: signedIn, declinedThisLaunch: declinedThisLaunch); presentation?.consentActive = presented }
             .onChange(of: presented) { _, value in presentation?.consentActive = value }
-            .sheet(isPresented: $presented) {
+            .sheet(isPresented: $presented) { Group {
                 UsageConsentGateView(market: market, onAgree: {
                     try? policy.agree(agreementChecked: true); presented = false
                 }, onDecline: {
                     policy.decline(); declinedThisLaunch = true; presented = false; onDecline()
                 })
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
     }
 }
@@ -197,10 +203,13 @@ struct UsageConsentSignInRequirement: View {
                 .accessibilityValue(Text("authEntry.gate.requiredForSignIn", tableName: "AuthEntry"))
                 .accessibilityHint(Text("authEntry.gate.lead", tableName: "AuthEntry"))
         }
-        .sheet(isPresented: $presented) {
+        .sheet(isPresented: $presented) { Group {
             UsageConsentGateView(market: market, onAgree: {
                 try? policy.agree(agreementChecked: true); granted = policy.granted; presented = false
             }, onDecline: { policy.decline(); granted = false; presented = false })
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
     }
 }

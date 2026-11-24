@@ -362,7 +362,10 @@ private struct MerchantPredictionReviewView: View {
         Color.clear.frame(width: 0, height: 0)
             .sheet(item: model.predictionReviewPresentation(for: accepted),
                    onDismiss: { model.cancelReview(id: accepted.id) }) { review in
-                MerchantPredictionReviewView(model: model, accepted: review)
+                Group {
+                    MerchantPredictionReviewView(model: model, accepted: review)
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
     }
 }

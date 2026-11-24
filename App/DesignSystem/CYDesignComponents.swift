@@ -50,18 +50,9 @@ public struct CYCardSurfaceModifier: ViewModifier {
         content
             .padding(padding)
             .background(shape.fill(backgroundColor))
-            .overlay {
-                if colorScheme == .dark && (variant == .elevated || variant == .surface) {
-                    VStack(spacing: 0) {
-                        Rectangle()
-                            .fill(CYColor.cardHighlight)
-                            .frame(height: 0.5)
-                        Spacer(minLength: 0)
-                    }
-                    .clipShape(shape)
-                    .allowsHitTesting(false)
-                }
-            }
+            // Native restyle (spec §3.3): elevation comes from the grouped surface colour; Increase Contrast adds a
+            // 1 pt separator edge (the chengyin-ios `questifyCardSurface`).
+            .modifier(CYIncreaseContrastEdge(radius: radius))
             .shadow(
                 color: showLightShadow ? CYColor.cardShadowColor : Color.clear,
                 // Native restyle: light shadow only (no heavy shadows). A clear shadow still costs a blur pass.
@@ -80,6 +71,22 @@ public extension View {
         padding: CGFloat = CYSpacing.lg
     ) -> some View {
         modifier(CYCardSurfaceModifier(variant: variant, radius: radius, padding: padding))
+    }
+}
+
+/// A 1 pt separator edge drawn only when the user turns on Increase Contrast (native-ios-r1 §3.3).
+struct CYIncreaseContrastEdge: ViewModifier {
+    let radius: CGFloat
+    @Environment(\.colorSchemeContrast) private var contrast
+
+    func body(content: Content) -> some View {
+        content.overlay {
+            if contrast == .increased {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(CYColor.borderStrong, lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+        }
     }
 }
 
@@ -258,8 +265,10 @@ public enum CYButtonSize: Sendable, Hashable {
         }
     }
 
+    /// Native restyle (native-ios-r1 §3.6): every button is a capsule (`buttonBorderShape(.capsule)`), so `isPill`
+    /// no longer changes the shape. Kept for call-site compatibility.
     func cornerRadius(isPill: Bool) -> CGFloat {
-        isPill || self == .xs ? CYRadius.pill : CYRadius.md
+        CYRadius.pill
     }
 }
 
@@ -390,9 +399,8 @@ public struct CYPrimaryButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 
@@ -432,9 +440,8 @@ public struct CYSecondaryButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 
@@ -474,9 +481,8 @@ public struct CYGhostButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 
@@ -516,9 +522,8 @@ public struct CYDestructiveButtonStyle: ButtonStyle {
         .background(shape.fill(tokens.background))
         .frame(minHeight: size == .xs ? size.visualHeight : CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
-        .opacity(active && configuration.isPressed ? 0.88 : 1.0)
-        .scaleEffect(active && configuration.isPressed && !reduceMotion ? 0.97 : 1.0)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+        // System button press: a highlight, no second (scale) animation (native-ios-r1 §1.1).
+        .opacity(active && configuration.isPressed ? 0.7 : 1.0)
     }
 }
 

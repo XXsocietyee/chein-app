@@ -143,24 +143,24 @@ import SwiftUI
                     }
                 }
             }
-            .sheet(isPresented: $showsComposer) {
+            .sheet(isPresented: $showsComposer) { Group {
                 if let actions {
                     SquareCloudComposerView(coordinator: actions, offline: reader.isOfflineExample, prefill: repostPrefill, joinedHosted: { reader.isOfflineExample ? .offline : .permission }, completed: { reader.isOfflineExample ? .offline : .permission }, onClose: { showsComposer = false; repostPrefill = "" })
                         .id(actions.identity)
                 }
-            }
-            .sheet(item: $cloudEditor) { item in
+            }.cySheet(detents: [.large]) }
+            .sheet(item: $cloudEditor) { item in Group {
                 if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: item.generation) }.id(actions.identity) }
-            }
-            .sheet(item: $actionPost) { post in
+            }.cySheet(detents: [.large]) }
+            .sheet(item: $actionPost) { post in Group {
                 SquareCloudPostActions(owner: post.memberID == actions?.identity.accountID, bookmarkable: post.generation == .communityV1 && actions != nil, bookmarked: false, summary: post.contents ?? "", onEdit: editAction(post), onBookmark: bookmarkAction(post), onDelete: nil, onReport: reportAction(post), onClose: { actionPost = nil })
-            }
+            }.cySheet(detents: [.large]) }
             .sheet(item: $cloudReport) { item in
                 NavigationStack { SquareReportView(target: item.target, context: reportContext) }.presentationDetents([.large])
             }
-            .sheet(isPresented: $showsWorkspace) {
+            .sheet(isPresented: $showsWorkspace) { Group {
                 if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace) }.id(workspace.session) }
-            }
+            }.cySheet(detents: [.large]) }
             .navigationDestination(isPresented: $showsReportProgress) { reportProgressDestination?() }
             .environment(\.squareCloudFeed, cloudFeed)
             .scrollContentBackground(.hidden)

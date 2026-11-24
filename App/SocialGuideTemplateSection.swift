@@ -138,10 +138,10 @@ enum SocialGuideTemplateRows {
                             let title = SocialGuideTemplateRows.text(item.title)
                             Color.clear.frame(width: 84, height: 84)
                                 .overlay { E1CoverArt(seed: title, symbol: "map", imageURL: item.imgUrl, debugLabel: false) }
-                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: title).font(.headline).lineLimit(1)
+                                Text(verbatim: title).font(.headline).lineLimit(2)
                                 let description = SocialGuideTemplateRows.text(item.description)
                                 if !description.isEmpty { Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary).lineLimit(2) }
                                 HStack {
@@ -152,7 +152,7 @@ enum SocialGuideTemplateRows {
                                     Spacer(minLength: 0)
                                     Text("social.guideTemplates.start").cyText(.label, weight: .semibold)
                                         .foregroundStyle(CYNight.ink0).padding(.horizontal, CYSpacing.xl).frame(minHeight: 44)
-                                        .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                        .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                                 }
                             }
                         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 6)

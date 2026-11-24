@@ -217,7 +217,7 @@ import SwiftUI
                             .controlSize(.small)
                     } else {
                         Image(systemName: "chevron.right")
-                            .font(CYTypography.meta.weight(.semibold))
+                            .font(.footnote.weight(.semibold))
                             .foregroundStyle(palette.textTertiary)
                             .accessibilityHidden(true)
                     }

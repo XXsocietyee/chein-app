@@ -322,13 +322,16 @@ struct MerchantAftercareEvidenceDraft: Equatable {
             } }
             .interactiveDismissDisabled(model.busy)
             .sheet(isPresented: $selecting) {
-                NavigationStack {
-                    MerchantEvidenceSelectionView(refundID: model.refundID, selectedScope: model.owner.scope,
-                        currentScope: { model.canSelect ? model.owner.scope : nil }, nativeSelectionEnabled: model.canSelect) { selected in
-                        _ = model.select(selected)
+                Group {
+                    NavigationStack {
+                        MerchantEvidenceSelectionView(refundID: model.refundID, selectedScope: model.owner.scope,
+                            currentScope: { model.canSelect ? model.owner.scope : nil }, nativeSelectionEnabled: model.canSelect) { selected in
+                            _ = model.select(selected)
+                        }
+                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { selecting = false } } }
                     }
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { selecting = false } } }
                 }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
         }
         .privacySensitive()

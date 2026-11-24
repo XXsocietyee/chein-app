@@ -191,7 +191,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
         .buttonStyle(.borderless)
     }
     private func audienceRow(_ option: ClubNotificationAudienceOption) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(alignment: .center, spacing: CYSpacing.md) {
                 CYRowIcon(systemImage: Self.symbol(option.id))
                 Text(LocalizedStringKey("club.gov.choice." + option.id))

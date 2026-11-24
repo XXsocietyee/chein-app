@@ -135,13 +135,15 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         XCTAssertEqual(game.resolvedSurfaceDomain, .player)
 
         // Merchant light palette exact values from DESIGN.md / tokens.wxss
-        assertColor(merchant.bgPage, matchesHex: 0xF3F4F4, scheme: .light, "merchant.bgPage")
+        // Native restyle (native-ios-r1 §2.2): page, surface, label tokens are the iOS semantic colours in the domain appearance.
+        assertSameColor(merchant.bgPage, Color(uiColor: .systemGroupedBackground), scheme: .light, "merchant.bgPage")
+        assertColor(merchant.bgPage, matchesHex: 0xF2F2F7, scheme: .light, "merchant.bgPage")
         assertColor(merchant.bgSurface, matchesHex: 0xFFFFFF, scheme: .light, "merchant.bgSurface")
         assertColor(merchant.bgElevated, matchesHex: 0xFFFFFF, scheme: .light, "merchant.bgElevated")
         assertColor(merchant.actionPrimaryBg, matchesHex: 0x000000, scheme: .light, "merchant.actionPrimaryBg")
         assertColor(merchant.actionPrimaryFg, matchesHex: 0xFFFFFF, scheme: .light, "merchant.actionPrimaryFg")
         assertColor(merchant.textPrimary, matchesHex: 0x000000, scheme: .light, "merchant.textPrimary")
-        assertColor(merchant.textDisabled, matchesHex: 0x737373, scheme: .light, "merchant.textDisabled")
+        assertSameColor(merchant.textDisabled, Color(uiColor: .quaternaryLabel), scheme: .light, "merchant.textDisabled")
         assertColor(merchant.danger, matchesHex: 0xD0323B, scheme: .light, "merchant.danger")
         assertColor(merchant.actionDangerBg, matchesHex: 0xD0323B, scheme: .light, "merchant.actionDangerBg")
         assertColor(merchant.actionDangerFg, matchesHex: 0xFFFFFF, scheme: .light, "merchant.actionDangerFg")
@@ -149,12 +151,14 @@ final class DesignSystemTokenMappingTests: XCTestCase {
 
         // Player dark palette exact values
         assertColor(player.bgPage, matchesHex: 0x000000, scheme: .dark, "player.bgPage")
-        assertColor(player.bgSurface, matchesHex: 0x111111, scheme: .dark, "player.bgSurface")
+        assertColor(player.bgSurface, matchesHex: 0x1C1C1E, scheme: .dark, "player.bgSurface")
+        assertSameColor(player.bgSurface, Color(uiColor: .secondarySystemGroupedBackground), scheme: .dark, "player.bgSurface")
         assertColor(player.actionPrimaryBg, matchesHex: 0xF8F8F8, scheme: .dark, "player.actionPrimaryBg")
         assertColor(player.actionPrimaryFg, matchesHex: 0x0A0A0A, scheme: .dark, "player.actionPrimaryFg")
-        // Dark values follow the source tokens (docs/release/ui-token-diff.md): text-primary #F8F8F8, text-disabled rgba(255,255,255,.40).
-        assertColor(player.textPrimary, matchesHex: 0xF8F8F8, scheme: .dark, "player.textPrimary")
-        assertColor(player.textDisabled, matchesHex: 0xFFFFFF, alpha: 0.40, scheme: .dark, "player.textDisabled")
+        // Native restyle: text follows the system label colours (label / quaternaryLabel) in the domain appearance.
+        assertSameColor(player.textPrimary, Color(uiColor: .label), scheme: .dark, "player.textPrimary")
+        assertColor(player.textPrimary, matchesHex: 0xFFFFFF, scheme: .dark, "player.textPrimary")
+        assertSameColor(player.textDisabled, Color(uiColor: .quaternaryLabel), scheme: .dark, "player.textDisabled")
         assertColor(player.actionDangerBg, matchesHex: 0xD0323B, scheme: .dark, "player.actionDangerBg")
         assertColor(player.actionDangerFg, matchesHex: 0xFFFFFF, scheme: .dark, "player.actionDangerFg")
     }
@@ -165,9 +169,8 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         for domain in [ThemeDomain.player, ThemeDomain.merchant] {
             let palette = CYDomainPalette(domain)
             let scheme = domain.colorScheme
-            // text-disabled is #737373 on the light merchant domain and rgba(255,255,255,.40) on the dark player domain.
-            let disabledHex: UInt32 = domain == .merchant ? 0x737373 : 0xFFFFFF
-            let disabledAlpha: CGFloat = domain == .merchant ? 1.0 : 0.40
+            // Native restyle (native-ios-r1 §2.2): text-disabled is the system quaternaryLabel in the domain appearance.
+            let systemDisabled = Color(uiColor: .quaternaryLabel)
 
             // CYListRow disabled (both standard and danger become textDisabled and suppress pressed highlight)
             let disabledRow = CYListRowTokens.resolve(tone: .standard, isDisabled: true, isPressed: true, in: palette)
@@ -177,7 +180,7 @@ final class DesignSystemTokenMappingTests: XCTestCase {
             assertSameColor(disabledRow.chevron, palette.textDisabled, scheme: scheme, "row disabled chevron")
             assertSameColor(disabledRow.background, Color.clear, scheme: scheme, "row disabled suppresses press fill")
             XCTAssertEqual(disabledRow.leadingOpacity, 0.4, accuracy: 0.001)
-            assertColor(disabledRow.title, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "row disabled title == text-disabled")
+            assertSameColor(disabledRow.title, systemDisabled, scheme: scheme, "row disabled title == text-disabled")
 
             let disabledDangerRow = CYListRowTokens.resolve(tone: .danger, isDisabled: true, isPressed: false, in: palette)
             assertSameColor(disabledDangerRow.title, palette.textDisabled, scheme: scheme, "disabled danger row uses textDisabled")
@@ -186,7 +189,7 @@ final class DesignSystemTokenMappingTests: XCTestCase {
             let fieldDisabled = CYField.tokens(for: .disabled, hasText: true, colorScheme: scheme, in: palette)
             assertSameColor(fieldDisabled.background, palette.inputDisabledBg, scheme: scheme, "field disabled bg")
             assertSameColor(fieldDisabled.textForeground, palette.textDisabled, scheme: scheme, "field disabled text")
-            assertColor(fieldDisabled.textForeground, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "field disabled == text-disabled")
+            assertSameColor(fieldDisabled.textForeground, systemDisabled, scheme: scheme, "field disabled == text-disabled")
             XCTAssertFalse(fieldDisabled.showsSuccessIcon)
 
             // CYRouteNodeRow locked / disabled
@@ -202,12 +205,12 @@ final class DesignSystemTokenMappingTests: XCTestCase {
                 in: palette
             )
             assertSameColor(taskLocked.iconColor, palette.textDisabled, scheme: scheme, "task locked iconColor")
-            assertColor(taskLocked.iconColor, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "task locked == text-disabled")
+            assertSameColor(taskLocked.iconColor, systemDisabled, scheme: scheme, "task locked == text-disabled")
             XCTAssertEqual(taskLocked.badgeTone, .neutral)
 
             // CYAvatarView offline indicator uses textDisabled
             if let offlineDot = CYAvatarView.onlineDotColor(isOnline: false) {
-                assertColor(offlineDot, matchesHex: disabledHex, alpha: disabledAlpha, scheme: scheme, "avatar offline dot == text-disabled")
+                assertSameColor(offlineDot, systemDisabled, scheme: scheme, "avatar offline dot == text-disabled")
             } else {
                 XCTFail("Expected non-nil offline dot color")
             }
@@ -489,8 +492,10 @@ final class DesignSystemTokenMappingTests: XCTestCase {
         assertSameColor(underlineUnselected.foreground, player.textSecondary, scheme: .dark)
 
         let segSelected = CYTabsTokens.resolve(variant: .segmented, isSelected: true, in: merchant)
-        assertSameColor(segSelected.foreground, merchant.textInverse, scheme: .light)
-        assertSameColor(segSelected.indicatorFill ?? .clear, merchant.textPrimary, scheme: .light)
+        // Native restyle (native-ios-r1 §3.7): the segmented variant is drawn like UISegmentedControl.
+        assertSameColor(segSelected.foreground, merchant.textPrimary, scheme: .light)
+        assertSameColor(segSelected.indicatorFill ?? .clear, merchant.segmentThumb, scheme: .light)
+        assertColor(merchant.segmentThumb, matchesHex: 0xFFFFFF, scheme: .light, "merchant segment thumb")
         assertSameColor(segSelected.trackFill ?? .clear, merchant.bgSurfaceSubtle, scheme: .light)
 
         let sticky = CYTabsTokens.resolve(variant: .sticky, isSelected: true, in: merchant)

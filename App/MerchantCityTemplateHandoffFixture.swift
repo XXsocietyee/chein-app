@@ -56,7 +56,7 @@ import SwiftUI
                     MerchantCityTemplateHandoffField(binding: state.binding, model: handoff)
                 }
             }.modifier(MerchantCityTemplateHandoffPresentation(model: handoff, binding: state.binding))
-                .appNavigationTitle("merchant.cityTemplate.fixtureTitle")
+                .appNavigationTitle("merchant.cityTemplate.fixtureTitle").navigationBarTitleDisplayMode(.inline)
         }
         .environment(\.merchantCityTemplateHandoffFactory, { .init(reader: state.reader) })
     }

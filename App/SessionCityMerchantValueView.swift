@@ -36,6 +36,7 @@ import SwiftUI
             }
         }
         .navigationTitle(CityMerchantValueCopy.string("merchantTitle"))
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             guard originalIdentity == nil, !retired else { return }
             originalIdentity = identity; originalContext = context; reload()

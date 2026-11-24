@@ -7,7 +7,8 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @ObservedObject var reader: Reader
     let accessibilityPrefix: String
     let refreshRevision: UInt64
-    /// CLB-detail-44: the club page drops the bar 刷新 (pull-to-refresh, as the MP); other reads keep it.
+    /// CLB-detail-44: the club page drops the bar 刷新 (pull-to-refresh, as the MP). Native restyle (spec §3.1): every
+    /// club read refreshes by pull only, so the bar button is now opt-in.
     let showsToolbarRefresh: Bool
     /// CLB-detail-28 (parity r2): the club page's own states. Sign-in reads 登录后查看俱乐部, and a business rejection
     /// (a dissolved or closed club) shows the server sentence with 返回 instead of a pointless 重试. Default off.
@@ -30,7 +31,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     @State private var generation: UInt64 = 0
 
     init(reader: Reader, accessibilityPrefix: String, requiresSignIn: Bool = false, refreshRevision: UInt64 = 0,
-         showsToolbarRefresh: Bool = true, usesClubPageStates: Bool = false, onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
+         showsToolbarRefresh: Bool = false, usesClubPageStates: Bool = false, onSignIn: (() -> Void)? = nil, load: @escaping () async throws -> Value,
          @ViewBuilder content: @escaping (Value) -> Content) {
         self.reader = reader; self.accessibilityPrefix = accessibilityPrefix
         self.refreshRevision = refreshRevision; self.showsToolbarRefresh = showsToolbarRefresh

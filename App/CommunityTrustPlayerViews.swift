@@ -391,7 +391,7 @@ struct SquareMineListView: View {
             }
         }
         .navigationTitle(list == .posts ? PlayerCapabilityCopy.text("我的帖文", "My posts", locale)
-                                        : PlayerCapabilityCopy.text("我的收藏", "Bookmarks", locale))
+                                        : PlayerCapabilityCopy.text("我的收藏", "Bookmarks", locale)).navigationBarTitleDisplayMode(.inline)
         .refreshable { await load(reset: true) }
         .task { await load(reset: true) }
         .cyDomainScreen(.player)

@@ -28,7 +28,40 @@ import SwiftUI
         await operation()
         return runID == id && !Task.isCancelled
     }
+    struct RecoveryCommand: Equatable {
+        let key: String
+        let targetKey: String
+        let fields: [String: String]
+    }
+    private(set) var recoveryCommand: RecoveryCommand?
+    /// Original `api/team/command` input for the recovery card. Query, retry, and cancel share this key and these fields.
+    func rememberRecovery(_ action: TeamAction) {
+        guard let command = Self.recoveryCommand(for: action) else { return }
+        recoveryCommand = command
+    }
     func prepare(_ action: TeamAction) { coordinator.prepare(action); objectWillChange.send() }
+    static func recoveryCommand(for action: TeamAction) -> RecoveryCommand? {
+        switch action {
+        case .join(let id, let code):
+            guard id > 0 else { return nil }
+            let invite = code.trimmingCharacters(in: .whitespacesAndNewlines)
+            return .init(key: "join-\(id)", targetKey: action.targetKey, fields: ["action": "join", "targetId": String(id), "inviteCode": invite])
+        case .leave(let id):
+            guard id > 0 else { return nil }
+            return .init(key: "quit-\(id)", targetKey: action.targetKey, fields: ["action": "quit", "targetId": String(id)])
+        case .remove(let id, let member):
+            guard id > 0, member > 0 else { return nil }
+            return .init(key: "kick-\(id)-\(member)", targetKey: action.targetKey, fields: ["action": "kick", "targetId": String(id), "memberId": String(member)])
+        case .disband(let id):
+            guard id > 0 else { return nil }
+            return .init(key: "disband-\(id)", targetKey: action.targetKey, fields: ["action": "disband", "targetId": String(id)])
+        case .changeJoinMode(let id, let mode):
+            guard id > 0, mode != .unknown else { return nil }
+            return .init(key: "join-mode-\(id)", targetKey: action.targetKey, fields: ["action": "join-mode", "targetId": String(id), "joinMode": String(mode.rawValue)])
+        case .create:
+            return nil
+        }
+    }
     func refuseClosedLease() { coordinator.refuseWhenLeaseClosed(); objectWillChange.send() }
     func cancel() { coordinator.cancelReview(); objectWillChange.send() }
     func leave() {
@@ -218,7 +251,7 @@ struct TeamMemberRow: View {
                             ForEach(Array(consequenceKeys.enumerated()), id: \.offset) { idx, key in
                                 HStack(alignment: .top, spacing: CYSpacing.sm) {
                                     Image(systemName: idx == consequenceKeys.count - 1 ? "exclamationmark.triangle" : "info.circle")
-                                        .font(CYTypography.body)
+                                        .cyText(.body)
                                         .foregroundStyle(idx == consequenceKeys.count - 1 ? CYColor.dangerText : CYColor.textSecondary)
                                         .accessibilityHidden(true)
                                     Text(LocalizedStringKey(key))
@@ -268,6 +301,7 @@ struct TeamMemberRow: View {
             let permit = model.captureRun()
             Task {
                 guard model.coordinator.review == review else { return }
+                model.rememberRecovery(review.action)
                 if await model.run(permit: permit, { await model.coordinator.confirm(review) }) { dismiss() }
             }
         }

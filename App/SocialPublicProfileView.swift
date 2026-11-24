@@ -30,6 +30,7 @@ import SwiftUI
     @State private var authorPostTicket: ProfileAuthorPostTicket?
     @State private var tab = Tab.posts
     @State private var appliedInitialTab = false
+    @State private var workImagePreview: SocialProfileImagePreview?
     @State private var selfEditNavigation = ProfileSelfEditNavigation()
     @StateObject private var identityShareOwner = ProfileIdentitySharePageOwner()
     private var showsMineTab: Bool {
@@ -124,18 +125,22 @@ import SwiftUI
                             ProfileIdentityShareSection(profile: profile, reader: reader, isCurrent: isCurrent, owner: identityShareOwner)
                                 .id(ProfileIdentityShareViewIdentity(profile: profile, reader: reader))
                         }
-                        LabeledContent("social.followStatus") {
-                            switch profile.isFollowed {
-                            case true: CYStatusChip("social.following", tone: .success, systemImage: "checkmark")
-                            case false: CYStatusChip("social.notFollowing", tone: .neutral)
-                            case nil: CYStatusChip("social.relationshipUnknown", tone: .neutral, systemImage: "questionmark")
+                        if actions == nil || actions?.identity.accountID == profile.id {
+                            // Self / read-only viewers keep the relationship line; for other members it lives on the 关注 button (A2-03).
+                            LabeledContent("social.followStatus") {
+                                switch profile.isFollowed {
+                                case true: CYStatusChip("social.following", tone: .success, systemImage: "checkmark")
+                                case false: CYStatusChip("social.notFollowing", tone: .neutral)
+                                case nil: CYStatusChip("social.relationshipUnknown", tone: .neutral, systemImage: "questionmark")
+                                }
                             }
                         }
                         if let actions, actions.identity.accountID != profile.id {
                             // Mini-program other-player head: 关注 and 发消息 side by side as two pills.
                             HStack(spacing: CYSpacing.sm) {
-                                NavigationLink { SocialActionEditorView(purpose: .toggleFollow, target: .member(profile.id), coordinator: actions) } label: {
-                                    profilePill(Text(LocalizedStringKey(profile.isFollowed == true ? "social.editor.unfollow" : "social.editor.follow")), systemImage: nil)
+                                // A2-03: MP 关注 toggles in place (处理中… → ✓ 已关注), no editor page.
+                                SocialProfileInlineFollowButton(memberID: profile.id, serverFollowed: profile.isFollowed, coordinator: actions) { title, image in
+                                    profilePill(title, systemImage: image)
                                 }
                                 if showsStartChat {
                                     NavigationLink { SocialActionEditorView(purpose: .startChat, target: .member(profile.id), coordinator: actions) } label: {
@@ -164,9 +169,14 @@ import SwiftUI
                         }
                     }
                     // Mini-program cy/profile tab order: 我的 (orders, projects), 帖文, 成就, 关于.
-                    // A2-04 / X5: MP underline tabs (owner ruling 2026-07-31), not a menu Picker row.
+                    // A2-04 / X5 asked for MP underline tabs (2026-07-31); the owner native-iOS ruling (2026-11-24) supersedes it.
+                    // Still not a menu Picker row.
                     Section {
-                        CYTabs(items: profileTabs, selection: $tab, variant: .underline)
+                        // Native restyle R2 (spec §3.7): 3-4 nouns switch views, so a system segmented picker.
+                        Picker(selection: $tab) {
+                            ForEach(profileTabs) { item in Text(verbatim: item.title).tag(item.id) }
+                        } label: { Text("social.profileSection") }
+                            .pickerStyle(.segmented)
                             .accessibilityElement(children: .contain)
                             .accessibilityLabel(Text("social.profileSection"))
                             .accessibilityIdentifier("social.profile.tabs")
@@ -253,7 +263,16 @@ import SwiftUI
                         }
                         if !profile.workImages.isEmpty {
                             Section("social.portfolio") {
-                                ForEach(Array(profile.workImages.enumerated()), id: \.offset) { _, source in SquareImage(source: source) }
+                                // A2-07: MP 探索作品 tap previews full screen (cyp wxml:516-520).
+                                ForEach(Array(profile.workImages.enumerated()), id: \.offset) { index, source in
+                                    Button { workImagePreview = SocialProfileImagePreview(index: index, sources: profile.workImages) } label: {
+                                        SquareImage(source: source)
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel(Text("social.portfolio.preview"))
+                                    .accessibilityAddTraits(.isButton)
+                                    .accessibilityIdentifier("social.portfolio.image.\(index)")
+                                }
                             }
                         }
                         if localCoverOwner?.accountID == memberID {
@@ -284,6 +303,7 @@ import SwiftUI
                 if let ticket = authorPostTicket, ticket.context != context { authorPostTicket = nil }
             }
             .accessibilityIdentifier("social.profile")
+            .fullScreenCover(item: $workImagePreview) { preview in SocialProfileImagePreviewPager(preview: preview) }
             .toolbar {
                 if reader.identity.accountID != memberID, memberID > 0 {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -323,7 +343,8 @@ import SwiftUI
     }
     private func profileCounter(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map(String.init) ?? "—").cyText(.numericBody, weight: .bold).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            // A2-09: MP pc-stat-n is 18 bold → sectionTitle.
+            Text(verbatim: value.map(String.init) ?? "—").cyText(.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
             label().cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText(alignment: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 56)
@@ -499,7 +520,105 @@ struct ProfileSelfCouponContext: Hashable {
         ZStack {
             Circle().fill(.tint.opacity(0.15))
             if let initial = name?.first { Text(verbatim: String(initial)).cyText(.sheetTitle) }
-            else { Image(systemName: "person.fill").font(.title2) }
+            else { Image(systemName: "person.fill").cyText(.sheetTitle) }
         }
+    }
+}
+
+
+/// A2-03: MP `cy-profile` 关注 (cyp wxml:97-106, js:1775-1800). One tap prepares and confirms the reviewed
+/// `.toggleFollow` command in place: the label reads 处理中… while it runs, flips to 已关注 / 关注 on an
+/// acknowledged receipt (success haptic), and shows the write failure inline otherwise. No editor page.
+@MainActor struct SocialProfileInlineFollowButton<Label: View>: View {
+    let memberID: Int
+    let serverFollowed: Bool?
+    let coordinator: SocialActionCoordinator
+    @ViewBuilder let label: (Text, String?) -> Label
+    @State private var ownerID = UUID()
+    @State private var busy = false
+    @State private var override: Bool?
+    @State private var failed = false
+    @State private var succeeded = 0
+    private var followed: Bool? { override ?? serverFollowed }
+    var body: some View {
+        VStack(spacing: CYSpacing.xxs) {
+            Button { Task { await toggle() } } label: {
+                if busy { label(Text("social.follow.pending"), nil) }
+                else if followed == true { label(Text("social.following"), "checkmark") }
+                else { label(Text("social.editor.follow"), "plus") }
+            }
+            .buttonStyle(.plain)
+            .disabled(busy || followed == nil || coordinator.identity.accountID == nil)
+            .accessibilityValue(busy ? Text("social.follow.pending") : Text(verbatim: ""))
+            .accessibilityHint(followed == true ? Text("social.editor.unfollow") : Text(verbatim: ""))
+            .accessibilityIdentifier("social.profile.follow")
+            if failed {
+                Text("social.follow.failed").cyText(.meta).foregroundStyle(CYColor.dangerText)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("social.profile.follow.failed")
+            }
+        }
+        .sensoryFeedback(.success, trigger: succeeded)
+        .onChange(of: serverFollowed) { _, _ in override = nil }
+        .onDisappear {
+            coordinator.leaveScreen(target: .member(memberID), expectedIdentity: coordinator.identity, ownerID: ownerID)
+        }
+    }
+    private func toggle() async {
+        guard !busy else { return }
+        let identity = coordinator.identity
+        busy = true; failed = false
+        defer { busy = false }
+        do {
+            let review = try await coordinator.prepare(.toggleFollow, target: .member(memberID), ownerID: ownerID, expectedIdentity: identity)
+            guard !Task.isCancelled, coordinator.identity == identity else { coordinator.cancel(review); return }
+            await coordinator.confirm(review)
+            if case .acknowledged(let receipt) = coordinator.state(target: .member(memberID)) {
+                override = receipt.followed ?? !(review.snapshot.profile?.isFollowed ?? false)
+                succeeded += 1
+            } else {
+                failed = true
+            }
+        } catch {
+            if coordinator.identity == identity { failed = true }
+        }
+    }
+}
+
+
+struct SocialProfileImagePreview: Identifiable {
+    let index: Int
+    let sources: [String]
+    var id: Int { index }
+}
+
+/// A2-07: full-screen 探索作品 pager (MP wx.previewImage). Black stage, swipe between images, close in the toolbar.
+@MainActor struct SocialProfileImagePreviewPager: View {
+    let preview: SocialProfileImagePreview
+    @Environment(\.dismiss) private var dismiss
+    @State private var selection = 0
+    var body: some View {
+        NavigationStack {
+            TabView(selection: $selection) {
+                ForEach(Array(preview.sources.enumerated()), id: \.offset) { index, source in
+                    SquareImage(source: source)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: preview.sources.count > 1 ? .automatic : .never))
+            .background(Color.black.ignoresSafeArea())
+            .navigationTitle(Text(verbatim: "\(selection + 1)/\(preview.sources.count)"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("common.close") { dismiss() }.accessibilityIdentifier("social.portfolio.preview.close")
+                }
+            }
+        }
+        .onAppear { selection = preview.index }
+        .accessibilityIdentifier("social.portfolio.preview")
     }
 }

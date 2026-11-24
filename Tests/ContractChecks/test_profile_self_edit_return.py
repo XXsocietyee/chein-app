@@ -53,7 +53,7 @@ class ProfileSelfEditSourceChecks(unittest.TestCase):
   self.assertIn('ProfileAuthorPostsSection(memberID: memberID',self.view);self.assertIn('ProfileLocalCoverSection(owner: localCoverOwner',self.view)
   self.assertIn('localCoverOwner: localCoverOwner',self.account)
  def test_existing_social_and_public_about_preserved(self):
-  for value in ['purpose: .toggleFollow','purpose: .startChat','profile.introduction','profile.interests','profile.workImages']:self.assertIn(value,self.view)
+  for value in ['SocialProfileInlineFollowButton(memberID: profile.id','purpose: .startChat','profile.introduction','profile.interests','profile.workImages']:self.assertIn(value,self.view)
  def test_fixture_uses_actual_public_view_and_editor_service(self):
   text=read('App/ProfileSelfEditFixture.swift');self.assertTrue(text.startswith('#if DEBUG'));self.assertIn('SocialPublicProfileView(',text);self.assertIn('ProfileEditCoordinator',text);self.assertIn('ProfileEditServing',text)
   self.assertNotIn('URLSession',text)

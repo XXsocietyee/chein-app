@@ -165,7 +165,7 @@ struct SquareXcxRelativeTime: View {
                 Text("square.xcx.upcoming.participants").cyText(.caption).foregroundStyle(.secondary)
             }
         }.padding(12).frame(minWidth: 260, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .secondarySystemGroupedBackground)))
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color(uiColor: .secondarySystemGroupedBackground)))
     }
     private func load() async {
         let scope = reader.scope

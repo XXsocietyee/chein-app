@@ -631,9 +631,12 @@ struct SessionRootView: View {
             NativeEntryLandingView(entry: entry, session: session, goHome: { browsingAsGuest = true; selectedTab = .home })
                 .cyPlayerSheetGlass()
         }
-        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) {
+        .sheet(isPresented:Binding(get: { showsAreaPicker && presentation.allowsSecondaryRootSheet && session.nativeEntry == nil }, set: { showsAreaPicker = $0 })) { Group {
             RoamAreaPicker(onSelect:{ session.roamArea=$0 })
                 .cyPlayerSheetGlass()
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, presentation: presentation, onDecline: { browsingAsGuest = true })
     }
@@ -642,9 +645,12 @@ struct SessionRootView: View {
         v
         .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
-        .sheet(isPresented: $showsScannerFixture) {
+        .sheet(isPresented: $showsScannerFixture) { Group {
             NativeQRScanner { _ in }
                 .cyPlayerSheetGlass()
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .onAppear {
             if ProcessInfo.processInfo.arguments.contains("--uitesting-scanner") {

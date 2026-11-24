@@ -117,7 +117,7 @@ import SwiftUI
             VStack(spacing: 12) {
                 stateView(title: "merchantCityNode.create.login", sub: nil, identifier: "cityNodeCreate.login", retry: false)
                 Button { dismiss() } label: { Text("auth.signIn") }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.borderedProminent)
                     .accessibilityIdentifier("cityNodeCreate.login.action")
             }
         } else if c.issue == "merchant.content.denied" {
@@ -128,14 +128,17 @@ import SwiftUI
         }
     }
     private func stateView(title: String, sub: String?, identifier: String, retry: Bool) -> some View {
-        VStack(spacing: 10) {
-            MerchantCityNodeCopy.text(title).cyText(.cardTitle)
-            if let sub { Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center) }
+        ContentUnavailableView {
+            Label { MerchantCityNodeCopy.text(title) } icon: { Image(systemName: retry ? "exclamationmark.triangle" : "person.crop.circle") }
+        } description: {
+            if let sub { Text(verbatim: sub) }
+        } actions: {
             if retry {
                 Button { Task { await model.load(); seedIfNeeded() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeCreate.retry")
+                    .buttonStyle(.bordered).frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("cityNodeCreate.retry")
             }
-        }.frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
+        }
+        .frame(maxWidth: .infinity).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
     }
 
     @ViewBuilder private func ready(_ snapshot: MerchantContentSnapshot?) -> some View {
@@ -143,7 +146,7 @@ import SwiftUI
         if !MerchantCityNodeWriteGate.saveAvailable(permitsWrites: service.permitsWrites, isOfflineExample: isOfflineFixture) {
             MerchantCityNodeCopy.text("merchantCityNode.write.disabled").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12))
+                .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityIdentifier("cityNodeCreate.writeUnavailable")
         }
         timeline
@@ -160,7 +163,7 @@ import SwiftUI
                 Button { Task { await readUncertain() } } label: { MerchantCityNodeCopy.text("merchantCityNode.write.readback") }
                     .cyText(.bodyMedium).disabled(c.busy).accessibilityIdentifier("cityNodeCreate.unknown.readback")
             }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeCreate.locked")
+                .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)).accessibilityIdentifier("cityNodeCreate.locked")
         } else if submitAttempted, submittedID == nil, c.issue != nil, c.review == nil, c.receipt == nil, !submitting {
             MerchantCityNodeInlineError(titleKey: "merchantCityNode.create.submitFailed",
                 message: MerchantCityNodeCopy.failure(c, fallback: MerchantCityNodeCopy.string("merchantCityNode.create.submitFallback")),
@@ -184,7 +187,7 @@ import SwiftUI
                     MerchantCityNodeCopy.text(titles[index]).font(.caption.weight(states[index] == .doing ? .bold : .regular))
                     if let stamp = stamps[index] {
                         Text(verbatim: MerchantCityNodeCopy.format("merchantCityNode.station.today", stamp.formatted(date: .omitted, time: .shortened)))
-                            .cyText(.caption).foregroundStyle(.secondary)
+                            .cyText(.meta).foregroundStyle(.secondary)
                     }
                 }.frame(maxWidth: .infinity).accessibilityElement(children: .combine)
                     .accessibilityIdentifier("cityNodeCreate.station.\(index).\(states[index].rawValue)")
@@ -221,7 +224,7 @@ import SwiftUI
                 }.cyText(.bodyCompact).disabled(!handoff.active || handoff.busy || !templateBinding.canReload())
             }
             if let issue = handoff.issue, handoff.opening == nil { Text(LocalizedStringKey(issue.key)).cyText(.meta) }
-        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeCreate.template")
     }
 
@@ -248,7 +251,7 @@ import SwiftUI
                         .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityNodeCreate.address.hint")
                     HStack {
                         Button { confirmProfileAddress() } label: { MerchantCityNodeCopy.text("merchantCityNode.create.confirmAddress") }
-                            .buttonStyle(.questifyPrimary).disabled(submitting || submittedID != nil).accessibilityIdentifier("cityNodeCreate.address.confirm")
+                            .buttonStyle(.borderedProminent).disabled(submitting || submittedID != nil).accessibilityIdentifier("cityNodeCreate.address.confirm")
                         Button(action: choose) { MerchantCityNodeCopy.text("merchantCityNode.create.repick") }
                             .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.repick")
                     }
@@ -261,7 +264,7 @@ import SwiftUI
                 Button(action: choose) { MerchantCityNodeCopy.text("merchantCityNode.create.markOnMap") }
                     .buttonStyle(.bordered).disabled(!canChoose).accessibilityIdentifier("cityNodeCreate.address.mark")
             }
-        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeCreate.address")
     }
 
@@ -273,7 +276,7 @@ import SwiftUI
                     if submitting { ProgressView() }
                     MerchantCityNodeCopy.text(submittedID != nil ? "merchantCityNode.create.reread" : "merchantCityNode.create.submit")
                 }.cyText(.cardTitle).frame(maxWidth: .infinity).padding(.vertical, 6)
-            }.buttonStyle(.questifyPrimary).disabled(!ready && submittedID == nil)
+            }.buttonStyle(.borderedProminent).disabled(!ready && submittedID == nil)
                 .accessibilityIdentifier("cityNodeCreate.submit")
         }
     }

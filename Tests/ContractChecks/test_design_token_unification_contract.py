@@ -70,9 +70,10 @@ class TestDesignTokenUnificationContract(unittest.TestCase):
             "public static let rare = resolved { $0.rare }",
             "public static let medalGold = resolved { $0.medalGold }",
             "public static let gameAccent = CYDomainPalette(.game).gameAccent",
-            "public static let s1_5: CGFloat = Theme.Space.s1_5",
-            "public static let s2_5: CGFloat = Theme.Space.s2_5",
-            "public static let s3_5: CGFloat = Theme.Space.s3_5",
+            # Native restyle (native-ios-r1 §2.4): the half-steps snap to the 4/8 grid.
+            "public static let s1_5: CGFloat = Theme.Space.s2",
+            "public static let s2_5: CGFloat = Theme.Space.s3",
+            "public static let s3_5: CGFloat = Theme.Space.s4",
             '@available(*, deprecated, renamed: "sm")',
             "public static let sm: CGFloat = Theme.Radius.sm",
             "public static let md: CGFloat = Theme.Radius.md",

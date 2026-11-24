@@ -567,7 +567,7 @@ private struct ModUpgradeThumb: View {
                     ForEach(preview.fields.keys.filter { $0 != "qmodTopicGraphJson" && $0 != "compositionReceiptJson" }.sorted(), id: \.self) { key in
                         DisclosureGroup(key) {
                             Text(verbatim: cyShownValue(preview.fields[key] ?? ""))
-                                .font(CYTypography.meta.monospaced())
+                                .cyText(.meta).monospaced()
                                 .textSelection(.enabled)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -581,7 +581,7 @@ private struct ModUpgradeThumb: View {
                         .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: "draftId: \(facts.draftId) · draftContentHash: " + facts.draftContentHash)
-                        .font(CYTypography.meta.monospaced())
+                        .cyText(.meta).monospaced()
                         .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                     Text("这是原草稿读取服务返回的当前配置，可能已被作者编辑；不是原冻结内容、当前许可、审核发布或运行结果的替代证明。")
@@ -591,7 +591,7 @@ private struct ModUpgradeThumb: View {
                     DisclosureGroup("当前规则") { Text(verbatim: facts.rules).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) }
                     if let raw = facts.advancedConfigJson {
                         DisclosureGroup("当前结构 / graph 配置（只读原字节）") {
-                            Text(verbatim: raw).font(CYTypography.meta.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: raw).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 } header: { recoveryHeader("同一原请求 · 当前安装稿读回") }

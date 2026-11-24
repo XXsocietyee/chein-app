@@ -72,7 +72,7 @@ import SwiftUI
                 }
             }
         } header: { Text("projectRouteMapping.title", tableName: "ProjectNodeRouteMapping") }
-        .sheet(item: controller.binding(original)) { original in ProjectNodeRouteMappingSheet(controller: controller, original: original) }
+        .sheet(item: controller.binding(original)) { original in Group { ProjectNodeRouteMappingSheet(controller: controller, original: original) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
     }

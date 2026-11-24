@@ -139,7 +139,7 @@ struct ClubWorkbenchNowCard: View {
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
+        .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.workbench.now")
         // MC-28: the dot pulses once on appear (600 ms), never in a loop; Reduce Motion keeps it still.
@@ -179,8 +179,8 @@ struct ClubWorkbenchTile: View {
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated))
-            .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
+            .contentShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         }
         .buttonStyle(.cyPressable)
         .allowsHitTesting(action != nil)

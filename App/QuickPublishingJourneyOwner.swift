@@ -155,7 +155,7 @@ import UIKit
     var initialIdea = ""
     var body: some View {
         Color.clear.frame(width: 0, height: 0)
-            .sheet(item: owner.presentationBinding(original)) { shown in
+            .sheet(item: owner.presentationBinding(original)) { shown in Group {
                 if owner.isCurrent(shown) {
                     switch shown.kind {
                     case .ai:
@@ -164,6 +164,9 @@ import UIKit
                         PublishingPlacePicker(provider: placeSearch) { value in _ = owner.confirm(value, from: shown) }
                     }
                 }
+                }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
             }
     }
 }

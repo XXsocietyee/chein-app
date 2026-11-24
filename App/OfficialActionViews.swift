@@ -23,7 +23,7 @@ import SwiftUI
                     form
                 } else { CYEmptyState(systemImage: "arrow.clockwise", "officialAction.stale") }
             }
-            .cyHeroScreen()
+            .cyPageTitle("officialAction.review")
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("officialAction.close") { model.disappear(); dismiss() }.disabled(model.busy)
             } }
@@ -38,7 +38,6 @@ import SwiftUI
     }
     private var form: some View {
         Form {
-            Section { CYHeroHeader("officialAction.review") }.e1HeroRow()
             Section {
                 Label("officialAction.reviewNotice", systemImage: "lock.shield")
                 Text(LocalizedStringKey(command.titleKey)).cyText(.sectionTitle).accessibilityAddTraits(.isHeader)
@@ -108,7 +107,6 @@ import SwiftUI
     @State private var reviewed: OfficialActionCommand?
     var body: some View {
         Form {
-            Section { CYHeroHeader("officialAction.publish") }.e1HeroRow()
             Section("officialAction.draft") {
                 TextField("officialAction.title", text: $draft.title).accessibilityIdentifier("officialAction.title")
                 TextField("officialAction.subtitle", text: $draft.subtitle, axis: .vertical)
@@ -142,10 +140,10 @@ import SwiftUI
                     .accessibilityIdentifier("officialAction.reviewPublish").e1ActionRow()
                 Text("officialAction.editGap").foregroundStyle(.secondary)
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
+        }.formStyle(.grouped).cyGroupedSurface().cyPageTitle("officialAction.publish")
+            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }
+            }.cySheet() }
     }
 }
 
@@ -155,7 +153,6 @@ import SwiftUI
     @State private var reviewed: OfficialActionCommand?
     var body: some View {
         Form {
-            Section { CYHeroHeader("officialAction.broadcast") }.e1HeroRow()
             Section("officialAction.audience") {
                 ForEach(OfficialAudience.allCases, id: \.self) { role in
                     Toggle(LocalizedStringKey("officialAction.role." + role.rawValue), isOn: Binding(
@@ -186,10 +183,10 @@ import SwiftUI
             CYPillButton("officialAction.review") { reviewed = .broadcast(draft) }
                 .disabled((try? draft.payload()) == nil)
                 .accessibilityIdentifier("officialAction.reviewBroadcast").e1ActionRow()
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
+        }.formStyle(.grouped).cyGroupedSurface().cyPageTitle("officialAction.broadcast")
+            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }
+            }.cySheet() }
     }
     private func roleBinding(_ role: OfficialAudience, title: Bool) -> Binding<String> {
         Binding(get: { let copy = draft.copies[role] ?? OfficialCopy(); return title ? copy.title : copy.sub },
@@ -346,9 +343,9 @@ struct OfficialParticipationPresentation {
             guard let presentationID else { return }
             let callback = presentation.finishDismiss(id: presentationID)
             callback?()
-        }) {
+        }) { Group {
             if let entry = presentation.entry { OfficialActionSheet(coordinator: coordinator, command: entry.command) }
-        }
+        }.cySheet(detents: [.large]) }
     }
 }
 @MainActor struct OfficialMerchantInviteEditor: View {
@@ -360,7 +357,6 @@ struct OfficialParticipationPresentation {
     @State private var reviewed: OfficialActionCommand?
     var body: some View {
         Form {
-            Section { CYHeroHeader("officialAction.invite") }.e1HeroRow()
             Section("officialAction.merchants") {
                 ForEach(candidates) { merchant in
                     Toggle(merchant.name, isOn: Binding(get: { selected.contains(merchant.id) }, set: {
@@ -371,9 +367,9 @@ struct OfficialParticipationPresentation {
             Text("officialAction.inviteWarning")
             CYPillButton("officialAction.review") { reviewed = .inviteMerchants(selected.sorted()) }
                 .disabled(selected.isEmpty).e1ActionRow()
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
-            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) {
+        }.formStyle(.grouped).cyGroupedSurface().cyPageTitle("officialAction.invite")
+            .sheet(isPresented: Binding(get: { reviewed != nil }, set: { if !$0 { reviewed = nil } })) { Group {
                 if let reviewed { OfficialActionSheet(coordinator: coordinator, command: reviewed) }
-            }
+            }.cySheet() }
     }
 }

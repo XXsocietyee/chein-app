@@ -85,10 +85,13 @@ struct MerchantPerkValidityContext: Equatable {
         content.background {
             Color.clear.frame(width: 0, height: 0)
         .sheet(item: presentation) { shown in
-            MerchantPerkValiditySheet(session: shown, close: { if session?.id == shown.id { session = nil } }, apply: {
-                guard session?.id == shown.id, let next = shown.apply() else { return }
-                value = next; appliedValue = next; appliedContext = context(); session = nil
-            })
+            Group {
+                MerchantPerkValiditySheet(session: shown, close: { if session?.id == shown.id { session = nil } }, apply: {
+                    guard session?.id == shown.id, let next = shown.apply() else { return }
+                    value = next; appliedValue = next; appliedContext = context(); session = nil
+                })
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
                 .id(session?.id)
         }

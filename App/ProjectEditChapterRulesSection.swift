@@ -46,7 +46,7 @@ import QuestifyCore
                     .frame(maxWidth: .infinity, minHeight: 120)
             }
         }
-        .navigationTitle(W8Text.t("剧情规则", "Story rules"))
+        .navigationTitle(W8Text.t("剧情规则", "Story rules")).navigationBarTitleDisplayMode(.inline)
         .task {
             guard model == nil else { return }
             model = StoryRuleEditorModel(value: load(), nodeIds: Set(chapter.nodes.map(\.id)), identity: chapter.id)

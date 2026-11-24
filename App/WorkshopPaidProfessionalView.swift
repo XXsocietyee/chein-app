@@ -22,7 +22,10 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
         }.accessibilityIdentifier("workshopPaidProfessional.entry")
         if presentation.unavailable { professionalText("notConfigured").cyText(.bodyCompact) }
         Color.clear.frame(height: 0).sheet(item: presented) { captured in
-            WorkshopPaidProfessionalView(controller: captured.controller, appearance: captured.appearance) { presentation.dismiss(captured) }.id(captured.id)
+            Group {
+                WorkshopPaidProfessionalView(controller: captured.controller, appearance: captured.appearance) { presentation.dismiss(captured) }.id(captured.id)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
@@ -73,7 +76,7 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
                 }
             }
             .privacySensitive()
-            .navigationTitle(String(localized: LocalizedStringResource("workshopPaidProfessional.title", table: "WorkshopPaidProfessional", locale: locale)))
+            .navigationTitle(String(localized: LocalizedStringResource("workshopPaidProfessional.title", table: "WorkshopPaidProfessional", locale: locale))).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { controller.close(displayed); ownedTask?.cancel(); onClose() } label: { professionalText("close") }
                     .accessibilityIdentifier("workshopPaidProfessional.close")
@@ -81,7 +84,10 @@ typealias WorkshopPaidProfessionalControllerFactory = @MainActor (WorkshopPaidIn
         }
         .disabled(scenePhase != .active)
         .sheet(item: generatedPresentation) { selection in
-            WorkshopGeneratedDetailSheet(selection: selection, controller: controller, appearance: displayed)
+            Group {
+                WorkshopGeneratedDetailSheet(selection: selection, controller: controller, appearance: displayed)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active {

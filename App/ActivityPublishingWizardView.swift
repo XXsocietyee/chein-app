@@ -53,7 +53,7 @@ enum ActivityPublishingStatusHelper {
                                 .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
                                 .frame(height: 4)
                             Text(Self.titleKey(item.key))
-                                .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
+                                .cyText(item.state == "current" ? .label : .meta)
                                 .foregroundStyle(item.state == "todo" ? palette.textSecondary : palette.textPrimary)
                                 .cyWrapText(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
                         }
@@ -112,7 +112,7 @@ enum ActivityPublishingStatusHelper {
                     .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
                     .frame(height: 4)
                 Text(Self.titleKey(item.key))
-                    .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
+                    .cyText(item.state == "current" ? .label : .meta)
                     .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
                     .cyWrapText(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .center)
             }

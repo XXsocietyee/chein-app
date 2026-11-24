@@ -67,8 +67,8 @@ struct LoginView: View {
                                         .onSubmit { submit() }
                                 }
                             }
-                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(shownErrorKey != nil ? CYColor.dangerText.opacity(0.7) : CYColor.textPrimary.opacity(0.08), lineWidth: 1))
+                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(shownErrorKey != nil ? CYColor.dangerText.opacity(0.7) : CYColor.textPrimary.opacity(0.08), lineWidth: 1))
                             if let key = shownErrorKey {
                                 Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle.fill") }
                                     .font(.footnote.weight(.medium)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")

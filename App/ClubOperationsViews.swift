@@ -39,7 +39,7 @@ struct ClubOperationsEntryButton: View {
                 if let result = pendingWelcomeReturn, result.matches(target: target, identity: identity, access: access) {
                     onWelcomeConfirmedReturn?(result)
                 }
-            }) { opened in
+            }) { opened in Group {
                 NavigationStack {
                     ClubOperationsWorkspaceView(target: target, identity: identity, access: access, coordinator: coordinator,
                         hostApplication: hostApplication, onConfirmedChange: { result in
@@ -53,6 +53,7 @@ struct ClubOperationsEntryButton: View {
                             pendingWelcomeReturn = result
                         })
                 }.id(opened.id)
+            }.cySheet(detents: [.large])
             }
             .onChange(of: identity) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
             .onChange(of: ObjectIdentifier(access)) { _, _ in visit?.retire(); lastVisit?.retire(); pendingReturn = nil; pendingWelcomeReturn = nil; visit = nil }
@@ -218,13 +219,14 @@ struct ClubOperationsWorkspaceView: View {
             if !profileDraftEnabled { Text("club.ops.discardMessage") }
             else { Text("localDraft.closeMessage", tableName: "ClubProfileLocalDraft") }
         }
-        .sheet(item: $review, onDismiss: cancelReview) { pending in
+        .sheet(item: $review, onDismiss: cancelReview) { pending in Group {
             NavigationStack {
                 ClubOperationsReviewView(review: pending, canSubmit: coordinator.writeAvailability != .unverified, isExample: coordinator.writeAvailability == .syntheticOnly, onCancel: cancelReview) {
                     review = nil; state = .preflighting
                     Task { await confirm(pending) }
                 }
             }.interactiveDismissDisabled(state == .preflighting || state == .submitting)
+        }.cySheet(detents: [.large])
         }
         .background {
             if let session = profileChoice.session {
@@ -282,7 +284,7 @@ struct ClubOperationsWorkspaceView: View {
             Image(systemName: "person.3.fill")
                 .font(.title2).foregroundStyle(CYColor.textSecondary)
                 .frame(width: 56, height: 56)
-                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: club.name).cyText(.sectionTitle).foregroundStyle(CYColor.textPrimary)
@@ -295,8 +297,8 @@ struct ClubOperationsWorkspaceView: View {
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
+        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).stroke(CYColor.borderSubtle))
         .accessibilityElement(children: .combine)
         .questifyCardListRow()
     }
@@ -1108,7 +1110,7 @@ private struct ClubOperationsProfileForm: View {
     @ViewBuilder private var createDirectionSection: some View {
         // HANDOFF-R1 MC-10: direction chips (multi, at most 3); a fourth tap only shows the limit note.
         Section {
-            ClubR1WrapLayout(spacing: CYSpacing.s2_5) {
+            ClubR1WrapLayout(spacing: CYSpacing.md) {
                 ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
                     let selected = draft.activityPrefs.contains(value)
                     ClubR1Chip(title: Text(LocalizedStringKey("club.ops.value." + value)), isSelected: selected) {
@@ -1331,7 +1333,7 @@ private struct ClubOperationsProfileForm: View {
                               axis: axis)
             .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
-        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(spacing: 2) {
                 Text(labelKey)
                 if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }

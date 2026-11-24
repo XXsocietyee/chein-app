@@ -37,7 +37,7 @@ enum PlayerJourneyRoute: Hashable {
             }
         }.id(session.sessionRevision).privacySensitive()
         .navigationDestination(item: $route) { route in PlayerJourneyRouteDestination(route: route) }
-        .sheet(isPresented: $login) { LoginView(intent: .player) }
+        .sheet(isPresented: $login) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
         .modifier(MerchantVerificationPopupCompanionModifier(flow: session.nativeVerificationFlow))
         .onChange(of: session.sessionRevision) { _, _ in route = nil; login = false }
     }
@@ -286,7 +286,7 @@ private extension ParticipationRecord {
 /// Never invented artwork: a fixed symbol when the source cover is absent or not https.
 private struct ParticipationCoverPlaceholder: View {
     var body: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous).fill(CYNight.ink2)
+        RoundedRectangle(cornerRadius: 12, style: .continuous).fill(CYColor.bgSurfaceSubtle)
             .frame(height: 136).frame(maxWidth: .infinity)
             .overlay { Image(systemName: "map").imageScale(.large).foregroundStyle(CYColor.textSecondary) }
             .accessibilityHidden(true).accessibilityIdentifier("playerJourney.row.coverPlaceholder")

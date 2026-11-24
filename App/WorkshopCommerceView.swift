@@ -27,7 +27,7 @@ import SwiftUI
             }
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("title", locale: locale))
+        .navigationTitle(commerceString("title", locale: locale)).navigationBarTitleDisplayMode(.inline)
         .onAppear { if controller?.isCurrent != true { reopen() } }
         .onChange(of: session.sessionRevision) { _, _ in reopen() }
         .onChange(of: session.account?.id) { _, _ in reopen() }
@@ -60,7 +60,7 @@ import SwiftUI
                         HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
                             VStack(alignment: .leading, spacing: Theme.Space.s2) {
                                 Text(verbatim: item.title).cyText(.sectionTitle).foregroundStyle(.primary)
-                                Text(verbatim: price(item.currency, minor: item.priceMinor)).font(Theme.Font.body).monospacedDigit().foregroundStyle(.secondary)
+                                Text(verbatim: price(item.currency, minor: item.priceMinor)).cyText(.body).monospacedDigit().foregroundStyle(.secondary)
                             }.frame(maxWidth: .infinity, alignment: .leading)
                             if controller.offer?.offerId == item.offerId {
                                 Image(systemName: "checkmark.circle.fill").accessibilityHidden(true)
@@ -132,9 +132,9 @@ import SwiftUI
                     Group {
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
                             Text(verbatim: item.moduleId).cyText(.sectionTitle)
-                            Text(verbatim: item.purchasedVersionId).font(Theme.Font.body).foregroundStyle(.secondary)
+                            Text(verbatim: item.purchasedVersionId).cyText(.body).foregroundStyle(.secondary)
                             CommerceState(raw: item.status)
-                            Text(verbatim: item.licenseId).font(Theme.Font.label.monospaced()).foregroundStyle(.secondary)
+                            Text(verbatim: item.licenseId).cyText(.label).monospaced().foregroundStyle(.secondary)
                         }.fixedSize(horizontal: false, vertical: true).padding(.vertical, Theme.Space.s2)
                         NavigationLink {
                             WorkshopCommerceLicenseDetailView(controller: controller, licenseId: item.licenseId)
@@ -167,7 +167,7 @@ import SwiftUI
 
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("title", locale: locale))
+        .navigationTitle(commerceString("title", locale: locale)).navigationBarTitleDisplayMode(.inline)
         .task {
             await refreshOnEntry()
         }
@@ -182,37 +182,40 @@ import SwiftUI
             Button("返回", role: .cancel) { }
         }
         .sheet(isPresented: $confirming, onDismiss: { reviewedOffer = nil }) {
-            if let reviewedOffer {
-                NavigationStack {
-                    Form {
-                        Section {
-                            Text(verbatim: reviewedOffer.title).cyText(.sheetTitle).fixedSize(horizontal: false, vertical: true)
-                            Text(verbatim: price(reviewedOffer.currency, minor: reviewedOffer.priceMinor)).cyText(.sectionTitle).monospacedDigit()
-                            CommerceFact("moduleId", reviewedOffer.moduleId)
-                            CommerceFact("version", reviewedOffer.releaseId)
-                            if let accountID = session.account?.id { Text(verbatim: "本次取得许可的账号：\(accountID)") }
-                            Text("本次许可归属当前账号；下列可安装主体与场地范围是独立限制，不代表已取得经营、地点同意或发布权限。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+            Group {
+                if let reviewedOffer {
+                    NavigationStack {
+                        Form {
+                            Section {
+                                Text(verbatim: reviewedOffer.title).cyText(.sheetTitle).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: price(reviewedOffer.currency, minor: reviewedOffer.priceMinor)).cyText(.sectionTitle).monospacedDigit()
+                                CommerceFact("moduleId", reviewedOffer.moduleId)
+                                CommerceFact("version", reviewedOffer.releaseId)
+                                if let accountID = session.account?.id { Text(verbatim: "本次取得许可的账号：\(accountID)") }
+                                Text("本次许可归属当前账号；下列可安装主体与场地范围是独立限制，不代表已取得经营、地点同意或发布权限。").cyText(.body).fixedSize(horizontal: false, vertical: true)
+                            }
+                            Section { CommerceTermsFacts(terms: reviewedOffer.terms) }
+                            commerceText("purchaseBoundary")
+                            Button {
+                                let confirmed = reviewedOffer
+                                confirming = false
+                                Task { await controller.confirmPurchase(reviewedOffer: confirmed) }
+                            } label: { commerceText("confirm").frame(maxWidth: .infinity) }
+                            .disabled(!controller.canAcquire || controller.offer != reviewedOffer)
+                            .modifier(WorkshopLibraryPrimaryAction())
                         }
-                        Section { CommerceTermsFacts(terms: reviewedOffer.terms) }
-                        commerceText("purchaseBoundary")
-                        Button {
-                            let confirmed = reviewedOffer
-                            confirming = false
-                            Task { await controller.confirmPurchase(reviewedOffer: confirmed) }
-                        } label: { commerceText("confirm").frame(maxWidth: .infinity) }
-                        .disabled(!controller.canAcquire || controller.offer != reviewedOffer)
-                        .modifier(WorkshopLibraryPrimaryAction())
-                    }
-                    .modifier(WorkshopLibrarySurface())
-                    .navigationTitle(commerceString("confirmationQuestion", locale: locale))
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button(role: .cancel) { confirming = false } label: { commerceText("cancel") }
+                        .modifier(WorkshopLibrarySurface())
+                        .navigationTitle(commerceString("confirmationQuestion", locale: locale)).navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(role: .cancel) { confirming = false } label: { commerceText("cancel") }
+                            }
                         }
+                        .privacySensitive()
                     }
-                    .privacySensitive()
                 }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
     private func refreshOnEntry() async {
@@ -273,7 +276,7 @@ import SwiftUI
                         Text(verbatim: "原版本记录状态：" + record.artifactStatus)
                         if !record.artifactIdentityMatched { Text("当前版本记录与原购入身份不匹配或缺失，不能用别的版本替代。") }
                         if let reason = record.blockReason, !reason.isEmpty { Text(verbatim: reason) }
-                        Text("持久许可证与版本可用性分别记录。ACTIVE 不是可运行批准；安装、原运行、内容与地区仍需原服务当前检查。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        Text("持久许可证与版本可用性分别记录。ACTIVE 不是可运行批准；安装、原运行、内容与地区仍需原服务当前检查。").cyText(.body).fixedSize(horizontal: false, vertical: true)
                     } else { Text("原版本记录读取未配置或暂不可用。保留原许可详情，不把它猜成已撤销或仍可运行。") }
                     Text("退款记录、会话到期或安装预留到期都不自动等于全部持久许可作废；这里不扩展更新版本或使用期限。").cyText(.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
@@ -281,12 +284,12 @@ import SwiftUI
                     if let status = controller.reversalStatus {
                         Text(verbatim: "当前许可状态：" + (status.licenseState ?? "UNKNOWN"))
                         Text(verbatim: "拒付查询能力：" + (status.chargebackQueryCapability ?? "NOT_CAPTURED"))
-                        Text("能力字段不是渠道观察。未实现、未配置或旧服务未提供，均不能证明没有拒付；这里不发起渠道查询。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        Text("能力字段不是渠道观察。未实现、未配置或旧服务未提供，均不能证明没有拒付；这里不发起渠道查询。").cyText(.body).fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: "已确认退款：\(status.currency) \(Decimal(status.refundedBuyerMinor) / Decimal(100))").monospacedDigit()
                         Text(verbatim: "已确认拒付：\(status.currency) \(Decimal(status.chargedBackBuyerMinor) / Decimal(100))").monospacedDigit()
                         ForEach(status.reversals, id: \.reversalKey) { item in
                             VStack(alignment: .leading) {
-                                Text(verbatim: item.reversalKey).font(Theme.Font.label.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: item.reversalKey).cyText(.label).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                                 Text(verbatim: item.kind + " / " + item.state).cyText(.cardTitle)
                                 Text(verbatim: "原查询记录：" + (item.queryObservation ?? "NOT_CAPTURED"))
                                 if item.queryAttempted == true, let at = item.queryAttemptedAt {
@@ -298,7 +301,7 @@ import SwiftUI
                             }.fixedSize(horizontal: false, vertical: true)
                         }
                         if status.reversals.isEmpty { Text("原账暂无处理记录；不代表退款申请已获批准或渠道没有其他待同步事实。") }
-                        Text("这里只读原账。处理中、UNKNOWN 和未读到结果不是退款成功；不会查询渠道或创建/执行退款。").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
+                        Text("这里只读原账。处理中、UNKNOWN 和未读到结果不是退款成功；不会查询渠道或创建/执行退款。").cyText(.body).fixedSize(horizontal: false, vertical: true)
                     } else { Text("原退款状态读取未配置或暂不可用；不把它显示成无退款。原许可详情仍可查看。") }
                 }
 
@@ -308,7 +311,7 @@ import SwiftUI
             CYPillButton(LocalizedStringKey("workshopCommerce.returnToCatalog"), style: .secondary, tableName: "WorkshopCommerce") { dismiss() }
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("originalLicense", locale: locale))
+        .navigationTitle(commerceString("originalLicense", locale: locale)).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task(id: licenseId) { await controller.loadLicenseSnapshot(licenseId) }
         .onChange(of: scenePhase) { _, phase in
@@ -342,7 +345,7 @@ private struct CommerceCompositionScopeFacts: View {
         Group {
             Text("原冻结组合授权范围").cyText(.sectionTitle)
             Text(verbatim: "合同：" + rights.profile)
-            Text(verbatim: "授权摘要：" + rights.grantHash).font(Theme.Font.label.monospaced()).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: "授权摘要：" + rights.grantHash).cyText(.label).monospaced().fixedSize(horizontal: false, vertical: true)
             Text(verbatim: "可复用作者：" + ids(rights.scope.authors))
             Text(verbatim: "可安装主体：" + ids(rights.scope.installationSubjects))
             Text(verbatim: "经营主体/门店：" + ids(rights.scope.venues))
@@ -378,7 +381,7 @@ private struct CommerceState: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
             WorkshopCommerceLibraryState(label: commerceText("state." + raw), raw: raw)
-            Text(verbatim: raw).font(Theme.Font.label.monospaced()).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: raw).cyText(.label).monospaced().foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }.padding(.vertical, Theme.Space.s1)
     }
 }
@@ -397,7 +400,7 @@ private func commerceString(_ key: String, locale: Locale) -> String {
 struct WorkshopLibrarySurface: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.font(Theme.Font.body)
+        content.cyText(.body)
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
@@ -437,7 +440,7 @@ struct WorkshopCommerceLibraryNotice: View {
             Image(systemName: symbol)
                 .foregroundStyle(isError ? Theme.Color.danger(in: domain) : Theme.Color.textSecondary(in: domain))
                 .accessibilityHidden(true)
-            text.font(Theme.Font.body).foregroundStyle(.primary)
+            text.cyText(.body).foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

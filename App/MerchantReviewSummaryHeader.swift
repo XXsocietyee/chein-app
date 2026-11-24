@@ -36,7 +36,7 @@ struct MerchantReviewSummaryHeader: View {
         VStack(alignment: .leading, spacing: 2) {
             value.cyText(.cardTitle, monospacedDigit: true).foregroundStyle(CYColor.textPrimary).monospacedDigit()
             Text(title).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
-            Text(note).cyText(.caption).foregroundStyle(CYColor.textTertiary)
+            Text(note).cyText(.meta).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)

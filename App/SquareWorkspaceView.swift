@@ -38,8 +38,6 @@ import UniformTypeIdentifiers
     var body: some View {
         // Disable editor actions, not the scroll container: busy content must remain readable.
         Form {
-            CYHeroHeader("squareWorkspace.title")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Group {
                 Section {
                     Text("squareWorkspace.boundary").font(.footnote)
@@ -181,7 +179,7 @@ import UniformTypeIdentifiers
                 }
             }.disabled(coordinator.busy || (initialPostID != nil && !editReady))
         }
-        .cyHeroScreen()
+        .cyPageTitle("squareWorkspace.title")
         .toolbar {
             // Mini `cy-post-drafts` entry on the composer.
             ToolbarItem(placement: .topBarTrailing) {
@@ -210,13 +208,13 @@ import UniformTypeIdentifiers
                 if let initialPostID { lane = initialLane; draft = try await coordinator.editableDraft(postID: initialPostID, lane: initialLane); editReady = true }
             } catch { issue = true }
         }
-        .sheet(item: Binding(get: { localMedia.pickerRequest }, set: { if $0 == nil { localMedia.cancelPicker() } })) { request in
+        .sheet(item: Binding(get: { localMedia.pickerRequest }, set: { if $0 == nil { localMedia.cancelPicker() } })) { request in Group {
             SquarePostLocalMediaPicker(request: request) { provider, captured in
                 // Reuse the existing image-only byte bound; it is not a video rule.
                 _ = localMedia.accept(provider: provider, request: captured, maximumImageBytes: SquareWorkspaceService.maximumUploadImageBytes,
                     scopeIsCurrent: { localMediaScopeIsCurrent(captured.scope) })
             }
-        }
+        }.cySheet() }
         .onDisappear { localMedia.invalidate(); coordinator.clearRevisions() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { localMedia.invalidate(); coordinator.clearRevisions() } }
         .onChange(of: draft.workflowID) { _, _ in localMedia.invalidate(); coordinator.clearRevisions() }
@@ -256,7 +254,7 @@ import UniformTypeIdentifiers
                 .cyDomainSheet(detents: [.peek, .half])
             }
         }
-        .sheet(isPresented: $showsReview, onDismiss: { coordinator.cancelReview() }) {
+        .sheet(isPresented: $showsReview, onDismiss: { coordinator.cancelReview() }) { Group {
             if let review = coordinator.review {
                 NavigationStack {
                     Form {
@@ -271,10 +269,10 @@ import UniformTypeIdentifiers
                             run { try await coordinator.confirm(review, unchangedDraft: draft, acceptCurrentGuideline: acceptsGuideline); showsReview = false }
                         }.disabled(review.lane == .communityV1 && (!acceptsGuideline || !coordinator.grants.legal)).accessibilityIdentifier("squareWorkspace.confirm")
                         Button("squareWorkspace.cancel", role: .cancel) { showsReview = false; coordinator.cancelReview() }
-                    }.navigationTitle("squareWorkspace.review")
+                    }.navigationTitle("squareWorkspace.review").navigationBarTitleDisplayMode(.inline)
                 }
             } else { Text("squareWorkspace.staleReview") }
-        }
+        }.cySheet() }
     }
     private func localMediaScope() throws -> SquarePostLocalMediaScope {
         try .init(session: coordinator.session, draftID: draft.workflowID, lane: lane)

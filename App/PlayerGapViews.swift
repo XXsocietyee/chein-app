@@ -69,7 +69,7 @@ struct OfficialSignupCommandSection: View {
                 .buttonStyle(CYPillButtonStyle(style: .secondary))
             case .settled(let state, let message):
                 settled(state, message: message)
-                if flow.safetyBlocked { Text("playerGap.signup.safetyBlocked").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if flow.safetyBlocked { Text("playerGap.signup.safetyBlocked").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             case .storageError:
                 Text("playerGap.signup.storageError").cyText(.meta).foregroundStyle(CYColor.dangerText)
             }
@@ -217,7 +217,7 @@ struct TeamTrailSection: View {
                                 Text(verbatim: team.initial.isEmpty ? team.name : team.initial).cyText(.label)
                                 Text(verbatim: team.name).cyText(.meta)
                                 Spacer()
-                                if team.done > 0 { Text("playerGap.trail.done \(team.done)").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                                if team.done > 0 { Text("playerGap.trail.done \(team.done)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                             }
                         }
                         Button("playerGap.trail.stop") { Task { await model.consent(false) } }
@@ -380,9 +380,17 @@ struct CityFavoriteNodesSection: View {
                             }
                     }
                 } else if failed {
+                    // Missing state: say what failed, then 重试 (44 pt), not a bare button.
+                    Label { Text("playerGap.cityFavorites.loadFailed") } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
+                        .cyText(.body).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("playerGap.cityFavorites.failed")
                     Button("playerGap.retry") { Task { await load() } }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityIdentifier("playerGap.cityFavorites.retry")
                 } else {
-                    ProgressView()
+                    ProgressView { Text("playerGap.cityFavorites.loading") }
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("playerGap.cityFavorites.loading")
                 }
             }
             .task { await load() }
@@ -409,7 +417,7 @@ struct CityFavoriteNodesSection: View {
             .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: node.name.isEmpty ? "—" : node.name).cyText(.cardTitle).cyWrapText()
-                if let address = node.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                if let address = node.address, !address.isEmpty { Text(verbatim: address).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                 if removing == node.id { ProgressView().controlSize(.small) }
                 if removalFailed == node.id {
                     Text("playerGap.cityFavorites.removeFailed").cyText(.meta).foregroundStyle(CYColor.dangerText)
@@ -492,7 +500,7 @@ struct AssetCreditText: View {
 
     var body: some View {
         Group {
-            if let credit { Text(verbatim: credit).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
+            if let credit { Text(verbatim: credit).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
         }
         .task(id: reference) { credit = await service?.assetCredit(reference: reference) }
     }
@@ -563,7 +571,7 @@ struct ActivityPublishPrecheckGate<Content: View>: View {
                         Button("action.goSignIn") { showsSignIn = true }.buttonStyle(.cyPrimary)
                             .accessibilityIdentifier("playerGap.publish.goSignIn")
                     }
-                    .sheet(isPresented: $showsSignIn) { LoginView(intent: .player) }
+                    .sheet(isPresented: $showsSignIn) { Group { LoginView(intent: .player) }.cySheet(detents: [.large]) }
                 case .failed(let message)?:
                     ContentUnavailableView { Label("playerGap.publish.failed", systemImage: "exclamationmark.triangle") } description: {
                         if let message, !message.isEmpty { Text(verbatim: message) }

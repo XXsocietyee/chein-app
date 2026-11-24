@@ -66,11 +66,14 @@ import SwiftUI
                 }, retainWhileCovered: historyRouteIsActive,
                 composerAccessory: composerTools)
         }, locateOriginalMessage: locateOriginal, moreActions: moreActions)
-        .sheet(item: $previewSelection, onDismiss: clearAttachment) { selection in
+        .sheet(item: $previewSelection, onDismiss: clearAttachment) { selection in Group {
             NavigationStack {
                 NativeChannelAttachmentPreviewEntry(flow: selection.flow,
                     current: { attachmentIsCurrent(selection) })
             }
+            .presentationDragIndicator(.visible)
+            }
+            .presentationDetents([.large])
             .presentationDragIndicator(.visible)
         }
         .task(id: previewSelection?.id) {
@@ -86,26 +89,35 @@ import SwiftUI
         }
         .onChange(of: history.client.identity) { _, _ in clearAttachment() }
         .onDisappear { clearAttachment() }
-        .sheet(isPresented: $voicePresented) {
+        .sheet(isPresented: $voicePresented) { Group {
             if let voice = expanded?.voiceCoordinator?(history.conversation.id), voice.isCurrent {
                 NavigationStack { IMVoiceComposeView(owner: voice, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == voice.scope.identity
                 }) }
             } else { sessionUnavailable }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $filePresented) {
+        .sheet(isPresented: $filePresented) { Group {
             if let file = expanded?.fileCoordinator?(history.conversation.id), file.isCurrent {
                 NavigationStack { IMFileComposeView(owner: file, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == file.scope.identity
                 }) }
             } else { sessionUnavailable }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $videoPresented) {
+        .sheet(isPresented: $videoPresented) { Group {
             if let video = expanded?.videoCoordinator?(history.conversation.id), video.isCurrent {
                 NavigationStack { IMVideoComposeView(owner: video, current: {
                     history.isCurrent && history.loaded && !history.isLoading && history.client.identity == video.scope.identity
                 }) }
             } else { sessionUnavailable }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented:$routePresented) {
             if let expanded,let owner=expanded.coordinator(history.conversation.id),owner.isCurrent {
@@ -135,7 +147,7 @@ import SwiftUI
                     current: { history.isCurrent && history.loaded && !history.isLoading && coordinator.isCurrent })
             }
         }
-        .sheet(isPresented:$pollPresented) {
+        .sheet(isPresented:$pollPresented) { Group {
             if history.isCurrent,history.loaded,
                let owner=expanded?.pollCoordinator?(history.conversation.id,nil),owner.isCurrent,
                owner.scope.identity == history.client.identity {
@@ -145,6 +157,9 @@ import SwiftUI
                         && history.conversation.id == owner.scope.conversationID
                 }) }
             } else { GroupPollUnavailableView() }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $imagePresented) {
             if let owner = expanded?.coordinator(history.conversation.id),

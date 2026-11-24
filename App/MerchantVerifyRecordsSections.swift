@@ -78,7 +78,7 @@ struct MerchantVerifyRecordsSections: View {
                         Spacer()
                         Text("merchant.verifyRecords.dayTotal \(group.rows.count)")
                     }
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textSecondary)
                 }
             }

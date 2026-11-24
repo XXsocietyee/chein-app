@@ -86,10 +86,13 @@ import SwiftUI
             if let reason = projection.reason { Text(LocalizedStringKey("projectNodeOverview.reason." + reason.rawValue), tableName: "ProjectDraftNodeOverview").font(.caption) }
         }
         .sheet(item: controller.binding(original)) { original in
-            ProjectDraftNodeOverview(controller: controller, original: original)
-                .themeDomain(.topicEditor)
-                .presentationCornerRadius(CYRadius.sheet)
-                .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+            Group {
+                ProjectDraftNodeOverview(controller: controller, original: original)
+                    .themeDomain(.topicEditor)
+                    .presentationCornerRadius(CYRadius.sheet)
+                    .presentationBackground(CYDomainPalette(.topicEditor).sheetGlass)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }

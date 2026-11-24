@@ -21,7 +21,7 @@ extension View {
     }
 
     func merchantCreationSurface() -> some View {
-        self.font(Theme.Font.body)
+        self.cyText(.body)
             .listSectionSpacing(Theme.Space.s4)
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: .merchant))
@@ -45,7 +45,7 @@ func merchantCreationLabeled(_ key: String, value: String) -> some View {
     VStack(alignment: .leading, spacing: Theme.Space.s1_5) {
         merchantAuthoringText(key).cyText(.label)
             .foregroundStyle(Theme.Color.textSecondary(in: .merchant))
-        Text(verbatim: value).font(Theme.Font.body).textSelection(.enabled)
+        Text(verbatim: value).cyText(.body).textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
     }
     .frame(maxWidth: .infinity, alignment: .leading)

@@ -114,7 +114,7 @@ import UIKit
         let captured=photos.capture(),original=photos.presentation
         Button{if let captured{photos.open(captured)}}label:{Text("projectNodeImage.add",tableName:"ProjectNodeImageAuthor")}
             .disabled(captured==nil).accessibilityIdentifier("projectNodeImage.add")
-            .sheet(item:photos.binding(original)){value in ProjectNodeImageAuthorView(original:value,apply:photos.apply,close:{photos.close(value)})}
+            .sheet(item:photos.binding(original)){value in Group { ProjectNodeImageAuthorView(original:value,apply:photos.apply,close:{photos.close(value)}) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
             .onAppear{photos.setActive(scenePhase == .active)}
             .onChange(of:scenePhase){_,phase in photos.setActive(phase == .active)}
             .onChange(of:model.editorIncarnation){_,_ in photos.setActive(false)}

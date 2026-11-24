@@ -9,6 +9,9 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
     @State private var showsSignIn = false
+    /// Fresh `POST /api/user/info`. Nil until that read returns. The page does not paint a role from the cached session.
+    @State private var accountAccess: SettingsAccountProfileAccess?
+    @State private var accountProfileLoading = true
 #if DEBUG
     /// Design fixtures only: stub signed-in identity and search text injected into the real page.
     struct DesignOverride { var nickname = "Mia Chen"; var level = 7; var query = "" }
@@ -22,9 +25,28 @@ struct SettingsView: View {
         return session.account.map { ($0.nickname, $0.level) }
     }
 
+    private var readyAccountProfile: SettingsAccountProfile? {
+        if case .ready(let profile) = accountAccess { return profile }
+        return nil
+    }
+    private var showsAccountCard: Bool {
+#if DEBUG
+        if designOverride != nil { return accountInfo != nil }
+#endif
+        return readyAccountProfile != nil && accountInfo != nil
+    }
+    private var showsSignedOut: Bool {
+#if DEBUG
+        if designOverride != nil { return false }
+#endif
+        if accountProfileLoading { return false }
+        if case .signedOut = accountAccess { return true }
+        return accountAccess == nil && session.account == nil
+    }
+
     @ViewBuilder private var accountHeader: some View {
         Section {
-            if let info = accountInfo {
+            if showsAccountCard, let info = accountInfo {
                 if let route = profileOwner.route(.current(session)) {
                     NavigationLink(value: route) { SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: true) }
                         .questifyHidesLinkIndicator()
@@ -32,7 +54,7 @@ struct SettingsView: View {
                 } else {
                     SettingsAccountCard(nickname: info.nickname, level: info.level, tappable: false)
                 }
-            } else {
+            } else if showsSignedOut {
                 // B-SZ-04: the MP signed-out row starts sign-in.
                 Button { showsSignIn = true } label: {
                     Label { Text("member.settings.signedOut", tableName: "MemberProfile") } icon: { Image(systemName: "person.crop.circle") }
@@ -42,17 +64,27 @@ struct SettingsView: View {
             // pages/shezhi: `SettingsHomePage` phases beyond signed-in/out. Loading and error say so; an unknown
             // role or market says so instead of falling through to the player rows.
             switch homeFacts.phase {
-            case .loading, .error, .unknown:
-                Label {
-                    Text(LocalizedStringKey(homeFacts.copyKey), tableName: "MemberProfile")
-                } icon: {
-                    Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
-                        .accessibilityHidden(true)
+            case .loading, .unknown:
+                settingsPhaseLabel
+            case .error:
+                if homeFacts.retriesProfileOnTap {
+                    Button { Task { await refreshAccountProfile() } } label: {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Label {
+                                Text(verbatim: SettingsAccountProfileClient.deniedCopy)
+                            } icon: {
+                                Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+                            }
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: SettingsAccountProfileClient.deniedRetry)
+                                .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                        }
+                    }
+                    .padding(.horizontal, CYSpacing.lg)
+                    .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
+                } else {
+                    settingsPhaseLabel
                 }
-                .cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                .padding(.horizontal, CYSpacing.lg)
-                .accessibilityAddTraits(homeFacts.phase == .loading ? .updatesFrequently : .isStaticText)
-                .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
             case .empty, .ready:
                 EmptyView()
             }
@@ -60,14 +92,62 @@ struct SettingsView: View {
         .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
     }
 
-    /// Session facts the form already reads. Restoration in flight is loading; the raw role is kept.
+    private var settingsPhaseLabel: some View {
+        Label {
+            Text(LocalizedStringKey(homeFacts.copyKey), tableName: "MemberProfile")
+        } icon: {
+            Image(systemName: homeFacts.phase == .loading ? "hourglass" : homeFacts.phase == .error ? "exclamationmark.triangle" : "questionmark.circle")
+                .accessibilityHidden(true)
+        }
+        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+        .padding(.horizontal, CYSpacing.lg)
+        .accessibilityAddTraits(homeFacts.phase == .loading ? .updatesFrequently : .isStaticText)
+        .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
+    }
+
+    /// Role and denial come from `SettingsAccountProfileClient.refresh`, not the cached session account.
     private var homeFacts: SettingsHomePage.Facts {
 #if DEBUG
         if designOverride != nil { return SettingsHomePage.facts(session: .signedIn(role: "player"), market: session.operationalMarket ?? .china) }
 #endif
-        return SettingsHomePage.facts(
-            session: SettingsHomePage.sessionFact(loading: !session.restorationFinished, failed: false, role: session.account?.effectiveRole),
-            market: session.operationalMarket)
+        let fact: SettingsHomePage.SessionFact
+        if accountProfileLoading || accountAccess == nil {
+            fact = SettingsHomePage.sessionFact(loading: true, failed: false, role: nil)
+        } else {
+            switch accountAccess {
+            case .ready(let profile):
+                fact = SettingsHomePage.sessionFact(loading: false, failed: false, role: profile.role)
+            case .denied:
+                fact = SettingsHomePage.sessionFact(loading: false, failed: false, role: nil, accessDenied: true)
+            case .signedOut:
+                fact = SettingsHomePage.sessionFact(loading: false, failed: false, role: nil)
+            case .failed:
+                fact = SettingsHomePage.sessionFact(loading: false, failed: true, role: nil)
+            case nil:
+                fact = SettingsHomePage.sessionFact(loading: true, failed: false, role: nil)
+            }
+        }
+        return SettingsHomePage.facts(session: fact, market: session.operationalMarket)
+    }
+
+    private func refreshAccountProfile() async {
+#if DEBUG
+        if designOverride != nil {
+            accountAccess = .ready(SettingsAccountProfile(role: "player", isClubLeader: false))
+            accountProfileLoading = false
+            return
+        }
+#endif
+        accountProfileLoading = true
+        defer { accountProfileLoading = false }
+        guard let memberID = session.account?.id, memberID > 0,
+              let token = session.token, AuthRequestBuilder.isValidToken(token),
+              let api = session.regionalConfiguration?.apiConfiguration else {
+            accountAccess = session.account == nil ? .signedOut : .failed
+            return
+        }
+        accountAccess = await SettingsAccountProfileClient(configuration: api, transport: session.runtimeHTTPTransport)
+            .refresh(memberID: memberID, token: token)
     }
 
     private var language: Binding<AppLanguage> {
@@ -84,7 +164,7 @@ struct SettingsView: View {
             Form {
                 // Mini-program pages/shezhi order: 个人资料, 成为俱乐部主理人/成为商家, 城瘾玩法, 我的收藏.
                 accountHeader
-                SettingsIdentityApplicationEntries(session: session).environment(\.settingsTileTint, SettingsTint.orange)
+                SettingsIdentityApplicationEntries(session: session, profile: readyAccountProfile).environment(\.settingsTileTint, SettingsTint.orange)
                 AccountRoleSections(gatesCreatorByCapability: true).environment(\.settingsTileTint, SettingsTint.orange)
                 Section {
                     NavigationLink {
@@ -97,6 +177,8 @@ struct SettingsView: View {
                 }
                 .environment(\.settingsTileTint, SettingsTint.teal)
                 ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner).environment(\.settingsTileTint, SettingsTint.pink)
+                // B-SZ-15-r7: MP shezhi 邀请与收益 (players only) right after 我的收藏; same promo binding as 我的.
+                SettingsInvitePromoEntry().environment(\.settingsTileTint, SettingsTint.orange)
                 SettingsPrivacyLocationEntry(session: session).environment(\.settingsTileTint, SettingsTint.green)
                 Section {
                     NativeNotificationPermissionEntry()
@@ -161,10 +243,12 @@ struct SettingsView: View {
         }
         .onAppear {
             profileOwner.appear()
+            Task { await refreshAccountProfile() }
 #if DEBUG
             if let q = designOverride?.query, query.isEmpty { query = q }
 #endif
         }
+        .onChange(of: session.account?.id) { _, _ in Task { await refreshAccountProfile() } }
         .onDisappear { profileOwner.retire() }
         .themeDomain(.player)
         .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))
@@ -259,6 +343,7 @@ private struct SettingsSearchResults: View {
     let session: AppSession
     let language: Binding<AppLanguage>
     @Environment(\.locale) private var locale
+    @State private var sheetDestination: ComplianceDestination?
     private struct Entry: Identifiable {
         let id: String; let key: String; let symbol: String; let tint: Color; let words: String
     }
@@ -288,6 +373,14 @@ private struct SettingsSearchResults: View {
             }
         }
         .labelStyle(SettingsTileLabelStyle())
+        .sheet(item: $sheetDestination) { destination in Group {
+            if let c = session.accountComplianceCoordinator {
+                AccountComplianceSheetStack(coordinator: c, destination: destination, market: session.operationalMarket, legalReader: session.legalReader)
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
     }
     @ViewBuilder private func row(_ e: Entry) -> some View {
         let label = Label(LocalizedStringKey(e.key), systemImage: e.symbol).environment(\.settingsTileTint, e.tint)
@@ -296,12 +389,25 @@ private struct SettingsSearchResults: View {
         case "agreement": NavigationLink { SettingsLegalDocumentView(type: .userAgreement, market: session.operationalMarket, reader: session.legalReader) } label: { label }
         case "privacy": NavigationLink { SettingsLegalDocumentView(type: .privacyPolicy, market: session.operationalMarket, reader: session.legalReader) } label: { label }
         case "about": NavigationLink { SettingsAboutView(market: session.operationalMarket, appInformation: .current(), legalReader: session.legalReader) } label: { label }
-        case "marketing", "roam", "close":
+        case "marketing":
             if let c = session.accountComplianceCoordinator {
                 NavigationLink {
-                    AccountComplianceSheet(coordinator: c, destination: e.id == "marketing" ? .marketing : (e.id == "roam" ? .roam : .cancellation),
+                    AccountComplianceSheet(coordinator: c, destination: .marketing,
                                            market: session.operationalMarket, legalReader: session.legalReader, showsCloseButton: false)
                 } label: { label }
+            } else { label }
+        case "roam", "close":
+            // B-DR-07: the search result opens the same sheet as the Settings row (AccountComplianceSettingsSection), not a push.
+            if session.accountComplianceCoordinator != nil {
+                Button { sheetDestination = e.id == "roam" ? .roam : .cancellation } label: {
+                    HStack {
+                        label
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right").cyText(.meta, weight: .semibold).foregroundStyle(.tertiary)
+                    }
+                }
+                .foregroundStyle(CYColor.textPrimary)
+                .accessibilityIdentifier("settings.search.\(e.id)")
             } else { label }
         default:
             Picker(selection: language) {
@@ -310,6 +416,22 @@ private struct SettingsSearchResults: View {
                 Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
             } label: { label }
             .pickerStyle(.menu)
+        }
+    }
+}
+
+/// B-SZ-15-r7: MP `pages/shezhi` 邀请与收益 row (shezhi.wxml:22, js:165). Shown only when the host injected the
+/// journey promo binding and the viewer is not a merchant; nil binding hides it (capability absent ⇒ hidden).
+@MainActor private struct SettingsInvitePromoEntry: View {
+    @Environment(\.mpParity) private var bindings
+    var body: some View {
+        if bindings.journeyPromo != nil, !bindings.isMerchant {
+            Section {
+                NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
+                    Label("mp.account.promo", systemImage: "person.2.wave.2")
+                }
+                .accessibilityIdentifier("settings.invitePromo")
+            }
         }
     }
 }

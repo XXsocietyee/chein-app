@@ -450,7 +450,7 @@ struct PassLibraryCardView: View {
                     if let kindText { tag(kindText) }
                     if let city = card.city { tag(Text(verbatim: city)) }
                     Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
                         .accessibilityHidden(true)
                 }
                 .padding(.top, CYSpacing.xxs)
@@ -514,7 +514,6 @@ struct PassRevealPaidFacts: Hashable {
     @State private var route: MPParityRoute?
     @State private var timeline: Task<Void, Never>?
     @State private var skipVisible = false
-    @GestureState private var pressingSkip = false
 
     /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
     private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
@@ -537,6 +536,8 @@ struct PassRevealPaidFacts: Hashable {
                 }
             }
         }
+        // B-PR-06-r7: the MP stage runs behind a transparent nav bar.
+        .toolbarBackground(.hidden, for: .navigationBar)
         .mpParityRouteDestination($route)
         .onAppear(perform: start)
         .onDisappear { timeline?.cancel() }
@@ -561,17 +562,29 @@ struct PassRevealPaidFacts: Hashable {
                     .scaleEffect(step >= 2 ? 1 : 0.4)
                     .opacity(step >= 2 ? 1 : 0)
                     .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
+                    // B-PR-02: after the reveal the key keeps a slow idle breath (MP idle frame loop); Reduce Motion stays still.
+                    .phaseAnimator([false, true]) { view, phase in
+                        view.scaleEffect(step >= 8 && !reduceMotion && phase ? 1.04 : 1)
+                            .shadow(color: CYNight.passGold2.opacity(step >= 8 && !reduceMotion && phase ? 0.55 : 0.2), radius: phase ? 28 : 12)
+                    } animation: { _ in .easeInOut(duration: 1.6) }
             }
             .frame(height: 320)
-            .contentShape(Rectangle())
-            .onTapGesture { if full, step < 8 { finish() } }
             .accessibilityHidden(true)
             Spacer()
             VStack(spacing: CYSpacing.md) {
-                eyebrow.cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot).revealIn(step >= 5, reduceMotion: reduceMotion)
-                title.cyText(.display).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
-                if let line { line.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
-                CYPillButton(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary", action: go)
+                // B-PR-04: MP eyebrow is spaced caps (≈0.32 em) in white 72%, text sits on the gold wash with a soft shadow.
+                eyebrow.cyText(.label).tracking(3.5).foregroundStyle(Color.white.opacity(0.72)).revealIn(step >= 5, reduceMotion: reduceMotion)
+                title.cyText(.display).foregroundStyle(Color.white).multilineTextAlignment(.center).revealIn(step >= 6, reduceMotion: reduceMotion)
+                if let line { line.cyText(.body).foregroundStyle(Color.white.opacity(0.78)).multilineTextAlignment(.center).revealIn(step >= 7, reduceMotion: reduceMotion) }
+                Button(action: go) {
+                    Text(LocalizedStringKey(paid == nil ? "mp.reveal.start" : "mp.reveal.toLibrary"))
+                        .cyText(.bodyMedium, weight: .semibold)
+                        .foregroundStyle(CYNight.ink0)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color.white, in: Capsule())
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
                     // B-PR-01: no destination bound → the CTA says so by being disabled, never a silent no-op.
                     .disabled(paid == nil ? bindings.membership == nil : bindings.passLibrary == nil)
                     .accessibilityIdentifier("passReveal.start")
@@ -582,22 +595,28 @@ struct PassRevealPaidFacts: Hashable {
         .padding(.horizontal, CYSpacing.xxl)
         .padding(.bottom, CYSpacing.xxl)
         .accessibilityElement(children: .contain)
+        .shadow(color: CYNight.passGold0.opacity(0.45), radius: 8, y: 1)
         }
-        .opacity(pressingSkip && full && step < 8 && !reduceMotion ? 0.8 : 1)
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 0)
-                .updating($pressingSkip) { _, state, _ in
-                    if full, step < 8, !reduceMotion { state = true }
-                }
-        )
-        .simultaneousGesture(TapGesture().onEnded { if full, step < 8 { finish() } })
+        // B-PR-05: only the toolbar 跳过 skips; the stage has no tap/drag skip and no press dim.
         .background(alignment: .bottom) {
-            LinearGradient(colors: [.clear, CYNight.ember.opacity(0.28), CYNight.lantern.opacity(0.18)], startPoint: .top, endPoint: .bottom)
-                .frame(height: 420)
-                .opacity(step >= 4 ? 1 : 0)
-                .animation(reduceMotion ? nil : .easeInOut(duration: 0.6), value: step >= 4)
-                .ignoresSafeArea()
-                .accessibilityHidden(true)
+            // B-PR-02: MP gold wash (#2A1E08 → #8A6414 → #D4A72C → #F2CF63) over the lower 62 % of the stage.
+            GeometryReader { proxy in
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                    LinearGradient(stops: [
+                        .init(color: .clear, location: 0),
+                        .init(color: CYNight.passGold0, location: 0.30),
+                        .init(color: CYNight.passGold1, location: 0.55),
+                        .init(color: CYNight.passGold2, location: 0.80),
+                        .init(color: CYNight.passGold3, location: 1),
+                    ], startPoint: .top, endPoint: .bottom)
+                    .frame(height: proxy.size.height * 0.62)
+                    .offset(y: step >= 4 ? 0 : proxy.size.height * 0.62)
+                }
+            }
+            .animation(reduceMotion ? nil : .timingCurve(0.2, 0.7, 0.2, 1, duration: 1.1), value: step >= 4)
+            .ignoresSafeArea()
+            .accessibilityHidden(true)
         }
     }
 

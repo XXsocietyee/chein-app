@@ -13,7 +13,10 @@ import SwiftUI
         NavigationStack {
             PublishingModesView(service: nil, account: nil, placeSearch: PublishingFixturePlaces(), openProfessional: { seed = $0 }, openResource: { _ in })
                 .sheet(isPresented: Binding(get: { seed != nil }, set: { if !$0 { seed = nil } })) {
-                    if let seed { List { Text("Synthetic editor seed; nothing published"); Text(seed.name).accessibilityIdentifier("publishModes.fixture.seed"); Text(seed.preserved["publishMode"] == .string("ai_simple") ? "ai_simple" : "unexpected") } }
+                    Group {
+                        if let seed { List { Text("Synthetic editor seed; nothing published"); Text(seed.name).accessibilityIdentifier("publishModes.fixture.seed"); Text(seed.preserved["publishMode"] == .string("ai_simple") ? "ai_simple" : "unexpected") } }
+                    }
+                    .presentationDetents([.large]).presentationDragIndicator(.visible)
                 }
         }
     }
