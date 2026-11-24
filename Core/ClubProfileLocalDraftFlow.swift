@@ -137,6 +137,16 @@ public struct ClubProfileLocalDraftDifference: Identifiable {
             return true
         } catch { fail(error); return false }
     }
+    /// L08-107: a confirmed `POST api/club/dissolve` drops this club's local edit draft.
+    /// The App dissolve success path must call this. It does not send the dissolve.
+    @discardableResult public func clearAfterConfirmedDissolve() -> Bool {
+        guard isCurrent, let context, let scope, let observed else { return false }
+        do {
+            self.observed = try context.store.replace(nil, scope: scope, expected: observed)
+            state = .inactive; differences = []; mediaRequiresSelection = false; restored = false
+            return true
+        } catch { fail(error); return false }
+    }
     /// Explicit local discard only. Caller must read the original source again.
     /// Never touches old/UNKNOWN writer intents, even if current fields happen to match.
     @discardableResult public func discard() -> Bool {

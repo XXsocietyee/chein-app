@@ -145,6 +145,9 @@ struct FreeExplorationStoreName: View {
     @Bindable var model: PlayExperienceCoordinator
     let storeDestination: (Int) -> AnyView
     var rewardCollectionDestination: ((PlayRewardBadgeTarget) -> AnyView)? = nil
+    /// Cast ending for this run. Nil config draws nothing. The read gate is not this view's.
+    var castConfig: CastConfig? = nil
+    var castEnding: PlayWireValue = .null
     @State private var selectedStore: Int?
     @State private var packOpen = false
     @State private var chapterFilter: Int?
@@ -201,6 +204,9 @@ struct FreeExplorationStoreName: View {
                                     if let text = fragment.text, !text.isEmpty { Text(verbatim: text) }
                                 }
                             }
+                            if let castConfig {
+                                CastEndingSection(config: castConfig, result: CastEndingResult(raw: castEnding))
+                            }
                         }
                     }
                 }
@@ -247,7 +253,7 @@ struct FreeExplorationStoreName: View {
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     let storyDestination: (PlayNode) -> AnyView?
     var storeDayModel: ((Int) -> PlayStoreDayCoordinator?)? = nil
-    /// One-shot when-in-use location. Nil until a later wiring commit passes a provider.
+    /// One-shot when-in-use location. The play host passes `RuntimeNativeLocationProvider`.
     var arrivalLocation: (any RoamDeviceLocationProviding)? = nil
     @State private var arrival: PlayArrivalService?
     @State private var review: PlayCompletionReview?

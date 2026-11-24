@@ -44,16 +44,11 @@ enum NativeGalleryRoute {
 }
 
 enum NativeGalleryPaint {
-    static let accent = Color(red: 122.0 / 255.0, green: 92.0 / 255.0, blue: 255.0 / 255.0)
-    static let actionLight = Color.black
-    static let actionDark = Color(red: 248.0 / 255.0, green: 248.0 / 255.0, blue: 248.0 / 255.0)
     static let margin: CGFloat = 16
     static let cardRadius: CGFloat = 12
     static let heroRadius: CGFloat = 20
 
-    static func action(for scheme: ColorScheme) -> Color {
-        scheme == .dark ? actionDark : actionLight
-    }
+    static var action: Color { CYColor.actionPrimaryBg }
 }
 
 enum NativeGalleryTagKind {
@@ -65,7 +60,6 @@ enum NativeGalleryTagKind {
 }
 
 struct NativeGalleryTag: View {
-    @Environment(\.colorScheme) private var scheme
     let text: String
     let kind: NativeGalleryTagKind
 
@@ -81,40 +75,35 @@ struct NativeGalleryTag: View {
     private var foreground: Color {
         switch kind {
         case .success:
-            return scheme == .dark ? rgb(34, 197, 94) : rgb(11, 122, 87)
+            return CYColor.successText
         case .warning:
-            return scheme == .dark ? rgb(213, 131, 0) : rgb(150, 97, 10)
+            return CYColor.warningText
         case .danger:
-            return scheme == .dark ? rgb(229, 72, 77) : rgb(208, 50, 59)
+            return CYColor.dangerText
         case .info:
-            return scheme == .dark ? rgb(76, 134, 255) : rgb(37, 99, 235)
+            return CYColor.infoText
         case .accent:
-            return NativeGalleryPaint.accent
+            return CYColor.brand
         }
     }
 
     private var background: Color {
         switch kind {
         case .success:
-            return foreground.opacity(scheme == .dark ? 0.14 : 0.10)
+            return CYColor.successSoft
         case .warning:
-            return foreground.opacity(scheme == .dark ? 0.18 : 0.12)
+            return CYColor.warningSoft
         case .danger:
-            return foreground.opacity(scheme == .dark ? 0.14 : 0.10)
+            return CYColor.dangerSoft
         case .info:
-            return foreground.opacity(scheme == .dark ? 0.14 : 0.10)
+            return CYColor.infoSoft
         case .accent:
-            return NativeGalleryPaint.accent.opacity(0.14)
+            return CYColor.brandSoft
         }
-    }
-
-    private func rgb(_ red: Double, _ green: Double, _ blue: Double) -> Color {
-        Color(red: red / 255.0, green: green / 255.0, blue: blue / 255.0)
     }
 }
 
 struct NativeGalleryProminentButton: View {
-    @Environment(\.colorScheme) private var scheme
     let title: String
 
     var body: some View {
@@ -123,12 +112,11 @@ struct NativeGalleryProminentButton: View {
                 .font(.body)
         }
         .buttonStyle(.borderedProminent)
-        .tint(NativeGalleryPaint.action(for: scheme))
+        .tint(NativeGalleryPaint.action)
     }
 }
 
 struct NativeGalleryBorderedButton: View {
-    @Environment(\.colorScheme) private var scheme
     let title: String
 
     var body: some View {
@@ -137,7 +125,7 @@ struct NativeGalleryBorderedButton: View {
                 .font(.body)
         }
         .buttonStyle(.bordered)
-        .tint(NativeGalleryPaint.action(for: scheme))
+        .tint(NativeGalleryPaint.action)
     }
 }
 
@@ -183,7 +171,7 @@ struct NativeGalleryTabBar: View {
                     Text(tab.title)
                         .font(.caption)
                 }
-                .foregroundStyle(tab == selected ? NativeGalleryPaint.accent : Color.secondary.opacity(0.6))
+                .foregroundStyle(tab == selected ? CYColor.brand : Color.secondary.opacity(0.6))
                 .frame(maxWidth: .infinity)
                 .accessibilityLabel(tab == selected ? "当前" + tab.title : "前往" + tab.title)
             }
@@ -585,7 +573,7 @@ struct NativeGalleryStatusTags: View {
                 tagRow("试玩", .accent)
             }
             Section {
-                Text("选中页签用品牌紫 #7A5CFF。成功、警告、危险、信息用小程序状态色。")
+                Text("选中页签用品牌色。成功、警告、危险、信息用状态色。")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }

@@ -181,7 +181,7 @@ final class MerchantBusinessContractsTests: XCTestCase {
         XCTAssertTrue(filters.rows(in: reviews.sections[0], query: reviews.query).isEmpty)
         XCTAssertTrue(filters.rows(in: refunds.sections[0], query: refunds.query).isEmpty)
         XCTAssertEqual(reviews, reviewBefore); XCTAssertEqual(refunds, refundBefore)
-        XCTAssertEqual(try reviews.query.request().query, ["pageNum": "1", "pageSize": "20"])
+        XCTAssertEqual(try reviews.query.request().query, ["filter": "all", "pageNum": "1", "pageSize": "20"])
         XCTAssertEqual(try refunds.query.request().query, ["bucket": "PENDING", "pageNum": "1", "pageSize": "20"])
         let detail = try document(.refund(.init(62001)))
         XCTAssertEqual(filters.rows(in: detail.sections[0], query: detail.query), detail.sections[0].rows)

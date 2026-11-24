@@ -13,7 +13,8 @@ public final class MemberRound2Service {
         "api/withdrawal/list",
         "api/club/follow",
         "api/club/join",
-        "api/template/my/list"
+        "api/template/my/list",
+        "api/orient/scoring"
     ]
 
     public let baseURL: URL
@@ -121,6 +122,16 @@ public final class MemberRound2Service {
             "api/template/my/list",
             method: "POST",
             json: ["operationScope": .string(scope.rawValue)]
+        ) else { return .unauthorized }
+        return await send(req)
+    }
+
+    /// `PLY-25-2`: `GET /api/orient/scoring?sessionId=`
+    public func fetchOrientScoring(sessionID: Int) async -> PlayerGapReply {
+        guard let req = try? makeRequest(
+            "api/orient/scoring",
+            method: "GET",
+            query: ["sessionId": String(sessionID)]
         ) else { return .unauthorized }
         return await send(req)
     }

@@ -41,6 +41,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline, sheet }
     @Environment(\.offlineWriteSession) private var offlineWriteSession
     @Environment(\.analyticsEventClient) private var analytics
     @Environment(\.playGameStage) private var stage
+    @Environment(\.questifyCast) var castContext
     @QuestifyReduceMotion private var reduceMotion
     private var segment: PlayWireValue {
         guard let state = model.state else { return .null }

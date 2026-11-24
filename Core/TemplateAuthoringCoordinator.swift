@@ -37,6 +37,9 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
     public private(set) var shelfBusy = false
     public private(set) var shelfBlocked = false
     public private(set) var shelfMessageKey: String?
+    /// MP `mytemplate` `operationScope`. Only `MERCHANT` is written onto the shelf requests.
+    public var operationScope: String?
+    private var shelfScope: String? { operationScope == "MERCHANT" ? "MERCHANT" : nil }
     private var shelfGeneration = 0
     public var shelfLocked: Bool { shelfBusy || shelfBlocked || shelfPending != nil }
     public lazy var shelfReader = TemplateOwnShelfReader(adapter: adapter, currentSession: currentSession)
@@ -255,7 +258,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         shelfGeneration += 1; let stamp = shelfGeneration; shelfReview = nil
         do {
             shelfPending = try store.shelfPending(session: session)
-            let result = try await adapter.listMine()
+            let result = try await adapter.listMine(scope: shelfScope)
             guard shelfActive(session, stamp) else { return }
             try validateShelfRows(result); rows = result; shelfBlocked = false
             if let pending = shelfPending {
@@ -281,7 +284,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         do {
             shelfPending = try store.shelfPending(session: session)
             guard shelfPending == nil else { shelfMessageKey = "templateAuthor.shelf.unknown"; return }
-            shelfReview = try .init(row: row, action: action, session: session, generation: shelfGeneration, marketStatusTarget: marketStatusTarget)
+            shelfReview = try .init(row: row, action: action, session: session, generation: shelfGeneration, marketStatusTarget: marketStatusTarget, scope: shelfScope)
         } catch { shelfBlocked = true; shelfMessageKey = "templateAuthor.storageFailed" }
     }
     public func cancelShelfReview() { shelfReview = nil }
@@ -295,7 +298,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         defer { if shelfGeneration == stamp { shelfBusy = false } }
         do {
             // Re-read the exact shelf immediately before dispatch. Never trust a stale row.
-            let fresh = try await adapter.listMine()
+            let fresh = try await adapter.listMine(scope: shelfScope)
             guard shelfActive(session, stamp) else { return }
             try validateShelfRows(fresh); rows = fresh
             guard fresh.first(where: { $0.id == value.templateID.rawValue }) == value.baseline else {
@@ -316,7 +319,7 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
             case .acknowledged:
                 intent.acknowledged = true
                 try store.saveShelfPending(intent, session: session); shelfPending = intent
-                let readback = try await adapter.listMine()
+                let readback = try await adapter.listMine(scope: shelfScope)
                 guard shelfActive(session, stamp) else { return }
                 try validateShelfRows(readback); rows = readback
                 if intent.matchesAcknowledgedReadback(readback) {

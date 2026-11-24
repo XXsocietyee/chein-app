@@ -31,7 +31,7 @@ public struct IMExpandedService {
     /// `markInboxConversationRead`.
     public let inboxConversationReadEnabled: Bool
     public var canWriteInboxConversationRead: Bool {
-        inboxConversationReadEnabled && (enabledPaths?.contains("api/im/read") ?? true)
+        writesEnabled && inboxConversationReadEnabled && (enabledPaths?.contains("api/im/read") ?? false)
     }
     public let ordinaryMuteRequestEnabled: Bool
     public let ordinaryMuteReceiptEnabled: Bool
@@ -305,19 +305,14 @@ public struct IMExpandedService {
               URLComponents(url: url, resolvingAgainstBaseURL: false)?.fragment == nil else { throw APIError.malformedResponse }
         return url
     }
-    /// Later-mount hook for the merchant inbox's local read mark. Sends nothing while
-    /// `inboxConversationReadEnabled` is false. The body is only `conversation_id`.
+    /// Merchant inbox mark-read. Form field `conversation_id` only. Sends nothing unless the write
+    /// switch, the inbox flag, and an `api/im/read` path grant are all on.
     public func markInboxConversationRead(conversationID: Int, token: String) async throws {
         guard canWriteInboxConversationRead else { throw APIError.notConfigured }
         guard conversationID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        var request = URLRequest(url: configuration.baseURL.appendingPathComponent("api/im/read"))
-        request.httpMethod = "POST"
-        request.timeoutInterval = 20
-        request.cachePolicy = .reloadIgnoringLocalCacheData
-        request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue(token, forHTTPHeaderField: "Authorization")
-        request.httpBody = try JSONSerialization.data(withJSONObject: ["conversation_id": conversationID], options: [.sortedKeys])
+        let request = try AuthRequestBuilder.makeFormRequest(
+            url: configuration.baseURL.appendingPathComponent("api/im/read"),
+            fields: ["conversation_id": String(conversationID)], token: token)
         _ = try await response(request)
     }
     public func performOrdinaryRead(_ intent: OrdinaryIMReadIntent, token: String) async throws -> OrdinaryIMReadReceipt {

@@ -95,29 +95,27 @@ public final class PlayerContentGapService {
         return await send(req)
     }
 
-    /// `PC-B-1-5`: `POST /api/team/nearby {topicId, pageNum, pageSize}`
-    public func fetchTopicNearbyTeams(topicID: Int, pageNum: Int = 1, pageSize: Int = 5) async -> PlayerGapReply {
+    /// `PC-B-1-5`: `GET /api/team/nearby?lat=&lng=&radius=`
+    public func fetchTopicNearbyTeams(latitude: Double, longitude: Double, radius: Int = 20000) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/team/nearby",
-            method: "POST",
-            json: [
-                "topicId": .number(Double(topicID)),
-                "pageNum": .number(Double(pageNum)),
-                "pageSize": .number(Double(pageSize))
-            ],
-            requireAuth: false
-        ) else { return .unknown }
+            method: "GET",
+            query: [
+                "lat": String(latitude),
+                "lng": String(longitude),
+                "radius": String(radius)
+            ]
+        ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `PC-B-1-5`: `POST /api/free-explore/bundle/catalog {topicId}`
+    /// `PC-B-1-5`: `GET /api/free-explore/bundle/catalog?topicId=`
     public func fetchFreeExploreCatalog(topicID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/free-explore/bundle/catalog",
-            method: "POST",
-            json: ["topicId": .number(Double(topicID))],
-            requireAuth: false
-        ) else { return .unknown }
+            method: "GET",
+            query: ["topicId": String(topicID)]
+        ) else { return .unauthorized }
         return await send(req)
     }
 
