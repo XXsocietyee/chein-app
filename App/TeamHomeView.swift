@@ -133,7 +133,7 @@ import SwiftUI
                     }
                     if !readOnly, invitationCode == nil, detail.team.status == .recruiting, detail.joined == true || detail.leader == true {
                         // l-misc: the team mini-program code and join code come only from the server reply.
-                        TeamInviteQRSection(teamID: detail.team.id)
+                        TeamInviteQRSheetButton(teamID: detail.team.id)
                     }
                     if detail.leader == true, detail.team.status == .recruiting {
                         // Mini leader card (公开招募): shown right after the actions, before the member list.
@@ -318,6 +318,30 @@ import SwiftUI
         await model.run(permit: permit) {
             if readOnly, case .id(let teamID) = lookup { await model.coordinator.loadPostJoinDetail(teamID: teamID) }
             else { await model.coordinator.loadDetail(lookup, requireMembership: requiresMembership) }
+        }
+    }
+}
+
+/// C-D10 (MP team/detail wxml:58, 170-180): 二维码 opens the 队伍二维码 sheet with the mini-program code and 加入码.
+/// Absent when no QR reader is installed, like the inline section it wraps.
+struct TeamInviteQRSheetButton: View {
+    @Environment(\.playerGapService) private var service
+    let teamID: Int
+    @State private var shown = false
+    var body: some View {
+        if service != nil {
+            Button { shown = true } label: { Label("fixr3.team.qr", systemImage: "qrcode") }
+                .buttonStyle(.cySecondary(fullWidth: true))
+                .accessibilityLabel(Text("fixr3.team.qr.a11y"))
+                .accessibilityIdentifier("team.qr.open")
+                .sheet(isPresented: $shown) {
+                    NavigationStack {
+                        ScrollView { TeamInviteQRSection(teamID: teamID, loadsOnAppear: true).padding(CYSpacing.pageHorizontal) }
+                            .navigationTitle(Text("fixr3.team.qr.title")).navigationBarTitleDisplayMode(.inline)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("compliance.close") { shown = false } } }
+                    }
+                    .presentationDetents([.medium, .large])
+                }
         }
     }
 }

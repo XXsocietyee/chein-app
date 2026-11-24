@@ -304,5 +304,56 @@
         }
       }
     }
+  },
+  "fixr3.team.qr": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "QR code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "二维码"
+        }
+      }
+    }
+  },
+  "fixr3.team.qr.a11y": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team QR code and join code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍二维码与加入码"
+        }
+      }
+    }
+  },
+  "fixr3.team.qr.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Team QR code"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "队伍二维码"
+        }
+      }
+    }
   }
 }
