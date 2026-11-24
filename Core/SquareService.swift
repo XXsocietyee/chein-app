@@ -7,6 +7,7 @@ import FoundationNetworking
 public struct SquareService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         self.configuration = configuration; self.transport = transport
     }
@@ -38,11 +39,18 @@ public struct SquareService {
         guard var parts = URLComponents(url: url, resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         parts.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
         guard let finalURL = parts.url else { throw APIError.invalidRequest }
-        var request = URLRequest(url: finalURL)
-        request.httpMethod = "GET"; request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
-        let result: SquareFeedEnvelope = try decode(try await execute(request))
+        let key = InFlightReadKey.query(path: "api/v1/community/feeds/\(query.mode.rawValue)", items: fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }, token: token ?? "")
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = URLRequest(url: finalURL)
+            request.httpMethod = "GET"; request.cachePolicy = .reloadIgnoringLocalCacheData; request.timeoutInterval = 20
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        let result: SquareFeedEnvelope = try decode(try checked(response))
         let payload = result.data
         return SquareFeedPage(items: (payload?.items ?? []).map { $0.qualified(as: .communityV1) }, hasMore: payload?.hasMore == true,
                               nextCursor: payload?.nextCursor.map { SquareCursor(id: $0, score: payload?.nextCursorScore) })
@@ -117,10 +125,17 @@ public struct SquareService {
         var parts = URLComponents(url: configuration.baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         if !query.isEmpty { parts.queryItems = query }
         guard let url = parts.url else { throw APIError.invalidRequest }
-        var request = URLRequest(url: url); request.httpMethod = "GET"; request.cachePolicy = .reloadIgnoringLocalCacheData
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
-        return try await execute(request)
+        let key = InFlightReadKey.query(path: path, items: query, token: token ?? "")
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = URLRequest(url: url); request.httpMethod = "GET"; request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            if let token { request.setValue(token, forHTTPHeaderField: "Authorization") }
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return try checked(response)
     }
     public func comments(postID: Int, pageNumber: Int = 1, pageSize: Int = 50, token: String? = nil) async throws -> SquareCommentPage {
         guard postID > 0, pageNumber > 0, pageSize > 0, pageSize <= 1000 else { throw APIError.invalidRequest }
@@ -128,11 +143,19 @@ public struct SquareService {
         return SquareCommentPage(items: (result.data?.rows ?? []).map { $0.qualified(as: .legacySquare) }, pageNumber: pageNumber, pageSize: pageSize)
     }
     private func post(_ path: String, fields: [String: String], token: String?) async throws -> Data {
-        try await execute(AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token))
-    }
-    private func execute(_ request: URLRequest) async throws -> Data {
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
+        let response = try await reads.join(key) {
+            let request = try AuthRequestBuilder.makeFormRequest(url: self.configuration.baseURL.appendingPathComponent(path), fields: fields, token: token)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return try checked(response)
+    }
+    /// Status stays outside the join, so a finished read is dropped and the next call sends again.
+    private func checked(_ response: InFlightHTTPBody) throws -> Data {
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         let envelope: SquareStatusEnvelope = try decode(data)

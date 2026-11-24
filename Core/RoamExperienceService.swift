@@ -7,6 +7,7 @@ import FoundationNetworking
 public struct RoamExperienceService {
     public let deployment: URL
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration: APIConfiguration, transport: any HTTPTransport) {
         deployment = configuration.baseURL; self.transport = transport
     }
@@ -19,9 +20,17 @@ public struct RoamExperienceService {
     }
     public func album(page: Int = 1, pageSize: Int = 20, token: String) async throws -> RoamAlbumPage {
         guard page > 0, (1...100).contains(pageSize) else { throw APIError.invalidRequest }
-        let request = try AuthRequestBuilder.makeFormRequest(url: deployment.appendingPathComponent("api/roam/stamp/list"),
-            fields: ["pageNum": String(page), "pageSize": String(pageSize)], token: token)
-        let value = try decode(RoamExperienceEnvelope<RoamAlbumPage>.self, await execute(request)).data
+        let fields = ["pageNum": String(page), "pageSize": String(pageSize)]
+        let key = InFlightReadKey.fields(method: "POST", path: "api/roam/stamp/list", fields: fields, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            let request = try AuthRequestBuilder.makeFormRequest(url: self.deployment.appendingPathComponent("api/roam/stamp/list"),
+                fields: fields, token: token)
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        let value = try decode(RoamExperienceEnvelope<RoamAlbumPage>.self, try checked(response)).data
         guard value.pageNum == page, value.pageSize == pageSize else { throw APIError.malformedResponse }
         return value
     }
@@ -46,17 +55,24 @@ public struct RoamExperienceService {
         guard var parts = URLComponents(url: deployment.appendingPathComponent(path), resolvingAgainstBaseURL: false) else { throw APIError.invalidConfiguration }
         if !fields.isEmpty { parts.queryItems = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) } }
         guard let url = parts.url else { throw APIError.invalidRequest }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"; request.timeoutInterval = 20
-        request.cachePolicy = .reloadIgnoringLocalCacheData
-        request.setValue(token, forHTTPHeaderField: "Authorization")
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        return try await execute(request)
+        let items = fields.keys.sorted().map { URLQueryItem(name: $0, value: fields[$0]) }
+        let key = InFlightReadKey.query(path: path, items: items, token: token)
+        try Task.checkCancellation()
+        let response = try await reads.join(key) {
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"; request.timeoutInterval = 20
+            request.cachePolicy = .reloadIgnoringLocalCacheData
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            let (data, status) = try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        try Task.checkCancellation()
+        return try checked(response)
     }
-    private func execute(_ request: URLRequest) async throws -> Data {
-        try Task.checkCancellation()
-        let (data, status) = try await transport.send(request)
-        try Task.checkCancellation()
+    /// Status stays outside the join, so a finished read is dropped and the next call sends again.
+    private func checked(_ response: InFlightHTTPBody) throws -> Data {
+        let (data, status) = (response.data, response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         let envelope = try decode(RoamExperienceStatus.self, data)
