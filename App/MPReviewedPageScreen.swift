@@ -119,9 +119,10 @@ import SwiftUI
                                         topicLinks: OfficialTopicLinks(reader: session.topicReader, destination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }))
             } else { unavailable }
         case "pages/activity/official-inbox/index":
-            OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
+            // R7-PC-C5-1: guests get a 登录 button, as on the MP.
+            OfficialInboxView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
         case "pages/activity/official-mine/index":
-            OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator)
+            OfficialPublishedView(reader: session.officialEventReader, actions: session.officialActionCoordinator, onLogin: signIn)
         case "subpackageA/pages/infomation/infomation":
             // PC-D-2-1: the mode cards keep their 去看看 (MP switchTab to 首页 / 漫游).
             SocialPlayGuideView(reader: session.socialAccountReader,

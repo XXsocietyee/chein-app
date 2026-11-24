@@ -26,13 +26,17 @@ import SwiftUI
                         .accessibilityIdentifier("official.inbox" + ".empty")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    // R7-PC-C5-3 (MP official-inbox/index.wxml:14-32): one card per invite, its buttons inside it;
+                    // the invite title is plain text, not a tappable-looking row.
+                    Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYStatusChip(LocalizedStringKey(row.sourceStatusKey), tone: row.isPaused ? .warning : .neutral, systemImage: "envelope")
-                        if row.title.isEmpty {
-                            CYListRow("official.inviteUntitled", trailing: .none) { CYRowIcon(systemImage: "envelope") }
-                        } else {
-                            CYListRow(verbatim: row.title, trailing: .none) { CYRowIcon(systemImage: "envelope") }
+                        Group {
+                            if row.title.isEmpty { Text("official.inviteUntitled") } else { Text(verbatim: row.title) }
                         }
+                        .cyText(.cardTitle).foregroundStyle(palette.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
                         if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
                         // Source meta line: "(city ‖ 全国) · role".
                         (cityText(row) + Text(verbatim: " · ") + roleText(row)).cyText(.meta).foregroundStyle(palette.textSecondary)
@@ -59,9 +63,10 @@ import SwiftUI
                         }
                         if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).cyText(.caption) }
                     }
-                    .cyDomainCard(padding: CYSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("official.invite.\(row.id)")
-                    if let actions { OfficialInviteResponseActions(coordinator: actions, invite: row, publisher: publisher) }
+                    if let actions { OfficialInviteResponseActions(coordinator: actions, invite: row, publisher: publisher, embedded: true) }
+                    }
                 }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
             }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(palette.bgPage)

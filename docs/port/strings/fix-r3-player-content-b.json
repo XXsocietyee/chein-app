@@ -33,6 +33,23 @@
       }
     }
   },
+  "official.inbox.actionFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "That didn't go through"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这次操作没有完成"
+        }
+      }
+    }
+  },
   "registration.form.noTicketsAvailable": {
     "extractionState": "manual",
     "localizations": {
