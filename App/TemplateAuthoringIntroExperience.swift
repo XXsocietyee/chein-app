@@ -117,7 +117,7 @@ import Combine
                         VStack(alignment:.leading,spacing:6) {
                             DiscoveryArtwork(source:item.imgUrl,height:150)
                                 .frame(maxWidth:.infinity)
-                                .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                             Text(verbatim:examples.categoryName(at:index))
                                 .cyText(.meta)
                                 .foregroundStyle(palette.textSecondary)

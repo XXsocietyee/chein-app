@@ -102,29 +102,32 @@ import Combine
                 Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave)
                     .accessibilityIdentifier("templateModules.saveLocal")
             }
-        }.navigationTitle("templateModules.title")
+        }.navigationTitle("templateModules.title").navigationBarTitleDisplayMode(.inline)
             .sheet(item: Binding(get: { editor.currentReview }, set: { _ in editor.dismiss(presented) })) { original in
-                NavigationStack {
-                    Form {
-                        if editor.currentReview?.id == original.id {
-                            Section(LocalizedStringKey(original.module.labelKey)) {
-                                Text("templateModules.removeNotice")
-                                if original.module == .story { Text("templateModules.storyNotice").cyText(.meta) }
-                                if original.module == .reward { Text("templateModules.rewardNotice").cyText(.meta) }
-                                ForEach(original.fields) { field in
-                                    VStack(alignment: .leading) {
-                                        Text(LocalizedStringKey(field.labelKey)).cyText(.cardTitle)
-                                        if field.value.isEmpty { Text("templateModules.empty").foregroundStyle(.secondary) }
-                                        else { Text(verbatim: field.value).textSelection(.enabled) }
+                Group {
+                    NavigationStack {
+                        Form {
+                            if editor.currentReview?.id == original.id {
+                                Section(LocalizedStringKey(original.module.labelKey)) {
+                                    Text("templateModules.removeNotice")
+                                    if original.module == .story { Text("templateModules.storyNotice").cyText(.meta) }
+                                    if original.module == .reward { Text("templateModules.rewardNotice").cyText(.meta) }
+                                    ForEach(original.fields) { field in
+                                        VStack(alignment: .leading) {
+                                            Text(LocalizedStringKey(field.labelKey)).cyText(.cardTitle)
+                                            if field.value.isEmpty { Text("templateModules.empty").foregroundStyle(.secondary) }
+                                            else { Text(verbatim: field.value).textSelection(.enabled) }
+                                        }
                                     }
                                 }
-                            }
-                            Button("templateModules.confirm", role: .destructive) { editor.confirm(original) }
-                                .accessibilityIdentifier("templateModules.confirm")
-                        } else { Text("templateModules.changed") }
-                    }.navigationTitle("templateModules.review")
-                        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("templateAuthor.cancel") { editor.cancel(original) } } }
+                                Button("templateModules.confirm", role: .destructive) { editor.confirm(original) }
+                                    .accessibilityIdentifier("templateModules.confirm")
+                            } else { Text("templateModules.changed") }
+                        }.navigationTitle("templateModules.review").navigationBarTitleDisplayMode(.inline)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("templateAuthor.cancel") { editor.cancel(original) } } }
+                    }
                 }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
             .onDisappear { editor.retire() }
             .onChange(of: model.canEdit) { _, allowed in if !allowed { editor.suspend() } }

@@ -258,7 +258,7 @@ private extension TemplateAuthoringModel {
                         .cyText(.bodyMedium)
                         .foregroundStyle(palette.textSecondary)
                         .frame(width: EditorKitMetric.optionThumb, height: EditorKitMetric.optionThumb)
-                        .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(palette.bgElevated))
+                        .background(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous).fill(palette.bgElevated))
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         ConfigR4Text.text(isSet ? (kind == .audio ? "config.qaudio.set" : "config.qimage.set")

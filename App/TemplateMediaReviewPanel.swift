@@ -69,7 +69,10 @@ import SwiftUI
         content.sheet(item: Binding(get: { controller.review }, set: { next in
             if next == nil, let originalID { controller.cancel(originalID: originalID) }
         })) { original in
-            NavigationStack { TemplateMediaReviewPanel(controller: controller, original: original) }
+            Group {
+                NavigationStack { TemplateMediaReviewPanel(controller: controller, original: original) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { controller.retire() } else { controller.reload() }
@@ -150,7 +153,7 @@ import SwiftUI
             }
         }
         .buttonStyle(.borderless)
-        .navigationTitle(TemplateMediaReviewLabels.title(original.selection.slot.field, ordinal: original.ordinal, locale: locale))
+        .navigationTitle(TemplateMediaReviewLabels.title(original.selection.slot.field, ordinal: original.ordinal, locale: locale)).navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button(String(localized: LocalizedStringResource("templateMedia.cancel", defaultValue: "Cancel local review", locale: locale))) { controller.cancel(originalID: original.id) }

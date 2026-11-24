@@ -416,7 +416,7 @@ enum TemplateTimerOutcomeText: CaseIterable {
                 Button(text(.cancel), action: controller.cancelAction { dismiss() })
                     .accessibilityIdentifier("templateTimerOutcome.cancel")
             }
-        }.navigationTitle(text(.title))
+        }.navigationTitle(text(.title)).navigationBarTitleDisplayMode(.inline)
             .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.viewDisappeared() }
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
