@@ -90,7 +90,8 @@ import SwiftUI
     /// which replaces the plain confirm, so the organiser is asked once, with the consequences in front of them.
     @State private var consequenceReview: ClubGovernanceReview?
     @State private var consequenceAccepted: ClubGovernanceReview.ID?
-    @State private var applyStep = 0
+    /// CLB-apply-02 (MP apply wxml:36-43): the intro already showed on the host-status page, so the form opens at step 1.
+    @State private var applyStep = 1
     @State private var applyBlocked = false
     private var generation: UInt64 { presentation.generation }
     private var presentationContext: ClubGovernanceFormLifecycle.Context {
@@ -284,6 +285,17 @@ import SwiftUI
                 }
             } else if receipt == nil {
                 if route.operation == .hostApply && applyStep < 4 { applyAdvanceButton }
+                if route.operation == .hostApply && applyStep > 1 {
+                    Button {
+                        guard !busy, !locked else { return }
+                        applyBlocked = false
+                        setApplyStep(applyStep - 1)
+                    } label: { Text(verbatim: locale.pick("上一步", "Back")).frame(maxWidth: .infinity) }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
+                    .listRowBackground(Color.clear)
+                    .disabled(busy || locked)
+                    .accessibilityIdentifier("club.player.apply.back")
+                }
                 if route.operation == .hostApply && applyStep == 4 {
                     // CLB-apply-03 (parity r2), MC-10: the last step submits directly as 提交申请; the fact-row review
                     // stays only as the fallback when the submit could not finish.
@@ -382,17 +394,11 @@ import SwiftUI
             }
         }
         .toolbar { ToolbarItem(placement: .cancellationAction) {
+            // CLB-apply-09: 关闭 stays in the bar on every step; 上一步 sits in the bottom actions.
             Button {
-                if route.operation == .hostApply, applyStep > 0, !busy, !locked {
-                    applyBlocked = false
-                    setApplyStep(applyStep - 1)
-                } else if dirty || busy || locked { showDiscard = true } else { dismiss() }
+                if dirty || busy || locked { showDiscard = true } else { dismiss() }
             } label: {
-                if route.operation == .hostApply, applyStep > 0 {
-                    Image(systemName: "chevron.backward").accessibilityLabel(Text(verbatim: locale.pick("上一步", "Back")))
-                } else {
-                    Text("club.gov.close")
-                }
+                Text("club.gov.close")
             }
         } }
         .interactiveDismissDisabled(dirty || busy || locked)

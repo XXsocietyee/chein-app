@@ -74,5 +74,17 @@
   "club.gov.a11y.revoke %@": {
     "zh-Hans": "撤销 %@ 的角色",
     "en": "Remove %@'s role"
+  },
+  "club.host.merchant.viewApply": {
+    "zh-Hans": "查看商家入驻",
+    "en": "View merchant application"
+  },
+  "club.host.signIn.title": {
+    "zh-Hans": "登录后申请成为主理人",
+    "en": "Sign in to apply as a host"
+  },
+  "club.host.signIn.action": {
+    "zh-Hans": "登录",
+    "en": "Sign In"
   }
 }

@@ -169,6 +169,8 @@ struct ClubGovernanceReadView: View {
     @Environment(\.clubTerminalSessions) private var terminalSessions
     @Environment(\.clubOwnerFunds) private var ownerFunds
     @Environment(\.locale) private var locale
+    @Environment(\.dismiss) private var dismissPage
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -604,7 +606,15 @@ struct ClubGovernanceReadView: View {
             }
             // X3 (parity r2): one failure block per read. Page copy when the page has it, else the page's denial note,
             // else the generic reason; the reason line keeps the `club.gov.error` id the UI tests read.
-            if let failure, let copy = ClubOpsFailureCopy(operation: operation, failure: failure) {
+            if operation == .hostStatus, failure == .signedOut {
+                // CLB-apply-08 (MP apply wxml:27-28): the guest state is 登录后申请成为主理人 + 登录.
+                CYEmptyState(systemImage: "person.crop.circle.badge.plus", "club.host.signIn.title",
+                             messageIdentifier: "club.host.signIn",
+                             actionTitle: rootTabSwitch.isAvailable ? "club.host.signIn.action" : nil,
+                             actionIdentifier: "club.host.signIn.action", actionStyle: .primary,
+                             action: rootTabSwitch.isAvailable ? { dismissPage(); rootTabSwitch(.mine) } : nil)
+                    .listRowBackground(Color.clear)
+            } else if let failure, let copy = ClubOpsFailureCopy(operation: operation, failure: failure) {
                 ClubOpsFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }
             } else if let failure, let copy = ClubOpsPageFailureCopy(operation: operation, failure: failure) {
                 ClubOpsPageFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }.disabled(loading)
@@ -1318,6 +1328,17 @@ struct ClubGovernanceReadView: View {
             if value["accountRole"] == .string("merchant") {
                 CYEmptyState(systemImage: "storefront", "club.host.merchant.title", detail: "club.gov.hostMerchantBlocked")
                     .listRowBackground(Color.clear)
+                // CLB-apply-04 (MP apply wxml:30-33, js:157-162): the way out is the merchant side, plus 返回.
+                Section {
+                    NavigationLink { MPReviewedPageScreen(page: "pages/merchant/apply/index", query: [:]) } label: {
+                        Text("club.host.merchant.viewApply")
+                    }
+                    .buttonStyle(CYPillButtonStyle(style: .primary))
+                    .accessibilityIdentifier("club.host.merchant.viewApply")
+                    Button("action.back") { dismissPage() }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .accessibilityIdentifier("club.host.merchant.back")
+                }.listRowBackground(Color.clear)
             } else if value["accountRole"] == .string("club") {
                 // Source club/apply done card: page title 成为主理人, an 已生效 chip, then the 可建俱乐部 row.
                 Section {
