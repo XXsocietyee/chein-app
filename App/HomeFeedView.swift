@@ -399,7 +399,7 @@ import UIKit
     /// One label for the grouped feed card: name, then the price, time, and place lines already on the card.
     private func feedCardLabel(_ item: HomeFeedItem) -> Text {
         let price: Text
-        if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
+        if let amount = HomeFeedMoney.plain(item.amount) {
             price = Text("playx.finishRoute.priceFrom \(amount)")
         } else {
             price = PageTemplateVoiceOver.spoken(HomeFeedSurfaceState.unknownText, locale: locale)
@@ -483,7 +483,7 @@ struct HomeFeedShelfCard: View {
     var body: some View {
         let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
         // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
-        let price = QuestifyCardText.amount(item.amount, locale: locale).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
+        let price = HomeFeedMoney.plain(item.amount).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
@@ -530,7 +530,7 @@ struct HomeFeedCard: View {
     }
     private var priceRow: some View {
         statusRow("homeFeed.status.price", tabular: true) {
-            if let amount = QuestifyCardText.amount(item.amount, locale: locale) {
+            if let amount = HomeFeedMoney.plain(item.amount) {
                 Text("playx.finishRoute.priceFrom \(amount)")
             } else {
                 Text(verbatim: HomeFeedSurfaceState.unknownText)
@@ -810,5 +810,14 @@ struct HomeFeedOpenPlaceInMaps: ViewModifier {
         } else {
             content
         }
+    }
+}
+
+/// Owner decision 9 (11-24): money reads with two decimals through the shared `MoneyDisplay` (¥12.50). Unknown or
+/// negative stays nil (the card says "—", never 0).
+enum HomeFeedMoney {
+    static func plain(_ value: Decimal?) -> String? {
+        guard let value, value >= 0 else { return nil }
+        return MoneyDisplay.plain(value)
     }
 }

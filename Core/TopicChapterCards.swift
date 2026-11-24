@@ -26,11 +26,18 @@ public enum TopicChapterCards {
             return list.compactMap { item -> String? in
                 let value = (item as? String) ?? ((item as? [String: Any])?["url"] as? String)
                 let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-                return trimmed.isEmpty ? nil : trimmed
+                return trimmed.isEmpty || !isDisplayable(trimmed) ? nil : trimmed
             }
         }
+        // REV-B B-04 (MP chapter-cards.js:15-32): plain lists drop `[`, `]` and quotes, and `media-asset:N` refs.
         return text.split(whereSeparator: { $0 == "," || $0 == ";" })
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+            .map { $0.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "[]\"'"))) }
+            .filter { !$0.isEmpty && isDisplayable($0) }
+    }
+
+    /// MP `station-image.js` `isDisplayable`: a `media-asset:` reference cannot load, so it never becomes the image.
+    public static func isDisplayable(_ source: String) -> Bool {
+        !source.lowercased().hasPrefix("media-asset:")
     }
 
     /// Endings: the name starts with 结局, or the chapter has neither games nor duration.
@@ -64,7 +71,7 @@ public enum TopicChapterCards {
             return TopicChapterCard(
                 id: chapter.id,
                 title: chapter.title,
-                imageSource: chapter.imageSources.first ?? cover,
+                imageSource: chapter.imageSources.first(where: isDisplayable) ?? cover,  // REV-B B-04
                 gameCount: (chapter.templateCount ?? 0) > 0 ? chapter.templateCount : nil,
                 minutes: minutes(chapter),
                 description: (description?.isEmpty ?? true) || description == "null" ? nil : description

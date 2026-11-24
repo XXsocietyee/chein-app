@@ -47,10 +47,10 @@ struct DiscoveryTemplateDetailParitySections: View {
                     }
                     .accessibilityIdentifier("discovery.templateDetail.previewNode")
                 }
-            } header: { DiscoverySectionHeader("discovery.templateDetail.howVerified") }.discoveryCardRow()
+            } header: { DiscoverySectionHeader("discovery.templateDetail.howVerified", art: MPAsset.FeatureIcon.magnifier) }.discoveryCardRow()
         }
-        chipSection("discovery.templateDetail.scenes", chips: presentation.sceneChips, id: "discovery.templateDetail.scenes")
-        chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials")
+        chipSection("discovery.templateDetail.scenes", chips: presentation.sceneChips, id: "discovery.templateDetail.scenes", art: MPAsset.FeatureIcon.city)
+        chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials", art: MPAsset.FeatureIcon.flashlight)
         if let rating = presentation.rating {
             Section {
                 HStack {
@@ -63,7 +63,7 @@ struct DiscoveryTemplateDetailParitySections: View {
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("discovery.templateDetail.reviews")
-            } header: { DiscoverySectionHeader("discovery.templateDetail.reviews") }.discoveryCardRow()
+            } header: { DiscoverySectionHeader("discovery.templateDetail.reviews", art: MPAsset.FeatureIcon.star) }.discoveryCardRow()
         }
         DiscoveryTemplateNoticeSection()
         .sheet(item: $preview) { state in Group {
@@ -103,13 +103,13 @@ struct DiscoveryTemplateDetailParitySections: View {
             .padding(.horizontal, 6).padding(.vertical, 2)
             .background(.tint.opacity(0.15), in: Capsule())
     }
-    @ViewBuilder private func chipSection(_ title: LocalizedStringKey, chips: [String], id: String) -> some View {
+    @ViewBuilder private func chipSection(_ title: LocalizedStringKey, chips: [String], id: String, art: Image? = nil) -> some View {
         if !chips.isEmpty {
             Section {
                 Text(verbatim: chips.joined(separator: " · "))
                     .cyText(.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier(id)
-            } header: { DiscoverySectionHeader(title) }.discoveryCardRow()
+            } header: { DiscoverySectionHeader(title, art: art) }.discoveryCardRow()
         }
     }
     @ViewBuilder private func statValue(_ stat: DiscoveryPlayTemplateDetailPresentation.Stat) -> some View {

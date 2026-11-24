@@ -104,7 +104,7 @@ struct DiscoveryTemplateDetailView: View {
                     if tab == .details {
                         DiscoveryPlayMetadata(item: item).discoveryCardRow()
                         DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader, showsPublisher: false)
-                        textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description)
+                        textSection(parity?.isTopicTemplate == true ? "u10.template.story" : "discovery.introduction", text: item.description, art: MPAsset.FeatureIcon.book)
                         if let parity, !parity.ruleSteps.isEmpty {
                             Section {
                                 ForEach(Array(parity.ruleSteps.enumerated()), id: \.offset) { index, step in
@@ -117,14 +117,14 @@ struct DiscoveryTemplateDetailView: View {
                                     .accessibilityElement(children: .combine)
                                     .accessibilityIdentifier("discovery.templateDetail.rule.\(index)")
                                 }
-                            } header: { DiscoverySectionHeader("discovery.rules") }
+                            } header: { DiscoverySectionHeader("discovery.rules", art: MPAsset.FeatureIcon.interaction) }
                                 .discoveryCardRow()
                         } else {
-                            textSection("discovery.rules", text: item.ruleInstructions)
+                            textSection("discovery.rules", text: item.ruleInstructions, art: MPAsset.FeatureIcon.interaction)
                         }
                         if let parity {
                             // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
-                            if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials) }
+                            if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials, art: MPAsset.FeatureIcon.flashlight) }
                             DiscoveryTemplateDetailParitySections(presentation: parity)
                         } else {
                             textSection("discovery.location", text: item.usageLocation)
@@ -224,10 +224,10 @@ struct DiscoveryTemplateDetailView: View {
             .filter { !$0.isEmpty }
             .map { TemplateCapabilityRow.Chip(text: $0) }
     }
-    @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
+    @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?, art: Image? = nil) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             // R7-PC-A6-4 (r1 PC-A-6-5): MP clamps 简介 / 规则 to 4 lines with 更多 / 收起.
-            Section { DiscoveryClampedText(text: text) } header: { DiscoverySectionHeader(title) }
+            Section { DiscoveryClampedText(text: text) } header: { DiscoverySectionHeader(title, art: art) }
                 .discoveryCardRow()
         }
     }
@@ -318,12 +318,34 @@ struct DiscoveryTopicTemplatePreview: View {
                     Section {
                         TemplateXbHead(title: (item.name ?? "").isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name ?? ""),
                                        publisher: topicAuthor(item), official: false, subtitle: item.subtitle) {
-                            E1CoverArt(seed: item.name ?? "topic", symbol: "building.2", imageURL: item.imgUrl, debugLabel: false,
-                                       symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                            if QuestifyCardArtwork.safeURL(item.imgUrl) != nil {
+                                E1CoverArt(seed: item.name ?? "topic", symbol: "building.2", imageURL: item.imgUrl, debugLabel: false,
+                                           symbolPoint: CGPoint(x: 0.5, y: 0.5))
+                            } else {
+                                // MP asset (topic-detail/index.wxml:31): no cover → the city 3D art `art/cat/city.png`.
+                                MPAsset.FeatureIcon.pagesTemplatedetailArtCatCity.resizable().scaledToFit().padding(CYSpacing.sm)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .background(CYColor.bgRaised)
+                                    .accessibilityHidden(true)
+                            }
                         }
                         .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
                         let topicShare = topicShareOffer(item.id)
-                        if topicShare.url != nil || topicShare.copyText != nil {
+                        let hasShare = topicShare.url != nil || topicShare.copyText != nil
+                        // R7-PC-A8-5 (owner V-24, MP `xb-cta`): 用这个模板 and share sit in one head row. The live adoption
+                        // flow keeps its own section below (it carries plan + progress state).
+                        if !TopicTemplateUseFactory.isLive {
+                            HStack(spacing: CYSpacing.sm) {
+                                Button {} label: {
+                                    Text("topicTemplate.useCta").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                                }
+                                .buttonStyle(.cyPrimary(fullWidth: true))
+                                .disabled(true)
+                                .accessibilityIdentifier("topicTemplate.use.unavailable")
+                                if hasShare { TemplateXbShareButton(url: topicShare.url, copyText: topicShare.copyText, label: "u10.template.shareTopic") }
+                            }
+                            Text("topicTemplate.useUnavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        } else if hasShare {
                             HStack { Spacer(minLength: 0); TemplateXbShareButton(url: topicShare.url, copyText: topicShare.copyText, label: "u10.template.shareTopic") }
                         }
                         TemplateXbTabs(selection: $tab)
@@ -338,20 +360,8 @@ struct DiscoveryTopicTemplatePreview: View {
                                 copiedDestination?(topicID)
                             }
                         }.discoveryCardRow()
-                    } else {
-                        // PC-A-7-3: never hide the page's main action; show it disabled and say why.
-                        Section {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Button {} label: {
-                                    Text("topicTemplate.useCta").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
-                                }
-                                .buttonStyle(.cyPrimary(fullWidth: true))
-                                .disabled(true)
-                                .accessibilityIdentifier("topicTemplate.use.unavailable")
-                                Text("topicTemplate.useUnavailable").cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                            }
-                        }.discoveryCardRow()
                     }
+                    // PC-A-7-3: when the write is gated the main action is never hidden; it is the disabled head-row CTA above.
                     if tab == .details {
                         topicDetails(item)
                     } else {
@@ -439,7 +449,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     }
                     .accessibilityElement(children: .contain)
                 }
-            } header: { TemplateXbSectionTitle(title: "u10.template.story", systemImage: "book") }
+            } header: { TemplateXbSectionTitle(title: "u10.template.story", systemImage: "book", art: MPAsset.FeatureIcon.book) }
                 .discoveryCardRow()
         }
         let free = item.mode == "FREE_EXPLORE"
@@ -479,7 +489,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     }
                 }
                 .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: 0))
-            } header: { TemplateXbSectionTitle(title: "u10.template.nodes", systemImage: "safari") }
+            } header: { TemplateXbSectionTitle(title: "u10.template.nodes", systemImage: "safari", art: MPAsset.FeatureIcon.explore) }
                 .discoveryCardRow()
                 .accessibilityIdentifier("discovery.topicDetail.nodes")
         }
@@ -492,7 +502,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     Text(verbatim: medal).cyText(.cardTitle)
                     Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textSecondary)
                 }.accessibilityElement(children: .combine)
-            } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star") }
+            } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star", art: MPAsset.FeatureIcon.star) }
                 .discoveryCardRow()
                 .accessibilityIdentifier("discovery.topicDetail.medal")
         }

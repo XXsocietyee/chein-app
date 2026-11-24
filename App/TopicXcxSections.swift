@@ -475,6 +475,7 @@ extension EnvironmentValues {
 struct TopicXcxRouteSection: View {
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     let topic: TopicDetail
     var body: some View {
         Section {
@@ -488,6 +489,13 @@ struct TopicXcxRouteSection: View {
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
                 Text("u9cde.topic.routeConfiguring").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("topic.route.empty")
+                // R7-PC-B1-17 (MP index.wxml:358, js:1120 `goTopicList` → pages/template/index, the 发布/模板 tab).
+                if rootTabSwitch.isAvailable {
+                    Button { rootTabSwitch(.publish) } label: {
+                        Text("topicXcx.route.browseOthers").frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("topic.route.browseOthers")
+                }
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
                 if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }

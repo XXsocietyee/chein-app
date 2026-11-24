@@ -222,6 +222,40 @@
         }
       }
     },
+    "publisherPricing.confirmedTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Final price confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "终价已确认"
+          }
+        }
+      }
+    },
+    "publisherPricing.gotIt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        }
+      }
+    },
     "publisherPricing.viewPartner": {
       "extractionState": "manual",
       "localizations": {
@@ -371,6 +405,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "已下架"
+          }
+        }
+      }
+    },
+    "topicXcx.route.browseOthers": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Browse other topics"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "浏览其他主题"
           }
         }
       }
