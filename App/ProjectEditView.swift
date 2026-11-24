@@ -437,6 +437,11 @@ import SwiftUI
                 // One place to-do section: the G4/G5 mount only when the H1 binding client is not installed.
                 TemplateLocationTodosEntry(topicID: topicID, scope: model.draft.owner.rawValue, nodes: model.draft.chapters.flatMap(\.nodes))
             }
+            // C-F6 (MP theme-fe-visit): 到访方式 for a saved free-explore topic; hidden while its read gate is off.
+            if model.draft.product == .freeExplore, let topicID = model.coordinator.snapshot?.topicID {
+                FreeExplorationVisitConfigEntrySection(topicID: topicID,
+                    authorWrites: model.coordinator.canSubmit && !model.coordinator.canSimulate)
+            }
             if model.coordinator.snapshot != nil {
                 ProjectSubmissionEvidenceSection(model: model)
                 TopicPublicationStatusSection(model: model)
