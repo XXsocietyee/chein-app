@@ -105,7 +105,7 @@ import SwiftUI
                 Text("projectDatePicker.unknown", tableName: "ProjectEditDatePicker").font(.caption)
             }
         }
-        .sheet(item: controller.binding(original)) { value in ProjectEditDatePickerSheet(controller: controller, original: value) }
+        .sheet(item: controller.binding(original)) { value in Group { ProjectEditDatePickerSheet(controller: controller, original: value) }.presentationDetents([.medium, .large]).presentationDragIndicator(.visible) }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in controller.retire() }
         .onChange(of: model.editorIncarnation) { _, _ in controller.retire() }
         .onDisappear { controller.retire() }
@@ -154,7 +154,7 @@ import SwiftUI
                     }.disabled(original.wasEmpty && !explicitlySelected).accessibilityIdentifier("projectDatePicker.confirm")
                 } else { Text("projectStarter.stale") }
             }
-            .navigationTitle(Text("projectDatePicker.title", tableName: "ProjectEditDatePicker"))
+            .navigationTitle(Text("projectDatePicker.title", tableName: "ProjectEditDatePicker")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { controller.close(original) } } }
         }
     }

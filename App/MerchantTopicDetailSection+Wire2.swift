@@ -33,7 +33,7 @@ struct MerchantTopicStatBarView: View {
                     }
                 }.padding(.horizontal, 16).padding(.vertical, 10)
             }
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityIdentifier("merchant.wire2.statBar")
         }
     }
@@ -50,8 +50,8 @@ struct MerchantTopicTemplateShelfView: View {
                         ForEach(Array(templates.enumerated()), id: \.offset) { _, template in
                             VStack(alignment: .leading, spacing: 6) {
                                 MerchantTopicRemoteImage(url: template.imageURL)
-                                    .frame(width: 140, height: 100).clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                Text(verbatim: template.title).cyText(.bodyMedium).lineLimit(1)
+                                    .frame(width: 140, height: 100).clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
+                                Text(verbatim: template.title).cyText(.bodyMedium).lineLimit(2)
                                 HStack(spacing: 8) {
                                     if let players = template.players { Text(verbatim: players) }
                                     if let minutes = template.durationMinutes { Text("merchant.wire2.template.minutes \(minutes)") }
@@ -116,7 +116,7 @@ struct MerchantTopicGuideChaptersView: View {
                                         }
                                     }
                                     .tabViewStyle(.page).frame(height: 180)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                                     .accessibilityIdentifier("merchant.wire2.gallery")
                                 }
                                 if !node.description.isEmpty { Text(verbatim: node.description).cyText(.bodyCompact).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }

@@ -102,7 +102,7 @@ import UIKit
         let cover = Binding<MerchantLedgerBatchCover?>(get: { model.state.cover }, set: { model.childPopped($0 == nil ? model.state.cover : nil) })
         List {
             if reader.isOfflineExample {
-                Text("merchant.business.synthetic").cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                Text("merchant.business.synthetic").cyText(.meta).foregroundStyle(CYColor.textSecondary)
             }
             // HANDOFF-R1 MR-21 / MR-20: one 账本 — the cumulative total from the workbench, the overview,
             // then a 核销 · 结算 switcher instead of two stacked lists.

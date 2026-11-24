@@ -142,7 +142,7 @@ enum MerchantGameNodeCopy {
             }.padding()
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.title"))
+        .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.title")).navigationBarTitleDisplayMode(.inline)
         .task { await c.start() }
         .refreshable { if c.writeState == .idle { await c.load() } }
     }
@@ -185,19 +185,21 @@ enum MerchantGameNodeCopy {
             }
         }
         .padding().frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
+        .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
         .accessibilityElement(children: .contain).accessibilityIdentifier("gameNode.unknown")
     }
     private func stateView(icon: String, title: String, message: MerchantGameNodeMessage, retry: Bool) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon).font(.largeTitle).foregroundStyle(.secondary)
-            MerchantGameNodeCopy.text(title).cyText(.cardTitle)
-            MerchantGameNodeCopy.text(message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
+        ContentUnavailableView {
+            Label { MerchantGameNodeCopy.text(title) } icon: { Image(systemName: icon) }
+        } description: {
+            MerchantGameNodeCopy.text(message)
+        } actions: {
             if retry {
                 Button { Task { await c.load() } } label: { MerchantGameNodeCopy.text("merchantGameNode.retry") }
-                    .buttonStyle(.bordered).accessibilityIdentifier("gameNode.retry")
+                    .buttonStyle(.bordered).frame(minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("gameNode.retry")
             }
-        }.frame(maxWidth: .infinity, minHeight: 280).padding()
+        }
+        .frame(maxWidth: .infinity, minHeight: 280)
     }
     @ViewBuilder private var toastView: some View {
         if let toast = c.toast {
@@ -283,7 +285,7 @@ enum MerchantGameNodeCopy {
         .accessibilityElement(children: .contain).accessibilityIdentifier("gameNode.hero")
     }
     private func fact(_ value: Text, _ label: String) -> some View {
-        VStack(spacing: CYSpacing.xxs) { value.cyText(.numericBody).monospacedDigit(); MerchantGameNodeCopy.text(label).cyText(.micro).foregroundStyle(CYColor.textSecondary) }
+        VStack(spacing: CYSpacing.xxs) { value.cyText(.numericBody).monospacedDigit(); MerchantGameNodeCopy.text(label).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             .frame(maxWidth: .infinity)
     }
     private func runbook(_ station: MerchantGameNodeStation) -> some View {
@@ -313,7 +315,7 @@ enum MerchantGameNodeCopy {
                 }
                 if station.canAccept {
                     Button { c.prepareAccept() } label: { MerchantGameNodeCopy.text("merchantGameNode.invite.accept").frame(maxWidth: .infinity) }
-                        .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
+                        .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.accept")
                 }
             }
         }
@@ -351,7 +353,7 @@ enum MerchantGameNodeCopy {
             }
             Button { Task { await c.submitReady() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.ready.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
+            }.buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.ready.submit")
         }
     }
     private func labeled<Content: View>(_ key: String, required: Bool, @ViewBuilder content: () -> Content) -> some View {
@@ -369,7 +371,7 @@ enum MerchantGameNodeCopy {
             MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.refund").cyText(.bodyCompact).foregroundStyle(.secondary)
             if station.canResume {
                 Button { c.prepareResume() } label: { MerchantGameNodeCopy.text("merchantGameNode.pauseInfo.resume").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
+                    .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.resume")
             }
         }
     }
@@ -396,7 +398,7 @@ enum MerchantGameNodeCopy {
                     .monospacedDigit()
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.questifyPrimary).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
+                .buttonStyle(.borderedProminent).disabled(writeBlocked).accessibilityIdentifier("gameNode.verify.scan")
             }
             if station.playable || station.canVerify {
                 HStack(spacing: CYSpacing.sm) {
@@ -540,7 +542,7 @@ struct MerchantGameNodeCivilDateField: View {
             MerchantGameNodeChoices(reasons: MerchantGameNodeReason.decline, selected: c.declineDraft.reason?.code) { c.declineDraft.reason = $0 }
             Button(role: .destructive) { Task { await c.submitDecline() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.decline.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
+            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.decline.submit")
         }
     }
 }
@@ -575,7 +577,7 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button(role: .destructive) { Task { await c.submitPause() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.pause.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
+            }.buttonStyle(.borderedProminent).disabled(!c.pauseDraft.canSubmit || c.writeState != .idle).accessibilityIdentifier("gameNode.pause.submit")
         }
     }
 }
@@ -599,7 +601,7 @@ struct MerchantGameNodeCivilDateField: View {
             }
             Button { Task { await c.submitVerify() } } label: {
                 HStack { if c.writeState == .submitting { ProgressView() }; MerchantGameNodeCopy.text("merchantGameNode.verify.submit") }.frame(maxWidth: .infinity)
-            }.buttonStyle(.questifyPrimary).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
+            }.buttonStyle(.borderedProminent).disabled(c.writeState != .idle).accessibilityIdentifier("gameNode.verify.submit")
         }
     }
 }
@@ -630,7 +632,7 @@ struct MerchantGameNodeCivilDateField: View {
                 }
                 if let issue = session.issue { Text(LocalizedStringKey(issue)).foregroundStyle(.secondary) }
             }
-            .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.run.scanVerify"))
+            .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.run.scanVerify")).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(action: cancel) { MerchantGameNodeCopy.text("merchantGameNode.cancel") }
             } }

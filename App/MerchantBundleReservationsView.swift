@@ -51,7 +51,7 @@ struct MerchantBundleReservationsView: View {
                 Section {
                     ForEach(rows) { row in rowView(row) }
                 } footer: {
-                    if !writesOpen { Text("merchant.bundleReservations.writesGated").cyText(.caption) }
+                    if !writesOpen { Text("merchant.bundleReservations.writesGated").cyText(.meta) }
                 }
             }
             .refreshable { await load(pull: true) }

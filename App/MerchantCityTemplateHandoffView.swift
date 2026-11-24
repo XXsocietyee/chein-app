@@ -23,7 +23,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: 8) {
             Text("merchant.cityTemplate.savedOnly").cyText(.meta).fixedSize(horizontal: false, vertical: true)
             Button("merchant.cityTemplate.useSaved") { Task { await action.returnSaved(coordinator) } }
-                .buttonStyle(.questifyPrimary).disabled(!action.canReturn(coordinator))
+                .buttonStyle(.borderedProminent).disabled(!action.canReturn(coordinator))
                 .accessibilityIdentifier("merchant.cityTemplate.useSaved")
         }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.bar)
             .task { action.register(coordinator) }
@@ -72,8 +72,11 @@ extension EnvironmentValues {
         content.background {
             Color.clear.frame(width: 0, height: 0)
                 .sheet(item: model.presentationBinding()) { original in
-                    MerchantCityTemplateHandoffHost(model: model, original: original, binding: binding)
-                        .id(original.id)
+                    Group {
+                        MerchantCityTemplateHandoffHost(model: model, original: original, binding: binding)
+                            .id(original.id)
+                    }
+                    .presentationDetents([.large]).presentationDragIndicator(.visible)
                 }
                 .id(model.opening?.id)
         }

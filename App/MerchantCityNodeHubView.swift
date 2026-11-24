@@ -41,7 +41,7 @@ struct MerchantCityNodeInlineError: View {
             Button(action: action) { MerchantCityNodeCopy.text(actionKey) }.cyText(.bodyMedium)
                 .accessibilityIdentifier(identifier)
         }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.dangerSoft, in: RoundedRectangle(cornerRadius: 12))
+            .background(CYColor.dangerSoft, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain)
     }
 }
@@ -92,7 +92,7 @@ struct MerchantCityNodeInlineError: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) { content }.padding()
         }
-        .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.title"))
+        .navigationTitle(MerchantCityNodeCopy.string("merchantCityNode.title")).navigationBarTitleDisplayMode(.inline)
         .cyDomainScreen(.merchant)
         .task(id: service.scope) { await reload(); everLoaded = true }
         .refreshable { if idle { await reload() } }
@@ -153,7 +153,7 @@ struct MerchantCityNodeInlineError: View {
         if c.isCurrent, let snapshot = c.snapshot { ready(snapshot) }
         else if c.busy || c.loadedScope != service.scope {
             VStack(alignment: .leading, spacing: 12) {
-                ForEach(0..<2, id: \.self) { _ in RoundedRectangle(cornerRadius: 16).fill(.quaternary).frame(height: 88) }
+                ForEach(0..<2, id: \.self) { _ in RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(.quaternary).frame(height: 88) }
             }.redacted(reason: .placeholder).accessibilityIdentifier("cityNodeHub.loading")
         } else if c.issue == "merchant.content.denied" {
             state(title: "merchantCityNode.permission.title", sub: MerchantCityNodeCopy.string("merchantCityNode.permission.sub"), identifier: "cityNodeHub.noPermission", retry: false)
@@ -170,7 +170,7 @@ struct MerchantCityNodeInlineError: View {
             Text(verbatim: sub).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             if retry {
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.retry")
+                    .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.retry")
             }
         }.frame(maxWidth: .infinity).padding(.vertical, 40).accessibilityElement(children: .contain).accessibilityIdentifier(identifier)
     }
@@ -182,7 +182,7 @@ struct MerchantCityNodeInlineError: View {
         Button { goCreate(p.quota) } label: {
             MerchantCityNodeCopy.text("merchantCityNode.place.action").frame(maxWidth: .infinity)
         }
-        .buttonStyle(.questifyPrimary).controlSize(.large)
+        .buttonStyle(.borderedProminent).controlSize(.large)
         .opacity(p.quota.state == .full || p.quota.state == .none ? 0.5 : 1)
         .accessibilityIdentifier("cityNodeHub.place")
         HStack(spacing: 12) {
@@ -206,7 +206,7 @@ struct MerchantCityNodeInlineError: View {
                 MerchantCityNodeCopy.text("merchantCityNode.write.lockedBody").cyText(.bodyCompact).foregroundStyle(.secondary)
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.write.readback") }
                     .cyText(.bodyMedium).disabled(c.busy).accessibilityIdentifier("cityNodeHub.readback")
-            }.padding(10).background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeHub.locked")
+            }.padding(10).background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)).accessibilityIdentifier("cityNodeHub.locked")
         }
         ForEach(p.applications) { applicationRow($0) }
         if p.isEmpty {
@@ -216,7 +216,7 @@ struct MerchantCityNodeInlineError: View {
                 MerchantCityNodeCopy.text("merchantCityNode.empty.sub").font(.subheadline).foregroundStyle(.secondary)
                 if p.showsEmptyPlacementAction {
                     Button { goCreate(p.quota) } label: { MerchantCityNodeCopy.text("merchantCityNode.place.action") }
-                        .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.empty.place")
+                        .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.empty.place")
                 }
             }.frame(maxWidth: .infinity).padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.empty")
         }
@@ -287,7 +287,7 @@ struct MerchantCityNodeInlineError: View {
                 MerchantCityNodeInlineError(titleKey: "merchantCityNode.withdraw.failed", message: MerchantCityNodeCopy.failure(c, fallback: MerchantCityNodeCopy.string("merchantCityNode.withdraw.fallback")),
                     actionKey: "merchantCityNode.action.retry", identifier: "cityNodeHub.withdraw.retry.\(row.id)") { prepare(cancel) }
             }
-        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.application.\(row.id)")
     }
 
@@ -317,7 +317,7 @@ struct MerchantCityNodeInlineError: View {
                     message: MerchantCityNodeCopy.failure(c, fallback: MerchantCityNodeCopy.string(row.isOnline ? "merchantCityNode.node.offlineFallback" : "merchantCityNode.node.onlineFallback")),
                     actionKey: "merchantCityNode.action.retry", identifier: "cityNodeHub.toggle.retry.\(row.id)") { prepare(toggle) }
             }
-        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }.padding().frame(maxWidth: .infinity, alignment: .leading).background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.node.\(row.id)")
     }
 
@@ -425,7 +425,7 @@ struct MerchantCityNodeInlineError: View {
             MerchantCityNodeCopy.text("merchantCityNode.claim.loadFailed").cyText(.cardTitle)
             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
             Button { Task { await claimModel.load() } } label: { MerchantCityNodeCopy.text("merchantCityNode.action.retry") }
-                .buttonStyle(.questifyPrimary).disabled(claimModel.coordinator.busy).accessibilityIdentifier("cityNodeHub.claim.retry")
+                .buttonStyle(.borderedProminent).disabled(claimModel.coordinator.busy).accessibilityIdentifier("cityNodeHub.claim.retry")
         }.frame(maxWidth: .infinity).padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.claim.error")
     }
     @ViewBuilder private func claimRow(_ row: MerchantCityClaimableRow) -> some View {
@@ -448,7 +448,7 @@ struct MerchantCityNodeInlineError: View {
                 MerchantCityNodeInlineError(titleKey: "merchantCityNode.claim.failed", message: MerchantCityNodeCopy.failure(cc, fallback: MerchantCityNodeCopy.string("merchantCityNode.claim.fallback")),
                     actionKey: "merchantCityNode.action.retry", identifier: "cityNodeHub.claim.retry.\(row.id)") { prepareClaim(command) }
             }
-        }.padding().background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+        }.padding().background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.claim.row.\(row.id)")
     }
     private func prepareClaim(_ command: MerchantContentCommand) {
@@ -512,7 +512,7 @@ struct MerchantCityNodeInlineError: View {
                             MerchantCityNodeCopy.text("merchantCityNode.poster.failedTitle").cyText(.cardTitle)
                             Text(verbatim: message).font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center)
                             Button { loadPoster(shown.poiID) } label: { MerchantCityNodeCopy.text("merchantCityNode.poster.retry") }
-                                .buttonStyle(.questifyPrimary).accessibilityIdentifier("cityNodeHub.poster.retry")
+                                .buttonStyle(.borderedProminent).accessibilityIdentifier("cityNodeHub.poster.retry")
                         }.padding(.vertical, 28).accessibilityElement(children: .contain).accessibilityIdentifier("cityNodeHub.poster.error")
                     }
                 }.padding()

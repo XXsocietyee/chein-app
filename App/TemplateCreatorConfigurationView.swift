@@ -178,7 +178,7 @@ import Combine
             }
             if current.object != nil {
                 NavigationLink(LocalizedStringKey(field.labelKey)) {
-                    Form { TemplateCreatorFieldsView(model: model, family: family, fields: fields, path: path) }.navigationTitle(LocalizedStringKey(field.labelKey))
+                    Form { TemplateCreatorFieldsView(model: model, family: family, fields: fields, path: path) }.navigationTitle(LocalizedStringKey(field.labelKey)).navigationBarTitleDisplayMode(.inline)
                 }
             }
         case .rows(let fields, let minimum, let maximum, _):
@@ -194,7 +194,7 @@ import Combine
                     ForEach(rows.indices, id: \.self) { index in
                         NavigationLink {
                             Form { TemplateCreatorFieldsView(model: model, family: family, fields: fields, path: path + [.index(index)]) }
-                                .navigationTitle(LocalizedStringKey(field.labelKey))
+                                .navigationTitle(LocalizedStringKey(field.labelKey)).navigationBarTitleDisplayMode(.inline)
                         } label: {
                             VStack(alignment: .leading) {
                                 Text(verbatim: rowLabel(index))
@@ -211,7 +211,7 @@ import Combine
                         Button("creator.add") { model.draft.advanced.addCreatorRow(family, path: path, field: field) }.disabled(rows.count >= maximum)
                     }
                     Text(verbatim: "\(rows.count) / \(minimum)…\(maximum)").cyText(.meta)
-                }.toolbar { EditButton() }.navigationTitle(LocalizedStringKey(field.labelKey))
+                }.toolbar { EditButton() }.navigationTitle(LocalizedStringKey(field.labelKey)).navigationBarTitleDisplayMode(.inline)
                 }
             } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
             }
@@ -226,13 +226,13 @@ import Combine
                         NavigationLink {
                             Form {
                                 TemplateCreatorFieldView(model: model, family: family, field: .init("poemLines", .strings(min: 1, max: 4, length: 24), .array([])), path: path + [.index(index)])
-                            }.navigationTitle("creator.field.poemLines")
+                            }.navigationTitle("creator.field.poemLines").navigationBarTitleDisplayMode(.inline)
                         } label: { Text(verbatim: (rows[index].array ?? []).compactMap(\.string).joined(separator: " / ")) }
                     }.onDelete { indexes in var copy = rows; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write(.array(copy)) }
                         // Design hand-off r1 CF-60: every list editor reorders by drag.
                         .onMove { source, destination in var copy = rows; copy.move(fromOffsets: source, toOffset: destination); write(.array(copy)) }
                     Button("creator.add") { var copy = rows; copy.append(.array([.string("")])); write(.array(copy)) }.disabled(rows.count >= 60)
-                }.navigationTitle(LocalizedStringKey(field.labelKey))
+                }.navigationTitle(LocalizedStringKey(field.labelKey)).navigationBarTitleDisplayMode(.inline)
                 }
             } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
         }
@@ -265,7 +265,7 @@ import Combine
             NavigationLink {
                 TemplateProfileQuestionRowsEditor(model: model, questionIndex: profileQuestionIndex) { index in
                     Form { TemplateCreatorFieldsView(model: model, family: family, fields: fields, path: path + [.index(index)]) }
-                        .navigationTitle(LocalizedStringKey(field.labelKey))
+                        .navigationTitle(LocalizedStringKey(field.labelKey)).navigationBarTitleDisplayMode(.inline)
                 }
             } label: { LabeledContent(LocalizedStringKey(field.labelKey), value: String(rows.count)) }
         }

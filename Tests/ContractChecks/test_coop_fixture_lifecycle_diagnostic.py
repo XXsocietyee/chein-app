@@ -44,7 +44,8 @@ class CoopFixtureLifecycleDiagnosticChecks(unittest.TestCase):
         # Re-pinned for fix-parity merchant-coop (combined-r5): relation P1 merchant theme + no stray author-delete row,
         # relation P0b club post feed through CoopRelationPostFeedFactory. Owner/lifetime tokens above unchanged.
         # Re-pinned for fix-parity2 merchant-coop: relation P1 inline 重新加载 button and 登录后查看发现 copy key only.
-        self.assertEqual('9bbed8d7d6b64d66f9812402738bd893d7d3d0b3b4c61f96dddcffd0674099f3', hashlib.sha256(normalized.encode()).hexdigest())
+        # Re-pinned for restyle R3 (native iOS): CYTypography → .cyText, inline title mode, system sheet detents only.
+        self.assertEqual('830221469eb0816d01327a0447c444e557ead95eed290f3df890aa399fd7267d', hashlib.sha256(normalized.encode()).hexdigest())
 
     def test_failure_projection_is_small_and_does_not_change_read_count_label(self):
         source = (ROOT / 'Tests/AppUITests/CoopRelationDiscoveryFlowTests.swift').read_text()

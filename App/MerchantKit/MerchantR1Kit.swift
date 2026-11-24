@@ -58,7 +58,7 @@ struct MerchantR1SectionHeader: View {
                 Button(action: action) {
                     HStack(spacing: CYSpacing.xxs) {
                         Text(verbatim: actionTitle)
-                        Image(systemName: "chevron.right").font(CYTypography.caption.weight(.semibold))
+                        Image(systemName: "chevron.right").cyText(.meta, weight: .semibold)
                     }
                     .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
@@ -156,7 +156,7 @@ struct MerchantR1HandOffCard: View {
             }
             if let expectation {
                 Label { Text(verbatim: expectation) } icon: { Image(systemName: "clock") }
-                    .font(CYTypography.meta)
+                    .cyText(.meta)
                     .foregroundStyle(palette.textTertiary)
             }
         }

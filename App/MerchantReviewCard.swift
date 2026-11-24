@@ -19,7 +19,7 @@ struct MerchantReviewCard: View {
                     } icon: {
                         Image(systemName: "checkmark.seal")
                     }
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.successText)
                 }
                 if presentation.photoCount > 0 {
@@ -31,7 +31,7 @@ struct MerchantReviewCard: View {
                     } icon: {
                         Image(systemName: "photo")
                     }
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .monospacedDigit()
                     .foregroundStyle(CYColor.textSecondary)
                 }
@@ -50,7 +50,7 @@ struct MerchantReviewCard: View {
                     LocalizedStringKey(presentation.replyTitleKey),
                     tableName: "MerchantReviewAndCustomerDetail"
                 )
-                .cyText(.caption)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchant.business.review.replyState")
             }

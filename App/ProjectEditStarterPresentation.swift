@@ -10,7 +10,10 @@ import SwiftUI
         }, set: { next in
             if next == nil, let original { controller.close(original) }
         })) { value in
-            NavigationStack { ProjectEditStarterDestination(model: model, controller: controller, original: value) }
+            Group {
+                NavigationStack { ProjectEditStarterDestination(model: model, controller: controller, original: value) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
