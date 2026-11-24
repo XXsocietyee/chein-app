@@ -45,8 +45,8 @@ public struct BadgeWallTwoColumnGridView: View {
                     } label: {
                         VStack(spacing: CYSpacing.xs) {
                             Group {
-                                if let urlStr = item.imageURL, let url = URL(string: urlStr) {
-                                    CYCachedAsyncImage(url: url, role: .thumbnail)
+                                if let urlStr = item.imageURL, !urlStr.isEmpty {
+                                    CYCachedAsyncImage(urlStr, role: .shelf)
                                 } else {
                                     Image(systemName: item.isIdentityPin ? "pin.circle.fill" : "medal.fill")
                                         .cyText(.display)
@@ -118,11 +118,11 @@ public struct RoamPOIDetailGapSections: View {
             if !galleryURLs.isEmpty {
                 TabView {
                     ForEach(Array(galleryURLs.enumerated()), id: \.offset) { idx, urlStr in
-                        if let url = URL(string: urlStr) {
+                        if !urlStr.isEmpty {
                             Button {
                                 onTapGalleryImage(idx)
                             } label: {
-                                CYCachedAsyncImage(url: url, role: .cover)
+                                CYCachedAsyncImage(urlStr, role: .cover)
                                     .frame(maxWidth: .infinity)
                                     .aspectRatio(4 / 3, contentMode: .fill)
                                     .clipped()
@@ -181,15 +181,15 @@ public struct JourneyReportNodePhotoViewerSheet: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: "mp.report.photos.title", style: .player, onClose: onClose)
+            CYSheetHeader(title: Text("mp.report.photos.title"), style: .player, onClose: onClose)
             if photos.isEmpty {
                 ContentUnavailableView("mp.report.photos.empty", systemImage: "photo")
             } else {
                 TabView(selection: $selection) {
                     ForEach(Array(photos.enumerated()), id: \.element.id) { index, item in
                         VStack(spacing: CYSpacing.sm) {
-                            if let url = URL(string: item.photoURL) {
-                                CYCachedAsyncImage(url: url, role: .cover)
+                            if !item.photoURL.isEmpty {
+                                CYCachedAsyncImage(item.photoURL, role: .cover)
                                     .aspectRatio(contentMode: .fit)
                             }
                             Text(item.nodeName)

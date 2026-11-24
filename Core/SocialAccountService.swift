@@ -14,7 +14,8 @@ public struct SocialAccountService {
         guard value.id == memberID else { throw APIError.malformedResponse }; return value
     }
     public func informationList(token: String? = nil) async throws -> [SocialInformation] {
-        let rows: Rows<SocialInformation> = try await read("api/common/infomation_list", token: token, body: false)
+        // subpackageA/pages/infomation/infomation.js: pageNum 1 and app.getPageSize() (10).
+        let rows: Rows<SocialInformation> = try await read("api/common/infomation_list", fields: ["pageNum": "1", "pageSize": "10"], token: token)
         return rows.rows.filter(\.isUsable)
     }
     /// Same bodyless `POST api/common/infomation_list`. The decoded list drops envelope `total`;

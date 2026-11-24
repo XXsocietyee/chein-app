@@ -135,11 +135,11 @@ public struct MerchantAIInsightClient {
     }
 
     public func fetchSources(days: MerchantAIInsightWindow, token: String) async throws -> [MerchantAIInsightSourceItem] {
-        try await MPGapHTTP.getJSON(
+        try await MPGapHTTP.postJSON(
             configuration: configuration,
             transport: transport,
-            path: "api/merchant/ai-insight",
-            queryItems: [URLQueryItem(name: "days", value: String(days.rawValue))],
+            path: "api/ai/merchant/insight",
+            body: ["days": days.rawValue],
             token: token
         )
     }

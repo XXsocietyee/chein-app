@@ -53,12 +53,14 @@ public struct ContextualReviewStarAndPhotoComposerView: View {
                     }
                 }
 
-                Section("reviewComposer.content") {
+                Section {
                     TextEditor(text: $content)
                         .frame(minHeight: 120)
                         .onChange(of: content) { _, newValue in
                             if newValue.count > maxChars { content = String(newValue.prefix(maxChars)) }
                         }
+                } header: {
+                    Text("reviewComposer.content")
                 } footer: {
                     HStack {
                         Spacer()

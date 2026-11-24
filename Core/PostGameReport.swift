@@ -23,6 +23,8 @@ public struct PostGameRunReport: Equatable, Sendable {
         public let mode: Mode?
         /// Nil: this node is not scored. Only `scored == true` with a number fills it.
         public let score: Int?
+        /// Player's own station photo (`node.photoUrl`). Empty and non-strings stay nil.
+        public let photoURL: String?
     }
 
     public let completion: PostGameCompletion?
@@ -46,8 +48,15 @@ public struct PostGameRunReport: Equatable, Sendable {
     /// Completed node count behind `rank`.
     public let rankScore: Int?
     public let nodes: [Node]
+    /// Nodes whose `completionMode` is `SKIPPED` or `REVEALED`. The settle cell shows only when this is above 0.
+    public let assistedCount: Int
+    /// `RUN_START_MODE_LABEL`: `DESK` → 桌面完成, `ALT` → 替代站开局. A normal start (`null`) stays nil.
+    public let startModeText: String?
     /// Theme/activity backpack item count (`rewardsScope == TOPIC_ACTIVITY`). Never "earned this run".
     public let backpackItems: Int?
+
+    public var showsAssistedCount: Bool { assistedCount > 0 }
+    public var showsStartMode: Bool { startModeText != nil }
 
     /// `runState == COMPLETED` with a legitimate completion.
     public var win: Bool { runState == "COMPLETED" && completion == .legitimate }
@@ -61,6 +70,15 @@ public struct PostGameRunReport: Equatable, Sendable {
     }
 
     public var elapsedText: String? { PostGameText.duration(elapsedSeconds) }
+
+    /// `journey-view.js` `RUN_START_MODE_LABEL`. Anything else, including a missing field, is a normal start.
+    static func label(forStartMode value: Any?) -> String? {
+        switch PostGameJSON.string(value) {
+        case "DESK": return "桌面完成"
+        case "ALT": return "替代站开局"
+        default: return nil
+        }
+    }
     public var dateText: String? { completedAt.map { PostGameText.beijingDay($0) } }
 
     public static func decode(_ data: Data?) -> PostGameRunReport? {
@@ -80,7 +98,8 @@ public struct PostGameRunReport: Equatable, Sendable {
             default: mode = nil
             }
             let score = (row["scored"] as? Bool) == true ? PostGameJSON.int(row["score"]) : nil
-            return Node(id: id, name: PostGameJSON.string(row["name"]), mode: mode, score: score)
+            return Node(id: id, name: PostGameJSON.string(row["name"]), mode: mode, score: score,
+                        photoURL: PostGameJSON.string(row["photoUrl"]))
         }
         let items: Int?
         if PostGameJSON.string(object["rewardsState"]) == "AVAILABLE", let rewards = object["rewards"] as? [String: Any] {
@@ -110,7 +129,8 @@ public struct PostGameRunReport: Equatable, Sendable {
             totalNodes: total, elapsedSeconds: elapsed, elapsedSource: PostGameJSON.string(object["elapsedSource"]),
             score: scored, penalties: penalties, rank: ranked,
             rankScore: ranked == nil ? nil : PostGameJSON.int(rank["score"]),
-            nodes: nodes, backpackItems: items)
+            nodes: nodes, assistedCount: nodes.filter { $0.mode != nil }.count,
+            startModeText: Self.label(forStartMode: object["runStartMode"]), backpackItems: items)
     }
 }
 

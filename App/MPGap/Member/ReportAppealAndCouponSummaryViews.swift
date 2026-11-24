@@ -29,17 +29,19 @@ public struct ReportAppealSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: LocalizedStringKey(sheetTitle), style: .player, onClose: onClose)
+            CYSheetHeader(title: Text(verbatim: sheetTitle), style: .player, onClose: onClose)
             Form {
                 switch phase {
                 case .form:
-                    Section("reportAppeal.reasonLabel") {
+                    Section {
                         TextEditor(text: $reason)
                             .frame(minHeight: 140)
                             .onChange(of: reason) { _, newValue in
                                 let clamped = ReportAppealValidator.clamp(newValue)
                                 if clamped != newValue { reason = clamped }
                             }
+                    } header: {
+                        Text("reportAppeal.reasonLabel")
                     } footer: {
                         HStack {
                             Text("reportAppeal.reasonPlaceholder")
@@ -181,10 +183,10 @@ public struct PlatformPassOrderCancelRefundSheetView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            CYSheetHeader(title: LocalizedStringKey(kind.title), style: .player, onClose: onClose)
+            CYSheetHeader(title: Text(verbatim: kind.title), style: .player, onClose: onClose)
             Form {
                 if kind == .refundApply {
-                    Section("passOrder.refund.reasonTitle") {
+                    Section {
                         TextEditor(text: $reason)
                             .frame(minHeight: 100)
                             .onChange(of: reason) { _, newValue in
@@ -192,6 +194,8 @@ public struct PlatformPassOrderCancelRefundSheetView: View {
                                     reason = String(newValue.prefix(maxLength))
                                 }
                             }
+                    } header: {
+                        Text("passOrder.refund.reasonTitle")
                     } footer: {
                         HStack {
                             Spacer()

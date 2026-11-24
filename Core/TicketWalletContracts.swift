@@ -55,6 +55,8 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
     public let refund: TicketWalletRefund?
     /// Source `manualRefundCaseStatus`: any value means a manual after-sale case is open (退款中).
     public let hasManualRefundCase: Bool
+    /// `cmsActivity.imgUrl`, else `cmsTopic.imgUrl`. Nil when neither object carries one.
+    public let coverURL: String?
 
     /// `true` / `false` are the 已通关 / 即将开始 buckets. Absent and unknown stay nil (全部 only).
     public var topicCompletedFlag: Bool? {
@@ -130,6 +132,7 @@ public struct TicketWalletTicket: Decodable, Equatable, Identifiable {
         refund = try? c.decodeIfPresent(TicketWalletRefund.self, forKey: TicketWalletKey("refundApplication"))
         let manual = TicketWalletKey("manualRefundCaseStatus")
         hasManualRefundCase = c.contains(manual) && (try? c.decodeNil(forKey: manual)) == false
+        coverURL = activity?.imgUrl ?? topic?.imgUrl
     }
 }
 
@@ -324,11 +327,13 @@ private struct TicketWalletOwner: Decodable {
     let startDate: String?
     let endDate: String?
     let addressName: String?
+    let imgUrl: String?
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: TicketWalletKey.self)
         id = try c.integer("id")
         name = try c.text("name"); productType = try c.integer("productType")
         startDate = try c.text("startDate"); endDate = try c.text("endDate"); addressName = try c.text("addressName")
+        imgUrl = try c.text("imgUrl")
     }
 }
 private struct TicketWalletKey: CodingKey {

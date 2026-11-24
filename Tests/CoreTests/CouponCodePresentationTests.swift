@@ -46,6 +46,21 @@ import FoundationNetworking
         XCTAssertTrue(body.contains("name=\"couponHistoryId\"")); XCTAssertFalse(body.contains("name=\"couponId\""))
         do { _ = try await service.status(historyID: 71, session: session()); XCTFail() } catch { XCTAssertEqual(error as? CouponCodeFailure, .unavailable) }
     }
+    func testNotMineMessageBecomesTheNotMinePhase() async throws {
+        let transport = CouponCodeTestTransport { _ in
+            (Data(#"{"code":403,"msg":"无权查看该券"}"#.utf8), 403)
+        }
+        let service = CouponCodeHTTPService(configuration: try .init(baseURL: URL(string: "https://example.test")!), transport: transport, enabled: true)
+        do { _ = try await service.issue(historyID: 71, session: session()); XCTFail() }
+        catch { XCTAssertEqual(error as? CouponCodeFailure, .notMine) }
+        XCTAssertEqual(transport.requests[0].url?.path, "/api/coupon/qr-token")
+        let api = NotMineCouponService(), owner = try session()
+        let model = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner })
+        await model.confirmPresentation()
+        XCTAssertEqual(model.phase, .notMine)
+        XCTAssertEqual(model.issue, .notMine)
+        XCTAssertNil(model.displayToken)
+    }
     func testNoIssuanceBeforeReviewAndRepeatedConfirmationIsSingleFlight() async throws {
         let api = CouponCodeFixtureService(receipt: try receipt()), owner = try session()
         let model = CouponCodeCoordinator(historyID: 71, service: api, currentSession: { owner })
@@ -189,6 +204,12 @@ import FoundationNetworking
         XCTAssertEqual(try session().viewerRevision, 0) // Existing initializer call sites remain source-compatible.
     }
 
+}
+@MainActor private final class NotMineCouponService: CouponCodeServing {
+    let enabled = true
+    func issue(historyID: Int, session: CouponCodeSession) async throws -> CouponCodeReceipt { throw CouponCodeFailure.notMine }
+    func status(historyID: Int, session: CouponCodeSession) async throws -> OrderCouponStatus { throw CouponCodeFailure.notMine }
+    func image(_ receipt: CouponCodeReceipt) async throws -> Data { throw CouponCodeFailure.mediaUnavailable }
 }
 @MainActor private final class CouponCodeFixtureService: CouponCodeServing {
     var enabled = true
