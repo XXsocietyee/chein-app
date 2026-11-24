@@ -19,7 +19,7 @@ final class G2OpsGapTests: XCTestCase {
         }
     }
 
-    private let baseConfig = APIConfiguration(baseURL: URL(string: "https://example.com")!)
+    private let baseConfig = try! APIConfiguration(baseURL: URL(string: "https://example.com")!)
     private let validToken = "valid-token-123456"
 
     func testClubCoopPoolAndEditionsReason() async throws {
@@ -47,7 +47,7 @@ final class G2OpsGapTests: XCTestCase {
         let transport = StubTransport { _ in (Data("{\"code\":200}".utf8), 200) }
         let client = ClubFEReferenceSettlementClient(configuration: baseConfig, transport: transport)
 
-        let settled = try await client.markSettled(id: 42, token: validToken, allowsMoneyWrite: false)
+        let settled = try await client.markSettled(ids: [42], token: validToken, allowsMoneyWrite: false)
         XCTAssertFalse(settled)
         XCTAssertTrue(transport.requests.isEmpty)
     }
@@ -111,9 +111,10 @@ final class G2OpsGapTests: XCTestCase {
         let transport = StubTransport { _ in (Data(#"{"code":200}"#.utf8), 200) }
         let client = MerchantRemainingGapClient(configuration: baseConfig, transport: transport)
         try await client.claimExistingStore(MerchantOnboardingClaimRequest(storeName: "城瘾书店"), token: validToken)
-        try await client.saveDecorContact(MerchantDecorContactDraft(contactPhone: "13800000000", address: "南京路"), token: validToken)
+        try await client.saveBrandContact(MerchantDecorContactDraft(contactPhone: "13800000000", wechatID: "cy_wx"), token: validToken)
+        try await client.saveDecorDisplay(MerchantDecorContactDraft(address: "南京路"), token: validToken)
         try await client.acceptTeamInvite(inviteID: 15, token: validToken)
-        XCTAssertEqual(transport.requests.count, 3)
+        XCTAssertEqual(transport.requests.count, 4)
     }
 
     func testAccountPublishModelsAndClients() async throws {
@@ -128,6 +129,9 @@ final class G2OpsGapTests: XCTestCase {
             if req.url?.path.hasSuffix("topic-template/use") == true {
                 return (Data(#"{"code":200,"data":{"topicId":88}}"#.utf8), 200)
             }
+            if req.url?.path.hasSuffix("cast/voice") == true {
+                return (Data(#"{"code":200,"data":{"audioUrl":"https://example.com/a.mp3"}}"#.utf8), 200)
+            }
             if req.url?.path.hasSuffix("getwxbindphone") == true {
                 return (Data(#"{"code":200,"data":{"phone":"138****0000"}}"#.utf8), 200)
             }
@@ -136,7 +140,8 @@ final class G2OpsGapTests: XCTestCase {
         let client = AccountPublishGapClient(configuration: baseConfig, transport: transport)
         let topicID = try await client.remixTemplate(templateID: 5, token: validToken)
         XCTAssertEqual(topicID, 88)
-        try await client.saveCastVoice(topicID: 1, castID: "c1", voiceID: "v1", token: validToken)
+        let audioURL = try await client.previewCastVoice(topicID: 1, preset: "warm", token: validToken)
+        XCTAssertEqual(audioURL, "https://example.com/a.mp3")
         try await client.handleTeamApplication(applicationID: 9, approved: true, token: validToken)
 
         let remClient = AccountPublishRemainingClient(configuration: baseConfig, transport: transport)

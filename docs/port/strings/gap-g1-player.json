@@ -252,7 +252,7 @@
     "en": "Clear Local Cache"
   },
   "roamTools.clearCache.confirmTitle": {
-    "zh-Hans": "确认清空本机缓存？",
+    "zh-Hans": "确认清空本机缓存",
     "en": "Clear local cache?"
   },
   "roamTools.clearCache.confirmAction": {
@@ -304,7 +304,7 @@
     "en": "Stamp exchange upload is gated in this build."
   },
   "objects.category": {
-    "zh-Hans": "选择分类",
+    "zh-Hans": "分类",
     "en": "Category"
   },
   "objects.rename.placeholder": {
