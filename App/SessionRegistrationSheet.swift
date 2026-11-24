@@ -3,8 +3,8 @@ import SwiftUI
 /// Environment observation resets the form when the authenticated identity/epoch changes.
 @MainActor struct SessionRegistrationSheet:View {
     let activity:ActivityDetail
-    /// MP `baoming?ticketId=`: preselect this ticket when the sheet opens.
-    var preselectedTicketID:Int? = nil
+    /// MP `baoming?ticketId=` (R7-PC-C2-3): preselect this ticket when the sheet opens.
+    @Environment(\.registrationPreselectedTicketID) private var preselectedTicketID
     @EnvironmentObject private var session:AppSession
     var body:some View {
         RegistrationSheetView(activity:activity,coordinator:session.registrationCoordinator,
@@ -29,5 +29,14 @@ import SwiftUI
     static func freeWhenUnapproved(_ issued: RegistrationUICreationPolicy) -> RegistrationUICreationPolicy {
         if case .disabled = issued { return .free }
         return issued
+    }
+}
+
+/// MP `pages/activity/baoming/baoming?ticketId=` (R7-PC-C2-3): the ticket a link names, preselected in the sheet.
+private struct RegistrationPreselectedTicketIDKey: EnvironmentKey { static let defaultValue: Int? = nil }
+extension EnvironmentValues {
+    var registrationPreselectedTicketID: Int? {
+        get { self[RegistrationPreselectedTicketIDKey.self] }
+        set { self[RegistrationPreselectedTicketIDKey.self] = newValue }
     }
 }

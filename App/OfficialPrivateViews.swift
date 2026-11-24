@@ -136,7 +136,8 @@ import SwiftUI
     }
     private func publishedEventRow(_ event: OfficialEvent) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYStatusChip(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)), tone: .neutral, systemImage: "calendar")
+            CYStatusChip(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)),
+                         tone: OfficialEventStatusStyle.tone(event.status), systemImage: OfficialEventStatusStyle.symbol(event.status))
                 .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             if let title = OfficialPublishedPresentation.nonBlank(event.title) {
                 Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true)

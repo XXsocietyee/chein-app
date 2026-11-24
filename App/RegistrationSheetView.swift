@@ -134,12 +134,7 @@ struct RegistrationSheetView: View {
                         // Source order (RegistrationCheckoutSection): 参与人信息 → 活动信息 →
                         // 费用明细 (票种 → 订单金额 → 权益 → 积分 → 总计) → 候补 → 提交.
                         if flow.activity.tickets.isEmpty {
-                            // R7-PC-C2-4 (MP baoming.wxml:106-107 `暂无可用票`): no ticket means nothing to quote or submit.
-                            activitySection
-                            Section {
-                                ContentUnavailableView("registration.form.noTicketsAvailable", systemImage: "ticket")
-                                    .accessibilityIdentifier("registration.form.noTicketsAvailable")
-                            }
+                            noTicketsBlock
                         } else {
                         participantSection
                         activitySection
@@ -429,6 +424,14 @@ struct RegistrationSheetView: View {
                 },
                 onClose: { showingPaymentPending = false }
             )
+        }
+    }
+    /// R7-PC-C2-4 (MP baoming.wxml:106-107 `暂无可用票`): no ticket means nothing to quote or submit.
+    @ViewBuilder private var noTicketsBlock: some View {
+        activitySection
+        Section {
+            ContentUnavailableView("registration.form.noTicketsAvailable", systemImage: "ticket")
+                .accessibilityIdentifier("registration.form.noTicketsAvailable")
         }
     }
     private var showsCheckoutBar: Bool {

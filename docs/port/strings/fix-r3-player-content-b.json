@@ -1,4 +1,21 @@
 {
+  "official.bucket.upcoming": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Upcoming"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "即将上线"
+        }
+      }
+    }
+  },
   "registration.form.noTicketsAvailable": {
     "extractionState": "manual",
     "localizations": {

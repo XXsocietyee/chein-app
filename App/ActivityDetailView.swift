@@ -259,8 +259,9 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
-            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail, preselectedTicketID: registrationTicketID) }
+            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
+            .environment(\.registrationPreselectedTicketID, registrationTicketID)
             .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
             .themeDomain(.player)
             .cySheet(detents: [.large])

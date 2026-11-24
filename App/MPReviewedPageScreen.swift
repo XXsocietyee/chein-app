@@ -109,8 +109,9 @@ import SwiftUI
                 OfficialOrganizerConsoleView(eventID: id, access: access)
             } else { unavailable }
         case "pages/activity/list/index":
+            // R7-PC-C3-1: pushed into the caller's stack; system back, no extra 关闭.
             OfficialEventsBrowserView(reader: session.officialEventReader, actions: session.officialActionCoordinator,
-                                      onClose: { session.dismissNativeEntry() }, onLogin: signIn)
+                                      onClose: nil, onLogin: signIn)
         case "pages/activity/official-detail/index":
             if let id = reviewedID(query) {
                 // PC-C-4-5: guests get a working 登录; THEME missions open their topic (same wiring as 首页).
