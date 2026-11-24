@@ -16,6 +16,8 @@ struct MemberReportProgressTimeView: View {
     @State private var visible = false
     @State private var selection: MemberReportProgressSelection?
     @State private var showsSignIn = false
+    @State private var refreshToast: LocalizedStringKey?
+    @Environment(\.locale) private var locale
     var body: some View {
         let rendered = readIntent()
         List {
@@ -32,6 +34,7 @@ struct MemberReportProgressTimeView: View {
                         selection = selected
                     } label: {
                         // Source report-mine row: 「对象 · 原因」 over 「编号 N · 时间」, stage and chevron on the right.
+                        HStack(alignment: .center, spacing: CYSpacing.sm) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             memberReportProgressText("report.stage.\(record.stageKey)")
                                 .cyText(.micro)
@@ -64,7 +67,16 @@ struct MemberReportProgressTimeView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    }.disabled(flow.busy || !flow.reader.allows(.detail))
+                        // PLY-28-6: disclosure chevron, as the MP row.
+                        Image(systemName: "chevron.right").cyText(.meta, weight: .semibold)
+                            .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    // PLY-28-6: one VoiceOver element: 对象，原因，阶段 … then the 查看进度 hint.
+                    .accessibilityElement(children: .combine)
+                    .accessibilityHint(Text(verbatim: CoreLoopCopy(locale: locale).t("查看进度", "View progress")))
+                    .disabled(flow.busy || !flow.reader.allows(.detail))
                     .accessibilityIdentifier("report.progress.row.\(record.id)")
                 }
                 if flow.loaded && flow.records.isEmpty {
@@ -82,8 +94,9 @@ struct MemberReportProgressTimeView: View {
                         .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                         .accessibilityIdentifier("report.progress.end")
                 }
-                if flow.busy { CYSkeleton() }
-                if let failure = flow.failure {
+                // R7-MEM-28-1: the skeleton is for the first load only; a refresh over kept rows stays quiet.
+                if flow.busy && flow.records.isEmpty { CYSkeleton() }
+                if let failure = flow.failure, flow.records.isEmpty {
                     let message = LocalizedStringKey("report.error." + String(describing: failure))
                     CYEmptyState(systemImage: "exclamationmark.triangle", message, tableName: "MemberReportProgress", messageIdentifier: "report.progress.error", actionTitle: "report.retry", action: { load(rendered) })
                 }
@@ -106,6 +119,11 @@ struct MemberReportProgressTimeView: View {
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberReportProgressIdentity) { _, _ in selection = nil; retire(); start() }
         .refreshable { guard let (original, intent) = rendered else { return }; await original.loadHistory(intent: intent) }
+        // R7-MEM-28-1: MP report-mine keeps the rows on a failed refresh and only toasts.
+        .onChange(of: flow?.failure.map { String(describing: $0) }) { _, failure in
+            if failure != nil, flow?.records.isEmpty == false { refreshToast = "profile.refreshFailed" }
+        }
+        .cyToast(message: $refreshToast, tone: .warning)
         .cyDomainScreen(.player)
     }
     private func start() {

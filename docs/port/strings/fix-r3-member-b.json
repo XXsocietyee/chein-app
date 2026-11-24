@@ -50,6 +50,57 @@
       }
     }
   },
+  "report.appeal.failed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "The appeal wasn’t submitted. Try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉没有提交成功，请稍后再试"
+        }
+      }
+    }
+  },
+  "report.appeal.outcomeUnknown": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "We couldn’t confirm the appeal. Submit again (the same request is reused)."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉结果未确认，请再次提交（沿用同一请求）"
+        }
+      }
+    }
+  },
+  "report.appeal.submitted": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appeal submitted"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "申诉已提交"
+        }
+      }
+    }
+  },
   "ticketWallet.play.viewRecord": {
     "extractionState": "manual",
     "localizations": {

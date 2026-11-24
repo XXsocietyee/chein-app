@@ -120,6 +120,16 @@ import SwiftUI
                     .listRowBackground(Color.clear)
             }
             // PLY-29-2: the developer boundary footer (which contradicted the appeal button) is gone.
+            // R7-MEM-29-1: MP report-detail 查看我的全部举报 (wxml:48-49) opens 我的举报.
+            Section {
+                NavigationLink { SquareReportProgressView(session: session) } label: {
+                    Label { Text(verbatim: CoreLoopCopy(locale: locale).t("查看我的全部举报", "View all my reports")) }
+                        icon: { Image(systemName: "list.bullet.rectangle").accessibilityHidden(true) }
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .listRowInsets(gutter)
+                .accessibilityIdentifier("report.progress.detail.allReports")
+            }
         }
         .listStyle(.plain)
         .cyGroupedSurface()
