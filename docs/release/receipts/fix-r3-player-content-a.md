@@ -189,5 +189,16 @@ Not run from the cloud (no compiler). Coordinator: please compile and send exact
 | R7-PC-B4-5 | The pricing page still has no topic read to know productType 2. |
 | Round-1 pin-blocked list | Unchanged on combined-r7 (no re-pin landed); still waiting on Cursor. |
 
-### Local gates (round 2)
-See the ratchet line below.
+### Written, then reverted because a pin forbids it (round 2)
+| change | pin |
+|---|---|
+| Activity ticket-row price through `MoneyDisplay` | `test_activity_design_structure.test_nullable_ticket_values_do_not_gain_invented_availability_or_currency` requires `E1Money.yuan(ticket.price, locale: locale)`. Re-pin, then switch (or switch `E1Money` globally). |
+| A separate VoiceOver label for the "—" CTA | `test_activity_design_structure` allows only catalog keys in `ActivityDetailView`; the pill speaks `activity.cta.unavailable`. |
+| Comment lines on the host-cancel gate | The `AppSession.swift` ceiling is 8171 lines (`test_home_city_location_consent`, `test_ugc_1_2_completeness`); the gate is one line. |
+
+### Local gates (round 2, cloud, no compiler)
+- `tools/contract_ratchet.py --check`: **200 failing, the same 200 as the merge commit 24fa46cb7** (combined-r7 + this branch before round-2 edits). The 16 above baseline 184 all come from the combined-r7 merge; **0 are new from this branch**.
+- `tools/check_typography_lint.py`: PASS.
+- `tools/check_a11y_lint.py`: nothing new from this branch's lines. `HomeSearchTabParityViews.swift` `readAvailability` image is a baseline row that combined-r7 restyled (`.font` → `.cyText`).
+- `tools/check_search_map.py`: fails `local filters and first-page scope` **on the merge base too** (combined-r7, Cursor A5-7 page size).
+- Acceptance and compile: not run from the cloud. Coordinator, please compile and send back the exact errors.
