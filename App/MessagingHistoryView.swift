@@ -236,7 +236,10 @@ struct MessagingHistoryView: View {
             ToolbarItem(placement: .principal) {
                 if conversation != nil {
                     HStack(spacing: CYSpacing.sm) {
-                        CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                        // R7-PC-D9-4 (MP im/chat/index.wxml:68): the counterparty's avatar, generated art as fallback.
+                        IMRemoteAvatar(url: conversation?.kind == .system || conversation?.kind == .group ? nil : IMRemoteAvatar.url(conversation?.counterparty?.avatar)) {
+                            CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                        }
                             .frame(width: 28, height: 28).clipShape(Circle())
                         if !dynamicTypeSize.isAccessibilitySize {
                             MessagingConversationName(conversation: conversation).cyText(.cardTitle).cyWrapText()
@@ -528,7 +531,10 @@ private struct MessagingBubble: View {
             if !isOwn {
                 // Avatar sits beside the last bubble of a run; earlier ones keep the column empty.
                 if position.showsTail {
-                    CYIMCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                    // R7-PC-D9-4 (MP im/chat/index.wxml:160 `senderAvatar`): generated art as fallback.
+                    IMRemoteAvatar(url: IMRemoteAvatar.url(message.senderAvatar)) {
+                        CYIMCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                    }
                         .frame(width: avatarSize, height: avatarSize)
                         .clipShape(Circle())
                 } else { Color.clear.frame(width: avatarSize, height: 1) }
