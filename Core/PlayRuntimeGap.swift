@@ -574,6 +574,7 @@ public enum PlayThemeGameplayExchange {
 public enum PlayRunSessionClear {
     /// `clearServerRunSession`: `POST api/play/run-session/clear {savedAt, activityId | topicId}` when a run ends,
     /// so another device does not restore a finished run. Failure is silent; the local state is unaffected.
+    /// `pages/play` `req` sends this as `application/x-www-form-urlencoded` (no request header).
     public static func clear(client: PlayRuntimeClient, scope: PlaySessionScope, savedAt: Int64) async -> Bool {
         guard scope.isValid, savedAt > 0 else { return false }
         var fields = ["savedAt": String(savedAt)]
@@ -582,5 +583,20 @@ public enum PlayRunSessionClear {
         case .topic(let id): fields["topicId"] = String(id)
         }
         return (try? await client.postForm("api/play/run-session/clear", fields: fields))?.ok == true
+    }
+}
+
+public enum PlayRunSessionSave {
+    /// `saveServerPausedRun`: `POST api/play/run-session/save` urlencoded
+    /// `{elapsedSeconds, savedAt, activityId | topicId}`. One scope id, never both.
+    /// Failure is silent. This does not replace `PlayExperienceService.savePaused`, which stays multipart.
+    public static func save(client: PlayRuntimeClient, scope: PlaySessionScope, elapsedSeconds: Int, savedAt: Int64) async -> Bool {
+        guard scope.isValid, (0...PlayPausedRecord.maximumSeconds).contains(elapsedSeconds), savedAt > 0 else { return false }
+        var fields = ["elapsedSeconds": String(elapsedSeconds), "savedAt": String(savedAt)]
+        switch scope {
+        case .activity(let id): fields["activityId"] = String(id)
+        case .topic(let id): fields["topicId"] = String(id)
+        }
+        return (try? await client.postForm("api/play/run-session/save", fields: fields))?.ok == true
     }
 }

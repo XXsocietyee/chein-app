@@ -106,10 +106,23 @@ public enum PlayStoreDayArriveOutcome: Equatable {
         let rows = envelope.data["nodes"].array ?? envelope.data.array ?? []
         return rows.first { $0["nodeId"].tolerantInteger == nodeID }.flatMap(PlayStoreDayNode.init(row:))
     }
+    /// `pages/play/merchant` `_readbackConsent`: JSON `{docType, scene, scopeType, scopeId}`.
+    public static func consentLatestContract(merchantID: Int) -> [String: Any]? {
+        guard merchantID > 0 else { return nil }
+        return try? PlayStoreDayConsent.subject(merchantID: merchantID).fields()
+    }
+    /// `_writeAndReadbackConsent`: that subject plus `eventType` and `requestId`.
+    public static func consentWriteContract(merchantID: Int, event: ComplianceEvent, requestID: String) -> [String: Any]? {
+        guard merchantID > 0, !requestID.isEmpty, requestID.count <= 64,
+              var body = consentLatestContract(merchantID: merchantID) else { return nil }
+        body["eventType"] = event.rawValue
+        body["requestId"] = requestID
+        return body
+    }
     public func latestConsent(merchantID: Int) async throws -> ComplianceConsent? {
         guard permitsReads else { throw PlayStoreDayFailure.unavailable }
-        guard merchantID > 0, let session = currentSession() else { throw PlayStoreDayFailure.staleSession }
-        let request = try makeJSONRequest(Self.consentLatestPath, body: PlayStoreDayConsent.subject(merchantID: merchantID).fields(), session: session)
+        guard let body = Self.consentLatestContract(merchantID: merchantID), let session = currentSession() else { throw PlayStoreDayFailure.staleSession }
+        let request = try makeJSONRequest(Self.consentLatestPath, body: body, session: session)
         let (bytes, status) = try await transport.send(request)
         try ensure(session)
         if status == 401 { onUnauthorized(session); throw PlayStoreDayFailure.signedOut }
@@ -141,6 +154,15 @@ public enum PlayStoreDayArriveOutcome: Equatable {
         if case .rejected = outcome, let refusal { return .refused(refusal) }
         return .write(outcome)
     }
+    /// `pages/play/merchant` `uploadProof` → `requestPhoto`: form `activityId` or `topicId`, plus `nodeId` and `picUrl`.
+    /// The live `photo` write still attaches the action-context identity when proof writes are permitted.
+    public static func photoContract(scope: PlaySessionScope, nodeID: Int, pictureURL: String) -> [String: String]? {
+        guard scope.isValid, nodeID > 0, let url = URL(string: pictureURL), url.scheme == "https", url.host?.isEmpty == false else { return nil }
+        var fields = scope.fields
+        fields["nodeId"] = String(nodeID)
+        fields["picUrl"] = pictureURL
+        return fields
+    }
     public func photo(scope: PlaySessionScope, nodeID: Int, pictureURL: String) async -> PlayStoreDayWriteOutcome {
         guard nodeID > 0, let url = URL(string: pictureURL), url.scheme == "https", url.host?.isEmpty == false else { return .rejected(nil) }
         return await proofWrite(Self.photoPath, scope: scope, nodeID: nodeID, fields: ["nodeId": String(nodeID), "picUrl": pictureURL])
@@ -151,10 +173,9 @@ public enum PlayStoreDayArriveOutcome: Equatable {
         return await proofWrite(Self.answerPath, scope: scope, nodeID: nodeID, fields: ["nodeId": String(nodeID), "answer": trimmed])
     }
     public func consent(merchantID: Int, event: ComplianceEvent, requestID: String) async -> PlayStoreDayWriteOutcome {
-        guard permitsConsentWrites, merchantID > 0, !requestID.isEmpty, requestID.count <= 64,
-              let session = currentSession(), var body = try? PlayStoreDayConsent.subject(merchantID: merchantID).fields() else { return .rejected(nil) }
-        body["eventType"] = event.rawValue; body["requestId"] = requestID
-        guard let request = try? makeJSONRequest(Self.consentWritePath, body: body, session: session) else { return .rejected(nil) }
+        guard permitsConsentWrites, let session = currentSession(),
+              let body = Self.consentWriteContract(merchantID: merchantID, event: event, requestID: requestID),
+              let request = try? makeJSONRequest(Self.consentWritePath, body: body, session: session) else { return .rejected(nil) }
         return await dispatch(request, session: session)
     }
     private func proofWrite(_ path: String, scope: PlaySessionScope, nodeID: Int, fields: [String: String],
