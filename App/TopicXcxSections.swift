@@ -483,9 +483,36 @@ struct TopicXcxRouteSection: View {
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.openURL) private var openURL
     let topic: TopicDetail
+    /// Flow gap PC-B-1-5 (MP index.wxml route `<map>`): every stop with a usable coordinate, numbered in route order.
+    static func mapPins(_ topic: TopicDetail) -> [TopicRouteNodePin] {
+        var pins: [TopicRouteNodePin] = []
+        var sequence = 0
+        for chapter in topic.chapters {
+            for node in chapter.nodes {
+                sequence += 1
+                guard let lat = node.latitude, let lng = node.longitude, (-90...90).contains(lat), (-180...180).contains(lng),
+                      lat != 0 || lng != 0 else { continue }
+                pins.append(TopicRouteNodePin(id: "\(chapter.id)-\(node.id)-\(sequence)", sequence: sequence, name: node.name,
+                                              latitude: lat, longitude: lng, address: node.address))
+            }
+        }
+        return pins
+    }
     var body: some View {
         Section {
+            // Flow gap PC-B-1-5: the route map. Progress / teams need a play read, so they stay off on the detail.
+            let pins = Self.mapPins(topic)
+            if !pins.isEmpty {
+                TopicRouteMapAndTeamsSection(pins: pins, completedCount: 0, totalCount: 0, isFreeExplore: topic.productType == 2,
+                                             onSelectPin: { pin in
+                                                 let node = topic.chapters.flatMap(\.nodes).first { $0.name == pin.name && $0.latitude == pin.latitude && $0.longitude == pin.longitude }
+                                                 if let node, let url = TopicStopMapsLink.url(for: node) { openURL(url) }
+                                             })
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("topic.route.map")
+            }
             // Source `route-note`: 固定路线 for city orienteering, 没有固定路线 for free explore.
             Text(topic.productType == 2 ? "u9cde.topic.routeNote.free" : "u9cde.topic.routeNote.fixed")
                 .cyText(.label, weight: .semibold)

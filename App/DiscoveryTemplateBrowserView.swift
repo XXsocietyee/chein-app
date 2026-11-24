@@ -367,11 +367,15 @@ struct DiscoveryTemplateBrowserView: View {
                             coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
                         topics.cover()
                     } label: {
-                        if hero && index == 0 {
+                        // MP asset (shelf/art.js THEMES): a known topic name always shows its bundled cover.
+                        if hero && index == 0, let art = TemplateShelfArt.topicCover(item.name) {
+                            TemplateShelfArtHeroCard(art: art, title: item.name.isEmpty ? Text("discovery.untitledTopic") : Text(verbatim: item.name), meta: item.subtitle)
+                        } else if hero && index == 0 {
                             CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
                         } else {
                             HStack(alignment: .top, spacing: CYSpacing.md) {
-                                DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name)
+                                if let art = TemplateShelfArt.topicCover(item.name) { TemplateShelfArtThumb(art: art) }
+                                else { DiscoveryTopicCoverThumb(urlString: item.imgUrl, seed: item.name) }
                                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                     DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").cyText(.cardTitle)
                                         .foregroundStyle(palette.textPrimary)
@@ -403,8 +407,16 @@ struct DiscoveryTemplateBrowserView: View {
                     NavigationLink {
                         DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: {
-                        if hero && index == 0 {
+                        // MP asset (shelf/game-covers.js GAMES): a known play title always shows its bundled cover.
+                        if hero && index == 0, let art = TemplateShelfArt.gameCover(item.title) {
+                            TemplateShelfArtHeroCard(art: art, title: item.title.isEmpty ? Text("discovery.untitledPlay") : Text(verbatim: item.title), meta: item.description)
+                        } else if hero && index == 0 {
                             CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                        } else if let art = TemplateShelfArt.gameCover(item.title) {
+                            HStack(alignment: .top, spacing: CYSpacing.md) {
+                                TemplateShelfArtThumb(art: art)
+                                DiscoveryPlayRow(item: item)
+                            }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         } else {
                             DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         }

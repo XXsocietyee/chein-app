@@ -366,6 +366,8 @@ struct TopicDetailView: View {
             Section("topic.source.sessions") {
                 if value.tickets.isEmpty { Text("topic.noTickets") }
                 ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
+                    // R7-PC-B1-13 (MP index.wxml:227 `bindtap="bmClick"`): a session row opens the in-page session picker.
+                    Button { if !showingSessionSelection { showingSessionSelection = true } } label: {
                     // Mini-program `sess`: name / time / meeting point / refund on the left, price and seats left on the right.
                     HStack(alignment: .top, spacing: CYSpacing.md) {
                         // Grouped session card: one element. The visible rows stay in source order.
@@ -386,6 +388,11 @@ struct TopicDetailView: View {
                             else { Text("topic.source.seatsUnknown").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
                         }
                     }.accessibilityElement(children: .combine)
+                    .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint(Text("topic.source.sessionRow.hint"))
+                    .accessibilityIdentifier("topic.session.row")
                 }
                 if !value.tickets.isEmpty { Text("topic.source.sessionNote.mp").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }.id("topicXcx.anchor.sessions")
