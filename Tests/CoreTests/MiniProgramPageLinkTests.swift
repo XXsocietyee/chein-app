@@ -26,6 +26,7 @@ final class MiniProgramPageLinkTests: XCTestCase {
             ("/pages/coop/list/index?tab=sent", "pages/coop/list/index", ["tab": "sent"]),
             ("/subpackageA/pages/myproject/index", "subpackageA/pages/myproject/index", [:]),
             ("/pages/merchant/ledger/index", "pages/merchant/ledger/index", [:]),
+            ("/pages/merchant/profile/index?id=7", "pages/merchant/profile/index", ["id": "7"]),
             // fix-parity r1 (account-publish X1): the MP query keys these pages read.
             ("/pages/userinfo/userinfo?userId=12&tab=about", "pages/userinfo/userinfo", ["userId": "12", "tab": "about"]),
             ("/pages/talent/list/index?tab=feed", "pages/talent/list/index", ["tab": "feed"]),
@@ -80,6 +81,15 @@ final class MiniProgramPageLinkTests: XCTestCase {
         for (page, query) in accepted { XCTAssertEqual(MiniProgramPageLink(path: page, query: query)?.query, query, page) }
         XCTAssertNil(MiniProgramPageLink(path: "subpackageB/pages/im/chat/index", query: ["conversationId": "x"]))
         XCTAssertNil(MiniProgramPageLink(path: "pages/topic/pricing/index", query: ["topicId": "05"]))
+    }
+
+    func testInvoiceHistoryAcceptsAnOptionalApplicationId() {
+        let bare = MiniProgramPageLink(path: "subpackageMember/invoice/index", query: [:])
+        XCTAssertEqual(bare?.page, "subpackageMember/invoice/index")
+        XCTAssertEqual(bare?.query, [:])
+        XCTAssertEqual(MiniProgramPageLink(path: "/subpackageMember/invoice/index", query: ["id": "15"])?.query, ["id": "15"])
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/invoice/index", query: ["id": "0"]))
+        XCTAssertNil(MiniProgramPageLink(path: "subpackageMember/invoice/index", query: ["other": "1"]))
     }
 
     func testTableCoversEveryReviewedPage() {
@@ -164,6 +174,16 @@ final class MiniProgramPageLinkTests: XCTestCase {
             "/subpackageJourney/pages/report/index?activityId=abc",
             "https://evil.test/subpackageMember/market/membership/index",   // internal paths carry no host
             "/pages/coop/list/index?tab=other",                             // not a sent or received list
+            "/pages/merchant/ledger/index?view=unknown",                    // 链接已失效
+            "/pages/merchant/ledger/index?tab=4",
+            "/pages/merchant/ledger/index?view=redemptions&ownerType=3&ownerId=8",
+            "/pages/merchant/profile/index",                                // id XOR poiId
+            "/pages/merchant/profile/index?id=7&poiId=8",
+            "/pages/merchant/team/index?invite=short",
+            "/pages/merchant/ledger/order-detail/index?recordType=other&recordId=7",
+            "/pages/coop/invite-detail/index?box=other",
+            "/pages/coop/invite/index?type=2",
+            "/pages/coop/list/index?scope=club",
             "/pages/userinfo/userinfo?userId=abc",                          // ids stay canonical
             "/pages/userinfo/userinfo?tab=wallet",                          // not an MP profile tab
             "/pages/publish/fabu/index?mode=3",                             // MP modes are 1 and 2
@@ -207,6 +227,15 @@ final class MiniProgramPageLinkTests: XCTestCase {
         for (page, query) in accepted {
             XCTAssertEqual(MiniProgramPageLink(path: page, query: query)?.query, query, page)
         }
+    }
+
+    func testCatalogOptionalIDAndSessionVia() {
+        let session = MiniProgramPageLink(path: "pages/topic/index/index", query: ["id": "7", "via": "session"])
+        XCTAssertEqual(session?.opensSessionPickerFirst, true)
+        XCTAssertNil(MiniProgramPageLink(path: "pages/topic/index/index", query: ["id": "7", "via": "other"]))
+        XCTAssertEqual(MiniProgramPageLink(path: "pages/topic/catalog/index", query: ["id": "9"])?.catalogDestination, .topic(9))
+        XCTAssertEqual(MiniProgramPageLink(path: "pages/topic/catalog/index", query: [:])?.catalogDestination, .home)
+        XCTAssertNil(MiniProgramPageLink(path: "pages/topic/catalog/index", query: ["id": "09"]))
     }
 
     func testEmptyValuesAreAbsent() {

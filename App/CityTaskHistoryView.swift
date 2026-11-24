@@ -19,7 +19,7 @@ struct CityTaskHistoryEntry: View {
     private var interactive: Bool { visible && scenePhase == .active && controller.current }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            LazyVStack(alignment: .leading, spacing: 16) {
                 CYHeroHeader("cityHistory.title", tableName: table)
                 Text("cityHistory.boundary", tableName: table).cyText(.meta).foregroundStyle(CYColor.textTertiary)
                 Text(LocalizedStringKey(controller.messageKey), tableName: table).cyText(.body).foregroundStyle(CYColor.textSecondary)

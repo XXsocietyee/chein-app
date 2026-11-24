@@ -107,9 +107,9 @@ public struct ParticipationDetailGapSections: View {
 
     public var body: some View {
         Group {
-            if let coverURL, let url = URL(string: coverURL) {
+            if let coverURL, !coverURL.isEmpty {
                 Section {
-                    CYCachedAsyncImage(url: url, role: .cover)
+                    CYCachedAsyncImage(coverURL, role: .cover)
                         .frame(maxWidth: .infinity, minHeight: 160)
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }
@@ -127,9 +127,9 @@ public struct ParticipationDetailGapSections: View {
                 }
             }
 
-            if let templateBannerURL, let url = URL(string: templateBannerURL) {
+            if let templateBannerURL, !templateBannerURL.isEmpty {
                 Section("participation.templateBanner") {
-                    CYCachedAsyncImage(url: url, role: .cover)
+                    CYCachedAsyncImage(templateBannerURL, role: .cover)
                         .frame(maxWidth: .infinity, minHeight: 120)
                         .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                 }

@@ -21,6 +21,11 @@ public struct SearchMapService {
         let data = try await form("api/category/list", fields: ["parentid":"0", "type":"1"], token: token)
         return try decode(SearchMapValue<[DiscoveryCategory]>.self, data).data
     }
+    /// 商家发现 filter. cy-category-sheet `type="MERCHANT"` posts `{type: MERCHANT, parentid: 0}`, not the type-1 content directory.
+    public func merchantCategories(token: String? = nil) async throws -> [DiscoveryCategory] {
+        let data = try await form("api/category/list", fields: ["parentid":"0", "type":"MERCHANT"], token: token)
+        return try decode(SearchMapValue<[DiscoveryCategory]>.self, data).data
+    }
     public func search(_ query: GlobalSearchQuery, token: String? = nil) async throws -> GlobalSearchResults {
         try query.validate(); try validate(token)
         let query = GlobalSearchQuery(keyword: query.keyword, categoryID: query.categoryID, startDate: query.startDate, endDate: query.endDate, minimumPrice: query.minimumPrice, maximumPrice: query.maximumPrice)
@@ -78,8 +83,8 @@ public struct SearchMapService {
         try query.filter.validate(); try validate(token)
         guard query.sortType == 1 || query.sortType == 2,
               SearchMapActivityPage.validPageNumber(page) else { throw APIError.invalidRequest }
-        // Preserve the native first-read size; no hidden automatic requests.
-        var fields = listFields(query.filter, pageSize: 50)
+        // MP map activity pages use pageSize 10. No hidden automatic requests.
+        var fields = listFields(query.filter, pageSize: SearchMapActivityPage.pageSize)
         fields["pageNum"] = String(page)
         fields["longitude"] = String(query.area.coordinate.longitude)
         fields["latitude"] = String(query.area.coordinate.latitude)

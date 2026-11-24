@@ -12,14 +12,6 @@ public extension EnvironmentValues {
     }
 }
 
-extension Color {
-    /// Only the six palette colours reach here (`CastMember.color` is validated in Core).
-    init(castHex hex: String) {
-        let value = UInt32(hex.dropFirst(), radix: 16) ?? 0x8E8E93
-        self.init(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
-    }
-}
-
 /// Coloured initial, or the author's avatar through the existing gated public-image reader.
 @MainActor struct CastAvatar: View {
     let member: CastMember
@@ -28,7 +20,7 @@ extension Color {
     @State private var image: UIImage?
     var body: some View {
         ZStack {
-            Circle().fill(Color(castHex: member.color))
+            Circle().fill(CYCastSwatch.color(hex: member.color))
             if let image { Image(uiImage: image).resizable().scaledToFill() }
             else { Text(verbatim: member.initial).font(.title3.weight(.semibold)).foregroundStyle(.white) }
         }
@@ -52,7 +44,7 @@ struct CastTrustTicks: View {
         let filled = CastTrust.filledTicks(trust)
         HStack(spacing: 4) {
             ForEach(0..<CastTrust.tickCount, id: \.self) { index in
-                Capsule().fill(index < filled ? AnyShapeStyle(Color(castHex: color)) : AnyShapeStyle(.quaternary))
+                Capsule().fill(index < filled ? AnyShapeStyle(CYCastSwatch.color(hex: color)) : AnyShapeStyle(.quaternary))
                     .frame(width: 14, height: 4)
             }
         }
