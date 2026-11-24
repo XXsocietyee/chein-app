@@ -166,7 +166,7 @@ public struct ThreeDocumentMasterCrosswalkSectionView: View {
                     Text(verbatim: row.scopeSummary)
                         .cyText(.meta)
                     Text(verbatim: "覆盖范围：\(row.coveredTicketsText)")
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: "核验证据：\(row.verificationEvidence)")
                         .cyText(.caption)

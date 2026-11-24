@@ -175,10 +175,21 @@ import SwiftUI
         } else if model.order != nil { text("legacy").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
         if let catalog = model.catalog {
             CYInfoCard(title: catalog.topicName.map { Text(verbatim: $0) } ?? text("catalog"), symbol: "list.star") {
+                // R7-MEM-7-1: MP `暂未开售` note under the topic when the catalog is not on sale.
+                if !catalog.saleEnabled {
+                    Text("freeBundle.catalog.notOnSale").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("freeBundle.catalog.notOnSale")
+                }
                 if catalog.items.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table) }
                 ForEach(catalog.items, id: \.chapterId) { item in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         if let name = item.name { Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                        // R7-MEM-7-1: MP `{name} · 每人N次`, 次数待确认 when the server count is not positive.
+                        Group {
+                            if item.unitsPerHolder > 0 { Text("freeBundle.catalog.unitsPerHolder \(item.unitsPerHolder)") }
+                            else { Text("freeBundle.catalog.unitsUnknown") }
+                        }
+                        .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                         if let terms = item.termsMode { Text(verbatim: terms).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
                         ForEach(item.stores, id: \.offerId) { store in
                             CYListRow(verbatim: store.merchantName ?? store.offerId.text, meta: store.validEnd, trailing: .none) { CYRowIcon(systemImage: "storefront") }

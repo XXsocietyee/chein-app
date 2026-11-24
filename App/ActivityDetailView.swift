@@ -14,17 +14,21 @@ struct ActivityDetailView: View {
     var startsWithMoreInfoOpen = false
     /// MP `pages/activity/baoming` link: open the registration sheet once the detail loads and sign-up is the action.
     var opensRegistrationOnLoad = false
+    /// MP `baoming?activityId&ticketId` (MKT-2-1): the ticket the registration sheet starts on. Ignored when the
+    /// activity has no such ticket.
+    var preselectedTicketID: Int? = nil
     var body: some View {
         if let session = reader as? AppSession {
             SessionActivityDetailView(id: id, session: session,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
-                hostCancelAccess: hostCancelAccess, opensRegistrationOnLoad: opensRegistrationOnLoad)
+                hostCancelAccess: hostCancelAccess, opensRegistrationOnLoad: opensRegistrationOnLoad,
+                preselectedTicketID: preselectedTicketID)
         } else {
             ActivityDetailContentView(id: id, reader: reader,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
                 peopleProfile: peopleProfile, requiredClubDestination: requiredClubDestination,
                 hostCancelAccess: hostCancelAccess, startsWithMoreInfoOpen: startsWithMoreInfoOpen,
-                opensRegistrationOnLoad: opensRegistrationOnLoad)
+                opensRegistrationOnLoad: opensRegistrationOnLoad, preselectedTicketID: preselectedTicketID)
         }
     }
 }
@@ -36,6 +40,7 @@ struct ActivityDetailView: View {
     var registrationEnabled: Bool
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var opensRegistrationOnLoad = false
+    var preselectedTicketID: Int? = nil
     @Environment(\.rootTabSwitch) private var rootTabSwitch
     var body: some View {
         Group {
@@ -72,7 +77,7 @@ struct ActivityDetailView: View {
                         }))
                     },
                     hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess,
-                    opensRegistrationOnLoad: opensRegistrationOnLoad)
+                    opensRegistrationOnLoad: opensRegistrationOnLoad, preselectedTicketID: preselectedTicketID)
                     .environment(\.inGameChannelHost, session.inGameChannelHost)
                     .id(session.contentDetailRevision)
             }
@@ -96,6 +101,7 @@ struct ActivityDetailView: View {
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var startsWithMoreInfoOpen = false
     var opensRegistrationOnLoad = false
+    var preselectedTicketID: Int? = nil
     @State private var openedRegistrationOnLoad = false
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
@@ -253,7 +259,7 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
-            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
+            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail, preselectedTicketID: preselectedTicketID) }
             }
             .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
             .presentationDetents([.large])

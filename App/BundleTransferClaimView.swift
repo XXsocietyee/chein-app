@@ -8,37 +8,35 @@ import SwiftUI
     @State private var code = ""
     @State private var claimTick = 0
     @Environment(\.locale) private var locale
-    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .largeTitle) private var artHeight: CGFloat = 112
     private let table = "BundleCommerce"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader(verbatim: ChannelCopy.text("领取转赠", "Claim a transfer", locale: locale)) {
-                    CYCoverArt(seed: "bundle-claim", symbol: "arrow.left.arrow.right", showsDebugLabel: false)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: artHeight)
-                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        .accessibilityHidden(true)
-                }
-                switch model.phase {
-                case .claimed:
-                    claimed
-                case .unavailable:
-                    CYEmptyState(systemImage: "wifi.slash", "transfer.unavailable", tableName: table, messageIdentifier: "bundleTransfer.unavailable")
-                default:
-                    claimForm
-                    phaseNote
-                }
+        // Native restyle r1 (spec §3.2): an inset-grouped Form with a system inline title.
+        Form {
+            Section {
+                CYCoverArt(seed: "bundle-claim", symbol: "arrow.left.arrow.right", showsDebugLabel: false)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: artHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
+                    .accessibilityHidden(true)
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.bottom, CYSpacing.xxl)
+            .cyCardRow()
+            switch model.phase {
+            case .claimed:
+                Section { claimed }.cyCardRow()
+            case .unavailable:
+                Section { CYEmptyState(systemImage: "wifi.slash", "transfer.unavailable", tableName: table, messageIdentifier: "bundleTransfer.unavailable") }
+                    .cyCardRow()
+            default:
+                claimForm
+                Section { phaseNote }.cyCardRow()
+            }
         }
-        .cyDomainPageBackground()
+        .navigationTitle(Text(verbatim: ChannelCopy.text("领取转赠", "Claim a transfer", locale: locale)))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player)
-        .cyHeroScreen()
         .cyAnimation(value: model.phase)
         .cyHaptic(.success, trigger: model.phase) { _, new in
             if case .claimed = new { return true }
@@ -52,15 +50,15 @@ import SwiftUI
         CYEmptyState(systemImage: "checkmark.circle", "transfer.claim.done", tableName: table, messageIdentifier: "bundleTransfer.claimed")
     }
 
-    private var claimForm: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) {
+    @ViewBuilder private var claimForm: some View {
+        Section {
             TextField(text: $code) { text("transfer.claim.code") }
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .cyText(.body)
-                .padding(CYSpacing.md)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .accessibilityLabel(text("transfer.claim.code"))
+        }
+        Section {
             CYPillButton("transfer.claim.action", systemImage: "arrow.down.circle", tableName: table) {
                 let typed = code
                 code = ""
@@ -71,6 +69,7 @@ import SwiftUI
             .accessibilityLabel(text("transfer.claim.action"))
             .cyHaptic(.impactMedium, trigger: claimTick)
         }
+        .cyCardRow()
     }
 
     @ViewBuilder private var phaseNote: some View {
@@ -80,7 +79,7 @@ import SwiftUI
                 CYSkeleton().accessibilityHidden(true)
                 text("transfer.claiming")
                     .cyText(.meta)
-                    .foregroundStyle(palette.textSecondary)
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityElement(children: .combine)

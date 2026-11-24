@@ -19,7 +19,7 @@ import SwiftUI
                 .accessibilityIdentifier("withdrawal.parity.apply")
             NavigationLink("Withdrawal records") { WithdrawalHistoryView(reader: reader) }
                 .accessibilityIdentifier("withdrawal.parity.history")
-        }.navigationTitle("Withdrawal parity fixture")
+        }.navigationTitle("Withdrawal parity fixture").navigationBarTitleDisplayMode(.inline)
     }
 }
 

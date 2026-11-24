@@ -101,7 +101,8 @@ import SwiftUI
         case "pages/activity/baoming/baoming":
             // PC-C-2 routing: MP baoming is the registration step of one activity; land on its detail with the sheet open.
             if let id = reviewedID(query, key: "activityId") {
-                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true)
+                ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true, opensRegistrationOnLoad: true,
+                                   preselectedTicketID: reviewedID(query, key: "ticketId"))
             } else { unavailable }
         case "pages/activity/official-organizer/index":
             if let id = reviewedID(query), let access = session.officialActionCoordinator?.organizer {
@@ -294,11 +295,15 @@ import SwiftUI
                 SquareDetailView(id: id, reader: session.squareReader, accountReader: session.socialAccountReader, actions: session.socialActionCoordinator)
             } else { unavailable }
         case "subpackageMember/orderinfo/orderinfo":
+            // R7-MEM-17-1: the same lifecycle coordinator and ticket reader as 我的订单, so cancel / refund and 查看票 stay.
             if let id = reviewedID(query) {
-                ProfileOrderDetailView(id: id, reader: session.ownedOrderReader)
-                    .environment(\.profileOrderInvoicePresentation, { [weak session] in session?.makeInvoiceLaunchPresentation() })
+                SessionOwnedOrderDetailView(session: session, id: id)
+            } else if let outTradeNo = query["outTradeNo"] {
+                // FIN-17-6: MP orderinfo.js:7-15 opens the order-center entry prefilled; without the G2 grant, 我的订单.
+                if let service = CreatorEditorProduction.orderCenter(session: session) {
+                    OrderCenterEntryView(model: OrderCenterEntryModel(service: service), initialOutTradeNo: outTradeNo)
+                } else { SessionOwnedOrdersView(session: session) }
             }
-            else if query["outTradeNo"] != nil { SessionOwnedOrdersView(session: session) }
             else { unavailable }
         case "pages/merchant/index/index":
             SessionMerchantOverviewView(session: session)
@@ -371,7 +376,8 @@ import SwiftUI
             // A5-02: the link gets the same coordinator as 我的 › 参与人信息, so add / edit / delete stay available.
             ProfileParticipantsView(reader: session.participantReader, coordinator: session.participantCoordinator)
         case "subpackageMember/order/order":
-            SessionOwnedOrdersView(session: session)
+            if session.account?.effectiveRole == "merchant" { SubscribeMessageProjectsEntry(session: session) }
+            else { SessionOwnedOrdersView(session: session) }
         case "subpackageMember/signup/index", "subpackageMember/signupInfo/signupInfo", "subpackageMember/signupInfo2/signupInfo2":
             // One shared wallet host: 开始游戏, pending orders, sign-in; `focusId` lands on that registration.
             SessionTicketWalletHost(isPushed: true, focusTopicID: reviewedID(query, key: "topicId"),
@@ -386,17 +392,25 @@ import SwiftUI
         case "subpackageMember/mycanyu/mycanyu":
             SessionPlayerJourneyView(destination: .participations).environmentObject(session)
         case "subpackageMember/myinvite/myinvite":
-            SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator)
+            SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, onSignIn: openSignIn)
         case "subpackageMember/report-mine/index":
             SquareReportProgressView(session: session)
         case "subpackageMember/appeal-mine/index":
             MemberScoreAppealListView(session: session)
         case "subpackageMember/invoice/index":
-            invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+            // FIN-11-1: `invoice/index?id=` opens that application (MP invoice/index.js onLoad); the bare path is the history list.
+            if let id = reviewedID(query) {
+                invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
+            } else {
+                invoice { InvoiceLaunchHistoryView(model: $0, onSignIn: signIn) }
+            }
         case "subpackageMember/invoice-detail/index":
             if let id = reviewedID(query) {
                 invoice { InvoiceLaunchDetailView(model: $0, applicationID: Int64(id), onSignIn: signIn) }
-            } else { unavailable }
+            } else {
+                // R7-MEM-12-1: MP `cy-empty kind="missing-param"` + 返回, not the generic unavailable placeholder.
+                MemberMissingLinkState(identifier: "invoiceDetail.missing")
+            }
         case "subpackageMember/invoice-apply/index":
             invoice { InvoiceLaunchApplyView(model: $0, onSignIn: signIn) }
         case "subpackageMember/invoice-titles/index":
@@ -406,9 +420,12 @@ import SwiftUI
         case "subpackageMember/points-history/index":
             PassMarketPointsBridge.destination(for: session)()
         case "subpackageMember/coupon-wallet/index", "subpackageMember/coupon-qr/index":
-            // coupon-qr needs the owner-scoped coupon selection to mint a code; the link lands on the wallet,
-            // one tap from the code (the code page itself re-checks the owner).
-            AccountCollectionCouponsView(reader: session.accountCollectionReader)
+            // coupon-qr needs the owner-scoped coupon selection to mint a code. The link lands on the wallet, which
+            // pushes the code once the owner's list holds that history id unused (R7-MEM-9-1); otherwise the list stays.
+            AccountCollectionCouponsView(reader: session.accountCollectionReader,
+                                         focusHistoryID: page.hasSuffix("coupon-qr/index")
+                                            ? (reviewedID(query, key: "couponHistoryId") ?? reviewedID(query, key: "historyId") ?? reviewedID(query))
+                                            : nil)
         case "subpackageMember/free-explore/index":
             freeExplore
         case "subpackageMember/complaint/index":
@@ -423,11 +440,14 @@ import SwiftUI
                 MemberReportProgressDeepLinkScreen(reportID: Int64(id), session: session)
             } else { unavailable }
         case "subpackageMember/coupon/coupon", "subpackageMember/couponInfo/couponInfo":
-            SessionCouponManagementView().environmentObject(session)
+            // R7-MEM-10-1: coupon.js `operationScope = options.scope === 'MERCHANT' ? 'MERCHANT' : ''`.
+            SessionCouponManagementView(scope: query["scope"] == "MERCHANT" ? .merchant : .player).environmentObject(session)
         case "subpackageMember/tixian/tixian":
             WithdrawalSupportLandingView(reader: session.walletHistoryReader)
         case "subpackageMember/tixianjilu/tixianjilu", "pages/coop/withdraw/records/index":
-            WithdrawalHistoryView(reader: session.walletHistoryReader)
+            WithdrawalHistoryView(reader: session.walletHistoryReader,
+                                  domain: page == "pages/coop/withdraw/records/index" ? .merchant : .player,
+                                  onSignIn: openSignIn)
         case "pages/coop/withdraw/index":
             CoopWithdrawNoticeView(isSignedIn: session.account != nil)
         case "pages/userinfo/userinfo":

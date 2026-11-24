@@ -68,7 +68,8 @@ extension MPParityBindings {
             teammate: active && overview.holding.teammateBenefit,
             expiring: active && overview.holding.expiring,
             daysLeft: active ? overview.holding.daysRemaining : nil,
-            daysTotal: active ? overview.holding.daysTotal : nil)
+            daysTotal: active ? overview.holding.daysTotal : nil,
+            terms: overview.terms)
     }
 
     /// Explore feed card: city, period, and year passes that have a cash price and covered works.

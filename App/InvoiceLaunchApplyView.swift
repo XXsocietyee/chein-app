@@ -176,7 +176,8 @@ struct InvoiceLaunchApplyGroup: Identifiable {
         .onAppear { preselectTitle() }
         .sheet(isPresented: $choosingTitle) {
             titlePicker
-                .cyPlayerSheetGlass()
+                .themeDomain(.player)
+                .cySheet()
         }
         .navigationDestination(isPresented: $managingTitles) { InvoiceLaunchTitlesView(model: model, onSignIn: onSignIn) }
         .navigationDestination(isPresented: $addingTitle) { InvoiceLaunchTitleEditor(model: model, title: nil) }

@@ -164,7 +164,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
                 .fill(Color.secondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -199,7 +199,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: decision.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(decision.isVerified ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("unifiedDecisionsAudit.decisionStatus.\(decision.id)")
                     }
@@ -209,14 +209,14 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: decision.failClosedGateSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("unifiedDecisionsAudit.decisionGate.\(decision.id)")
                 }
                 .padding(10)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
                         .fill(Color.primary.opacity(0.04))
                 )
                 .accessibilityElement(children: .combine)

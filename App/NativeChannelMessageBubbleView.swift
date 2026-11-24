@@ -35,7 +35,7 @@ import SwiftUI
                 case .card:
                     if let day = NativeChannelCheckinReminder.day(in: snapshot) {
                         Label { Text("checkin.day \(day)", tableName: "NativeChannelMessage") } icon: { Image(systemName: "calendar.badge.checkmark").accessibilityHidden(true) }
-                            .font(CYTypography.cardTitle)
+                            .cyText(.cardTitle)
                             .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
                         if let checkinCoordinator {
@@ -96,7 +96,7 @@ import SwiftUI
                 }
                 if snapshot.editedAt != nil {
                     Label { Text("message.edited", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pencil").accessibilityHidden(true) }
-                        .font(CYTypography.caption)
+                        .cyText(.caption)
                         .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -142,7 +142,7 @@ import SwiftUI
 
     private func kindLine(_ key: String, symbol: String) -> some View {
         Label { Text(LocalizedStringKey(key), tableName: "NativeChannelMessage") } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-            .font(CYTypography.cardTitle)
+            .cyText(.cardTitle)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "NativeChannelMessage"))

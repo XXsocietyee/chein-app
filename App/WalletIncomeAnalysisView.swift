@@ -24,7 +24,7 @@ import SwiftUI
                 text("login")
                 if let onSignIn {
                     Button(action: onSignIn) { Text("mp.common.signIn") }
-                        .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
+                        .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
                         .accessibilityIdentifier("wallet.analysis.signIn")
                 }
             }
@@ -37,16 +37,15 @@ import SwiftUI
             else if model.unavailable { text("unavailable") }
             else if model.failed {
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
-                    .font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                    .cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
+                    .buttonStyle(.borderedProminent).controlSize(.large).buttonBorderShape(.capsule).frame(minHeight: 44)
             } else if let slice = model.displayedResult(for: reader) {
                 content(slice)
             } else { CYSkeleton(variant: .detail) }
         }
         .listStyle(.insetGrouped)
         .cyText(.body)
-        .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
         .navigationTitle(Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis"))
@@ -74,7 +73,7 @@ import SwiftUI
             if slice.isPartial {
                 Label { readText("partial") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
                 readText("budget").cyText(.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
@@ -163,7 +162,7 @@ import SwiftUI
                         VStack {
                             Spacer(minLength: 0)
                             if summary.unknownCount == 0 || month.count > 0 {
-                                RoundedRectangle(cornerRadius: Theme.Radius.sm)
+                                RoundedRectangle(cornerRadius: CYRadius.inner)
                                     .fill(month.id == summary.months.last?.id ? Theme.Color.textPrimary(in: domain) : Theme.Color.bgRaised(in: domain))
                                     .frame(height: geometry.size.height * CGFloat(summary.fraction(month.amount)))
                             }
@@ -198,7 +197,7 @@ import SwiftUI
 private struct WalletIncomeAnalysisDetailStyle: LabeledContentStyle {
     func makeBody(configuration: Configuration) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            configuration.label.font(Theme.Font.body).foregroundStyle(.secondary)
+            configuration.label.cyText(.body).foregroundStyle(.secondary)
             configuration.content.fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -151,7 +151,7 @@ private struct NonCashRewardCard: View {
                 }
             }
         }
-        .listStyle(.insetGrouped).appNavigationTitle("rewards.detail")
+        .listStyle(.insetGrouped).appNavigationTitle("rewards.detail").navigationBarTitleDisplayMode(.inline)
         .onAppear {
             guard let permit = appearance.begin(model: model, foreground: scenePhase == .active) else { return }
             scheduleRefresh(presentation: permit)
@@ -167,7 +167,7 @@ private struct NonCashRewardCard: View {
                         Label("rewards.demo", systemImage: "eye.slash").cyText(.cardTitle)
                         Text("rewards.presentationHint"); Text("rewards.singleUse"); Text("rewards.noCredential").cyText(.bodyCompact)
                     }.padding().accessibilityIdentifier("rewards.presentation")
-                        .appNavigationTitle("rewards.present")
+                        .appNavigationTitle("rewards.present").navigationBarTitleDisplayMode(.inline)
                         .toolbar { ToolbarItem(placement: .cancellationAction) {
                             Button("action.close") { presenting = false }.accessibilityIdentifier("rewards.close")
                         } }

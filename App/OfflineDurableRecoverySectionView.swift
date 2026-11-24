@@ -169,7 +169,7 @@ public struct OfflineDurableRecoverySectionView: View {
                             .cyText(.bodyMedium)
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(pillar.isVerified ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("durableRecovery.pillarStatus.\(pillar.id)")
                     }
@@ -179,7 +179,7 @@ public struct OfflineDurableRecoverySectionView: View {
                         .foregroundStyle(.primary)
 
                     Text(verbatim: pillar.recoveryRuleSummary)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .accessibilityIdentifier("durableRecovery.pillarRule.\(pillar.id)")
                 }

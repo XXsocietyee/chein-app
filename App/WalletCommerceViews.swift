@@ -184,7 +184,7 @@ enum WalletPayoutCapability {
                 await loadFunds()
                 await loadMonth()
             }
-            .sheet(isPresented: $showsMore) { moreSheet }
+            .sheet(isPresented: $showsMore) { moreSheet.cySheet() }
             .onDisappear { isVisible = false; earnings.clear(); funds.clear(); monthModel.cancel() }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { earnings.clear(); funds.clear() }
@@ -283,7 +283,7 @@ enum WalletPayoutCapability {
                 NavigationLink { incomeDestination } label: {
                     HStack(spacing: CYSpacing.xxs) {
                         Text(verbatim: monthTitle + " " + t("全部", "All"))
-                        Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).accessibilityHidden(true)
                     }.cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
             }.textCase(nil)
@@ -350,7 +350,7 @@ enum WalletPayoutCapability {
                     walletRow("wallet.assets", icon: "wallet.pass", id: "wallet.assets.more") { WalletAssetsView(reader: reader) }
                 }
             }.listStyle(.plain).scrollContentBackground(.hidden).listRowBackground(Color.clear)
-                .appNavigationTitle(key: "wallet.title")
+                .appNavigationTitle(key: "wallet.title").navigationBarTitleDisplayMode(.inline)
                 .cyDomainPageBackground()
         }
         .cyDomainSheet(detents: [.half, .full])
@@ -394,7 +394,7 @@ enum WalletPayoutCapability {
                                 .cyText(.caption, weight: .semibold)
                                 .foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
-                                .font(CYTypography.data2XL)
+                                .cyText(.data2XL, monospacedDigit: true)
                                 .foregroundStyle(CYColor.textPrimary)
                                 .privacySensitive()
                         }
@@ -420,7 +420,7 @@ enum WalletPayoutCapability {
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }
                     .accessibilityIdentifier("wallet.assets.pointsLedger")
             }
-        }.appNavigationTitle("wallet.assets").cyHideTabBar().task(id: reader.scope) { funds.clear(); await load() }
+        }.appNavigationTitle("wallet.assets").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { funds.clear(); await load() }
             .onChange(of: funds.loading) { _, isLoading in
                 if WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: isLoading, hasValue: funds.value != nil) {
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
@@ -434,11 +434,27 @@ enum WalletPayoutCapability {
 }
 @MainActor private final class WalletPagerScreen: ObservableObject {
     @Published var revision = 0
-    let pager = WalletLedgerPager()
+    private(set) var pager = WalletLedgerPager()
     func reset() { pager.reset(); revision += 1 }
     func cancel() { pager.cancel(); revision += 1 }
     func load(_ reader: WalletCommerceReader, kind: WalletLedgerKind) async {
         revision += 1; await pager.load(reader: reader, kind: kind); revision += 1
+    }
+    /// FIN-18-2: MP points-history load(fromPull) reads into a fresh page and swaps it in on success. A retryable
+    /// failure over loaded rows keeps them and returns false (the page toasts 刷新失败，稍后再试); a sign-in or
+    /// availability failure still retires the rows, as the pager does.
+    func refresh(_ reader: WalletCommerceReader, kind: WalletLedgerKind) async -> Bool {
+        guard pager.hasLoadedPage, !pager.rows.isEmpty else { reset(); await load(reader, kind: kind); return true }
+        let fresh = WalletLedgerPager()
+        revision += 1
+        await fresh.load(reader: reader, kind: kind)
+        if Task.isCancelled { return true }
+        if fresh.hasLoadedPage && !fresh.failed || fresh.requiresLogin || fresh.unavailable {
+            pager.cancel(); pager = fresh; revision += 1
+            return true
+        }
+        revision += 1
+        return !fresh.failed
     }
 }
 /// Continuity r1 (10): true when the ledger was pushed with a zoom out of a balance card, so the balance header arrives
@@ -470,7 +486,13 @@ extension EnvironmentValues {
     @StateObject private var model = WalletPagerScreen()
     @State private var direction = "all"
     @State private var incomeDetail: WalletIncomeDetailSelection?
+    /// FIN-18-8: MP points-history reveals the full list 20 rows at a time (rows.js PAGE_SIZE).
+    @State private var shownCount = WalletLedgerView.pointsPageSize
+    @State private var refreshToast: LocalizedStringKey?
+    static let pointsPageSize = 20
     private var points: Bool { kind == .points || kind == .assetPoints }
+    private var shownRows: [WalletLedgerRow] { points ? Array(filtered.prefix(shownCount)) : filtered }
+    private var hasLocalMore: Bool { points && shownCount < filtered.count }
     private var income: Bool { if case .income = kind { return true }; return false }
     private var filtered: [WalletLedgerRow] {
         model.pager.rows.filter { row in
@@ -501,7 +523,7 @@ extension EnvironmentValues {
                     }
                 }
                 if points || kind == .balance {
-                    ForEach(WalletPointsMonthGroup.group(filtered)) { group in
+                    ForEach(WalletPointsMonthGroup.group(shownRows)) { group in
                         Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
                             .cyText(.caption, weight: .semibold)
                             .foregroundStyle(CYColor.textSecondary)
@@ -518,7 +540,8 @@ extension EnvironmentValues {
                         ForEach(group.rows) { row in ledgerRowButton(row) }
                     }
                 }
-                if points && !filtered.isEmpty && !model.pager.hasMore && !model.pager.isLoading && !model.pager.failed {
+                // FIN-18-8: 已经到底了 only once the list was paged (more than one page of 20), as MP `paged`.
+                if points && filtered.count > Self.pointsPageSize && !hasLocalMore && !model.pager.hasMore && !model.pager.isLoading && !model.pager.failed {
                     Text("wallet.points.endOfList").cyText(.bodyCompact).foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("wallet.ledger.endOfList")
                 }
@@ -536,6 +559,10 @@ extension EnvironmentValues {
                 if income { CYSkeleton().accessibilityLabel(Text("wallet.loading")) }
                 else { CYSkeleton() }
             }
+            else if hasLocalMore && model.pager.hasLoadedPage && reader.isConfigured && reader.scope != nil {
+                Button("wallet.loadMore") { shownCount += Self.pointsPageSize }.frame(minHeight: 44)
+                    .accessibilityIdentifier("wallet.ledger.loadMore")
+            }
             else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
                     .accessibilityIdentifier("wallet.ledger.loadMore")
@@ -547,13 +574,18 @@ extension EnvironmentValues {
                 guard historyWaitsForZoom, !historyArrived else { return }
                 withAnimation(.easeOut(duration: CYMotion.Duration.quick).delay(0.25)) { historyArrived = true }
             }
-            .appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger")
+            .appNavigationTitle(key: income ? "wallet.income" : points ? "wallet.pointsLedger" : "wallet.balanceLedger").navigationBarTitleDisplayMode(.inline)
             .cyHideTabBar()
             .task(id: reader.scope) { model.reset(); await model.load(reader, kind: kind) }
             .onDisappear { if incomeDetail == nil { model.cancel() } }
-            .refreshable { incomeDetail = nil; model.reset(); await model.load(reader, kind: kind) }
-            .onChange(of: reader.scope) { _, _ in incomeDetail = nil }
-            .onChange(of: direction) { _, _ in incomeDetail = nil }
+            .refreshable {
+                incomeDetail = nil
+                if await model.refresh(reader, kind: kind) { shownCount = Self.pointsPageSize }
+                else { refreshToast = "profile.refreshFailed" }
+            }
+            .cyToast(message: $refreshToast, tone: .warning)
+            .onChange(of: reader.scope) { _, _ in incomeDetail = nil; shownCount = Self.pointsPageSize }
+            .onChange(of: direction) { _, _ in incomeDetail = nil; shownCount = Self.pointsPageSize }
             .onChange(of: scenePhase) { _, phase in if phase != .active { incomeDetail = nil } }
             .appSwitcherPrivacyShield()
             .sheet(item: $incomeDetail) { selection in
@@ -581,7 +613,7 @@ extension EnvironmentValues {
                         }
                     }
                     .privacySensitive()
-                    .appNavigationTitle("wallet.income")
+                    .appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .confirmationAction) {
                         Button("action.close") { incomeDetail = nil }
                             .accessibilityIdentifier("wallet.income.detail.close")
@@ -602,7 +634,7 @@ extension EnvironmentValues {
                     .cyText(.bodyMedium).foregroundStyle(CYColor.textSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
-                        .font(CYTypography.data2XL).monospacedDigit()
+                        .cyText(.data2XL, monospacedDigit: true)
                         .cyWrapText()
                         .foregroundStyle(CYColor.textPrimary)
                     if value != nil { Text(verbatim: unit).cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary) }
@@ -612,7 +644,7 @@ extension EnvironmentValues {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(CYSpacing.xl)
             .background(LinearGradient(colors: [CYColor.bgElevated, CYColor.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+                        in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowBackground(Color.clear)
             .accessibilityIdentifier("wallet.ledger.hero")
@@ -644,7 +676,7 @@ extension EnvironmentValues {
         return layout {
             if !stacked {
                 Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
-                    .font(CYTypography.bodyCompact.weight(.semibold))
+                    .cyText(.bodyCompact, weight: .semibold)
                     .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                     .frame(width: 36, height: 36)
                     .background(CYColor.bgRaised, in: Circle())
@@ -665,7 +697,11 @@ extension EnvironmentValues {
                 }
                 if income { Text(LocalizedStringKey(row.incomeEventKey)).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
-                else if let date = row.createTime { Text(verbatim: date).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                else if let date = row.createTime {
+                    // FIN-18-6: MP rows.js shortTimeText (10月27日 10:30); the month is already the group title.
+                    Text(verbatim: points ? WalletPointsShortTime.text(date, isEnglish: locale.language.languageCode?.identifier == "en") : date)
+                        .cyText(.caption).foregroundStyle(CYColor.textSecondary)
+                }
                 if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             }
             Spacer(minLength: 8)
@@ -676,7 +712,8 @@ extension EnvironmentValues {
                     else if !points { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
                 .cyText(.bodyMedium).monospacedDigit()
-                .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
+                // FIN-18-8: MP `.is-income` uses the brand colour on 积分明细.
+                .foregroundStyle(isIn ? (points ? CYColor.brand : CYColor.successText) : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
                     Text(verbatim: format.amount(balance, currency: row.currency)).cyText(.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit()
                 }
@@ -811,7 +848,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 // An interrupted read is retryable, not a reported business failure.
                 Button("wallet.retry") { scheduleLoad() }.frame(minHeight: 44)
             }
-        }.appNavigationTitle("wallet.mall").cyHideTabBar().searchable(text: $keyword)
+        }.appNavigationTitle("wallet.mall").navigationBarTitleDisplayMode(.inline).cyHideTabBar().searchable(text: $keyword)
             .onSubmit(of: .search) { submitSearch() }
             .onChange(of: keyword) { _, value in
                 // Clearing or cancelling search must restore the unfiltered catalogue.
@@ -885,7 +922,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 }
                 Text("wallet.dormant").accessibilityIdentifier("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.product").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.product").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
         .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.product(id: productID, token: $1) } }
@@ -919,7 +956,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 if let total = page.total, total > page.rows.count { Text("wallet.sourceLimited") }
                 Text("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.cart").cyHideTabBar().task(id: reader.scope) { selected = []; model.clear(); await load() }
+        }.appNavigationTitle("wallet.cart").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { selected = []; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { selected = []; await load() }
         .cyDomainScreen(.player)
     }
@@ -950,7 +987,7 @@ private struct WalletIncomeListCard: ViewModifier {
                 Text("wallet.previewOnly").accessibilityIdentifier("wallet.previewOnly")
                 Text("wallet.dormant")
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin) { Task { await load() } } }
-        }.appNavigationTitle("wallet.preview").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.preview").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
         .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.checkout(cartIDs: cartIDs, token: $1) } }
@@ -990,11 +1027,11 @@ private struct WalletIncomeListCard: ViewModifier {
                         .accessibilityIdentifier("wallet.withdrawals.support")
                 }
             }
-        }.appNavigationTitle("wallet.withdrawals").cyHideTabBar().task(id: reader.scope) { showContact = false; model.clear(); await load() }
+        }.appNavigationTitle("wallet.withdrawals").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { showContact = false; model.clear(); await load() }
             .onDisappear { model.cancel() }.refreshable { await load() }
             // Uses the inherited, independently reviewed support reader. History access
             // does not supply a contact or authorize support configuration/copying.
-            .sheet(isPresented: $showContact) { WithdrawalSupportContactView() }
+            .sheet(isPresented: $showContact) { WithdrawalSupportContactView().cySheet() }
             .appSwitcherPrivacyShield()
             .cyDomainScreen(.player)
     }
@@ -1037,7 +1074,7 @@ private struct WalletIncomeListCard: ViewModifier {
                     }
                 }
             } else { WalletIssueView(reader: reader, requiresLogin: model.requiresLogin, unavailable: model.unavailable) { Task { await load() } } }
-        }.appNavigationTitle("wallet.tasks").cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
+        }.appNavigationTitle("wallet.tasks").navigationBarTitleDisplayMode(.inline).cyHideTabBar().task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
         .cyDomainScreen(.player)
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }
@@ -1136,12 +1173,26 @@ private struct WalletEarningsHero: View {
                     Text("—").cyText(.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
                         .accessibilityLabel(Text(verbatim: ""))
                 }
-                Text(number).font(CYTypography.data2XL).monospacedDigit()
+                Text(number).cyText(.data2XL, monospacedDigit: true)
             }
             .foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
         }
         .padding(.vertical, CYSpacing.lg)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// FIN-18-6: MP points-history rows.js `shortTimeText`: `YYYY-MM-DD HH:MM…` → `M月D日 HH:MM`; anything else verbatim.
+enum WalletPointsShortTime {
+    static func text(_ value: String, isEnglish: Bool = false) -> String {
+        let text = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        let chars = Array(text)
+        guard chars.count >= 16, chars[4] == "-", chars[7] == "-", chars[10] == " " || chars[10] == "T", chars[13] == ":",
+              let month = Int(String(chars[5...6])), let day = Int(String(chars[8...9])),
+              (1...12).contains(month), (1...31).contains(day),
+              chars[11...12].allSatisfy(\.isNumber), chars[14...15].allSatisfy(\.isNumber) else { return text }
+        let time = String(chars[11...15])
+        return isEnglish ? "\(month)/\(day) \(time)" : "\(month)月\(day)日 \(time)"
     }
 }

@@ -12,7 +12,7 @@ struct MerchantSafetySummaryRow: View {
             if let summary {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Label { Text(verbatim: summary.text) } icon: { Image(systemName: "shield.lefthalf.filled") }
-                        .font(CYTypography.cardTitle)
+                        .cyText(.cardTitle)
                         .foregroundStyle(summary.level == "UNSAFE" ? CYColor.warningText : CYColor.textPrimary)
                     Text(verbatim: summary.note)
                         .cyText(.meta)
@@ -312,7 +312,7 @@ struct ReportAppealSection: View {
     var body: some View {
         Section {
             if let result {
-                Label { Text(verbatim: result.isEmpty ? "申诉已提交" : result) } icon: { Image(systemName: "checkmark.circle") }
+                Label { if result.isEmpty { Text("report.appeal.submitted") } else { Text(verbatim: result) } } icon: { Image(systemName: "checkmark.circle") }
                     .accessibilityIdentifier("report.appeal.receipt")
             } else if editing {
                 TextField(PlayerCapabilityCopy.text("请写下申诉理由", "Why do you appeal", locale), text: $reason, axis: .vertical)
@@ -352,9 +352,10 @@ struct ReportAppealSection: View {
                 .appeal(reportID: reportID, reason: text, requestID: requestID, stageLabel: stageLabel)
             readBack()
         } catch PlayerCapabilityFailure.outcomeUnknown {
-            failure = "申诉结果未确认，请再次提交（沿用同一请求）"; readBack()
+            // PLY-29-6: catalog copy instead of raw Chinese literals.
+            failure = appLocalized("report.appeal.outcomeUnknown", locale: locale); readBack()
         } catch {
-            failure = PlayerCapabilityCopy.failure(error, fallback: "申诉没有提交成功，请稍后再试")
+            failure = PlayerCapabilityCopy.failure(error, fallback: appLocalized("report.appeal.failed", locale: locale))
         }
         busy = false
     }

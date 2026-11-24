@@ -50,7 +50,8 @@ struct RegistrationSheetView: View {
          waitlistService: (any RegistrationWaitlistServing)? = nil,
          couponUsability: (() async throws -> [CouponUsabilityRow])? = nil,
          availablePoints: (() -> Int?)? = nil,
-         onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in }) {
+         onReadback: @escaping (RegistrationStatusSnapshot) -> Void = { _ in },
+         preselectedTicketID: Int? = nil) {
         self.orderReader = orderReader
         self.participantReader = participantReader; self.participantCoordinator = participantCoordinator
         self.couponUsability = couponUsability
@@ -60,6 +61,8 @@ struct RegistrationSheetView: View {
                 currentIdentity: currentIdentity, quoteEnabled: quoteEnabled,
                 creationPolicy: creationPolicy, waitlistService: waitlistService, onReadback: onReadback)
             flow.availablePoints = availablePoints
+            // MKT-2-1: a pass's 去报名 starts on the pass ticket (MP `baoming?ticketId`); unknown ids are ignored.
+            if let preselectedTicketID { flow.selectTicket(id: preselectedTicketID) }
             return flow
         }()))
     }

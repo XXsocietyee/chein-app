@@ -204,19 +204,27 @@ class TestGlobalChromeDomainContract(unittest.TestCase):
 
         for rel in (
             "App/QuestifyApp.swift",
-            "App/AccountView.swift",
             "App/ActivityDetailView.swift",
             "App/TopicDetailView.swift",
             "App/RegistrationSheetView.swift",
-            "App/TicketPassSheet.swift",
             "App/CatalogShareCardView.swift",
-            "App/SettingsView.swift",
             "App/ContextualReviewComposer.swift",
             "App/JourneyLandingViews.swift",
             "App/PlayStoreDayMerchantView.swift",
-            "App/BundleDetailView.swift",
         ):
             self.assertIn("cyPlayerSheetGlass", read_swift(rel), f"{rel} must apply cyPlayerSheetGlass() on sheets.")
+
+        # restyle/r4-me-account (native iOS r1, spec §3.4): R4 sheets use the system sheet (no custom corner or
+        # glass background) but stay in the player role's appearance.
+        for rel in (
+            "App/AccountView.swift",
+            "App/TicketPassSheet.swift",
+            "App/SettingsView.swift",
+            "App/BundleDetailView.swift",
+        ):
+            src = strip_swift_comments(read_swift(rel))
+            self.assertIn(".themeDomain(.player)", src, f"{rel} sheets must stay in the player role.")
+            self.assertNotIn("presentationCornerRadius", src, f"{rel} must use the system sheet corners.")
 
 
 if __name__ == "__main__":

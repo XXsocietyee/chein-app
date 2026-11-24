@@ -29,7 +29,7 @@ import Observation
             NavigationStack {
                 if let flow {
                     NativeVerificationView(flow: flow, records: {
-                        AnyView(Text("verification.fixtureRecords").navigationTitle("verification.records").accessibilityIdentifier("verification.fixtureRecords"))
+                        AnyView(Text("verification.fixtureRecords").navigationTitle("verification.records").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("verification.fixtureRecords"))
                     })
                 }
             }

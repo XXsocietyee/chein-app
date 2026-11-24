@@ -1,0 +1,25 @@
+# R4 me & account restyle: fixture routes for acceptance screenshots (one per line).
+# Me root, Settings, profile edit
+d2-me
+e4-member
+e4-settings
+e4-settings-search
+e4-profile-edit
+# Tickets and wallet
+e4-tickets
+e1-ticket-holder-present
+e4-wallet-assets
+e4-wallet-income
+e4-wallet-analysis
+# Orders, participants, favourites, invoices, bundles, coupons
+core-order-info
+e4-participants
+e4-favorites
+e5-invoice-apply
+e5-invoice-history
+e1-bundle-detail
+coupons
+# Privacy, legal, account cancellation
+cur6-privacy-location
+cur6-agreement
+cur6-deregister-pending

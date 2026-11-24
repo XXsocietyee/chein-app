@@ -78,7 +78,6 @@ struct CYStateView: View {
     /// Inline sections (a failed rail on an otherwise live screen) use the tighter spacing.
     var compact = false
     @Environment(\.cyPalette) private var palette
-    @ScaledMetric(relativeTo: .title2) private var glyphSize: CGFloat = 44
 
     private var identifierKind: String {
         switch content.kind {
@@ -89,35 +88,27 @@ struct CYStateView: View {
     }
 
     var body: some View {
-        VStack(spacing: compact ? CYSpacing.sm : CYSpacing.md) {
-            Image(systemName: content.glyph)
-                .font(.system(size: glyphSize, weight: .regular))
-                .foregroundStyle(palette.textTertiary)
-                .accessibilityHidden(true)
-            Text(verbatim: content.title)
-                .cyText(.sectionTitle)
-                .foregroundStyle(palette.textPrimary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
+        // Native iOS restyle r1: the system `ContentUnavailableView` with a retry `Button`.
+        ContentUnavailableView {
+            Label {
+                Text(verbatim: content.title)
+            } icon: {
+                Image(systemName: content.glyph)
+                    .foregroundStyle(palette.textTertiary)
+            }
+        } description: {
             Text(verbatim: content.body)
-                .cyText(.body)
-                .foregroundStyle(palette.textSecondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
+        } actions: {
             if let title = content.primaryTitle, let onPrimary {
-                CYPillButton(verbatim: title, style: primaryStyle, fullWidth: false, action: onPrimary)
-                    .padding(.top, CYSpacing.sm)
+                CYStateActionButton(style: primaryStyle, action: onPrimary) { Text(verbatim: title) }
                     .accessibilityIdentifier("cy.state.\(identifierKind).action")
             }
             if let title = content.linkTitle, let onLink {
-                CYPillButton(verbatim: title, style: .tertiary, fullWidth: false, action: onLink)
+                CYStateActionButton(style: .tertiary, action: onLink) { Text(verbatim: title) }
                     .accessibilityIdentifier("cy.state.\(identifierKind).link")
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, compact ? CYSpacing.xl : CYSpacing.xxxl)
-        .padding(.horizontal, CYSpacing.xxl)
+        .padding(.vertical, compact ? 0 : CYSpacing.lg)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("cy.state.\(identifierKind)")
     }

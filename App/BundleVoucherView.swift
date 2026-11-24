@@ -25,7 +25,7 @@ import SwiftUI
                 content(voucher)
             }
         }
-        .navigationTitle(Text("bundle.voucher.title", tableName: table))
+        .navigationTitle(Text("bundle.voucher.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
         .task { await model.appear() }
         .onDisappear { model.disappear() }
         .cyDomainScreen(.player)
@@ -38,7 +38,7 @@ import SwiftUI
                 text("bundle.voucher.hidden")
             } else if let code = voucher.mainCode, !code.isEmpty {
                 Text(verbatim: code)
-                    .font(CYTypography.dataXL.monospaced()).monospacedDigit()
+                    .cyText(.dataXL, monospacedDigit: true).monospaced()
                     .privacySensitive()
                     .accessibilityIdentifier("bundleVoucher.mainCode")
                 if let validTo = voucher.mainValidTo { LabeledContent { Text(verbatim: validTo) } label: { text("bundle.voucher.validTo") } }

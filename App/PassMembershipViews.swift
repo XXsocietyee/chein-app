@@ -52,6 +52,8 @@ struct PassMembershipContent: Equatable {
     var expiring = false
     var daysLeft: Int? = nil
     var daysTotal: Int? = nil
+    /// Server `overview.terms` (OR-024). Server text wins over the fixed renewal / refund lines.
+    var terms: PlatformPassTermFacts = .empty
 }
 
 enum PassMembershipPhase: Equatable {
@@ -118,7 +120,7 @@ struct PassMembershipView: View {
                             MPRow(title: Text("mp.member.library"),
                                   sub: content.themeCount.map { Text("mp.member.library.count \($0)") },
                                   chevron: true,
-                                  leading: AnyView(Image(systemName: "seal.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
+                                  leading: AnyView(Image(systemName: "seal.fill").cyText(.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
                         }
                     }
                     .buttonStyle(.cyPressable)
@@ -151,15 +153,25 @@ struct PassMembershipView: View {
     }
 
     /// `platform-pass.js` `factRows`: 购买前须知 from server facts; a missing fact is left out, never invented.
-    /// 续费 / 退款规则 are the fixed OR-024 lines (不自动续费 / 退款为整单).
+    /// 可玩主题 = library count, else `terms.coverage`; 适用范围 = `terms.seat`; 有效期 = `terms.period`, else plan days.
+    /// 续费 / 退款规则 use the server text when `overview.terms` sent it, else the fixed OR-024 lines (`termRows`).
     private func termFacts(_ content: PassMembershipContent) -> some View {
         var rows: [(Text, Text)] = []
+        let terms = content.terms
+        func server(_ value: String?) -> String? {
+            guard let text = value?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+            return text
+        }
         if let count = content.themeCount { rows.append((Text("mp.member.fact.themes"), Text("mp.member.fact.themes.value \(count)"))) }
-        if let code = content.selectedPlan, let days = content.validDays[code] {
+        else if let coverage = server(terms.coverage) { rows.append((Text("mp.member.fact.themes"), Text(verbatim: coverage))) }
+        if let seat = server(terms.seat) { rows.append((Text("mp.member.fact.seat"), Text(verbatim: seat))) }
+        if let period = server(terms.period) {
+            rows.append((Text("mp.member.fact.period"), Text(verbatim: period)))
+        } else if let code = content.selectedPlan, let days = content.validDays[code] {
             rows.append((Text("mp.member.fact.period"), Text("mp.member.plan.days \(days)")))
         }
-        rows.append((Text("mp.member.fact.renewal"), Text("mp.member.fact.renewal.value")))
-        rows.append((Text("mp.member.fact.refund"), Text("mp.member.fact.refund.value")))
+        rows.append((Text("mp.member.fact.renewal"), server(terms.renewal).map { Text(verbatim: $0) } ?? Text("mp.member.fact.renewal.value")))
+        rows.append((Text("mp.member.fact.refund"), server(terms.refund).map { Text(verbatim: $0) } ?? Text("mp.member.fact.refund.value")))
         return VStack(alignment: .leading, spacing: CYSpacing.sm) {
             MPSectionHeader(title: "mp.member.fact.title")
             MPCard {
@@ -460,7 +472,7 @@ struct PassLibraryCardView: View {
                 Spacer()
                 if let city = card.city {
                     Label { Text(verbatim: city) } icon: { Image(systemName: "mappin") }
-                        .font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.caption).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .cyNightGlass(in: Capsule())
                 }

@@ -170,7 +170,7 @@ public struct AppStoreConnectMetadataAndScreenshotSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(row.isReady ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.specificationSummary)

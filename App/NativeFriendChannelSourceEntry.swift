@@ -21,7 +21,7 @@ import SwiftUI
                     Button { Task { await open() } } label: { Text("d7.friendInvite.tryAgain") }.buttonStyle(.bordered)
                 }
             }
-        }.font(Theme.Font.body)
+        }.cyText(.body)
             .privacySensitive()
         // Outside the optional source subtree: closing the channel source cannot remove this link host.
         .safeAreaInset(edge: .bottom) {
@@ -114,7 +114,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .font(Theme.Font.body)
+        .cyText(.body)
         .appNavigationTitle("d7.channelMembers.title").privacySensitive()
         .refreshable {
             guard !source.busy, source.isCurrent else { return }
@@ -138,7 +138,7 @@ import SwiftUI
                         }
                     }
                     .formStyle(.grouped)
-                    .font(Theme.Font.body)
+                    .cyText(.body)
                     .cyGroupedSurface()
                     .navigationTitle(Text(LocalizedStringKey("friend.confirm." + review.command.action.rawValue), tableName: "NativeFriend"))
                     .navigationBarTitleDisplayMode(.inline)

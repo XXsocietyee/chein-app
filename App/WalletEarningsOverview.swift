@@ -73,7 +73,7 @@ enum WalletFundsStagePhase: Equatable {
                 Text("wallet.earnings.stages.failed", tableName: "WalletEarningsOverview")
                     .accessibilityIdentifier("wallet.earnings.stages.failed")
                 Button(action: retry) { Text("wallet.earnings.stages.retry", tableName: "WalletEarningsOverview") }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+                    .buttonStyle(.bordered).buttonBorderShape(.capsule)
                     .accessibilityIdentifier("wallet.earnings.stages.retry")
             case .unknown:
                 Text("wallet.earnings.stages.unknown", tableName: "WalletEarningsOverview")
@@ -163,7 +163,6 @@ private struct WalletContentListStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content.listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
             .cyText(.body)
     }
@@ -177,7 +176,7 @@ struct WalletStatusMessage: View {
     var body: some View {
         Label { Text(message).fixedSize(horizontal: false, vertical: true) }
             icon: { Image(systemName: systemImage).accessibilityHidden(true) }
-            .font(Theme.Font.body)
+            .cyText(.body)
             .padding(.vertical, Theme.Space.s3)
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)

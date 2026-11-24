@@ -3,6 +3,7 @@ import SwiftUI
 /// Environment observation resets the form when the authenticated identity/epoch changes.
 @MainActor struct SessionRegistrationSheet:View {
     let activity:ActivityDetail
+    var preselectedTicketID: Int? = nil
     @EnvironmentObject private var session:AppSession
     var body:some View {
         RegistrationSheetView(activity:activity,coordinator:session.registrationCoordinator,
@@ -18,7 +19,8 @@ import SwiftUI
                                   return try await client.usability()
                               },
                               // `Account.xp` decodes `userInfo.point`, the balance `baoming.js:1240` reads.
-                              availablePoints:{ session.account?.xp })
+                              availablePoints:{ session.account?.xp },
+                              preselectedTicketID: preselectedTicketID)
     }
 
     /// The integrator button opens this sheet. An unapproved session still cannot pay.

@@ -16,7 +16,7 @@ import SwiftUI
             } else if model.isBusy { ProgressView { Text("d7.channelUnread.loading") } }
             else if model.unreadIssue { Text("d7.channelUnread.failed") }
             else { LabeledContent { Text(verbatim: "—") } label: { Text("d7.channelUnread.total") } }
-        }.font(Theme.Font.body)
+        }.cyText(.body)
             .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .privacySensitive()
         .tint(Theme.Color.accent(in: domain))
@@ -61,7 +61,7 @@ import SwiftUI
                     .disabled(model.isBusy)
                     .accessibilityIdentifier("notification.foreground.recover")
             }
-        }.font(Theme.Font.body)
+        }.cyText(.body)
             .foregroundStyle(Theme.Color.textPrimary(in: domain))
             .privacySensitive()
         .task { visible = true; await refresh() }

@@ -186,6 +186,7 @@ import SwiftUI
                 guard presentationID == filterPresentationID, categoryRecovery.owns(categoryOwner) else { return }
                 filterSheetVisible = false; updateCategoryPresentation()
             }
+            .cySheet()
         }
         // PC-A-4-1: every content search also runs the two template lanes; their failure never fails the page.
         .onChange(of: loading) { _, isLoading in
@@ -439,7 +440,7 @@ import SwiftUI
             } label: {
                 HStack(spacing: 6) {
                     Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find"))
-                    Image(systemName: "chevron.down").font(.caption2.weight(.bold))
+                    Image(systemName: "chevron.down").font(.caption.weight(.bold))
                 }
                 .cyText(.label).foregroundStyle(CYColor.textSecondary)
                 .frame(maxWidth: .infinity, minHeight: 44)

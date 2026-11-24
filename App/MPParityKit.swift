@@ -160,6 +160,8 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageMember/market/passes/index":
             self = .passes(tab: query["tab"].flatMap(PassMarketTab.init(rawValue:)) ?? .shop)
         case "subpackageMember/market/pass/index":
+            // R7-MEM-2-1: no id opens the page's missing state (商品不存在或已下架 + 返回), as MP load() does.
+            if query["id"]?.isEmpty ?? true { self = .pass(productID: ""); return }
             guard let id = safeIdentifier("id") else { return nil }
             self = .pass(productID: id)
         case "subpackageMember/market/gift/index":
@@ -172,6 +174,8 @@ enum MPParityRoute: Hashable, Identifiable {
         case "subpackageMember/market/library/index":
             self = .library(kind: query["kind"].flatMap(PassLibraryKind.init(rawValue:)) ?? .all)
         case "subpackageMember/market/pass-order/index":
+            // R7-MEM-5-1: no orderNo opens the missing-param state + 返回 (MP PG-041), not a read with an empty number.
+            if query["orderNo"]?.isEmpty ?? true { self = .passOrder(orderNo: ""); return }
             guard let orderNo = nonEmpty("orderNo"), PlatformPassSubscriptionOrder.orderNoAllowed(orderNo) else { return nil }
             self = .passOrder(orderNo: orderNo)
         case "subpackagePass/reveal/index":
@@ -241,13 +245,16 @@ enum MPParityRoute: Hashable, Identifiable {
             if let make = bindings.videoBounty { VideoBountyHost(binding: make(), campaignKey: campaignKey, topicID: topicID) } else { unavailable }
         case .passes(let tab):
             if let make = bindings.passMarket { PassMarketHost(binding: make(), initialTab: tab) } else { unavailable }
+        case .pass(let id) where id.isEmpty:
+            MemberMissingLinkState(title: "g6.product.reason.PRODUCT_NOT_FOUND", identifier: "passDetail.missing")
+        case .passOrder(let orderNo) where orderNo.isEmpty:
+            MemberMissingLinkState(identifier: "passOrder.missing")
         case .pass(let id):
             if let make = bindings.passDetail { PassDetailHost(binding: make(id)) } else { unavailable }
         case .gift(let token):
             if token.isEmpty {
-                CYStateLayout(kind: .generic, title: Text("mp.gift.linkInvalid"))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .accessibilityIdentifier("passGift.missing")
+                // MP cy-empty missing-param: 链接已失效 + 返回 (the deep-link sheet has no system back).
+                MemberMissingLinkState(title: "mp.gift.linkInvalid", identifier: "passGift.missing")
             } else if bindings.isSignedIn?() == false {
                 CYStateLayout(kind: .generic, title: Text("mp.gift.signIn"),
                               primary: (title: "mp.pass.signIn.action", action: { PlayerJourneySignInBridge.shared.request() }),
@@ -365,7 +372,7 @@ struct MPRow: View {
             }
             if stack { Spacer(minLength: 0) }
             if chevron {
-                Image(systemName: "chevron.right").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                Image(systemName: "chevron.right").cyText(.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }
         }
         .padding(.horizontal, CYSpacing.lg)
@@ -464,7 +471,7 @@ struct MPGatedNote: View {
     var identifier: String = "mp.gated"
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Image(systemName: "lock").font(CYTypography.caption).accessibilityHidden(true)
+            Image(systemName: "lock").cyText(.caption).accessibilityHidden(true)
             text.cyText(.meta).fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(CYColor.textSecondary)

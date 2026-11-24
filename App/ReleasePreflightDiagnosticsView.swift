@@ -88,7 +88,7 @@ public extension ReleasePreflightAndUIReadinessContract {
             gatesSection
             uiReadinessSection
         }
-        .navigationTitle(Text(verbatim: "发布预检与UI就绪诊断"))
+        .navigationTitle(Text(verbatim: "发布预检与UI就绪诊断")).navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("releasePreflight.root")
     }
 
@@ -238,7 +238,7 @@ public extension ReleasePreflightAndUIReadinessContract {
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     Text(verbatim: "必需锚点 (\(contract.requiredAnchorIdentifiers.count)): \(contract.requiredAnchorIdentifiers.joined(separator: ", "))")
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                     if contract.requiresOffScreenFormReveal {
                         Text(verbatim: "表单折叠显露要求: 需调用 \(contract.revealHelperIdentifier ?? "revealInForm") 滚动显露主输入项")

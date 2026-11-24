@@ -4,6 +4,8 @@ import SwiftUI
     let reader: any SocialAccountReading
     let squareReader: any SquareReading
     var actions: SocialActionCoordinator? = nil
+    /// FIN-20-4: MP 登录 on the signed-out state. Nil keeps the state without a button.
+    var onSignIn: (() -> Void)? = nil
     @StateObject private var model = SocialInviteHistoryModel()
     @Environment(\.cyPalette) private var palette
     private var groups: [(String, [SocialInvitedMember])] {
@@ -28,6 +30,8 @@ import SwiftUI
                                                  isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)
                 }
+                // R7-MEM-20-1: the latest real first-purchase reward (MP ir-earn), without the scan animation.
+                if let latest = latestEarn { ProfileInviteLatestEarnCard(member: latest.0, reward: latest.1) }
                 ForEach(groups, id: \.0) { group in
                     Section {
                         ForEach(group.1) { member in
@@ -53,6 +57,9 @@ import SwiftUI
             }
         }
             // FIN-20-3: inline bar title, no second title in the content (type-and-chrome §2).
+            // FIN-20-4: with no rows the issue view becomes the MP full-page cy-error (登录 / 重试); with rows it stays inline.
+            .environment(\.inviteHistoryIssueFullPage, model.pagination.members.isEmpty)
+            .environment(\.inviteHistorySignIn, onSignIn)
             .cyPageTitle("social.invites.title").cyPushedChrome(domain: .player).privacySensitive()
             .onAppear { model.appear(reader) }
             .onChange(of: binding) { _, _ in model.replaceReader(reader) }
@@ -60,10 +67,15 @@ import SwiftUI
             .onDisappear { model.suspend() }
             .accessibilityIdentifier("social.invites")
     }
+    private var latestEarn: (SocialInvitedMember, SocialInviteReward)? {
+        guard let rewards = model.scan?.rewards, !rewards.isEmpty else { return nil }
+        let earned = model.pagination.members.compactMap { member in rewards[String(member.id)].map { (member, $0) } }
+        return earned.max { ($0.1.createdAt ?? "") < ($1.1.createdAt ?? "") }
+    }
     private func memberRow(_ member: SocialInvitedMember) -> some View {
         // Source myinvite row: initial avatar, name over the timeline line, reward chip on the right.
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            CYAvatarView(name: member.nickname ?? "—", size: .md)
+            CYAvatarView(url: member.avatar.flatMap { URL(string: $0) }, name: member.nickname ?? "—", size: .md)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let nickname = member.nickname { Text(verbatim: nickname).cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }
                 else { Text("profile.inviteHistory.nicknameUnknown").cyText(.cardTitle).foregroundStyle(palette.textPrimary).fixedSize(horizontal: false, vertical: true) }

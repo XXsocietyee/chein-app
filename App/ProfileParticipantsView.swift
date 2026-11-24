@@ -159,20 +159,29 @@ struct ProfileParticipantsView: View {
             if let recoveryIdentity { coordinator?.discardReadback(expectedIdentity: recoveryIdentity) }
             recoveryIdentity = nil; snapshotIdentity = nil
         }
-        .sheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) {
+        .sheet(isPresented: $showsCreate, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { Group {
             if let coordinator {
                 NavigationStack { ParticipantFormView(reader: reader, coordinator: coordinator) }
             }
         }
-        .sheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $editing, onDismiss: { deletedNotice = nil; refreshID = UUID() }) { target in Group {
             if let coordinator {
                 NavigationStack { ParticipantFormView(id: target.id, reader: reader, coordinator: coordinator) }
             }
         }
-        .sheet(item: $deleting, onDismiss: { refreshID = UUID() }) { target in
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $deleting, onDismiss: { refreshID = UUID() }) { target in Group {
             if let coordinator {
                 NavigationStack { ParticipantListDeleteView(id: target.id, reader: reader, coordinator: coordinator) { deletedNotice = UUID() } }
             }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
         }
         .cyDomainScreen(ThemeDomain.player)
     }
