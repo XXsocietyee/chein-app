@@ -286,7 +286,13 @@ public enum PlayKitInputContract {
                 let ids = (payload["optionIds"]?.array ?? []).compactMap(\.text)
                 try require(keys == ["optionIds"] && !ids.isEmpty && ids.count == payload["optionIds"]?.array?.count && Set(ids).count == ids.count && Set(ids).isSubset(of: Set(projection.options.map(\.id))))
             } else if mode == "PICK" { try require(keys == ["optionId"] && projection.options.contains { $0.id == payload["optionId"]?.text }) }
-            else { try require(keys == ["input"] && text("input")) }
+            else {
+                try require(keys == ["input"] && text("input"))
+                if segment["letterPool"] != .null, let pool = try PlayQuestionLetterPool(question: segment) {
+                    let picked = (payload["input"]?.text ?? "").map { String($0) }
+                    try require(picked.count == pool.answerLength && LetterPoolState.fits(picked, in: pool.chars))
+                }
+            }
         case .branch: try require(keys == ["optionId"] && projection.options.contains { $0.id == payload["optionId"]?.text })
         case .pricePair: try require(keys == ["pickId"] && projection.options.contains { $0.id == payload["pickId"]?.text })
         case .predict: try require(keys == ["optionKey"] && projection.options.contains { $0.id == payload["optionKey"]?.text })
@@ -381,8 +387,14 @@ public enum PlayKitInputContract {
     private static func validateHangman(action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
         guard segment.object != nil, segment["solved"].bool != true else { throw PlayExperienceError.invalidAction }
         if action == PlayKitPublishedWrites.hangmanAction, Set(payload.keys) == ["input"] {
+            if segment["inputMode"].text == "pool" { throw PlayExperienceError.invalidAction }
             guard let input = payload["input"]?.text, PlayKitHangmanProjection.wholeWordPayload(input)?["input"] == .string(input)
             else { throw PlayExperienceError.invalidAction }
+            return
+        }
+        if segment["inputMode"].text == "pool" {
+            guard action == PlayKitPublishedWrites.hangmanAction else { throw PlayExperienceError.invalidAction }
+            try PlayKitHangmanProjection(validated: segment).validate(payload)
             return
         }
         guard action == PlayKitPublishedWrites.hangmanAction, Set(payload.keys) == ["slots"],
@@ -424,6 +436,24 @@ public enum PlayKitInputContract {
     }
     /// Aspect-fit image hit testing. Letterboxing and out-of-image taps are rejected,
     /// not clamped into a valid-looking corner hit.
+}
+
+/// CG-09 / CG-10: an optional reference picture attached to a puzzle. Absent means no entry.
+public enum PlayKitReferenceImage {
+    public static let keys = ["referenceImage", "referenceImageUrl"]
+    public static func source(in segment: PlayWireValue) -> String? {
+        for key in keys {
+            if let value = segment[key].text?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty { return value }
+        }
+        return nil
+    }
+    public static func alt(in segment: PlayWireValue) -> String? {
+        let value = segment["referenceImageAlt"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value?.isEmpty == false ? value : nil
+    }
+}
+
+extension PlayKitInputContract {
     public static func imagePoint(x: Double, y: Double, viewWidth: Double, viewHeight: Double, imageWidth: Double, imageHeight: Double) -> (Double, Double)? {
         guard [x,y,viewWidth,viewHeight,imageWidth,imageHeight].allSatisfy(\.isFinite), viewWidth > 0, viewHeight > 0, imageWidth > 0, imageHeight > 0 else { return nil }
         let scale = min(viewWidth / imageWidth, viewHeight / imageHeight)

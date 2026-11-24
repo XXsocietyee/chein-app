@@ -33,6 +33,8 @@ public struct PlayKitHangmanGroup: Equatable, Identifiable {
 }
 
 public struct PlayKitHangmanProjection: Equatable {
+    public enum InputMode: String, Equatable { case keyboard, pool }
+    public static let maximumPool = 30
     public let title: String
     public let slots: [PlayKitHangmanSlot]
     public let solved: Bool
@@ -40,6 +42,17 @@ public struct PlayKitHangmanProjection: Equatable {
     public let display: String
     /// Server feedback on the kit. Empty unless solved. Station `passText` is a separate fallback.
     public let feedback: String
+    /// `.pool` arranges server candidates. Keyboard stays the default. There is no second hangman screen.
+    public let inputMode: InputMode
+    /// Visible candidates in server order. Empty in keyboard mode.
+    public let pool: [String]
+    /// Decoys removed by POOL_TRIM hints (0 when none).
+    public let poolRemoved: Int
+    /// CG-01-P2-5: the author's "how to fill" note. Nil hides the entry.
+    public let howTo: String?
+    public let caseSensitive: Bool
+    /// Pool mode was requested but the candidate list cannot be used.
+    public let poolMalformed: Bool
 
     public init(segment: PlayWireValue) {
         title = segment["title"].text ?? ""
@@ -52,6 +65,76 @@ public struct PlayKitHangmanProjection: Equatable {
         display = solved ? (segment["display"].text ?? "") : ""
         let rawFeedback = segment["feedback"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         feedback = solved ? rawFeedback : ""
+        caseSensitive = segment["caseSensitive"].bool == true
+        let note = segment["howTo"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        howTo = note?.isEmpty == false ? note : nil
+        switch segment["inputMode"].text {
+        case nil, "keyboard":
+            inputMode = .keyboard; pool = []; poolRemoved = 0; poolMalformed = false
+        case "pool":
+            inputMode = .pool
+            if let parsed = Self.poolFields(segment) {
+                pool = parsed.chars; poolRemoved = parsed.removed; poolMalformed = false
+            } else {
+                pool = []; poolRemoved = 0; poolMalformed = true
+            }
+        default:
+            inputMode = .keyboard; pool = []; poolRemoved = 0; poolMalformed = true
+        }
+    }
+
+    /// Strict read used by the pool contract. A bad slot, mode or candidate list throws.
+    public init(validated segment: PlayWireValue) throws {
+        guard segment.object != nil, let rows = segment["slots"].array, !rows.isEmpty else { throw PlayExperienceError.malformed }
+        var parsed: [PlayKitHangmanSlot] = []
+        for (position, row) in rows.enumerated() {
+            guard let index = row["i"].integer, index == position,
+                  let rawKind = row["kind"].text, let kind = PlayKitHangmanSlot.Kind(rawValue: rawKind) else { throw PlayExperienceError.malformed }
+            let character = row["ch"].text
+            switch kind {
+            case .separator, .prefilled, .filled:
+                guard let character, character.unicodeScalars.count == 1 else { throw PlayExperienceError.malformed }
+                parsed.append(.init(index: index, kind: kind, character: character))
+            case .blank:
+                guard row["ch"] == .null else { throw PlayExperienceError.malformed }
+                parsed.append(.init(index: index, kind: kind, character: ""))
+            }
+        }
+        guard parsed.contains(where: \.isEditable) else { throw PlayExperienceError.malformed }
+        if segment["length"] != .null { guard segment["length"].integer == parsed.count else { throw PlayExperienceError.malformed } }
+        title = segment["title"].text ?? ""
+        slots = parsed
+        solved = segment["solved"].bool == true
+        display = solved ? (segment["display"].text ?? "") : ""
+        let rawFeedback = segment["feedback"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        feedback = solved ? rawFeedback : ""
+        caseSensitive = segment["caseSensitive"].bool == true
+        let note = segment["howTo"].text?.trimmingCharacters(in: .whitespacesAndNewlines)
+        howTo = note?.isEmpty == false ? note : nil
+        switch segment["inputMode"] {
+        case .null: inputMode = .keyboard
+        case .string(let value):
+            guard let mode = InputMode(rawValue: value) else { throw PlayExperienceError.malformed }
+            inputMode = mode
+        default: throw PlayExperienceError.malformed
+        }
+        if inputMode == .pool {
+            guard let fields = Self.poolFields(segment) else { throw PlayExperienceError.malformed }
+            pool = fields.chars; poolRemoved = fields.removed; poolMalformed = false
+        } else {
+            pool = []; poolRemoved = 0; poolMalformed = false
+        }
+    }
+
+    private static func poolFields(_ segment: PlayWireValue) -> (chars: [String], removed: Int)? {
+        guard let candidates = segment["pool"].array, candidates.count <= maximumPool else { return nil }
+        let values = candidates.compactMap(\.text)
+        guard values.count == candidates.count, values.allSatisfy({ $0.unicodeScalars.count == 1 }) else { return nil }
+        let removed: Int
+        if segment["poolRemoved"] == .null { removed = 0 }
+        else if let value = segment["poolRemoved"].integer, value >= 0 { removed = value }
+        else { return nil }
+        return (values, removed)
     }
 
     /// `hangmanStationText`: station question, else kit title, else the place name. Empty stays empty.
@@ -149,6 +232,40 @@ public struct PlayKitHangmanProjection: Equatable {
             out[String(slot.index)] = .string(character)
         }
         return out.isEmpty ? nil : ["slots": .object(out)]
+    }
+
+    public var fillableSlots: [PlayKitHangmanSlot] { editable }
+
+    /// Keyboard mode: typed characters fill BLANK/FILLED slots in order. Nil until every slot is covered.
+    public func keyboardPayload(_ typed: String) -> [String: PlayWireValue]? {
+        let characters = typed.filter { !$0.isWhitespace }.map(String.init)
+        let targets = fillableSlots
+        guard characters.count == targets.count, characters.allSatisfy({ $0.unicodeScalars.count == 1 }) else { return nil }
+        var payload: [String: PlayWireValue] = [:]
+        for (slot, character) in zip(targets, characters) { payload[String(slot.index)] = .string(character) }
+        return ["slots": .object(payload)]
+    }
+
+    /// Keyboard mode starts from the characters the server kept in FILLED slots.
+    public var keyboardDraft: String { initialText }
+
+    /// SUBMIT_HANGMAN slots: fillable indices only, one character each. Pool mode may only use visible candidates.
+    /// A FILLED slot the server already holds may be omitted.
+    public func validate(_ payload: [String: PlayWireValue]) throws {
+        guard Set(payload.keys) == ["slots"], let submitted = payload["slots"]?.object, !submitted.isEmpty else { throw PlayExperienceError.invalidAction }
+        var fillable: [Int: PlayKitHangmanSlot] = [:]
+        for slot in fillableSlots {
+            guard fillable[slot.index] == nil else { throw PlayExperienceError.invalidAction }
+            fillable[slot.index] = slot
+        }
+        var used: [String] = []
+        for (key, value) in submitted {
+            guard let index = Int(key), String(index) == key, fillable[index] != nil,
+                  let character = value.text, character.unicodeScalars.count == 1 else { throw PlayExperienceError.invalidAction }
+            used.append(character)
+        }
+        guard fillableSlots.allSatisfy({ submitted[String($0.index)] != nil || $0.kind == .filled }) else { throw PlayExperienceError.invalidAction }
+        if inputMode == .pool, !LetterPoolState.fits(used, in: pool) { throw PlayExperienceError.invalidAction }
     }
 }
 
