@@ -155,7 +155,7 @@ The strings are in `docs/port/strings/fix-r3-merchant-coop-a.json` (91 keys, zh-
 - **Sync:** merged `origin/ui/combined-r7` at `97ee2bc9e`. The only conflict was `tools/check_typography_lint.py`, which I took from r7.
   - r7 did **not** yet contain Cursor's merchant Core or the MP assets, so I also merged `origin/cursor/mp-assets` (`05d527e12`) and `origin/cursor/core-merchant-coop` (`c9cbcd24b`).
   - `tools/generate_project.py` conflict: I kept both the `App/MPGap/**` and the `App/MPAssets/*` globs.
-  - I merged r7 again before the final push.
+  - I merged r7 again before the final push (`82388e4a5`, which integrates Cursor W1, C7 and K1–K10). It merged cleanly, and I re-grepped every Core and MPAsset API used here.
 - **Review findings:** `review/r7-rev-a`, `-b` and `-c` have **no** Claude-owned rows for merchant-coop. The Claude rows are B-02…B-16 (topic, IM, ticket wallet, club), which belong to other areas, so nothing changed here.
 - **Cursor wiring call sites:** `cursor-core-merchant-coop.md` lists no `cursor/wire-merchant-coop` call sites. I followed its "For the Claude F-agent (App)" list instead.
 
@@ -220,5 +220,9 @@ New helper files: `MerchantMPIcon.swift` (`MerchantMPIcon`, Dynamic-Type scaled 
 - **For the integrator:**
   - new Swift files: `MerchantInsightSlotsSection`, `MerchantMPIcon`, `MerchantMoneyText`, `MerchantTagIcons`. They are all matched by `App/*.swift`, so regenerate `project.pbxproj`.
   - `MerchantInsightSlots.peakText` is Chinese from Core (早上到店最多), so the English footer shows it as given.
+- **Repo gates vs. r7 (`tools/check_*.py`, all 85):** three differ from r7, and all three are expected until integration.
+  - `check_catalog_coverage`, `check_missing_string_keys` and the strings assertion in `check_scaffold` need the fragment keys merged into `Localizable.xcstrings`.
+  - `check_scaffold`'s project assertion needs `project.pbxproj` regenerated. I ran `tools/generate_project.py` locally and that assertion then passed, but I did not commit the result, to avoid pbxproj conflicts across branches.
+  - `check_a11y_lint` was failing with 8 new findings. These were the decorative glyphs the restyle merge had re-lined. They are now `.accessibilityHidden(true)`, and the lint passes. `check_typography_lint` passes.
 - **Strings:** 7 new keys in `docs/port/strings/fix-r3-merchant-coop-a.json` (98 keys, en + zh-Hans).
 - **Fixture routes:** unchanged (`docs/port/accept/f-merchant-coop-a.txt`). `merchant-home`, `t12-reviews`, `t12-marketing`, `merchant-customers` and `t12-ledger-batches` cover the round-2 changes.
