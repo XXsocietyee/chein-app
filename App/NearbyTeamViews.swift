@@ -6,6 +6,16 @@ import SwiftUI
     init(_ coordinator: NearbyTeamCoordinator) { self.coordinator = coordinator }
     func run(_ work: () async -> Void) async { guard !running else { return }; running = true; await work(); running = false }
     func prepare(_ action: NearbyTeamAction) { coordinator.prepare(action); objectWillChange.send() }
+    func confirmReviewed(_ snapshot: NearbyTeamReview) async {
+        if case let .handle(team, applicant, approved) = snapshot.action, AccountPublishContractLane.isInstalled {
+            let outcome = await AccountPublishContractLane.handleApplicant(memberID: String(applicant.rawValue), teamID: String(team.rawValue), approved: approved)
+            coordinator.adoptContractHandle(snapshot, sent: outcome != .failed && outcome != .unavailable)
+            objectWillChange.send()
+            return
+        }
+        await coordinator.confirm(snapshot)
+        objectWillChange.send()
+    }
     func cancel() { coordinator.cancelReview(); objectWillChange.send() }
     var review: Binding<NearbyTeamReview?> { .init(get: { self.coordinator.review }, set: { if $0 == nil { self.cancel() } }) }
 }
@@ -634,7 +644,7 @@ import SwiftUI
 
     @ViewBuilder private var confirmActionButton: some View {
         let button = Button(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") {
-            Task { await model.run { await model.coordinator.confirm(snapshot) } }
+            Task { await model.run { await model.confirmReviewed(snapshot) } }
         }
         .disabled(model.running || !model.coordinator.canSubmit)
         .accessibilityIdentifier("nearby.confirm")

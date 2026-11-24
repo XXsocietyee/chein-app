@@ -67,6 +67,34 @@ public struct ClubCommunityService {
             return .init(posts: [], comments: [], history: try rows.map(ClubCommunityRevision.init), clubCount: nil)
         }
     }
+    /// Discover feed. Body is `{"scope":"all","limit":N}` plus optional `beforeId`. `clubCount` is not required.
+    public func readDiscoverFeed(limit: Int, beforeID: Int?, session: ClubCommunitySession, check: () throws -> Void) async throws -> ClubCommunitySnapshot {
+        guard session.identity.isSignedIn else { throw ClubCommunityFailure.forbidden }
+        let request = try AccountPublishMPContract.clubPostFeedRequest(baseURL: baseURL, limit: limit, beforeID: beforeID, token: session.token)
+        try check()
+        let (data, status) = try await transport.send(request)
+        try check()
+        guard (200..<300).contains(status) else { throw ClubCommunityFailure.invalid }
+        let page = try AccountPublishMPContract.discoverFeed(from: data)
+        let items = page.posts.compactMap { post -> ClubCommunityFeedItem? in
+            guard let id = post.id, id > 0 else { return nil }
+            var json: [String: Any] = [
+                "id": id,
+                "content": post.content,
+                "nickname": post.nickname,
+                "images": post.images.joined(separator: ";"),
+                "createTime": post.formattedCreateTime.isEmpty ? post.createTime : post.formattedCreateTime
+            ]
+            if let clubID = post.clubID { json["clubId"] = clubID }
+            if let author = post.authorMemberID { json["authorMemberId"] = author }
+            if let refType = post.refType { json["refType"] = refType }
+            return (try? ClubCommunityPost(json: json)).map(ClubCommunityFeedItem.original)
+        }
+        guard Set(items.map(\.id)).count == items.count else { throw ClubCommunityFailure.invalid }
+        return try ClubCommunityPostPage.snapshot(
+            items: items, page: nil, clubCount: page.clubCount,
+            feedHasMore: page.hasMore == true, feedRequestedBeforeID: beforeID, feedNextBeforeID: items.last?.pagingID)
+    }
     static func decode(_ data: Data, status: Int) throws -> Any {
         guard (200..<300).contains(status), let object = try JSONSerialization.jsonObject(with: data) as? [String: Any], let code = object["code"] as? Int else { throw ClubCommunityFailure.invalid }
         guard code == 200 else { throw ClubCommunityFailure.rejected(code) }

@@ -383,6 +383,7 @@ struct SessionRootView: View {
     }
 
     var body: some View {
+        let _ = AccountPublishContractLane.install(session)
         let base = Group {
             if session.account != nil || browsingAsGuest {
                 if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {

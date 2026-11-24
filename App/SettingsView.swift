@@ -12,6 +12,10 @@ struct SettingsView: View {
     /// Fresh `POST /api/user/info`. Nil until that read returns. The page does not paint a role from the cached session.
     @State private var accountAccess: SettingsAccountProfileAccess?
     @State private var accountProfileLoading = true
+    /// Nickname from `settingsProfileForm`. Phone is not stored here.
+    @State private var contractNickname: String?
+    /// Level is not on the contract. Kept from the signed-in account only after that read succeeds.
+    @State private var contractLevel: Int?
 #if DEBUG
     /// Design fixtures only: stub signed-in identity and search text injected into the real page.
     struct DesignOverride { var nickname = "Mia Chen"; var level = 7; var query = "" }
@@ -22,7 +26,8 @@ struct SettingsView: View {
 #if DEBUG
         if let designOverride { return (designOverride.nickname, designOverride.level) }
 #endif
-        return session.account.map { ($0.nickname, $0.level) }
+        guard readyAccountProfile != nil, let nickname = contractNickname, !nickname.isEmpty else { return nil }
+        return (nickname, contractLevel ?? 0)
     }
 
     private var readyAccountProfile: SettingsAccountProfile? {
@@ -105,7 +110,7 @@ struct SettingsView: View {
         .accessibilityIdentifier(homeFacts.accessibilityIdentifier)
     }
 
-    /// Role and denial come from `SettingsAccountProfileClient.refresh`, not the cached session account.
+    /// Role and denial come from `AccountPublishMPContract.settingsAccess`, not the cached session account.
     private var homeFacts: SettingsHomePage.Facts {
 #if DEBUG
         if designOverride != nil { return SettingsHomePage.facts(session: .signedIn(role: "player"), market: session.operationalMarket ?? .china) }
@@ -144,10 +149,40 @@ struct SettingsView: View {
               let token = session.token, AuthRequestBuilder.isValidToken(token),
               let api = session.regionalConfiguration?.apiConfiguration else {
             accountAccess = session.account == nil ? .signedOut : .failed
+            contractNickname = nil
+            contractLevel = nil
             return
         }
-        accountAccess = await SettingsAccountProfileClient(configuration: api, transport: session.runtimeHTTPTransport)
-            .refresh(memberID: memberID, token: token)
+        do {
+            let request = try AccountPublishMPContract.userInfoRequest(baseURL: api.baseURL, memberID: String(memberID), token: token)
+            let (data, status) = try await session.runtimeHTTPTransport.send(request)
+            switch AccountPublishMPContract.settingsAccess(status: status, body: data) {
+            case .signedOut:
+                accountAccess = .signedOut
+                contractNickname = nil
+                contractLevel = nil
+            case .denied:
+                accountAccess = .denied
+                contractNickname = nil
+                contractLevel = nil
+            case .failed:
+                accountAccess = .failed
+                contractNickname = nil
+                contractLevel = nil
+            case .ready(let read):
+                let form = AccountPublishMPContract.settingsProfileForm(from: data)
+                let home = AccountPublishMPContract.homeAccount(from: data)
+                let leader = home?.isClubLeader == true || read.role == "club"
+                accountAccess = .ready(SettingsAccountProfile(role: read.role, isClubLeader: leader))
+                let nickname = form?.nickname.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                contractNickname = nickname.isEmpty ? nil : nickname
+                contractLevel = session.account?.level
+            }
+        } catch {
+            accountAccess = .failed
+            contractNickname = nil
+            contractLevel = nil
+        }
     }
 
     private var language: Binding<AppLanguage> {

@@ -172,17 +172,20 @@ public struct TeamDetailGapApplicantsSection: View {
     }
 
     public let state: LoadState
+    public let teamID: Int
     public let onRetry: () -> Void
     public let onReject: (TeamApplicantItem) -> Void
     public let onApprove: (TeamApplicantItem) -> Void
 
     public init(
         state: LoadState,
+        teamID: Int = 0,
         onRetry: @escaping () -> Void,
         onReject: @escaping (TeamApplicantItem) -> Void,
         onApprove: @escaping (TeamApplicantItem) -> Void
     ) {
         self.state = state
+        self.teamID = teamID
         self.onRetry = onRetry
         self.onReject = onReject
         self.onApprove = onApprove
@@ -212,9 +215,23 @@ public struct TeamDetailGapApplicantsSection: View {
                                 }
                             }
                             Spacer()
-                            Button(TeamGapCopy.reject) { onReject(item) }
+                            Button(TeamGapCopy.reject) {
+                                let memberID = String(item.userID)
+                                let targetID = String(teamID)
+                                Task {
+                                    let outcome = await AccountPublishContractLane.handleApplicant(memberID: memberID, teamID: targetID, approved: false)
+                                    if outcome != .failed { onReject(item) }
+                                }
+                            }
                                 .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
-                            Button(TeamGapCopy.approve) { onApprove(item) }
+                            Button(TeamGapCopy.approve) {
+                                let memberID = String(item.userID)
+                                let targetID = String(teamID)
+                                Task {
+                                    let outcome = await AccountPublishContractLane.handleApplicant(memberID: memberID, teamID: targetID, approved: true)
+                                    if outcome != .failed { onApprove(item) }
+                                }
+                            }
                                 .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
                         }
                     }
@@ -273,6 +290,65 @@ public struct TeamJoinGapManualCodeSection: View {
             }
         } header: {
             Text(verbatim: TeamGapCopy.joinCodeLabel).cyText(.sectionTitle)
+        }
+    }
+}
+
+/// Production session installed by `SessionRootView`. Design fixtures leave it unset and keep their old senders.
+@MainActor enum AccountPublishContractLane {
+    enum HandleOutcome: Equatable {
+        case unavailable
+        case sent(AccountPublishMPContract.TeamHandleReceipt?)
+        case failed
+    }
+
+    private static weak var session: AppSession?
+
+    static func install(_ session: AppSession) { self.session = session }
+
+    static var isInstalled: Bool { session != nil }
+
+    static var baseURL: URL? { session?.regionalConfiguration?.apiConfiguration?.baseURL }
+
+    static var token: String? {
+        session?.token.flatMap { AuthRequestBuilder.isValidToken($0) ? $0 : nil }
+    }
+
+    static var memberID: String? {
+        session?.account.flatMap { $0.id > 0 ? String($0.id) : nil }
+    }
+
+    static var transport: (any HTTPTransport)? { session?.runtimeHTTPTransport }
+
+    static func send(_ request: URLRequest) async throws -> (Data, Int) {
+        guard let transport else { throw APIError.invalidRequest }
+        return try await transport.send(request)
+    }
+
+    static func userInfo() async throws -> (Data, Int) {
+        guard let baseURL, let memberID else { throw APIError.invalidRequest }
+        let request = try AccountPublishMPContract.userInfoRequest(baseURL: baseURL, memberID: memberID, token: token)
+        return try await send(request)
+    }
+
+    static func profileEditor() async -> AccountPublishMPContract.ProfileEditor? {
+        guard isInstalled, let (data, _) = try? await userInfo() else { return nil }
+        return AccountPublishMPContract.profileEditor(from: data)
+    }
+
+    @discardableResult
+    static func handleApplicant(memberID: String, teamID: String, approved: Bool) async -> HandleOutcome {
+        guard isInstalled, let baseURL else { return .unavailable }
+        let requestID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        guard let request = try? AccountPublishMPContract.teamHandleRequest(
+            baseURL: baseURL, memberID: memberID, approved: approved, targetID: teamID, requestID: requestID, token: token
+        ) else { return .failed }
+        do {
+            let (data, status) = try await send(request)
+            guard (200..<300).contains(status) else { return .failed }
+            return .sent(AccountPublishMPContract.teamHandleReceipt(from: data))
+        } catch {
+            return .failed
         }
     }
 }

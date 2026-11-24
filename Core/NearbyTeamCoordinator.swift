@@ -98,6 +98,20 @@ public struct NearbyTeamReview: Identifiable, Equatable {
             applicants = rows; applicantsTeamID = teamID; revision &+= 1
         } catch { if !Task.isCancelled, !(error is CancellationError), valid(session, generation) { applicants = []; applicantsTeamID = nil; failure(error) } }
     }
+    /// The view already posted `api/team/command`. This only retires the review row.
+    public func adoptContractHandle(_ snapshot: NearbyTeamReview, sent: Bool) {
+        guard review == snapshot, case .handle(_, let id, let approved) = snapshot.action else { return }
+        review = nil
+        if sent {
+            applicants.removeAll { $0.id == id }
+            refreshRequired = approved
+            settledActions.insert(.init(snapshot.action))
+            messageKey = "nearby.acknowledged"
+        } else {
+            messageKey = "nearby.actionFailed"
+        }
+        revision &+= 1
+    }
     public func allowed(_ action: NearbyTeamAction, now: Date = Date()) -> Bool {
         guard authenticated, !locked, !settledActions.contains(.init(action)) else { return false }
         let team = teams.first { $0.id == action.teamID }

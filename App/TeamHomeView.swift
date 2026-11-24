@@ -262,7 +262,15 @@ extension EnvironmentValues {
         Button {
             guard fields["action"] != nil else { return }
             let permit = model.captureRun()
-            Task { await model.run(permit: permit) { _ = await commandWriter?.submit(key: key, path: "api/team/command", fields: fields) } }
+            Task { await model.run(permit: permit) {
+                if fields["action"] == "handle", AccountPublishContractLane.isInstalled,
+                   let memberID = fields["memberId"], let targetID = fields["targetId"] {
+                    let approved = fields["approved"] == "true" || fields["approved"] == "1"
+                    _ = await AccountPublishContractLane.handleApplicant(memberID: memberID, teamID: targetID, approved: approved)
+                } else {
+                    _ = await commandWriter?.submit(key: key, path: "api/team/command", fields: fields)
+                }
+            } }
         } label: { Text(verbatim: TeamCommandRecoveryCopy.retry) }
             .buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.recovery.retry")
         Button {

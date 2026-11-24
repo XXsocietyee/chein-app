@@ -31,6 +31,8 @@ import SwiftUI
     @State private var streakDays: Int?
     /// 积分 from the growth center; nil until read, shown as "—".
     @State private var points: Int?
+    @State private var contractHome: AccountPublishMPContract.HomeAccount?
+    @State private var contractEarnings: AccountPublishMPContract.EarningsBalance?
     /// First-load entrance only (xrefs-1 motion rules): the card rises once per screen, never on a refresh.
     @State private var stagger = CYStaggerGate()
     @ScaledMetric(relativeTo: .largeTitle) private var assetDivider: CGFloat = 40
@@ -48,6 +50,12 @@ import SwiftUI
                     name.cyText(.sectionTitle).foregroundStyle(palette.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("member.card.name")
+                    if let home = contractHome, !home.greeting.isEmpty {
+                        Text(verbatim: home.greeting)
+                            .cyText(.meta).foregroundStyle(palette.textSecondary)
+                            .accessibilityIdentifier("member.card.greeting")
+                            .accessibilityValue(Text(verbatim: "\(home.role) userType:\(home.userType.map(String.init) ?? "") clubLeader:\(home.isClubLeader)"))
+                    }
                     HStack(spacing: 6) {
                         // MP profile index.wxml:65-68: member level badge art for levelId 2…5.
                         if let badge = AccountPublishLevelBadge.image(levelID: snapshot?.levelID) {
@@ -124,9 +132,12 @@ import SwiftUI
     }
     /// Grouped digits so a large balance stays readable (1,286 / 1,234,567); unknown is "—".
     private var pointsText: String { CYUnknownValue.text(points) { $0.formatted(.number.locale(locale)) } }
-    /// ¥ 账户余额 only when the server sent a real-money balance (owner Q-B / Q8: ¥560.00, never a bare 560.00).
+    /// ¥ 账户余额. A contract read uses `earningsBalance` (missing displays 0.00). It does not start a pay or withdrawal.
     private var balanceDisplay: String? {
-        guard let raw = snapshot?.balancePreviewText, snapshot?.balanceText != nil else { return nil }
+        if let earnings = contractEarnings, let raw = earnings.display {
+            return MemberBalanceDisplay.text(raw, locale: locale)
+        }
+        guard contractEarnings == nil, let raw = snapshot?.balancePreviewText, snapshot?.balanceText != nil else { return nil }
         return MemberBalanceDisplay.text(raw, locale: locale)
     }
     private var levelText: String {
@@ -184,7 +195,7 @@ import SwiftUI
     }
 
     @ViewBuilder private var name: some View {
-        let nickname = snapshot?.nickname ?? account.nickname
+        let nickname = contractHome?.nickname ?? (AccountPublishContractLane.isInstalled ? "" : (snapshot?.nickname ?? account.nickname))
         if nickname.isEmpty { Text("member.card.defaultName", tableName: "MemberProfile") } else { Text(verbatim: nickname) }
     }
     @ViewBuilder private var city: some View {
@@ -351,7 +362,28 @@ import SwiftUI
         if snapshot == nil { phase = .loading }
         failureOffline = false
         do {
-            let value = try await reader.identity()
+            let value: MemberIdentitySnapshot
+            if AccountPublishContractLane.isInstalled {
+                let (data, status) = try await AccountPublishContractLane.userInfo()
+                guard !Task.isCancelled, scope == reader.scope, readOwner.accepts(run, scope: reader.scope) else { return }
+                if status == 401 {
+                    readOwner.invalidate(run)
+                    contractHome = nil
+                    contractEarnings = nil
+                    phase = .failed(signedOut: true)
+                    return
+                }
+                contractHome = AccountPublishMPContract.homeAccount(from: data)
+                contractEarnings = AccountPublishMPContract.earningsBalance(from: data)
+                guard contractHome != nil, let decoded = Self.identitySnapshot(from: data) else {
+                    readOwner.invalidate(run)
+                    phase = .failed(signedOut: false)
+                    return
+                }
+                value = decoded
+            } else {
+                value = try await reader.identity()
+            }
             guard !Task.isCancelled, scope == reader.scope, readOwner.accepts(run, scope: reader.scope) else { return }
             readOwner.publish(value, run: run, scope: reader.scope)
             phase = .ready(value)
@@ -371,6 +403,13 @@ import SwiftUI
             failureOffline = error is URLError
             phase = .failed(signedOut: error as? APIError == .unauthorized)
         }
+    }
+
+    private static func identitySnapshot(from body: Data) -> MemberIdentitySnapshot? {
+        guard let root = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let data = root["data"] as? [String: Any],
+              let encoded = try? JSONSerialization.data(withJSONObject: data) else { return nil }
+        return try? JSONDecoder().decode(MemberIdentitySnapshot.self, from: encoded)
     }
 }
 

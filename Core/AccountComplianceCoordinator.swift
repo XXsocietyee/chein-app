@@ -419,6 +419,131 @@ public struct AccountMarketingReadIntent {
             }
         }
     }
+    /// View already posted the contract body. These methods only move the screen state.
+    public func beginContractWrite(intent: AccountDeregistrationIntent?) -> Bool {
+        guard acceptsDeregistrationIntent(intent), !state.busy, current()?.valid == true else { return false }
+        state.busy = true
+        state.error = nil
+        changed()
+        return true
+    }
+    public func endContractWrite() {
+        guard state.busy else { return }
+        state.busy = false
+        changed()
+    }
+    public func adoptContractPrecheck(_ precheck: AccountPublishMPContract.DeregisterPrecheck, documentRead: Bool, explicitAgreement: Bool, intent: AccountDeregistrationIntent? = nil) {
+        guard acceptsDeregistrationIntent(intent), documentRead, explicitAgreement, state.localCancellationConsent.allowsNewConsent,
+              state.step == .notice || state.step == .blocked else { return }
+        guard let result = decodedDeregistration(status: precheck.status, blockers: precheck.blockers, method: precheck.verificationMethod, executeAfter: nil) else {
+            state.step = .unknown
+            changed()
+            return
+        }
+        state.status = result
+        switch DeregistrationStatusRules.evaluatePrecheck(result) {
+        case .malformed:
+            state.step = .unknown
+            changed()
+            return
+        case .blocked:
+            state.step = .blocked
+            changed()
+            return
+        case .eligible(let method):
+            guard method == .sms else { state.step = .verificationUnavailable; changed(); return }
+        }
+        if let impact = result.impact {
+            guard let session = current(), impact.valid(for: session.accountID), impact.confirmable else { state.step = .blocked; changed(); return }
+        } else if service.deregistrationOriginalRevision != nil {
+            state.step = .blocked
+            changed()
+            return
+        }
+        guard result.eligible else { state.step = result.blocked ? .blocked : .unknown; changed(); return }
+        guard result.verificationAvailableOnThisDevice else { state.step = .verificationUnavailable; changed(); return }
+        noticeAccepted = true
+        state.step = .verify
+        state.error = nil
+        changed()
+    }
+    public func adoptContractBoundSMS(phone: String?, now: Date = Date(), intent: AccountDeregistrationIntent? = nil) {
+        guard acceptsDeregistrationIntent(intent), noticeAccepted, state.localCancellationConsent.allowsNewConsent, state.step == .verify else { return }
+        if state.smsSent, let sent = boundSMSSentAt, now.timeIntervalSince(sent) < 60 { return }
+        guard let phone else {
+            state.error = DeregistrationBoundPhone.missingMessage
+            state.smsSent = false
+            changed()
+            return
+        }
+        boundSMSSentAt = now
+        state.smsSent = true
+        state.smsNotice = DeregistrationBoundPhone(phone: phone).sentNotice
+        state.error = nil
+        changed()
+    }
+    /// Records cancellation AGREE on the existing consent client, then returns. The apply body is sent by the view.
+    public func prepareContractApplyConsent(recordNoticeConsent: Bool, expectedConsentVersion: String?, intent: AccountDeregistrationIntent? = nil) async -> Bool {
+        guard acceptsDeregistrationIntent(intent), noticeAccepted, state.smsSent, state.step == .review, reviewCode != nil,
+              state.localCancellationConsent.allowsNewConsent,
+              reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision,
+              let session = current() else { return false }
+        guard recordNoticeConsent else { return true }
+        do {
+            _ = try await service.consent(.cancellation, event: .agree, requestID: requestID, session: session, expectedConsentVersion: expectedConsentVersion)
+            return true
+        } catch {
+            state.step = .notice
+            noticeAccepted = false
+            state.smsSent = false
+            requestID = UUID().uuidString.lowercased()
+            changed()
+            return false
+        }
+    }
+    public func adoptContractApply(_ outcome: AccountPublishMPContract.DeregisterApplyOutcome?, intent: AccountDeregistrationIntent? = nil) async {
+        guard acceptsDeregistrationIntent(intent), noticeAccepted, state.smsSent, state.step == .review, reviewCode != nil,
+              let session = current() else { return }
+        reviewCode = nil
+        switch outcome {
+        case .blocked(let blockers):
+            state.status = decodedDeregistration(status: "BLOCKED", blockers: blockers, method: "UNAVAILABLE", executeAfter: nil)
+            state.step = .blocked
+            noticeAccepted = false
+            state.smsSent = false
+        case .pending(let when):
+            state.status = decodedDeregistration(status: "PENDING", blockers: [], method: nil, executeAfter: when.isEmpty ? nil : when)
+            state.step = .freshLogin
+            state.smsSent = false
+            noticeAccepted = false
+            changed()
+            await invalidateSession(session)
+            return
+        case nil:
+            state.step = .unknown
+        }
+        changed()
+    }
+    public func adoptContractCancel(cancelled: Bool, intent: AccountDeregistrationIntent? = nil) {
+        guard acceptsDeregistrationIntent(intent), state.step == .pending else { return }
+        if cancelled {
+            state.status = decodedDeregistration(status: "CANCELLED", blockers: [], method: nil, executeAfter: nil)
+            state.step = .notice
+            noticeAccepted = false
+            state.smsSent = false
+            requestID = UUID().uuidString.lowercased()
+        } else {
+            state.step = .unknown
+        }
+        changed()
+    }
+    private func decodedDeregistration(status: String, blockers: [String], method: String?, executeAfter: String?) -> ComplianceDeregistration? {
+        var object: [String: Any] = ["status": status, "blockers": blockers]
+        if let method { object["verificationMethod"] = method }
+        if let executeAfter { object["executeAfter"] = executeAfter }
+        guard let data = try? JSONSerialization.data(withJSONObject: object) else { return nil }
+        return try? JSONDecoder().decode(ComplianceDeregistration.self, from: data)
+    }
     public func loadMarketing(intent: AccountMarketingReadIntent? = nil) async {
         guard !Task.isCancelled, !state.busy, intent.map(isCurrentMarketingRead) ?? true else { return }
         generation &+= 1
