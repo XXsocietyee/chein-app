@@ -100,6 +100,18 @@ import SwiftUI
         .sheet(item: $npcChatData) { presentation in Group { NPCChatDataView(coordinator: presentation.coordinator) }.presentationDetents([.large]).presentationDragIndicator(.visible) }
     }
 }
+/// B-DR-07: the compliance sheet in its own navigation stack, shared by the Settings row and the Settings search result.
+@MainActor struct AccountComplianceSheetStack: View {
+    let coordinator: AccountComplianceCoordinator
+    let destination: ComplianceDestination
+    let market: RegionalMarket?
+    let legalReader: any SettingsLegalReading
+    var body: some View {
+        NavigationStack {
+            AccountComplianceSheet(coordinator: coordinator, destination: destination, market: market, legalReader: legalReader)
+        }
+    }
+}
 enum ComplianceDestination: String, CaseIterable, Identifiable {
     case roam, marketing, cancellation
     var id: String { rawValue }

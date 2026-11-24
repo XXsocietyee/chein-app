@@ -291,9 +291,7 @@ private struct SettingsSearchResults: View {
         .labelStyle(SettingsTileLabelStyle())
         .sheet(item: $sheetDestination) { destination in Group {
             if let c = session.accountComplianceCoordinator {
-                NavigationStack {
-                    AccountComplianceSheet(coordinator: c, destination: destination, market: session.operationalMarket, legalReader: session.legalReader)
-                }
+                AccountComplianceSheetStack(coordinator: c, destination: destination, market: session.operationalMarket, legalReader: session.legalReader)
             }
         }
         .presentationDetents([.large])
