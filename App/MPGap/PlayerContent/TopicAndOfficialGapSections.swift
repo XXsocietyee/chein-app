@@ -36,7 +36,7 @@ public struct OfficialEventLeaderboardSection: View {
                     Spacer()
                     if let myRank {
                         Text("暂列第 \(myRank) 名")
-                            .cyText(.caption, monospacedDigit: true)
+                            .cyText(.meta, monospacedDigit: true)
                             .foregroundStyle(CYColor.brand)
                     }
                 }
@@ -121,7 +121,7 @@ public struct MerchantHostWorkbenchSection: View {
                         Spacer()
                         if !writesEnabled {
                             Text("merchantHost.gated")
-                                .cyText(.caption)
+                                .cyText(.meta)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                     }

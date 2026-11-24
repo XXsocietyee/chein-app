@@ -558,5 +558,17 @@
   "roamHistory.title": {
     "zh-Hans": "漫游记录",
     "en": "Roam History"
+  },
+  "orientScore.syncTasks.confirmTitle": {
+    "zh-Hans": "确认同步本场任务？",
+    "en": "Sync tasks for this session?"
+  },
+  "orientScore.settleRun.confirmTitle": {
+    "zh-Hans": "确认结束并结算本场？",
+    "en": "Settle and end this run?"
+  },
+  "common.cancel": {
+    "zh-Hans": "取消",
+    "en": "Cancel"
   }
 }

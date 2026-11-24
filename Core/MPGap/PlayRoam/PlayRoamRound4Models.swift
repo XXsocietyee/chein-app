@@ -94,7 +94,7 @@ public enum JourneyFinishOfferResolver {
            let title = pass.monthPlanTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty,
            let priceFen = pass.monthPlanPriceFen, priceFen > 0 {
             let yuan = Double(priceFen) / 100.0
-            let priceText = String(format: "¥%.2f", yuan).replacingOccurrences(of: ".00", with: "")
+            let priceText = String(format: "¥%.2f", yuan)
             return JourneyFinishOffer(kind: .pass, id: "MONTH", name: title, priceText: priceText)
         }
 
@@ -106,7 +106,7 @@ public enum JourneyFinishOfferResolver {
             guard coversOther else { continue }
             let priceText: String
             if let cash = p.cashPrice, cash > 0 {
-                priceText = String(format: "¥%.2f", cash).replacingOccurrences(of: ".00", with: "")
+                priceText = String(format: "¥%.2f", cash)
             } else if let pts = p.pointsPrice, pts > 0 {
                 priceText = "\(pts) 积分"
             } else {

@@ -67,7 +67,7 @@ public struct MerchantApplyPickerGapView: View {
                         .cyText(.meta)
                     Spacer()
                     Text("\(ruleInstructions.count)/\(maxRuleChars)")
-                        .cyText(.micro, monospacedDigit: true)
+                        .cyText(.meta, monospacedDigit: true)
                 }
             }
 
@@ -287,6 +287,7 @@ public struct TopicSharePosterCardView: View {
                     }
                 }
                 Spacer()
+                // TODO: MPAsset.BrandLogo.cyLogoMark (images/cy_logo_mark.png)
                 Image(systemName: "qrcode")
                     .cyText(.display)
                     .foregroundStyle(CYColor.textPrimary)

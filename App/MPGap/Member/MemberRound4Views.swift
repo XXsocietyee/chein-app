@@ -51,7 +51,7 @@ public struct FreeExploreCatalogBundleView: View {
                                 .foregroundStyle(CYColor.textSecondary)
                             if let perk = item.perkSummary, !perk.isEmpty {
                                 Text(perk)
-                                    .cyText(.caption)
+                                    .cyText(.meta)
                                     .foregroundStyle(CYColor.brand)
                             }
                         }
@@ -105,11 +105,11 @@ public struct TemplateMineCardCoverView: View {
             HStack(spacing: CYSpacing.xs) {
                 if let ratingText, !ratingText.isEmpty {
                     Text("★ \(ratingText)")
-                        .cyText(.caption, monospacedDigit: true)
+                        .cyText(.meta, monospacedDigit: true)
                 }
                 if quoteCount > 0 {
                     Text("\(quoteCount) 次引用")
-                        .cyText(.caption, monospacedDigit: true)
+                        .cyText(.meta, monospacedDigit: true)
                 }
             }
             .foregroundStyle(CYColor.actionPrimaryFg)

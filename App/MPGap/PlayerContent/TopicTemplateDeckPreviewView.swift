@@ -120,6 +120,7 @@ public struct TopicTemplateDeckPreviewView: View {
             } else {
                 CYColor.coverFallback
                     .overlay {
+                        // TODO: MPAsset.BannerCover.homeRouteCityPlaceholder (images/home-route-city-placeholder.jpg)
                         Image(systemName: "map")
                             .cyText(.display)
                             .foregroundStyle(CYColor.textSecondary)

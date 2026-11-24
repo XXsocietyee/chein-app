@@ -28,7 +28,7 @@ public struct JourneyFinishOfferCardView: View {
             HStack(spacing: CYSpacing.md) {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(offer.kind == .pass ? "finishOffer.passBadge" : "finishOffer.productBadge")
-                        .cyText(.caption)
+                        .cyText(.meta)
                         .foregroundStyle(CYColor.brand)
                     Text(offer.name)
                         .cyText(.cardTitle)
@@ -163,6 +163,7 @@ public struct ObjectCardPileAndGridView: View {
                         if isGathered { dragOffsets.removeAll() }
                     }
                 } label: {
+                    // TODO: MPAsset.FeatureIcon.all (subpackageP3/images/cat/all.png)
                     Image(systemName: isGathered ? "square.grid.2x2" : "sparkles")
                 }
                 .accessibilityLabel(Text("objects.pile.gather"))
@@ -179,7 +180,7 @@ public struct ObjectCardPileAndGridView: View {
                     .frame(height: 80)
                     .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 Text(item.title)
-                    .cyText(.caption)
+                    .cyText(.meta)
                     .foregroundStyle(CYColor.textPrimary)
                     .lineLimit(1)
             }

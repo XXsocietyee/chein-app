@@ -14,8 +14,7 @@ public final class PlayerContentGapService {
         "api/club/event-ops/host/request",
         "api/topic/pricing/sale-status",
         "api/topic/pricing/settlement-pending",
-        "api/orient/safety/check",
-        "api/official/broadcast/recover"
+        "api/orient/safety/check"
     ]
 
     public let baseURL: URL
@@ -33,11 +32,14 @@ public final class PlayerContentGapService {
         method: String,
         query: [String: String] = [:],
         json: [String: PlayWireValue]? = nil,
+        form: [String: String]? = nil,
         requireAuth: Bool = true
     ) throws -> URLRequest {
         var url = baseURL.appendingPathComponent(path)
         if !query.isEmpty {
-            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+            guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                throw APIError.invalidRequest
+            }
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
             guard let built = components.url else { throw APIError.invalidRequest }
             url = built
@@ -60,6 +62,12 @@ public final class PlayerContentGapService {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]
             request.httpBody = try encoder.encode(json)
+        } else if let form {
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            var components = URLComponents()
+            components.queryItems = form.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+            let encoded = (components.percentEncodedQuery ?? "").replacingOccurrences(of: "+", with: "%2B")
+            request.httpBody = Data(encoded.utf8)
         }
         return request
     }
@@ -73,12 +81,12 @@ public final class PlayerContentGapService {
         }
     }
 
-    /// `PC-A-7-2`: `POST /api/template/topic-template/info {id}`
+    /// `PC-A-7-2`: `POST /api/template/topic-template/info` (form `id`)
     public func fetchTopicTemplatePreview(id: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/template/topic-template/info",
             method: "POST",
-            json: ["id": .number(Double(id))],
+            form: ["id": String(id)],
             requireAuth: false
         ) else { return .unknown }
         return await send(req)
@@ -125,8 +133,8 @@ public final class PlayerContentGapService {
             "api/club/event-ops/host/request",
             method: "POST",
             json: [
-                "activityId": .number(Double(activityID)),
-                "ticketId": .number(Double(ticketID))
+                "activityId": .integer(Int64(activityID)),
+                "ticketId": .integer(Int64(ticketID))
             ]
         ) else { return .unauthorized }
         return await send(req)
@@ -152,22 +160,12 @@ public final class PlayerContentGapService {
         return await send(req)
     }
 
-    /// `PC-B-1-4`: `POST /api/orient/safety/check {topicId}`
+    /// `PC-B-1-4`: `POST /api/orient/safety/check` (form `topicId`)
     public func checkOrientSafety(topicID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/orient/safety/check",
             method: "POST",
-            json: ["topicId": .number(Double(topicID))]
-        ) else { return .unauthorized }
-        return await send(req)
-    }
-
-    /// `PC-C-6-2`: `POST /api/official/broadcast/recover {eventId}`
-    public func recoverOfficialBroadcast(eventID: Int) async -> PlayerGapReply {
-        guard let req = try? makeRequest(
-            "api/official/broadcast/recover",
-            method: "POST",
-            json: ["eventId": .number(Double(eventID))]
+            form: ["topicId": String(topicID)]
         ) else { return .unauthorized }
         return await send(req)
     }

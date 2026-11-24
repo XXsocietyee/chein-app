@@ -113,7 +113,7 @@ public struct OrientScoreAppealSheetView: View {
                         HStack {
                             Spacer()
                             Text("\(reason.count)/\(OrientAppealValidator.maxReasonLength)")
-                                .cyText(.micro, monospacedDigit: true)
+                                .cyText(.meta, monospacedDigit: true)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                         if let errorMessage, !errorMessage.isEmpty {
@@ -148,6 +148,9 @@ public struct OrientScoreSettlementGapSection: View {
     public var onSync: () -> Void = {}
     public var onSettle: () -> Void = {}
 
+    @State private var confirmSync = false
+    @State private var confirmSettle = false
+
     public init(
         canSync: Bool,
         canSettle: Bool,
@@ -173,14 +176,22 @@ public struct OrientScoreSettlementGapSection: View {
                         .foregroundStyle(CYColor.textSecondary)
                 }
                 if canSync {
-                    Button("orientScore.syncTasks", action: onSync)
+                    Button("orientScore.syncTasks") { confirmSync = true }
                         .buttonStyle(.bordered)
                         .disabled(!settlementActionsEnabled)
+                        .confirmationDialog("orientScore.syncTasks.confirmTitle", isPresented: $confirmSync, titleVisibility: .visible) {
+                            Button("orientScore.syncTasks", action: onSync)
+                            Button("common.cancel", role: .cancel) {}
+                        }
                 }
                 if canSettle {
-                    Button("orientScore.settleRun", action: onSettle)
+                    Button("orientScore.settleRun") { confirmSettle = true }
                         .buttonStyle(.borderedProminent)
                         .disabled(!settlementActionsEnabled)
+                        .confirmationDialog("orientScore.settleRun.confirmTitle", isPresented: $confirmSettle, titleVisibility: .visible) {
+                            Button("orientScore.settleRun", action: onSettle)
+                            Button("common.cancel", role: .cancel) {}
+                        }
                 }
             } footer: {
                 if !settlementActionsEnabled {

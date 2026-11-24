@@ -43,14 +43,14 @@ final class MPGapG1Round4Tests: XCTestCase {
         // Pass offer wins when enabled
         let passOffer = JourneyFinishOfferResolver.resolve(isMerchantView: false, pass: pass, products: [product], currentTopicID: 10)
         XCTAssertEqual(passOffer?.kind, .pass)
-        XCTAssertEqual(passOffer?.priceText, "¥39")
+        XCTAssertEqual(passOffer?.priceText, "¥39.00")
         XCTAssertEqual(passOffer?.analyticsProperties["planCode"], "MONTH")
 
         // Falls back to product covering another route
         let prodOffer = JourneyFinishOfferResolver.resolve(isMerchantView: false, pass: nil, products: [product], currentTopicID: 10)
         XCTAssertEqual(prodOffer?.kind, .product)
         XCTAssertEqual(prodOffer?.id, "101")
-        XCTAssertEqual(prodOffer?.priceText, "¥68")
+        XCTAssertEqual(prodOffer?.priceText, "¥68.00")
     }
 
     func testPlayRoamRound4Models() {

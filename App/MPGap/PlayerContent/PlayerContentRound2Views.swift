@@ -65,7 +65,7 @@ public struct ContextualReviewStarAndPhotoComposerView: View {
                     HStack {
                         Spacer()
                         Text("\(content.count)/\(maxChars)")
-                            .cyText(.micro, monospacedDigit: true)
+                            .cyText(.meta, monospacedDigit: true)
                     }
                 }
 

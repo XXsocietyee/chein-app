@@ -127,7 +127,7 @@ public final class PlayerContentRound4Service {
         guard let req = try? makeRequest(
             "api/coop/contact",
             method: "POST",
-            json: ["id": .number(Double(inviteID))]
+            json: ["id": .integer(Int64(inviteID))]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -143,8 +143,8 @@ public final class PlayerContentRound4Service {
             "api/merchant/crm/marketing-consents",
             method: "POST",
             json: [
-                "merchantRowId": .number(Double(merchantRowID)),
-                "merchantOwnerMemberId": .number(Double(merchantOwnerMemberID)),
+                "merchantRowId": .integer(Int64(merchantRowID)),
+                "merchantOwnerMemberId": .integer(Int64(merchantOwnerMemberID)),
                 "channel": .string("APP"),
                 "optedIn": .bool(optedIn),
                 "requestId": .string(requestID)

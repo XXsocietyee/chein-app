@@ -11,7 +11,6 @@ public final class PlayRoamGapService {
         "api/club/lead/settle",
         "api/registration/scan_group_member_ticket",
         "api/roam/nearby-runners",
-        "api/roam/greet",
         "api/comment/delete",
         "api/topic/info-to-user"
     ]
@@ -31,11 +30,14 @@ public final class PlayRoamGapService {
         method: String,
         query: [String: String] = [:],
         json: [String: PlayWireValue]? = nil,
+        form: [String: String]? = nil,
         requireAuth: Bool = true
     ) throws -> URLRequest {
         var url = baseURL.appendingPathComponent(path)
         if !query.isEmpty {
-            var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+            guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+                throw APIError.invalidRequest
+            }
             components.queryItems = query.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
             guard let built = components.url else { throw APIError.invalidRequest }
             url = built
@@ -58,6 +60,12 @@ public final class PlayRoamGapService {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]
             request.httpBody = try encoder.encode(json)
+        } else if let form {
+            request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+            var components = URLComponents()
+            components.queryItems = form.sorted { $0.key < $1.key }.map { URLQueryItem(name: $0.key, value: $0.value) }
+            let encoded = (components.percentEncodedQuery ?? "").replacingOccurrences(of: "+", with: "%2B")
+            request.httpBody = Data(encoded.utf8)
         }
         return request
     }
@@ -71,22 +79,22 @@ public final class PlayRoamGapService {
         }
     }
 
-    /// `PLAY-8`: `POST /api/club/lead/start {runId}`
-    public func leadStart(runID: Int) async -> PlayerGapReply {
+    /// `PLAY-8`: `POST /api/club/lead/start` (form `activityId`)
+    public func leadStart(activityID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/club/lead/start",
             method: "POST",
-            json: ["runId": .number(Double(runID))]
+            form: ["activityId": String(activityID)]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `PLAY-8`: `POST /api/club/lead/settle {runId}`
-    public func leadSettle(runID: Int) async -> PlayerGapReply {
+    /// `PLAY-8`: `POST /api/club/lead/settle` (form `activityId`)
+    public func leadSettle(activityID: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/club/lead/settle",
             method: "POST",
-            json: ["runId": .number(Double(runID))]
+            form: ["activityId": String(activityID)]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -96,37 +104,31 @@ public final class PlayRoamGapService {
         guard let req = try? makeRequest(
             "api/registration/scan_group_member_ticket",
             method: "POST",
-            json: ["code": .string(code)]
+            form: ["code": code]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `ROAM-9`: `GET /api/roam/nearby-runners?lat=&lng=`
-    public func fetchNearbyRunners(latitude: Double, longitude: Double) async -> PlayerGapReply {
+    /// `ROAM-9`: `POST /api/roam/nearby-runners` (form `latitude`, `longitude`, `radius`)
+    public func fetchNearbyRunners(latitude: Double, longitude: Double, radius: Int = 3000) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/roam/nearby-runners",
-            method: "GET",
-            query: ["lat": String(latitude), "lng": String(longitude)]
-        ) else { return .unauthorized }
-        return await send(req)
-    }
-
-    /// `ROAM-9`: `POST /api/roam/greet {userId}`
-    public func greetRunner(userID: Int) async -> PlayerGapReply {
-        guard let req = try? makeRequest(
-            "api/roam/greet",
             method: "POST",
-            json: ["userId": .number(Double(userID))]
+            form: [
+                "latitude": String(latitude),
+                "longitude": String(longitude),
+                "radius": String(radius)
+            ]
         ) else { return .unauthorized }
         return await send(req)
     }
 
-    /// `RPOI-7`: `POST /api/comment/delete {id}`
+    /// `RPOI-7`: `POST /api/comment/delete` (form `id`)
     public func deleteComment(id: Int) async -> PlayerGapReply {
         guard let req = try? makeRequest(
             "api/comment/delete",
             method: "POST",
-            json: ["id": .number(Double(id))]
+            form: ["id": String(id)]
         ) else { return .unauthorized }
         return await send(req)
     }
@@ -136,7 +138,7 @@ public final class PlayRoamGapService {
         guard let req = try? makeRequest(
             "api/topic/info-to-user",
             method: "POST",
-            json: ["id": .number(Double(topicID))],
+            json: ["id": .integer(Int64(topicID))],
             requireAuth: false
         ) else { return .unknown }
         return await send(req)

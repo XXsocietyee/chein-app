@@ -34,6 +34,7 @@ public struct ObjectCardCategorySheetView: View {
                             onClose()
                         } label: {
                             VStack(spacing: CYSpacing.xs) {
+                                // TODO: MPAsset.FeatureIcon.* (subpackageP3/images/cat/*.png)
                                 Image(systemName: category.systemImage)
                                     .cyText(.sectionTitle)
                                 Text(category.title)
@@ -92,7 +93,7 @@ public struct ObjectCardRenameSheetView: View {
                         HStack {
                             Spacer()
                             Text("\(name.count)/\(ObjectCardRenameValidator.maxLength)")
-                                .cyText(.micro, monospacedDigit: true)
+                                .cyText(.meta, monospacedDigit: true)
                                 .foregroundStyle(CYColor.textSecondary)
                         }
                         if let errorMessage, !errorMessage.isEmpty {
