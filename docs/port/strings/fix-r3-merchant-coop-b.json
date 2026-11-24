@@ -1,4 +1,191 @@
 {
+  "merchantCoop.aiNpc.intro.avatar.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It appears on the roam map and your shop page and greets passing players for you"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "出现在漫游地图和店铺主页上，替你招呼路过的玩家"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.avatar.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your shop's stand-in in Chengyin"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "它是你的店在城瘾里的分身"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.done": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Got it"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "知道了"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.greet.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It speaks with the greeting and personality you set"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "按你写的招呼语和性格说话"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.greet.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Players pass by, it says hello first"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "玩家路过，它先打招呼"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.menu.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It reads what is in your store profile"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "读的是你门店资料里的内容"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.menu.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "It knows your menu and opening hours"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "菜单和营业时间它都答得上"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.next": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Next"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下一步"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.persona.line": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Gentle, cute or savage — change it any time"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "温柔、可爱、毒舌，随时可改"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.persona.title": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Give it a name and a personality"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "起个名字、选个性格就能用"
+        }
+      }
+    }
+  },
+  "merchantCoop.aiNpc.intro.skip": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Skip"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "跳过"
+        }
+      }
+    }
+  },
   "merchantCoop.cityNode.poster.save": {
     "extractionState": "manual",
     "localizations": {
