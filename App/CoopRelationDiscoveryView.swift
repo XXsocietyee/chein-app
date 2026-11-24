@@ -141,6 +141,12 @@ extension EnvironmentValues {
                             .foregroundStyle(CYColor.textSecondary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("cooprelation.partial")
+                        // MC7-28-5: the partial notice offers 重新加载 (relation/index.wxml:67-68).
+                        Button { Task { await reload() } } label: {
+                            Label("cooprelation.reload", systemImage: "arrow.clockwise").frame(minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .disabled(model.isLoading)
+                        .accessibilityIdentifier("cooprelation.partial.reload")
                     }
                     if value.rows(tab).isEmpty && !value.hasInvalidRows(tab) {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {

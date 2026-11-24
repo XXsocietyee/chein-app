@@ -33,6 +33,23 @@
       }
     }
   },
+  "merchantCoop.coopCenter.refreshFailed": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Couldn't refresh. Try again later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新失败，请稍后重试"
+        }
+      }
+    }
+  },
   "merchantCoop.coopSetting.saved": {
     "extractionState": "manual",
     "localizations": {
@@ -250,6 +267,91 @@
         "stringUnit": {
           "state": "translated",
           "value": "登录"
+        }
+      }
+    }
+  },
+  "merchantCoop.team.denied": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Your role can't view the team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "当前身份不能查看经营团队"
+        }
+      }
+    }
+  },
+  "merchantCoop.team.memberActions": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Member actions"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "成员操作"
+        }
+      }
+    }
+  },
+  "merchantCoop.team.shareInvite %@ %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Join the %1$@ team. Invite code: %2$@"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "邀请你加入%1$@经营团队，邀请码：%2$@"
+        }
+      }
+    }
+  },
+  "merchantCoop.team.shareInvite.action": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Share invite"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分享邀请"
+        }
+      }
+    }
+  },
+  "merchantCoop.team.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to view your team"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看经营团队"
         }
       }
     }

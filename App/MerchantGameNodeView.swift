@@ -228,12 +228,15 @@ enum MerchantGameNodeCopy {
             MerchantGameNodeCopy.text("merchantGameNode.writesDisabledNotice").cyText(.bodyCompact).foregroundStyle(.secondary)
                 .accessibilityIdentifier("gameNode.writesDisabled")
         }
-        runbook(station)
+        // MC7-26-3: a playable station shows 本站运行 (出示打卡码 / 核验) before the runbook (game-node/index.wxml:56-65).
+        if station.playable { runCard(station) }
+        // MC7-26-5: ROUTE stations without a player task have no runbook card (index.wxml:67-69).
+        if station.playerTask != nil || c.projection?.playMode != .route { runbook(station) }
         Group {
             if station.canAccept || station.canDecline { invitation(station) }
             if station.canReady { readyCard(station) }
             if station.status == "PAUSED" { pauseInfo(station) }
-            if station.canPause || station.canVerify || station.playable { runCard(station) }
+            if !station.playable && (station.canPause || station.canVerify) { runCard(station) }
         }
         receiptsCard
         recapCard(station)

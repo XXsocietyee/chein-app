@@ -123,6 +123,8 @@ func mcc(_ key: String, _ locale: Locale) -> String {
     @StateObject private var model: MerchantCoopCenterModel
     @State private var tab: MerchantCoopCenterTab
     @State private var showsInbox = false
+    /// MC7-27-4: a failed refresh over a shown list keeps the list and says so.
+    @State private var refreshToast: LocalizedStringKey?
     @Environment(\.locale) private var locale
     private let officialActions: OfficialActionCoordinator?
     private let inboxDestination: ((@escaping () -> Void) -> AnyView)?
@@ -176,6 +178,13 @@ func mcc(_ key: String, _ locale: Locale) -> String {
                 .themeDomain(.merchant)
         }
         .task { model.start() }
+        .onChange(of: model.routesIssue) { _, issue in
+            if issue != nil, !model.routes.isEmpty { refreshToast = "merchantCoop.coopCenter.refreshFailed" }
+        }
+        .onChange(of: model.eventsIssue) { _, issue in
+            if issue != nil, !model.events.isEmpty { refreshToast = "merchantCoop.coopCenter.refreshFailed" }
+        }
+        .cyToast(message: $refreshToast)
     }
 
     // MARK: 广场
@@ -297,7 +306,19 @@ struct MerchantCoopCenterRouteCard: View {
     let focused: Bool
     let content: MerchantContentService
     @Environment(\.locale) private var locale
+    /// MC7-27-2: the whole card opens the route's chapters (MP coop-center/index.wxml:27-28); 看详情 stays as a label.
     var body: some View {
+        if let topicID = route.topicID {
+            NavigationLink {
+                MerchantContentDocumentView(service: content, query: .chapters(topicID: topicID))
+            } label: { card }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text(String(format: mcc("merchantCoopCenter.detail.label", locale), route.title)))
+        } else {
+            card
+        }
+    }
+    private var card: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 if let mode = modeText {
@@ -327,13 +348,14 @@ struct MerchantCoopCenterRouteCard: View {
                     }
                 }
                 Spacer()
-                if let topicID = route.topicID {
-                    NavigationLink {
-                        MerchantContentDocumentView(service: content, query: .chapters(topicID: topicID))
-                    } label: { Text(mcc("merchantCoopCenter.detail", locale)) }
-                    .buttonStyle(.borderedProminent)
-                    .accessibilityLabel(String(format: mcc("merchantCoopCenter.detail.label", locale), route.title))
-                    .accessibilityIdentifier("merchantCoopCenter.route.detail." + route.id)
+                if route.topicID != nil {
+                    Text(mcc("merchantCoopCenter.detail", locale))
+                        .cyText(.label, weight: .semibold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                        .background(Color.accentColor, in: Capsule())
+                        .accessibilityHidden(true)
+                        .accessibilityIdentifier("merchantCoopCenter.route.detail." + route.id)
                 }
             }
         }
