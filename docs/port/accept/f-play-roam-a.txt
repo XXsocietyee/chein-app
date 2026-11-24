@@ -12,5 +12,5 @@
 --roam-subpage-fixture poiLive -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RPOI-2: favorite state shows once (card line only when no action row)
 --roam-subpage-fixture stampExchanged -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RSTAMP-5: one inline title (城市贴纸 / 今日城市签), content starts with the date · place meta line
 --roam-subpage-fixture stampNoExchange -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # RSTAMP-5 not-exchanged slip
---design-fixture nearby-empty  # RTEAMS-5: 我的队伍 tab, expiry rule line in the meta token (加入码 shows only on the Session host, which passes the join-code page)
+--design-fixture nearby-empty  # 我的队伍 tab regression check (加入码 toolbar shows only on the Session host, which passes the join-code page)
 --nearby-team-fixture -AppleLanguages (zh-Hans) -AppleLocale zh_CN  # nearby / my-teams segmented page (regression check after RTEAMS-3 init change)

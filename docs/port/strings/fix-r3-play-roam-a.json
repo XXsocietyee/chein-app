@@ -1,22 +1,6 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "nearby.mine.joinCode": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Join code"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加入码"
-          }
-        }
-      }
-    },
     "play.tools.scanArrive": {
       "localizations": {
         "en": {

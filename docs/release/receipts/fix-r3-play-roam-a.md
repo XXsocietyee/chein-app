@@ -4,7 +4,7 @@
 - Brief: `design/handoff-r2:docs/briefs/wave-x10.md`. Handbook rules applied: native iOS structure, App layer only, no Core/Tests edits, strings in a fragment.
 - Half a = the first 15 pages of the round-1 audit list (`audit/parity-play-roam`): pages/roam, play/index, play/merchant, play/circle, play/poi-challenge, subpackageRoam citynode-code, history, poi-detail, session, nearby, citystamp, my-teams, official-routes, official-route, subpackageJourney landing.
 - Gap sources used, newest first: `audit/parity-r7-play-roam` (FIX QUEUE, Claude rows + appendices), `review/r7-rev-{a,b,c}` (no App-layer row lands in these 15 pages; REV-C items are Gemini's parked MPGap views), round-1 audit, receipts `fix-parity-play-roam` / `fix-parity2-play-roam`.
-- Strings: `docs/port/strings/fix-r3-play-roam-a.json` (4 keys). Fixture routes: `docs/port/accept/f-play-roam-a.txt`.
+- Strings: `docs/port/strings/fix-r3-play-roam-a.json` (3 keys; 加入码 reuses the catalog key `gap.team.joinCode`). Fixture routes: `docs/port/accept/f-play-roam-a.txt`.
 
 ## Fixed
 
@@ -26,11 +26,10 @@
 | RSESS-5 | session | Share sheet: `CYHeroHeader` → system inline title `roam.share.title`; privacy line kept as body copy. | RoamHistoryShareView |
 | RSTAMP-5 | citystamp | One title (inline nav); content starts with the `date · place` `.meta` line. | RoamSubpageParityViews |
 | RTEAMS-3 (a) | my-teams | 我的队伍 tab toolbar 加入码 → existing `TeamInvitationEntryView` (Session host passes it; sign-in hand-off reused). | NearbyTeamViews, SessionNearbyTeamView |
-| RTEAMS-5 (part) | my-teams | `nearby.expiry.rule` `.footnote` → `.cyText(.meta)`. | NearbyTeamViews |
 | JLAND-8 | journey landing | Type ladder per MP wxss: tile name `.sectionTitle`, inviter `.label` secondary, rule key `.body` secondary, rule value `.bodyMedium` primary. | JourneyLandingViews |
 | JLAND-9 (P2) | journey landing | Title pill wraps to 2 centred lines (rounded rect) instead of overflowing. | JourneyLandingViews |
 
-Accessibility / Dynamic Type sweep on the 15 pages' files: no icon-only button without a label (the one hit, storeDay ⋯, is labelled on the next line), no `.font(.system(size:))`. New controls carry labels/identifiers (`play.tools.scanArrive` + hint, `playx.lead.showGroupCode`, `nearby.mine.joinCode`, `roam.passportSheet.close`).
+Accessibility / Dynamic Type sweep on the 15 pages' files: no icon-only button without a label (the one hit, storeDay ⋯, is labelled on the next line), no `.font(.system(size:))`. New controls carry labels/identifiers (`play.tools.scanArrive` + hint, `playx.lead.showGroupCode`, `nearby.mine.joinCode` (identifier), `roam.passportSheet.close`).
 
 ## Left, with reasons
 
@@ -39,7 +38,7 @@ Accessibility / Dynamic Type sweep on the 15 pages' files: no icon-only button w
 | ROAM-8 | Passport photo tiles need (1) the latest track thumbnail / latest stamp image, which `RoamPassportHome` does not carry, (2) the MP illustrations (see MP assets below), (3) the owner ruling on the extra 徽章墙 / 时光胶囊 tiles. The grouped List stays meanwhile (native rule). | Cursor (Core fields) + C7 (assets) + owner |
 | RTEAMS-1 | The topic page's team card exists only in Gemini's parked `App/MPGap/PlayerContent/TopicRouteMapAndTeamsSection.swift`; no live host to push `OrientLobbyTeamsView` from. Mount it there when the section is un-parked. | Gemini |
 | RTEAMS-3 (b) | Leader `· N 个申请` needs a per-team applicant count; `NearbyTeamCoordinator.loadApplicants` fills one shared list. Request: a count read per leader team (MP POST applicants, not the MPGap GET). | Cursor |
-| RTEAMS-5 (rest) | The duplicate `nearby.activeCount` row is pinned by `Tests/ContractChecks/test_nearby_mine_read_provenance.py:16`. Tests are Cursor's layer: please relax that assertion, then delete the row (App/NearbyTeamViews.swift `if mineReady { LabeledContent("nearby.activeCount") … }`). | Cursor, then F |
+| RTEAMS-5 | The duplicate `nearby.activeCount` row is pinned by `Tests/ContractChecks/test_nearby_mine_read_provenance.py:16`, and `nearby.expiry.rule` `.font(.footnote)` by `test_nearby_deadline_text.py:17`. Tests are Cursor's layer: please relax that assertion, then delete the row and move the expiry rule to `.cyText(.meta)`. | Cursor, then F |
 | PLAYPOI-6 (P2) | `ChallengePOIView` has no `mediaScope` / `makeExternalMaps` from its hosts; switching to `PlatformExternalMapHost` without them would show "gated" instead of today's Apple Maps link. Needs host plumbing from RoamItemDetailView / MPReviewedPageScreen. | F (next round) |
 | poi-detail #20 (P2) | The `.signIn` action error has no 登录 CTA; the action runs inside the place sheet, and a tab switch from inside it is not verified without a device. | F (next round) |
 | PLAYM-2, RHIST-r7-1, RPOI-3, JREPORT-*, JSEAT-* | Contract / Core items in the r7 queue (Cursor), or pages in half b. | Cursor / half b |
@@ -52,7 +51,7 @@ Covered in flight, not touched (brief: skip): `restyle/*` (merged r5, visual), `
 ## Core requests for Cursor
 1. `RoamPassportHome`: latest track thumbnail and latest stamp image (ROAM-8).
 2. Per-team pending-applicant count for leader rows on my-teams (RTEAMS-3b).
-3. Relax `test_nearby_mine_read_provenance` line 16 so the duplicate count row can go (RTEAMS-5).
+3. Relax `test_nearby_mine_read_provenance` line 16 and `test_nearby_deadline_text` line 17 (RTEAMS-5).
 4. `PlayCircleCoordinator`: a standalone `join(inviteCode:)` that does not need the offers read (MP `_consumeInviteCode` posts the join before any read). Today PLAYC-r7-1 consumes the invite through `open(inviteCode:)`, which only runs once offers (≥ 3) are loaded.
 5. Official route node `imgUrl` (official-route #7).
 
@@ -69,5 +68,6 @@ Once `MPAsset` accessors exist, swap the SF Symbols on the roam tickets and pass
 - Every API used was grepped on the branch first: `CYMapScaffold(detent:map:controls:floating:panel:)`, `PlayRouteMapPresentation(snapshot:)` / `segments` / `mappedStops`, `CYMapRegion.boundingRegion(coordinates:)`, `PlayCircleCoordinator.loadOffers()/open(inviteCode:)`, `PlayCircleLegacyLink.resolve`, `PlayEntryCodeContext(registrationID:openTicketWallet:)` (argument order of `PlayExperienceView` memberwise init checked), `TeamInvitationEntryView(makeCoordinator:onLogin:)`, `AppSession.makeTeamCoordinator()`, `MPReviewedPageScreen(page:query:)`, `cyPageTitle(verbatim:)`, `appLocalized(_:locale:)`, `cyText` on `Text` and `View`.
 - `tools/check_typography_lint.py`: PASS (no count increased).
 - `tools/check_scaffold.py`: fails identically on the base (52b08c7c7) and this branch (pbxproj not regenerated; integrator step).
-- Contract checks: see the table below.
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), base 52b08c7c7 vs branch: 196 failures+errors on both, identical sorted lists, **0 new**. The first branch run found 2 new (a pinned `.footnote` line and a `nearby.*` key outside the catalog); both fixed and the two suites re-run green.
+- Acceptance workflow: not run from the cloud (no `gh` here); fixture routes are in `docs/port/accept/f-play-roam-a.txt` for the coordinator's run. Routes for the live-session tap and the circle-link query are best-effort and may need the coordinator's adjustment.
 - New Swift files: none (no `tools/generate_project.py` change needed).

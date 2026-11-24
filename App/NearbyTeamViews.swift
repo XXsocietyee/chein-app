@@ -128,7 +128,7 @@ import SwiftUI
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
                 if tab == 1, let joinCodeDestination {
                     ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink { joinCodeDestination() } label: { Label("nearby.mine.joinCode", systemImage: "number") }
+                        NavigationLink { joinCodeDestination() } label: { Label("gap.team.joinCode", systemImage: "number") }
                             .accessibilityIdentifier("nearby.mine.joinCode")
                     }
                 }
@@ -527,7 +527,7 @@ import SwiftUI
             LabeledContent("nearby.expiry.deadline") {
                 Text(verbatim: raw).fixedSize(horizontal: false, vertical: true)
             }
-        } else { Text("nearby.expiry.rule").cyText(.meta) }
+        } else { Text("nearby.expiry.rule").font(.footnote) }
     }
 }
 @MainActor private struct NearbyTeamReviewView: View {
