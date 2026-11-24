@@ -24,9 +24,9 @@ final class SquareFlowTests: XCTestCase {
         reveal(app.buttons["square.loadMore"])
         reveal(app.buttons["square.row.703"])
         XCTAssertTrue(app.navigationBars["Post details"].waitForExistence(timeout: 5))
-        reveal(app.buttons["square.moreComments"])
+        // C-S9: reaching the last comment loads the next page by itself (MP onReachBottom).
         let finalComment = app.descendants(matching: .any)["square.comment.803"].firstMatch
-        for _ in 0..<4 { if finalComment.exists { break }; app.swipeUp() }
+        for _ in 0..<8 { if finalComment.exists { break }; app.swipeUp() }
         XCTAssertTrue(finalComment.exists)
         XCTAssertFalse(app.buttons["Publish"].exists)
         app.navigationBars["Post details"].buttons.firstMatch.tap()

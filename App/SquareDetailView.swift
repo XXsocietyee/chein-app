@@ -110,7 +110,9 @@ import SwiftUI
                                 .accessibilityIdentifier("square.noComments")
                         }
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
+                            // C-S9 (MP onReachBottom): reaching the end loads the next page; the button stays for VoiceOver.
                             CYPillButton("square.moreComments", style: .secondary) { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
+                                .onAppear { Task { await loadComments(operation: generation, captured: key) } }
                         }
                     }.cyMiniCardRow()
                 }
