@@ -174,7 +174,7 @@ public struct KeychainAndBiometricSessionSecuritySectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.enforcementDetail)

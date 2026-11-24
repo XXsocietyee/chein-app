@@ -355,7 +355,7 @@ import SwiftUI
             .id("\(ticket):\(originalRequestID ?? "none")")
             .disabled(!owns(ticket) || screenTask != nil)
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .sheet(isPresented: $confirmationPresented, onDismiss: { reviewed = nil }) {
             CYConfirmSheet(
                 title: appLocalized("d7.channelChat.markReadTitle", locale: locale),
@@ -466,7 +466,7 @@ import SwiftUI
         }
         .nativeChannelScreen()
         .cyGroupedSurface()
-        .navigationTitle(Text("d7.channelChat.photo"))
+        .navigationTitle(Text("d7.channelChat.photo")).navigationBarTitleDisplayMode(.inline)
         .onAppear { model.observe() }
         .task(id: active) {
             // This remains ordinary image readback, never a strict-channel proof.

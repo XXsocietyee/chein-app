@@ -38,7 +38,7 @@ struct ObjectBadgeWallParityHeader: View {
                     Text(verbatim: "\(counts.unlocked) / \(counts.total)")
                         .cyText(.dataXL).monospacedDigit().foregroundStyle(Theme.Color.textSecondary(in: domain))
                     Text("badgeWall.state.unknownDetail")
-                        .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                        .cyText(.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .accessibilityElement(children: .ignore)
@@ -47,7 +47,7 @@ struct ObjectBadgeWallParityHeader: View {
             }
             if let focus = ObjectBadgeWallFocus.resolve(code: focusBadgeCode, wall: wall) {
                 Label { focusText(focus) } icon: { Image(systemName: "scope").accessibilityHidden(true) }
-                    .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    .cyText(.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("objects.badge.focus")
             }

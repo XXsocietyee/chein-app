@@ -5,7 +5,7 @@ private struct NativeChannelFlowPageStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
         content
-            .font(Theme.Font.body)
+            .cyText(.body)
             .tint(Theme.Color.accent(in: domain))
             .scrollDismissesKeyboard(.interactively)
             .navigationBarTitleDisplayMode(.inline)

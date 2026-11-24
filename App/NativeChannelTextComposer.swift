@@ -78,11 +78,11 @@ import SwiftUI
                             .accessibilityIdentifier("channel.text.send")
                         }
                         .frame(minHeight: 44)
-                        .background(Theme.Color.bgRaised(in: domain), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                        .background(Theme.Color.bgRaised(in: domain), in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
                     }
                 } else {
                     if let pending = coordinator.pendingText {
-                        Text(verbatim: pending).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true).lineLimit(4).textSelection(.enabled).privacySensitive().accessibilityIdentifier("channel.text.original")
+                        Text(verbatim: pending).cyText(.body).fixedSize(horizontal: false, vertical: true).lineLimit(4).textSelection(.enabled).privacySensitive().accessibilityIdentifier("channel.text.original")
                     }
                     accessoryRow
                 }
@@ -106,7 +106,7 @@ import SwiftUI
                 accessoryRow
             }
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         // Same surface as the page, so the composer doesn't read as a separate band.
         .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s2).background(.background).privacySensitive()
         .onAppear { coordinator.onChange = { revision += 1 }; resume() }
