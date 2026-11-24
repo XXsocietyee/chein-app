@@ -217,7 +217,9 @@ import SwiftUI
                     }
                         .buttonStyle(.cySecondary).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
                 }
-                if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
+                // C-D9: 重新加载 only when the read failed; a loaded detail refreshes by pull-to-refresh.
+                if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil,
+                   model.coordinator.readFailure != nil || model.coordinator.detail == nil {
                     Button("team.refresh") {
                         let permit = model.captureRun()
                         readOwner.start { await reload(permit: permit) }
