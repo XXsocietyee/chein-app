@@ -292,7 +292,8 @@ struct ClubOpsRoleSection: View {
         }
         Section {
             if roster.delegableMemberCount == 0 {
-                ClubOpsGovernanceCopy.text("clubOpsGov.roles.empty").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                // CLB-roles-10: MP roles empty copy 暂无成员.
+                Text("club.gov.roles.noMembers").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("clubOpsGov.roles.empty")
             } else {
                 assign
@@ -382,11 +383,10 @@ struct ClubOpsGovernanceFormNotes: View {
         case .appeal:
             ClubOpsGovernanceCopy.text("clubOpsGov.appeal.note")
         case .revokeRole:
+            // CLB-roles-07: the three consequences live in the one confirm sheet (`ClubGovernanceConsequence.revokeRole`);
+            // the form keeps only the title and the one-line effect.
             if let role = seed["roleName"]?.string { Text("clubOpsGov.roles.revoke.title \(role)", tableName: "ClubOpsGovernance").cyText(.cardTitle) }
             ClubOpsGovernanceCopy.text("clubOpsGov.roles.revoke.body")
-            ForEach(["clubOpsGov.roles.revoke.consequence1", "clubOpsGov.roles.revoke.consequence2", "clubOpsGov.roles.revoke.consequence3"], id: \.self) { key in
-                Label { ClubOpsGovernanceCopy.text(key).cyText(.meta) } icon: { Image(systemName: "exclamationmark.triangle") }
-            }
         default: EmptyView()
         }
     }

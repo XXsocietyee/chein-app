@@ -388,7 +388,8 @@ import SwiftUI
         }
         .sheet(isPresented: Binding(get: { consequenceReview != nil }, set: { if !$0 { consequenceReview = nil } })) {
             if let kind = ClubGovernanceConsequence(route.operation) {
-                kind.sheet(locale: locale) {
+                kind.sheet(locale: locale, name: route.operation == .revokeRole ? route.seed["roleName"]?.string
+                                                 : (route.operation == .ban ? route.seed["targetNickname"]?.string : nil)) {
                     guard let pending = consequenceReview, pending.id == review?.id else { consequenceReview = nil; return }
                     consequenceReview = nil; consequenceAccepted = pending.id; Task { await confirm(pending) }
                 }
@@ -562,7 +563,20 @@ import SwiftUI
     /// CLB-apply-07 (MP apply wxml:63-113): a persistent label above each input (`*` on the two required fields;
     /// the optional labels already read （选填）) and the MP placeholder inside it. Choice fields keep `fieldRow`.
     @ViewBuilder private func applyFieldRow(_ key: String) -> some View {
-        if draft.choices(key) != nil {
+        if key == "experience", let choices = draft.choices(key) {
+            // CLB-apply-06 (MP apply wxml:94-101): 组织经验 is one radio card per option (create-wizard kit).
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                ForEach(choices, id: \.self) { choice in
+                    ClubR1OptionCard(title: Text(LocalizedStringKey("club.gov.choice." + choice)),
+                                     isSelected: draft.text[key] == choice) { textBinding(key).wrappedValue = choice }
+                        .accessibilityIdentifier("club.gov.input.experience.\(choice)")
+                }
+            }
+            .listRowBackground(Color.clear)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(Text(LocalizedStringKey("club.gov.field." + key)))
+            .accessibilityIdentifier("club.gov.input." + key)
+        } else if draft.choices(key) != nil {
             fieldRow(key)
         } else {
             let required = ClubHostApplyFieldCopy.required.contains(key)

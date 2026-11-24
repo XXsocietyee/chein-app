@@ -646,6 +646,210 @@
           }
         }
       }
+    },
+    "club.gov.consequence.ban.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban this member?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认封禁这位成员"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.line1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A ban ends their membership and group chat access right away."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "封禁后对方立即失去成员身份与群聊入口。"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.line2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbanning only lets them apply again; membership is not restored."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解封只恢复申请资格，成员身份不会自动恢复。"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认封禁"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove this role?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销这个角色？"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.line1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They lose every management action in this scope at once; work in progress is interrupted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方立刻失去该范围内的全部管理动作，进行中的操作会被打断"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.line2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They stay a club member, just without this role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "对方仍然是俱乐部成员，只是不再有这个角色"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.line3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can't be undone; to restore it, assign the role again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销；要恢复只能重新分配一次角色"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove role"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销角色"
+          }
+        }
+      }
+    },
+    "club.gov.roles.noMembers": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No members yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无成员"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.ban.titleNamed %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ban %@?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认封禁 %@"
+          }
+        }
+      }
+    },
+    "club.gov.consequence.revokeRole.titleNamed %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销「%@」？"
+          }
+        }
+      }
     }
   }
 }
