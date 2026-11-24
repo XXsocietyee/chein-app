@@ -111,7 +111,7 @@ struct ClubParticipationTrendSection: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(verbatim: row.date)
                                 HStack { Text("club.trend.count", tableName: "ClubParticipationTrend"); Text(row.count, format: .number) }
-                                    .font(.subheadline)
+                                    .cyText(.body)
                             }.fixedSize(horizontal: false, vertical: true)
                                 .accessibilityElement(children: .combine)
                                 .accessibilityIdentifier("club.trend.row.\(index)")

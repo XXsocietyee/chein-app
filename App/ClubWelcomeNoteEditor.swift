@@ -21,7 +21,7 @@ import SwiftUI
             .disabled(!enabled || !club.isOwner || identity == nil || access.identity != identity)
             .accessibilityIdentifier("club.welcome.edit")
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .listRowBackground(Theme.Generated.color("--cy-color-bg-elevated", in: domain))
         .sheet(item: Binding(get: { visit }, set: { next in
             if next == nil { visit?.retire() }; visit = next
@@ -99,7 +99,7 @@ import SwiftUI
             }
             if flow.ownerConfirmed && !flow.canSave && flow.state == .ready { Text(locale.pick("内容未变或此接口尚未单独批准写入。只读不会授权保存。", "The text is unchanged, or this endpoint isn't approved for writes yet. Read access does not authorize saving.")).cyText(.bodyCompact) }
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page", in: domain) != nil ? .hidden : .automatic)
         .background {
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
@@ -183,7 +183,7 @@ import SwiftUI
             Button(locale.pick("只回读原请求", "Read back original requests only")) { Task { await load() } }.disabled(busy || phase != .active || !visit.isCurrent)
                 .accessibilityIdentifier("club.welcome.original.recover")
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page", in: domain) != nil ? .hidden : .automatic)
         .background {
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
@@ -239,7 +239,7 @@ private struct ClubWelcomeNoteOriginalRow: View {
                 Text(locale.pick("UNKNOWN · 保留原身份；不以当前文本推断保存结果。", "UNKNOWN · original identity kept; the save result is not inferred from current text."))
             }
         }
-        .font(Theme.Font.body)
+        .cyText(.body)
         .listRowBackground(Theme.Generated.color("--cy-color-bg-elevated", in: domain))
         .accessibilityIdentifier("club.welcome.original." + value.entry.requestID)
     }

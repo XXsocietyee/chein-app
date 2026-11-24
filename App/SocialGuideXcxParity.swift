@@ -38,13 +38,13 @@ struct SocialGuideXcxModeRow: View {
                     Spacer(minLength: 0)
                     Text("guideXcx.go").cyText(.label, weight: .semibold)
                         .foregroundStyle(CYNight.ink0).padding(.horizontal, CYSpacing.xxl).frame(minHeight: 44)
-                        .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 }
             }
         }
         .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
-        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
         .accessibilityElement(children: .combine)
         if let onOpen {
             Button { tap += 1; onOpen(mode.destination) } label: { card }

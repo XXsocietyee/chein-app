@@ -582,6 +582,10 @@ struct ProfileEditView: View {
     @State private var openedInitialField = false
     @State private var showReloadConfirmation = false
     @State private var showExitConfirmation = false
+    /// A3-11-r7: MP 正在保存资料 → 资料已保存 → back, or an inline error with 重试保存 (gerenziliao js:743-776).
+    @State private var savingProfile = false
+    @State private var saveFailed = false
+    @State private var savedTick = 0
     /// Nil when the stored `tagIds` is unreadable: the count is then an em dash, never a stand-in 0.
     private var selectedPreferences: [Int]? {
         model.draft.routePreferenceIDs ?? ProfilePreferenceRemoval.parse(model.coordinator.snapshot?.tagIds ?? "")
@@ -658,7 +662,20 @@ struct ProfileEditView: View {
                     CYStatusChip(LocalizedStringKey(key))
                         .accessibilityIdentifier("profile.edit.status")
                 }
+                if savingProfile {
+                    Label { Text("profile.edit.saving") } icon: { ProgressView() }
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("profile.edit.saving")
+                }
                 if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }
+                if saveFailed, !savingProfile {
+                    Label { Text("profile.edit.saveFailed") } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
+                        .foregroundStyle(CYColor.dangerText)
+                        .accessibilityIdentifier("profile.edit.saveFailed")
+                    CYPillButton("profile.edit.retrySave") { saveFailed = false; Task { await model.prepare() } }
+                        .disabled(model.busy || model.textEdit != nil)
+                        .accessibilityIdentifier("profile.edit.retrySave")
+                }
                 CYPillButton(LocalizedStringKey(model.coordinator.isLocked ? "profile.edit.check" : "profile.edit.reload"), style: .secondary) {
                     Task { await model.requestReload() }
                 }.disabled(model.busy || model.textEdit != nil).accessibilityIdentifier("profile.edit.reload")
@@ -682,6 +699,7 @@ struct ProfileEditView: View {
             }
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))
+        .sensoryFeedback(.success, trigger: savedTick)
         // A3-03: pushed page → inline title. A3-02 (T&C §3): the system back and its swipe while nothing is unsaved;
         // only while the draft is dirty does the same-looking guarded back ask first.
         .cyPageTitle("profile.edit.title")
@@ -770,7 +788,17 @@ struct ProfileEditView: View {
                     }
                     CYPillButton("profile.edit.confirm") {
                         Task {
-                            guard let receipt = await model.save(value), model.consumeSavedReturn(receipt) else { return }
+                            savingProfile = true; saveFailed = false
+                            let receipt = await model.save(value)
+                            savingProfile = false
+                            guard let receipt, model.consumeSavedReturn(receipt) else {
+                                let key = model.coordinator.messageKey
+                                if key != "profile.edit.saved", key != "profile.edit.nicknameTaken", key != "profile.edit.nicknameInvalid" { saveFailed = true }
+                                return
+                            }
+                            // The page's status line reads 资料已保存 for a beat before going back (MP toast then navigateBack).
+                            savedTick += 1
+                            try? await Task.sleep(for: .milliseconds(900))
                             if let onSaved { onSaved() } else { dismiss() }
                         }
                     }
@@ -795,7 +823,8 @@ struct ProfileEditView: View {
                     } else if value.isEmpty { Text("profile.fieldEdit.empty").foregroundStyle(.secondary) }
                     else { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) }
                 } label: { Text(LocalizedStringKey(field.titleKey)) }
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary)
+                // A3-09: the system disclosure glyph size (tertiary, footnote semibold), not a hand-sized caption.
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                     .accessibilityHidden(true)
             }.contentShape(Rectangle())
         }

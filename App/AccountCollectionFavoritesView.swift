@@ -37,7 +37,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         var items: [CYTabItem<Tab>] = []
         if postsAllowed { items.append(.init(id: .posts, title: appLocalized("social.posts", locale: locale))) }
         items.append(.init(id: .topics, title: appLocalized("searchMap.kind.topic", locale: locale)))
-        if showsCityNodesTab { items.append(.init(id: .cityNodes, title: appLocalized("roam.layer.places", locale: locale))) }
+        if showsCityNodesTab { items.append(.init(id: .cityNodes, title: appLocalized("accountCollection.favorites.nodesTab", locale: locale))) }
         return items
     }
     var body: some View {
@@ -122,7 +122,27 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                         .cyStaggeredAppear(index: index, gate: stagger)
                         .accessibilityIdentifier("accountCollection.favorite.\(topic.id)")
                         .overlay(alignment: .topTrailing) {
-                            if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike).padding(8) }
+                            HStack(spacing: CYSpacing.sm) {
+                                // A4-04: MP mylike topic card 分享 (wxml:50-55) → the public topic link.
+                                if let url = PublicContentShareLink.topic(id: topic.id) {
+                                    ShareLink(item: url, subject: Text(verbatim: topic.name)) {
+                                        Image(systemName: "square.and.arrow.up").font(.title3).padding(10)
+                                            .background(.thinMaterial, in: Circle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    .accessibilityLabel(Text("accountCollection.favorite.share"))
+                                    .accessibilityIdentifier("accountCollection.favorite.share.\(topic.id)")
+                                }
+                                if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike) }
+                            }
+                            .padding(8)
+                        }
+                        // A4-06: MP onReachBottom — the last card loads the next page; 加载更多 stays as the fallback.
+                        .onAppear {
+                            let rows = model.state.visibleRows(scope: key.scope)
+                            guard topic.id == rows.last?.id, model.state.pagination.hasMore, !model.state.isLoadingMore,
+                                  model.state.moreIssue == nil else { return }
+                            Task { await loadMore() }
                         }
                         .questifyCardListRow()
                 }
@@ -284,6 +304,12 @@ private struct AccountCollectionFavoriteCard: View {
                     .buttonStyle(QuestifyCardButtonStyle())
                     .disabled(onOpenPost == nil)
                     .accessibilityIdentifier("accountCollection.post.\(post.id)")
+                    // A4-06: the last post loads the next page (MP onReachBottom); 加载更多 stays as the fallback.
+                    .onAppear {
+                        guard post.id == model.state.visibleRows(scope: key.scope).last?.id, model.state.pagination.hasMore,
+                              !model.state.isLoadingMore, model.state.moreIssue == nil else { return }
+                        Task { await loadMore() }
+                    }
                     .questifyCardListRow()
                     if let favoriteRemoval {
                         ProfileFavoriteRemovalEntry(post: post, scope: key.scope, controller: favoriteRemoval,

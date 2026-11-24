@@ -97,6 +97,8 @@ struct SettingsView: View {
                 }
                 .environment(\.settingsTileTint, SettingsTint.teal)
                 ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner).environment(\.settingsTileTint, SettingsTint.pink)
+                // B-SZ-15-r7: MP shezhi 邀请与收益 (players only) right after 我的收藏; same promo binding as 我的.
+                SettingsInvitePromoEntry().environment(\.settingsTileTint, SettingsTint.orange)
                 SettingsPrivacyLocationEntry(session: session).environment(\.settingsTileTint, SettingsTint.green)
                 Section {
                     NativeNotificationPermissionEntry()
@@ -332,6 +334,22 @@ private struct SettingsSearchResults: View {
                 Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
             } label: { label }
             .pickerStyle(.menu)
+        }
+    }
+}
+
+/// B-SZ-15-r7: MP `pages/shezhi` 邀请与收益 row (shezhi.wxml:22, js:165). Shown only when the host injected the
+/// journey promo binding and the viewer is not a merchant; nil binding hides it (capability absent ⇒ hidden).
+@MainActor private struct SettingsInvitePromoEntry: View {
+    @Environment(\.mpParity) private var bindings
+    var body: some View {
+        if bindings.journeyPromo != nil, !bindings.isMerchant {
+            Section {
+                NavigationLink { MPParityDestination(route: .journeyPromo) } label: {
+                    Label("mp.account.promo", systemImage: "person.2.wave.2")
+                }
+                .accessibilityIdentifier("settings.invitePromo")
+            }
         }
     }
 }

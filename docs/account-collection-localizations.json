@@ -273,5 +273,15 @@
     "key": "accountCollection.coupon.openInMaps",
     "en": "Open in Maps",
     "zh-Hans": "在地图中打开"
+  },
+  {
+    "key": "accountCollection.favorite.share",
+    "en": "Share",
+    "zh-Hans": "分享"
+  },
+  {
+    "key": "accountCollection.favorites.nodesTab",
+    "en": "Places",
+    "zh-Hans": "据点"
   }
 ]

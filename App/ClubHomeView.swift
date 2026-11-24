@@ -23,7 +23,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var onTopicDestination: ((Int) -> Void)? = nil
     /// chein://club/<id>/join: open this club's detail once, then clear it. The detail keeps its own join confirmation.
     var requestedClubID: Binding<Int?>? = nil
-    /// Author square delete on the talent list feed. Nil shows a visible not-connected line.
+    /// Kept for existing call sites; the 帖文 tab no longer mounts the author delete block (A8-05).
     var authorSquare: (any SquareReading)? = nil
     /// MP `talent/list?tab=feed` (A8-04): opens on 帖文 once; nil keeps 俱乐部.
     var initialTopTab: ClubTabPresentation.TopTab? = nil
@@ -49,21 +49,18 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var body: some View {
         VStack(spacing: 0) {
         if community != nil {
-            // Mini-program talent/list: the 发现 title sits above the 帖文 / 俱乐部 tabs and stays for both tabs.
-            CYHeroHeader(screenTitle)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, CYSpacing.pageHorizontal)
-                .padding(.top, CYSpacing.sm)
-            CYTabs(
-                items: ClubTabPresentation.TopTab.allCases.map { tab in
-                    CYTabItem(id: tab, title: appLocalized(String.LocalizationValue(tab.key), locale: locale))
-                },
-                selection: $topTab,
-                variant: .segmented
-            )
+            // Mini-program talent/list: the title (system large title, `cyRootHeader(.club)`) stays for both tabs;
+            // 帖文 / 俱乐部 is a native segmented picker (native-ios-r1 §4.4).
+            Picker(selection: $topTab) {
+                ForEach(ClubTabPresentation.TopTab.allCases, id: \.self) { tab in
+                    Text(verbatim: appLocalized(String.LocalizationValue(tab.key), locale: locale)).tag(tab)
+                }
+            } label: {
+                Text(screenTitle)
+            }
+            .pickerStyle(.segmented)
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.sm)
-            .background(CYColor.bgPage)
             .zIndex(1)
             // One container: without it the label and id below landed on both tab buttons, so VoiceOver read
             // 帖文 as "俱乐部" too (combined-r4 verify).
@@ -75,17 +72,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         if topTab == .feed, let community {
             // 帖文: the existing community feed (like / comment / repost / share / follow). Not rebuilt.
             VStack(spacing: 0) {
-                if let authorSquare {
-                    CreativeSquareAuthorDeleteSection(signedIn: authorSquare.isSignedIn, load: { try await authorSquare.ownCreativeSquareIDs() }, remove: { try await authorSquare.deleteOwnCreativeSquare(postID: $0) })
-                        .padding(.horizontal, CYSpacing.pageHorizontal)
-                        .padding(.bottom, CYSpacing.sm)
-                } else {
-                    Text(verbatim: "—").cyText(.body).foregroundStyle(CYColor.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, CYSpacing.pageHorizontal)
-                        .accessibilityIdentifier("club.authorSquare.missing")
-                }
+                // A8-05: MP talent/list 帖文 has no author delete block and no placeholder dash above the feed; deleting
+                // one's own posts lives on 我的帖文 / 帖文详情 (A4-02).
                 MPPassExploreCard()
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.bottom, CYSpacing.sm)
@@ -99,14 +87,6 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             let home = loaded.home
             let page = loaded.page
             List {
-                if community == nil {
-                    Section {
-                        CYHeroHeader(screenTitle)
-                    }
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
                 // Mini-program club tab: 「创建你自己的俱乐部」 stays pinned above the list; merchants never see it.
                 // verify-r1 2.3 / N-15: at or above the creation limit, do not offer what cannot be done. The quota line
                 // below keeps the warning, and the owned clubs are the first rows of the list.
@@ -217,7 +197,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             guard let id else { return }
             openedClubID = id; requestedClubID?.wrappedValue = nil
         }
-        .cyHeroScreen()
+        .cyRootHeader(.club)
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
         .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
         .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
@@ -389,7 +369,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private func eventRow(_ event: ClubHomeEvent, page: ClubTabPageModel?) -> some View {
         let title = event.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let signups = page?.events.first { $0.id == event.id }?.signupCount
-        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Group {
                 if title.isEmpty {
                     CYListRow("club.untitledEvent", trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
@@ -423,7 +403,7 @@ private struct ClubNightGlass: ViewModifier {
         content
             .padding(CYSpacing.sm)
             .background {
-                RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+                RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                     .fill(CYColor.bgElevated)
             }
     }

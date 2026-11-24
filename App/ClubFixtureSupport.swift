@@ -65,7 +65,7 @@ struct ClubFixtureRootView: View {
                              topicDestination: { id in
                     AnyView(Text(verbatim: "Synthetic topic \(id)")
                         .accessibilityIdentifier("club.fixture.topic.\(id)")
-                        .navigationTitle(Text(verbatim: "Synthetic topic")))
+                        .navigationTitle(Text(verbatim: "Synthetic topic")).navigationBarTitleDisplayMode(.inline))
                 })
                 }
             }

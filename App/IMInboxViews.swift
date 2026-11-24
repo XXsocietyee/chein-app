@@ -130,7 +130,7 @@ struct IMInboxRow: View {
                 }
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     MessagingPreview(conversation: conversation)
-                        .font(.subheadline)
+                        .cyText(.body)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true, unknownAsDash: true)
@@ -292,7 +292,7 @@ struct IMSendGhost: View {
             .padding(.vertical, 11).padding(.leading, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
             .imSendFlight(key, in: namespace)
-            .background(fill, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.hero, style: .continuous))
             .allowsHitTesting(false)
             .accessibilityHidden(true)
             .transition(leaving)

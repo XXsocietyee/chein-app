@@ -57,7 +57,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 6) {
             if post.pinned { Label("club.community.pinned", systemImage: "pin") }
             if !post.content.isEmpty { Text(verbatim: post.content).textSelection(.enabled) }
-            else { Text("club.discussion.openPost").font(.subheadline) }
+            else { Text("club.discussion.openPost").cyText(.body) }
             if !post.createTime.isEmpty { Text(verbatim: post.createTime).cyText(.meta).foregroundStyle(.secondary) }
         }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
     }
