@@ -144,6 +144,9 @@ struct PlayerJourneySignInSheet: ViewModifier {
     private let source: JourneyLoopSource
     private let token: () -> String?
     private var inviteURL: URL?
+    /// JSEAT-r7-1 (MP seats L09-058): the invitation behind `inviteURL`. Once its seat is no longer INVITED (claimed,
+    /// expired or withdrawn) the token is dropped, so the next 邀请 issues a fresh one and a dead link is never re-shared.
+    private var inviteInvitationID: String?
     private var lastSeats: JourneyEnvelope?
     private var facts: PlayerJourneyProjection.SeatsFacts?
     /// JSEAT-5 extras: topic head, play-mode tiles and the buyer's own name / avatar. A failed read hides only its block.
@@ -184,7 +187,8 @@ struct PlayerJourneySignInSheet: ViewModifier {
 
     private func reload() async {
         guard let session = token(), AuthRequestBuilder.isValidToken(session) else {
-            phase = .denied(nil)
+            // JSEAT-6: signed out is a sign-in state, not 无权限 (403 stays `.denied`).
+            phase = .auth
             return
         }
         do {
@@ -229,6 +233,11 @@ struct PlayerJourneySignInSheet: ViewModifier {
         content.headName = head?.name
         content.headCoverURL = head?.coverURL
         content.tiles = tiles
+        if let pending = inviteInvitationID,
+           content.invited.first(where: { $0.invitationID == pending })?.kind != .invited {
+            inviteURL = nil
+            inviteInvitationID = nil
+        }
         content.inviteShareURL = inviteURL
         content.actionError = actionError
         phase = .ready(content)
@@ -261,6 +270,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
         if let envelope, envelope.ok, !envelope.unconfirmed {
             if invite {
                 inviteURL = facts.flatMap { PlayerJourneyProjection.seatInviteURL(envelope, facts: $0) }
+                inviteInvitationID = inviteURL == nil ? nil : PlayerJourneyProjection.seatInvitationID(envelope)
                 guard inviteURL != nil else {
                     content.inviteShareURL = nil
                     content.actionError = appLocalized("mp.seats.invite.linkFailed", locale: .current)
@@ -274,7 +284,7 @@ struct PlayerJourneySignInSheet: ViewModifier {
             load()
             return
         }
-        if invite { inviteURL = nil }
+        if invite { inviteURL = nil; inviteInvitationID = nil }
         content.inviteShareURL = inviteURL
         // JSEAT-7: an unknown answer (sent, result not read back) says so instead of a network error.
         if let envelope, envelope.unconfirmed {
@@ -813,6 +823,12 @@ enum PlayerJourneyProjection {
         return PublicContentShareLink.journeyLanding(intake)
     }
 
+    /// JSEAT-r7-1: the invite answer's `invitationId` (nil when the answer has none; then the token is kept as before).
+    static func seatInvitationID(_ envelope: JourneyEnvelope) -> String? {
+        guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return nil }
+        return idText(object["invitationId"])
+    }
+
     /// `/api/topic/info-to-user`: name and the first cover image. A relative cover path is not drawn (no host to resolve it).
     struct TopicHead: Equatable {
         let name: String
@@ -829,9 +845,8 @@ enum PlayerJourneyProjection {
     /// JSEAT-1 / JSEAT-2: port of `journey-view.seatsView` + `lobby-view.lobbyView`. Seat states arrive upper-case.
     static func seats(_ envelope: JourneyEnvelope, choices: JourneyEnvelope?, registrationID: String, me: JourneyPerson? = nil) -> JourneySeatsPhase {
         _ = registrationID
-        if envelope.code == "401" || envelope.httpStatus == 401 || envelope.code == "403" || envelope.httpStatus == 403 {
-            return .denied(envelope.message)
-        }
+        if envelope.code == "401" || envelope.httpStatus == 401 { return .auth }
+        if envelope.code == "403" || envelope.httpStatus == 403 { return .denied(envelope.message) }
         if envelope.unconfirmed || envelope.netFail { return .failed }
         if envelope.code == "404" || envelope.httpStatus == 404 { return .missing }
         guard envelope.ok, let object = jsonObject(envelope.dataJSON) else { return .failed }

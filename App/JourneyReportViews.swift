@@ -233,7 +233,7 @@ struct JourneyRankBoardView: View {
                 }
                 .navigationTitle(Text("mp.rank.moreTitle"))
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { moreShown = false } } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { Button { moreShown = false } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
             }
             .cySheet(detents: [.medium])
         }
@@ -458,7 +458,7 @@ struct JourneyReportView: View {
                     .background(CYNight.ink0)
                     .navigationTitle(Text("mp.rank.title"))
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { rankShown = false } } }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button { rankShown = false } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
             }
             .cySheet()
             .onAppear(perform: onLoadRank)
@@ -469,7 +469,7 @@ struct JourneyReportView: View {
                     .background(CYNight.ink0)
                     .navigationTitle(Text("mp.report.memory"))
                     .navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { memoryShown = false } } }
+                    .toolbar { ToolbarItem(placement: .cancellationAction) { Button { memoryShown = false } label: { Label("action.close", systemImage: "xmark") }.labelStyle(.iconOnly) } }
             }
             .cySheet()
             .onAppear(perform: onLoadMemory)
@@ -488,7 +488,7 @@ struct JourneyReportView: View {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 VStack(spacing: CYSpacing.sm) {
                     let eyebrow = [report.dateLabel, topicName].compactMap { $0 }.joined(separator: " · ")
-                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
+                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                     if let result = report.result {
                         Text(result.label).cyText(.label)
                             .foregroundStyle(result.win ? CYNight.ink0 : CYColor.textPrimary)
@@ -846,10 +846,10 @@ struct JourneySettleView: View {
                 .frame(height: 160)
                 .accessibilityHidden(true)
             if let result = report.result {
-                Text(result.label).cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot)
+                Text(result.label).cyText(.label).foregroundStyle(CYNight.lanternHot)
                     .settleRise(overviewOn, 0, skipped: skipped, reduceMotion: reduceMotion)
             }
-            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.display).multilineTextAlignment(.center)
+            (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.pageTitle).multilineTextAlignment(.center)
                 .settleRise(overviewOn, 1, skipped: skipped, reduceMotion: reduceMotion)
             if let rank = report.rank, report.rankBasisCount != nil {
                 Text("mp.settle.rank \(rank)").cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
@@ -873,6 +873,17 @@ struct JourneySettleView: View {
                     Text("mp.settle.nodes").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 .accessibilityElement(children: .combine)
+                // JSETTLE-4 (MP settle wxml:28, journey-view.js CG-07-P2-2): nodes finished with help (skipped or answer
+                // seen) are counted apart, and only when there are any.
+                let assisted = report.nodes.filter { $0.mode != nil }.count
+                if assisted > 0 {
+                    VStack(spacing: CYSpacing.xxs) {
+                        Text(verbatim: String(assisted)).cyText(.data2XL).monospacedDigit()
+                        Text("mp.settle.assisted").cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("journeySettle.assisted")
+                }
             }
             .settleRise(overviewOn, 3, skipped: skipped, reduceMotion: reduceMotion)
             Spacer()
@@ -1104,7 +1115,7 @@ struct JourneyShareCard: View {
             VStack(spacing: CYSpacing.md) {
                 Image(systemName: "rosette").font(CYTypography.display).foregroundStyle(CYNight.lanternHot)
                     .background { Circle().fill(CYNight.glow(radius: 40)).frame(width: 140, height: 140) }
-                if report.result?.win == true { Text("mp.report.result.legit").cyText(.label).tracking(0.6).foregroundStyle(CYNight.lanternHot) }
+                if report.result?.win == true { Text("mp.report.result.legit").cyText(.label).foregroundStyle(CYNight.lanternHot) }
                 (topicName.map { Text(verbatim: $0) } ?? Text("mp.settle.thisRun")).cyText(.sectionTitle).multilineTextAlignment(.center)
                 HStack(spacing: CYSpacing.xs) {
                     Text("mp.settle.share.nodes \(MPText.orDash(report.nodesText))")
