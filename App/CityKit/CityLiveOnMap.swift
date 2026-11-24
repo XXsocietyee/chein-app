@@ -196,7 +196,7 @@ struct CityLiveMapControls: View {
             Text(verbatim: value).cyText(.cardTitle, monospacedDigit: true).foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText())
                 .animation(reduceMotion ? nil : CYMotion.numericRoll, value: value)
-            Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: label).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
     }

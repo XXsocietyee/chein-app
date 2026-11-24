@@ -178,7 +178,7 @@ import SwiftUI
     }
     private func header(_ node: PlayStoreDayNode) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).cyText(.label).foregroundStyle(CYColor.textTertiary)
+            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).cyText(.micro).foregroundStyle(CYColor.textTertiary)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                 .background(CYColor.bgRaised, in: Capsule()).accessibilityIdentifier("storeDayPage.tag")
             Group {
@@ -196,7 +196,7 @@ import SwiftUI
     /// Letter-spaced key + primary value, baseline aligned (mini-program .mp-mc).
     private func metaRow(label: Text, value: Text) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            label.cyText(.label).foregroundStyle(CYColor.textTertiary)
+            label.cyText(.micro).foregroundStyle(CYColor.textTertiary)
             value.cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
         }.accessibilityElement(children: .combine)
     }
@@ -254,7 +254,7 @@ import SwiftUI
     private func stat(_ value: String, _ label: String, id: String) -> some View {
         VStack(spacing: CYSpacing.xs) {
             Text(verbatim: value).cyText(.sectionTitle, monospacedDigit: true).foregroundStyle(CYColor.textPrimary).cyWrapText(alignment: .center)
-            Text(verbatim: label).cyText(.label).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
+            Text(verbatim: label).cyText(.micro).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
         .cyCardSurface(variant: .surface, radius: CYRadius.sm, padding: CYSpacing.md)

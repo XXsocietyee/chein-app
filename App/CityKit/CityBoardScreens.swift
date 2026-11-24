@@ -79,7 +79,7 @@ struct CityBoardView: View {
                     Text(verbatim: copy("持有 \(holdings.count) / \(holdings.limit)", "Holding \(holdings.count) / \(holdings.limit)"))
                     if let rent = store.todayRent { Text(verbatim: copy("今天 +\(rent) 积分", "Today +\(rent) pts")) }
                 }
-                .cyText(.meta, weight: .semibold).foregroundStyle(palette.textPrimary)
+                .cyText(.caption, weight: .semibold).foregroundStyle(palette.textPrimary)
                 .padding(.horizontal, 10).padding(.vertical, 6).background(.ultraThinMaterial, in: Capsule()).padding(CYSpacing.md)
             }
         }
@@ -154,7 +154,7 @@ struct CityBoardView: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(verbatim: title).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
-                    if let detail { Text(verbatim: detail).cyText(.meta).foregroundStyle(palette.textSecondary) }
+                    if let detail { Text(verbatim: detail).cyText(.caption).foregroundStyle(palette.textSecondary) }
                 }
                 Spacer()
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
@@ -262,7 +262,7 @@ struct CityRentLedgerView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: place.map { copy.title($0) } ?? copy("我的地盘", "My place")).cyText(.cardTitle).foregroundStyle(palette.textPrimary)
                             Text(verbatim: [event.visitorMasked, event.createdAt.map { copy.clock($0.date) }].compactMap { $0 }.joined(separator: " · "))
-                                .cyText(.meta).foregroundStyle(palette.textSecondary)
+                                .cyText(.caption).foregroundStyle(palette.textSecondary)
                         }
                         Spacer()
                         VStack(alignment: .trailing, spacing: 2) {
@@ -292,7 +292,7 @@ struct CityRentLedgerView: View {
         VStack(spacing: 2) {
             Text(verbatim: value.map { "\($0)" } ?? "—").cyText(.dataXL).foregroundStyle(palette.textPrimary)
                 .contentTransition(.numericText(value: Double(value ?? 0)))
-            Text(verbatim: label).cyText(.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: label).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)

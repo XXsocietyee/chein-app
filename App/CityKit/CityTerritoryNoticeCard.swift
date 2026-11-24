@@ -56,7 +56,7 @@ struct CityTerritoryNoticeCard: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text(verbatim: headline).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     Spacer(minLength: 4)
-                    if let stamp { Text(verbatim: stamp).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+                    if let stamp { Text(verbatim: stamp).cyText(.caption).foregroundStyle(CYColor.textTertiary) }
                 }
                 Text(verbatim: sentence(for: notice)).cyText(.body).foregroundStyle(CYColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -65,7 +65,7 @@ struct CityTerritoryNoticeCard: View {
                 }
             }
             if chevron {
-                Image(systemName: "chevron.right").font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textTertiary)
+                Image(systemName: "chevron.right").font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textTertiary)
                     .frame(maxHeight: .infinity).accessibilityHidden(true)
             }
         }

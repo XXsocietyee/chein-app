@@ -238,7 +238,7 @@ private struct PlayRuntimeAuditPillarRowView: View {
                 .foregroundStyle(.secondary)
 
             Text(verbatim: "验证凭据：\(row.verificationEvidence)")
-                .cyText(.meta)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)

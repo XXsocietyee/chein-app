@@ -490,7 +490,7 @@ struct JourneyReportView: View {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 VStack(spacing: CYSpacing.sm) {
                     let eyebrow = [report.dateLabel, topicName].compactMap { $0 }.joined(separator: " · ")
-                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.meta).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
+                    if !eyebrow.isEmpty { Text(verbatim: eyebrow).cyText(.caption).tracking(0.6).foregroundStyle(CYColor.textSecondary) }
                     if let result = report.result {
                         Text(result.label).cyText(.label)
                             .foregroundStyle(result.win ? CYNight.ink0 : CYColor.textPrimary)
@@ -959,7 +959,7 @@ struct JourneySettleView: View {
                             localError = nil
                         }
                         .accessibilityIdentifier("journeySettle.review")
-                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: "\(review.count) / \(Self.reviewMax)").cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                 }
                 if let localError { MPInlineError(text: Text(localError)) }
                 else if case .error(let message) = rate { MPInlineError(text: Text(verbatim: message)) }

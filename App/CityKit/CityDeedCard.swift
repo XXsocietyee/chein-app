@@ -56,7 +56,7 @@ struct CityLevelPips: View {
                 }
             }
             Text(verbatim: unknown ? "—" : CityCopy(locale: locale).level(level))
-                .cyText(.meta)
+                .cyText(.caption)
                 .foregroundStyle(palette.textSecondary)
         }
         .accessibilityElement(children: .ignore)
@@ -177,7 +177,7 @@ struct CityNoPhotoCover: View {
                         .lineLimit(1).minimumScaleFactor(0.8)
                     if cover == .large {
                         Text(verbatim: copy("拍下第一张照片", "Take the first photo"))
-                            .cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(1)
+                            .cyText(.caption).foregroundStyle(palette.textSecondary).lineLimit(1)
                     }
                 }
                 .padding(.horizontal, CYSpacing.md)
@@ -301,7 +301,7 @@ struct CityDeedCard: View {
                 HStack(spacing: 6) {
                     Circle().fill(bandColor).frame(width: 7, height: 7).accessibilityHidden(true)
                     Text(verbatim: [copy.district(place), unlit ? nil : copy.level(place.level)].compactMap { $0 }.joined(separator: " "))
-                        .cyText(.meta).foregroundStyle(palette.textSecondary).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+                        .cyText(.caption).foregroundStyle(palette.textSecondary).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
                 }
             }
         }
@@ -310,7 +310,7 @@ struct CityDeedCard: View {
     private var mini: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(verbatim: copy.district(place) ?? copy("城市", "City"))
-                .cyText(.meta, weight: .semibold).foregroundStyle(bandText).lineLimit(1)
+                .cyText(.caption, weight: .semibold).foregroundStyle(bandText).lineLimit(1)
                 .padding(.horizontal, 8).frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
                 .background(bandColor)
             CityDeedPhoto(url: place.photoURL, place: place, cover: .thumb).frame(height: 58).clipped()
@@ -319,7 +319,7 @@ struct CityDeedCard: View {
                 HStack(spacing: 4) {
                     CityCoin()
                     Text(verbatim: place.rentPerVisit.map { "+\($0) / " + copy("次", "visit") } ?? "—")
-                        .cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textSecondary).lineLimit(1)
+                        .cyText(.caption, monospacedDigit: true).foregroundStyle(palette.textSecondary).lineLimit(1)
                 }
             }
             .padding(8)
@@ -340,7 +340,7 @@ struct CityDeedCard: View {
             if let serial = place.deedSerial, !unlit { Text(verbatim: copy("地契 · No. \(serial)", "Deed · No. \(serial)")).monospacedDigit() }
             else if let tier = copy.tier(place.tier), !unlit { Text(verbatim: tier) }
         }
-        .cyText(.meta, weight: .semibold)
+        .cyText(.caption, weight: .semibold)
         .foregroundStyle(bandText)
         .padding(.horizontal, CYSpacing.md)
         .frame(maxWidth: .infinity, minHeight: bandHeight)
@@ -352,13 +352,13 @@ struct CityDeedCard: View {
             CityCoin().alignmentGuide(.firstTextBaseline) { $0[.bottom] - 3 }
             Text(verbatim: unlit ? "—" : (place.rentPerVisit.map { "+\($0)" } ?? "—"))
                 .cyText(.dataXL).foregroundStyle(palette.textPrimary)
-            Text(verbatim: copy("每次到访", "per visit")).cyText(.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: copy("每次到访", "per visit")).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
     }
 
     @ViewBuilder private var holderOrPips: some View {
         if place.ownership == .open {
-            Text(verbatim: copy("无人持有", "Unheld")).cyText(.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: copy("无人持有", "Unheld")).cyText(.caption).foregroundStyle(palette.textSecondary)
         } else {
             CityLevelPips(level: place.level, unknown: unlit)
         }
@@ -381,12 +381,12 @@ struct CityDeedCard: View {
             Spacer(minLength: 0)
             if let tag = statusTag { tag }
         }
-        .cyText(.meta)
+        .cyText(.caption)
         .foregroundStyle(palette.textSecondary)
     }
 
     private func avatar(_ letter: String, mine: Bool) -> some View {
-        Text(verbatim: letter).cyText(.meta, weight: .bold)
+        Text(verbatim: letter).cyText(.caption, weight: .bold)
             .foregroundStyle(mine ? CityTokens.bandInk : palette.textPrimary)
             .frame(width: 22, height: 22)
             .background(mine ? CityTokens.mine : palette.bgRaised, in: Circle())
@@ -409,7 +409,7 @@ struct CityDeedCard: View {
                 HStack(spacing: 4) { CityCoin(); Text(verbatim: "+\(value)").cyText(.cardTitle, monospacedDigit: true) }
                     .foregroundStyle(palette.textPrimary)
                 Text(verbatim: copy("今天 · 每次 +\(place.rentPerVisit ?? 0)", "today · +\(place.rentPerVisit ?? 0)/visit"))
-                    .cyText(.meta).foregroundStyle(palette.textSecondary)
+                    .cyText(.caption).foregroundStyle(palette.textSecondary)
             }
         case .status:
             if let tag = statusTag { tag } else { rentTrailing }
@@ -417,7 +417,7 @@ struct CityDeedCard: View {
             VStack(alignment: .trailing, spacing: 2) {
                 HStack(spacing: 4) { CityCoin(); Text(verbatim: place.claimPrice.map(String.init) ?? "—").cyText(.cardTitle, monospacedDigit: true) }
                     .foregroundStyle(palette.textPrimary)
-                Text(verbatim: copy("占领价", "Claim")).cyText(.meta).foregroundStyle(palette.textSecondary)
+                Text(verbatim: copy("占领价", "Claim")).cyText(.caption).foregroundStyle(palette.textSecondary)
             }
         case .rent:
             rentTrailing
@@ -428,7 +428,7 @@ struct CityDeedCard: View {
         VStack(alignment: .trailing, spacing: 2) {
             HStack(spacing: 4) { CityCoin(); Text(verbatim: place.rentPerVisit.map { "+\($0)" } ?? "—").cyText(.cardTitle, monospacedDigit: true) }
                 .foregroundStyle(palette.textPrimary)
-            Text(verbatim: copy("每次到访", "per visit")).cyText(.meta).foregroundStyle(palette.textSecondary)
+            Text(verbatim: copy("每次到访", "per visit")).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
     }
 

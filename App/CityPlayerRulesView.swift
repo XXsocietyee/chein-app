@@ -110,7 +110,7 @@ struct CityPlayerRulesContent: View {
     private func stat(_ n: Int, _ key: String) -> some View {
         VStack(spacing: 2) {
             Text(verbatim: String(n)).cyText(.dataXL).foregroundStyle(CYColor.textPrimary)
-            Text(LocalizedStringKey(key), tableName: table).cyText(.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            Text(LocalizedStringKey(key), tableName: table).cyText(.caption).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity, minHeight: 64).padding(CYSpacing.sm)
         .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))

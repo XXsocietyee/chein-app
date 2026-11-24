@@ -301,7 +301,7 @@ struct CityMapLegend: View {
             item(AnyView(Circle().strokeBorder(Color.white, style: StrokeStyle(lineWidth: 1.5, dash: [2, 2])).frame(width: 12, height: 12)), copy("可圈", "Open"))
             item(AnyView(Circle().strokeBorder(Color.white.opacity(0.5), lineWidth: 1.5).frame(width: 12, height: 12)), copy("未点亮", "Unlit"))
         }
-        .cyText(.meta)
+        .cyText(.caption)
         .foregroundStyle(palette.textSecondary)
         .padding(.horizontal, CYSpacing.md).frame(minHeight: 32)
         .background {

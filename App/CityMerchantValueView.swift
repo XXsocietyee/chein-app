@@ -75,7 +75,7 @@ import SwiftUI
                         if let type = fact.serviceType { Text(verbatim: type).cyText(.meta) }
                         if let reason = fact.reasonCode { CityMerchantValueCopy.text("reason." + reason).cyText(.meta) }
                         if let rating = fact.rating { Text(verbatim: "\(rating) / 100") }
-                        Text(verbatim: "#\(fact.id)").cyText(.meta)
+                        Text(verbatim: "#\(fact.id)").cyText(.caption)
                         if fact.kind == "SERVICE_SUCCESS" {
                             Button { selectedBenefit = fact } label: { CityMerchantValueCopy.text("benefit.open") }
                                 .disabled(!model.canReadBenefit(fact)).accessibilityIdentifier("cityValue.benefit.\(fact.id)")

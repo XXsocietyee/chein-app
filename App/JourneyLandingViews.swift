@@ -704,7 +704,7 @@ struct JourneySeatsView: View {
                     // verify-r1 2.4: 房主 was brown text on a brown fill. Neutral tag with a crown: ink on a light chip.
                     Label { Text("mp.seats.host") } icon: { Image(systemName: "crown.fill") }
                         .labelStyle(.titleAndIcon)
-                        .cyText(.label, weight: .semibold)
+                        .cyText(.micro, weight: .semibold)
                         .foregroundStyle(CYDomainPalette(.player).actionPrimaryFg)
                         .padding(.horizontal, CYSpacing.xs).padding(.vertical, 2)
                         .background(CYDomainPalette(.player).actionPrimaryBg, in: Capsule()).offset(y: CYSpacing.sm)
@@ -713,7 +713,7 @@ struct JourneySeatsView: View {
             // polish-d-r1: every seat reserves the 房主 badge's overhang, so the badge never sits on the label and
             // all labels stay on one baseline.
             .padding(.bottom, CYSpacing.md)
-            Text(circle.kind.label).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(circle.kind.label).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
         .frame(minWidth: CYSpacing.minTouchTarget)
         .opacity(circle.kind == .expired ? 0.45 : 1)

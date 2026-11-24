@@ -249,7 +249,7 @@ import SwiftUI
                             Text(verbatim: row.statusText).cyText(.meta).foregroundStyle(.secondary)
                         }
                         if !row.costText.isEmpty {
-                            Text(verbatim: row.costText).cyText(.meta).foregroundStyle(.secondary)
+                            Text(verbatim: row.costText).cyText(.caption).foregroundStyle(.secondary)
                         }
                         Button(row.actionLabel) {
                             let tap = gameplay.tapGameplayAction(index: idx)
@@ -277,7 +277,7 @@ import SwiftUI
                             Spacer()
                             Text(verbatim: plan.phaseText).cyText(.meta)
                         }
-                        Text(verbatim: plan.teamCountText).cyText(.meta).foregroundStyle(.secondary)
+                        Text(verbatim: plan.teamCountText).cyText(.caption).foregroundStyle(.secondary)
                     }
                 }
             }
@@ -290,7 +290,7 @@ import SwiftUI
                     } label: {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(verbatim: op.title).cyText(.bodyMedium)
-                            Text(verbatim: op.caption).cyText(.meta).foregroundStyle(.secondary)
+                            Text(verbatim: op.caption).cyText(.caption).foregroundStyle(.secondary)
                         }
                     }
                 }

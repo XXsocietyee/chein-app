@@ -55,8 +55,8 @@ import SwiftUI
                 if let summary = row.summary { Text(verbatim: summary).cyText(.meta).foregroundStyle(CYColor.textTertiary) }
             }
             Spacer()
-            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).cyText(.meta).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
-            else { Text("playx.themeRecords.inProgress").cyText(.meta).foregroundStyle(CYColor.textTertiary) }
+            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).cyText(.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+            else { Text("playx.themeRecords.inProgress").cyText(.caption).foregroundStyle(CYColor.textTertiary) }
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)

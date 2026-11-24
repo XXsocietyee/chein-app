@@ -156,7 +156,7 @@ struct CityChallengeSheet: View {
                 .cyAnimation(CYMotion.standard, value: canStart)
                 .cyHaptic(.selection, trigger: canStart) { _, new in new }
                 Text(verbatim: copy("没掷够，挑战费的 30% 给守方，其余销毁。", "If you miss, 30% of the fee goes to the holder and the rest is burned."))
-                    .cyText(.meta).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
+                    .cyText(.caption).foregroundStyle(palette.textTertiary).frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
                 if let issue = store.issueCode {
                     CityBanner(text: CityReasonCopy.text(issue, chinese: copy.chinese), symbol: "exclamationmark.circle", tone: .error)

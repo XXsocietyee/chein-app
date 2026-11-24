@@ -54,7 +54,7 @@ import SwiftUI
                         }
                         if node.state == "FALLBACK_COMPLETED" {
                             // U05-02: completed through the approved replacement; the history stays.
-                            Text("station.fallbackCompleted", tableName: "PlayRecovery").cyText(.meta)
+                            Text("station.fallbackCompleted", tableName: "PlayRecovery").cyText(.caption)
                                 .accessibilityIdentifier("playRecovery.fallbackCompleted.\(node.id)")
                         }
                         if let prompt = node.task["prompt"].text {

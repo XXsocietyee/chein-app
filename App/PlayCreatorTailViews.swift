@@ -139,8 +139,8 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
                     CYStatusChip(verbatim: tailText("guard.appealed"), tone: .info, systemImage: "checkmark.seal")
                         .accessibilityIdentifier("play.guard.appealed")
                 }
-                if let state = entry.result?.appealState { Text(verbatim: appealStateText(state)).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
-                if let decision = entry.result?.decisionReason, !decision.isEmpty { Text(verbatim: decision).cyText(.meta) }
+                if let state = entry.result?.appealState { Text(verbatim: appealStateText(state)).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
+                if let decision = entry.result?.decisionReason, !decision.isEmpty { Text(verbatim: decision).cyText(.caption) }
             } else {
                 Text("guard.unconfirmed", tableName: tailTable).accessibilityIdentifier("play.guard.unconfirmed")
                 CYPillButton("guard.refresh", style: .secondary, systemImage: "arrow.clockwise", tableName: tailTable) { Task { await flow.read() } }
@@ -162,7 +162,7 @@ private func tailText(_ key: String) -> String { String(localized: String.Locali
             }
         }
         if let message = entry.serverMessage, entry.state != .found, !message.isEmpty {
-            Text(verbatim: message).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: message).cyText(.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
 
@@ -261,7 +261,7 @@ func appealStateText(_ state: String) -> String {
                 ForEach(timeline.rows) { row in
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         Text(verbatim: rowLabel(row)).cyText(.body)
-                        if !row.detail.isEmpty { Text(verbatim: row.detail).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
+                        if !row.detail.isEmpty { Text(verbatim: row.detail).cyText(.caption).foregroundStyle(CYColor.textSecondary) }
                     }
                     .accessibilityElement(children: .combine)
                 }
@@ -272,7 +272,7 @@ func appealStateText(_ state: String) -> String {
                 LabeledContent(tailText("audit.appeal")) { Text(verbatim: appealStateText(state)) }
                     .accessibilityIdentifier("myProject.audit.appealState")
             }
-            if let note = flow.note { Text(verbatim: noteText(note)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            if let note = flow.note { Text(verbatim: noteText(note)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("myProject.audit.note") }
             if flow.offersRecovery {
                 CYPillButton("audit.recover", style: .secondary, systemImage: "arrow.clockwise", tableName: tailTable) { Task { await flow.recover() } }
@@ -284,18 +284,18 @@ func appealStateText(_ state: String) -> String {
                     reason = flow.draft.reason; composing = true
                 }
                 .listRowBackground(Color.clear).accessibilityIdentifier("myProject.audit.appeal")
-                Text("audit.appeal.once", tableName: tailTable).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                Text("audit.appeal.once", tableName: tailTable).cyText(.caption).foregroundStyle(CYColor.textSecondary)
             }
         }
     }
 
     @ViewBuilder private func attachments(_ flow: CreatorAuditAppealFlow) -> some View {
         if flow.uploadingImages {
-            Text("audit.attach.uploading", tableName: tailTable).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text("audit.attach.uploading", tableName: tailTable).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("myProject.audit.uploading")
         }
         if let problem = flow.imageProblem {
-            Text(verbatim: imageProblemText(problem)).cyText(.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: imageProblemText(problem)).cyText(.caption).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("myProject.audit.imageError")
             Button(action: { flow.dismissImageProblem() }) {
                 Text("audit.attach.dismiss", tableName: tailTable)

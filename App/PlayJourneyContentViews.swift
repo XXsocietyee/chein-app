@@ -187,7 +187,7 @@ struct JourneyCheckDCTrack: View {
             .frame(height: 10)
             HStack {
                 ForEach([1, 5, 10, 15, 20], id: \.self) { tick in
-                    Text(verbatim: String(tick)).cyText(.label).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: String(tick)).cyText(.micro).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                     if tick != 20 { Spacer(minLength: 0) }
                 }
             }

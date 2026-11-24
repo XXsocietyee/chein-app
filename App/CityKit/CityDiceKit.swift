@@ -33,7 +33,7 @@ struct CityOddsBar: View {
                 }
             }
             Text(verbatim: copy("20 面骰 · \(winFaces) 个面能赢（\(percent)%）", "d20 · \(winFaces) winning faces (\(percent)%)"))
-                .cyText(.meta, monospacedDigit: true).foregroundStyle(palette.textSecondary)
+                .cyText(.caption, monospacedDigit: true).foregroundStyle(palette.textSecondary)
             if !modifiers.isEmpty {
                 HStack(spacing: CYSpacing.sm) { ForEach(modifiers, id: \.self) { CityInfoChip(text: $0) } }
             }

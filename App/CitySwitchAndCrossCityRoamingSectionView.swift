@@ -159,14 +159,14 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                         "City sandbox loop (DESIGNED): actions \(snapshot.simulationLoopState.actionsRemaining)/\(snapshot.simulationLoopState.actionsPerRound) · holdings \(snapshot.simulationLoopState.activeHoldCount)/\(snapshot.simulationLoopState.holdingLimit) · fairness cohort \(snapshot.simulationLoopState.fairnessCohortState.rawValue)",
                         locale: snapshot.locale)
                 )
-                .cyText(.meta, weight: .medium)
+                .cyText(.caption, weight: .medium)
                 Text(
                     verbatim: bilingualCopy(
                         "状态机阶段：\(snapshot.simulationLoopState.phase.rawValue) · 门店积分服务费：\(snapshot.simulationLoopState.memberPointsFee)",
                         "Phase: \(snapshot.simulationLoopState.phase.rawValue) · store points service fee: \(snapshot.simulationLoopState.memberPointsFee)",
                         locale: snapshot.locale)
                 )
-                .cyText(.meta)
+                .cyText(.caption)
                 .foregroundStyle(.secondary)
             }
             .accessibilityIdentifier("citySwitchIsolation.simulationLoop")
