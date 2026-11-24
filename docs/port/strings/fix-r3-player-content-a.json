@@ -238,6 +238,23 @@
           }
         }
       }
+    },
+    "topic.favorite.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't update favorite. Try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏没有成功，请稍后再试"
+          }
+        }
+      }
     }
   }
 }

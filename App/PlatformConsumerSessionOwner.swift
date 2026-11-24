@@ -55,6 +55,7 @@ struct CommunityDormantHTTPTransport: HTTPTransport {
                         AnyView(SessionTicketWalletHost(focusTopicID: topicID).environmentObject(session))
                     })
                     .id(session.contentDetailRevision)
+                    .modifier(TopicFavoriteInjection(session: session))
                     // PC-B-4-3 / PC-B-1-3 (X1): every entry gets the owner pricing page and the play runtime client,
                     // not only the topic browser sheet (SessionTopicBrowserView).
                     .environment(\.topicPricingDestination, session.publisherLifecycleContext.map { context -> (Int) -> AnyView in
