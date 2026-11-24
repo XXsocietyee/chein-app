@@ -178,3 +178,7 @@ Every other round-1/round-2 hunk is present on the new base. The ones `git apply
 
 ### Tests and pins touched in round 3
 - None. `Tests/AppUnitTests/MPParityDeepLinkRouteTests.swift` still expects `.myProjects` for a bare myproject link, which is unchanged.
+
+### Local verification (round 3)
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`): branch vs `origin/ui/combined-r7` `b0ac0108d` gives 218 FAIL/ERROR on both, and the sets are identical. Nothing new failed and nothing was fixed.
+- No new Swift files or folders. No compiler in the cloud. APIs grepped on `b0ac0108d` before use: `IMRemoteAvatar<EmptyView>.url`, `MPAsset.AvatarDefault.dProfile`, `IMExpandedCoordinator.isCurrent` / `canReviewOrdinaryRead` / `reviewOrdinaryRead()` / `confirm(stillAuthorized:)`, `IMReadReceiptTriggerPolicy.autoOnLoadWhenGranted` / `shouldAutoMarkRead(unreadCount:)`, `MessagingConversation.unread`, `SessionCreatorProjectsView(entryScope:)`, `CreatorContentQuery.type`.
