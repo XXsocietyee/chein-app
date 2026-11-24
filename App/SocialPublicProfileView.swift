@@ -147,7 +147,7 @@ import SwiftUI
                                 }
                                 if showsStartChat {
                                     if conversationDestination != nil {
-                                        // A2-03: MP 发消息 opens the chat directly (`api/im/start` → conversation), no editor page.
+                                        // A2-03: MP 发消息 opens the chat directly. The send is `ProfileIMStartContract`.
                                         SocialProfileInlineStartChatButton(memberID: profile.id, coordinator: actions,
                                                                            onOpen: { openedConversationID = $0 }) { title, image in
                                             profilePill(title, systemImage: image)
@@ -613,13 +613,15 @@ extension EnvironmentValues {
     }
 }
 
-/// A2-03: MP `cy-profile` 发消息 (cyp wxml:97-106). One tap prepares and confirms the reviewed `.startChat` command
-/// (`api/im/start`), reads 处理中… while it runs, then hands the acknowledged `conversationId` to `onOpen`.
+/// A2-03: MP `cy-profile` 发消息. One tap sends `ProfileIMStartContract` (`target_member_id` form body)
+/// when the signed-in root installed `profileIMStartWire`, then hands `conversationId` to `onOpen`.
+/// Hosts without that wire keep the reviewed coordinator path.
 @MainActor struct SocialProfileInlineStartChatButton<Label: View>: View {
     let memberID: Int
     let coordinator: SocialActionCoordinator
     let onOpen: (Int) -> Void
     @ViewBuilder let label: (Text, String?) -> Label
+    @Environment(\.profileIMStartWire) private var profileIMStartWire
     @State private var ownerID = UUID()
     @State private var busy = false
     @State private var failed = false
@@ -648,6 +650,10 @@ extension EnvironmentValues {
         let identity = coordinator.identity
         busy = true; failed = false
         defer { busy = false }
+        if let wire = profileIMStartWire {
+            await startWithContract(wire, identity: identity)
+            return
+        }
         do {
             let review = try await coordinator.prepare(.startChat, target: .member(memberID), ownerID: ownerID, expectedIdentity: identity)
             guard !Task.isCancelled, coordinator.identity == identity else { coordinator.cancel(review); return }
@@ -661,6 +667,41 @@ extension EnvironmentValues {
         } catch {
             if coordinator.identity == identity { failed = true }
         }
+    }
+
+    /// Profile form contract: `content-type: application/x-www-form-urlencoded;`, field `target_member_id`.
+    private func startWithContract(_ wire: ProfileIMStartWire, identity: SocialAccountIdentity) async {
+        do {
+            guard let base = wire.baseURL(), let token = wire.token() else { failed = true; return }
+            let request = try ProfileIMStartContract.request(baseURL: base, targetMemberID: String(memberID), token: token)
+            let (data, status) = try await wire.send(request)
+            guard !Task.isCancelled, coordinator.identity == identity else { return }
+            guard (200..<300).contains(status) else { failed = true; return }
+            let id = try ProfileIMStartContract.conversationID(in: data)
+            guard coordinator.identity == identity, id > 0 else { failed = true; return }
+            onOpen(id)
+        } catch {
+            if coordinator.identity == identity { failed = true }
+        }
+    }
+}
+
+/// Signed-in root supplies the base URL, token, and the existing app transport.
+/// The button builds the body with `ProfileIMStartContract` and does not use `SocialActionRequestBuilder`.
+struct ProfileIMStartWire {
+    var baseURL: @MainActor () -> URL?
+    var token: @MainActor () -> String?
+    var send: @MainActor (URLRequest) async throws -> (Data, Int)
+}
+
+private struct ProfileIMStartWireKey: EnvironmentKey {
+    static let defaultValue: ProfileIMStartWire? = nil
+}
+
+extension EnvironmentValues {
+    var profileIMStartWire: ProfileIMStartWire? {
+        get { self[ProfileIMStartWireKey.self] }
+        set { self[ProfileIMStartWireKey.self] = newValue }
     }
 }
 

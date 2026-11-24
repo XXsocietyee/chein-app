@@ -463,6 +463,12 @@ struct SessionRootView: View {
         }
         .modifier(ExternalGameCatalogLaunch())
         .environmentObject(session)
+        .environment(\.passOrderWriteSession, session)
+        .environment(\.profileIMStartWire, ProfileIMStartWire(
+            baseURL: { session.currentRuntimeDependencyContext?.baseURL },
+            token: { session.passReadToken() },
+            send: { request in try await session.runtimeHTTPTransport.send(request) }
+        ))
         .environment(\.challengePOIPhotoUploader, { session.makeChallengePOIPhotoUploader(poiID: $0) })
         .environment(\.roamShareSnapshotPublisher, { session.makeRoamShareSnapshotPublisher() })
         .environment(\.externalGameSession, ExternalGameSessionRead.bridge(session))
