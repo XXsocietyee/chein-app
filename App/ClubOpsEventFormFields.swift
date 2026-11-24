@@ -88,6 +88,8 @@ enum ClubOpsEventFormCopy {
         }
         // Mini roles page: the button reads 分配 under the 分配固定角色 section, so the sheet keeps the section name.
         if route.operation == .assignRole { return Text("clubOpsGov.roles.assign.title", tableName: "ClubOpsGovernance") }
+        // CLB-group-code-04 (fix-r3-club-b): MP sheet title 活动核验团码.
+        if route.operation == .issueGroupCode { return Text("clubR3b.groupCode.title") }
         return Text(LocalizedStringKey("club.gov.action." + route.operation.rawValue))
     }
 }
