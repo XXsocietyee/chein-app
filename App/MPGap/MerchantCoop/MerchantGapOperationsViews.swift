@@ -169,7 +169,7 @@ public struct CoopGapSupplyStationPickerSection: View {
                             Spacer()
                             if isSelected {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundStyle(CYColor.accent)
+                                    .foregroundStyle(CYColor.brand)
                             }
                         }
                     }

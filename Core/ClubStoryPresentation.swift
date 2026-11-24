@@ -47,16 +47,31 @@ public struct ClubStoryGameplay: Equatable, Identifiable {
 
 public struct ClubStoryPresentation: Equatable {
     public let topicID: Int
+    public let clubID: Int?
+    /// Set only when the story was opened with no club id (merchant host scope).
+    public let hostScope: String?
     public let chapters: [ClubStoryChapter]
 
-    public init(snapshot: ClubGovernanceSnapshot) throws {
+    public init(snapshot: ClubGovernanceSnapshot, hostScope: String? = nil) throws {
         guard snapshot.operation == .topicOverview,
-              let clubID = snapshot.scope.clubID, clubID > 0,
               let topicID = snapshot.scope.topicID, topicID > 0 else { throw ClubGovernanceFailure.targetChanged }
-        try snapshot.scope.validate()
-        guard snapshot.permissions?.allows(ClubGovernanceRead.topicOverview.permission, scope: snapshot.scope) == true else {
-            throw ClubGovernanceFailure.forbidden
+        let trimmedHost = hostScope?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let host = (trimmedHost?.isEmpty == false) ? trimmedHost : nil
+        let resolvedClubID: Int?
+        let resolvedHost: String?
+        if let clubID = snapshot.scope.clubID {
+            guard clubID > 0 else { throw ClubGovernanceFailure.targetChanged }
+            guard snapshot.permissions?.allows(ClubGovernanceRead.topicOverview.permission, scope: snapshot.scope) == true else {
+                throw ClubGovernanceFailure.forbidden
+            }
+            resolvedClubID = clubID
+            resolvedHost = nil
+        } else {
+            guard let host else { throw ClubGovernanceFailure.targetChanged }
+            resolvedClubID = nil
+            resolvedHost = host
         }
+        try snapshot.scope.validate()
         // Reapply the existing validator/sanitizer even for synthetic snapshots. No
         // raw template, answer, hint, feedback or unreviewed source object is retained.
         let value = try ClubGovernanceValidation.validate(snapshot.value, operation: .topicOverview, scope: snapshot.scope)
@@ -103,6 +118,13 @@ public struct ClubStoryPresentation: Equatable {
                 stops: stops, gameplay: gameplay)
         }
         self.topicID = topicID
+        self.clubID = resolvedClubID
+        self.hostScope = resolvedHost
+    }
+
+    /// Club entry posts `api/club/topic-node-answer`. A nil club id posts `api/topic/host-node-answer`.
+    public func nodeAnswerCall(nodeID: Int) -> ClubNodeAnswerCall? {
+        ClubNodeAnswerCall(clubID: clubID, topicID: topicID, nodeID: nodeID, scope: hostScope)
     }
     private static func coordinate(_ node: ClubGovernanceValue) -> RoamCoordinate? {
         func number(_ value: ClubGovernanceValue) -> Double? {

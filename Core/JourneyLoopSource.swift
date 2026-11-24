@@ -20,6 +20,19 @@ public struct JourneyEnvelope: Equatable, Sendable {
     public let message: String?
     public let dataJSON: Data?
     public let receiptReread: Bool
+    /// Top-level `reasonCode` from `journey-api.js` `call` (`Object.assign({ httpStatus }, body)`).
+    /// Report and settle use it for `RUN_NOT_FOUND` / `RUN_SCOPE_MISMATCH`. A number is not a code.
+    public let reasonCode: String?
+
+    public init(httpStatus: Int?, code: String?, netFail: Bool, message: String?, dataJSON: Data?, receiptReread: Bool, reasonCode: String? = nil) {
+        self.httpStatus = httpStatus
+        self.code = code
+        self.netFail = netFail
+        self.message = message
+        self.dataJSON = dataJSON
+        self.receiptReread = receiptReread
+        self.reasonCode = reasonCode
+    }
 
     public var ok: Bool { code == "200" }
 
@@ -39,6 +52,8 @@ public struct JourneyEnvelope: Equatable, Sendable {
 public enum JourneyRequestKey {
     public static func seatInvite(_ registrationID: String) -> String { "journey-seat-invite:" + registrationID }
     public static func seatClaim(_ token: String) -> String { "journey-claim:seat:" + String(token.suffix(24)) }
+    /// `landing/index.js` `storeKey('gift', token)` → `journey-claim:gift:` + the last 24 characters.
+    public static func giftClaim(_ token: String) -> String { "journey-claim:gift:" + String(token.suffix(24)) }
     public static func seatCancel(_ invitationID: String) -> String { "journey-seat-cancel:" + invitationID }
     /// U08-02: one retained id per run until the server gives a finished answer.
     public static func runFeedback(_ runID: String) -> String { "journey-run-feedback:" + runID }
@@ -449,7 +464,8 @@ public struct JourneyLoopSource {
         } catch {
             let failure = JourneyEnvelope.networkFailure
             return JourneyEnvelope(httpStatus: failure.httpStatus, code: failure.code, netFail: failure.netFail,
-                                   message: failure.message, dataJSON: nil, receiptReread: receiptReread)
+                                   message: failure.message, dataJSON: nil, receiptReread: receiptReread,
+                                   reasonCode: failure.reasonCode)
         }
     }
 
@@ -458,8 +474,10 @@ public struct JourneyLoopSource {
         let code = object.flatMap { Self.codeString($0["code"]) } ?? (object == nil ? String(status) : nil)
         let resolved = code ?? String(status)
         let message = object?["msg"] as? String
+        let reason = (object?["reasonCode"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
         return JourneyEnvelope(httpStatus: status, code: resolved, netFail: false, message: message,
-                               dataJSON: Self.jsonData(object?["data"] as Any?), receiptReread: receiptReread)
+                               dataJSON: Self.jsonData(object?["data"] as Any?), receiptReread: receiptReread,
+                               reasonCode: reason?.isEmpty == false ? reason : nil)
     }
 
     private static func codeString(_ value: Any?) -> String? {
@@ -581,5 +599,213 @@ extension JourneyLoopSource {
         guard let components = URLComponents(string: "https://journey.invalid/" + text),
               components.path == "/" + landingPage else { return nil }
         return CheinDeepLink(landingQuery: components.queryItems ?? [])
+    }
+}
+
+/// Report and settle load decisions from `subpackageJourney/pages/report/index.js` `_fail`
+/// and `pages/settle/index.js` `reload`. A non-OK body is `failed` (暂未加载 + 重新加载),
+/// not the missing-link state. `RUN_NOT_FOUND` / `RUN_SCOPE_MISMATCH` are the gone cases.
+public enum JourneyReportRead {
+    public enum Surface: Equatable, Sendable { case report, settle }
+    public enum Disposition: Equatable, Sendable {
+        case auth
+        case gone
+        case denied(String?)
+        case failed
+    }
+
+    /// Nil means `code` is 200 and `data` is present: the caller decodes `reportView`.
+    /// 401 wins over a reason code, matching both pages.
+    public static func reject(_ envelope: JourneyEnvelope, surface: Surface) -> Disposition? {
+        if envelope.httpStatus == 401 || envelope.code == "401" { return .auth }
+        if envelope.ok && envelope.dataJSON != nil { return nil }
+        switch surface {
+        case .report:
+            if envelope.reasonCode == "RUN_NOT_FOUND" || envelope.reasonCode == "RUN_SCOPE_MISMATCH" { return .gone }
+            if envelope.code == "403" || envelope.httpStatus == 403 { return .denied(envelope.message) }
+            return .failed
+        case .settle:
+            if envelope.reasonCode == "RUN_NOT_FOUND" { return .gone }
+            return .failed
+        }
+    }
+
+    /// An explicit run id that comes back as a different run is not this run (`report.runId !== query.runId`).
+    /// A missing answered id does not count: the page only compares when both sides are present.
+    public static func runDisagrees(asked: String?, answered: String?) -> Bool {
+        guard let asked, !asked.isEmpty, let answered, !answered.isEmpty else { return false }
+        return asked != answered
+    }
+}
+
+/// Seats page: no session is the login state. 403 stays denied. Every other non-OK read is a reload failure.
+public enum JourneySeatsSessionGate {
+    public enum Phase: Equatable, Sendable { case auth, denied, failed, ready }
+
+    public static func phase(hasValidSession: Bool, envelope: JourneyEnvelope?) -> Phase {
+        guard hasValidSession else { return .auth }
+        guard let envelope, envelope.ok, envelope.dataJSON != nil else {
+            if envelope?.code == "403" || envelope?.httpStatus == 403 { return .denied }
+            return .failed
+        }
+        return .ready
+    }
+}
+
+/// L09-058: the invite answer's `invitationId` + `token` is shared only while that seat is still `INVITED`.
+public struct JourneyHeldSeatInvite: Equatable, Sendable {
+    public let invitationID: String
+    public let token: String
+    public init(invitationID: String, token: String) {
+        self.invitationID = invitationID
+        self.token = token
+    }
+}
+
+public enum JourneyHeldSeatInviteRule {
+    public struct Seat: Equatable, Sendable {
+        public let invitationID: String
+        public let state: String
+        public init(invitationID: String, state: String) {
+            self.invitationID = invitationID
+            self.state = state
+        }
+    }
+
+    /// The invite write keeps a hold only when the answer has both an id and a token.
+    public static func hold(invitationID: String?, token: String?) -> JourneyHeldSeatInvite? {
+        guard let invitationID, JourneyLoopSource.isID(invitationID),
+              let token, JourneyLoopSource.acceptableToken(token) else { return nil }
+        return JourneyHeldSeatInvite(invitationID: invitationID, token: token)
+    }
+
+    /// After each seats read, drop the hold when that seat is gone or no longer `INVITED`.
+    public static func afterRead(hold: JourneyHeldSeatInvite?, seats: [Seat]) -> JourneyHeldSeatInvite? {
+        guard let hold else { return nil }
+        let match = seats.first { $0.invitationID == hold.invitationID }
+        guard let match, match.state == "INVITED" else { return nil }
+        return hold
+    }
+}
+
+/// Landing claim branches (`landing/index.js` `_claimGift` / `_claimSeat`).
+/// The HTTP write stays money-off (`JourneyLoopSource.giftClaim` throws). This only classifies an envelope.
+public enum JourneyGiftClaimBody {
+    /// `POST /api/marketing/product/gifts/claim` JSON `{ token, requestId }`. Not sent while money is off.
+    public static func fields(token: String, requestID: String) -> [String: String]? {
+        guard JourneyLoopSource.acceptableToken(token), JourneyLoopSource.isRequestID(requestID) else { return nil }
+        return ["requestId": requestID, "token": token]
+    }
+}
+
+public enum JourneyLandingClaim {
+    public enum FollowUp: Equatable, Sendable {
+        /// Network, `fail`, or a 5xx. Keep the saved request id. The button becomes 查询领取结果.
+        case unconfirmed
+        /// A finished refusal. Drop the request id. Seat claim may offer 自己购买.
+        case refused(message: String?, buyOwn: Bool)
+        case giftClaimed(canView: Bool)
+        case seatClaimed(seatNo: String?)
+    }
+
+    public static func gift(_ envelope: JourneyEnvelope, targetID: String?) -> FollowUp {
+        if envelope.unconfirmed { return .unconfirmed }
+        guard envelope.ok else { return .refused(message: envelope.message, buyOwn: false) }
+        return .giftClaimed(canView: targetID.map(JourneyLoopSource.isID) ?? false)
+    }
+
+    public static func seat(_ envelope: JourneyEnvelope, canBuyOwn: Bool) -> FollowUp {
+        if envelope.unconfirmed { return .unconfirmed }
+        guard envelope.ok, envelope.dataJSON != nil else { return .refused(message: envelope.message, buyOwn: canBuyOwn) }
+        return .seatClaimed(seatNo: seatNo(envelope.dataJSON))
+    }
+
+    private static func seatNo(_ data: Data?) -> String? {
+        guard let object = PostGameJSON.object(data) else { return nil }
+        if let number = PostGameJSON.int(object["seatNo"]) { return String(number) }
+        return PostGameJSON.string(object["seatNo"])
+    }
+}
+
+/// `journey-view.js` `rankScopes` plus the report page's 更多 split.
+/// Wire query is `GET /api/rank/list` with `scope`, `scopeId`, `period` (`journey-api.js` `rank` + `idQuery`).
+public enum JourneyRankBoardContract {
+    public struct Tab: Equatable, Sendable {
+        public enum Kind: String, Equatable, Sendable {
+            case quest, city, country, world, club, team
+        }
+        public let kind: Kind
+        public let scopeID: String
+        public init(kind: Kind, scopeID: String) {
+            self.kind = kind
+            self.scopeID = scopeID
+        }
+    }
+
+    public struct Menu: Equatable, Sendable {
+        /// 本关 and 队内. Empty when the run has neither a topic id nor a team id.
+        public let tabs: [Tab]
+        /// 更多: city, country, world, club. World is always present.
+        public let more: [Tab]
+    }
+
+    /// Report `onLoad`: `cityCode` and `countryCode` are kept raw; `clubId` only when it is an id.
+    public struct LinkCodes: Equatable, Sendable {
+        public let cityCode: String
+        public let countryCode: String
+        public let clubID: String
+        public init(cityCode: String, countryCode: String, clubID: String) {
+            self.cityCode = cityCode
+            self.countryCode = countryCode
+            self.clubID = clubID
+        }
+
+        public static func parse(_ query: [String: String]) -> LinkCodes {
+            let club = query["clubId"].flatMap { JourneyLoopSource.isID($0) ? $0 : nil } ?? ""
+            return LinkCodes(cityCode: query["cityCode"] ?? "", countryCode: query["countryCode"] ?? "", clubID: club)
+        }
+    }
+
+    public static func menu(topicID: String?, cityCode: String?, countryCode: String?, clubID: String?, teamID: String?) -> Menu {
+        var tabs: [Tab] = []
+        if let topicID, JourneyLoopSource.isID(topicID) { tabs.append(Tab(kind: .quest, scopeID: topicID)) }
+        if let teamID, JourneyLoopSource.isID(teamID) { tabs.append(Tab(kind: .team, scopeID: teamID)) }
+        var more: [Tab] = []
+        if let city = acceptedCity(cityCode) { more.append(Tab(kind: .city, scopeID: city)) }
+        if let country = acceptedCountry(countryCode) { more.append(Tab(kind: .country, scopeID: country)) }
+        more.append(Tab(kind: .world, scopeID: ""))
+        if let clubID, JourneyLoopSource.isID(clubID) { more.append(Tab(kind: .club, scopeID: clubID)) }
+        return Menu(tabs: tabs, more: more)
+    }
+
+    /// First `choices[].teamCapacity.teamId` that `choicesView` would keep.
+    public static func teamID(choicesJSON: Data?) -> String? {
+        guard let object = PostGameJSON.object(choicesJSON) else { return nil }
+        let choices = object["choices"] as? [Any] ?? []
+        for choice in choices {
+            guard let row = choice as? [String: Any], let cap = row["teamCapacity"] as? [String: Any] else { continue }
+            if let id = PostGameJSON.id(cap["teamId"]) { return id }
+        }
+        return nil
+    }
+
+    /// Drops empty `scopeId` (world) and empty / `"0"` period, the same as `idQuery`.
+    public static func query(scope: String, scopeID: String, period: String?) -> [URLQueryItem] {
+        JourneyLoopSource.idQuery([("scope", scope), ("scopeId", scopeID.isEmpty ? nil : scopeID), ("period", period)])
+    }
+
+    private static func acceptedCity(_ raw: String?) -> String? {
+        guard let raw, (2...32).contains(raw.utf8.count) else { return nil }
+        let ok = raw.unicodeScalars.allSatisfy { scalar in
+            let value = scalar.value
+            return (48...57).contains(value) || (65...90).contains(value) || (97...122).contains(value) || value == 45 || value == 95
+        }
+        return ok ? raw : nil
+    }
+
+    private static func acceptedCountry(_ raw: String?) -> String? {
+        guard let raw, raw.utf8.count == 2 else { return nil }
+        let letters = raw.unicodeScalars.allSatisfy { ("A"..."Z").contains($0) || ("a"..."z").contains($0) }
+        return letters ? raw.uppercased() : nil
     }
 }

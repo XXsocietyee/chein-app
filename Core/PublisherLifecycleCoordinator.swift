@@ -80,7 +80,13 @@ import Foundation
         switch action {
         case .pricing(let input, let price):
             var fields = input.fields; fields.removeValue(forKey: "subType")
-            fields[input.subtype == .guided ? "guidedPrice" : "selfPrice"] = .number(price)
+            // pages/topic/pricing/index.js confirmPrice: more than one ticket writes each final and sets guidedPrice to the minimum.
+            if input.ticketPrices.count > 1 {
+                fields["ticketPrices"] = .array(input.ticketPrices.map(\.json))
+                fields["guidedPrice"] = .number(input.ticketPrices.map(\.price).min() ?? price)
+            } else {
+                fields[input.subtype == .guided ? "guidedPrice" : "selfPrice"] = .number(price)
+            }
             return ("api/topic/pricing/confirm", fields, true, client.grants.pricing)
         case .cancel(let resource, let reason, let scope):
             var fields: [String: ProjectEditJSON] = ["id": .string(String(resource.value)), "reason": .string(reason)]

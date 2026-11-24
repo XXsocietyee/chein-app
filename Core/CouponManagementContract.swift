@@ -8,11 +8,27 @@ public struct CouponManagementRequest: Equatable, Codable {
     public var method: String { "POST" }
     init(path: String, body: Body, mutates: Bool) { self.path = path; self.body = body; self.mutates = mutates }
 }
+/// `coupon.js` `operationScope`: merchant sends `MERCHANT`; a player omits `scope`.
+public enum CouponPublishListScope: Equatable, Sendable {
+    case merchant
+    case player
+}
+
 public enum CouponManagementContract {
-    public static func published(keyword: String? = nil) -> CouponManagementRequest {
-        var fields = ["scope": "MERCHANT"]
+    /// `POST /api/coupon/mypublishlist` with `is_select: 0`, as `coupon.js` `getList` sends.
+    public static func published(keyword: String? = nil, scope: CouponPublishListScope = .merchant) -> CouponManagementRequest {
+        var fields = ["is_select": "0"]
+        if scope == .merchant { fields["scope"] = "MERCHANT" }
         if let keyword, !keyword.isEmpty { fields["keyword"] = keyword }
         return .init(path: "/api/coupon/mypublishlist", body: .multipart(fields), mutates: false)
+    }
+    public static func acceptsPublishedList(_ fields: [String: String]) -> Bool {
+        guard fields["is_select"] == "0" else { return false }
+        switch fields["scope"] {
+        case nil, "MERCHANT": break
+        default: return false
+        }
+        return Set(fields.keys).isSubset(of: ["keyword", "is_select", "scope"])
     }
     public static func publish(_ draft: CouponManagementDraft) throws -> CouponManagementRequest {
         guard draft.blocker == nil, let start = draft.startTime, let end = draft.endTime,
@@ -82,10 +98,10 @@ public enum CouponManagementOutcome: Equatable { case simulated(String?), acknow
         guard canSubmit else { return false }
         return (transport as? any CouponManagementReviewedTransport)?.permitsAction(action) ?? true
     }
-    public func published(session: CouponManagementSession, keyword: String? = nil) async throws -> [CouponDefinition] {
+    public func published(session: CouponManagementSession, keyword: String? = nil, scope: CouponPublishListScope = .merchant) async throws -> [CouponDefinition] {
         guard let transport else { throw CouponManagementError.unavailable }
         try Task.checkCancellation()
-        let (data, status) = try await transport.send(CouponManagementContract.published(keyword: keyword), session: session)
+        let (data, status) = try await transport.send(CouponManagementContract.published(keyword: keyword, scope: scope), session: session)
         try Task.checkCancellation()
         return try CouponManagementContract.decodePublished(data, status: status)
     }
@@ -133,7 +149,7 @@ extension CouponManagementRequest {
             guard !boundary.isEmpty, boundary.utf8.count <= 70,
                   boundary.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || $0 == "-") }) else { throw CouponManagementError.invalid }
             let parts = try fields.sorted { $0.key < $1.key }.map { key, value -> String in
-                guard ["keyword", "couponId", "scope"].contains(key), !value.contains(boundary) else { throw CouponManagementError.invalid }
+                guard ["keyword", "couponId", "scope", "is_select"].contains(key), !value.contains(boundary) else { throw CouponManagementError.invalid }
                 return "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n\(value)\r\n"
             }.joined()
             return ("multipart/form-data; boundary=\(boundary)", Data((parts + "--\(boundary)--\r\n").utf8))
