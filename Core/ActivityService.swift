@@ -7,12 +7,18 @@ import FoundationNetworking
 public struct ActivityService {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
+    private let reads = InFlightReadCoalescer<InFlightHTTPBody>()
     public init(configuration:APIConfiguration, transport:any HTTPTransport) {
         self.configuration=configuration;self.transport=transport
     }
     private func post<Response: Decodable>(_ path:String, fields:[String:String], token:String?) async throws -> Response {
-        let request=try AuthRequestBuilder.makeFormRequest(url:configuration.baseURL.appendingPathComponent(path),fields:fields,token:token)
-        let (data,status)=try await transport.send(request)
+        let key = InFlightReadKey.fields(method: "POST", path: path, fields: fields, token: token)
+        let response = try await reads.join(key) {
+            let request=try AuthRequestBuilder.makeFormRequest(url:self.configuration.baseURL.appendingPathComponent(path),fields:fields,token:token)
+            let (data,status)=try await self.transport.send(request)
+            return InFlightHTTPBody(data: data, status: status)
+        }
+        let (data,status)=(response.data,response.status)
         if status == 401 { throw APIError.unauthorized }
         guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
         do { return try JSONDecoder().decode(Response.self,from:data) }

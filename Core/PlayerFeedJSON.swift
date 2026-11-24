@@ -35,3 +35,85 @@ enum PlayerFeedJSON {
         }
     }
 }
+
+/// One HTTP body plus the status the transport reported. Not a stored cache.
+public struct InFlightHTTPBody: Sendable, Equatable {
+    public let data: Data
+    public let status: Int
+    public init(data: Data, status: Int) { self.data = data; self.status = status }
+}
+
+/// Identity of a read. Form boundaries are random, so form posts key on the fields.
+public enum InFlightReadKey {
+    public static func fields(method: String, path: String, fields: [String: String], token: String?, tag: String = "") -> String {
+        var lines = [method, path, "form", token ?? "", tag]
+        for key in fields.keys.sorted() {
+            let value = fields[key] ?? ""
+            lines.append("\(key.utf8.count):\(key)=\(value.utf8.count):\(value)")
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    public static func bytes(method: String, path: String, body: Data, token: String?, tag: String = "") -> String {
+        [method, path, "bytes", token ?? "", tag, body.base64EncodedString()].joined(separator: "\n")
+    }
+
+    public static func query(path: String, items: [URLQueryItem], token: String) -> String {
+        let lines = items.map { item in
+            let name = item.name
+            let value = item.value ?? ""
+            return "\(name.utf8.count):\(name)=\(value.utf8.count):\(value)"
+        }.sorted()
+        return (["GET", path, "query", token] + lines).joined(separator: "\n")
+    }
+}
+
+/// Runs one body for a key while that read is still in flight. The value is dropped when it finishes.
+public final class InFlightReadCoalescer<Value>: @unchecked Sendable {
+    private struct Slot {
+        let id: UUID
+        let task: Task<Value, Error>
+    }
+
+    private let lock = NSLock()
+    private var slots: [String: Slot] = [:]
+    /// A body that finished before its slot was published. Cleared when publish observes it.
+    private var finishedEarly: Set<UUID> = []
+
+    public init() {}
+
+    public func isInFlight(_ key: String) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return slots[key] != nil
+    }
+
+    public func join(_ key: String, _ body: @escaping () async throws -> Value) async throws -> Value {
+        lock.lock()
+        if let existing = slots[key] {
+            let task = existing.task
+            lock.unlock()
+            return try await task.value
+        }
+        let id = UUID()
+        let task = Task { () throws -> Value in
+            defer { self.finish(key, id) }
+            return try await body()
+        }
+        if finishedEarly.remove(id) == nil {
+            slots[key] = Slot(id: id, task: task)
+        }
+        lock.unlock()
+        return try await task.value
+    }
+
+    private func finish(_ key: String, _ id: UUID) {
+        lock.lock()
+        if slots[key]?.id == id {
+            slots[key] = nil
+        } else if slots[key] == nil {
+            finishedEarly.insert(id)
+        }
+        lock.unlock()
+    }
+}

@@ -77,6 +77,11 @@ public struct ProjectEditContinuation {
     }
     /// U03 reads for the topic this editor (or its acknowledged submission) belongs to.
     public var publicationTopicID: Int? { snapshot?.topicID ?? pending?.completedTopicID }
+    /// 「到访方式」 for this topic. Nil while `freeExploreVisitConfigRead` is off, or this editor has no HTTP service.
+    public func visitConfigModel(topicID: Int) -> FreeExplorationVisitConfigModel? {
+        guard PlayRuntimePortRouteGate.freeExploreVisitConfigRead else { return nil }
+        return (service as? ProjectEditHTTPService)?.visitConfigModel(topicID: topicID)
+    }
     public var supportsPublishCheck: Bool { (service as? any TopicPublicationReading)?.supportsPublishCheck == true }
     public var supportsPublicationStatus: Bool { (service as? any TopicPublicationReading)?.supportsPublicationStatus == true }
     public func readPublishCheck(topicID: Int) async throws -> TopicPublishCheckReport {

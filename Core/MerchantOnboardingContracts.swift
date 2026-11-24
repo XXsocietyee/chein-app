@@ -14,6 +14,9 @@ public struct MerchantOnboardingApplication: Decodable, Equatable {
     public let derivatives, rejectReason, disableReason, createTime: String
     /// Comma-separated MERCHANT industry ids when /merchant/info returns them (M-16); empty when absent.
     public let categoryIds: String
+    /// Map pin from the apply form. Nil when the stored application has no usable coordinate.
+    public let locationLat: Double?
+    public let locationLng: Double?
     public var canReapply: Bool { status == 2 && accountStatus != 2 }
     public var statusKey: String {
         if accountStatus == 2 { return "merchant.onboarding.status.disabled" }
@@ -30,7 +33,7 @@ public struct MerchantOnboardingApplication: Decodable, Equatable {
     }
     enum CodingKeys: String, CodingKey {
         case id, status, accountStatus, name, preference, phone, address, businessTime, description, businessLicense
-        case derivatives, reson, disableReason, createTime, categoryIds
+        case derivatives, reson, disableReason, createTime, categoryIds, locationLat, locationLng
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -48,6 +51,13 @@ public struct MerchantOnboardingApplication: Decodable, Equatable {
         businessLicense = try text(.businessLicense); derivatives = try text(.derivatives)
         rejectReason = try text(.reson); disableReason = try text(.disableReason); createTime = try text(.createTime)
         categoryIds = (try? text(.categoryIds)) ?? ""
+        locationLat = Self.coordinate(c, .locationLat, range: -90...90)
+        locationLng = Self.coordinate(c, .locationLng, range: -180...180)
+    }
+    private static func coordinate(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys, range: ClosedRange<Double>) -> Double? {
+        if let number = try? c.decodeIfPresent(Double.self, forKey: key), number.isFinite, range.contains(number) { return number }
+        if let text = try? c.decodeIfPresent(String.self, forKey: key), let number = Double(text), number.isFinite, range.contains(number) { return number }
+        return nil
     }
 }
 
@@ -144,6 +154,8 @@ public struct MerchantOnboardingDraft: Equatable {
     public var identityConsent = false
     public var license: MerchantOnboardingLicense?
     public var brandImages: MerchantOnboardingBrandImages?
+    public var locationLat: Double?
+    public var locationLng: Double?
     public private(set) var brandImagesSourceUnavailable = false
     public init() {}
     public init(reapplying application: MerchantOnboardingApplication) throws {
@@ -159,7 +171,11 @@ public struct MerchantOnboardingDraft: Equatable {
             brandImages = try? .init(source: application.derivatives)
             brandImagesSourceUnavailable = brandImages == nil
         }
-        // Existing wechat/coordinate backfill behavior remains unchanged.
+        if let lat = application.locationLat, let lng = application.locationLng,
+           MerchantOnboardingDraft.registrationCoordinates(lat: lat, lng: lng) != nil {
+            locationLat = lat
+            locationLng = lng
+        }
     }
     public func blocker(step: Int? = nil) -> String? {
         if step == nil || step == 1 {
@@ -211,6 +227,10 @@ public struct MerchantOnboardingDraft: Equatable {
         ]
         if let brandImages { fields["derivatives"] = brandImages.wireValue }
         if let id { fields["id"] = id }
+        if let pair = Self.registrationCoordinates(lat: locationLat, lng: locationLng) {
+            fields["locationLat"] = pair.lat
+            fields["locationLng"] = pair.lng
+        }
         // Parity apply P0: identity is NOT part of merchant_registration (MerchantRegistrationDTO has no such fields);
         // it is registered first through POST api/publisher/identity (`identityRegistrationData`).
         return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
@@ -222,6 +242,11 @@ public struct MerchantOnboardingDraft: Equatable {
         let fields: [String: Any] = ["realName": realName.merchantOnboardingTrimmed, "idCard": idCardNumber.normalized,
                                      "consent": true, "source": "merchant_apply"]
         return try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])
+    }
+    /// Both coordinates are sent, or neither. A half pair is not a map pin.
+    public static func registrationCoordinates(lat: Double?, lng: Double?) -> (lat: Double, lng: Double)? {
+        guard let lat, let lng, lat.isFinite, lng.isFinite, (-90...90).contains(lat), (-180...180).contains(lng) else { return nil }
+        return (lat, lng)
     }
 }
 

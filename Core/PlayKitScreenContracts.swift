@@ -254,6 +254,19 @@ public struct PlayKitActionReview: Equatable, Identifiable {
 }
 
 public enum PlayKitInputContract {
+    /// Photo-record write on the existing `photoCheck` action. Not `SUBMIT_PHOTO_CHECK`.
+    public static let recordAction = "RECORD"
+    /// Body `PlayPhotoRecordSubmission` already accepted for mode `RECORD`.
+    public static func recordBody(_ submission: PlayPhotoRecordSubmission) -> [String: PlayWireValue] {
+        switch submission {
+        case .textConfirmed: return ["textConfirmed": .bool(true)]
+        case .image(let url): return ["imageUrl": .string(url)]
+        }
+    }
+    /// Posts that body on `api/play/advanced/action` through the kit session. No new route.
+    @MainActor public static func postRecord(_ submission: PlayPhotoRecordSubmission, through model: PlayAdvancedCoordinator) async {
+        await model.submit(kind: "photoCheck", action: recordAction, detail: recordBody(submission))
+    }
     public static func validate(kind: String, action: String, payload: [String: PlayWireValue], segment: PlayWireValue) throws {
         if kind == PlayKitPublishedWrites.hangmanKind {
             try validateHangman(action: action, payload: payload, segment: segment)
@@ -301,7 +314,20 @@ public enum PlayKitInputContract {
             try require(keys == ["value"] && finite("value", range: lo...hi))
         case .hiddenObject: try require(keys == ["x", "y"] && finite("x", range: 0...1) && finite("y", range: 0...1))
         case .scan: try require(keys == ["code"] && text("code", max: 4096))
-        case .photoCheck: try require(keys == ["imageUrl"] && PlayExperienceService.validHTTPS(payload["imageUrl"]?.text ?? ""))
+        case .photoCheck:
+            if segment["mode"].text == "RECORD" {
+                try require(action == recordAction)
+                if payload["textConfirmed"]?.bool == true {
+                    try require(keys == ["textConfirmed"])
+                    guard case .success(.textConfirmed) = PlayPhotoRecordSubmission.validate(mode: "RECORD", imageURL: nil, textConfirmed: true, submitPhotoCheck: false) else { throw PlayExperienceError.invalidAction }
+                } else {
+                    try require(keys == ["imageUrl"])
+                    guard case .success = PlayPhotoRecordSubmission.validate(mode: "RECORD", imageURL: payload["imageUrl"]?.text, textConfirmed: false, submitPhotoCheck: false) else { throw PlayExperienceError.invalidAction }
+                }
+            } else {
+                try require(action != recordAction)
+                try require(keys == ["imageUrl"] && PlayExperienceService.validHTTPS(payload["imageUrl"]?.text ?? ""))
+            }
         case .profile:
             guard keys == ["answers", "avatarUrl"], let answers = payload["answers"]?.object else { throw PlayExperienceError.invalidAction }
             let questions = segment["questions"].array ?? [], questionKeys = Set(questions.compactMap { $0["key"].text })

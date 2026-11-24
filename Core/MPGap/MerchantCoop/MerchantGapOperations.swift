@@ -118,7 +118,7 @@ public struct MerchantGapOperationsClient {
             configuration: configuration,
             transport: transport,
             path: "api/merchant/aftercare/manual-case-detail",
-            queryItems: [URLQueryItem(name: "id", value: String(id))],
+            queryItems: [URLQueryItem(name: "manualCaseId", value: String(id))],
             token: token
         )
     }

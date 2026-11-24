@@ -78,7 +78,6 @@ import FoundationNetworking
         XCTAssertEqual(paths(transport), ["/api/orient/scoring/appeal", "/api/orient/scoring/receipt"])
         let firstBody = transport.requests[0].httpBody
 
-        transport.append("{\"state\":\"NOT_FOUND\",\"kind\":\"APPEAL\",\"idempotencyKey\":\"score-key-01\"}")
         do {
             try await writer.submit(kind: .appeal, reason: "改写理由", key: "other-key", entryID: 31)
             XCTFail("a new id must not replace a locked one")
@@ -132,6 +131,22 @@ import FoundationNetworking
         XCTAssertFalse(body.contains("entryId="))
         XCTAssertFalse(body.contains("nodeId="))
         XCTAssertNil(finished.lockedKey)
+    }
+
+    func testMissedTaskAppealSendsNodeIdWithoutAnEntry() async throws {
+        let transport = OrientTestTransport()
+        transport.append("""
+        {"id":"72","sessionId":"9","memberId":"1","entryId":null,"nodeId":"12","reason":"漏记任务",\
+        "status":0,"idempotencyKey":"score-key-node","resolutionEntryId":null,"resolutionNote":null,"windowDeadline":null}
+        """)
+        let writer = try writer(transport)
+        try await writer.submit(kind: .appeal, reason: "漏记任务", key: "score-key-node", entryID: nil, nodeID: 12)
+        XCTAssertNil(writer.lockedKey)
+        XCTAssertEqual(paths(transport), ["/api/orient/scoring/appeal"])
+        let body = String(data: transport.requests[0].httpBody ?? Data(), encoding: .utf8) ?? ""
+        XCTAssertTrue(body.contains("nodeId=12"))
+        XCTAssertFalse(body.contains("entryId="))
+        XCTAssertTrue(body.contains("sessionId=9"))
     }
 
     func testMissingEntryDoesNotBuildARequest() async throws {

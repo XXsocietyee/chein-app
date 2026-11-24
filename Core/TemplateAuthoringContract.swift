@@ -11,29 +11,40 @@ public struct TemplateAuthoringRequest: Equatable, Codable {
 }
 public enum TemplateAuthoringIntent: String, Codable, CaseIterable { case saveDraft, publish }
 public enum TemplateAuthoringContract {
-    public static func listMine() -> TemplateAuthoringRequest {
-        .init(path: "/api/template/my-list", body: .form(["is_quote": "", "keyword": "", "category_id": "", "pageNum": "1", "pageSize": "100"]), mutates: false)
+    public static func listMine(scope: String? = nil) -> TemplateAuthoringRequest {
+        .init(path: "/api/template/my-list", body: .form(shelfFields([
+            "is_quote": "", "keyword": "", "category_id": "", "pageNum": "1", "pageSize": "100"
+        ], scope: scope)), mutates: false)
+    }
+    /// Merchant `mytemplate` sends `scope=MERCHANT`. A player omits the field.
+    static func shelfFields(_ fields: [String: String], scope: String?) -> [String: String] {
+        guard scope == "MERCHANT" else { return fields }
+        var copy = fields
+        copy["scope"] = "MERCHANT"
+        return copy
     }
     /// Backend `ApiTemplateController#updateLibraryStatus` reads `status` (1 上架, 2 撤回待审, 3 下架); a
     /// `publish_status` field is ignored and the call fails with 发布状态参数错误 (PLY-26-1).
-    public static func libraryStatus(id: AuthoringPlayTemplateID, current: Int?) -> TemplateAuthoringRequest {
-        marketStatus(id: id, target: current == 1 ? 3 : 1)!
+    public static func libraryStatus(id: AuthoringPlayTemplateID, current: Int?, scope: String? = nil) -> TemplateAuthoringRequest {
+        marketStatus(id: id, target: current == 1 ? 3 : 1, scope: scope)!
     }
     /// Mini-program `utils/template-market.js` `_marketStatusTarget`: 1 上架广场, 2 撤回广场审核, 3 从广场下架.
-    public static func marketStatus(id: AuthoringPlayTemplateID, target: Int) -> TemplateAuthoringRequest? {
+    public static func marketStatus(id: AuthoringPlayTemplateID, target: Int, scope: String? = nil) -> TemplateAuthoringRequest? {
         guard [1, 2, 3].contains(target) else { return nil }
-        return .init(path: "/api/template/updateLibraryStatus", body: .form(["template_id": String(id.rawValue), "status": String(target)]), mutates: true)
+        return .init(path: "/api/template/updateLibraryStatus", body: .form(shelfFields([
+            "template_id": String(id.rawValue), "status": String(target)
+        ], scope: scope)), mutates: true)
     }
     /// 提交广场审核: `POST /api/template/{memberTemplateId}/market-submit` (`@RequestParam scope` optional, omitted for a player).
-    public static func marketSubmit(id: AuthoringPlayTemplateID) -> TemplateAuthoringRequest {
-        .init(path: "/api/template/\(id.rawValue)/market-submit", body: .form([:]), mutates: true)
+    public static func marketSubmit(id: AuthoringPlayTemplateID, scope: String? = nil) -> TemplateAuthoringRequest {
+        .init(path: "/api/template/\(id.rawValue)/market-submit", body: .form(shelfFields([:], scope: scope)), mutates: true)
     }
     /// Exact `/api/template/{positive id}/market-submit` shape, as `marketSubmit(id:)` builds it.
     public static func isMarketSubmitPath(_ path: String) -> Bool {
         path.range(of: "^/api/template/[1-9][0-9]{0,17}/market-submit$", options: .regularExpression) != nil
     }
-    public static func remove(id: AuthoringPlayTemplateID) -> TemplateAuthoringRequest {
-        .init(path: "/api/template/delete", body: .form(["template_id": String(id.rawValue)]), mutates: true)
+    public static func remove(id: AuthoringPlayTemplateID, scope: String? = nil) -> TemplateAuthoringRequest {
+        .init(path: "/api/template/delete", body: .form(shelfFields(["template_id": String(id.rawValue)], scope: scope)), mutates: true)
     }
     public static func dictionary(_ type: String) throws -> TemplateAuthoringRequest {
         guard ["app_template_difficulty", "app_template_duration", "app_template_players"].contains(type) else { throw TemplateAuthoringError.invalidContract }
