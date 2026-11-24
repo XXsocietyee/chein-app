@@ -266,7 +266,7 @@ extension ProfileLocalCoverOwner {
                     if hasError { Text("profile.localCover.cropRetry") }
                     else { Text("reviewLocalSave", tableName: "ProfileLocalCoverCrop") }
                 }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .accessibilityIdentifier("profile.localCover.cropConfirm")
             }
             Button("action.cancel", role: .cancel, action: cancel).accessibilityIdentifier("profile.localCover.cropCancel")

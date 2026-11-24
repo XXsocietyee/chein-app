@@ -296,7 +296,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     Task { await model.coordinator.precheckAndAgree(documentRead: documentWasRead,
                         explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, intent: intent) }
                 }
-                    .buttonStyle(CYPillButtonStyle())
+                    .buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
                         || !agreement || !model.state.localCancellationConsent.allowsNewConsent)
                     .accessibilityIdentifier("compliance.precheck")
@@ -308,7 +308,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard let intent = model.cancellationIntent() else { return }; let number = phone
                     Task { await model.coordinator.sendSMS(phone: number, explicitlyRequested: true, intent: intent) }
                 }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary))
+                    .buttonStyle(.bordered)
                     .disabled(!model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.smsSent { Text("compliance.smsSent") }
                 TextField("compliance.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
@@ -316,7 +316,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard model.cancellationIntent() != nil else { return }
                     model.coordinator.prepareReview(code: code); code = ""
                 }
-                .buttonStyle(CYPillButtonStyle())
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .disabled(!model.state.smsSent || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.review")
             }
         case .verificationUnavailable:
@@ -346,7 +346,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard model.cancellationIntent() != nil else { return }
                     model.coordinator.backToVerification()
                 }
-                .buttonStyle(CYPillButtonStyle(style: .tertiary))
+                .buttonStyle(.borderless)
             }
         case .pending:
             Text("compliance.pending.submitted").cyText(.cardTitle).accessibilityIdentifier("compliance.pending.submitted")
@@ -365,7 +365,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             .accessibilityHint(Text("compliance.unknown"))
         }
         Button("compliance.refresh") { requestCancellationRead() }
-            .buttonStyle(CYPillButtonStyle(style: .tertiary))
+            .buttonStyle(.borderless)
         // B-DR-01: the on-device consent record is support detail, folded under 详情 instead of a permanent section.
         Section {
             DisclosureGroup {

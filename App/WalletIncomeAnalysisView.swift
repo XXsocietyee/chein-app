@@ -24,7 +24,7 @@ import SwiftUI
                 text("login")
                 if let onSignIn {
                     Button(action: onSignIn) { Text("mp.common.signIn") }
-                        .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
+                        .buttonStyle(.borderedProminent).controlSize(.large).frame(minHeight: 44)
                         .accessibilityIdentifier("wallet.analysis.signIn")
                 }
             }
@@ -39,7 +39,7 @@ import SwiftUI
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                     .cyText(.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
+                    .buttonStyle(.borderedProminent).controlSize(.large).frame(minHeight: 44)
             } else if let slice = model.displayedResult(for: reader) {
                 content(slice)
             } else { CYSkeleton(variant: .detail) }
@@ -74,7 +74,7 @@ import SwiftUI
             if slice.isPartial {
                 Label { readText("partial") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+                    .buttonStyle(.bordered)
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
                 readText("budget").cyText(.caption).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)

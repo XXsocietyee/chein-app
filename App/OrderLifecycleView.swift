@@ -338,7 +338,7 @@ struct OrderLifecycleField: View {
                     if canDispatch {
                         if review.action == .payment {
                             Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), action: confirm)
-                                .buttonStyle(.cyPrimary(fullWidth: true))
+                                .buttonStyle(.borderedProminent).controlSize(.large)
                                 .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
                         } else {

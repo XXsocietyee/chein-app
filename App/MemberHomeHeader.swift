@@ -80,8 +80,9 @@ import SwiftUI
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
+                        .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(CYDomainPrimaryButtonStyle())
+                .buttonStyle(.borderedProminent).controlSize(.large)
                 .pageTemplateControl(label: Text("member.card.tickets", tableName: "MemberProfile"), traits: .isButton)
                 .accessibilityIdentifier("member.card.tickets")
             }
@@ -160,7 +161,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                 if reader.isConfigured, !signedOut {
                     Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
-                        .buttonStyle(.cySecondary)
+                        .buttonStyle(.bordered)
                         .frame(minHeight: CYSpacing.minTouchTarget)
                         .accessibilityIdentifier("member.card.retry")
                 }
