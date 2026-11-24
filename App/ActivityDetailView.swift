@@ -78,6 +78,7 @@ struct ActivityDetailView: View {
             }
         }
         .appNavigationTitle("activity.details")
+        .navigationBarTitleDisplayMode(.inline)
         .cyPushedChrome(domain: .player)
         .cyDomainPageBackground()
         .cyHideTabBar()
@@ -205,8 +206,8 @@ struct ActivityDetailView: View {
         .sheet(isPresented: $showsShare) {
             if let access, case .allowed(let detail) = access {
                 CatalogShareCardView(content: shareContent(detail), tint: .sunset)
-                    .cyPlayerSheetGlass()
-                    .cyDomainSheet(detents: [.half, .full])
+                    .themeDomain(.player)
+                    .cySheet()
             }
         }
         .cyDomainPageBackground()
@@ -248,18 +249,16 @@ struct ActivityDetailView: View {
         }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
-                .cyPlayerSheetGlass()
-                .cyDomainSheet(detents: [.half, .full])
+                .themeDomain(.player)
+                .cySheet()
         }
         .sheet(isPresented:$showsRegistration, onDismiss: { tileOpenedSheet = false }) {
             Group {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
             .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible)
-            .cyPlayerSheetGlass()
-            .cyDomainSheet(detents: [.full])
+            .themeDomain(.player)
+            .cySheet(detents: [.large])
         }
         .navigationDestination(isPresented: $showsPlay) {
             // E2E-20261113b N3: a registered player's "Continue exploring" opens the play session for this activity.
@@ -275,9 +274,8 @@ struct ActivityDetailView: View {
                 SessionTicketWalletHost(onClose:{ showsTicketWallet=false })
                     .environmentObject(session)
                     .modifier(ActivityFooterHeroDestination(active: !tileOpenedSheet, namespace: footerHero))
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
-                    .cyPlayerSheetGlass()
+                    .themeDomain(.player)
+                    .cySheet(detents: [.large])
             }
         }
     }
@@ -473,7 +471,7 @@ struct ActivityDetailView: View {
                     Text("activity.reviewPointsNote")
                         .accessibilityIdentifier("activity.detail.readOnly")
                 } icon: { Image(systemName:"star").accessibilityHidden(true) }
-                .font(CYTypography.meta)
+                .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal:false,vertical:true)
             }
@@ -488,7 +486,7 @@ struct ActivityDetailView: View {
                         Spacer(minLength: 0)
                         Image(systemName: "chevron.down")
                             .font(.footnote.weight(.semibold))
-                            .foregroundStyle(CYColor.textTertiary)
+                            .foregroundStyle(CYColor.textSecondary)
                             .rotationEffect(.degrees(showsMoreInfo ? 180 : 0))
                             .accessibilityHidden(true)
                     }

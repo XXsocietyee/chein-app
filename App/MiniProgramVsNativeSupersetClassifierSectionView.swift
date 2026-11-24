@@ -168,7 +168,7 @@ public struct MiniProgramVsNativeSupersetClassifierSectionView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)

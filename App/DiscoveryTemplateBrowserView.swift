@@ -126,12 +126,12 @@ struct DiscoveryTemplateBrowserView: View {
             guard reader.isConfigured, tab == .games, shelfGames.value == nil else { return }
             await loadShelfGames()
         }
-        .sheet(isPresented: $showsAllTags) {
+        .sheet(isPresented: $showsAllTags) { Group {
             DiscoveryShelfCategorySheet(groups: allTagGroups, selected: tab == .topics ? topicTag : gameTag) { key in
                 if tab == .topics { topicTag = key } else { gameTag = key }
                 showsAllTags = false
             }
-        }
+        }.cySheet(detents: [.large]) }
         .onAppear {
             if let visit = topics.appear(reader: reader), tab == .topics, topicSelection == nil {
                 Task { await topics.load(reader: reader, visit: visit) }
@@ -518,7 +518,7 @@ struct DiscoveryTemplateBrowserView: View {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     Button(action: { choose(nil) }) {
                         Text(verbatim: locale.pick("全部", "All"))
-                            .font(CYTypography.body.weight(selected == nil ? .semibold : .regular))
+                            .cyText(.body, weight: selected == nil ? .semibold : .regular)
                             .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                     }
                     .buttonStyle(.plain)
@@ -533,7 +533,7 @@ struct DiscoveryTemplateBrowserView: View {
                             ForEach(group.tags) { tag in
                                 Button(action: { choose(tag.key) }) {
                                     Text(verbatim: locale.pick(tag.zh, tag.en))
-                                        .font(CYTypography.body.weight(selected == tag.key ? .semibold : .regular))
+                                        .cyText(.body, weight: selected == tag.key ? .semibold : .regular)
                                         .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                                 }
                                 .buttonStyle(.plain)

@@ -404,7 +404,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                             if !TopicXcxFacts.hidesGeneratedChapterOrdinal(chapter.name ?? "") {
-                                Text("u10.template.chapterNo \(index + 1)").cyText(.meta).foregroundStyle(palette.textTertiary)
+                                Text("u10.template.chapterNo \(index + 1)").cyText(.meta).foregroundStyle(palette.textSecondary)
                             }
                             DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").cyText(.cardTitle)
                         }
@@ -457,7 +457,7 @@ struct DiscoveryTopicTemplatePreview: View {
                                 (nonempty(node.name).map { Text(verbatim: $0) } ?? Text("u10.template.nodeNo \(index + 1)"))
                                     .cyText(.label).foregroundStyle(palette.textPrimary).cyWrapText()
                                 if let teaser = nonempty(node.hookTeaser) {
-                                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary).cyWrapText()
+                                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary).cyWrapText()
                                 }
                                 // U02-05: credit for the first 8 node images only (mini _loadCredits).
                                 if index < 8, let reference = nonempty(node.imgUrl), TopicTemplateAdoptionFactory.attributionIsLive {
@@ -481,7 +481,7 @@ struct DiscoveryTopicTemplatePreview: View {
             Section {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text(verbatim: medal).cyText(.cardTitle)
-                    Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textTertiary)
+                    Text("u10.template.medalHint").cyText(.meta).foregroundStyle(palette.textSecondary)
                 }.accessibilityElement(children: .combine)
             } header: { TemplateXbSectionTitle(title: "u10.template.medal", systemImage: "star") }
                 .discoveryCardRow()
@@ -496,7 +496,7 @@ struct DiscoveryTopicTemplatePreview: View {
     private func topicStat<V: View>(_ value: V, label: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
             value.cyText(.numericBody).foregroundStyle(palette.textPrimary)
-            Text(label).cyText(.caption).foregroundStyle(palette.textTertiary)
+            Text(label).cyText(.caption).foregroundStyle(palette.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
@@ -543,7 +543,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     Text(verbatim: play).cyText(.bodyCompact).foregroundStyle(palette.textSecondary)
                 }
                 if let teaser = stop.hookTeaser {
-                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: teaser).cyText(.meta).foregroundStyle(palette.textSecondary)
                 }
             }
         }
@@ -613,7 +613,7 @@ private struct PublicTemplateSilhouette: View {
             }
             #if DEBUG
             Text(verbatim: "ROUTE SHAPE · DEBUG")
-                .cyText(.micro).foregroundStyle(palette.textTertiary)
+                .cyText(.micro).foregroundStyle(palette.textSecondary)
                 .padding(CYSpacing.sm)
             #endif
         }

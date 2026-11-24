@@ -86,7 +86,7 @@ struct SquareCloudRouteMap: View {
                         if reduceMotion { drawn = true } else { drawn = true }
                     }
                     if let sourceText, !sourceText.isEmpty {
-                        Text(verbatim: sourceText).cyText(.meta).foregroundStyle(.white.opacity(0.72))
+                        Text(verbatim: sourceText).cyText(.meta).foregroundStyle(.secondary)
                             .accessibilityIdentifier("square.cloud.route.source")
                     }
                 } else {
@@ -101,7 +101,7 @@ struct SquareCloudRouteMap: View {
     private func state(_ zh: String, _ en: String) -> some View {
         Text(verbatim: copy(zh, en))
             .font(.subheadline)
-            .foregroundStyle(.white.opacity(0.72))
+            .foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -120,9 +120,9 @@ struct SquareCloudStravaBlock: View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             if let name = card.name ?? title, !name.isEmpty {
                 HStack(spacing: CYSpacing.sm) {
-                    Text(verbatim: name).cyText(.cardTitle).foregroundStyle(.white).lineLimit(2)
+                    Text(verbatim: name).cyText(.cardTitle).foregroundStyle(.primary).lineLimit(2)
                     if card.cleared == true {
-                        Image(systemName: "trophy.fill").foregroundStyle(CYNight.lantern)
+                        Image(systemName: "trophy.fill").foregroundStyle(.orange)
                             .accessibilityLabel(Text(verbatim: copy("已通关", "Cleared")))
                     }
                 }
@@ -141,7 +141,7 @@ struct SquareCloudStravaBlock: View {
             if card.cleared == true { clearedBanner }
             if onDoubleTapLike != nil {
                 Text(verbatim: copy("双击路线点赞", "Double-tap the route to give kudos"))
-                    .cyText(.meta).foregroundStyle(.white.opacity(0.62))
+                    .cyText(.meta).foregroundStyle(.secondary)
                     .accessibilityAction(named: Text(verbatim: copy("点赞", "Kudos"))) { onDoubleTapLike?() }
                     .accessibilityIdentifier("square.cloud.doubleTap")
             }
@@ -150,15 +150,15 @@ struct SquareCloudStravaBlock: View {
             if onRepost != nil { repostButton }
         }
         .padding(CYSpacing.md)
-        .background(CYNight.ink1, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .background(CYColor.bgSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("square.cloud.strava")
     }
 
     private func stat(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-            Text(verbatim: label).cyText(.meta).foregroundStyle(.white.opacity(0.62))
-            Text(verbatim: value).cyText(.bodyMedium).foregroundStyle(.white).monospacedDigit().cyWrapText()
+            Text(verbatim: label).cyText(.meta).foregroundStyle(.secondary)
+            Text(verbatim: value).cyText(.bodyMedium).foregroundStyle(.primary).monospacedDigit().cyWrapText()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -166,12 +166,12 @@ struct SquareCloudStravaBlock: View {
 
     private var clearedBanner: some View {
         HStack(spacing: CYSpacing.sm) {
-            Image(systemName: "trophy.fill").foregroundStyle(CYNight.lantern)
-            Text(verbatim: copy("已通关", "Cleared")).cyText(.bodyMedium).foregroundStyle(CYNight.lantern)
+            Image(systemName: "trophy.fill").foregroundStyle(.orange)
+            Text(verbatim: copy("已通关", "Cleared")).cyText(.bodyMedium).foregroundStyle(.orange)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(CYSpacing.md)
-        .background(CYNight.lantern.opacity(0.14), in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .background(.orange.opacity(0.14), in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityIdentifier("square.cloud.cleared")
     }
 
@@ -179,14 +179,14 @@ struct SquareCloudStravaBlock: View {
         HStack(spacing: CYSpacing.sm) {
             HStack(spacing: -CYSpacing.sm) {
                 ForEach(Array(card.kudosAvatars.prefix(3).enumerated()), id: \.offset) { _, _ in
-                    Image(systemName: "person.crop.circle.fill").foregroundStyle(.white.opacity(0.8))
-                        .background(Circle().fill(CYNight.ink2))
+                    Image(systemName: "person.crop.circle.fill").foregroundStyle(.secondary)
+                        .background(Circle().fill(CYColor.bgSurfaceSubtle))
                         .accessibilityHidden(true)
                 }
             }
             Text(verbatim: card.kudosText ?? SquareCountDisplay.unknownMark)
                 .cyText(.meta)
-                .foregroundStyle(.white.opacity(0.72))
+                .foregroundStyle(.secondary)
                 .lineLimit(2)
         }
         .accessibilityElement(children: .combine)
@@ -195,8 +195,8 @@ struct SquareCloudStravaBlock: View {
 
     private var inlineComment: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Text(verbatim: card.commentAuthor ?? SquareCountDisplay.unknownMark).cyText(.bodyMedium).foregroundStyle(.white).cyWrapText()
-            Text(verbatim: card.commentBody ?? SquareCountDisplay.unknownMark).font(.subheadline).foregroundStyle(.white.opacity(0.8)).lineLimit(2)
+            Text(verbatim: card.commentAuthor ?? SquareCountDisplay.unknownMark).cyText(.bodyMedium).foregroundStyle(.primary).cyWrapText()
+            Text(verbatim: card.commentBody ?? SquareCountDisplay.unknownMark).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("square.cloud.comment")
@@ -208,7 +208,7 @@ struct SquareCloudStravaBlock: View {
                 .frame(minHeight: CYSpacing.minTouchTarget)
         }
         .buttonStyle(.borderless)
-        .foregroundStyle(.white)
+        .foregroundStyle(.primary)
         .accessibilityIdentifier("square.cloud.repost")
     }
 
@@ -242,7 +242,7 @@ struct SquareCloudPopover: View {
                         .accessibilityIdentifier("square.cloud.popover.\(item.key)")
                     }
                 }
-                .background(CYNight.ink2, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 .frame(maxWidth: 240, alignment: .leading)
                 .offset(x: placement.left, y: placement.top)
                 .accessibilityElement(children: .contain)
@@ -392,7 +392,7 @@ struct SquareCloudJoinedActivityList: View {
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYNight.ink0)
+        .background(CYColor.bgPage)
         .navigationTitle(Text(verbatim: copy("选择活动", "Choose an activity")))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
@@ -420,15 +420,15 @@ struct SquareCloudJoinedActivityList: View {
         case .rows(let rows) where rows.isEmpty && !started:
             CYSkeleton().accessibilityIdentifier("square.cloud.activity.loading")
         case .rows(let rows) where rows.isEmpty:
-            Text(verbatim: copy("还没有可关联的活动", "No activity to attach")).cyText(.cardTitle).foregroundStyle(.white)
+            Text(verbatim: copy("还没有可关联的活动", "No activity to attach")).cyText(.cardTitle).foregroundStyle(.primary)
                 .accessibilityIdentifier("square.cloud.activity.empty")
-            Text(verbatim: copy("只显示你参加过或主办的活动", "Only activities you joined or hosted")).font(.subheadline).foregroundStyle(.white.opacity(0.72))
+            Text(verbatim: copy("只显示你参加过或主办的活动", "Only activities you joined or hosted")).font(.subheadline).foregroundStyle(.secondary)
         case .rows(let rows):
             ForEach(rows) { item in
                 Button { onSelect(item) } label: {
                     VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                        Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(.white).cyWrapText()
-                        Text(verbatim: item.sourceLabel).cyText(.meta).foregroundStyle(.white.opacity(0.62))
+                        Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
+                        Text(verbatim: item.sourceLabel).cyText(.meta).foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 }
@@ -436,7 +436,7 @@ struct SquareCloudJoinedActivityList: View {
                 .accessibilityIdentifier("square.cloud.activity.row.\(item.activityID)")
             }
         case .empty:
-            Text(verbatim: copy("还没有可关联的活动", "No activity to attach")).cyText(.cardTitle).foregroundStyle(.white)
+            Text(verbatim: copy("还没有可关联的活动", "No activity to attach")).cyText(.cardTitle).foregroundStyle(.primary)
                 .accessibilityIdentifier("square.cloud.activity.empty")
         case .failed:
             notice("活动列表加载失败", "The activity list did not load").accessibilityIdentifier("square.cloud.activity.error")
@@ -464,8 +464,8 @@ struct SquareCloudJoinedActivityList: View {
 
     private func notice(_ zh: String, _ en: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text(verbatim: copy(zh, en)).cyText(.cardTitle).foregroundStyle(.white)
-            Text(verbatim: copy("不会编一份活动列表", "No stand-in list is shown")).font(.subheadline).foregroundStyle(.white.opacity(0.72))
+            Text(verbatim: copy(zh, en)).cyText(.cardTitle).foregroundStyle(.primary)
+            Text(verbatim: copy("不会编一份活动列表", "No stand-in list is shown")).font(.subheadline).foregroundStyle(.secondary)
         }
     }
 
@@ -498,7 +498,7 @@ struct SquareCloudCompletedActivityPicker: View {
             if generating {
                 SquareCloudRouteMap(phase: .loading, points: [], sourceText: nil)
                 Text(verbatim: copy("生成路线预览中…", "Making a route preview…"))
-                    .font(.subheadline).foregroundStyle(.white)
+                    .font(.subheadline).foregroundStyle(.primary)
                     .accessibilityIdentifier("square.cloud.completed.generating")
                     .accessibilityValue(Text(verbatim: previewTopicID))
             }
@@ -506,7 +506,7 @@ struct SquareCloudCompletedActivityPicker: View {
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(CYNight.ink0)
+        .background(CYColor.bgPage)
         .navigationTitle(Text(verbatim: copy("选择已完成的活动", "Choose a cleared activity")))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
@@ -532,9 +532,9 @@ struct SquareCloudCompletedActivityPicker: View {
             CYSkeleton().accessibilityIdentifier("square.cloud.completed.loading")
         case .rows(let rows):
             if rows.isEmpty {
-                Text(verbatim: copy("暂无可关联的已完成活动或主题", "No cleared activity or topic to attach")).cyText(.cardTitle).foregroundStyle(.white)
+                Text(verbatim: copy("暂无可关联的已完成活动或主题", "No cleared activity or topic to attach")).cyText(.cardTitle).foregroundStyle(.primary)
                     .accessibilityIdentifier("square.cloud.completed.empty")
-                Text(verbatim: copy("仅显示已完成的活动", "Only cleared activities")).font(.subheadline).foregroundStyle(.white.opacity(0.72))
+                Text(verbatim: copy("仅显示已完成的活动", "Only cleared activities")).font(.subheadline).foregroundStyle(.secondary)
             }
             ForEach(rows) { item in
                 Button { choose(item) } label: { completedRow(item) }
@@ -542,7 +542,7 @@ struct SquareCloudCompletedActivityPicker: View {
                     .accessibilityIdentifier("square.cloud.completed.row.\(item.activityID)")
             }
         case .empty:
-            Text(verbatim: copy("暂无可关联的已完成活动或主题", "No cleared activity or topic to attach")).cyText(.cardTitle).foregroundStyle(.white)
+            Text(verbatim: copy("暂无可关联的已完成活动或主题", "No cleared activity or topic to attach")).cyText(.cardTitle).foregroundStyle(.primary)
                 .accessibilityIdentifier("square.cloud.completed.empty")
         case .failed:
             status("活动列表没能打开", "The activity list did not open").accessibilityIdentifier("square.cloud.completed.error")
@@ -558,7 +558,7 @@ struct SquareCloudCompletedActivityPicker: View {
     private func completedRow(_ item: SquareCompletedActivity) -> some View {
         HStack(spacing: CYSpacing.md) {
             RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous)
-                .fill(CYNight.ink2)
+                .fill(CYColor.bgSurfaceSubtle)
                 .frame(width: 56, height: 56)
                 .overlay {
                     if let cover = item.cover, let url = URL(string: cover), cover.hasPrefix("https://") {
@@ -567,9 +567,9 @@ struct SquareCloudCompletedActivityPicker: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(.white).cyWrapText()
+                Text(verbatim: item.name).cyText(.cardTitle).foregroundStyle(.primary).cyWrapText()
                 Text(verbatim: copy("完成 \(SquareStravaCard.nodeText(done: item.doneCount, total: item.total)) · 已通关", "Done \(SquareStravaCard.nodeText(done: item.doneCount, total: item.total)) · cleared"))
-                    .cyText(.meta).foregroundStyle(.white.opacity(0.72))
+                    .cyText(.meta).foregroundStyle(.secondary)
             }
             Spacer(minLength: CYSpacing.sm)
             Image(systemName: "checkmark").foregroundStyle(CYColor.successText)
@@ -586,7 +586,7 @@ struct SquareCloudCompletedActivityPicker: View {
     }
 
     private func status(_ zh: String, _ en: String) -> some View {
-        Text(verbatim: copy(zh, en)).cyText(.cardTitle).foregroundStyle(.white)
+        Text(verbatim: copy(zh, en)).cyText(.cardTitle).foregroundStyle(.primary)
     }
 
     private func choose(_ item: SquareCompletedActivity) {

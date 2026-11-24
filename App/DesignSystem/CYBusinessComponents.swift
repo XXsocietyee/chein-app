@@ -145,7 +145,7 @@ public struct CYActivityFeedCard: View {
             if let rareTrophyCount {
                 HStack(spacing: CYSpacing.xs) {
                     Image(systemName: "star.fill")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(.caption, weight: .bold))
                         .foregroundStyle(palette.rare)
                     Text(verbatim: "\(rareTrophyCount)")
                         .cyText(.micro, weight: .bold, monospacedDigit: true)
@@ -518,7 +518,7 @@ public struct CYTaskStatusCard: View {
         let tokens = Self.tokens(for: state, in: palette)
         return HStack(spacing: CYSpacing.sm) {
             Image(systemName: tokens.iconName)
-                .font(.system(size: 16, weight: .semibold))
+                .font(.system(.callout, weight: .semibold))
                 .foregroundStyle(tokens.iconColor)
                 .accessibilityHidden(true)
 

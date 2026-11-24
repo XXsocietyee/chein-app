@@ -139,11 +139,6 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    CYHeroHeader(verbatim: c.t("取消活动并退款", "Cancel event & refund"))
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
-                }
                 switch model.phase {
                 case .loading:
                     Section {
@@ -230,7 +225,7 @@ import SwiftUI
             }
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
-            .cyHeroScreen()
+            .cyPageTitle(verbatim: c.t("取消活动并退款", "Cancel event & refund"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(c.t("关闭", "Close")) {

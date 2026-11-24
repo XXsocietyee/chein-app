@@ -22,7 +22,7 @@ struct GlobalTemplateResultRow: View {
                 if let detail = row.detail, !detail.isEmpty {
                     Text(verbatim: detail).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary).lineLimit(2)
                 }
-                if row.previewOnly { Text("searchMap.template.previewOnly").cyText(.caption).foregroundStyle(CYColor.textTertiary) }
+                if row.previewOnly { Text("searchMap.template.previewOnly").cyText(.caption).foregroundStyle(CYColor.textSecondary) }
             }
             Spacer(minLength: 0)
         }
@@ -92,7 +92,7 @@ struct SearchMapCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
         }
         .padding(CYSpacing.md)
         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))

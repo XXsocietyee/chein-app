@@ -28,7 +28,6 @@ struct DiscoveryHomeView: View {
                         .cyDomainPageBackground()
                 } else {
                     List {
-                        Section { CYHeroHeader("discovery.title") }.e1HeroRow()
                         entrySection
                         bannerSection
                         if let error = home.error {
@@ -57,8 +56,8 @@ struct DiscoveryHomeView: View {
                     .refreshable { await reload() }
                 }
             }
-            .sheet(isPresented:$showsTopics) { SessionTopicBrowserView() }
-            .cyHeroScreen()
+            .sheet(isPresented:$showsTopics) { Group { SessionTopicBrowserView() }.cySheet(detents: [.large]) }
+            .cyPageTitle("discovery.title")
             .task { if reader.isConfigured { await reload() } }
         }
         .cyDomainScreen(.player)

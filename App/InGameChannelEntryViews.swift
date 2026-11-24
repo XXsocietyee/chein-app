@@ -151,7 +151,7 @@ import SwiftUI
             } label: {
                 ZStack(alignment: .topTrailing) {
                     Image(systemName: model.isOpening ? "ellipsis.bubble" : "bubble.left.and.bubble.right")
-                        .font(CYTypography.bodyMedium)
+                        .cyText(.bodyMedium)
                         .frame(minWidth: 32, minHeight: 32)
                     IMUnreadBadge(count: model.unreadCount, muted: model.isMuted)
                         .offset(x: 6, y: -4)
@@ -183,7 +183,7 @@ import SwiftUI
             } label: {
                 HStack(spacing: CYSpacing.md) {
                     Image(systemName: "bubble.left.and.bubble.right.fill")
-                        .font(CYTypography.sectionTitle)
+                        .cyText(.sectionTitle)
                         .foregroundStyle(palette.brand)
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -193,7 +193,7 @@ import SwiftUI
                                 .foregroundStyle(palette.textPrimary)
                             if model.isMuted {
                                 Image(systemName: "bell.slash")
-                                    .font(CYTypography.meta)
+                                    .cyText(.meta)
                                     .foregroundStyle(palette.textTertiary)
                                     .accessibilityHidden(true)
                             }

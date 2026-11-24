@@ -66,10 +66,10 @@ extension EnvironmentValues {
             .task(id: detail.team.id) {
                 await load()
             }
-            .sheet(isPresented: $showingReportSheet) {
+            .sheet(isPresented: $showingReportSheet) { Group {
                 // Source `team-report-sheet`: five fixed reasons, sent verbatim.
                 TeamReportReasonSheet(teamID: detail.team.id)
-            }
+            }.cySheet() }
         }
     }
 
@@ -116,7 +116,7 @@ extension EnvironmentValues {
                                     Text(verbatim: task.title)
                                         .cyText(.caption)
                                         .foregroundStyle(CYColor.textSecondary)
-                                        .lineLimit(1)
+                                        .lineLimit(2)
                                 }
                             }
                             Divider()
@@ -128,7 +128,7 @@ extension EnvironmentValues {
                                         let done = member.hasCompleted(taskID: task.id)
                                         Text(verbatim: done ? "✓" : "·")
                                             .cyText(.meta, weight: .bold)
-                                            .foregroundStyle(done ? CYColor.successText : CYColor.textTertiary)
+                                            .foregroundStyle(done ? CYColor.successText : CYColor.textSecondary)
                                             .accessibilityLabel(
                                                 done ? c.t("已完成", "Completed") : c.t("未完成", "Pending")
                                             )
@@ -181,7 +181,7 @@ extension EnvironmentValues {
                         if let duration = row.durationText {
                             Text(verbatim: duration)
                                 .cyText(.meta)
-                                .foregroundStyle(CYColor.textTertiary)
+                                .foregroundStyle(CYColor.textSecondary)
                         }
                     }
                     Spacer()

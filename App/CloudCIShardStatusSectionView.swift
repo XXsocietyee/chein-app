@@ -175,7 +175,7 @@ public struct CloudCIShardStatusSectionView: View {
                         Text(verbatim: row.title)
                             .cyText(.bodyMedium)
                         Text(verbatim: row.runnerImage)
-                            .font(.caption2.monospaced())
+                            .font(.caption.monospaced())
                             .foregroundStyle(.secondary)
                         Spacer()
                         Text(verbatim: row.badgeText)
