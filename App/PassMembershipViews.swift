@@ -288,7 +288,7 @@ struct PassGlassKeyFrames: View {
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1 / Self.fps, paused: reduceMotion)) { context in
-            sheet(frame: reduceMotion ? 0 : Self.frame(at: context.date.timeIntervalSince(start)))
+            cell(reduceMotion ? 0 : Self.frame(at: context.date.timeIntervalSince(start)))
         }
         .frame(width: size, height: size)
         .accessibilityHidden(true)
@@ -299,7 +299,7 @@ struct PassGlassKeyFrames: View {
         return Int(elapsed * fps) % count
     }
 
-    private func sheet(frame: Int) -> some View {
+    private func cell(_ frame: Int) -> some View {
         MPAsset.Other.glassKey
             .resizable()
             .interpolation(.high)
