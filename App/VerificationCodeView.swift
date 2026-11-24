@@ -24,10 +24,15 @@ extension EnvironmentValues {
     /// Pass-sheet mode: no hero header, no own scroll or background, QR drawn at `qrSide` pt on white.
     var embeddedQRSide: CGFloat? = nil
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var operation: Task<Void, Never>?
     @State private var revealSweep = false
     var body: some View {
-        if embeddedQRSide != nil { lifecycle(stack) } else {
+        if embeddedQRSide != nil { lifecycle(stack) } else if model.target.kind == .cityVoucher, autoIssue {
+            // RCODE-3: the node name is the system inline title (MP 据点核销码 nav title), not a heading in the content.
+            lifecycle(ScrollView { stack.padding().frame(maxWidth: .infinity) }
+                .cyPageTitle(verbatim: title ?? appLocalized("roamSub.w208.voucher.defaultName", locale: locale)))
+        } else {
             lifecycle(ScrollView { stack.padding().frame(maxWidth: .infinity) }.cyHeroScreen())
         }
     }
@@ -35,7 +40,7 @@ extension EnvironmentValues {
             VStack(spacing: 20) {
                 if embeddedQRSide != nil {
                 } else if model.target.kind == .cityVoucher, autoIssue {
-                    RoamCityVoucherHeading(title: title)
+                    // RCODE-3: titled by the navigation bar.
                 } else {
                     CYHeroHeader(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title")
                 }
