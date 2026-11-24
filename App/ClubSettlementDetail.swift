@@ -221,9 +221,9 @@ import UIKit
     var body: some View {
         Group {
             if presentation.records.isEmpty {
-                ContentUnavailableView {
-                    Label { Text("clubOps.settlement.empty", tableName: "ClubOpsCustomer") } icon: { Image(systemName: "yensign.circle") }
-                }.accessibilityIdentifier("clubOps.settlement.empty")
+                // Round 2 MP asset: settlement 还没有平台分润记录 is cy-empty kind="empty" (MP illustration).
+                ClubMPEmptyState(title: Text("clubOps.settlement.empty", tableName: "ClubOpsCustomer"))
+                    .accessibilityIdentifier("clubOps.settlement.empty")
             }
             ForEach(presentation.records) { row in
                 if let target = presentation.target(recordID: row.id, context: context, snapshotGeneration: snapshotGeneration, namespace: namespace) {

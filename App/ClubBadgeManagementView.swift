@@ -203,7 +203,8 @@ import SwiftUI
                             flow.selectMember(member); pendingReview = flow.review; model.changed()
                         } label: {
                             HStack(spacing: CYSpacing.md) {
-                                CYAvatarView(url: member.avatar.flatMap(URL.init(string:)), name: name, size: .md)
+                                // MP badges `item.avatar || '/images/d_profile.png'` (round 2 MP asset).
+                                ClubMPAvatar(url: member.avatar.flatMap(URL.init(string:)), name: name, size: .md)
                                     .accessibilityHidden(true)
                                 Text(verbatim: name)
                                     .cyText(.body)

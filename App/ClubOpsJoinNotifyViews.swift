@@ -22,11 +22,15 @@ struct ClubOpsJoinRequestActionLabel: View {
 
 struct ClubOpsJoinRequestLoadIssue: View {
     let issue: ClubOpsJoinRequestCopy.LoadIssue
+    /// CLB-join-requests-06 (fix-r3-club-b round 2): Core's classifier sentence, 网络连接失败 or 入会申请加载失败.
+    var literalTitle: String? = nil
     let disabled: Bool
     let retry: () -> Void
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
-            if issue == .failed {
+            if issue == .failed, let literalTitle {
+                CYEmptyState(systemImage: "exclamationmark.triangle", verbatimTitle: literalTitle, kind: .failure)
+            } else if issue == .failed {
                 CYEmptyState(systemImage: "exclamationmark.triangle", "clubOpsJoin.failed", tableName: "ClubOpsJoinNotify", kind: .failure)
             } else {
                 Label {

@@ -104,12 +104,14 @@ struct ClubOpsFailureSection: View {
         Section {
             if list.rows.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    CYEmptyState(
-                        systemImage: filtered ? "line.3.horizontal.decrease.circle" : "person.2",
-                        LocalizedStringKey(filtered ? "clubOps.customers.filteredEmpty" : "clubOps.customers.empty"),
-                        tableName: "ClubOpsCustomer",
-                        kind: filtered ? .search : .generic
-                    )
+                    if filtered {
+                        // MP 没有符合条件的客户 has no kind, so no illustration (cy-empty legacy default).
+                        CYEmptyState(systemImage: "line.3.horizontal.decrease.circle", "clubOps.customers.filteredEmpty",
+                                     tableName: "ClubOpsCustomer", kind: .search)
+                    } else {
+                        // Round 2 MP asset: 还没有客户 is cy-empty kind="empty", the MP two-layer illustration.
+                        ClubMPEmptyState(title: Text("clubOps.customers.empty", tableName: "ClubOpsCustomer"))
+                    }
                     if filtered {
                         Text("clubOps.customers.filteredEmptyDetail", tableName: "ClubOpsCustomer")
                             .cyText(.body)
@@ -165,7 +167,8 @@ struct ClubOpsCustomerRowView: View {
             : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         stack {
             // CLB-customers-02 (parity r2): CYAvatarView with the customer's avatar and an initial fallback (MP cy-avatar).
-            CYAvatarView(url: row.avatar.flatMap(URL.init(string:)), name: row.displayName ?? initial, size: .md)
+            // Round 2 MP asset: cy-avatar falls back to images/d_profile.png only when there is no name.
+            ClubMPAvatar(url: row.avatar.flatMap(URL.init(string:)), name: row.displayName ?? "", size: .md, usesDefaultFace: false)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
@@ -239,9 +242,9 @@ struct ClubOpsCustomerRowView: View {
             CYAvatarView(url: url, name: detail.displayName ?? "—", size: .lg)
                 .accessibilityHidden(true)
         } else {
-            CYCoverArt(seed: detail.displayName ?? "—", symbol: "person", showsDebugLabel: false, showsGlyph: false)
-                .frame(width: avatarSide, height: avatarSide)
-                .clipShape(Circle())
+            // Round 2 MP asset: MP cy-avatar shows the initial for a named customer and images/d_profile.png
+            // otherwise; the generated cover art is gone.
+            ClubMPAvatar(url: nil, name: detail.displayName ?? "", size: .lg, usesDefaultFace: false)
                 .accessibilityHidden(true)
         }
     }
@@ -356,7 +359,8 @@ struct ClubOpsCustomerRowView: View {
     /// Withheld stays the permission sentence. Unknown is the page model's em dash, never 0.
     private var paidText: String? {
         if let paid = page?.paidAmount { return paid.displayText }
-        return detail.paidAmountText
+        // Owner decision 9: server amount text reads with two decimals (¥12.50).
+        return detail.paidAmountText.map(ClubMoneyText.display)
     }
     @ViewBuilder private var interaction: some View {
         // CLB-customer-detail-06 (parity r2): the remark already has its own card, so it is not repeated here.

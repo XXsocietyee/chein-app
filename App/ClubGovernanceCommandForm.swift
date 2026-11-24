@@ -256,6 +256,24 @@ import SwiftUI
                     Text("club.gov.groupCode.noPermission.hint").cyText(.bodyCompact).foregroundStyle(.secondary)
                     Button("club.gov.groupCode.backToClub") { dismiss() }.accessibilityIdentifier("club.gov.groupCode.back")
                 }
+            } else if let failure, route.operation == .saveCustomer {
+                // CLB-customer-detail-04 (fix-r3-club-b round 2): MP cy-inline-error 标签与备注没保存成功, the server
+                // sentence (or 请重试), and 重试保存. An unknown outcome (`locked`) never offers the retry.
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Label { Text("clubR3b.customer.saveFailed") } icon: { Image(systemName: "exclamationmark.circle") }
+                            .cyText(.cardTitle).foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("club.gov.formError")
+                        if let message = failure.message { Text(verbatim: message).cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                        else { Text("clubR3b.customer.saveFailedRetry").cyText(.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                        if !locked {
+                            Button("clubR3b.customer.retrySave") { Task { await submitDirectly() } }
+                                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                                .disabled(busy || identity == nil)
+                                .accessibilityIdentifier("club.gov.customer.retrySave")
+                        }
+                    }
+                }
             } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy { ProgressView() }
             if let review {
