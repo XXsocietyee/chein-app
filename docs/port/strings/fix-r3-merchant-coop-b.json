@@ -33,6 +33,23 @@
       }
     }
   },
+  "merchantCoop.coop.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "去登录"
+        }
+      }
+    }
+  },
   "merchantCoop.coopCenter.refreshFailed": {
     "extractionState": "manual",
     "localizations": {
@@ -118,6 +135,23 @@
       }
     }
   },
+  "merchantCoop.finance.rowTitle": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Profit share details"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "分润明细"
+        }
+      }
+    }
+  },
   "merchantCoop.gallery.removeNth %lld": {
     "extractionState": "manual",
     "localizations": {
@@ -131,6 +165,74 @@
         "stringUnit": {
           "state": "translated",
           "value": "删除第%lld张图片"
+        }
+      }
+    }
+  },
+  "merchantCoop.invite.refreshTargets": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh partners"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新合作对象"
+        }
+      }
+    }
+  },
+  "merchantCoop.invite.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to send a collaboration invite"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后发起协作邀请"
+        }
+      }
+    }
+  },
+  "merchantCoop.nearby.refresh": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Refresh nearby merchants"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "刷新附近商家"
+        }
+      }
+    }
+  },
+  "merchantCoop.nearby.signIn": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sign in to see nearby merchants"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "登录后查看附近商家"
         }
       }
     }

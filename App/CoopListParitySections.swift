@@ -32,7 +32,7 @@ import SwiftUI
                             if let chapter = row.chapterName {
                                 Text(verbatim: row.leg == .owner && row.merchantName != nil ? chapter + " · " + (row.merchantName ?? "") : chapter).cyText(.meta).foregroundStyle(CYColor.textSecondary)
                             }
-                            Text(LocalizedStringKey("cooperation.list.chapter.action." + row.action.rawValue)).cyText(.label, weight: .semibold).foregroundStyle(CYColor.infoText)
+                            // MC7-30-3: the row has no destination here, so no info-coloured action label that reads as a link.
                         }.padding(.vertical, CYSpacing.xs).accessibilityElement(children: .combine)
                             .accessibilityIdentifier("cooperation.list.chapter.\(row.id)")
                     }

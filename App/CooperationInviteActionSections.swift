@@ -6,6 +6,8 @@ import SwiftUI
     let view: CooperationInvitePresentation
     let peerReader: (any CoopFlowReading)?
     @Environment(\.dismiss) private var dismiss
+    /// MC7-32-4: 进入项目 opens the bound topic when the list supplied the project destination.
+    @Environment(\.cooperationProjectDestination) private var projectDestination
     private var invite: CooperationInvite { view.invite }
     var body: some View {
         if view.showsContactPartner, let peerReader { accepted(peerReader) }
@@ -37,8 +39,16 @@ import SwiftUI
     @ViewBuilder private func accepted(_ reader: any CoopFlowReading) -> some View {
         Section("cooperation.detail.actions") {
             if let scope = view.projectScope, let topic = invite.topicId {
-                LabeledContent { Text(verbatim: "#" + String(topic)) } label: { Text("cooperation.detail.project") }
+                if let projectDestination, topic > 0 {
+                    NavigationLink {
+                        CooperationProjectNavigationDestination(topicID: topic, invite: CooperationInviteKey(id: invite.id, direction: view.direction),
+                                                                destination: projectDestination)
+                    } label: { Text("cooperation.detail.project") }
                     .accessibilityIdentifier("cooperation.detail.project.\(scope.rawValue)")
+                } else {
+                    LabeledContent { Text(verbatim: "#" + String(topic)) } label: { Text("cooperation.detail.project") }
+                        .accessibilityIdentifier("cooperation.detail.project.\(scope.rawValue)")
+                }
             }
             NavigationLink { CoopFlowRequestPreview(operation: .contact(inviteID: invite.id)) } label: { Text("cooperation.detail.contactPartner") }
                 .accessibilityIdentifier("cooperation.detail.contactPartner")

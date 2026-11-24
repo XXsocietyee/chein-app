@@ -18,6 +18,9 @@ extension EnvironmentValues {
     @Environment(\.coopWalletReader) private var walletReader
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// MC7-34-1: MP picks the theme from the entry role: player (钱包 / 主办分润) stays player, otherwise merchant.
+    @Environment(\.themeDomain) private var entryDomain
+    private var pageDomain: ThemeDomain { entryDomain == .player ? .player : .merchant }
     @State private var profit: CoopFinanceProfit?
     @State private var issue: CoopFinanceProfit.ReadIssue?
     @State private var loadedSession: CoopFlowSession?
@@ -41,7 +44,7 @@ extension EnvironmentValues {
         }
         .cyGroupedSurface()
         .cyHeroScreen()
-        .themeDomain(.merchant)
+        .themeDomain(pageDomain)
         .cyHideTabBar(true)
         .modifier(CoopOperationListPresentation())
         .labeledContentStyle(CoopFinancialRowStyle())
@@ -53,7 +56,7 @@ extension EnvironmentValues {
         .sheet(isPresented: $showsSupport) {
             WithdrawalSupportContactView()
                 .cyDomainSheet(detents: [.half, .full])
-                .themeDomain(.merchant)
+                .themeDomain(pageDomain)
         }
         .accessibilityIdentifier("cooperation.finance")
     }

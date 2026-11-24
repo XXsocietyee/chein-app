@@ -14,7 +14,14 @@ extension EnvironmentValues {
     @ObservedObject var session: AppSession
     var body: some View {
         Group {
-            if let model = session.nearbyMerchantCoordinator {
+            if session.account == nil {
+                // MC7-33-8: a guest sees 登录后查看附近商家 + 登录 (MP coop/nearby/index.wxml:46), not plain text.
+                List {
+                    MerchantCoopSignInState(title: "merchantCoop.nearby.signIn", identifier: "nearbyMerchant.signIn")
+                        .listRowBackground(Color.clear)
+                }
+                .cyMiniListScreen().cyPageTitle("cooperation.nearby.title")
+            } else if let model = session.nearbyMerchantCoordinator {
                 NearbyMerchantView(model: model, publicMerchant: session.publicMerchantHomeContext)
             } else { Text("coopflow.nearby.unavailable") }
         }.id(session.sessionRevision).privacySensitive()
@@ -85,6 +92,12 @@ extension EnvironmentValues {
                     if page.phase == .empty {
                         CYEmptyStateView(systemImage: "mappin.slash", title: "cooperation.nearby.empty", description: "cooperation.nearby.empty.detail")
                             .accessibilityIdentifier("cooperation.nearby.empty")
+                        // MC7-33-7: MP 刷新附近商家 re-runs the same consented search.
+                        Button { operation = Task { await model.search(purposeAccepted: purposeAccepted) } } label: {
+                            Label("merchantCoop.nearby.refresh", systemImage: "arrow.clockwise").frame(minHeight: CYSpacing.minTouchTarget)
+                        }
+                        .disabled(!purposeAccepted || !model.available || model.isBusy)
+                        .accessibilityIdentifier("cooperation.nearby.refresh")
                     }
                     ForEach(model.rows) { row in
                         if model.publicHomeSelection(rowID: row.id) != nil {
