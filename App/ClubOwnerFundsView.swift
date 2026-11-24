@@ -292,7 +292,7 @@ private struct CYBalanceHeroLocal: View {
                 .foregroundStyle(CYColor.textSecondary)
                 .cyWrapText()
                 .padding(.horizontal, CYSpacing.sm)
-                .padding(.vertical, CYSpacing.xxs)
+                .padding(.vertical, CYSpacing.xs)
                 .background(CYColor.bgSurfaceSubtle, in: Capsule())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -307,7 +307,7 @@ private struct CYMoneyRowLocal: View {
     let incoming: Bool
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).cyWrapText()
                 if !detail.isEmpty {
                     Text(verbatim: detail).cyText(.meta).foregroundStyle(CYColor.textSecondary).cyWrapText()

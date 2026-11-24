@@ -1110,7 +1110,7 @@ private struct ClubOperationsProfileForm: View {
     @ViewBuilder private var createDirectionSection: some View {
         // HANDOFF-R1 MC-10: direction chips (multi, at most 3); a fourth tap only shows the limit note.
         Section {
-            ClubR1WrapLayout(spacing: CYSpacing.s2_5) {
+            ClubR1WrapLayout(spacing: CYSpacing.md) {
                 ForEach(Array(ClubOperationsCatalog.directions.enumerated()), id: \.element) { index, value in
                     let selected = draft.activityPrefs.contains(value)
                     ClubR1Chip(title: Text(LocalizedStringKey("club.ops.value." + value)), isSelected: selected) {
@@ -1333,7 +1333,7 @@ private struct ClubOperationsProfileForm: View {
                               axis: axis)
             .accessibilityLabel(Text(labelKey))
             .accessibilityIdentifier("club.ops.field." + key)
-        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             HStack(spacing: 2) {
                 Text(labelKey)
                 if Self.requiredKeys.contains(key) { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }

@@ -110,7 +110,7 @@ struct ClubConsequenceSheet: View {
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgElevated))
-            VStack(spacing: CYSpacing.s2_5) {
+            VStack(spacing: CYSpacing.md) {
                 if let alternativeTitle, let onAlternative {
                     Button {
                         dismiss()
@@ -198,7 +198,7 @@ struct ClubWithdrawalHandOffNote: View {
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .foregroundStyle(palette.textSecondary)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: clubR1("funds.handOff.title", locale))
                     .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)

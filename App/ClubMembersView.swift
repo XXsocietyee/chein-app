@@ -252,7 +252,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             CYAvatarView(url: QuestifyCardArtwork.safeURL(member.avatar), name: member.trimmedNickname ?? "\(member.memberId)", size: .md)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let nickname = member.trimmedNickname {
                     Text(verbatim: nickname)
                         .cyText(.cardTitle)

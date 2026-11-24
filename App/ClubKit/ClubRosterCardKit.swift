@@ -169,7 +169,7 @@ struct ClubRosterCard: View {
     }
 
     private func money(_ key: String, _ raw: String?) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: clubR1Value(raw))
                 .cyText(.numericBody)
                 .foregroundStyle(palette.textPrimary)

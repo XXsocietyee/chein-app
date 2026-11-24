@@ -239,14 +239,14 @@ extension EnvironmentValues {
     }
     private func teamHeader(_ team: ClubEnrollmentTeam) -> some View {
         let expanded = reader.expanded.contains(team.id)
-        let text = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        let text = VStack(alignment: .leading, spacing: CYSpacing.xs) {
             title(team.name, fallback: "club.enroll.unnamedTeam")
                 .cyText(.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             ViewThatFits(in: .horizontal) {
                 signupLine(team)
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) { signupLine(team) }
+                VStack(alignment: .leading, spacing: CYSpacing.xs) { signupLine(team) }
             }
         }
         return Group {
@@ -338,7 +338,7 @@ extension EnvironmentValues {
             if !roster.sessionMoney.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     ForEach(roster.sessionMoney) { money in
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             HStack(spacing: CYSpacing.xs) {
                                 if let label = money.label { Text(verbatim: label).lineLimit(1) } else { Text("club.enroll.money.session") }
                                 if money.cancelled { CYStatusChip("club.enroll.money.cancelled", tone: .neutral) }
@@ -368,7 +368,7 @@ extension EnvironmentValues {
                             Spacer(minLength: CYSpacing.sm)
                             capacity(ticket)
                         }
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             ticketTitle(ticket)
                             capacity(ticket)
                         }
@@ -417,7 +417,7 @@ extension EnvironmentValues {
     private func fact(_ title: LocalizedStringKey, value: some View) -> some View {
         ViewThatFits(in: .horizontal) {
             LabeledContent(title) { value }
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(title).cyText(.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true)
                 value
             }

@@ -387,7 +387,7 @@ struct ClubOpsCustomerRecordRow: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
             : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         stack {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let day {
                     Text(day, format: .number)
                         .cyText(.numericBody)

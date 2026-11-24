@@ -378,7 +378,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private func eventRow(_ event: ClubHomeEvent, page: ClubTabPageModel?) -> some View {
         let title = event.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let signups = page?.events.first { $0.id == event.id }?.signupCount
-        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        return VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Group {
                 if title.isEmpty {
                     CYListRow("club.untitledEvent", trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }

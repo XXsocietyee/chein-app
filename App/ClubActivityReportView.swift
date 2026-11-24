@@ -204,7 +204,7 @@ import SwiftUI
     private func choiceRow(_ choice: ClubActivityReportChoice) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             CYRowIcon(systemImage: "flag")
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 choiceTitle(choice.name)
                     .cyText(.cardTitle)
                     .foregroundStyle(palette.textPrimary)

@@ -63,7 +63,7 @@ struct IMStaticLocationCardView: View {
     }
 
     private var details: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: placeTitle)
                 .cyText(.bodyMedium)
                 .foregroundStyle(palette.textPrimary)

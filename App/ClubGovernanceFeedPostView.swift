@@ -27,7 +27,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 avatar
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Group {
                         if let nickname = post.nickname { Text(verbatim: nickname) }
                         else { Text("square.unknownAuthor") }

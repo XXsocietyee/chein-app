@@ -157,7 +157,7 @@ import SwiftUI
                         // HANDOFF-R1 MC-30: a club badge without uploaded art gets the club crest family art.
                         ClubBadgeArt(name: shownName(badge) ?? "", seed: badge.badgeCode, category: .club, size: 48)
                     }
-                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         badgeName(badge)
                             .cyText(.cardTitle)
                             .foregroundStyle(palette.textPrimary)
@@ -209,7 +209,7 @@ import SwiftUI
                     } label: {
                         HStack(spacing: CYSpacing.md) {
                             CYRowIcon(systemImage: member.isOwner ? "crown" : "person")
-                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                                 Text(verbatim: member.trimmedNickname ?? String(member.memberId))
                                     .cyText(.cardTitle)
                                     .foregroundStyle(palette.textPrimary)

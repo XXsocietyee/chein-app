@@ -24,7 +24,7 @@ struct ClubR1OptionCard: View {
                         .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgRaised))
                         .accessibilityHidden(true)
                 }
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     title
                         .cyText(.bodyMedium)
                         .foregroundStyle(palette.textPrimary)
@@ -211,7 +211,7 @@ struct ClubCreateCityPicker: View {
                 }
                 .cyText(.body)
             }
-            .padding(.horizontal, CYSpacing.s2_5)
+            .padding(.horizontal, CYSpacing.md)
             .frame(minHeight: 36)
             .background(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).fill(palette.bgSurfaceSubtle))
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {

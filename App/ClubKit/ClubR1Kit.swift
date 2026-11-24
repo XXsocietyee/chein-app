@@ -81,7 +81,7 @@ struct ClubR1Row<Trailing: View>: View {
                     .frame(width: 24, height: 24)
                     .accessibilityHidden(true)
             }
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: clubR1Value(title))
                     .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
@@ -137,7 +137,7 @@ struct ClubR1SwitchRow: View {
 
     var body: some View {
         Toggle(isOn: $isOn) {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: title)
                     .cyText(.bodyMedium)
                     .foregroundStyle(palette.textPrimary)
@@ -182,7 +182,7 @@ struct ClubR1SwitchLabel: View {
     @Environment(\.cyPalette) private var palette
 
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             title
                 .cyText(.body)
                 .foregroundStyle(palette.textPrimary)
