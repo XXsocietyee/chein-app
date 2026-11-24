@@ -14,13 +14,13 @@ import SwiftUI
         let _ = model.revision
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                CYHeroHeader("title", tableName: "ClubBadge")
+                // CLB-badges-01 (parity r2): the page-type title is the inline bar title, not a hero in the content.
                 if let flow = model.flow, flow.isCurrent {
                     badgeContent(flow)
                 } else if model.working {
                     CYSkeleton().accessibilityLabel(Text("loading", tableName: "ClubBadge"))
                 } else {
-                    Text("readError", tableName: "ClubBadge")
+                    Text("listError", tableName: "ClubBadge")
                         .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -32,11 +32,10 @@ import SwiftUI
         }
         .cyDomainScreen(.player)
         .privacySensitive()
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") }
-            }
-        }
+        .navigationTitle(Text("title", tableName: "ClubBadge"))
+        .navigationBarTitleDisplayMode(.inline)
+        // CLB-badges-06: pull to refresh (MP enablePullDownRefresh) instead of a toolbar 刷新.
+        .refreshable { model.perform { await $0.refresh() } }
         .onAppear { visible = true; if scenePhase == .active { model.start() } }
         .onDisappear { visible = false; creating = false; pendingReview = nil; draft = .init(); model.retire() }
         .onChange(of: scenePhase) { _, phase in
@@ -50,11 +49,13 @@ import SwiftUI
         .sheet(isPresented: $creating) { createForm }
         .sheet(isPresented: Binding(get: { pendingReview != nil }, set: { if !$0 { pendingReview = nil } })) {
             if let review = pendingReview {
-                let targetName = (review.member.trimmedNickname ?? String(review.member.memberId)) + " · " + (review.badge.badgeName ?? review.badge.badgeCode)
+                // CLB-badges-05: the title names the badge and the person (MP 把「X」颁给 Y？).
+                let memberName = review.member.trimmedNickname ?? "—"
+                let badgeName = review.badge.badgeName ?? review.badge.badgeCode
                 let detail = String(localized: LocalizedStringResource("confirmGrantDetail", table: "ClubBadge", locale: locale))
                 CYConfirmSheet(
-                    title: String(localized: LocalizedStringResource("confirmGrant", table: "ClubBadge", locale: locale)),
-                    message: "\(targetName)\n\(detail)",
+                    title: String(localized: LocalizedStringResource("confirmGrantNamed \(badgeName) \(memberName)", table: "ClubBadge", locale: locale)),
+                    message: detail,
                     confirmTitle: String(localized: LocalizedStringResource("grant", table: "ClubBadge", locale: locale)),
                     cancelTitle: String(localized: LocalizedStringResource("cancel", table: "ClubBadge", locale: locale)),
                     isDestructive: false,
@@ -89,7 +90,7 @@ import SwiftUI
         case .error:
             CYEmptyState(
                 systemImage: "exclamationmark.triangle",
-                "readError",
+                "listError",
                 tableName: "ClubBadge",
                 actionTitle: "retry",
                 actionStyle: flow.canCreate ? .secondary : .primary,
@@ -100,7 +101,8 @@ import SwiftUI
         case .empty, .ready:
             if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text("readError", tableName: "ClubBadge")
+                    // CLB-badges-07: MP 列表没刷新成功 for a failed refresh, 勋章列表没加载成功 otherwise.
+                    Text(flow.refreshError != nil ? "refreshError" : "listError", tableName: "ClubBadge")
                         .cyText(.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -124,6 +126,14 @@ import SwiftUI
         }
         if flow.screenState == .empty {
             CYEmptyState(systemImage: "medal", "empty", tableName: "ClubBadge")
+        }
+        if !flow.badges.isEmpty {
+            // CLB-badges-06: MP 全部勋章 · N 枚 header.
+            Text("allBadges \(flow.badges.count)", tableName: "ClubBadge")
+                .cyText(.sectionTitle)
+                .monospacedDigit()
+                .foregroundStyle(palette.textPrimary)
+                .accessibilityAddTraits(.isHeader)
         }
         ForEach(flow.badges) { badge in badgeCard(badge, flow: flow) }
         if flow.pickerOpen { memberPicker(flow) }

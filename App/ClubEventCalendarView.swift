@@ -87,8 +87,6 @@ import SwiftUI
     }
     var body: some View {
         List {
-            CYHeroHeader("club.calendar.title")
-                .clubCalendarRow()
             Picker("club.calendar.display", selection: $calendarMode) {
                 Text("club.calendar.list").tag(false)
                 Text("club.calendar.monthView").tag(true)
@@ -166,6 +164,7 @@ import SwiftUI
             if reportPresentation.presented == nil { model.suspend() }
         }
         .refreshable { closeReport(); destination = nil; await loadCalendar() }
+        .cyPageTitle("club.calendar.title")
     }
     @ViewBuilder private func calendar(_ snapshot: ClubEventCalendarSnapshot) -> some View {
         Section {

@@ -101,12 +101,6 @@ import SwiftUI
         let _ = model.bind(expected)
         let permit = model.permit(in: expected)
         List {
-            Section {
-                CYHeroHeader("club.statsOverview.title")
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(pageInsets)
-                    .listRowSeparator(.hidden)
-            }
             if model.loading || permit == nil {
                 CYSkeleton()
                     .accessibilityLabel(Text("club.loading"))
@@ -155,7 +149,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .cyPageTitle("club.statsOverview.title")
         .task(id: expected) {
             guard let permit = model.activate(expected) else { return }
             await model.load(permit, access: governance.access)

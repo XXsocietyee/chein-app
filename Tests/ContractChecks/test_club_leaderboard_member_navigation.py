@@ -92,7 +92,9 @@ class ClubLeaderboardMemberNavigationTests(unittest.TestCase):
     def test_prior_customer_product_spans_are_exact_published_bytes(self):
         source = self.source()
         spans = [
-            ('            if operation == .customers {', '            if operation == .topicCustomers {', '5625cf9b8176e8f2e87c1026853722d1d6a58659cede4713bc977cb20401fe47'),
+            # Parity r2 (X1 / X3): this span runs into bodyNavigation, whose hero row and stacked failure sections were
+            # replaced by the inline title and one failure block; the customer filter rows inside it are unchanged.
+            ('            if operation == .customers {', '            if operation == .topicCustomers {', '88c0768ee0fba11c45cb377419283b7615ae444e62648221429d1ed8fba708a5'),
             ('    @MainActor private func loadCustomersNow()', '    @MainActor private func load() async {', '1c8613aec8b47f2cb00ed001f56358eeadc4ae42cb5b3c4792150a1efcd8475a'),
             ('        } else if operation == .customer {', '        } else {\n            if operation == .customers {', '2fe182746eef24b6c8b7960e7c605bd15be68cf46be552c4c57ee59f21a366ec'),
             ('/// P044 keyword-only scheduling.', '/// Mount independently of legacy', 'bcd35b8ec7f7bea931be735cb83dd3bd34d3f4aed3fe5a26ff455fc588734fe0'),

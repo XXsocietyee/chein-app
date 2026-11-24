@@ -93,7 +93,7 @@ class ClubOpsJoinNotifyContracts(unittest.TestCase):
         denied = span(self.ui, 'struct ClubOpsNotifyDeniedText: View {', '\n}\n')
         self.assertNotIn('Button', denied)
         self.assertIn('guard failure != .forbidden, failure != .signedOut else { return nil }', self.core)
-        self.assertIn('ClubOpsPageFailureSection(copy: copy) { Task { await load() } }', self.views)
+        self.assertIn('ClubOpsPageFailureSection(copy: copy, reason: failureReason(failure)) { Task { await load() } }', self.views)
 
     def test_series_topic_names_are_display_only_and_never_block_rows(self):
         self.assertIn('try? await access.read(.eventTopics, scope: scope, options: [:], check: check)', self.event_ui)

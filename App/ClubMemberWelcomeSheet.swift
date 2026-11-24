@@ -57,15 +57,16 @@ import SwiftUI
                             .overlay { CYConfettiBurst(fireOnAppear: true).frame(height: 200) }
                             .overlay { CYOrbitDots(fire: arrived, radius: 70, spread: 22) }
                             .padding(.top, CYSpacing.lg)
-                        Text("welcome.title", tableName: "ClubMemberWelcome")
-                            .cyText(.dataXL)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .accessibilityAddTraits(.isHeader)
-                        if !value.club.name.isEmpty {
-                            Text(verbatim: value.club.name).cyText(.sectionTitle).foregroundStyle(CYColor.textSecondary)
-                                .multilineTextAlignment(.center)
+                        // CLB-detail-29 (parity r2): MP 欢迎加入「name」 as one title.
+                        Group {
+                            if value.club.name.isEmpty { Text("welcome.title", tableName: "ClubMemberWelcome") }
+                            else { Text("welcome.titleNamed \(value.club.name)", tableName: "ClubMemberWelcome") }
                         }
+                        .cyText(.display)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
                     }
                     .frame(maxWidth: .infinity)
                     .cyHaptic(.success, trigger: arrived)
@@ -107,7 +108,7 @@ import SwiftUI
             .background(CYColor.bgPage)
             .onAppear { arrived = true }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button(action: close) { Text("welcome.close", tableName: "ClubMemberWelcome") } } }
+            // CLB-detail-29: two exits are enough (去看活动 / 知道了, plus the drag); no toolbar 关闭.
         }
     }
     private func step(_ symbol: String, _ text: Text) -> some View {

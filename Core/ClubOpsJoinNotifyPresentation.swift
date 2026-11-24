@@ -34,6 +34,8 @@ public struct ClubOpsPageFailureCopy: Equatable {
         case .audienceCounts: table = "ClubOpsJoinNotify"; titleKey = "clubOpsNotify.failed"; retryKey = "clubOpsNotify.retry"
         case .bans, .members, .cases: table = "ClubOpsGovernance"; titleKey = "clubOpsGov.failed"; retryKey = "clubOpsGov.retry"
         case .roles: table = "ClubOpsGovernance"; titleKey = "clubOpsGov.roles.failed"; retryKey = "clubOpsGov.retry"
+        // CLB-apply-08 (parity r2): MP club/apply bootstrap error 主理人资格未确认 + 重新检查.
+        case .hostStatus: table = "ClubOpsGovernance"; titleKey = "clubOpsGov.host.failed"; retryKey = "clubOpsGov.host.recheck"
         default: return nil
         }
     }

@@ -97,13 +97,14 @@ struct ClubCheckinDetailRows: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Section {
+            // CLB-checkin-detail-05 (parity r2): person first (leading), status on the trailing side, as the MP head.
             if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: CYSpacing.md) { statusBlock; identityBlock }
+                VStack(alignment: .leading, spacing: CYSpacing.md) { identityBlock; statusBlock }
             } else {
                 HStack(alignment: .top, spacing: CYSpacing.md) {
-                    statusBlock
-                    Spacer(minLength: CYSpacing.sm)
                     identityBlock
+                    Spacer(minLength: CYSpacing.sm)
+                    statusBlock
                 }
             }
         }

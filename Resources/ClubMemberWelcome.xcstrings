@@ -38,13 +38,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在「帖子」发动态、与成员交流；实际发帖权限以当时服务端校验为准。"
+            "value": "发帖文和大家聊"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share posts and talk with members in Posts. Posting access is checked by the server at the time."
+            "value": "Post and chat with everyone"
           }
         }
       }
@@ -54,13 +54,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在「帖子」看看主理人和成员的动态，可以点亮、评论。"
+            "value": "看大家的动态"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read posts from the organizer and members in Posts, and like or comment."
+            "value": "See everyone's posts"
           }
         }
       }
@@ -70,13 +70,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在「帖子」查看俱乐部动态；是否可以发帖，以当前页面的权限状态为准。"
+            "value": "看大家的动态"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read club updates in Posts. Whether you can post depends on the current page’s access state."
+            "value": "See everyone's posts"
           }
         }
       }
@@ -86,13 +86,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可以浏览俱乐部活动；商家身份不能报名。"
+            "value": "看看俱乐部的局"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can browse club activities. Merchant accounts cannot register."
+            "value": "Browse the club's games"
           }
         }
       }
@@ -102,13 +102,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在「活动」查看最近的局和报名条件。"
+            "value": "报名俱乐部的局"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "See upcoming activities and registration conditions in Activities."
+            "value": "Sign up for the club's games"
           }
         }
       }
@@ -118,13 +118,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在「活动」查看最近的局和报名条件。本次资料显示启用了成员优先报名；具体活动条件以实时页面为准。"
+            "value": "报名俱乐部的局 · 成员优先报名"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "See upcoming activities and registration conditions in Activities. This profile shows priority registration for members; check the live activity page for its conditions."
+            "value": "Sign up for the club's games · members sign up first"
           }
         }
       }
@@ -134,13 +134,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在「概览」认识成员、查看本周贡献榜。"
+            "value": "认识成员、攒贡献"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Meet members and see this week’s contributions in Overview."
+            "value": "Meet members and earn contribution"
           }
         }
       }
@@ -205,6 +205,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Welcome to the club"
+          }
+        }
+      }
+    },
+    "welcome.titleNamed %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to “%@”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎加入「%@」"
           }
         }
       }

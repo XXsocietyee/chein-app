@@ -60,13 +60,13 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
 
     def test_mini_program_copy_is_exact(self):
         expected = {
-            'clubOpsGov.denied.title': '你没有成员治理的权限', 'clubOpsGov.denied.body': '成员治理只开给主理人与副主理人。',
-            'clubOpsGov.roles.denied.title': '你没有管理角色的权限', 'clubOpsGov.roles.denied.body': '只有主理人可以分配角色。想帮忙管角色,让主理人先把你提为主理人。',
+            'clubOpsGov.denied.title': '当前身份不能管理成员', 'clubOpsGov.denied.body': '仅主理人和管理员可用',
+            'clubOpsGov.roles.denied.title': '当前身份不能管理角色', 'clubOpsGov.roles.denied.body': '仅主理人可分配角色',
             'clubOpsGov.roles.empty': '还没有可委派的成员', 'clubOpsGov.roles.emptyBody': '先邀请成员加入俱乐部，再为他们分配运营角色。',
             'clubOpsGov.members.empty': '暂无可治理成员', 'clubOpsGov.members.emptyBody': '成员加入后可在这里进行安全治理；历史记录也会保留。',
             'clubOpsGov.bans.empty': '暂无治理记录', 'clubOpsGov.cases.empty': '暂无已提交工单',
             'clubOpsGov.appeal.current': '封禁中的这条', 'clubOpsGov.appeal.empty': '当前没有可申诉的封禁',
-            'clubOpsGov.appeal.emptyBody': '只有被本俱乐部限期封禁时才能向平台提交申诉。',
+            'clubOpsGov.appeal.emptyBody': '仅限期封禁可申诉',
             'clubOpsGov.appeal.note': '申诉由平台裁决。申诉通过后解封，需重新入会。',
             'clubOpsGov.banReason %@': '封禁原因：%@', 'clubOpsGov.unbanNote %@': '解封说明：%@', 'clubOpsGov.submittedAt %@': '提交于 %@',
             'clubOpsGov.decision %@': '平台说明：%@', 'clubOpsGov.banTarget %@': '成员「%@」', 'clubOpsGov.memberNumber %lld': '成员 #%lld',
@@ -138,9 +138,9 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
 
     def test_views_route_every_action_through_existing_edit_gates(self):
         for token in ['ClubOpsRoleSection(roles: snapshot, context: readContext, access: access, assign: AnyView(edit(.assignRole)))',
-                      'AnyView(edit(.revokeRole, seed: row.revokeSeed))',
+                      'AnyView(edit(.revokeRole, seed: row.revokeSeed, role: .inlineDestructive))',
                       'ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }',
-                      'ban: { AnyView(edit(.ban, seed: $0.seed)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed)) }',
+                      'ban: { AnyView(edit(.ban, seed: $0.seed, role: .inlineDestructive)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed, role: .inlineDestructive)) }',
                       'report: cases.canReport ? AnyView(edit(.report)) : nil, appeal: cases.canAppeal ? AnyView(edit(.appeal)) : nil',
                       'if failure == .forbidden { ClubOpsGovernanceDeniedNote(operation: operation, cases: scope.clubID == nil ? nil : AnyView(link(.cases))) }']:
             self.assertIn(token, self.views)

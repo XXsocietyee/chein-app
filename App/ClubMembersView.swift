@@ -55,7 +55,8 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             List {
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        CYHeroHeader("club.members")
+                        // CLB-detail-33 (parity r2): a sheet title is CYSheetHeader (22 pt), not a 34 pt hero; ✕ stays in the toolbar.
+                        CYSheetHeader(title: Text("club.members"))
                         ClubName(value: directory.club.name)
                             .cyText(.body)
                             .foregroundStyle(CYColor.textSecondary)

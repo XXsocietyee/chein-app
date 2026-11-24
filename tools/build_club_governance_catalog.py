@@ -15,12 +15,12 @@ customers|Customers|客户
 customer|Customer detail|客户详情
 checkin|Check-in detail|核销详情
 settlement|Club settlement|俱乐部结算
-eventTopics|Plan a series|创建系列场次
+eventTopics|Repeat|重复方式
 series|Event series|系列场次
 seriesDetail|Series detail|系列详情
 occurrences|Occurrences|场次清单
-occurrenceStatus|Cancellation status|取消状态
-roster|Attendance roster|考勤名册
+occurrenceStatus|This session|本场管理
+roster|Session roster|本场名册
 bans|Governance records|治理记录
 cases|My platform cases|我的平台工单
 roles|Roles and permissions|角色与权限

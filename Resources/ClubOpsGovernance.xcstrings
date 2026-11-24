@@ -38,13 +38,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You can appeal to the platform only while this club has a time-limited ban on you."
+            "value": "Only timed bans can be appealed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只有被本俱乐部限期封禁时才能向平台提交申诉。"
+            "value": "仅限期封禁可申诉"
           }
         }
       }
@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Member governance is only open to owners and co-owners."
+            "value": "Owners and admins only"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "成员治理只开给主理人与副主理人。"
+            "value": "仅主理人和管理员可用"
           }
         }
       }
@@ -438,13 +438,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You don't have member governance permission"
+            "value": "This role can't manage members"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你没有成员治理的权限"
+            "value": "当前身份不能管理成员"
           }
         }
       }
@@ -781,13 +781,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Only the owner can assign roles. To help manage roles, ask the owner to make you an owner first."
+            "value": "Only the owner can assign roles"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "只有主理人可以分配角色。想帮忙管角色,让主理人先把你提为主理人。"
+            "value": "仅主理人可分配角色"
           }
         }
       }
@@ -797,13 +797,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You don't have permission to manage roles"
+            "value": "This role can't manage roles"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你没有管理角色的权限"
+            "value": "当前身份不能管理角色"
           }
         }
       }
@@ -1252,6 +1252,102 @@
           "stringUnit": {
             "state": "translated",
             "value": "至 %@"
+          }
+        }
+      }
+    },
+    "clubOpsGov.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "clubOpsGov.count.bans %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共 %@ 条记录"
+          }
+        }
+      }
+    },
+    "clubOpsGov.count.members %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Members: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共 %@ 名成员"
+          }
+        }
+      }
+    },
+    "clubOpsGov.count.cases %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tickets: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共 %@ 条工单"
+          }
+        }
+      }
+    },
+    "clubOpsGov.host.failed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Host eligibility not confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主理人资格未确认"
+          }
+        }
+      }
+    },
+    "clubOpsGov.host.recheck": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新检查"
           }
         }
       }

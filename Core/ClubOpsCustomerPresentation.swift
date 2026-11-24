@@ -41,6 +41,8 @@ public struct ClubOpsCustomerRow: Identifiable, Equatable {
     public let meta: ClubOpsCustomerMeta
     /// Remark first; otherwise the server-rendered phone line.
     public let subText: String?
+    /// CLB-customers-02 (parity r2): the customer's avatar (MP cy-avatar src); nil falls back to the initial.
+    public var avatar: String? = nil
 }
 
 public struct ClubOpsCustomerListPresentation: Equatable {
@@ -58,7 +60,8 @@ public struct ClubOpsCustomerListPresentation: Equatable {
             rows.append(.init(id: id, displayName: ClubOpsCustomerText.trimmed(item["displayName"]), hasRemark: remark != nil,
                               meta: pending > 0 ? .pending(count: pending, topic: ClubOpsCustomerText.trimmed(item["lastTopicName"]))
                                                : .verified(count: verified, monthDay: ClubOpsCustomerText.monthDay(item["lastVisitDate"])),
-                              subText: remark ?? ClubOpsCustomerText.trimmed(item["phoneText"])))
+                              subText: remark ?? ClubOpsCustomerText.trimmed(item["phoneText"]),
+                              avatar: ClubOpsCustomerText.trimmed(item["avatar"])))
         }
         self.total = total; self.monthNew = monthNew; self.rows = rows
     }
@@ -109,6 +112,8 @@ public struct ClubOpsCustomerDetailPresentation: Equatable {
     public let records: [ClubOpsCustomerRecord]
     public let tags: [String]
     public let canEdit: Bool
+    /// CLB-customer-detail-02 (parity r2): `summary.avatar` (MP cy-avatar src); nil keeps the generated art.
+    public private(set) var avatar: String? = nil
     public init(value: ClubGovernanceValue, memberID expected: Int?) throws {
         let summary = value["summary"]
         guard summary.object != nil, let expected, let memberID = ClubCustomerHistoryTopicRoute.positiveID(summary["memberId"]), memberID == expected,
@@ -142,6 +147,7 @@ public struct ClubOpsCustomerDetailPresentation: Equatable {
         remark = ClubOpsCustomerText.trimmed(value["remark"])
         arrivedCount = arrived; pendingCount = pending; refundedCount = refunded
         canEdit = value["canEdit"] == .bool(true)
+        avatar = ClubOpsCustomerText.trimmed(summary["avatar"])
     }
     /// Mini-program trimMoney: whole yuan without decimals, otherwise two decimals.
     public static func money(_ amount: Double) -> String {

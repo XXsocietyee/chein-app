@@ -263,12 +263,6 @@ extension EnvironmentValues {
     }
     var body: some View {
         List {
-            Section {
-                CYHeroHeader("club.terminal.title")
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(pageInsets)
-                    .listRowSeparator(.hidden)
-            }
             if flow.loading {
                 CYSkeleton()
                     .accessibilityLabel(Text("club.terminal.loading"))
@@ -330,7 +324,7 @@ extension EnvironmentValues {
         }
         .listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .cyHeroScreen()
+        .cyPageTitle("club.terminal.title")
         .privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { flow.close(); dismiss() } } }
         .task { await flow.load() }

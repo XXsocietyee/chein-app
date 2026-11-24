@@ -64,6 +64,8 @@ struct ClubOpsNotifyDeniedText: View {
 /// Page-level failure title for notify / governance / roles reads; the retry is the read view's own `load()`.
 struct ClubOpsPageFailureSection: View {
     let copy: ClubOpsPageFailureCopy
+    /// X3 (parity r2): the one reason line under the page title (server sentence or generic key).
+    var reason: Text? = nil
     let retry: () -> Void
     var body: some View {
         Section {
@@ -75,6 +77,15 @@ struct ClubOpsPageFailureSection: View {
                     messageIdentifier: "clubOps.pageFailure.title",
                     kind: .failure
                 )
+                if let reason {
+                    reason
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityIdentifier("club.gov.error")
+                }
                 CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
                     .accessibilityIdentifier("clubOps.pageFailure.retry")
             }

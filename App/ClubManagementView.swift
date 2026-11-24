@@ -48,12 +48,7 @@ struct ClubManagementView: View {
 
     var body: some View {
         List {
-            Section {
-                CYHeroHeader("club.management.title")
-            }
-            .listRowInsets(Self.gutterInsets)
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
+            // X1 (parity r2): inline bar title, no hero in the content.
             if identity == nil {
                 CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.management.signin", kind: .inbox)
                     .listRowBackground(Color.clear)
@@ -93,11 +88,17 @@ struct ClubManagementView: View {
                                 .listRowSeparator(.hidden)
                         }
                         ForEach(snapshot.requests) { request in
-                            Button { selection = .request(request.id) } label: {
-                                requestRow(request)
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                Button { selection = .request(request.id) } label: {
+                                    requestRow(request)
+                                }
+                                .buttonStyle(.cyPressable)
+                                .accessibilityIdentifier("club.management.request.\(request.id)")
+                                // CLB-join-requests-02 (parity r2), MC-21: visible 拒绝 / 通过 on the row; the swipe stays.
+                                if snapshot.allows(.approve, memberID: request.id) {
+                                    requestRowActions(request)
+                                }
                             }
-                            .buttonStyle(.cyPressable)
-                            .accessibilityIdentifier("club.management.request.\(request.id)")
                             // HANDOFF-R1 MC-21: approve / reject also work by swipe; both still open the review sheet.
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 if snapshot.allows(.approve, memberID: request.id) {
@@ -174,7 +175,7 @@ struct ClubManagementView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .cyDomainScreen(.player)
-        .cyHeroScreen()
+        .cyPageTitle("club.management.title")
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {
             guard screenContext != readContext || snapshot == nil && state == .idle else { return }
@@ -194,15 +195,11 @@ struct ClubManagementView: View {
     }
     @ViewBuilder private func detail(_ selected: DetailSelection) -> some View {
         let presentedAttachment = reviewOwner.attachment
-        let detailTitle: LocalizedStringKey = {
+        let detailTitle: String.LocalizationValue = {
             switch selected { case .request: return "club.management.request"; case .member: return "club.management.member" }
         }()
         Form {
-            Section {
-                CYHeroHeader(detailTitle)
-            }
-            .listRowInsets(Self.gutterInsets)
-            .listRowBackground(Color.clear)
+            // X1 (parity r2): inline bar title, no hero in the content.
             if loading { ProgressView().accessibilityIdentifier("club.management.detail.loading").accessibilityLabel(Text("club.management.loading")) }
             status
             if contextMatches, access.identity == identity, let snapshot {
@@ -250,7 +247,7 @@ struct ClubManagementView: View {
         }
         .scrollContentBackground(.hidden)
         .cyDomainPageBackground()
-        .cyHeroScreen()
+        .cyPageTitle(detailTitle)
         // The root List's task is suspended while this destination is pushed.
         // Invalidate its selection here, where viewer changes are still observed.
         .onChange(of: readContext) { _, _ in invalidateDetailContext() }
@@ -287,6 +284,25 @@ struct ClubManagementView: View {
         CYAvatarView(url: QuestifyCardArtwork.safeURL(raw), name: fallback, size: .md)
             .accessibilityHidden(true)
     }
+    /// MC-21 row buttons: 拒绝 (secondary) and 通过 (primary), 12 pt apart, 44 pt targets. Both open the same review.
+    private func requestRowActions(_ request: ClubManagementRequest) -> some View {
+        let attachment = reviewOwner.attachment, source = reviewContext
+        let busy = loading || state == .checking || state == .awaitingConfirmation || state == .submitting
+        return HStack(spacing: CYSpacing.md) {
+            Spacer(minLength: 0)
+            Button {
+                Task { await prepare(.reject, memberID: request.id, attachment: attachment, source: source) }
+            } label: { Text(verbatim: clubR1("request.reject", locale)) }
+            .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false, compact: true))
+            .accessibilityIdentifier("club.management.row.reject.\(request.id)")
+            Button {
+                Task { await prepare(.approve, memberID: request.id, attachment: attachment, source: source) }
+            } label: { Text(verbatim: clubR1("request.approve", locale)) }
+            .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false, compact: true))
+            .accessibilityIdentifier("club.management.row.approve.\(request.id)")
+        }
+        .disabled(busy)
+    }
     private func requestRow(_ request: ClubManagementRequest) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
@@ -302,6 +318,14 @@ struct ClubManagementView: View {
                 .cyText(.meta)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
+                // CLB-join-requests-03 (parity r2): the applicant's join message on the row (MP wxml:43).
+                if let message = request.joinMessage?.trimmingCharacters(in: .whitespacesAndNewlines), !message.isEmpty {
+                    Text(verbatim: message)
+                        .cyText(.bodyCompact)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             Spacer(minLength: CYSpacing.sm)
             Image(systemName: "chevron.right")

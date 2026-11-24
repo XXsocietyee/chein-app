@@ -42,7 +42,8 @@ class ClubOpsEventContracts(unittest.TestCase):
     def test_hub_only_composes_existing_reads_and_never_writes(self):
         self.assertIn('ClubGovernanceReadView(operation: read, scope: target', self.hub)
         self.assertIn('try await access.read(.access, scope: accessScope, options: [:], check: check)', self.hub)
-        self.assertIn('CYHeroHeader("clubOpsEvent.title", tableName: "ClubOpsEvent")', self.hub)
+        # CLB-event-ops-04 (parity r2): inline bar title instead of an in-content hero.
+        self.assertIn('.navigationTitle(Text("clubOpsEvent.title", tableName: "ClubOpsEvent"))', self.hub)
         for token in ['.send(', 'coordinator.confirm', 'coordinator.prepare', 'ProductionApproval', 'allowsOfflineWrites', 'URLSession']:
             self.assertNotIn(token, self.hub)
             self.assertNotIn(token, self.core)
