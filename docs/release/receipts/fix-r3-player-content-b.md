@@ -72,7 +72,7 @@
 - `Tests/ContractChecks/test_wallet_income_analysis_closure.py`, `test_assetcenter_analysis_page_ready.py`, `docs/release/ui-strings-subpackageA-pages-assetcenter-earnings-index.json`: 分析 / 我的资产 identifiers repointed from the removed 更多 rows to the quick action and the section (R7-PC-D5-2).
 
 ## Local verification (no compiler in the cloud)
-- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`), branch vs merge base `8870f522d`: see "Gate counts" below.
+- Contract checks (`python3 -m unittest discover -s Tests/ContractChecks`, 6064 tests), branch vs merge base `8870f522d`: base 196 FAIL/ERROR, branch 197; 0 fixed-then-broken, exactly 1 new (the strings-fragment check below).
 - Expected new failure until the integrator merges the strings fragment: `test_official_event_contracts.OfficialSourceChecks.test_every_static_user_facing_key_has_two_languages` (new keys live only in `docs/port/strings/fix-r3-player-content-b.json`, per the brief).
 - `tools/check_typography_lint.py`: PASS (unchanged counts). `tools/check_scaffold.py` fails identically on the base (project file not regenerated); no new Swift files or folders were added.
 - APIs used were grepped on the branch before use: `CYStatusChip`, `CYFilterChip(verbatim:)`, `CYEmptyStateView(actionTitle:action:)`, `RootTabSwitch`, `G6RevenueAllocationsModel`, `ClubSettlementMineView`, `ClubPayoutReceiverView(clubID:mine:)`, `CooperationBrowserView(embedsNavigationStack:)`, `LocalPasteboard.copy`, `OfficialEventReading.broadcastStats(id:)`, `OfficialActionCoordinator.state`.
