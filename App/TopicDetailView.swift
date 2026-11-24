@@ -15,11 +15,6 @@ struct TopicDetailView: View {
     @State private var showsReview = false
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     var ticketWalletDestination: ((Int) -> AnyView)? = nil
-    /// R7-PC-B1-15: a club session card link (`via=session`) makes the bar open the session picker before self-play.
-    var prefersSessionPicker: Bool = false
-    /// R7-PC-B1-19: the topic editor (`pages/publish/fabu/index?id=` + `scope`) for a free-explore owner in pricing.
-    var ownerEditorDestination: ((Int, String?) -> AnyView)? = nil
-    @State private var showsOwnerEditor = false
     @State private var showingSelfPlay = false
     @State private var showingTickets = false
     @State private var showingSessionSelection = false
@@ -559,11 +554,6 @@ struct TopicDetailView: View {
                               preferSession: preferSession,
                               openTickets: ticketWalletDestination == nil ? nil : { barSheetOrigin = .tickets; showingTickets = true },
                               heroNamespace: barHero)
-        }
-        .navigationDestination(isPresented: $showsOwnerEditor) {
-            if let ownerEditorDestination, case .editor(let scope) = TopicXcxFacts.ownerSaleRoute(value) {
-                ownerEditorDestination(value.id, scope)
-            }
         }
         .sheet(isPresented: $showingSessionSelection, onDismiss: { loads.start { await load() } }) {
             TopicSessionSelectionView(detail: value, scope: key.scope, activityDestination: activityDestination)

@@ -59,6 +59,14 @@ struct TopicXcxTabs: View {
 
 struct TopicXcxHero: View {
     let topic: TopicDetail
+    /// `TopicDetail.ownerReviewLabel` is the MP's Chinese `ownerStateText`; each value has its own catalog key.
+    static func reviewKey(_ label: String) -> String {
+        switch label {
+        case "审核中": return "topicXcx.review.pending"
+        case "未通过": return "topicXcx.review.rejected"
+        default: return "topicXcx.review.unlisted"
+        }
+    }
     @Environment(\.cyPalette) private var palette
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -77,6 +85,33 @@ struct TopicXcxHero: View {
                         }
                     }
                 }
+            }
+            // R7-PC-B1-9 (MP index.wxml:89-91, 101): publisher row (avatar + name + 发布) and the owner-only review chip.
+            if topic.publisher != nil || topic.ownerReviewLabel != nil {
+                HStack(spacing: CYSpacing.sm) {
+                    if let publisher = topic.publisher {
+                        CYAvatarView(url: publisher.avatar.flatMap(URL.init(string:)), name: publisher.name, size: .xs)
+                            .accessibilityHidden(true)
+                        Text(verbatim: publisher.name)
+                            .cyText(.label)
+                            .foregroundStyle(palette.textPrimary)
+                            .lineLimit(1)
+                        Text("topicXcx.publisher.posted")
+                            .cyText(.label)
+                            .foregroundStyle(palette.textSecondary)
+                    }
+                    if let review = topic.ownerReviewLabel {
+                        Text(LocalizedStringKey(TopicXcxHero.reviewKey(review)))
+                            .cyText(.label)
+                            .foregroundStyle(palette.textSecondary)
+                            .padding(.horizontal, CYSpacing.sm)
+                            .padding(.vertical, CYSpacing.xxs)
+                            .background(palette.bgRaised, in: Capsule())
+                            .accessibilityIdentifier("topic.ownerReviewState")
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("topic.publisher")
             }
             if let club = topic.clubName { Label { Text("topicXcx.clubHost \(club)") } icon: { Image(systemName: "person.3").accessibilityHidden(true) }.font(CYTypography.meta).foregroundStyle(palette.textSecondary).fixedSize(horizontal: false, vertical: true) }
         }
@@ -256,7 +291,7 @@ struct TopicXcxActionBar: View {
     @ViewBuilder private func priceText(_ amount: Decimal?) -> some View {
         if let amount {
             if amount == 0 { Text("topicXcx.bar.free") }
-            else { Text(amount, format: .currency(code: "CNY").precision(.fractionLength(0...2)).locale(locale)) }
+            else { Text(verbatim: MoneyDisplay.yuan(amount)) }  // owner decision 9: ¥12.50
         }
     }
 
@@ -325,7 +360,9 @@ struct TopicXcxActionBar: View {
                                 .pageTemplateControl(label: Text("topicXcx.cta.confirmPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.pricing")
                         case .editor where openEditor != nil:
-                            Button(action: { openEditor?() }) { Text("topicXcx.cta.edit").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                            // R7-PC-B1-19 (MP index.js:1177-1182): 去设置票价 opens the editor for a free-explore owner.
+                            Button(action: { openEditor?() }) { Text("topicXcx.cta.editPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
+                                .pageTemplateControl(label: Text("topicXcx.cta.editPrice"), traits: .isButton)
                                 .accessibilityIdentifier("topic.cta.editor")
                         default:
                             Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
@@ -445,6 +482,7 @@ extension EnvironmentValues {
 struct TopicXcxRouteSection: View {
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
     let topic: TopicDetail
     var body: some View {
         Section {
@@ -458,6 +496,13 @@ struct TopicXcxRouteSection: View {
             if topic.chapters.allSatisfy({ $0.nodes.isEmpty }) {
                 Text("u9cde.topic.routeConfiguring").cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("topic.route.empty")
+                // R7-PC-B1-17 (MP index.wxml:358, js:1120 `goTopicList` → pages/template/index, the 发布/模板 tab).
+                if rootTabSwitch.isAvailable {
+                    Button { rootTabSwitch(.publish) } label: {
+                        Text("topicXcx.route.browseOthers").frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .accessibilityIdentifier("topic.route.browseOthers")
+                }
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
                 if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary) }
@@ -591,11 +636,10 @@ struct TopicDepartSection: View {
         let texts: [String] = parts.compactMap { part in
             switch part {
             case .chapters(let n): return appLocalized("topicXcx.include.chapters \(n)", locale: locale)
+            // REV-B B-06 (MP depart-notes.js:73): 出发前 says 「N 个章节」 (story + endings, no breakdown) and 「N 个节点」.
             case .chapterBreakdown(let story, let endings):
-                return story > 0
-                    ? appLocalized("topicXcx.include.storyAndEndings \(story) \(endings)", locale: locale)
-                    : appLocalized("topicXcx.include.endings \(endings)", locale: locale)
-            case .stops(let n): return appLocalized("topicXcx.include.stops \(n)", locale: locale)
+                return appLocalized("topicXcx.include.chapters \(story + endings)", locale: locale)
+            case .stops(let n): return appLocalized("topic.depart.stops \(n)", locale: locale)
             case .plays(let n): return appLocalized("topicXcx.include.plays \(n)", locale: locale)
             case .audioMinutes(let n): return appLocalized("topicXcx.include.audioMinutes \(n)", locale: locale)
             case .audio: return appLocalized("topicXcx.include.audio", locale: locale)
