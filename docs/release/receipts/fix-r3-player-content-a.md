@@ -103,6 +103,15 @@
 - PC-A-5-6 inline title on the search map: `restyle/r1-player-front` (merged here).
 - `gap/g1-player` deck-preview cover: parked MPGap UI (Gemini).
 
+## Local gates (cloud, no compiler)
+- `tools/check_typography_lint.py`: PASS.
+- `tools/check_scaffold.py`: fails the source-list assertion, **same failure on the base** (`ui/combined-r7`, parked MPGap) and
+  the new `App/TopicFavoriteControl.swift` needs the project regenerated (integrator).
+- `tools/check_search_map.py`: "all literal UI localization keys" fails until the strings fragment is merged into
+  `Localizable.xcstrings` (integrator).
+- `tools/check_search_map_date_picker.py` pins the old free-text date fields + wheel sheet. R7-PC-A3-3 replaces them on
+  purpose; **Cursor: update that pin** (inline `SearchMapInlineDateRow`, identifiers `searchMap.filter.start/end` kept).
+
 ## Acceptance
 Not run from the cloud (no compiler). Coordinator: please compile and send exact errors. Routes are in
 `docs/port/accept/f-player-content-a.txt`.
