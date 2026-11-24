@@ -99,9 +99,33 @@
     "en": "Your role can't view customers",
     "zh-Hans": "当前身份不能查看客户"
   },
+  "merchant.gate.insight.denied": {
+    "en": "Your role can't view store data",
+    "zh-Hans": "当前身份不能查看店铺数据"
+  },
+  "merchant.gate.insight.loadFailed": {
+    "en": "Couldn't load store data",
+    "zh-Hans": "店铺数据加载失败"
+  },
+  "merchant.gate.insight.signIn": {
+    "en": "Please sign in first",
+    "zh-Hans": "请先登录"
+  },
   "merchant.gate.ledger.denied": {
     "en": "Your role can't view this merchant ledger",
     "zh-Hans": "当前身份不能查看这份商家账本"
+  },
+  "merchant.gate.marketing.denied": {
+    "en": "Your role can't view marketing",
+    "zh-Hans": "当前身份不能查看营销"
+  },
+  "merchant.gate.marketing.loadFailed": {
+    "en": "Couldn't load merchant marketing",
+    "zh-Hans": "商家营销加载失败"
+  },
+  "merchant.gate.marketing.signIn": {
+    "en": "Sign in to view marketing",
+    "zh-Hans": "登录后查看营销"
   },
   "merchant.gate.payout.denied": {
     "en": "Your role can't view the payout account",
@@ -138,6 +162,26 @@
   "merchant.gate.verifyRecords.denied": {
     "en": "Your role can't view redemption records",
     "zh-Hans": "当前身份不能查看核销记录"
+  },
+  "merchant.insight.aiSource %@": {
+    "en": "Based on business data and the profile as of %@; profile changes today take effect tomorrow",
+    "zh-Hans": "解读依据 %@ 的经营数据与当时的档案；今天修改的档案次日生效"
+  },
+  "merchant.insight.factsIncomplete": {
+    "en": "Store data didn't fully load",
+    "zh-Hans": "店铺数据没加载完整"
+  },
+  "merchant.insightTopicSheet.apply": {
+    "en": "Apply to Host",
+    "zh-Hans": "去申请承接"
+  },
+  "merchant.insightTopicSheet.defaultReason": {
+    "en": "A free-explore topic open for merchants",
+    "zh-Hans": "平台招商中的自由探索主题"
+  },
+  "merchant.insightTopicSheet.notNow": {
+    "en": "Not Now",
+    "zh-Hans": "先不用"
   },
   "merchant.ledger.coopShare": {
     "en": "Co-op Revenue Share",

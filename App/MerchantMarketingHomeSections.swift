@@ -44,17 +44,6 @@ extension EnvironmentValues {
     /// Pushes are owned by the List's host (`MerchantMarketingView`): a destination modifier inside a List is ignored.
     var onPush: (MerchantMarketingPush) -> Void = { _ in }
     var body: some View {
-        if home.isAllZero {
-            Section {
-                Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.empty.title")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    .accessibilityIdentifier("merchantOps.marketing.empty")
-                if access.canManageProjects {
-                    Button(MerchantOpsCopy.text("merchantOps.marketing.empty.cta")) { onRoute(.content) }
-                        .buttonStyle(.cyPrimary)
-                        .accessibilityIdentifier("merchantOps.marketing.firstContent")
-                }
-            }
-        }
         hero
         // Source tiles: up to four round tools under the hero. SR2-15 (`182:8065`): four distinct glyphs, as the
         // Figma's Icon/chart · Icon/store · Icon/route · Icon/cal.
@@ -81,12 +70,25 @@ extension EnvironmentValues {
         // Source `.mine` (M-10, owner 2026-11-02): two tiles 主题 · 活动; free explore counts under 主题.
         // A tile opens the list when it has items, the matching create flow when it is 0 (canManageProjects).
         Section {
-            HStack(alignment: .top, spacing: CYSpacing.sm) {
-                mineTile("merchantMarketing.topics", home.content.topicCount + home.content.freeExploreCount, create: { onRoute(.content) })
-                mineTile("merchantMarketing.activities", home.content.activityCount, create: links == nil ? nil : { onPush(.activity) })
+            // MC7-10-5 (marketing/index.wxml:79-82): an all-zero home shows 还没有主题和活动 in place of the tiles.
+            if home.isAllZero {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.empty.title")).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityIdentifier("merchantOps.marketing.empty")
+                    if access.canManageProjects {
+                        Button(MerchantOpsCopy.text("merchantOps.marketing.empty.cta")) { onRoute(.content) }
+                            .buttonStyle(.cyPrimary)
+                            .accessibilityIdentifier("merchantOps.marketing.firstContent")
+                    }
+                }
+            } else {
+                HStack(alignment: .top, spacing: CYSpacing.sm) {
+                    mineTile("merchantMarketing.topics", home.content.topicCount + home.content.freeExploreCount, create: { onRoute(.content) })
+                    mineTile("merchantMarketing.activities", home.content.activityCount, create: links == nil ? nil : { onPush(.activity) })
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
             }
-            .listRowInsets(EdgeInsets())
-            .listRowBackground(Color.clear)
         } header: {
             HStack {
                 Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.myContent"))
