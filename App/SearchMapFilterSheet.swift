@@ -38,9 +38,7 @@ import SwiftUI
                     Section("searchMap.cityOptions") {
                         TextField("searchMap.tag", text: $tag).accessibilityIdentifier("searchMap.tag")
                         TextField("searchMap.cityRole", text: $cityRole).accessibilityIdentifier("searchMap.cityRole")
-                        Picker("searchMap.sort", selection: $sortType) {
-                            Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
-                        }
+                        // R7-PC-A5-3 (r1 PC-A-5-4): MP searchmap sorts by 最近 only (`sort_type:1`); no 最热 option.
                     }
                 }
                 Section("searchMap.categories") {
