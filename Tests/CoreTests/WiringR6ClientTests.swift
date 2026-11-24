@@ -43,11 +43,9 @@ private final class WiringR6Transport: HTTPTransport {
         XCTAssertEqual(request.httpMethod, "POST")
         XCTAssertEqual(request.url?.path, "/prod-api/api/im/read")
         XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "synthetic-im-token")
-        XCTAssertTrue(request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data;") == true)
-        let body = String(decoding: XCTUnwrap(request.httpBody), as: UTF8.self)
-        XCTAssertTrue(body.contains("name=\"conversation_id\"\r\n\r\n12\r\n"))
-        XCTAssertFalse(body.contains("read_to"))
-        XCTAssertEqual(body.components(separatedBy: "name=\"").count, 2)
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"), "application/x-www-form-urlencoded;")
+        XCTAssertEqual(String(decoding: XCTUnwrap(request.httpBody), as: UTF8.self), "conversation_id=12")
+        XCTAssertFalse(String(decoding: XCTUnwrap(request.httpBody), as: UTF8.self).contains("read_to"))
         transport.payload = #"{"code":409,"msg":"未读","errorCode":"CONFLICT"}"#
         transport.requests.removeAll()
         do { try await service.markInboxConversationRead(conversationID: 12, token: "synthetic-im-token"); XCTFail() }

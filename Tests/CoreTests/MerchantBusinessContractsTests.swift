@@ -15,9 +15,11 @@ final class MerchantBusinessContractsTests: XCTestCase {
     }
     func testNegativeCustomerPageRejected() { var query = MerchantCustomerQuery(); query.page = 0; XCTAssertThrowsError(try query.validate()) }
     func testUnknownCustomerSegmentRejected() { var query = MerchantCustomerQuery(); query.segment = "everyone"; XCTAssertThrowsError(try query.validate()) }
-    func testAftercareUsesQueryParametersNotBody() throws {
+    func testAftercareUsesQueryParametersAndEmptyJSONBody() throws {
         let request = try MerchantBusinessQuery.aftercare(.processing, page: 2).request()
-        XCTAssertEqual(request.query, ["bucket":"PROCESSING", "pageNum":"2", "pageSize":"20"]); XCTAssertEqual(request.body, .none)
+        XCTAssertEqual(request.path, "api/merchant/aftercare/list")
+        XCTAssertEqual(request.query, ["bucket":"PROCESSING", "pageNum":"2", "pageSize":"20"])
+        XCTAssertEqual(request.body, .json([:]))
     }
     func testCustomerDetailRejectsWrongMemberID() throws {
         XCTAssertThrowsError(try MerchantBusinessDocument(query: .customer(.init(61002)), payload: MerchantBusinessSyntheticFixtures.decode(MerchantBusinessSyntheticFixtures.customer)))
