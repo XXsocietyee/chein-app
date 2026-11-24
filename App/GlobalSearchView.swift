@@ -45,11 +45,15 @@ import SwiftUI
     /// Guard: only an in-flight search falls back to idle; a failure stays visible.
     private func settleLoading() { if phase.isLoading { phase = .idle } }
     @State private var selectedKind: GlobalSearchKind?
+    /// R7-PC-A4-3: the 模板 result tab (templates are not a `GlobalSearchKind`).
+    @State private var showsTemplatesOnly = false
     @State private var showsFilters = false
     @State private var history: [String] = []
     @State private var historyFailure = false
     @State private var preparedOwner: ReadOwner?
     @State private var mapRoute: MapRoute?
+    /// R7-PC-A3-2 (MP search2 `请输入关键词或选择类别`): an empty search says why instead of doing nothing.
+    @State private var needKeywordToast: LocalizedStringKey?
     private let historyStore = SearchMapLocalHistory()
 
     private struct ReadOwner: Equatable {
@@ -75,7 +79,7 @@ import SwiftUI
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                     TextField(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
-                        .submitLabel(.search).onSubmit { Task { await search() } }
+                        .submitLabel(.search).onSubmit { submitSearch() }
                         .accessibilityIdentifier("searchMap.keyword")
                         .frame(minHeight: 44)
                     // Mini-program field: 搜索中 spinner while a search runs, clear (x) once there is text.
@@ -164,6 +168,7 @@ import SwiftUI
             case .shops: MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
             }
         }
+        .cyToast(message: $needKeywordToast)
         .sheet(isPresented: $showsFilters) {
             let presentationID = filterPresentationID
             let context = categoryRecovery.context(for: categoryOwner)
@@ -252,7 +257,7 @@ import SwiftUI
                     Text(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"))
                 }
                     .textInputAutocapitalization(.never)
-                    .submitLabel(.search).onSubmit { Task { await search() } }
+                    .submitLabel(.search).onSubmit { submitSearch() }
                     .focused($keywordFocused)
                     .accessibilityIdentifier("searchMap.keyword")
                     .frame(minHeight: 44)
@@ -372,7 +377,7 @@ import SwiftUI
                 if categoryLoading {
                     CYSkeleton().padding(.vertical, CYSpacing.sm).accessibilityIdentifier("globalSearch.category.loading")
                 } else if categoryFailed {
-                    SearchMapIssue(key: "searchMap.categoryFailed") {
+                    SearchMapIssue(key: "searchMap.categoryFailed.mp") {
                         guard !showsFilters, let context else { return }
                         _ = categoryRecovery.retry(in: context)
                     }
@@ -418,14 +423,14 @@ import SwiftUI
     private var mapSection: some View {
         Section {
             Button { mapRoute = .city } label: {
-                Label("searchMap.citySearch", systemImage: "location.north.line")
+                Label("searchMap.citySearch.mp", systemImage: "location.north.line")
                     .cyText(.label).foregroundStyle(CYColor.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: 52)
                     .searchNightPill()
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
-            .pageTemplateControl(label: Text("searchMap.citySearch"), traits: .isButton)
+            .pageTemplateControl(label: Text("searchMap.citySearch.mp"), traits: .isButton)
             .accessibilityIdentifier("searchMap.citySearch")
             Menu {
                 Button { mapRoute = .nearby } label: { Label("searchMap.nearby", systemImage: "location") }
@@ -467,6 +472,9 @@ import SwiftUI
                     kindPill(nil, title: Text("searchMap.all"))
                     ForEach(searchKinds, id: \.self) { kind in
                         kindPill(kind, title: Text(kind.titleKey) + Text(verbatim: " \(countText(value, kind))"))
+                    }
+                    if let templateResults, !templateResults.rows.isEmpty || !templateResults.failedKinds.isEmpty {
+                        templatePill(count: templateResults.failedKinds.isEmpty ? String(templateResults.rows.count) : "—")
                     }
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -524,7 +532,7 @@ import SwiftUI
                 }
             }
         }
-        let visible = value.rows.filter { !(hidesMerchants && $0.kind == .merchant) && (selectedKind == nil || $0.kind == selectedKind) }
+        let visible = showsTemplatesOnly ? [] : value.rows.filter { !(hidesMerchants && $0.kind == .merchant) && (selectedKind == nil || $0.kind == selectedKind) }
         Section {
             // pages/search2/index readiness: a failed/gated player lane beside empty lanes is unknown, not "no results".
             if !loading, GlobalSearchEntryReadiness.phase(configured: reader.isConfigured, loading: loading, issueKey: nil,
@@ -533,7 +541,7 @@ import SwiftUI
                     .cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("searchMap.unknown")
             }
-            if value.showsEmptyState(for: selectedKind, isLoading: loading) {
+            if !showsTemplatesOnly, value.showsEmptyState(for: selectedKind, isLoading: loading) {
                 CYEmptyState(systemImage: "magnifyingglass", "globalSearch.empty", messageIdentifier: "searchMap.empty", kind: .search)
             }
             ForEach(Array(visible.enumerated()), id: \.element.id) { index, row in
@@ -544,8 +552,19 @@ import SwiftUI
                     .questifyCardListRow()
             }
         }
-        if selectedKind == nil, let templateResults, !templateResults.rows.isEmpty {
+        if selectedKind == nil, let templateResults, !templateResults.rows.isEmpty || !templateResults.failedKinds.isEmpty {
             Section {
+                // R7-PC-A4-3: a failed template lane is named, not silently missing.
+                ForEach(templateResults.failedKinds, id: \.self) { kind in
+                    HStack(spacing: CYSpacing.md) {
+                        Label(kind == .topicTemplate ? "discovery.topicsFailed" : "discovery.gamesFailed", systemImage: "info.circle")
+                            .cyText(.meta).foregroundStyle(CYColor.textSecondary)
+                        Spacer(minLength: CYSpacing.sm)
+                        Button("searchMap.retryPage") { Task { await search() } }
+                            .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
+                    }
+                    .accessibilityIdentifier("searchMap.templateFailed.\(kind == .topicTemplate ? "topic" : "play")")
+                }
                 ForEach(templateResults.rows) { row in
                     NavigationLink { templateLanes?.destination(row) } label: { GlobalTemplateResultRow(row: row) }
                         .disabled(row.previewOnly)
@@ -561,9 +580,9 @@ import SwiftUI
             Section {
                 VStack(spacing: CYSpacing.xs) {
                     if !visible.isEmpty {
-                        Text("searchMap.endOfResults").cyText(.meta).foregroundStyle(CYColor.textTertiary)
+                        Text("searchMap.noMoreResults").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     }
-                    Button("searchMap.refreshResults") { Task { await search() } }
+                    Button("searchMap.searchAgain") { Task { await search() } }
                         .cyText(.label).buttonStyle(.borderless).frame(minHeight: 44)
                         .accessibilityIdentifier("searchMap.refreshResults")
                 }
@@ -576,9 +595,21 @@ import SwiftUI
     private func countText(_ value: GlobalSearchResults, _ kind: GlobalSearchKind) -> String {
         GlobalSearchEntryReadiness.countText(value, kind: kind) ?? String(value.count(kind))
     }
+    private func templatePill(count: String) -> some View {
+        let selected = showsTemplatesOnly
+        return Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = nil; showsTemplatesOnly = true } } label: {
+            (Text("searchMap.templates") + Text(verbatim: " \(count)")).cyText(.bodyMedium).cyWrapText(alignment: .center).monospacedDigit()
+                .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
+                .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
+                .searchNightPill(selected: selected)
+        }
+        .buttonStyle(.plain).cyHaptic(.selection, trigger: showsTemplatesOnly)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityIdentifier("searchMap.kind.templates")
+    }
     @ViewBuilder private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
-        let selected = selectedKind == kind
-        let pill = Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind } } label: {
+        let selected = !showsTemplatesOnly && selectedKind == kind
+        let pill = Button { withAnimation(CYMotion.resolve(.snappy, reduceMotion: reduceMotion)) { selectedKind = kind; showsTemplatesOnly = false } } label: {
             title.cyText(.bodyMedium).cyWrapText(alignment: .center).monospacedDigit()
                 .foregroundStyle(selected ? CYColor.actionPrimaryFg : CYColor.textPrimary)
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
@@ -594,13 +625,19 @@ import SwiftUI
     }
     private func applyFilter(_ next: GlobalSearchQuery) {
         // Invalidate synchronously, including category-only searches cleared to an empty query.
-        filter = next; invalidate(); Task { await search() }
+        filter = next; invalidate()
+        if !next.canSearch { needKeywordToast = "searchMap.needKeyword"; return }
+        Task { await search() }
+    }
+    private func submitSearch() {
+        guard filter.canSearch else { needKeywordToast = "searchMap.needKeyword"; return }
+        Task { await search() }
     }
     private func setKeyword(_ value: String) {
         guard !filter.keyword.utf8.elementsEqual(value.utf8) else { return }
         invalidate(); filter.keyword = value
     }
-    private func invalidate() { retainedResults.invalidate(); phase = .idle; selectedKind = nil }
+    private func invalidate() { retainedResults.invalidate(); phase = .idle; selectedKind = nil; showsTemplatesOnly = false }
     private func prepare() async {
         guard !Task.isCancelled else { return }
         if preparedOwner != readOwner {
