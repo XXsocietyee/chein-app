@@ -70,5 +70,6 @@ Walked all 30 `player-content` pages, 30 `play-roam` pages, and 29 `member` page
   - `play-roam` (`PlayRoamRound4Models.swift`, `PlayRoamRound4Views.swift`): `JSETTLE-r7-1` (`JourneyFinishOfferResolver`, `JourneyFinishOfferCardView`), `ROAM-13` (`RoamCityStripTabView`), `B3D-1` (`IdentityPinBadge3DParameters`), `OCARDS-2` (`ObjectCardPileAndGridView`).
   - `member` (`MemberRound4Views.swift`): `MKT-7-1` (`FreeExploreCatalogBundleView`), `PLY-26-4` (`TemplateMineCardCoverView`), `MKT-10-5` (`CouponForbiddenPlayerActionView`).
 - **Tests:** added `Tests/CoreTests/MPGap/MPGapG1Round4Tests.swift` and updated `MPGapG1Tests.swift` + `MPGapG1Round2Tests.swift`.
+- **Merged `origin/ui/combined-r7` (`97ee2bc9e`):** pulled coordinator `Section` header/footer fixes, fixed `PlayerContentRound4Views.swift` `Section { } header: { Text(...) } footer: { ... }`, and added missing `roamHistory.title` to `docs/port/strings/gap-g1-player.json`.
 
 DONE-ROUND-4

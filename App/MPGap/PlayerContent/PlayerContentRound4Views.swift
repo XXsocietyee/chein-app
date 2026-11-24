@@ -51,7 +51,7 @@ public struct MerchantApplyPickerGapView: View {
                 }
             }
 
-            Section("merchantApply.rule.title") {
+            Section {
                 TextEditor(text: $ruleInstructions)
                     .frame(minHeight: 110)
                     .onChange(of: ruleInstructions) { _, newValue in
@@ -59,6 +59,8 @@ public struct MerchantApplyPickerGapView: View {
                             ruleInstructions = String(newValue.prefix(maxRuleChars))
                         }
                     }
+            } header: {
+                Text("merchantApply.rule.title")
             } footer: {
                 HStack {
                     Text("merchantApply.rule.placeholder")

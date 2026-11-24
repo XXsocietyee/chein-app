@@ -554,5 +554,9 @@
   "couponManagement.forbidden.applyMerchant": {
     "zh-Hans": "申请入驻",
     "en": "Apply as Merchant"
+  },
+  "roamHistory.title": {
+    "zh-Hans": "漫游记录",
+    "en": "Roam History"
   }
 }
