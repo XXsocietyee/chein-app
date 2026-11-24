@@ -145,45 +145,51 @@ import SwiftUI
         }
         .task { if editor.state == nil { await editor.open() } }
         .sheet(item: $rehearsal, onDismiss: { editor.invalidateSavedRehearsal() }) { visit in
-            ModInstallationSavedRehearsalView(rehearsal: visit)
+            Group {
+                ModInstallationSavedRehearsalView(rehearsal: visit)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $review) { original in
-            NavigationStack {
-                Cloud25Screen(title: installationString("templateEdit.title", locale: locale), seed: original.command.editRequestId, symbol: "checkmark.seal") {
-                    CYInfoCard {
-                        installationText("templateEdit.scope").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: original.command.action + " · #" + (original.installation.draftId.map(String.init) ?? Cloud25Copy.dash))
-                            .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: original.command.expectedDraftHash).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        ForEach(original.installation.bindings) { binding in
-                            CYListRow(verbatim: binding.kind.rawValue + " · " + binding.label, meta: "#\(binding.resourceId)", trailing: .none) {
-                                CYRowIcon(systemImage: "link")
+            Group {
+                NavigationStack {
+                    Cloud25Screen(title: installationString("templateEdit.title", locale: locale), seed: original.command.editRequestId, symbol: "checkmark.seal") {
+                        CYInfoCard {
+                            installationText("templateEdit.scope").cyText(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: original.command.action + " · #" + (original.installation.draftId.map(String.init) ?? Cloud25Copy.dash))
+                                .cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: original.command.expectedDraftHash).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            ForEach(original.installation.bindings) { binding in
+                                CYListRow(verbatim: binding.kind.rawValue + " · " + binding.label, meta: "#\(binding.resourceId)", trailing: .none) {
+                                    CYRowIcon(systemImage: "link")
+                                }
+                                Text(verbatim: binding.fingerprint).cyText(.meta).monospaced().foregroundStyle(CYColor.textTertiary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             }
-                            Text(verbatim: binding.fingerprint).cyText(.meta).monospaced().foregroundStyle(CYColor.textTertiary).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            // Owner sees the complete current audit snapshot before factual confirmation or review submission.
+                            Text(verbatim: original.reviewedSnapshotJson).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
+                                installationText("field." + key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: original.command.fields[key] ?? "").cyText(.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            }
+                            installationText("templateEdit.reviewBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                            Cloud25Pill(title: installationString("templateEdit.confirm", locale: locale), key: "templateEdit.confirm", primary: true, enabled: editor.canEdit && editor.review == original) {
+                                review = nil
+                                Task { await editor.confirm(original) }
+                            }
                         }
                         // Owner sees the complete current audit snapshot before factual confirmation or review submission.
-                        Text(verbatim: original.reviewedSnapshotJson).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: original.reviewedSnapshotJson).font(.caption.monospaced()).textSelection(.enabled)
                         ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
-                            installationText("field." + key).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary)
-                            Text(verbatim: original.command.fields[key] ?? "").cyText(.body).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
+                            Text(verbatim: original.command.fields[key] ?? "").textSelection(.enabled)
                         }
-                        installationText("templateEdit.reviewBoundary").cyText(.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
-                        Cloud25Pill(title: installationString("templateEdit.confirm", locale: locale), key: "templateEdit.confirm", primary: true, enabled: editor.canEdit && editor.review == original) {
-                            review = nil
-                            Task { await editor.confirm(original) }
-                        }
-                    }
-                    // Owner sees the complete current audit snapshot before factual confirmation or review submission.
-                    Text(verbatim: original.reviewedSnapshotJson).font(.caption.monospaced()).textSelection(.enabled)
-                    ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
-                        Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").cyText(.cardTitle).accessibilityAddTraits(.isHeader)
-                        Text(verbatim: original.command.fields[key] ?? "").textSelection(.enabled)
-                    }
-                    Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation")
-                    CYPillButton("modInstallation.templateEdit.confirm", tableName: "ModInstallation") { review = nil; Task { await editor.confirm(original) } }
-                        .disabled(!editor.canEdit || editor.review != original).e1ActionRow()
-                }.formStyle(.grouped).cyGroupedSurface().toolbar { ToolbarItem(placement: .cancellationAction) { Button { editor.cancelReview(); review = nil } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
+                        Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation")
+                        CYPillButton("modInstallation.templateEdit.confirm", tableName: "ModInstallation") { review = nil; Task { await editor.confirm(original) } }
+                            .disabled(!editor.canEdit || editor.review != original).e1ActionRow()
+                    }.formStyle(.grouped).cyGroupedSurface().toolbar { ToolbarItem(placement: .cancellationAction) { Button { editor.cancelReview(); review = nil } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
     private func prepare(_ action: String) { retireRehearsal(); editor.prepare(action); review = editor.review }

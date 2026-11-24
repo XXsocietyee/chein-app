@@ -68,7 +68,7 @@ import SwiftUI
                                 if let reason = receipt.originalResult?.object?["msg"]?.text { Text(reason).cyText(.meta).foregroundStyle(palette.textSecondary) }
                             } else { Text((chinese ? "尚未读回原请求结果" : "The original outcome has not been read back")).cyText(.meta).foregroundStyle(palette.textSecondary) }
                             Button((chinese ? "回读这次操作" : "Read this request’s outcome")) { Task { await readOutcome(saved) } }
-                                .buttonStyle(CYSecondaryButtonStyle())
+                                .buttonStyle(.bordered)
                                 .disabled(busy || service?.canReadStateReceipt != true)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -85,8 +85,8 @@ import SwiftUI
                     }
                     if !readOnly && (project.canToggle || project.canDelete) {
                         HStack(spacing: CYSpacing.sm) {
-                            if project.canToggle { Button(LocalizedStringKey(project.online ? "publishModes.takeOffline" : "publishModes.putOnline")) { Task { await prepare(project, action: .toggle) } }.buttonStyle(CYSecondaryButtonStyle()).disabled(busy || hasPendingRequest(project.resource)) }
-                            if project.canDelete { Button("publishModes.remove", role: .destructive) { Task { await prepare(project, action: .remove) } }.buttonStyle(CYSecondaryButtonStyle()).foregroundStyle(palette.danger).disabled(busy || hasPendingRequest(project.resource)) }
+                            if project.canToggle { Button(LocalizedStringKey(project.online ? "publishModes.takeOffline" : "publishModes.putOnline")) { Task { await prepare(project, action: .toggle) } }.buttonStyle(.bordered).disabled(busy || hasPendingRequest(project.resource)) }
+                            if project.canDelete { Button("publishModes.remove", role: .destructive) { Task { await prepare(project, action: .remove) } }.buttonStyle(.bordered).foregroundStyle(palette.danger).disabled(busy || hasPendingRequest(project.resource)) }
                         }
                     }
                     if !readOnly && project.canCancelWithRefund { Text("publishModes.refundHandoff").cyText(.meta).foregroundStyle(palette.textTertiary) }
@@ -246,7 +246,7 @@ private extension View {
                 }
                 Text("publishModes.identityPrivacy").cyText(.meta)
             }
-        }.navigationTitle(Text("publishModes.identity"))
+        }.navigationTitle(Text("publishModes.identity")).navigationBarTitleDisplayMode(.inline)
         .task(id: account?.epoch) {
             status = .unconfigured
             guard let account, let service, account.region == .china else { return }

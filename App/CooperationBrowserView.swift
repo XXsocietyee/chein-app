@@ -90,7 +90,10 @@ import SwiftUI
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
             .sheet(item: $rowAction) { action in
-                NavigationStack { CoopFlowRequestPreview(operation: action.operation) }
+                Group {
+                    NavigationStack { CoopFlowRequestPreview(operation: action.operation) }
+                }
+                .presentationDetents([.large]).presentationDragIndicator(.visible)
             }
     }
     @ViewBuilder private func topicFilterSection(_ inbox: CooperationInbox) -> some View {
@@ -119,7 +122,7 @@ import SwiftUI
                 }.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("cooperation.topicFilter.loadedOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("cooperation.topicFilter.loadedOnly").cyText(.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
                 if selected != nil {
                     Button("cooperation.topicFilter.clear") {

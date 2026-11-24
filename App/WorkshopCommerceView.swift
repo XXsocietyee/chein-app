@@ -27,7 +27,7 @@ import SwiftUI
             }
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("title", locale: locale))
+        .navigationTitle(commerceString("title", locale: locale)).navigationBarTitleDisplayMode(.inline)
         .onAppear { if controller?.isCurrent != true { reopen() } }
         .onChange(of: session.sessionRevision) { _, _ in reopen() }
         .onChange(of: session.account?.id) { _, _ in reopen() }
@@ -167,7 +167,7 @@ import SwiftUI
 
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("title", locale: locale))
+        .navigationTitle(commerceString("title", locale: locale)).navigationBarTitleDisplayMode(.inline)
         .task {
             await refreshOnEntry()
         }
@@ -182,37 +182,40 @@ import SwiftUI
             Button("返回", role: .cancel) { }
         }
         .sheet(isPresented: $confirming, onDismiss: { reviewedOffer = nil }) {
-            if let reviewedOffer {
-                NavigationStack {
-                    Form {
-                        Section {
-                            Text(verbatim: reviewedOffer.title).cyText(.sheetTitle).fixedSize(horizontal: false, vertical: true)
-                            Text(verbatim: price(reviewedOffer.currency, minor: reviewedOffer.priceMinor)).cyText(.sectionTitle).monospacedDigit()
-                            CommerceFact("moduleId", reviewedOffer.moduleId)
-                            CommerceFact("version", reviewedOffer.releaseId)
-                            if let accountID = session.account?.id { Text(verbatim: "本次取得许可的账号：\(accountID)") }
-                            Text("本次许可归属当前账号；下列可安装主体与场地范围是独立限制，不代表已取得经营、地点同意或发布权限。").cyText(.body).fixedSize(horizontal: false, vertical: true)
+            Group {
+                if let reviewedOffer {
+                    NavigationStack {
+                        Form {
+                            Section {
+                                Text(verbatim: reviewedOffer.title).cyText(.sheetTitle).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: price(reviewedOffer.currency, minor: reviewedOffer.priceMinor)).cyText(.sectionTitle).monospacedDigit()
+                                CommerceFact("moduleId", reviewedOffer.moduleId)
+                                CommerceFact("version", reviewedOffer.releaseId)
+                                if let accountID = session.account?.id { Text(verbatim: "本次取得许可的账号：\(accountID)") }
+                                Text("本次许可归属当前账号；下列可安装主体与场地范围是独立限制，不代表已取得经营、地点同意或发布权限。").cyText(.body).fixedSize(horizontal: false, vertical: true)
+                            }
+                            Section { CommerceTermsFacts(terms: reviewedOffer.terms) }
+                            commerceText("purchaseBoundary")
+                            Button {
+                                let confirmed = reviewedOffer
+                                confirming = false
+                                Task { await controller.confirmPurchase(reviewedOffer: confirmed) }
+                            } label: { commerceText("confirm").frame(maxWidth: .infinity) }
+                            .disabled(!controller.canAcquire || controller.offer != reviewedOffer)
+                            .modifier(WorkshopLibraryPrimaryAction())
                         }
-                        Section { CommerceTermsFacts(terms: reviewedOffer.terms) }
-                        commerceText("purchaseBoundary")
-                        Button {
-                            let confirmed = reviewedOffer
-                            confirming = false
-                            Task { await controller.confirmPurchase(reviewedOffer: confirmed) }
-                        } label: { commerceText("confirm").frame(maxWidth: .infinity) }
-                        .disabled(!controller.canAcquire || controller.offer != reviewedOffer)
-                        .modifier(WorkshopLibraryPrimaryAction())
-                    }
-                    .modifier(WorkshopLibrarySurface())
-                    .navigationTitle(commerceString("confirmationQuestion", locale: locale))
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button(role: .cancel) { confirming = false } label: { commerceText("cancel") }
+                        .modifier(WorkshopLibrarySurface())
+                        .navigationTitle(commerceString("confirmationQuestion", locale: locale)).navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(role: .cancel) { confirming = false } label: { commerceText("cancel") }
+                            }
                         }
+                        .privacySensitive()
                     }
-                    .privacySensitive()
                 }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
     private func refreshOnEntry() async {
@@ -308,7 +311,7 @@ import SwiftUI
             CYPillButton(LocalizedStringKey("workshopCommerce.returnToCatalog"), style: .secondary, tableName: "WorkshopCommerce") { dismiss() }
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("originalLicense", locale: locale))
+        .navigationTitle(commerceString("originalLicense", locale: locale)).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task(id: licenseId) { await controller.loadLicenseSnapshot(licenseId) }
         .onChange(of: scenePhase) { _, phase in

@@ -98,7 +98,7 @@ enum WorkshopLicenseLibraryPresentation {
         .listStyle(.insetGrouped)
         .cyText(.body)
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(String(localized: LocalizedStringResource("workshopCommerce.library.title", table: "WorkshopCommerce", locale: locale)))
+        .navigationTitle(String(localized: LocalizedStringResource("workshopCommerce.library.title", table: "WorkshopCommerce", locale: locale))).navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .task { await read() }
         .onChange(of: session.sessionRevision) { _, _ in Task { await read() } }

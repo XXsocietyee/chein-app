@@ -28,7 +28,10 @@ import SwiftUI
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
         .task { await editor.open() }
         .sheet(item: $review) { original in
-            NavigationStack { reviewSheet(original) }
+            Group {
+                NavigationStack { reviewSheet(original) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 

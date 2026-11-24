@@ -38,7 +38,7 @@ private struct CreatorContentIssueView: View {
             Group {
                 if case .server(let text) = issue { Text(verbatim: text) }
                 else { Text(LocalizedStringKey(issue.localizationKey)) }
-            }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            }.cyText(.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 .accessibilityIdentifier("creatorContent.issue")
             if issue != .login && issue != .notConfigured {
                 CYPillButton("creatorContent.retry", style: .secondary, fullWidth: false, action: retry)
@@ -263,7 +263,7 @@ private struct CreatorContentIssueView: View {
         }
         .cyDomainScreen(.topicEditor)
         .cyHideTabBar(true)
-        .appNavigationTitle("creatorContent.center")
+        .appNavigationTitle("creatorContent.center").navigationBarTitleDisplayMode(.inline)
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
     }
     private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent { Text(verbatim: count.map(String.init) ?? "—").cyText(.numericBody).monospacedDigit() } label: { Text(title) } }

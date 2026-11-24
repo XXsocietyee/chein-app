@@ -135,11 +135,14 @@ import QuestifyCore
             }
             if tab == .feedback { feedbackSections } else { ticketSections }
         }
-        .appNavigationTitle("creatorStudio.maintenance.title")
+        .appNavigationTitle("creatorStudio.maintenance.title").navigationBarTitleDisplayMode(.inline)
         .task { await model.start(loadTopics: loadTopics) }
         .refreshable { await model.reloadTickets(); await model.reloadFeedback() }
         .sheet(isPresented: $composing) {
-            CreatorTicketComposeSheet(model: model) { ticket in composing = false; openedID = ticket.ticketId; tab = .tickets }
+            Group {
+                CreatorTicketComposeSheet(model: model) { ticket in composing = false; openedID = ticket.ticketId; tab = .tickets }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .navigationDestination(item: $openedID) { id in CreatorTicketDetailView(model: model, ticketID: id) }
         .cyDomainScreen(.topicEditor)
@@ -287,7 +290,7 @@ struct CreatorTicketStageChip: View {
                 }
             }
             .cyGroupedSurface()
-            .navigationTitle("creatorStudio.ticket.open")
+            .navigationTitle("creatorStudio.ticket.open").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
         }
     }
@@ -322,15 +325,18 @@ struct CreatorStudioWriteIssueText: View {
             else if let ticket { content(ticket) }
             else { CreatorStudioIssueView(failure: failure) { Task { await load() } } }
         }
-        .appNavigationTitle("creatorStudio.ticket.detail")
+        .appNavigationTitle("creatorStudio.ticket.detail").navigationBarTitleDisplayMode(.inline)
         .task { await load() }
         .refreshable { await load() }
         .sheet(item: $closing) { choice in
-            if let ticket {
-                CreatorTicketCloseSheet(service: model.service, ticket: ticket, resolution: choice.resolution) { updated in
-                    closing = nil; self.ticket = updated; model.replace(updated)
+            Group {
+                if let ticket {
+                    CreatorTicketCloseSheet(service: model.service, ticket: ticket, resolution: choice.resolution) { updated in
+                        closing = nil; self.ticket = updated; model.replace(updated)
+                    }
                 }
             }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .cyDomainScreen(.topicEditor)
     }
@@ -428,7 +434,7 @@ struct CreatorTicketCloseChoice: Identifiable {
                 }
             }
             .cyGroupedSurface()
-            .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange")
+            .navigationTitle(resolution == .fixed ? "creatorStudio.close.fixed" : "creatorStudio.close.noChange").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("creatorStudio.cancel") { dismiss() } } }
         }
     }

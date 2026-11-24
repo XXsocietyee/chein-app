@@ -169,7 +169,7 @@ import SwiftUI
                         .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.md, bottom: CYSpacing.sm, trailing: CYSpacing.md))
                     }
                 }
-            }.navigationTitle("contextPublish.ai.title")
+            }.navigationTitle("contextPublish.ai.title").navigationBarTitleDisplayMode(.inline)
             .modifier(PublishingAIPromptLifetime(controller:inspiration))
             .scrollContentBackground(.hidden)
             .cyDomainScreen(.topicEditor)

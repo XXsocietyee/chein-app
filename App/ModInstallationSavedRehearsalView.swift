@@ -63,7 +63,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(CYColor.bgPage.ignoresSafeArea())
-        .navigationTitle(text("title"))
+        .navigationTitle(text("title")).navigationBarTitleDisplayMode(.inline)
     }
 
     private var unavailable: some View {

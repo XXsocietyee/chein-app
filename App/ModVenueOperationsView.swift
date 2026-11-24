@@ -285,47 +285,50 @@ import CoreImage.CIFilterBuiltins
             }.disabled(revocation.map { !model.canConfirm($0) } ?? true)
         }
         .sheet(isPresented: $reviewing) {
-            NavigationStack {
-                Form {
-                    Section {
-                        CYHeroHeader(verbatim: t("审阅全部场地", "Review all venues")) {
-                            ModVenueCover(seed: prepared?.bindingHash ?? model.installation.requestId, symbol: "checkmark.seal")
+            Group {
+                NavigationStack {
+                    Form {
+                        Section {
+                            CYHeroHeader(verbatim: t("审阅全部场地", "Review all venues")) {
+                                ModVenueCover(seed: prepared?.bindingHash ?? model.installation.requestId, symbol: "checkmark.seal")
+                            }
+                        }.e1HeroRow()
+                        if let d = prepared {
+                            Text(verbatim: cyShownValue(d.installationRequestId)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: cyShownValue(d.bindingHash)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: "\(d.proofValidityMillis) ms · \(cyShownValue(d.purpose))")
+                                .cyText(.numericBody)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            ForEach(d.places, id: \.slotId) { p in
+                                Section {
+                                    Text(verbatim: "POI \(p.poiId)").cyText(.meta)
+                                    Text(verbatim: cyShownValue(p.consentEvidenceRef)).cyText(.body).fixedSize(horizontal: false, vertical: true)
+                                    Text(verbatim: cyShownValue(p.safetyReviewRef)).cyText(.body).fixedSize(horizontal: false, vertical: true)
+                                    ForEach(Array(p.operatingWindows.enumerated()), id: \.offset) { _, window in
+                                        Text(verbatim: Date(timeIntervalSince1970: Double(window.from)/1000).formatted() + " → " + Date(timeIntervalSince1970: Double(window.until)/1000).formatted())
+                                            .cyText(.numericBody)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                } header: { venueHeader(cyShownValue(p.slotId)) }
+                            }
+                            Toggle(t("我有权代表这些场地，明确同意本安装、用途、版本、有效期及上述时段；不是个人隐私授权。", "I am authorized for these venues and explicitly consent to this installation, purpose, version, validity, and windows; this is not personal privacy consent."), isOn: $attested)
+                            CYPillButton(verbatim: t("提交明确运营同意", "Submit explicit operation consent"), systemImage: "checkmark.circle") {
+                                guard let original = confirmation else { return }
+                                reviewing = false; confirmation = nil; attested = false
+                                run { await model.confirm(original) }
+                            }
+                            .disabled(!attested || (confirmation.map { !model.canConfirm($0) } ?? true))
+                            .e1ActionRow()
                         }
-                    }.e1HeroRow()
-                    if let d = prepared {
-                        Text(verbatim: cyShownValue(d.installationRequestId)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: cyShownValue(d.bindingHash)).cyText(.meta).monospaced().textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        Text(verbatim: "\(d.proofValidityMillis) ms · \(cyShownValue(d.purpose))")
-                            .cyText(.numericBody)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        ForEach(d.places, id: \.slotId) { p in
-                            Section {
-                                Text(verbatim: "POI \(p.poiId)").cyText(.meta)
-                                Text(verbatim: cyShownValue(p.consentEvidenceRef)).cyText(.body).fixedSize(horizontal: false, vertical: true)
-                                Text(verbatim: cyShownValue(p.safetyReviewRef)).cyText(.body).fixedSize(horizontal: false, vertical: true)
-                                ForEach(Array(p.operatingWindows.enumerated()), id: \.offset) { _, window in
-                                    Text(verbatim: Date(timeIntervalSince1970: Double(window.from)/1000).formatted() + " → " + Date(timeIntervalSince1970: Double(window.until)/1000).formatted())
-                                        .cyText(.numericBody)
-                                        .fixedSize(horizontal: false, vertical: true)
-                                }
-                            } header: { venueHeader(cyShownValue(p.slotId)) }
-                        }
-                        Toggle(t("我有权代表这些场地，明确同意本安装、用途、版本、有效期及上述时段；不是个人隐私授权。", "I am authorized for these venues and explicitly consent to this installation, purpose, version, validity, and windows; this is not personal privacy consent."), isOn: $attested)
-                        CYPillButton(verbatim: t("提交明确运营同意", "Submit explicit operation consent"), systemImage: "checkmark.circle") {
-                            guard let original = confirmation else { return }
-                            reviewing = false; confirmation = nil; attested = false
-                            run { await model.confirm(original) }
-                        }
-                        .disabled(!attested || (confirmation.map { !model.canConfirm($0) } ?? true))
-                        .e1ActionRow()
                     }
-                }
-                .listStyle(.insetGrouped)
-                .cyGroupedSurface()
-                .cyHeroScreen()
-                .toolbar { Button(t("返回修改", "Back to edit")) { clearReview() } }
-            }.privacySensitive()
+                    .listStyle(.insetGrouped)
+                    .cyGroupedSurface()
+                    .cyHeroScreen()
+                    .toolbar { Button(t("返回修改", "Back to edit")) { clearReview() } }
+                }.privacySensitive()
+            }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
     }
 

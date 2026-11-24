@@ -113,26 +113,41 @@ import SwiftUI
         }
         .onDisappear { suspendOriginalInstallRead() }
         .sheet(item: $editing, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
-            NavigationStack { ModInstallationTemplateEditorView(editor: editor) }
+            Group {
+                NavigationStack { ModInstallationTemplateEditorView(editor: editor) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $editingQa, onDismiss: { Task { await controller.refreshFacts() } }) { editor in
-            NavigationStack { ModInstallationQaEditorView(editor: editor) }
+            Group {
+                NavigationStack { ModInstallationQaEditorView(editor: editor) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
-        .sheet(item: $venue) { model in NavigationStack { ModVenueOperationsView(model: model) } }
+        .sheet(item: $venue) { model in Group { NavigationStack { ModVenueOperationsView(model: model) } }.presentationDetents([.large]).presentationDragIndicator(.visible) }
         .sheet(item: $editingTopic, onDismiss: { Task { await controller.refreshFacts() } }) { receipt in
-            NavigationStack { ModInstallationTopicEditor(receipt: receipt, isCurrent: { controller.isCurrent }) }
+            Group {
+                NavigationStack { ModInstallationTopicEditor(receipt: receipt, isCurrent: { controller.isCurrent }) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $confirmation) { receipt in
-            ModInstallationConfirmation(receipt: receipt, preview: controller.preview, canConfirm: controller.canConfirm && controller.receipt == receipt) {
-                confirmation = nil
-                Task { await controller.confirmInstall(receipt) }
+            Group {
+                ModInstallationConfirmation(receipt: receipt, preview: controller.preview, canConfirm: controller.canConfirm && controller.receipt == receipt) {
+                    confirmation = nil
+                    Task { await controller.confirmInstall(receipt) }
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .sheet(item: $factReview) { facts in
-            ModInstallationFactReview(facts: facts, canConfirm: controller.canConfirmFacts && controller.facts == facts) {
-                factReview = nil
-                Task { await controller.confirmFacts(facts) }
+            Group {
+                ModInstallationFactReview(facts: facts, canConfirm: controller.canConfirmFacts && controller.facts == facts) {
+                    factReview = nil
+                    Task { await controller.confirmFacts(facts) }
+                }
             }
+            .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         }
         .confirmationDialog(installationString("cancelQuestion", locale: locale), isPresented: $showCancellation, titleVisibility: .visible) {
             Button(role: .destructive) {

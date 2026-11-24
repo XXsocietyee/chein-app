@@ -210,7 +210,7 @@ private struct PurchasedTitle: ViewModifier {
     let key: String
     @Environment(\.locale) private var locale
     init(_ key: String) { self.key = key }
-    func body(content: Content) -> some View { content.navigationTitle(String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPurchased." + key), table: "WorkshopPurchased", locale: locale))) }
+    func body(content: Content) -> some View { content.navigationTitle(String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPurchased." + key), table: "WorkshopPurchased", locale: locale))).navigationBarTitleDisplayMode(.inline) }
 }
 private func purchasedLabel(_ key: String, locale: Locale) -> String {
     String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: "workshopPurchased." + key), table: "WorkshopPurchased", locale: locale))

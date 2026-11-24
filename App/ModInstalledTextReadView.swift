@@ -36,9 +36,12 @@ import SwiftUI
         .onAppear { visible = true }
         .onDisappear { visible = false; reader?.retire(); reader = nil }
         .sheet(item: presented) { captured in
-            ModInstalledTextReadView(reader: captured) {
-                captured.retire(); guard reader === captured else { return }; presented.wrappedValue = nil
-            }.id(captured.id)
+            Group {
+                ModInstalledTextReadView(reader: captured) {
+                    captured.retire(); guard reader === captured else { return }; presented.wrappedValue = nil
+                }.id(captured.id)
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
     }
 }
