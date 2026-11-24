@@ -152,8 +152,8 @@
 ### Checks
 
 - `tools/check_typography_lint.py`: PASS.
-- `tools/check_a11y_lint.py`: same 12 pre-existing "new" items as the base (none in this half's changes); one baselined item removed (`person.fill` lettermark in MemberHomeHeader).
-- ContractChecks naming a touched file (67): 7 fail before and after, same set. Zero new failures.
+- `tools/check_a11y_lint.py`: 11 "new" items left, all pre-existing on combined-r7 (12 there) and none in this half's files; this branch removed SocialPublicProfileView:523 and the baselined MemberHomeHeader `person.fill` lettermark.
+- ContractChecks naming any App file this branch changed (294): 18 fail on `origin/ui/combined-r7` and the same 18 on this branch. Zero new failures.
 - No compiler here; every API was grepped on this branch (`SettingsAccountProfileClient`, `SettingsClubPickerService.resolveHostRoute`, `ClubCommunityFeedCursor`, `ClubOperationsWorkspaceView`, `ClubR1WrapLayout`, `QuestifyCardArtwork.safeURL`, `PlayerFeedRemoteImage`, `MPAsset.*`).
 
 ### Still open after round 2
