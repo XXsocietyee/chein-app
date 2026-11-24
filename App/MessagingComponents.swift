@@ -257,7 +257,10 @@ struct MessagingReadScreen<Value, Content: View>: View {
 struct MessagingConversationName: View {
     let conversation: MessagingConversation?
     var body: some View {
-        if let name = conversation?.counterparty?.nickname, !name.isEmpty { Text(verbatim: name) }
+        // r7 review B-14 (P5 OR-023, MP im/list/index.js:128, im/chat/index.js:263): a type-2 conversation is always
+        // 城瘾小助手, whatever nickname the counterparty carries.
+        if IMConversationTitlePolicy.usesAssistantTitle(conversation) { Text(LocalizedStringKey(IMConversationTitlePolicy.assistantTitleKey)) }
+        else if let name = conversation?.counterparty?.nickname, !name.isEmpty { Text(verbatim: name) }
         else {
             switch conversation?.kind {
             case .system: Text("messaging.system")

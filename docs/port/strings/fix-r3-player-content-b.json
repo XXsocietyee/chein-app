@@ -16,6 +16,57 @@
       }
     }
   },
+  "messaging.day.earlier": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Earlier"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "更早"
+        }
+      }
+    }
+  },
+  "messaging.day.today": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Today"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "今天"
+        }
+      }
+    }
+  },
+  "messaging.day.yesterday": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Yesterday"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "昨天"
+        }
+      }
+    }
+  },
   "myProject.address.open %@": {
     "extractionState": "manual",
     "localizations": {

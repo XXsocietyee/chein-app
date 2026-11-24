@@ -84,7 +84,7 @@ struct VideoBountyState: Equatable {
     }
 }
 
-/// Logic stub for Cursor: `/api/video-bounty/submission/mine`, `/accrual/mine`, submit, appeal, cancel.
+/// Implemented by `VideoBountySessionModel`: `/api/video-bounty/submission/mine`, `/accrual/mine`, submit, appeal, cancel.
 @MainActor protocol VideoBountyBinding: AnyObject, Observable {
     var state: VideoBountyState { get }
     func load()
@@ -264,7 +264,10 @@ struct VideoBountyView: View {
             .cyText(.bodyMedium).foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             if let url = row.sourceURL, !url.isEmpty {
+                // R7-PC-D7-2: the full link can be copied (it is middle-truncated on screen).
                 Text(verbatim: url).cyText(.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).truncationMode(.middle)
+                    .textSelection(.enabled)
+                    .contextMenu { Button { LocalPasteboard.copy(url) } label: { Label("requestReference.copy", systemImage: "doc.on.doc") } }
             }
             if let end = row.windowEndText { Text("mp.vb.windowEnd \(end)").cyText(.meta).foregroundStyle(CYColor.textSecondary) }
             if let note = row.reviewNote, !note.isEmpty { Text(verbatim: note).cyText(.meta).foregroundStyle(CYColor.textSecondary) }
