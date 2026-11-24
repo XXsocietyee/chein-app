@@ -490,6 +490,82 @@ struct PassRevealPaidFacts: Hashable {
 /// Key reveal (l-icons ps-key): shards fly in and fuse into the key, a warm gradient rises, then eyebrow / title / line /
 /// button follow. The full version plays the first time per account and after a paid order; later visits land on the
 /// idle state. Reduce Motion: the end state at once. "Skip" appears shortly after the start, only in the full version.
+/// MP `cy-frames` for the pass key (subpackagePass/reveal/frames.js): 3-column sprite sheets of 585×780 px frames.
+/// Intro: 14 sheets, 83 frames, 18 fps, played once. Idle: 12 sheets, 72 frames, 12 fps, looped.
+struct PassKeyFrames: View {
+    let introStart: Date?
+    let idleStart: Date
+    let still: Bool
+
+    static let frameAspect: CGFloat = 585.0 / 780.0
+    static let columns = 3, rows = 2, perSheet = 6
+    static let introCount = 83, introFPS = 18.0
+    static let idleCount = 72, idleFPS = 12.0
+    static var introDuration: TimeInterval { Double(introCount) / introFPS }
+    static let introSheets: [Image] = [
+        MPAsset.Other.keyIntro0,
+        MPAsset.Other.keyIntro1,
+        MPAsset.Other.keyIntro2,
+        MPAsset.Other.keyIntro3,
+        MPAsset.Other.keyIntro4,
+        MPAsset.Other.keyIntro5,
+        MPAsset.Other.keyIntro6,
+        MPAsset.Other.keyIntro7,
+        MPAsset.Other.keyIntro8,
+        MPAsset.Other.keyIntro9,
+        MPAsset.Other.keyIntro10,
+        MPAsset.Other.keyIntro11,
+        MPAsset.Other.keyIntro12,
+        MPAsset.Other.keyIntro13
+    ]
+    static let idleSheets: [Image] = [
+        MPAsset.Other.keyIdle0,
+        MPAsset.Other.keyIdle1,
+        MPAsset.Other.keyIdle2,
+        MPAsset.Other.keyIdle3,
+        MPAsset.Other.keyIdle4,
+        MPAsset.Other.keyIdle5,
+        MPAsset.Other.keyIdle6,
+        MPAsset.Other.keyIdle7,
+        MPAsset.Other.keyIdle8,
+        MPAsset.Other.keyIdle9,
+        MPAsset.Other.keyIdle10,
+        MPAsset.Other.keyIdle11
+    ]
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / Self.introFPS, paused: still)) { context in
+            let (sheets, index) = frame(at: context.date)
+            GeometryReader { proxy in
+                let w = proxy.size.width, h = proxy.size.height
+                let sheet = min(index / Self.perSheet, sheets.count - 1)
+                let cell = index % Self.perSheet
+                sheets[sheet]
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: w * CGFloat(Self.columns), height: h * CGFloat(Self.rows))
+                    .offset(x: -w * CGFloat(cell % Self.columns), y: -h * CGFloat(cell / Self.columns))
+                    .frame(width: w, height: h, alignment: .topLeading)
+                    .clipped()
+            }
+            .aspectRatio(Self.frameAspect, contentMode: .fit)
+        }
+        .accessibilityHidden(true)
+    }
+
+    private func frame(at date: Date) -> ([Image], Int) {
+        if still { return (Self.idleSheets, 0) }
+        if let introStart {
+            let elapsed = max(0, date.timeIntervalSince(introStart))
+            if elapsed < Self.introDuration { return (Self.introSheets, min(Int(elapsed * Self.introFPS), Self.introCount - 1)) }
+            let idle = elapsed - Self.introDuration
+            return (Self.idleSheets, Int(idle * Self.idleFPS) % Self.idleCount)
+        }
+        let idle = max(0, date.timeIntervalSince(idleStart))
+        return (Self.idleSheets, Int(idle * Self.idleFPS) % Self.idleCount)
+    }
+}
+
 @MainActor struct PassRevealView: View {
     let paid: PassRevealPaidFacts?
     let accountKey: String?
@@ -502,6 +578,8 @@ struct PassRevealPaidFacts: Hashable {
     @State private var route: MPParityRoute?
     @State private var timeline: Task<Void, Never>?
     @State private var skipVisible = false
+    @State private var introStart: Date?
+    @State private var idleStart = Date()
 
     /// 1 shards in, 2 key fused, 4 gradient, 5 eyebrow, 6 title, 7 line, 8 button. "Skip" shows at 600 ms.
     private static let schedule: [(step: Int, ms: UInt64)] = [(1, 60), (2, 900), (4, 1500), (5, 1800), (6, 1950), (7, 2150), (8, 2450)]
@@ -534,30 +612,11 @@ struct PassRevealPaidFacts: Hashable {
     private var stage: some View {
         VStack(spacing: CYSpacing.lg) {
             Spacer()
-            ZStack {
-                Circle().fill(CYNight.glow(radius: 110)).frame(width: 360, height: 360).opacity(step >= 2 ? 1 : 0)
-                ForEach(0..<8, id: \.self) { index in
-                    let angle = Double(index) / 8 * 2 * .pi
-                    RoundedRectangle(cornerRadius: 4, style: .continuous)
-                        .fill(LinearGradient(colors: [CYNight.lanternHot, CYNight.lantern], startPoint: .top, endPoint: .bottom))
-                        .frame(width: 14, height: 26)
-                        .rotationEffect(.radians(angle))
-                        .offset(x: step >= 2 ? 0 : cos(angle) * 160, y: step >= 2 ? 0 : sin(angle) * 220)
-                        .opacity(step >= 1 && step < 2 ? 0.9 : 0)
-                        .animation(reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.75).delay(Double(index) * 0.03), value: step)
-                }
-                PassKeyEmblem(size: 180, lit: true)
-                    .scaleEffect(step >= 2 ? 1 : 0.4)
-                    .opacity(step >= 2 ? 1 : 0)
-                    .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.62), value: step >= 2)
-                    // B-PR-02: after the reveal the key keeps a slow idle breath (MP idle frame loop); Reduce Motion stays still.
-                    .phaseAnimator([false, true]) { view, phase in
-                        view.scaleEffect(step >= 8 && !reduceMotion && phase ? 1.04 : 1)
-                            .shadow(color: CYNight.passGold2.opacity(step >= 8 && !reduceMotion && phase ? 0.55 : 0.2), radius: phase ? 28 : 12)
-                    } animation: { _ in .easeInOut(duration: 1.6) }
-            }
-            .frame(height: 320)
-            .accessibilityHidden(true)
+            // MP assets (subpackagePass/reveal/frames.js): the key is the MP's baked frame sheets, not a drawn emblem.
+            // Full reveal plays the 83-frame intro once at 18 fps, then the 72-frame idle loop at 12 fps; a repeat
+            // visit, a skip or Reduce Motion lands on the idle loop (still frame 0 under Reduce Motion).
+            PassKeyFrames(introStart: introStart, idleStart: idleStart, still: reduceMotion)
+                .frame(maxHeight: 420)
             Spacer()
             VStack(spacing: CYSpacing.md) {
                 // B-PR-04: MP eyebrow is spaced caps (≈0.32 em) in white 72%, text sits on the gold wash with a soft shadow.
@@ -626,6 +685,7 @@ struct PassRevealPaidFacts: Hashable {
         full = !reduceMotion && (paid != nil || firstTime)
         seenAccount = key
         guard full else { finish(); return }
+        introStart = Date()
         timeline = Task { @MainActor in
             Task { @MainActor in
                 try? await Task.sleep(nanoseconds: Self.skipAt * 1_000_000)
@@ -643,6 +703,7 @@ struct PassRevealPaidFacts: Hashable {
 
     private func finish() {
         timeline?.cancel()
+        if introStart != nil { introStart = nil; idleStart = Date() }
         withAnimation(CYMotion.resolve(.easeOut(duration: 0.3), reduceMotion: reduceMotion)) { step = 8 }
     }
 
