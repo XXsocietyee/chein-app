@@ -159,10 +159,10 @@ public struct ReformWorldHostWorkbenchView: View {
             ForEach(highRiskSwitches, id: \.name) { item in
                 HStack {
                     Text(verbatim: item.name)
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                     Spacer()
                     Text(verbatim: item.isFailClosed ? "OFF (Fail-Closed)" : "ON (Open)")
-                        .font(.caption2.monospaced())
+                        .font(.caption.monospaced())
                         .foregroundStyle(item.isFailClosed ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityElement(children: .combine)

@@ -140,7 +140,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)
                 .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
@@ -199,7 +199,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
                                 .cyText(.meta, weight: .semibold)
                                 .accessibilityIdentifier("ultimateExecutiveSummary.card.\(card.id).title")
                             Text(verbatim: card.primaryValueText)
-                                .font(.caption2.monospaced().weight(.bold))
+                                .font(.caption.monospaced().weight(.bold))
                                 .foregroundStyle(Color.accentColor)
                                 .accessibilityIdentifier("ultimateExecutiveSummary.card.\(card.id).value")
                         }

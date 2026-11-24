@@ -222,11 +222,18 @@ struct ClubCommunityEntry: View {
     let clubID: Int
     let identity: ClubReadIdentity
     let context: ClubCommunityContext
+    /// CLB-detail-31 (MP detail js:744, 1956-1959): a `postId` link opens the feed and scrolls to that post.
+    var focusPostID: Int? = nil
+    @State private var opensFocusedPost = false
     var body: some View {
         NavigationLink {
             ClubCommunityFeedView(context: context, identity: identity, clubID: clubID)
         } label: { Label("club.community.posts", systemImage: "text.bubble") }
             .accessibilityIdentifier("club.community.entry")
+            .navigationDestination(isPresented: $opensFocusedPost) {
+                ClubCommunityFeedView(context: context, identity: identity, clubID: clubID, focusPostID: focusPostID)
+            }
+            .task(id: focusPostID) { if focusPostID != nil { opensFocusedPost = true } }
     }
 }
 
@@ -253,14 +260,19 @@ struct ClubCommunityFeedView: View {
     @State private var toastMessage: LocalizedStringKey?
     @Environment(\.clubCustomerTopics) private var topics
     @Environment(\.clubPostPlayHost) private var discussionHost
-    init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil) {
-        self.identity = identity; self.clubID = clubID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
+    /// CLB-detail-31: scroll to this post once it is in the loaded feed (one time per appearance).
+    private let focusPostID: Int?
+    @State private var didFocusPost = false
+    init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil, focusPostID: Int? = nil) {
+        self.identity = identity; self.clubID = clubID; self.focusPostID = focusPostID
+        _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
     /// CLB-detail-16: compose only for members and the owner (MP wxml:100); the server still enforces memberPostAllowed.
     @State private var canPost = false
     private var canCompose: Bool { clubID != nil && identity.isSignedIn && canPost }
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                 // Discover feed already has the page title and the 帖文 tab. A club-scoped list keeps the header.
@@ -295,13 +307,14 @@ struct ClubCommunityFeedView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.md)
                         .accessibilityIdentifier("club.community.pinnedNotice")
                     }
                     ForEach(snapshot.feedItems) { item in
                         UGCBlockedFilterContainer(memberID: item.post.authorMemberID, authorName: item.post.nickname) {
                             feedItem(item, snapshot: snapshot)
                         }
+                        .id(item.id)
                     }
                     // CLB-detail-15: the next page loads when the end of the list scrolls in (MP onReachBottom).
                     if let clubID, model.canLoadMorePosts {
@@ -330,6 +343,13 @@ struct ClubCommunityFeedView: View {
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
             .padding(.vertical, CYSpacing.lg)
+        }
+        .onChange(of: model.snapshot?.feedItems.map(\.id)) { _, ids in
+            guard !didFocusPost, let focusPostID, let ids,
+                  let target = model.snapshot?.feedItems.first(where: { $0.post.id == focusPostID }), ids.contains(target.id) else { return }
+            didFocusPost = true
+            withAnimation(CYMotion.standard) { proxy.scrollTo(target.id, anchor: .top) }
+        }
         }
         .cyDomainPageBackground()
         .refreshable { await model.load(operation) }
@@ -424,7 +444,7 @@ struct ClubCommunityFeedView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
     }
     @ViewBuilder private func feedItem(_ item: ClubCommunityFeedItem, snapshot: ClubCommunitySnapshot) -> some View {
         let post = item.post
@@ -603,7 +623,7 @@ struct ClubCommunityPostTile: View {
         .cyText(.body)
         .foregroundStyle(CYColor.textPrimary)
         .buttonStyle(.borderless)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("club.community.post.\(post.id)")
         .task(id: identity) {
@@ -621,7 +641,7 @@ struct ClubCommunityPostTile: View {
     }
     private func countLabel(_ count: Int, symbol: String) -> some View {
         Label { Text(verbatim: String(count)).monospacedDigit() } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-            .font(CYTypography.meta)
+            .cyText(.meta)
             .foregroundStyle(CYColor.textSecondary)
     }
 }
@@ -688,7 +708,7 @@ struct ClubCommunityPostDetailView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                    .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                 }
                 CYSectionHeader("club.community.comments")
                 if model.loading { CYSkeleton().accessibilityLabel(Text("club.community.loading")) }
@@ -788,7 +808,7 @@ struct ClubCommunityComposer: View {
                         .scrollContentBackground(.hidden)
                         .padding(CYSpacing.sm)
                         .frame(minHeight: editorMinHeight)
-                        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                         .accessibilityLabel(Text("club.community.content"))
                         .accessibilityIdentifier("club.community.content")
                     if content.isEmpty {
@@ -959,7 +979,7 @@ struct ClubCommunityReviewView: View {
                     .cyText(.meta)
                     .padding(CYSpacing.md)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(CYColor.bgSurface, in: .rect(cornerRadius: CYRadius.md))
+                    .background(CYColor.bgSurface, in: .rect(cornerRadius: CYRadius.card))
                 }
 
                 VStack(spacing: CYSpacing.sm) {
@@ -1055,7 +1075,7 @@ struct ClubCommunityCommentsView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                    .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                 }
                 if model.snapshot?.comments.isEmpty == true {
                     CYEmptyState(systemImage: "bubble", "club.community.noComments")
@@ -1091,7 +1111,7 @@ struct ClubCommunityCommentsView: View {
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("club.community.comment.\(comment.id)")
                     }
@@ -1099,7 +1119,7 @@ struct ClubCommunityCommentsView: View {
                 TextField("club.community.commentContent", text: $content, axis: .vertical)
                     .cyText(.body)
                     .padding(CYSpacing.md)
-                    .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous))
                     .accessibilityIdentifier("club.community.commentContent")
                 CYPillButton("club.community.review") { Task { await model.prepare(.comment(content), clubID: clubID, post: post) } }
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !identity.isSignedIn || model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
@@ -1164,7 +1184,7 @@ struct ClubCommunityHistoryView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                    .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
                 }
                 CYPillButton("club.community.refresh") { Task { await model.load(.history(postID: postID)) } }
             }
@@ -1219,7 +1239,7 @@ private struct ClubCommunityReferenceCover: View {
                         CYCoverArt(seed: trimmed.isEmpty ? "club-community" : trimmed, showsDebugLabel: false)
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
                 .accessibilityLabel(Text("club.community.image") + Text(verbatim: " \(index + 1)"))
             if !trimmed.isEmpty {
                 Text(verbatim: trimmed)

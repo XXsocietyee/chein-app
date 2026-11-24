@@ -211,7 +211,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
                     .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).title")
                 Spacer()
                 Text(verbatim: row.category.rawValue)
-                    .font(.caption2.monospaced())
+                    .font(.caption.monospaced())
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).category")
                 Text(verbatim: row.statusBadgeText)
@@ -221,7 +221,7 @@ public struct CrashResilienceAndMetricKitDiagnosticsSectionView: View {
             }
 
             Text(verbatim: row.budgetRuleText)
-                .font(.caption2.monospaced())
+                .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .accessibilityIdentifier("crashResilienceMetricKit.row.\(row.id).budgetRule")
 

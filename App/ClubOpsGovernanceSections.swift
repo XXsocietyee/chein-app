@@ -78,7 +78,10 @@ struct ClubOpsBanSection: View {
                     if let note = row.unbanReason {
                         Text("clubOpsGov.unbanNote \(note)", tableName: "ClubOpsGovernance").cyText(.meta).foregroundStyle(CYColor.textSecondary)
                     }
-                    if row.unbanSeed != nil { unban(row) }
+                    // CLB-governance-18: VoiceOver names the member on 解封.
+                    if row.unbanSeed != nil {
+                        unban(row).accessibilityLabel(Text("club.gov.a11y.unban \(row.nickname ?? "#\(row.targetMemberID)")"))
+                    }
                 }.accessibilityIdentifier("clubOpsGov.ban.\(row.id)")
             }
         } header: { Text("club.gov.bans") }
@@ -115,8 +118,12 @@ struct ClubOpsGovernanceMembersSection: View {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     ClubOpsGovernanceCopy.member(member.nickname, id: member.id).cyText(.cardTitle)
                     HStack(spacing: CYSpacing.sm) {
+                        // CLB-governance-18: VoiceOver names the member on 封禁 / 转让.
                         ban(member).foregroundStyle(CYColor.dangerText)
-                        if roster.viewerIsOwner { transfer(member) }
+                            .accessibilityLabel(Text("club.gov.a11y.ban \(member.nickname ?? "#\(member.id)")"))
+                        if roster.viewerIsOwner {
+                            transfer(member).accessibilityLabel(Text("club.gov.a11y.transfer \(member.nickname ?? "#\(member.id)")"))
+                        }
                     }.buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false)).controlSize(.small)
                 }.accessibilityIdentifier("clubOpsGov.member.\(member.id)")
             }
@@ -270,7 +277,7 @@ struct ClubOpsRoleSection: View {
                         ClubOpsTag(label: row.roleName.map { Text(verbatim: $0) } ?? ClubOpsGovernanceCopy.text("clubOpsGov.roles.roleFallback"))
                     }
                     Self.summary(row).cyText(.meta).foregroundStyle(CYColor.textSecondary)
-                    revoke(row)
+                    revoke(row).accessibilityLabel(Text("club.gov.a11y.revoke \(row.memberName ?? "#\(row.targetMemberID)")"))
                 }.accessibilityIdentifier("clubOpsGov.roles.assignment.\(row.id)")
             }
         } header: { Text("club.gov.assignments") } footer: {
@@ -317,7 +324,7 @@ struct ClubOpsGovernanceDeniedNote: View {
         Section {
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: "lock")
-                    .font(CYTypography.sectionTitle)
+                    .cyText(.sectionTitle)
                     .foregroundStyle(CYColor.textSecondary)
                 ClubOpsGovernanceCopy.text(title)
                     .cyText(.cardTitle)

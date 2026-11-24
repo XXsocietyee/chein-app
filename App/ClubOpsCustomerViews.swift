@@ -373,7 +373,7 @@ struct ClubOpsCustomerMetricTile: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .cyDomainCard(radius: CYRadius.card, padding: CYSpacing.lg)
         .accessibilityElement(children: .combine)
     }
 }
@@ -387,7 +387,7 @@ struct ClubOpsCustomerRecordRow: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
             : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
         stack {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let day {
                     Text(day, format: .number)
                         .cyText(.numericBody)

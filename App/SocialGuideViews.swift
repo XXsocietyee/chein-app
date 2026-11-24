@@ -30,7 +30,7 @@ import SwiftUI
                             if let informationDestination { informationDestination(row) }
                             else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
                         } label: {
-                            CYListRow(verbatim: row.title, meta: row.summary, trailing: .none) { SocialInformationArt(id: row.id).frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)) }
+                            CYListRow(verbatim: row.title, meta: row.summary, trailing: .none) { SocialInformationArt(id: row.id).frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous)) }
                         }.accessibilityIdentifier("social.information.\(row.id)")
                     }
                 }
@@ -92,7 +92,7 @@ struct SocialInformationArt: View {
     var large = false
     @Environment(\.cyPalette) private var palette
     var body: some View {
-        RoundedRectangle(cornerRadius: large ? CYRadius.lg : CYRadius.sm, style: .continuous)
+        RoundedRectangle(cornerRadius: large ? CYRadius.card : CYRadius.inner, style: .continuous)
             .fill(palette.bgElevated)
             .overlay(alignment: large ? .topTrailing : .center) {
                 Image(systemName: abs(id) % 2 == 0 ? "text.book.closed" : "doc.text")

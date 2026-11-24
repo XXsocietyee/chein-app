@@ -17,38 +17,43 @@ struct ClubDetailTabBar: View {
             }
             .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: selection)
             .sensoryFeedback(.selection, trigger: selection)
-            .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))
+            .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.lg, bottom: CYSpacing.xs, trailing: CYSpacing.lg))
             .listRowBackground(Color.clear)
         }
     }
+    /// Native restyle R2 (spec §3.7 / §4.9): drawn as a system segmented control (tertiary-fill track, the selected
+    /// segment lifted on the grouped surface) but kept as buttons, because UI tests tap `club.detail.tab.<key>` and a
+    /// `Picker(.segmented)` cannot carry an identifier per segment.
     private var tabRow: some View {
-            HStack(spacing: 0) {
+            HStack(spacing: 2) {
                 ForEach(tabs) { tab in
                     Button { select(tab) } label: {
-                        VStack(spacing: 6) {
-                            Text(tab.titleKey)
-                                .font(selection == tab ? CYTypography.bodyMedium.weight(.semibold) : CYTypography.bodyMedium)
-                                .foregroundStyle(selection == tab ? CYColor.textPrimary : CYColor.textSecondary)
-                                .lineLimit(1).minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.8)
-                            ZStack {
-                                Capsule().fill(Color.clear).frame(height: 3)
-                                if selection == tab { Capsule().fill(Theme.Color.accent(in: domain)).frame(height: 3).matchedGeometryEffect(id: "club.tab.underline", in: ns) }
+                        Text(tab.titleKey)
+                            .cyText(.label, weight: selection == tab ? .semibold : nil)
+                            .foregroundStyle(selection == tab ? CYColor.textPrimary : CYColor.textSecondary)
+                            .lineLimit(1).minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.8)
+                            .frame(maxWidth: typeSize.isAccessibilitySize ? nil : .infinity, minHeight: CYSpacing.minTouchTarget)
+                            .padding(.horizontal, typeSize.isAccessibilitySize ? CYSpacing.md : CYSpacing.xs)
+                            .background {
+                                if selection == tab {
+                                    RoundedRectangle(cornerRadius: CYRadius.inner, style: .continuous)
+                                        .fill(CYColor.bgSurface)
+                                        .matchedGeometryEffect(id: "club.tab.segment", in: ns)
+                                }
                             }
-                        }
-                        .frame(maxWidth: typeSize.isAccessibilitySize ? nil : .infinity, minHeight: 44)
-                        .padding(.horizontal, typeSize.isAccessibilitySize ? CYSpacing.md : 0)
-                        .contentShape(Rectangle())
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(selection == tab ? [.isSelected] : [])
                     .accessibilityIdentifier("club.detail.tab." + tab.rawValue)
                 }
             }
+            .padding(2)
+            .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.inner + 2, style: .continuous))
     }
     @Environment(\.dynamicTypeSize) private var typeSize
     @Namespace private var ns
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.themeDomain) private var domain
 }
 
 extension ClubDetailTab {

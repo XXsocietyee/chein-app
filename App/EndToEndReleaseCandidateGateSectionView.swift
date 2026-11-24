@@ -156,7 +156,7 @@ public struct EndToEndReleaseCandidateGateSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: gate.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle((gate.isPassed && gate.isFailClosed) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: gate.requirementSummary)

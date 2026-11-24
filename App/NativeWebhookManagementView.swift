@@ -150,7 +150,7 @@ import SwiftUI
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("d7.webhook.detail.title"))
+        .navigationTitle(nativeWebhookLocalized("d7.webhook.detail.title")).navigationBarTitleDisplayMode(.inline)
         .task(id: resourceID) { await model.coordinator?.select(resourceID) }
         .accessibilityIdentifier("webhook.detail")
     }

@@ -70,9 +70,9 @@ import ImageIO
                             .contentShape(Rectangle())
                     }.cyText(.button).buttonStyle(.borderless).accessibilityIdentifier("attachmentPreview.clear")
                 }
-            }.font(Theme.Font.body).padding()
+            }.cyText(.body).padding()
         }.nativeChannelScreen().privacySensitive()
-        .navigationTitle(Text("preview.title", tableName: "NativeChannelAttachmentPreview"))
+        .navigationTitle(Text("preview.title", tableName: "NativeChannelAttachmentPreview")).navigationBarTitleDisplayMode(.inline)
         .onAppear { screenActive = true; flow.onChange = { updateImage();revision += 1 };updateImage() }
         .onDisappear { screenActive = false; clear();flow.onChange=nil }
         .onChange(of: current()) { _,value in if !value {clear()} }

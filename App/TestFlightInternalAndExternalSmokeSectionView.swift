@@ -160,7 +160,7 @@ public struct TestFlightInternalAndExternalSmokeSectionView: View {
                                 .cyText(.bodyMedium)
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
-                                .font(.caption2.monospaced())
+                                .font(.caption.monospaced())
                                 .foregroundStyle((row.isSmokePassed && row.isFailClosedVerified) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.verificationSteps)

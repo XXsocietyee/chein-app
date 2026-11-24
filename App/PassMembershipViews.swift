@@ -118,7 +118,7 @@ struct PassMembershipView: View {
                             MPRow(title: Text("mp.member.library"),
                                   sub: content.themeCount.map { Text("mp.member.library.count \($0)") },
                                   chevron: true,
-                                  leading: AnyView(Image(systemName: "seal.fill").font(CYTypography.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
+                                  leading: AnyView(Image(systemName: "seal.fill").cyText(.cardTitle).foregroundStyle(CYNight.lantern).frame(width: 32)))
                         }
                     }
                     .buttonStyle(.cyPressable)
@@ -460,7 +460,7 @@ struct PassLibraryCardView: View {
                 Spacer()
                 if let city = card.city {
                     Label { Text(verbatim: city) } icon: { Image(systemName: "mappin") }
-                        .font(CYTypography.caption).foregroundStyle(CYColor.textPrimary)
+                        .cyText(.caption).foregroundStyle(CYColor.textPrimary)
                         .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
                         .cyNightGlass(in: Capsule())
                 }

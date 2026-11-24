@@ -127,7 +127,7 @@ public struct IMAndSocialSafetyParitySectionView: View {
                     .accessibilityIdentifier("imSocialSafetyAudit.title")
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
-                    .font(.subheadline)
+                    .cyText(.body)
                     .foregroundStyle(snapshot.isAllCompliant ? .green : .red)
                     .accessibilityIdentifier("imSocialSafetyAudit.overallStatus")
 

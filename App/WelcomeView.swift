@@ -201,7 +201,7 @@ struct WelcomeHero: View {
                 tile(card, index: index)
             }
             Image(systemName: "checkmark.seal.fill")
-                .font(CYTypography.data2XL)
+                .cyText(.data2XL)
                 .foregroundStyle(Color(red: 1.0, green: 0.80, blue: 0.30), .white)
                 .background(Circle().fill(Color.black.opacity(0.35)).blur(radius: 8))
                 .symbolEffect(.bounce, options: .nonRepeating, value: fanned)

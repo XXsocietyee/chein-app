@@ -164,9 +164,14 @@ import SwiftUI
                         }
                     }
                     // Mini-program cy/profile tab order: 我的 (orders, projects), 帖文, 成就, 关于.
-                    // A2-04 / X5: MP underline tabs (owner ruling 2026-07-31), not a menu Picker row.
+                    // A2-04 / X5 asked for MP underline tabs (2026-07-31); the owner native-iOS ruling (2026-11-24) supersedes it.
+                    // Still not a menu Picker row.
                     Section {
-                        CYTabs(items: profileTabs, selection: $tab, variant: .underline)
+                        // Native restyle R2 (spec §3.7): 3-4 nouns switch views, so a system segmented picker.
+                        Picker(selection: $tab) {
+                            ForEach(profileTabs) { item in Text(verbatim: item.title).tag(item.id) }
+                        } label: { Text("social.profileSection") }
+                            .pickerStyle(.segmented)
                             .accessibilityElement(children: .contain)
                             .accessibilityLabel(Text("social.profileSection"))
                             .accessibilityIdentifier("social.profile.tabs")

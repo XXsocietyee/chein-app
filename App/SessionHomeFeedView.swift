@@ -42,7 +42,7 @@ import SwiftUI
         .onChange(of:session.homeFeedReader.scope) { _,_ in resetForHomeScopeChange() }
         .onChange(of:session.officialEventReader.scope) { _,_ in showsOfficialEvents=false }
         .onChange(of:session.sessionRevision) { _,_ in resetForSessionRevisionChange() }
-        .sheet(isPresented:$showsProjectEditor) {
+        .sheet(isPresented:$showsProjectEditor) { Group {
             NavigationStack {
                 ProjectEditLaunchView().toolbar {
                     ToolbarItem(placement:.cancellationAction) {
@@ -52,7 +52,7 @@ import SwiftUI
                 }
             }.id(session.sessionRevision)
             .themeDomain(.topicEditor)
-            .presentationCornerRadius(CYRadius.sheet)
+        }.cySheet(detents: [.large])
         }
         .sheet(isPresented:$showsOfficialEvents) {
             OfficialEventsBrowserView(reader:session.officialEventReader,actions:session.officialActionCoordinator,onClose:{ showsOfficialEvents=false },onLogin:{
@@ -167,11 +167,12 @@ import SwiftUI
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
         .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .sheet(isPresented:$showsClubApplication) { clubApplicationSheet.cyPlayerSheetGlass() }
-        .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).presentationCornerRadius(CYRadius.sheet) }
+        .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet.themeDomain(.merchant).cySheet(detents: [.large]) }
         .sheet(isPresented: $showsMiniGames) {
             NavigationStack {
                 ScrollView { ExternalGameLibrarySection(store: ExternalGameStore()).padding(.horizontal, CYSpacing.pageHorizontal) }
                     .navigationTitle(Text(verbatim: HomeIndexParityPresentation.miniGamesBanner.title(locale: locale)))
+                    .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button("action.close") { showsMiniGames = false }

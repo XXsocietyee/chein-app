@@ -365,7 +365,7 @@ struct MPRow: View {
             }
             if stack { Spacer(minLength: 0) }
             if chevron {
-                Image(systemName: "chevron.right").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                Image(systemName: "chevron.right").cyText(.caption).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             }
         }
         .padding(.horizontal, CYSpacing.lg)
@@ -464,7 +464,7 @@ struct MPGatedNote: View {
     var identifier: String = "mp.gated"
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
-            Image(systemName: "lock").font(CYTypography.caption).accessibilityHidden(true)
+            Image(systemName: "lock").cyText(.caption).accessibilityHidden(true)
             text.cyText(.meta).fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(CYColor.textSecondary)

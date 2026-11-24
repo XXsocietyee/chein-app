@@ -68,7 +68,7 @@ private struct P04LifecycleSurface: ViewModifier {
     func body(content: Content) -> some View {
         content
             .listStyle(.insetGrouped)
-            .font(Theme.Font.body)
+            .cyText(.body)
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))

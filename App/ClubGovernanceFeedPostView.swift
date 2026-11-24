@@ -27,7 +27,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             HStack(alignment: .top, spacing: CYSpacing.md) {
                 avatar
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Group {
                         if let nickname = post.nickname { Text(verbatim: nickname) }
                         else { Text("square.unknownAuthor") }
@@ -66,8 +66,8 @@ extension EnvironmentValues {
         }
         .padding(CYSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
+        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.card, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
         .fixedSize(horizontal: false, vertical: true)
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
         .listRowBackground(Color.clear)

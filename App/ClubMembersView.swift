@@ -108,12 +108,13 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
             .cyDomainPageBackground()
         }
         .cyHeroScreen()
-        .sheet(item: $memberReport) { target in
+        .sheet(item: $memberReport) { target in Group {
             if let governance, currentReport(target) {
                 NavigationStack { ClubMemberReportView(target: target, identity: reader.clubIdentity, governance: governance) }
             } else {
                 Color.clear.onAppear { if memberReport?.id == target.id { memberReport = nil } }
             }
+        }.cySheet(detents: [.large])
         }
         .onChange(of: reportContext) { _, _ in
             reportReadGeneration &+= 1; reportDirectory = nil; memberReport = nil; reportRefreshRevision &+= 1
@@ -251,7 +252,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             CYAvatarView(url: QuestifyCardArtwork.safeURL(member.avatar), name: member.trimmedNickname ?? "\(member.memberId)", size: .md)
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if let nickname = member.trimmedNickname {
                     Text(verbatim: nickname)
                         .cyText(.cardTitle)
@@ -316,7 +317,7 @@ struct ClubMemberInviteRow: View {
         ShareLink(item: String(format: OpsR3Text.string("r3club.invite.message", locale: locale), clubName)) {
             HStack(spacing: CYSpacing.md) {
                 Image(systemName: "person.badge.plus")
-                    .font(.body.weight(.semibold))
+                    .cyText(.bodyMedium)  // CLB-detail-41
                     .foregroundStyle(palette.textPrimary)
                     .frame(width: 40, height: 40)
                     .background(Circle().fill(palette.bgElevated))

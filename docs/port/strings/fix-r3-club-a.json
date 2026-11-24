@@ -1,0 +1,110 @@
+{
+  "club.detail.leaderboard.lockedReview": {
+    "zh-Hans": "通过审核后可看贡献榜",
+    "en": "Get approved to see the contribution board"
+  },
+  "club.detail.safety.title": {
+    "zh-Hans": "治理与安全",
+    "en": "Governance & Safety"
+  },
+  "club.detail.safety.appeal": {
+    "zh-Hans": "封禁申诉",
+    "en": "Ban Appeal"
+  },
+  "club.detail.manage.settlement": {
+    "zh-Hans": "结算",
+    "en": "Settlement"
+  },
+  "club.topic.merchantLogo": {
+    "zh-Hans": "承接商家",
+    "en": "Host merchant"
+  },
+  "club.topic.verifyAtStore": {
+    "zh-Hans": "玩家可到店核销",
+    "en": "Players can check in at the store"
+  },
+  "club.story.answerTitle": {
+    "zh-Hans": "答案",
+    "en": "Answer"
+  },
+  "club.story.noRoute": {
+    "zh-Hans": "暂无路线",
+    "en": "No route yet"
+  },
+  "club.story.noStops": {
+    "zh-Hans": "这一章还没有节点",
+    "en": "No stops in this chapter yet"
+  },
+  "club.story.addressUnavailable": {
+    "zh-Hans": "未填写地址",
+    "en": "No address"
+  },
+  "club.story.answer.notice": {
+    "zh-Hans": "答案只给主办方和这一站的接待方看，用于现场判定玩家能否通过。玩家端看不到这一段。",
+    "en": "Only the organiser and this stop's host see the answer, to judge on site whether a player passes. Players never see it."
+  },
+  "club.gov.action.ban": {
+    "zh-Hans": "封禁",
+    "en": "Ban"
+  },
+  "club.gov.action.unban": {
+    "zh-Hans": "解封",
+    "en": "Unban"
+  },
+  "club.gov.action.report": {
+    "zh-Hans": "填写事实并提交平台",
+    "en": "State the facts and report to the platform"
+  },
+  "club.gov.action.appeal": {
+    "zh-Hans": "填写理由并提交申诉",
+    "en": "State your reason and appeal"
+  },
+  "club.gov.a11y.unban %@": {
+    "zh-Hans": "解封 %@",
+    "en": "Unban %@"
+  },
+  "club.gov.a11y.ban %@": {
+    "zh-Hans": "封禁 %@",
+    "en": "Ban %@"
+  },
+  "club.gov.a11y.transfer %@": {
+    "zh-Hans": "把主理人转让给 %@",
+    "en": "Transfer ownership to %@"
+  },
+  "club.gov.a11y.revoke %@": {
+    "zh-Hans": "撤销 %@ 的角色",
+    "en": "Remove %@'s role"
+  },
+  "club.host.merchant.viewApply": {
+    "zh-Hans": "查看商家入驻",
+    "en": "View merchant application"
+  },
+  "club.host.signIn.title": {
+    "zh-Hans": "登录后申请成为主理人",
+    "en": "Sign in to apply as a host"
+  },
+  "club.host.signIn.action": {
+    "zh-Hans": "登录",
+    "en": "Sign In"
+  },
+  "club.ops.recheck": {
+    "zh-Hans": "重新检查",
+    "en": "Check Again"
+  },
+  "club.ops.discardTitle": {
+    "zh-Hans": "放弃本轮修改？",
+    "en": "Discard these changes?"
+  },
+  "club.ops.discard": {
+    "zh-Hans": "确认放弃",
+    "en": "Discard"
+  },
+  "club.ops.quotaUnit": {
+    "zh-Hans": "个",
+    "en": "spots"
+  },
+  "club.detail.identityUnavailable": {
+    "zh-Hans": "成员身份暂时无法确认，管理员工具暂不可用。",
+    "en": "Your membership can't be confirmed right now, so admin tools are unavailable."
+  }
+}

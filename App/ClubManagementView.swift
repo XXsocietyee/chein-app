@@ -118,7 +118,7 @@ struct ClubManagementView: View {
                             .listRowSeparator(.hidden)
                         }
                     } header: {
-                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Text("club.management.requests")
                                 .cyText(.sectionTitle)
                                 .foregroundStyle(CYColor.textPrimary)
@@ -306,7 +306,7 @@ struct ClubManagementView: View {
     private func requestRow(_ request: ClubManagementRequest) -> some View {
         HStack(alignment: .center, spacing: CYSpacing.md) {
             personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 ClubOpsJoinRequestRowText(request: request)
                     .cyText(.cardTitle)
                     .foregroundStyle(CYColor.textPrimary)
@@ -340,7 +340,7 @@ struct ClubManagementView: View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             HStack(alignment: .center, spacing: CYSpacing.md) {
                 personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) {
                         Text(verbatim: name).cyText(.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     } else {
@@ -429,7 +429,7 @@ struct ClubManagementView: View {
     private func statusLine(_ key: LocalizedStringKey, symbol: String, identifier: String? = nil) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
             Image(systemName: symbol)
-                .font(CYTypography.body.weight(.semibold))
+                .cyText(.body, weight: .semibold)
                 .foregroundStyle(CYColor.textSecondary)
                 .accessibilityHidden(true)
             Text(key)

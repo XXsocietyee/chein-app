@@ -26,7 +26,7 @@ class ClubDetailTabContracts(unittest.TestCase):
     def test_detail_view_gates_every_tab_section(self):
         view = read('App/ClubDetailView.swift')
         self.assertEqual(view.count('ClubDetailTabBar(tabs: tabs.tabs, selection: tab)'), 1)
-        self.assertIn('tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))', view)
+        self.assertIn('tabs.resolve(selectedTab ?? tabs.initialTab(requested: focusPostID != nil ? .posts : requestedTab))', view)
         # Header and join/quit stay above the tabs; each moved section is behind its tab.
         self.assertLess(view.index('ClubActionPanel('), view.index('ClubDetailTabBar('))
         for marker, tab in [('club.chat.entry', '.posts'), ('ClubCommunityEntry(', '.posts'), ('SessionClubPublicActivityListView(clubID: id', '.events'),

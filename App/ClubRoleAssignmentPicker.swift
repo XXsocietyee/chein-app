@@ -186,7 +186,10 @@ import SwiftUI
     }
     private func memberName(_ member: ClubRoleAssignableMember) -> some View {
         // CLB-roles-03: the member's name only; a missing name reads 未命名, never 「用户 <id>」.
-        VStack(alignment: .leading, spacing: 2) {
+        // CLB-roles-03 (MP roles wxml:84-91): a monogram avatar leads each member row (the read carries no avatar URL).
+        HStack(spacing: CYSpacing.sm) {
+            CYAvatarView(name: member.nickname ?? "", size: .sm)
+                .accessibilityHidden(true)
             if let name = member.nickname { Text(verbatim: name) } else { Text("club.rolePicker.unnamed") }
         }
     }

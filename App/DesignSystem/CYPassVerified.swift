@@ -80,7 +80,7 @@ struct CYPassVerifiedFace: View {
                         .shadow(color: CYNight.lantern.opacity(landed ? 0.55 : 0), radius: 16)
                         .scaleEffect(reduceMotion || landed ? 1 : 0.6)
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 28, weight: .semibold))
+                        .font(.system(.title, weight: .semibold))
                         .foregroundStyle(CYNight.ink0)
                         .offset(x: 30, y: 28)
                         .symbolEffect(.bounce, options: .nonRepeating, isActive: landed && !reduceMotion)

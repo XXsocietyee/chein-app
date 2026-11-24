@@ -24,7 +24,7 @@ struct ClubOpsSettlementSummaryCard: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .cyDomainCard(radius: CYRadius.xl, padding: CYSpacing.lg)
+            .cyDomainCard(radius: CYRadius.hero, padding: CYSpacing.lg)
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowBackground(Color.clear)
         }
