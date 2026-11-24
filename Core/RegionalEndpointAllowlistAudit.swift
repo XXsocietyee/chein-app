@@ -1,7 +1,5 @@
 import Foundation
 
-extension RegionalMarket: Sendable {}
-
 /// High-risk write endpoints that must remain fail-closed (blocked by default) across both
 /// `CN` and `US` regional builds unless explicitly allowlisted for the active market.
 public enum RegionalHighRiskWriteRoute: String, CaseIterable, Comparable, Hashable, Sendable {
